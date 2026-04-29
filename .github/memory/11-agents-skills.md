@@ -34,6 +34,7 @@
 | `ui-ux-front-saas` | Any frontend UI/UX work | `.github/skills/ui-ux-front-saas/SKILL.md` |
 | `new-azure-resource` | New Azure resource type end-to-end | `.github/skills/new-azure-resource/SKILL.md` |
 | `gitnexus-workflow` | Code exploration via knowledge graph, impact analysis before modifications, post-change validation, safe refactoring | `.github/skills/gitnexus-workflow/SKILL.md` |
+| `graphify-corpus` | Corpus-level knowledge graph (docs+code+diagrams+audits), god nodes, community detection, surprising connections, onboarding orientation, architecture overview spanning docs and code | `.github/skills/graphify-corpus/SKILL.md` |
 | `draw-io-diagram-generator` | Create or update draw.io diagrams (`.drawio`, `.drawio.svg`, `.drawio.png`) for architecture and technical documentation | `.github/skills/draw-io-diagram-generator/SKILL.md` |
 | `audit-workflow` | Produce expert code audits and reconcile audit findings with GitHub issues and labels | `.github/skills/audit-workflow/SKILL.md` |
 | `dotnet-patterns` | Any C#/.NET code generation: naming, XML docs, SOLID, async/await, EF Core, pattern matching, security | `.github/skills/dotnet-patterns/SKILL.md` |
@@ -101,6 +102,15 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 - Environment subscription rule: missing environment subscription IDs are optional during MCP draft/project creation. They must remain non-blocking warnings, warnings must be recomputed from the current draft state on revalidation, and `create_project_from_draft` should echo them in the success payload so the caller knows the subscription can be configured later.
 - VS Code connection: `.vscode/mcp.json` points to `http://127.0.0.1:5258/mcp` with `Authorization: Bearer ${input:ifs_pat}` header.
 - The skill now explicitly requires typed import models instead of weak `Dictionary<string, object>` / `JsonDocument` propagation, one public top-level type per file, and deliberate pattern selection.
+
+## Graphify Runtime Notes [2026-04-29]
+
+- Workspace now includes a local `graphify-corpus` skill and a `graphify` MCP server entry in `.vscode/mcp.json`.
+- Verified on this Windows machine with PyPI `graphifyy 0.4.23`: the user-install launcher exists at `%APPDATA%\Python\Python314\Scripts\graphify.exe`, but that folder is not on `PATH`; agents should prefer `python -m graphify ...` in terminal commands.
+- Verified bootstrap command for a code-only graph on this repo: `python -c "from pathlib import Path; from graphify.watch import _rebuild_code; import sys; ok = _rebuild_code(Path('.')); sys.exit(0 if ok else 1)"`.
+- Verified query command: `python -m graphify query "bicep generation" --graph .\graphify-out\graph.json` works against the generated graph.
+- Verified `graphify.serve` requires a separate `mcp` Python package (`python -m pip install --user mcp`).
+- Verified large-repo caveat: `graphify-out/graph.json` and `GRAPH_REPORT.md` are generated successfully on this repo, but `graph.html` may fail with "Graph has ... nodes - too large for HTML viz"; agents should treat HTML output as optional.
 
 ## CQRS Skill [2026-04-29]
 

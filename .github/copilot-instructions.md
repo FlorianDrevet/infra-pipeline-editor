@@ -72,6 +72,7 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 | `ui-ux-front-saas` | Any frontend UI/UX work: page design, component visuals, layout, styling, UX states, handoff specs | `.github/skills/ui-ux-front-saas/SKILL.md` |
 | `new-azure-resource` | Adding a new Azure resource type end-to-end (Domain→App→Infra→Contracts→API→Bicep→Frontend→i18n) | `.github/skills/new-azure-resource/SKILL.md` |
 | `gitnexus-workflow` | Code exploration via knowledge graph, impact analysis before modifications, post-change validation, safe refactoring | `.github/skills/gitnexus-workflow/SKILL.md` |
+| `graphify-corpus` | Corpus-level knowledge graph (docs+code+diagrams+audits), god nodes, community detection, surprising connections, onboarding orientation, architecture overview spanning docs and code | `.github/skills/graphify-corpus/SKILL.md` |
 | `draw-io-diagram-generator` | Creating or updating `.drawio` architecture, flow, sequence, ER, or UML diagrams for the project | `.github/skills/draw-io-diagram-generator/SKILL.md` |
 | `audit-workflow` | Running expert code audits, writing the report under `audits/`, and synchronizing audit findings with GitHub labels/issues | `.github/skills/audit-workflow/SKILL.md` |
 | `dotnet-patterns` | Any C#/.NET code generation: naming, XML docs, SOLID, async/await, EF Core, pattern matching, security | `.github/skills/dotnet-patterns/SKILL.md` |
@@ -94,12 +95,13 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 8. **Response DTO IDs:** Always `string` (not `Guid`) — Mapster maps `Id.Value.ToString()`
 9. **OpenAPI 401:** All protected endpoints must include `.ProducesProblem(401)`
 10. **GitNexus:** Before modifying a shared symbol, run `gitnexus_impact()` to assess blast radius
-11. **TDD obligatoire:** Never write production code without tests first — load `tdd-workflow` skill, follow RED→GREEN→REFACTOR→VERIFY, track debt in `.github/test-debt.md`
-12. **DS obligatoire (Frontend):** Tout composant UI doit utiliser les `app-ds-*` existants. Si un pattern n'a pas de DS component, en créer un réutilisable dans `shared/components/ds/` avant usage.
-13. **Une classe par fichier:** En code de production, ne pas créer de fichiers poubelles qui regroupent des dizaines de DTOs, models, requests, responses, ou helpers.
-14. **Typage fort d'abord:** Éviter `object`, `Dictionary<,>`, `JsonDocument`, `JsonNode`, et les blobs JSON en base quand le schéma est connu côté code et persistance.
-15. **Patterns avec levier:** Comparer les options plausibles et retenir la plus simple qui améliore lisibilité, maintenabilité, et scalabilité ; ne pas ajouter d'abstraction décorative.
-16. **Organisation des fichiers:** Ne pas accumuler des fichiers à plat dans un même dossier quand ils ont des responsabilités différentes (DTOs, logique métier, constantes, enums). Créer des sous-dossiers thématiques (Models/, Constants/, Analysis/, etc.) et aligner les namespaces sur le chemin physique.
+11. **Knowledge graphs:** GitNexus for code structure/impact, Graphify for corpus (docs+diagrams+audits). Never use Graphify for blast radius or rename; never use GitNexus for doc-to-code traceability
+12. **TDD obligatoire:** Never write production code without tests first — load `tdd-workflow` skill, follow RED→GREEN→REFACTOR→VERIFY, track debt in `.github/test-debt.md`
+13. **DS obligatoire (Frontend):** Tout composant UI doit utiliser les `app-ds-*` existants. Si un pattern n'a pas de DS component, en créer un réutilisable dans `shared/components/ds/` avant usage.
+14. **Une classe par fichier:** En code de production, ne pas créer de fichiers poubelles qui regroupent des dizaines de DTOs, models, requests, responses, ou helpers.
+15. **Typage fort d'abord:** Éviter `object`, `Dictionary<,>`, `JsonDocument`, `JsonNode`, et les blobs JSON en base quand le schéma est connu côté code et persistance.
+16. **Patterns avec levier:** Comparer les options plausibles et retenir la plus simple qui améliore lisibilité, maintenabilité, et scalabilité ; ne pas ajouter d'abstraction décorative.
+17. **Organisation des fichiers:** Ne pas accumuler des fichiers à plat dans un même dossier quand ils ont des responsabilités différentes (DTOs, logique métier, constantes, enums). Créer des sous-dossiers thématiques (Models/, Constants/, Analysis/, etc.) et aligner les namespaces sur le chemin physique.
 
 ## Pull Request conventions
 

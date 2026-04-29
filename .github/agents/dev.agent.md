@@ -65,6 +65,14 @@ Après lecture de `MEMORY.md`, identifier :
 - `gitnexus_impact(target, "upstream")` → blast radius si modification prévue
 - Référence complète : charger le skill `gitnexus-workflow` (`.github/skills/gitnexus-workflow/SKILL.md`)
 
+**Étape 1bis — Graphify (corpus, transversal) :**
+Si la tâche touche à la documentation, l'architecture transversale, un audit, ou l'onboarding :
+- Lire `graphify-out/GRAPH_REPORT.md` pour identifier god nodes et communautés pertinentes
+- Utiliser `graphify query "concept"` ou le MCP Graphify pour des liens code ↔ docs
+- Référence complète : charger le skill `graphify-corpus` (`.github/skills/graphify-corpus/SKILL.md`)
+
+**Règle de priorité :** GitNexus pour le code, Graphify pour le corpus. Ne jamais utiliser Graphify pour l'impact analysis ou le rename. Ne jamais utiliser GitNexus pour la traçabilité doc-to-code.
+
 **Étape 2 — @Explore (contenu, détail) :**
 `@Explore` reste utile pour la lecture brute de fichiers identifiés par GitNexus.
 `@Explore` est un sous-agent rapide, read-only, spécialisé dans l'exploration et le Q&A codebase.
@@ -153,6 +161,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 |-------|------------------|---------|
 | Explorer le codebase (fichiers, patterns, conventions) avant délégation | **`Explore`** | sous-agent built-in, aucun fichier agent |
 | Analyse d'impact / exploration structurelle avant modification | Charger le skill **`gitnexus-workflow`** | `.github/skills/gitnexus-workflow/SKILL.md` |
+| Exploration corpus (docs+code+audits+diagrammes), onboarding, architecture transversale | Charger le skill **`graphify-corpus`** | `.github/skills/graphify-corpus/SKILL.md` |
 | Audit technique complet du dépôt avec synchronisation GitHub | **`audit-expert`** + charger le skill `audit-workflow` | `.github/agents/audit-expert.agent.md` |
 | Rediger ou refondre de la documentation technique, un cours d'onboarding, un guide de lecture du code, ou une explication de patterns du projet | **`documentation-professor`** | `.github/agents/documentation-professor.agent.md` |
 | Revue de code pré-merge, review de diff contre `main`, gate qualité avant merge | **`review-expert`** | `.github/agents/review-expert.agent.md` |
@@ -288,6 +297,11 @@ Un skill est **différent d'un agent** :
 - **Quand le charger :** dès qu'une tâche nécessite de l'exploration structurelle (flux d'exécution, dépendances), de l'analyse d'impact avant modification, ou de la validation post-changement
 - **Fichier :** `.github/skills/gitnexus-workflow/SKILL.md`
 - **Contenu :** les commandes GitNexus par phase (exploration, impact, validation, refactoring), les conventions de nommage pour formuler des requêtes précises, l'intégration avec la mémoire projet
+
+#### `graphify-corpus`
+- **Quand le charger :** dès qu'une tâche nécessite une vue transversale code+docs, une orientation architecture à partir du corpus complet, une analyse de communautés/god nodes, ou une exploration de liens conceptuels entre documentation et code
+- **Fichier :** `.github/skills/graphify-corpus/SKILL.md`
+- **Contenu :** les commandes Graphify (build, update, query, path, explain), le serveur MCP, les sorties (GRAPH_REPORT.md, graph.json), les règles de priorité vs GitNexus, l'intégration avec chaque agent
 
 #### `audit-workflow`
 - **Quand le charger :** dès qu'une tâche consiste à produire un audit technique du dépôt, écrire le rapport dans `audits/`, ou réconcilier les issues GitHub d'audit avec les findings

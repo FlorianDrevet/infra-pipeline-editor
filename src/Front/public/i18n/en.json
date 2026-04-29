@@ -229,7 +229,29 @@
   "COMMON": {
     "CANCEL": "Cancel",
     "CLOSE": "Close",
-    "DELETE": "Delete"
+    "DELETE": "Delete",
+    "DATE_PICKER": {
+      "ARIA": {
+        "CLEAR": "Clear date",
+        "PREVIOUS_YEAR": "Previous year",
+        "OPEN_YEAR_SELECTION": "Open year selection",
+        "NEXT_YEAR": "Next year",
+        "PREVIOUS_MONTH": "Previous month",
+        "OPEN_MONTH_SELECTION": "Open month selection",
+        "NEXT_MONTH": "Next month",
+        "PREVIOUS_YEAR_RANGE": "Previous year range",
+        "RETURN_TO_DAYS": "Return to calendar days",
+        "NEXT_YEAR_RANGE": "Next year range",
+        "YEAR_SELECTION": "Year selection",
+        "MONTH_SELECTION": "Month selection",
+        "CHOOSE_YEAR": "Choose year {{year}}",
+        "CHOOSE_MONTH": "Choose month {{month}}"
+      },
+      "HINTS": {
+        "SELECT_YEAR": "Select year",
+        "SELECT_MONTH": "Select month"
+      }
+    }
   },
   "CONFIG_DETAIL": {
     "HEADER": {

@@ -51,6 +51,13 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 - `DependencyInjection.cs` (Application) registers MediatR, ValidationBehavior, UnitOfWorkBehavior, validators by assembly scan.
 - `DependencyInjection.cs` (Infrastructure) registers `IUnitOfWork`.
 
+## Project Result Mapping [2026-04-29]
+
+- The `Projects` slice no longer relies on injected `MapsterMapper.IMapper` inside `CreateProjectCommandHandler`, `CreateProjectWithSetupCommandHandler`, `GetProjectQueryHandler`, and `ListMyProjectsQueryHandler`.
+- Canonical mapping from `Domain.ProjectAggregate.Project` to `Application.Projects.Common.ProjectResult` now lives in `Application/Projects/Common/ProjectResultMapper.cs`.
+- `Api/Common/Mapping/ProjectMappingConfig.cs` delegates its `Project -> ProjectResult` Mapster rule to the same helper so API and MCP return the same shape without forcing the MCP host to load API-host DI registrations.
+- Use this pattern when an Application handler needs to return an Application result model that is also consumed outside the API host: keep the domain-to-application mapping in Application, not in the API executable composition root.
+
 ## User Provisioning [2026-04-22]
 
 - User auto-provisioning is handled by `UserProvisioningMiddleware` (ASP.NET Core middleware, `Api/Common/`).

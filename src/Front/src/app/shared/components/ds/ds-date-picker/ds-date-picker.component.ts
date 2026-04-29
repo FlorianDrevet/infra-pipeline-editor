@@ -5,6 +5,7 @@ import {
   ElementRef,
   forwardRef,
   HostListener,
+  inject,
   input,
   signal,
   viewChild,
@@ -13,6 +14,8 @@ import {
 import { ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslateModule } from '@ngx-translate/core';
+import { LanguageService } from '../../../services/language.service';
 
 export interface CalendarDay {
   date: Date;
@@ -30,6 +33,20 @@ interface CalendarYear {
   isDisabled: boolean;
 }
 
+interface CalendarMonth {
+  month: number;
+  label: string;
+  fullLabel: string;
+  isCurrent: boolean;
+  isSelected: boolean;
+  isDisabled: boolean;
+}
+
+interface AllowedMonthRange {
+  startMonth: number;
+  endMonth: number;
+}
+
 let dsDatePickerUid = 0;
 const YEAR_PAGE_SIZE = 12;
 const YEAR_PAGE_OFFSET = 5;
@@ -42,7 +59,7 @@ const YEAR_PAGE_OFFSET = 5;
 @Component({
   selector: 'app-ds-date-picker',
   standalone: true,
-  imports: [MatIconModule, OverlayModule],
+  imports: [MatIconModule, OverlayModule, TranslateModule],
   templateUrl: './ds-date-picker.component.html',
   styleUrl: './ds-date-picker.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,6 +72,8 @@ const YEAR_PAGE_OFFSET = 5;
   ],
 })
 export class DsDatePickerComponent implements ControlValueAccessor {
+  private readonly languageService = inject(LanguageService);
+
   public readonly label = input<string | undefined>(undefined);
   public readonly placeholder = input<string>('');
   public readonly hint = input<string | undefined>(undefined);
@@ -68,7 +87,7 @@ export class DsDatePickerComponent implements ControlValueAccessor {
   protected readonly value = signal<string>('');
   protected readonly isOpen = signal(false);
   protected readonly viewDate = signal(new Date());
-  protected readonly viewMode = signal<'days' | 'years'>('days');
+  protected readonly viewMode = signal<'days' | 'months' | 'years'>('days');
   protected readonly yearPageStart = signal(this.getYearPageStart(new Date().getFullYear()));
   private readonly internalDisabled = signal(false);
   private readonly triggerRef = viewChild<ElementRef<HTMLButtonElement>>('trigger');
@@ -94,20 +113,22 @@ export class DsDatePickerComponent implements ControlValueAccessor {
     const parts = iso.split('-');
     const d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
     if (Number.isNaN(d.getTime())) return '';
-    return new Intl.DateTimeFormat(navigator.language, {
+    return this.formatDate(d, {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
-    }).format(d);
+    });
   });
 
   protected readonly monthLabel = computed(() => {
-    return new Intl.DateTimeFormat(navigator.language, {
+    return this.formatDate(this.viewDate(), {
       month: 'long',
-    }).format(this.viewDate());
+    });
   });
 
   protected readonly yearLabel = computed(() => this.viewDate().getFullYear().toString());
+  protected readonly canNavigateToPreviousMonth = computed(() => this.canNavigateToMonth(-1));
+  protected readonly canNavigateToNextMonth = computed(() => this.canNavigateToMonth(1));
   protected readonly canNavigateToPreviousYear = computed(() => this.canNavigateToYear(-1));
   protected readonly canNavigateToNextYear = computed(() => this.canNavigateToYear(1));
 
@@ -133,15 +154,34 @@ export class DsDatePickerComponent implements ControlValueAccessor {
     });
   });
 
+  protected readonly monthOptions = computed<CalendarMonth[]>(() => {
+    const visibleDate = this.viewDate();
+    const currentDate = new Date();
+    const visibleYear = visibleDate.getFullYear();
+    const visibleMonth = visibleDate.getMonth();
+
+    return Array.from({ length: 12 }, (_, month) => {
+      const monthDate = new Date(visibleYear, month, 1);
+
+      return {
+        month,
+        label: this.formatDate(monthDate, { month: 'short' }),
+        fullLabel: this.formatDate(monthDate, { month: 'long' }),
+        isCurrent:
+          visibleYear === currentDate.getFullYear() && month === currentDate.getMonth(),
+        isSelected: month === visibleMonth,
+        isDisabled: !this.canViewMonth(monthDate),
+      };
+    });
+  });
+
   protected readonly weekdays = computed(() => {
     const base = new Date(2024, 0, 1); // Monday
     const days: string[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(base);
       d.setDate(base.getDate() + i);
-      days.push(
-        new Intl.DateTimeFormat(navigator.language, { weekday: 'short' }).format(d),
-      );
+      days.push(this.formatDate(d, { weekday: 'short' }));
     }
     return days;
   });
@@ -228,14 +268,17 @@ export class DsDatePickerComponent implements ControlValueAccessor {
     }
   }
 
-  protected toggleViewMode(): void {
-    if (this.viewMode() === 'days') {
-      this.yearPageStart.set(this.getYearPageStart(this.viewDate().getFullYear()));
-      this.viewMode.set('years');
-      return;
-    }
-
+  protected showDaySelection(): void {
     this.viewMode.set('days');
+  }
+
+  protected showYearSelection(): void {
+    this.yearPageStart.set(this.getYearPageStart(this.viewDate().getFullYear()));
+    this.viewMode.set('years');
+  }
+
+  protected showMonthSelection(): void {
+    this.viewMode.set('months');
   }
 
   protected showPreviousYearRange(): void {
@@ -255,22 +298,33 @@ export class DsDatePickerComponent implements ControlValueAccessor {
   }
 
   protected prevMonth(): void {
-    const d = this.viewDate();
-    this.viewDate.set(new Date(d.getFullYear(), d.getMonth() - 1, 1));
+    this.navigateMonth(-1);
   }
 
   protected nextMonth(): void {
-    const d = this.viewDate();
-    this.viewDate.set(new Date(d.getFullYear(), d.getMonth() + 1, 1));
+    this.navigateMonth(1);
   }
 
   protected selectYear(year: number): void {
-    if (this.isYearDisabled(year)) {
+    const clampedDate = this.getClampedDateInYear(year, this.viewDate().getMonth());
+
+    if (!clampedDate) {
       return;
     }
 
+    this.setViewDate(clampedDate);
+    this.viewMode.set('days');
+  }
+
+  protected selectMonth(month: number): void {
     const visibleDate = this.viewDate();
-    this.setViewDate(new Date(year, visibleDate.getMonth(), 1));
+    const targetDate = new Date(visibleDate.getFullYear(), month, 1);
+
+    if (!this.canViewMonth(targetDate)) {
+      return;
+    }
+
+    this.setViewDate(targetDate);
     this.viewMode.set('days');
   }
 
@@ -314,9 +368,27 @@ export class DsDatePickerComponent implements ControlValueAccessor {
     return year - YEAR_PAGE_OFFSET;
   }
 
+  private formatDate(date: Date, options: Intl.DateTimeFormatOptions): string {
+    return new Intl.DateTimeFormat(this.languageService.currentLanguage(), options).format(date);
+  }
+
   private navigateYear(offset: number): void {
     const visibleDate = this.viewDate();
-    const targetDate = new Date(visibleDate.getFullYear() + offset, visibleDate.getMonth(), 1);
+    const targetDate = this.getClampedDateInYear(
+      visibleDate.getFullYear() + offset,
+      visibleDate.getMonth(),
+    );
+
+    if (!targetDate) {
+      return;
+    }
+
+    this.setViewDate(targetDate);
+  }
+
+  private navigateMonth(offset: number): void {
+    const visibleDate = this.viewDate();
+    const targetDate = new Date(visibleDate.getFullYear(), visibleDate.getMonth() + offset, 1);
 
     if (!this.canViewMonth(targetDate)) {
       return;
@@ -325,35 +397,63 @@ export class DsDatePickerComponent implements ControlValueAccessor {
     this.setViewDate(targetDate);
   }
 
+  private canNavigateToMonth(offset: number): boolean {
+    const visibleDate = this.viewDate();
+    return this.canViewMonth(new Date(visibleDate.getFullYear(), visibleDate.getMonth() + offset, 1));
+  }
+
   private canNavigateToYear(offset: number): boolean {
     const visibleDate = this.viewDate();
-    return this.canViewMonth(new Date(visibleDate.getFullYear() + offset, visibleDate.getMonth(), 1));
+    return this.getClampedDateInYear(visibleDate.getFullYear() + offset, visibleDate.getMonth()) !== null;
   }
 
   private canViewMonth(date: Date): boolean {
-    const minDate = this.minDateValue();
-    const maxDate = this.maxDateValue();
-    const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
-    const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    const allowedMonthRange = this.getAllowedMonthRange(date.getFullYear());
 
-    if (minDate && monthEnd < minDate) {
-      return false;
-    }
-
-    return !maxDate || monthStart <= maxDate;
+    return !!allowedMonthRange &&
+      date.getMonth() >= allowedMonthRange.startMonth &&
+      date.getMonth() <= allowedMonthRange.endMonth;
   }
 
   private isYearDisabled(year: number): boolean {
-    const minDate = this.minDateValue();
-    const maxDate = this.maxDateValue();
-    const yearStart = new Date(year, 0, 1);
-    const yearEnd = new Date(year, 11, 31);
+    return this.getAllowedMonthRange(year) === null;
+  }
 
-    if (minDate && yearEnd < minDate) {
-      return true;
+  private getClampedDateInYear(year: number, preferredMonth: number): Date | null {
+    const allowedMonthRange = this.getAllowedMonthRange(year);
+
+    if (!allowedMonthRange) {
+      return null;
     }
 
-    return !!maxDate && yearStart > maxDate;
+    const clampedMonth = Math.min(
+      Math.max(preferredMonth, allowedMonthRange.startMonth),
+      allowedMonthRange.endMonth,
+    );
+
+    return new Date(year, clampedMonth, 1);
+  }
+
+  private getAllowedMonthRange(year: number): AllowedMonthRange | null {
+    const minDate = this.minDateValue();
+    const maxDate = this.maxDateValue();
+
+    if (year < (minDate?.getFullYear() ?? Number.NEGATIVE_INFINITY)) {
+      return null;
+    }
+
+    if (year > (maxDate?.getFullYear() ?? Number.POSITIVE_INFINITY)) {
+      return null;
+    }
+
+    const startMonth = year === minDate?.getFullYear() ? (minDate?.getMonth() ?? 0) : 0;
+    const endMonth = year === maxDate?.getFullYear() ? (maxDate?.getMonth() ?? 11) : 11;
+
+    if (startMonth > endMonth) {
+      return null;
+    }
+
+    return { startMonth, endMonth };
   }
 
   private parseIsoDate(value: string | null | undefined): Date | null {

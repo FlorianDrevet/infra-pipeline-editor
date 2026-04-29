@@ -5,6 +5,19 @@
 
 ---
 
+## Dual-graph architecture [2026-04-29]
+
+Ce dépôt utilise **deux graphes complémentaires** :
+
+| Graphe | Outil | Périmètre | Force | Skill |
+|--------|-------|-----------|-------|-------|
+| Code graph | **GitNexus** | Symboles, appels, héritages, flows | Impact analysis, blast radius, rename, detect_changes | `gitnexus-workflow` |
+| Corpus graph | **Graphify** | Code AST + docs + audits + diagrammes + images | God nodes, communautés, connexions surprenantes, traçabilité doc↔code | `graphify-corpus` |
+
+**Règle absolue :** GitNexus pour le code, Graphify pour le corpus. Ne jamais les intervertir.
+
+---
+
 ## Index status
 
 - **Repo indexé :** `infra-pipeline-editor`

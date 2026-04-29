@@ -117,7 +117,7 @@ public sealed class ProjectMappingConfig : IRegister
 
         // Project domain -> ProjectResult
         config.NewConfig<Project, ProjectResult>()
-            .MapWith(ProjectResultMapper.ToProjectResult);
+            .MapWith(src => ProjectResultMapper.ToProjectResult(src));
 
         // ProjectResult -> ProjectResponse
         config.NewConfig<ProjectResult, ProjectResponse>()

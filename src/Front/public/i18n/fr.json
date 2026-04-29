@@ -229,7 +229,29 @@
   "COMMON": {
     "CANCEL": "Annuler",
     "CLOSE": "Fermer",
-    "DELETE": "Supprimer"
+    "DELETE": "Supprimer",
+    "DATE_PICKER": {
+      "ARIA": {
+        "CLEAR": "Effacer la date",
+        "PREVIOUS_YEAR": "Année précédente",
+        "OPEN_YEAR_SELECTION": "Ouvrir la sélection de l'année",
+        "NEXT_YEAR": "Année suivante",
+        "PREVIOUS_MONTH": "Mois précédent",
+        "OPEN_MONTH_SELECTION": "Ouvrir la sélection du mois",
+        "NEXT_MONTH": "Mois suivant",
+        "PREVIOUS_YEAR_RANGE": "Plage d'années précédente",
+        "RETURN_TO_DAYS": "Retour au calendrier",
+        "NEXT_YEAR_RANGE": "Plage d'années suivante",
+        "YEAR_SELECTION": "Sélection de l'année",
+        "MONTH_SELECTION": "Sélection du mois",
+        "CHOOSE_YEAR": "Choisir l'année {{year}}",
+        "CHOOSE_MONTH": "Choisir le mois {{month}}"
+      },
+      "HINTS": {
+        "SELECT_YEAR": "Sélectionner l'année",
+        "SELECT_MONTH": "Sélectionner le mois"
+      }
+    }
   },
   "CONFIG_DETAIL": {
     "HEADER": {

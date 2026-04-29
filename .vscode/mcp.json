@@ -69,6 +69,15 @@
 				"-y",
 				"@playwright/mcp"
 			]
+		},
+		"graphify": {
+			"type": "stdio",
+			"command": "python",
+			"args": [
+				"-m",
+				"graphify.serve",
+				"graphify-out/graph.json"
+			]
 		}
 	},
 	"inputs": [

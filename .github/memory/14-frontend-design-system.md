@@ -59,6 +59,7 @@
 - `DsDatePickerComponent` now includes a fast year-selection mode: clicking the header label switches to a 12-year grid with previous/next range navigation, selected/current year highlighting, and disabled years when fully outside `min`/`max`.
 - `DsDatePickerComponent` now also exposes direct year stepping inside the day-view header, next to the current year chip, and that navigation is disabled whenever the target month would fall outside `min`/`max`. The PAT creation dialog binds dynamic bounds from `today` to `today + 1 year` through the shared `min`/`max` API instead of hardcoded template dates.
 - The day-view header of `DsDatePickerComponent` now renders as two aligned rows on the same three-column grid: top row for year previous/current/next, second row for month previous/current/next. This removes the offset between month and year arrows and keeps both navigations visually stacked.
+- `DsDatePickerComponent` now has a third `months` view: clicking the month label opens a 12-month grid for the visible year, with impossible months disabled from `min` / `max`. Year navigation no longer hard-blocks when only the current month is invalid in the target year; it clamps to the nearest allowed month in that year (for example May -> next year under an April max lands on April). Internal hints/ARIA labels now live under `COMMON.DATE_PICKER.*`, and all Intl formatting uses the app language from `LanguageService` rather than `navigator.language`.
 
 ## DS Integration Rule [2026-04-28]
 
