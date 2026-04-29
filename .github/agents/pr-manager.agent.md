@@ -5,6 +5,7 @@ description: 'Conventions obligatoires pour la création de Pull Requests par le
 
 > Ce fichier est lu par tous les agents GitHub Copilot avant de créer ou de soumettre une Pull Request.  
 > Ces conventions sont **obligatoires** et non-négociables.
+> Une PR ne doit pas etre soumise sans double revue technique : `review-main` / `review-expert` pour la merge-readiness et `vibe-coding-refractaire` pour la chasse aux odeurs de vibe coding.
 
 ---
 
@@ -93,15 +94,19 @@ Quand un agent crée une PR, il doit :
 1. **Identifier le but principal** de l'ensemble du travail effectué (pas la dernière modification).
 2. **Construire le titre** selon le format `type(scope): description`.
 3. **Remplir la description** en utilisant le template et en listant **tous** les fichiers créés ou modifiés, groupés par couche.
-4. **S'assurer que le build passe** (`dotnet build .\InfraFlowSculptor.slnx`) avant de soumettre.
-5. **Vérifier et mettre à jour la documentation** si les changements concernent la documentation ou s'il y a des informations à ajouter :
+4. **Lancer la double revue technique obligatoire** avant soumission :
+  - `review-main` (ou `@review-expert`) pour les risques de merge-readiness
+  - `@vibe-coding-refractaire` pour les smells de vibe coding, de dette structurelle et de faux signaux de qualité
+  - Aucun finding `BLOCKER` ou `HIGH` de l'une ou l'autre passe ne doit etre ignore sans arbitrage explicite de l'utilisateur
+5. **S'assurer que le build passe** (`dotnet build .\InfraFlowSculptor.slnx`) avant de soumettre.
+6. **Vérifier et mettre à jour la documentation** si les changements concernent la documentation ou s'il y a des informations à ajouter :
    - Parcourir les changements effectués (architecture, conventions, nouvelles APIs, etc.)
    - Vérifier les sections pertinentes dans `docs/`, `docs/azure/`, `README.md` ou `MEMORY.md`
    - Créer des sections manquantes ou mettre à jour les informations existantes
    - Si la feature est documentée dans une page wiki ADO, mettre à jour également
    - Indiquer les fichiers docs modifiés/créés dans la description de PR sous la section "Docs"
-6. **Mettre à jour `MEMORY.md`** et inclure cette mise à jour dans la même PR.
-7. **Exécuter le protocole Azure DevOps** (section 5) : chercher ou créer Epic/US, ajouter les Tasks, lier la PR aux work items, mettre à jour les statuts.
+7. **Mettre à jour `MEMORY.md`** et inclure cette mise à jour dans la même PR.
+8. **Exécuter le protocole Azure DevOps** (section 5) : chercher ou créer Epic/US, ajouter les Tasks, lier la PR aux work items, mettre à jour les statuts.
 
 ---
 

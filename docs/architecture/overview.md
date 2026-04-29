@@ -156,3 +156,5 @@ builder.Services
 - [Persistance EF Core](persistence.md) — Repositories, configurations, conventions
 - [Lecture des ressources projet et views SQL](project-resource-queries.md) — Flux des queries de lecture projet, projections légères et views keyless
 - [Guide de navigation](getting-started.md) — Comment trouver et ajouter du code
+- [Intégration MCP](mcp-integration.md) — Cours d'onboarding pour comprendre MCP, son intégration .NET et son exposition dans ce projet
+- [Plan MCP V1](mcp-v1-implementation-plan.md) — Phases, contrats des tools, modèle d'import, checklist de validation

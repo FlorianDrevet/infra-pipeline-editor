@@ -108,7 +108,7 @@ public sealed class RedisCacheTypeBicepGenerator
                 ["capacity"] = int.TryParse(resource.Properties.GetValueOrDefault("capacity", "1"), out var cap) ? cap : 1,
                 [RedisVersionParameterName] = resource.Properties.GetValueOrDefault(RedisVersionParameterName, "6"),
                 [EnableNonSslPortParameterName] = resource.Properties.GetValueOrDefault(EnableNonSslPortParameterName, "false") == "true",
-                [MinimumTlsVersionParameterName] = resource.Properties.GetValueOrDefault(MinimumTlsVersionParameterName, "1.2"),
+                [MinimumTlsVersionParameterName] = resource.Properties.GetValueOrDefault(MinimumTlsVersionParameterName, AzureResourceDefaults.MinimumTlsVersion),
                 [DisableAccessKeyAuthenticationParameterName] = resource.Properties.GetValueOrDefault(DisableAccessKeyAuthenticationParameterName, "false") == "true",
                 [AadEnabledParameterName] = resource.Properties.GetValueOrDefault(AadEnabledParameterName, "false") == "true",
             }

@@ -28,7 +28,11 @@
 | 8 | `InfraFlowSculptor.PipelineGeneration` | 4 engines (PipelineGenerationEngine, BootstrapPipelineGenerationEngine, AppPipelineGenerationEngine, MonoRepoPipelineAssembler) | Byte-for-byte parity sentinels via golden file tests covering all 4 engines + R2 frozen-set lock on AppPipeline shared templates (20 paths) — 22 tests + 83 captured goldens. Behavioral coverage of internal stages still missing (will be added during Vagues 1.1/1.2/1.3 stage decomposition via TDD). | P2 | 2026-04-27 | 2026-04-27 | dev |
 | 9 | `InfraFlowSculptor.Contracts` | Request and validation DTOs | Dedicated test project now exists, but coverage is currently limited to the Storage Account CORS validation slice; most request/response validation paths remain untested. | P2 | 2026-04-28 | | |
 | 10 | `Front (Angular)` | Local Sonar quick-win helpers | No focused frontend specs currently cover the local CORS validators, generated artifact archive path sanitization, alias normalization helper, or Bicep highlight pipe. Validation is currently limited to `npm run typecheck` and `npm run build`. | P2 | 2026-04-28 | | |
+<<<<<<< HEAD
+| 11 | `InfraFlowSculptor.Application` | Imports/PreviewIacImport analyzer + query | A dedicated `InfraFlowSculptor.Application.Tests` project now exists and covers the apply-import handler slice, but the ARM preview analyzer and `PreviewIacImportQueryHandler` are still exercised only through `InfraFlowSculptor.Mcp.Tests`. | P1 | 2026-04-28 | | |
+=======
 | 11 | `Scripts (PowerShell)` | `fix-legacy-repository-topology.ps1` | One-off repository topology repair script has no automated regression coverage; current remediation relies on syntax validation and manual/local container execution only. | P3 | 2026-04-28 | | |
+>>>>>>> origin/main
 
 ---
 

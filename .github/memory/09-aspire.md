@@ -11,7 +11,15 @@
 ## AppHost Wiring
 - PostgreSQL (`postgres` container, image `postgres:17.6`), DbGate, main API, Angular frontend
 - Main API: `infraflowsculptor-api`, frontend: `angular-frontend`
+- MCP HTTP service: `infraflowsculptor-mcp` on fixed port `5258`
 - Azure Blob Storage emulator for generation output
+
+## MCP Under Aspire [2026-04-28]
+- `src/Mcp/InfraFlowSculptor.Mcp` is now an ASP.NET Core MCP host exposed over HTTP at `/mcp`; the previous workspace-local `stdio` mode was removed.
+- `src/Aspire/InfraFlowSculptor.AppHost/AppHost.cs` starts the MCP service alongside the API, Postgres, blob storage, keyvault emulator, and frontend.
+- The MCP host uses the same `AddApplication()` + `AddInfrastructure(...)` stack as the API, but calls `AddInfrastructure(..., includeAuthentication: false)` so shared infrastructure registration does not force Microsoft.Identity.Web config into the MCP process.
+- `AddInfrastructure(...)` now also registers MCP OpenTelemetry sources/meters (`Experimental.ModelContextProtocol`, `ModelContextProtocol`, `ModelContextProtocol.Core`) so Aspire can surface MCP calls as traces beyond a generic `POST /mcp` request.
+- Workspace clients now connect through `.vscode/mcp.json` with `type: "http"` and `url: "http://127.0.0.1:5258/mcp"`.
 
 ## Frontend in Aspire [2026-03-18]
 ```csharp

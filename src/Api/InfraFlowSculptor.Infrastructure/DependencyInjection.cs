@@ -2,6 +2,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using AzureKeyVaultEmulator.Aspire.Client;
 using InfraFlowSculptor.Application.Common.Interfaces;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Infrastructure.Auth;
 using InfraFlowSculptor.Infrastructure.Extensions;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
@@ -33,14 +35,24 @@ namespace InfraFlowSculptor.Infrastructure;
 
 public static class DependencyInjection
 {
+    private const string ExperimentalMcpTelemetryName = "Experimental.ModelContextProtocol";
+    private const string McpTelemetryName = "ModelContextProtocol";
+    private const string McpCoreTelemetryName = "ModelContextProtocol.Core";
+
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         ConfigurationManager builderConfiguration,
-        IHostEnvironment hostEnvironment)
+        IHostEnvironment hostEnvironment,
+        bool includeAuthentication = true)
     {
+        services.AddPersistence(builderConfiguration);
+
+        if (includeAuthentication)
+        {
+            services.AddAuth(builderConfiguration);
+        }
+
         services
-            .AddPersistence(builderConfiguration)
-            .AddAuth(builderConfiguration)
             .AddAzureServices(builderConfiguration)
             .AddBlob(builderConfiguration)
             .AddRepositories()
@@ -89,6 +101,7 @@ public static class DependencyInjection
         services.AddScoped<IContainerRegistryRepository, ContainerRegistryRepository>();
         services.AddScoped<IEventHubNamespaceRepository, EventHubNamespaceRepository>();
         services.AddScoped<IInfrastructureConfigReadRepository, InfrastructureConfigReadRepository>();
+        services.AddScoped<IPersonalAccessTokenRepository, PersonalAccessTokenRepository>();
 
         return services;
     }
@@ -128,6 +141,27 @@ public static class DependencyInjection
         services.AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builderConfiguration.GetSection("AzureAd"));
         
+        return services;
+    }
+
+    /// <summary>
+    /// Registers personal access token (PAT) authentication as the default scheme.
+    /// Used by the MCP host where interactive OAuth is not available.
+    /// </summary>
+    public static IServiceCollection AddPatAuthentication(this IServiceCollection services)
+    {
+        services.AddAuthentication(PersonalAccessTokenAuthenticationDefaults.AuthenticationScheme)
+            .AddScheme<AuthenticationSchemeOptions, PersonalAccessTokenAuthenticationHandler>(
+                PersonalAccessTokenAuthenticationDefaults.AuthenticationScheme,
+                _ => { });
+
+        services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+        });
+
         return services;
     }
 
@@ -203,13 +237,19 @@ public static class DependencyInjection
         services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
-                metrics.AddAspNetCoreInstrumentation()
+                metrics.AddMeter(ExperimentalMcpTelemetryName)
+                    .AddMeter(McpTelemetryName)
+                    .AddMeter(McpCoreTelemetryName)
+                    .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation();
             })
             .WithTracing(tracing =>
             {
                 tracing.AddSource(environment.ApplicationName)
+                    .AddSource(ExperimentalMcpTelemetryName)
+                    .AddSource(McpTelemetryName)
+                    .AddSource(McpCoreTelemetryName)
                     .AddAspNetCoreInstrumentation(options =>
                         options.Filter = context =>
                             !context.Request.Path.StartsWithSegments("/health")

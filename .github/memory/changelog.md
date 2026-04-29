@@ -1,40 +1,48 @@
-# Changelog
+﻿# Changelog
 
 > Entries older than 60 days are pruned during dream consolidation.
 
 | Date | Author | Change |
 |------|--------|--------|
-| 2026-04-28 | dev | **Sonar generator batch:** reduced targeted S1192 duplication noise in `ContainerAppTypeBicepGenerator`, `RedisCacheTypeBicepGenerator`, and `WebAppTypeBicepGenerator` with semantic constants only (module/type/parameter identifiers, deployment/auth mode values, Docker registry setting names). Added focused generator tests and revalidated `InfraFlowSculptor.BicepGeneration.Tests`, solution tests, and solution build. |
-| 2026-04-28 | dev | **Sonar remediation started:** fixed the open secret blocker in `scripts/fix-legacy-repository-topology.ps1` by switching local `psql` execution to the container `postgres` user (no `POSTGRES_PASSWORD` extraction), tracked the untested PowerShell script in `.github/test-debt.md`, and applied the first backend quick-win batch (`BicepEmitter`, `IdentityTransformer`, `AppSettingsTransformer`, `ConfigVarsStage`) with focused test coverage and green .NET validation. |
-| 2026-04-28 | dev | **Sonar duplicate code reduction:** Excluded EF Core migrations from CPD (sonar-project.properties). Deleted dead root-level NamingTemplateTranslator (added missing envShort to Helpers copy). Extracted 6 shared helpers: BlobDownloadHelper (3 Download + 4 Push handlers), TagValidationRules, NamingTemplateValidationRules, RepositoryConnectionValidationRules, GenerationRequestBuilder (~350 lines from GenerateBicep handlers), ConfigPipelineBuilder (CI/PR stages). Frontend: BaseGeneratorService (Bicep/Pipeline services), DsBooleanControlBase (checkbox/toggle CVA). 918 tests pass. |
-| 2026-04-28 | dev | **Sonar hardening follow-up:** project combined ZIP downloads now enforce CRC + size/count/path guards with localized errors, and frontend Roboto/Material Icons stylesheets moved from Google Fonts links to local npm packages bundled by Angular. |
-| 2026-04-28 | dev | **Sonar quick wins:** backend regex timeouts bounded (250 ms) with new Contracts/Domain test projects, frontend local regex/bypass/archive-path hotspots hardened, Copilot setup actions pinned to full SHAs, and frontend Docker image tightened (explicit COPY, ignore-scripts, unprivileged nginx). |
-| 2026-04-27 | dev | **Pipeline refactor Vague 1 COMPLETE (1.0-1.3).** 3 engines decomposed into staged facades. Net -335 LOC dead code. 91/91 tests green (44 golden + 47 stage). Golden parity sentinels for 4 engines (83 golden files). Domain decoupled from PipelineGeneration. Plan at `docs/architecture/pipeline-refactoring/00-PLAN.md`. |
-| 2026-04-27 | dev | **Bicep V2 migration COMPLETE.** All 18 generators migrated legacy const string to Builder+IR (BicepModuleSpec). Phase 0 IR infra + Phases 1-5 generators by tier + Phase 6 legacy cleanup. IrOutputPruningStage + OutputUsageTracker replaced regex-based pruner. 842 tests total. |
-| 2026-04-27 | dev | **Tooling wave:** bicep-v2-migration skill + migration tracker. tdd-workflow skill (RED-GREEN-REFACTOR-VERIFY mandatory). review-expert + review-remediator agents + review-main prompt. Bicep onboarding guide rewritten. License changed to PolyForm Noncommercial 1.0.0. xunit-unit-testing skill added. GenerationParity.Tests csproj removed. |
-| 2026-04-27 | dev | **Bug fixes:** MainBicepAssembler aliases colliding exported type names. Bootstrap az pipelines create on Windows PS 5.1 guarded against NativeCommandError. |
-| 2026-04-26 | dev | **Frontend polish:** DockerfilePicker visibility fixed (brand-palette colors). Wizard footer sticky. Split download ZIPs repo-scoped. Bootstrap preview split infra/code. POST /projects/with-setup route restored. Pipeline pool emitted in wrappers. KV app settings ViaBicepparam classified as secrets. Config-detail Generate/Push gated to true MultiRepo. |
-| 2026-04-25 | dev | **Create-project wizard V1:** 4/5-step Material stepper, atomic POST /projects/with-setup, sessionStorage draft, Quick Start, resume-draft banner. Old create-project-dialog deleted. |
-| 2026-04-25 | dev | **SplitInfraCode generation:** Bootstrap split (BootstrapMode FullOwner/ApplicationOnly), dedicated infra/code push actions, MultiRepoPushDialog (infra/code/both), panel collapse/expand, BootstrapSetupGuide, DsPanelActionButton, generation panel header redesign. |
-| 2026-04-25 | dev | **Bicep module uniformity:** Generic userAssignedIdentityId param (AVM-style). Same-typed resources sharing modules. Project-level Git push re-sliced by root folder. Dream exclusive lock. Auth-expiry UX hardened. Local DB snapshot refreshed. |
-| 2026-04-24 | dev | Angular 21 + DS rollout. SplitInfraCode Common/ restored for project Bicep. Global Material override. 216 form fields migrated to DS controls. |
-| 2026-04-23 | dev/copilot | Multi-repo wave: backend audit fixes (path traversal, auth, security headers, rate limiting), layout-driven topology (LayoutPreset), legacy Git config removed, SplitInfraCode dual-repo generation/push, bootstrap ADO, Bicep/pipeline correctness fixes, frontend multi-repo UX. |
-| 2026-04-22 | copilot | Custom domains E2E, bootstrap ADO hardening, mono-repo combined push, existing-resource verification, Container App health probes, grouped Bicep params, CAE LAW security, DNS name availability, resource abbreviation overrides, SQL Server fixes, snapshot seeding. |
-| 2026-04-21 | copilot | Bicep hardening: secure params, pipeline override wiring, output symbol validation, LAW fallback, artifact path sanitization, module reference disambiguation. |
-| 2026-04-20 | copilot | Infra release artifact flow standardized (drop + artifact-relative paths). Aspire MCP detection mismatch documented. |
+| 2026-04-29 | dev | **File hierarchy reorganization (MCP + Application Imports).** Reorganized flat file structures: `Application/Imports/Common/` split into `Analysis/`, `Constants/`, `Creation/` subfolders; `Mcp/Tools/` DTOs moved to `Tools/Models/`; `Mcp/Drafts/` model classes moved to `Drafts/Models/`. All 30 files moved, namespaces aligned to physical paths, usings updated across ~20 consumer files (source + tests). Added file organization rule to `dotnet-dev.agent.md`, `copilot-instructions.md` pitfall #16, and `code-quality-guardrails.instructions.md`. 825/826 tests pass (1 pre-existing BicepEmitter failure). |
+| 2026-04-29 | dev | **Agent code-quality guardrails hardened.** Added `.github/instructions/code-quality-guardrails.instructions.md`; aligned `copilot-instructions`, `dev`, `architect`, `dotnet-dev`, `angular-front`, `vibe-coding-refractaire`, `dotnet-patterns`, and `angular-patterns` on no magic strings, one-type-per-file, strong typing, and explicit pattern selection. |
+| 2026-04-29 | dev | **MCP documentation realigned with runtime.** Rewrote `docs/architecture/mcp-integration.md` as the authoritative onboarding guide for the current MCP implementation: HTTP `/mcp`, PAT authentication, token lifecycle, VS Code connection, exact inventory of 8 tools / 2 resources / 1 prompt, and code-reading order. Updated `docs/README.md` descriptions to distinguish the current runtime guide from the original V1 design plan. |
+| 2026-04-29 | dev | **Typed property extraction pattern.** Replaced `Dictionary<string, object?>` dynamic extraction with typed records (`KeyVaultExtractedProperties`, `StorageAccountExtractedProperties`, etc.) in `Application/Imports/Common/Properties/`. Each record has `FromArm()`, `FromDictionary()`, `ToDictionary()`. `ResourceCommandFactory` now consumes `IExtractedResourceProperties` instead of string-keyed dicts. `ImportPreviewAnalyzer.ExtractProperties` returns tuples from typed record constructors. `ExtractedPropertiesResolver` bridges HTTP round-trip dictionaries back to typed records. |
+| 2026-04-29 | dev | **Documentation professor agent added.** New `.github/agents/documentation-professor.agent.md` defines a pedagogy-first documentation specialist that explains concepts, patterns, and code-reading paths grounded in the real repository. Wired into `.github/copilot-instructions.md`, `dev.agent.md`, and `.github/memory/11-agents-skills.md`. |
+| 2026-04-29 | dev | **PR #324 vibe-coding review remediation.** Fixed 7 findings: BLOCKER-001 (deduplicated ResourceCommandFactory → single shared class in Application), BLOCKER-002 (removed reflection from orchestrator), HIGH-003 (renamed `TokenPrefix_` → `TokenPrefix`), HIGH-004 (persist `RecordUsage` via `SaveChangesAsync`), HIGH-005 (TTL eviction on singleton stores + `InMemoryCleanupService` background cleanup), HIGH-006 (explicit `.RequireAuthorization()` on MCP route), MEDIUM-008 (rethrow `OperationCanceledException`). Drafts now cleaned up after project creation. Tests updated for typed MediatR mocks. All 937+ tests pass. |
+| 2026-04-29 | dev | **Magic strings eliminated in import layer.** Added `IacSourceFormat`, `ImportPreviewGapCategory`, `ImportDependencyType` public constants in Application. Deleted MCP's duplicate `IacSourceFormat.cs`. All 105 MCP tests green. |
+| 2026-04-29 | dev | **ARM template parsing strongly typed.** Replaced `JsonDocument.Parse` + manual `TryGetProperty` with `JsonSerializer.Deserialize<ArmTemplateDocument>`. New models: `ArmTemplateDocument`, `ArmResource`, `ArmSku` in `Application/Imports/Common/Arm/`. 20/20 analyzer tests green. |
+| 2026-04-29 | dev | **Agent anti-vibe coding ajouté.** New `.github/agents/vibe-coding-refractaire.agent.md` provides a harsh senior PR review pass focused on vibe-coding smells and low-signal generated code. Wired into `review-main`, `pr-manager`, `dev.agent.md`, `.github/copilot-instructions.md`, and `.github/memory/11-agents-skills.md` so technical review and PR creation now require this second-pass gate. |
+| 2026-04-29 | dev | **MCP code quality refactoring.** One-class-per-file (29 new files), `McpJsonDefaults` (eliminates 7 dupes), `IacSourceFormat` constant, `LayoutPresetEnum` domain enum, typed `TopologyInfo`/`ResourceTypeInfo` records. 104 MCP tests, 940 total. |
+| 2026-04-29 | dev | **MCP resource creation end-to-end.** `ResourceCommandFactory` (18 types, dependency ordering) + `ProjectSetupOrchestrator`. Golden ARM template tests. |
+| 2026-04-29 | dev | **Import preview/apply extracted to Application layer.** `IImportPreviewAnalyzer`, `PreviewIacImportQuery`, `ApplyImportPreviewCommand` now in `Application/Imports/`. API endpoints `POST /imports/preview` + `POST /imports/apply`. MCP retains preview-ID storage. |
+| 2026-04-29 | dev | **DS Date Picker + Settings/PAT DS migration.** `app-ds-date-picker` (CDK overlay, calendar, year-selection, CVA). PAT table: `app-ds-chip` + shared `@mixin ifs-data-table`. Nav icon fix. DS integration rule (pitfall #12). |
+| 2026-04-28 | dev | **PAT authentication end-to-end.** `PersonalAccessToken` aggregate, CQRS commands, EF migration, custom auth handler, MCP secured with PAT, frontend `/settings` page. |
+| 2026-04-28 | dev | **MCP V1 COMPLETE + HTTP migration.** 8 tools, 2 resources, 1 prompt (ModelContextProtocol SDK v1.2.0). Migrated stdio to ASP.NET Core HTTP `/mcp` under Aspire with PAT auth. MCP skill created + expanded. |
+| 2026-04-28 | dev | **Sonar wave.** S1192 semantic constants (3 generators), secret blocker fix, backend quick-wins (regex timeouts, hotspots), duplicate code reduction (6 shared helpers, CPD exclusions), ZIP guards, local font bundling, Docker tightening. |
+| 2026-04-27 | dev | **Pipeline refactor Vague 1 COMPLETE.** 3 engines decomposed into staged facades. -335 LOC. 91 tests (44 golden + 47 stage). |
+| 2026-04-27 | dev | **Bicep V2 migration COMPLETE.** 18 generators migrated to Builder+IR. IrOutputPruningStage + OutputUsageTracker. 842 tests. |
+| 2026-04-27 | dev | **Tooling wave.** bicep-v2-migration, tdd-workflow, xunit-unit-testing skills. review-expert + review-remediator agents. License PolyForm NC 1.0. |
+| 2026-04-26 | dev | **Frontend polish.** DockerfilePicker brand colors, wizard footer sticky, split download ZIPs repo-scoped, bootstrap preview split, config-detail Generate/Push gated to MultiRepo. |
+| 2026-04-25 | dev | **Create-project wizard V1 + SplitInfraCode generation.** 4/5-step stepper, bootstrap split, MultiRepoPushDialog, DsPanelActionButton, generic UAI param, dream lock. |
+| 2026-04-24 | dev | Angular 21 + DS rollout. 216 form fields migrated. Global Material override. SplitInfraCode Common/ restored. |
+| 2026-04-23 | dev | Multi-repo wave: audit fixes, LayoutPreset, SplitInfraCode dual-repo gen/push, bootstrap ADO, frontend multi-repo UX. |
+| 2026-04-22 | copilot | Custom domains E2E, bootstrap ADO hardening, health probes, grouped Bicep params, CAE LAW security, SQL Server fixes. |
+| 2026-04-21 | copilot | Bicep hardening: secure params, output validation, LAW fallback, artifact path sanitization. |
+| 2026-04-20 | copilot | Infra release artifact flow standardized. |
 | 2026-04-17 | copilot | .bicepparam filenames switched to environment short names. |
-| 2026-04-16 | copilot | Sealed enum VOs, string DTO ids, .ProducesProblem(401), tag limits, shared role-assignment service, camelCase Bicep, ErrorOr alignment, Aspire decoupling. |
-| 2026-04-15 | copilot | Merged main into DDD branch, sealed AzureResource aggregates, audit automation refreshed. |
-| 2026-04-14 | copilot | Audit scripts: Windows PS 5.1 compat, UTF-8, no PS7 requirement. |
-| 2026-04-13 | copilot | Draw.io tooling added, architecture diagram refreshed. |
-| 2026-04-04 | copilot | Generation/pipeline stabilization, unified app pipeline endpoint, AgentPoolName to Project, BicepAssembler refactored, FK cascade fixes. |
-| 2026-04-03 | copilot | App pipeline generation, GitNexus integration, Container App runtime/pipeline fixes. |
-| 2026-04-02 | copilot | Assigned user-managed identity refactored across domain/CQRS/Bicep/frontend/diagnostics. |
-| 2026-04-01 | copilot | Windows-first conventions reinforced, general-config i18n/runtime cleanup. |
-| 2026-03-31 | copilot | Event Hub namespace support, configuration keys UX redesign. |
-| 2026-03-30 | copilot | ACR pull role assignments, pipeline variable groups, Unit of Work, domain quality conventions. |
-| 2026-03-29 | copilot | Azure DevOps pipeline YAML generation (AzureResourceManagerConnection). |
-| 2026-03-28 | copilot | Unified generation UX, mono-repo pipeline, secret/static app settings, architect agent. |
-| 2026-03-27 | copilot | UAI grouping, Storage Account CORS/lifecycle editing. |
-| 2026-03-26 | copilot | Storage Account CORS UX, queue/table Bicep generation. |
-| 2026-03-24 | copilot | Log Analytics Workspace + Application Insights delivered E2E. |
+| 2026-04-16 | copilot | Sealed enum VOs, string DTO ids, .ProducesProblem(401), camelCase Bicep, Aspire decoupling. |
+| 2026-04-15 | copilot | Merged main into DDD branch, sealed AzureResource aggregates. |
+| 2026-04-14 | copilot | Audit scripts: Windows PS 5.1 compat. |
+| 2026-04-13 | copilot | Draw.io tooling added. |
+| 2026-04-04 | copilot | Generation/pipeline stabilization, BicepAssembler refactored, FK cascade fixes. |
+| 2026-04-03 | copilot | App pipeline generation, GitNexus integration. |
+| 2026-04-02 | copilot | User-managed identity refactored across all layers. |
+| 2026-04-01 | copilot | Windows-first conventions, general-config cleanup. |
+| 2026-03-31 | copilot | Event Hub namespace, configuration keys UX. |
+| 2026-03-30 | copilot | ACR pull roles, variable groups, Unit of Work, domain quality. |
+| 2026-03-29 | copilot | Azure DevOps pipeline YAML generation. |
+| 2026-03-28 | copilot | Unified generation UX, mono-repo pipeline, architect agent. |
+| 2026-03-27 | copilot | UAI grouping, Storage Account CORS/lifecycle. |
+| 2026-03-26 | copilot | Storage Account CORS UX, queue/table Bicep. |
+| 2026-03-24 | copilot | Log Analytics Workspace + Application Insights E2E. |

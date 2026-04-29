@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "InfraFlowSculptor.PipelineGeneration/1.0.0": {
+        "dependencies": {
+          "InfraFlowSculptor.GenerationCore": "1.0.0"
+        },
+        "runtime": {
+          "InfraFlowSculptor.PipelineGeneration.dll": {}
+        }
+      },
+      "InfraFlowSculptor.GenerationCore/1.0.0": {
+        "runtime": {
+          "InfraFlowSculptor.GenerationCore.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "InfraFlowSculptor.PipelineGeneration/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "InfraFlowSculptor.GenerationCore/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

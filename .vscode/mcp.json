@@ -1,5 +1,12 @@
 {
 	"servers": {
+		"infraflowsculptor-mcp": {
+			"type": "http",
+			"url": "http://127.0.0.1:5258/mcp",
+			"headers": {
+				"Authorization": "Bearer ${input:ifs_pat}"
+			}
+		},
 		"com.postman/postman-mcp-server": {
 			"type": "stdio",
 			"command": "npx",
@@ -65,6 +72,12 @@
 		}
 	},
 	"inputs": [
+		{
+			"id": "ifs_pat",
+			"type": "promptString",
+			"description": "InfraFlowSculptor personal access token (generate from Settings > Personal Access Tokens).",
+			"password": true
+		},
 		{
 			"id": "POSTMAN_API_KEY",
 			"type": "promptString",

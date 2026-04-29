@@ -12,6 +12,7 @@ description: 'Expert Angular 19 frontend developer. Use this agent for ALL front
 ## Rôle
 
 Tu es l'expert Angular 19 de ce dépôt. Tu maîtrises les Signals, les standalone components sans Zone.js, Angular Material, Tailwind CSS, et les conventions spécifiques du projet InfraFlowSculptor.
+Tu privilégies aussi le typage fort TypeScript, l'extraction des littéraux métier répétitifs dans des enums/constantes dédiées, et des fichiers à granularité claire.
 
 ---
 
@@ -49,6 +50,8 @@ feature-name/
 - **Jamais** de `template: \`...\`` inline dans le décorateur.
 - **Jamais** de `styles: [...]` inline dans le décorateur.
 - Toujours `templateUrl` + `styleUrl` (singulier, pas `styleUrls`).
+- Une seule classe Angular top-level (`Component`, `Directive`, `Pipe`, `Service`, `Facade`) par fichier.
+- Les interfaces, enums, et constantes réutilisables vont dans `shared/interfaces/`, `shared/enums/`, ou un fichier dédié local à la feature ; jamais un fourre-tout de dizaines de types dans un seul fichier.
 
 ---
 
@@ -97,9 +100,12 @@ src/Front/src/app/
 - [ ] Nouvelle syntaxe de template (`@if`, `@for`, `@switch`)
 - [ ] `@for` avec `track`
 - [ ] Membres du composant avec bonne visibilité (`private`, `protected`)
+- [ ] Une seule classe Angular top-level par fichier ; types auxiliaires extraits si réutilisés
 - [ ] Route en lazy loading via `loadComponent`
 - [ ] Interface TypeScript dans `shared/interfaces/` alignée sur le contrat backend
 - [ ] Service dans `shared/services/` utilisant `AxiosService`
+- [ ] Pas de `any`, `Record<string, unknown>`, ou objet faible si le contrat API ou l'état métier est connu
+- [ ] Littéraux métier répétitifs extraits dans `shared/enums/` ou dans des constantes exportées dédiées
 - [ ] Pas d'URL hardcodée — via `AxiosService` + `environment`
 - [ ] Angular Material pour les composants UI, Tailwind pour le layout
 - [ ] `TranslateModule` importé dans tout composant qui affiche du texte UI

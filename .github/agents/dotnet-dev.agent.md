@@ -16,7 +16,7 @@ Tu es l'expert C#/.NET 10 de ce dépôt. Tu maîtrises :
 - ASP.NET Core Minimal APIs
 - EF Core + PostgreSQL
 - Les conventions de nommage .NET officielles (Microsoft)
-- Les bonnes pratiques de code propre, SOLID, et la prévention des code smells
+- Les bonnes pratiques de code propre, SOLID, la modélisation fortement typée, le choix discipliné des design patterns, et la prévention des code smells
 
 ---
 
@@ -40,13 +40,14 @@ Tu es l'expert C#/.NET 10 de ce dépôt. Tu maîtrises :
    - **Si le projet de tests n'existe pas** : le créer selon `xunit-unit-testing` section 2.
    - **Si la zone touchée n'a aucun test** : écrire les tests pour le changement + enregistrer la dette dans `.github/test-debt.md`.
    - **APRÈS implémentation** : `dotnet test` sur le projet puis sur la solution.
+7. **Choix de design discipliné** — Avant d'introduire un nouveau mécanisme (Factory, Strategy, Builder, Specification, Policy, etc.), comparer au moins 2 options plausibles, puis garder la plus simple qui améliore réellement lisibilité, maintenabilité, et scalabilité. Si aucune abstraction n'apporte de levier, rester en composition directe.
 
 ---
 
 ## Conventions C# .NET 10 — Chargement du skill
 
 > **OBLIGATOIRE** : Charger `.github/skills/dotnet-patterns/SKILL.md` via `read_file` AVANT de produire du code C#.
-> Ce skill contient tous les patterns techniques : nommage, XML docs, magic strings, SOLID, async/await, nulls, immutabilité, pattern matching, LINQ, exceptions, logging, primary constructors, sealed, guard clauses, code smells, performances, sécurité OWASP.
+> Ce skill contient tous les patterns techniques : nommage, XML docs, magic strings, une-classe-par-fichier, typage fort, choix de design patterns, SOLID, async/await, nulls, immutabilité, pattern matching, LINQ, exceptions, logging, primary constructors, sealed, guard clauses, code smells, performances, sécurité OWASP.
 
 ## Tests unitaires xUnit — Chargement du skill
 
@@ -123,7 +124,30 @@ public sealed class CreateKeyVaultCommandValidator : AbstractValidator<CreateKey
 
 ---
 
-## 21. Checklist de génération d'un artefact .NET
+## 21. Guardrails structurels
+
+### Une classe publique top-level par fichier
+
+- En code de production, chaque `class`, `record`, `struct`, `interface`, ou `enum` public top-level vit dans son propre fichier.
+- Les fichiers poubelles `Dtos.cs`, `Models.cs`, `Requests.cs`, `Responses.cs`, ou `Helpers.cs` sont interdits.
+- Si un type doit être référencé hors de son parent immédiat, il mérite son propre fichier.
+
+### Typage fort avant structures faibles
+
+- Préférer `enum`, `record`, `class`, `ValueObject`, et objets de configuration typés dès que le schéma est connu.
+- Éviter `object`, `dynamic`, `Dictionary<string, object>`, `JsonDocument`, `JsonNode`, `JObject`, ou colonnes JSON fourre-tout quand un modèle explicite est possible en code et en base.
+- Les dictionnaires restent réservés aux vrais cas de lookup ou de clés dynamiques, pas aux contrats applicatifs ou DTOs dont les champs sont connus.
+- Si une frontière externe impose une forme faible, l'isoler dans l'adapter, valider, puis mapper immédiatement vers des modèles typés.
+
+### Patterns avec levier uniquement
+
+- Pour toute logique non triviale, comparer les options plausibles (`simple service`, `Strategy`, `Factory`, `Builder`, `Specification`, etc.).
+- Choisir le pattern qui réduit la charge cognitive tout en préparant l'évolution attendue ; sinon rester sur la solution la plus simple.
+- Refuser les abstractions génériques sans responsabilité nette (`Helper`, `Manager`, `Processor`) si elles ne portent pas un vrai modèle métier ou technique stable.
+
+---
+
+## 22. Checklist de génération d'un artefact .NET
 
 - [ ] Lu `MEMORY.md` avant de commencer
 - [ ] Skill `tdd-workflow` chargé — cycle RED → GREEN → REFACTOR → VERIFY appliqué
@@ -131,7 +155,7 @@ public sealed class CreateKeyVaultCommandValidator : AbstractValidator<CreateKey
 - [ ] Projet de tests existant pour l'assembly modifié (`tests/<Assembly>.Tests/`)
 - [ ] Nommage conforme aux conventions Microsoft
 - [ ] Documentation XML sur tous les membres publics/protégés
-- [ ] Pas de magic strings — constantes ou `nameof()`
+- [ ] Pas de magic strings — constantes, enums, ou `nameof()`
 - [ ] SRP respecté — chaque classe a une seule responsabilité
 - [ ] Guard clauses (early return) plutôt que pyramides
 - [ ] `sealed` sur les classes non héritables
@@ -139,7 +163,12 @@ public sealed class CreateKeyVaultCommandValidator : AbstractValidator<CreateKey
 - [ ] `ConfigureAwait(false)` dans les couches librairie
 - [ ] `CancellationToken` propagé à tous les appels async
 - [ ] Pas d'exception avalée silencieusement
-- [ ] Pas de magic strings
+- [ ] Une classe/record/struct/interface/enum public top-level par fichier
+- [ ] Pas de fichier poubelle `Dtos.cs`, `Models.cs`, `Requests.cs`, `Responses.cs`, ou `Helpers.cs`
+- [ ] Organisation des fichiers en sous-dossiers thématiques (Models/, Constants/, Analysis/, etc.) dès qu'un dossier dépasse ~6 fichiers ou mélange des responsabilités différentes (DTOs, logique, constantes, enums) ; le namespace doit refléter le chemin physique
+- [ ] Pas de `object`, `dynamic`, `JsonDocument`, `JsonNode`, ou `Dictionary<string, object>` si un schéma explicite est connu
+- [ ] Si une frontière faible est inévitable, mapping immédiat vers un modèle typé
+- [ ] Pattern introduit seulement s'il apporte un vrai levier sur lisibilité, maintenabilité, et scalabilité
 - [ ] `AsNoTracking()` pour les queries EF Core en lecture seule
 - [ ] Comparaisons EF Core sur value objects entiers (pas `.Value`)
 - [ ] Validator FluentValidation avec `WithMessage()` sur chaque règle
@@ -151,7 +180,7 @@ public sealed class CreateKeyVaultCommandValidator : AbstractValidator<CreateKey
 
 ---
 
-## 22. Protocole de fin de tâche
+## 23. Protocole de fin de tâche
 
 1. Exécuter `dotnet test .\tests\<Assembly>.Tests\<Assembly>.Tests.csproj` — tous les tests du projet touchés passent.
 2. Exécuter `dotnet test .\InfraFlowSculptor.slnx` — aucune régression sur la solution.

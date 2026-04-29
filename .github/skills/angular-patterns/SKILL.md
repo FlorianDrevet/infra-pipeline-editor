@@ -1,3 +1,8 @@
+---
+name: angular-patterns
+description: 'Angular frontend project conventions. Use when generating or reviewing Angular code for signals, standalone components, strong typing, one-class-per-file, enums/constants, routing, services, and i18n.'
+---
+
 # Skill : angular-patterns — Conventions Angular 19 du projet
 
 > **Chargé automatiquement par l'agent `angular-front`.**
@@ -69,6 +74,14 @@ export class MyComponent {
   private loadData(): void { }
 }
 ```
+
+### 5. Typage fort et littéraux partagés
+
+- Les composants, services, et facades exposent des modèles TypeScript explicites ; éviter `any`, `unknown`, `Record<string, unknown>`, et les objets faibles si le contrat est connu.
+- Les interfaces frontend doivent coller aux DTOs backend, ou à un view model local clairement nommé quand une adaptation UI est nécessaire.
+- Les statuts, actions, modes, et autres littéraux métier répétés doivent être extraits dans des `enum`, `as const`, ou constantes exportées dédiées plutôt que dispersés dans le code.
+- Une seule classe Angular top-level par fichier. Les types auxiliaires réutilisables vivent dans des fichiers dédiés (`shared/interfaces`, `shared/enums`, ou fichier local ciblé), pas dans un fourre-tout.
+- Si une API externe renvoie une forme dynamique, la conversion vers un modèle typé doit être faite dans le service d'accès, pas dans le composant.
 
 ---
 
@@ -445,6 +458,39 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 ### Theming SCSS
 
 Ne pas dupliquer les couleurs ou tailles en dur dans le SCSS. Utiliser les variables CSS du thème Angular Material et les classes Tailwind. Si un style est spécifique à un composant, le définir dans le `.scss` scopé avec `:host {}`.
+
+### Design System — Intégration obligatoire
+
+**Règle absolue :** Tout composant d'interface (écran, dialog, formulaire) **doit** utiliser les composants DS existants (`app-ds-*`) plutôt que de recréer des styles custom. Si un pattern UI n'a pas encore de composant DS, **créer un composant DS réutilisable** dans `src/Front/src/app/shared/components/ds/` **avant** de l'utiliser dans l'écran.
+
+**Composants DS disponibles :**
+- `app-ds-button` — boutons (primary, secondary, ghost, danger, success)
+- `app-ds-card` — cartes (elevated, outlined, glass)
+- `app-ds-page-header` — en-tête de page hero (gradient, plain)
+- `app-ds-section-header` — en-tête de section avec action slot
+- `app-ds-alert` — alertes inline (info, success, warning, error)
+- `app-ds-text-field` — champ texte (text, email, password, number, tel, url, date)
+- `app-ds-textarea` — zone de texte
+- `app-ds-select` — sélecteur
+- `app-ds-toggle` — toggle switch
+- `app-ds-checkbox` — case à cocher
+- `app-ds-radio-group` — groupe de boutons radio
+- `app-ds-chip` — badge/étiquette sémantique (info, success, warning, error)
+- `app-ds-icon-button` — bouton icône
+- `app-ds-date-picker` — sélecteur de date avec calendrier custom (CDK overlay, min/max, CVA, locale-aware)
+- `app-ds-panel-action-button` — bouton d'action panneau
+
+**Mixins SCSS réutilisables :**
+- `@include ifs-data-table` — tableau de données flex avec tokens DS (dans `scss/_tables.scss`)
+- `@include ifs-card-surface(...)` — surface carte avec radius et shadow
+- `@include ifs-hover-lift` — effet de survol avec élévation
+- `@include ifs-focus-visible` — outline d'accessibilité
+
+**Interdit :**
+- Hardcoder des couleurs RGB/hex dans les composants — utiliser `$ifs-*` tokens
+- Créer un `.status-badge` custom quand `app-ds-chip` existe
+- Utiliser un `<input type="date">` brut quand `app-ds-text-field type="date"` existe
+- Utiliser `mat-stroked-button` pour un bouton annuler quand `app-ds-button variant="secondary"` existe
 
 ---
 

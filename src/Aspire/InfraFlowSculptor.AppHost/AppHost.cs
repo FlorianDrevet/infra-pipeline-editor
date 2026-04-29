@@ -30,9 +30,19 @@ var infraApi = builder.AddProject<InfraFlowSculptor_Api>("infraflowsculptor-api"
     .WithReference(keyvault)
     .WaitFor(keyvault);
 
+var infraMcp = builder.AddProject<InfraFlowSculptor_Mcp>("infraflowsculptor-mcp")
+    .WithHttpEndpoint(port: 5258, targetPort: 5258, isProxied: false)
+    .WithReference(database)
+    .WaitFor(database)
+    .WithReference(blobs)
+    .WaitFor(blobs)
+    .WithReference(keyvault)
+    .WaitFor(keyvault);
+
 builder.AddJavaScriptApp("angular-frontend", "../../Front", "start:aspire")
     .WithNpm()
     .WithReference(infraApi)
+    .WithReference(infraMcp)
     .WaitFor(infraApi)
     .WithHttpEndpoint(port: 4200, targetPort: 4200, env: "NG_PORT", isProxied: false);
 
