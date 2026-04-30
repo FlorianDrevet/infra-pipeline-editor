@@ -19,4 +19,14 @@ public class AzureResourceRepository<TEntity>: BaseRepository<TEntity, ProjectDb
             .Include(r => r.DependsOn)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public override async Task<TEntity?> GetByIdAsync(
+        ValueObject id,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
+        CancellationToken cancellationToken = default)
+    {
+        var query = queryBuilder(Context.Set<TEntity>());
+        return await query.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+    }
 }
