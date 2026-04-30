@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 namespace InfraFlowSculptor.GenerationCore;
 
 /// <summary>
@@ -31,6 +33,7 @@ public static class AzureResourceTypes
     /// <summary>
     /// Azure ARM resource provider type strings (e.g. "Microsoft.KeyVault/vaults").
     /// </summary>
+#pragma warning disable S3218
     public static class ArmTypes
     {
         public const string KeyVault = "Microsoft.KeyVault/vaults";
@@ -52,32 +55,34 @@ public static class AzureResourceTypes
         public const string ContainerRegistry = "Microsoft.ContainerRegistry/registries";
         public const string EventHubNamespace = "Microsoft.EventHub/namespaces";
     }
+#pragma warning restore S3218
 
     /// <summary>
     /// Maps Azure ARM resource type strings to their friendly type names.
     /// Case-insensitive lookup.
     /// </summary>
-    public static readonly Dictionary<string, string> ArmTypeToFriendlyName = new(StringComparer.OrdinalIgnoreCase)
-    {
-        [ArmTypes.KeyVault] = KeyVault,
-        [ArmTypes.RedisCache] = RedisCache,
-        [ArmTypes.StorageAccount] = StorageAccount,
-        [ArmTypes.AppServicePlan] = AppServicePlan,
-        [ArmTypes.WebApp] = WebApp,
-        [ArmTypes.FunctionApp] = FunctionApp,
-        [ArmTypes.UserAssignedIdentity] = UserAssignedIdentity,
-        [ArmTypes.AppConfiguration] = AppConfiguration,
-        [ArmTypes.ContainerAppEnvironment] = ContainerAppEnvironment,
-        [ArmTypes.ContainerApp] = ContainerApp,
-        [ArmTypes.LogAnalyticsWorkspace] = LogAnalyticsWorkspace,
-        [ArmTypes.ApplicationInsights] = ApplicationInsights,
-        [ArmTypes.CosmosDb] = CosmosDb,
-        [ArmTypes.SqlServer] = SqlServer,
-        [ArmTypes.SqlDatabase] = SqlDatabase,
-        [ArmTypes.ServiceBusNamespace] = ServiceBusNamespace,
-        [ArmTypes.ContainerRegistry] = ContainerRegistry,
-        [ArmTypes.EventHubNamespace] = EventHubNamespace,
-    };
+    public static IReadOnlyDictionary<string, string> ArmTypeToFriendlyName { get; } =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            [ArmTypes.KeyVault] = KeyVault,
+            [ArmTypes.RedisCache] = RedisCache,
+            [ArmTypes.StorageAccount] = StorageAccount,
+            [ArmTypes.AppServicePlan] = AppServicePlan,
+            [ArmTypes.WebApp] = WebApp,
+            [ArmTypes.FunctionApp] = FunctionApp,
+            [ArmTypes.UserAssignedIdentity] = UserAssignedIdentity,
+            [ArmTypes.AppConfiguration] = AppConfiguration,
+            [ArmTypes.ContainerAppEnvironment] = ContainerAppEnvironment,
+            [ArmTypes.ContainerApp] = ContainerApp,
+            [ArmTypes.LogAnalyticsWorkspace] = LogAnalyticsWorkspace,
+            [ArmTypes.ApplicationInsights] = ApplicationInsights,
+            [ArmTypes.CosmosDb] = CosmosDb,
+            [ArmTypes.SqlServer] = SqlServer,
+            [ArmTypes.SqlDatabase] = SqlDatabase,
+            [ArmTypes.ServiceBusNamespace] = ServiceBusNamespace,
+            [ArmTypes.ContainerRegistry] = ContainerRegistry,
+            [ArmTypes.EventHubNamespace] = EventHubNamespace,
+        }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// All known friendly type names.

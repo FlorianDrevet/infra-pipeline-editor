@@ -57,8 +57,9 @@ public static class ResourceCommandFactory
     /// them via <see cref="Enum.Parse(Type, string)"/>.
     /// </summary>
     private const string DefaultTlsVersionEnumName = "Tls12";
-    private const string DefaultWebRuntimeStackEnumName = "DotNet";
-    private const string DefaultFunctionRuntimeStackEnumName = "DotNet";
+    private const string DefaultDotNetRuntimeStackEnumName = "DotNet";
+    private const string DefaultWebRuntimeStackEnumName = DefaultDotNetRuntimeStackEnumName;
+    private const string DefaultFunctionRuntimeStackEnumName = DefaultDotNetRuntimeStackEnumName;
     private const string DefaultDeploymentModeEnumName = "Code";
     private const string DefaultSqlServerVersionEnumName = "V12";
     private const string DefaultWebRuntimeVersion = "8";
@@ -585,7 +586,7 @@ public static class ResourceCommandFactory
         var armToken = value.Trim().ToUpperInvariant();
         return armToken switch
         {
-            "DOTNETCORE" or "DOTNET" or "DOTNET-ISOLATED" => "DotNet",
+            "DOTNETCORE" or "DOTNET" or "DOTNET-ISOLATED" => DefaultDotNetRuntimeStackEnumName,
             "NODE" => "Node",
             "PYTHON" => "Python",
             "JAVA" => "Java",
@@ -608,7 +609,7 @@ public static class ResourceCommandFactory
         var armToken = value.Trim().ToUpperInvariant();
         return armToken switch
         {
-            "DOTNET-ISOLATED" or "DOTNET" or "DOTNETCORE" => "DotNet",
+            "DOTNET-ISOLATED" or "DOTNET" or "DOTNETCORE" => DefaultDotNetRuntimeStackEnumName,
             "NODE" => "Node",
             "PYTHON" => "Python",
             "JAVA" => "Java",
