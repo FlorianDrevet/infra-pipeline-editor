@@ -237,12 +237,48 @@ public sealed class ProjectCreationTools
             });
         }
 
+        // Expand children: if a parent resource exists but its expected child does not, add the child.
+        ExpandMissingChildren(projectName, primaryLocation, resourceInputs, resourceTypes);
+
         return resourceInputs;
     }
 
+    /// <summary>
+    /// Parent → child relationships where the child should be auto-created when the parent is present.
+    /// </summary>
+    private static readonly Dictionary<string, string> ImpliedChildResources = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [AzureResourceTypes.SqlServer] = AzureResourceTypes.SqlDatabase,
+    };
+
+    private static void ExpandMissingChildren(
+        string projectName,
+        string primaryLocation,
+        List<ResourceInput> resourceInputs,
+        HashSet<string> resourceTypes)
+    {
+        foreach (var (parentType, childType) in ImpliedChildResources)
+        {
+            if (resourceTypes.Contains(parentType) && resourceTypes.Add(childType))
+            {
+                resourceInputs.Add(new ResourceInput
+                {
+                    ResourceType = childType,
+                    Name = BuildDefaultResourceName(projectName, childType),
+                    Location = primaryLocation,
+                });
+            }
+        }
+    }
+
+    /// <summary>
+    /// Builds a short semantic resource name without the project prefix.
+    /// The naming template system (e.g. <c>{projectName}-{resourceAbbr}-{envSuffix}</c>) handles
+    /// prefixing at generation time — resource names should be short identifiers only.
+    /// </summary>
     private static string BuildDefaultResourceName(string projectName, string resourceType)
     {
-        return $"{projectName}-{resourceType.ToLowerInvariant()}";
+        return resourceType.ToLowerInvariant();
     }
 
     private static string JsonError(string error, string message) =>

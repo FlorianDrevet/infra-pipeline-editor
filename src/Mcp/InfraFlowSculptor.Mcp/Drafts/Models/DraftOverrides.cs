@@ -22,4 +22,7 @@ public sealed class DraftOverrides
 
     /// <summary>Override for the agent pool name.</summary>
     public string? AgentPoolName { get; init; }
+
+    /// <summary>Shortcut: repository URL applied to the first repository slot when set.</summary>
+    public string? RepositoryUrl { get; init; }
 }

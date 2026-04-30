@@ -134,6 +134,11 @@ public sealed class ProjectDraftService : IProjectDraftService
         {
             intent.AgentPoolName = overrides.AgentPoolName;
         }
+
+        if (overrides.RepositoryUrl is not null && intent.Repositories is { Count: > 0 })
+        {
+            intent.Repositories[0].RepositoryUrl = overrides.RepositoryUrl;
+        }
     }
 
     private static void Revalidate(ProjectCreationDraft draft)
@@ -179,6 +184,14 @@ public sealed class ProjectDraftService : IProjectDraftService
         draft.Errors = errors;
         draft.ClarificationQuestions = clarificationQuestions;
         draft.Warnings = ProjectDraftWarnings.Build(draft.Intent.Environments, includeDefaultEnvironmentWarning: false);
+
+        if (draft.Intent.LayoutPreset is LayoutPresetEnum.AllInOne or LayoutPresetEnum.SplitInfraCode
+            && draft.Intent.Repositories is { Count: > 0 }
+            && draft.Intent.Repositories.Any(r => string.IsNullOrWhiteSpace(r.RepositoryUrl)))
+        {
+            draft.Warnings.Add("One or more repositories have no URL configured. Set 'repositoryUrl' in overrides or configure it later in the project settings.");
+        }
+
         draft.Status = missingFields.Count == 0 && errors.Count == 0
             ? DraftStatus.ReadyToCreate
             : DraftStatus.RequiresClarification;
