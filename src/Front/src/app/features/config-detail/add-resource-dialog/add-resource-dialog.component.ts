@@ -1408,7 +1408,7 @@ export class AddResourceDialogComponent implements OnInit {
       return this.environments.map((environment, index) => mapEntry(environment.name, this.getEnvironmentRawValue(index)));
     }
 
-    private buildSkuEnvironmentSettings<T extends { environmentName: string; sku: string | null }>(): T[] {
+    private buildSkuEnvironmentSettings<T extends { environmentName: string; sku?: string | null }>(): T[] {
       return this.buildEnvironmentSettings((environmentName, raw) => ({
         environmentName,
         sku: this.asStringOrNull(raw['sku']),
