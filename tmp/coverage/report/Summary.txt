@@ -1,22 +1,22 @@
 Summary
-  Generated on: 30/04/2026 - 23:07:38
+  Generated on: 30/04/2026 - 23:22:36
   Parser: Cobertura
-  Assemblies: 7
-  Classes: 1364
-  Files: 1200
-  Line coverage: 33.5%
-  Covered lines: 12568
-  Uncovered lines: 24851
-  Coverable lines: 37419
-  Total lines: 66305
-  Branch coverage: 26.9% (2459 of 9118)
-  Covered branches: 2459
-  Total branches: 9118
-  Method coverage: 34.9% (3335 of 9548)
-  Full method coverage: 32% (3062 of 9548)
-  Covered methods: 3335
-  Fully covered methods: 3062
-  Total methods: 9548
+  Assemblies: 9
+  Classes: 1614
+  Files: 1504
+  Line coverage: 8.8%
+  Covered lines: 17295
+  Uncovered lines: 178912
+  Coverable lines: 196207
+  Total lines: 242389
+  Branch coverage: 9.4% (2748 of 29036)
+  Covered branches: 2748
+  Total branches: 29036
+  Method coverage: 37.3% (3928 of 10521)
+  Full method coverage: 34.5% (3638 of 10521)
+  Covered methods: 3928
+  Fully covered methods: 3638
+  Total methods: 10521
 
 InfraFlowSculptor.Api                                                                                                                               10.6%
   InfraFlowSculptor.Api.Common.Mapping.AppConfigurationKeyMappingConfig                                                                              100%
@@ -98,16 +98,16 @@ InfraFlowSculptor.Api                                                           
   Program                                                                                                                                              0%
   System.Runtime.CompilerServices                                                                                                                      0%
 
-InfraFlowSculptor.Application                                                                                                                       20.3%
+InfraFlowSculptor.Application                                                                                                                         23%
   InfraFlowSculptor.Application.AppConfigurations.Commands.AddAppConfigurationKey.AddAppConfigurationKeyCommand                                        0%
   InfraFlowSculptor.Application.AppConfigurations.Commands.AddAppConfigurationKey.AddAppConfigurationKeyCommandHandler                                 0%
   InfraFlowSculptor.Application.AppConfigurations.Commands.AddAppConfigurationKey.AddAppConfigurationKeyCommandValidator                               0%
   InfraFlowSculptor.Application.AppConfigurations.Commands.CreateAppConfiguration.CreateAppConfigurationCommand                                     28.5%
   InfraFlowSculptor.Application.AppConfigurations.Commands.CreateAppConfiguration.CreateAppConfigurationCommandHandler                                 0%
   InfraFlowSculptor.Application.AppConfigurations.Commands.CreateAppConfiguration.CreateAppConfigurationCommandValidator                               0%
-  InfraFlowSculptor.Application.AppConfigurations.Commands.DeleteAppConfiguration.DeleteAppConfigurationCommand                                        0%
+  InfraFlowSculptor.Application.AppConfigurations.Commands.DeleteAppConfiguration.DeleteAppConfigurationCommand                                      100%
   InfraFlowSculptor.Application.AppConfigurations.Commands.DeleteAppConfiguration.DeleteAppConfigurationCommandHandler                                 0%
-  InfraFlowSculptor.Application.AppConfigurations.Commands.DeleteAppConfiguration.DeleteAppConfigurationCommandValidator                               0%
+  InfraFlowSculptor.Application.AppConfigurations.Commands.DeleteAppConfiguration.DeleteAppConfigurationCommandValidator                             100%
   InfraFlowSculptor.Application.AppConfigurations.Commands.RemoveAppConfigurationKey.RemoveAppConfigurationKeyCommand                                  0%
   InfraFlowSculptor.Application.AppConfigurations.Commands.RemoveAppConfigurationKey.RemoveAppConfigurationKeyCommandHandler                           0%
   InfraFlowSculptor.Application.AppConfigurations.Commands.UpdateAppConfiguration.UpdateAppConfigurationCommand                                        0%
@@ -122,9 +122,9 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.ApplicationInsights.Commands.CreateApplicationInsights.CreateApplicationInsightsCommand                               50%
   InfraFlowSculptor.Application.ApplicationInsights.Commands.CreateApplicationInsights.CreateApplicationInsightsCommandHandler                         0%
   InfraFlowSculptor.Application.ApplicationInsights.Commands.CreateApplicationInsights.CreateApplicationInsightsCommandValidator                       0%
-  InfraFlowSculptor.Application.ApplicationInsights.Commands.DeleteApplicationInsights.DeleteApplicationInsightsCommand                                0%
+  InfraFlowSculptor.Application.ApplicationInsights.Commands.DeleteApplicationInsights.DeleteApplicationInsightsCommand                              100%
   InfraFlowSculptor.Application.ApplicationInsights.Commands.DeleteApplicationInsights.DeleteApplicationInsightsCommandHandler                         0%
-  InfraFlowSculptor.Application.ApplicationInsights.Commands.DeleteApplicationInsights.DeleteApplicationInsightsCommandValidator                       0%
+  InfraFlowSculptor.Application.ApplicationInsights.Commands.DeleteApplicationInsights.DeleteApplicationInsightsCommandValidator                     100%
   InfraFlowSculptor.Application.ApplicationInsights.Commands.UpdateApplicationInsights.UpdateApplicationInsightsCommand                                0%
   InfraFlowSculptor.Application.ApplicationInsights.Commands.UpdateApplicationInsights.UpdateApplicationInsightsCommandHandler                         0%
   InfraFlowSculptor.Application.ApplicationInsights.Commands.UpdateApplicationInsights.UpdateApplicationInsightsCommandValidator                       0%
@@ -136,9 +136,9 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.AppServicePlans.Commands.CreateAppServicePlan.CreateAppServicePlanCommandHandler                                      80%
   InfraFlowSculptor.Application.AppServicePlans.Commands.DeleteAppServicePlan.DeleteAppServicePlanCommand                                            100%
   InfraFlowSculptor.Application.AppServicePlans.Commands.DeleteAppServicePlan.DeleteAppServicePlanCommandHandler                                    74.1%
-  InfraFlowSculptor.Application.AppServicePlans.Commands.DeleteAppServicePlan.DeleteAppServicePlanCommandValidator                                     0%
-  InfraFlowSculptor.Application.AppServicePlans.Commands.UpdateAppServicePlan.UpdateAppServicePlanCommand                                              0%
-  InfraFlowSculptor.Application.AppServicePlans.Commands.UpdateAppServicePlan.UpdateAppServicePlanCommandHandler                                       0%
+  InfraFlowSculptor.Application.AppServicePlans.Commands.DeleteAppServicePlan.DeleteAppServicePlanCommandValidator                                   100%
+  InfraFlowSculptor.Application.AppServicePlans.Commands.UpdateAppServicePlan.UpdateAppServicePlanCommand                                            100%
+  InfraFlowSculptor.Application.AppServicePlans.Commands.UpdateAppServicePlan.UpdateAppServicePlanCommandHandler                                      70%
   InfraFlowSculptor.Application.AppServicePlans.Common.AppServicePlanEnvironmentConfigData                                                             0%
   InfraFlowSculptor.Application.AppServicePlans.Common.AppServicePlanResult                                                                         33.3%
   InfraFlowSculptor.Application.AppServicePlans.Queries.GetAppServicePlanQuery                                                                       100%
@@ -190,7 +190,7 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.CreateContainerAppEnvironment.CreateContainerAppEnvironmentCommandValidator          0%
   InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.DeleteContainerAppEnvironment.DeleteContainerAppEnvironmentCommand                 100%
   InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.DeleteContainerAppEnvironment.DeleteContainerAppEnvironmentCommandHandler         88.2%
-  InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.DeleteContainerAppEnvironment.DeleteContainerAppEnvironmentCommandValidator          0%
+  InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.DeleteContainerAppEnvironment.DeleteContainerAppEnvironmentCommandValidator        100%
   InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.UpdateContainerAppEnvironment.UpdateContainerAppEnvironmentCommand                   0%
   InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.UpdateContainerAppEnvironment.UpdateContainerAppEnvironmentCommandHandler            0%
   InfraFlowSculptor.Application.ContainerAppEnvironments.Common.ContainerAppEnvironmentEnvironmentConfigData                                           0%
@@ -202,7 +202,7 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.ContainerApps.Commands.CreateContainerApp.CreateContainerAppCommandValidator                                           0%
   InfraFlowSculptor.Application.ContainerApps.Commands.DeleteContainerApp.DeleteContainerAppCommand                                                  100%
   InfraFlowSculptor.Application.ContainerApps.Commands.DeleteContainerApp.DeleteContainerAppCommandHandler                                          88.2%
-  InfraFlowSculptor.Application.ContainerApps.Commands.DeleteContainerApp.DeleteContainerAppCommandValidator                                           0%
+  InfraFlowSculptor.Application.ContainerApps.Commands.DeleteContainerApp.DeleteContainerAppCommandValidator                                         100%
   InfraFlowSculptor.Application.ContainerApps.Commands.UpdateContainerApp.UpdateContainerAppCommand                                                    0%
   InfraFlowSculptor.Application.ContainerApps.Commands.UpdateContainerApp.UpdateContainerAppCommandHandler                                             0%
   InfraFlowSculptor.Application.ContainerApps.Common.ContainerAppEnvironmentConfigData                                                                 0%
@@ -214,9 +214,9 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.ContainerRegistries.Commands.CreateContainerRegistry.CreateContainerRegistryCommandValidator                           0%
   InfraFlowSculptor.Application.ContainerRegistries.Commands.DeleteContainerRegistry.DeleteContainerRegistryCommand                                  100%
   InfraFlowSculptor.Application.ContainerRegistries.Commands.DeleteContainerRegistry.DeleteContainerRegistryCommandHandler                          88.2%
-  InfraFlowSculptor.Application.ContainerRegistries.Commands.DeleteContainerRegistry.DeleteContainerRegistryCommandValidator                           0%
-  InfraFlowSculptor.Application.ContainerRegistries.Commands.UpdateContainerRegistry.UpdateContainerRegistryCommand                                    0%
-  InfraFlowSculptor.Application.ContainerRegistries.Commands.UpdateContainerRegistry.UpdateContainerRegistryCommandHandler                             0%
+  InfraFlowSculptor.Application.ContainerRegistries.Commands.DeleteContainerRegistry.DeleteContainerRegistryCommandValidator                         100%
+  InfraFlowSculptor.Application.ContainerRegistries.Commands.UpdateContainerRegistry.UpdateContainerRegistryCommand                                  100%
+  InfraFlowSculptor.Application.ContainerRegistries.Commands.UpdateContainerRegistry.UpdateContainerRegistryCommandHandler                          79.1%
   InfraFlowSculptor.Application.ContainerRegistries.Commands.UpdateContainerRegistry.UpdateContainerRegistryCommandValidator                           0%
   InfraFlowSculptor.Application.ContainerRegistries.Common.ContainerRegistryEnvironmentConfigData                                                      0%
   InfraFlowSculptor.Application.ContainerRegistries.Common.ContainerRegistryResult                                                                     0%
@@ -230,9 +230,9 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.CosmosDbs.Commands.CreateCosmosDb.CreateCosmosDbCommandValidator                                                       0%
   InfraFlowSculptor.Application.CosmosDbs.Commands.DeleteCosmosDb.DeleteCosmosDbCommand                                                              100%
   InfraFlowSculptor.Application.CosmosDbs.Commands.DeleteCosmosDb.DeleteCosmosDbCommandHandler                                                      88.2%
-  InfraFlowSculptor.Application.CosmosDbs.Commands.DeleteCosmosDb.DeleteCosmosDbCommandValidator                                                       0%
-  InfraFlowSculptor.Application.CosmosDbs.Commands.UpdateCosmosDb.UpdateCosmosDbCommand                                                                0%
-  InfraFlowSculptor.Application.CosmosDbs.Commands.UpdateCosmosDb.UpdateCosmosDbCommandHandler                                                         0%
+  InfraFlowSculptor.Application.CosmosDbs.Commands.DeleteCosmosDb.DeleteCosmosDbCommandValidator                                                     100%
+  InfraFlowSculptor.Application.CosmosDbs.Commands.UpdateCosmosDb.UpdateCosmosDbCommand                                                              100%
+  InfraFlowSculptor.Application.CosmosDbs.Commands.UpdateCosmosDb.UpdateCosmosDbCommandHandler                                                      79.1%
   InfraFlowSculptor.Application.CosmosDbs.Commands.UpdateCosmosDb.UpdateCosmosDbCommandValidator                                                       0%
   InfraFlowSculptor.Application.CosmosDbs.Common.CosmosDbEnvironmentConfigData                                                                         0%
   InfraFlowSculptor.Application.CosmosDbs.Common.CosmosDbResult                                                                                        0%
@@ -254,9 +254,9 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.EventHubNamespaces.Commands.CreateEventHubNamespace.CreateEventHubNamespaceCommand                                  28.5%
   InfraFlowSculptor.Application.EventHubNamespaces.Commands.CreateEventHubNamespace.CreateEventHubNamespaceCommandHandler                              0%
   InfraFlowSculptor.Application.EventHubNamespaces.Commands.CreateEventHubNamespace.CreateEventHubNamespaceCommandValidator                            0%
-  InfraFlowSculptor.Application.EventHubNamespaces.Commands.DeleteEventHubNamespace.DeleteEventHubNamespaceCommand                                     0%
+  InfraFlowSculptor.Application.EventHubNamespaces.Commands.DeleteEventHubNamespace.DeleteEventHubNamespaceCommand                                   100%
   InfraFlowSculptor.Application.EventHubNamespaces.Commands.DeleteEventHubNamespace.DeleteEventHubNamespaceCommandHandler                              0%
-  InfraFlowSculptor.Application.EventHubNamespaces.Commands.DeleteEventHubNamespace.DeleteEventHubNamespaceCommandValidator                            0%
+  InfraFlowSculptor.Application.EventHubNamespaces.Commands.DeleteEventHubNamespace.DeleteEventHubNamespaceCommandValidator                          100%
   InfraFlowSculptor.Application.EventHubNamespaces.Commands.RemoveEventHub.RemoveEventHubCommand                                                       0%
   InfraFlowSculptor.Application.EventHubNamespaces.Commands.RemoveEventHub.RemoveEventHubCommandHandler                                                0%
   InfraFlowSculptor.Application.EventHubNamespaces.Commands.RemoveEventHubConsumerGroup.RemoveEventHubConsumerGroupCommand                             0%
@@ -275,7 +275,7 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.FunctionApps.Commands.CreateFunctionApp.CreateFunctionAppCommandValidator                                              0%
   InfraFlowSculptor.Application.FunctionApps.Commands.DeleteFunctionApp.DeleteFunctionAppCommand                                                     100%
   InfraFlowSculptor.Application.FunctionApps.Commands.DeleteFunctionApp.DeleteFunctionAppCommandHandler                                             88.2%
-  InfraFlowSculptor.Application.FunctionApps.Commands.DeleteFunctionApp.DeleteFunctionAppCommandValidator                                              0%
+  InfraFlowSculptor.Application.FunctionApps.Commands.DeleteFunctionApp.DeleteFunctionAppCommandValidator                                            100%
   InfraFlowSculptor.Application.FunctionApps.Commands.UpdateFunctionApp.UpdateFunctionAppCommand                                                       0%
   InfraFlowSculptor.Application.FunctionApps.Commands.UpdateFunctionApp.UpdateFunctionAppCommandHandler                                                0%
   InfraFlowSculptor.Application.FunctionApps.Common.FunctionAppEnvironmentConfigData                                                                   0%
@@ -426,9 +426,9 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault.CreateKeyVaultCommandHandler                                                      93.3%
   InfraFlowSculptor.Application.KeyVaults.Commands.DeleteKeyVault.DeleteKeyVaultCommand                                                              100%
   InfraFlowSculptor.Application.KeyVaults.Commands.DeleteKeyVault.DeleteKeyVaultCommandHandler                                                      94.1%
-  InfraFlowSculptor.Application.KeyVaults.Commands.DeleteKeyVault.DeleteKeyVaultCommandValidator                                                       0%
-  InfraFlowSculptor.Application.KeyVaults.Commands.UpdateKeyVault.UpdateKeyVaultCommand                                                                0%
-  InfraFlowSculptor.Application.KeyVaults.Commands.UpdateKeyVault.UpdateKeyVaultCommandHandler                                                         0%
+  InfraFlowSculptor.Application.KeyVaults.Commands.DeleteKeyVault.DeleteKeyVaultCommandValidator                                                     100%
+  InfraFlowSculptor.Application.KeyVaults.Commands.UpdateKeyVault.UpdateKeyVaultCommand                                                              100%
+  InfraFlowSculptor.Application.KeyVaults.Commands.UpdateKeyVault.UpdateKeyVaultCommandHandler                                                      81.8%
   InfraFlowSculptor.Application.KeyVaults.Common.KeyVaultEnvironmentConfigData                                                                         0%
   InfraFlowSculptor.Application.KeyVaults.Common.KeyVaultResult                                                                                     31.2%
   InfraFlowSculptor.Application.KeyVaults.Queries.GetKeyVaultQuery                                                                                   100%
@@ -438,9 +438,9 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.CreateLogAnalyticsWorkspace.CreateLogAnalyticsWorkspaceCommand                      42.8%
   InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.CreateLogAnalyticsWorkspace.CreateLogAnalyticsWorkspaceCommandHandler                  0%
   InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.CreateLogAnalyticsWorkspace.CreateLogAnalyticsWorkspaceCommandValidator                0%
-  InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.DeleteLogAnalyticsWorkspace.DeleteLogAnalyticsWorkspaceCommand                         0%
+  InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.DeleteLogAnalyticsWorkspace.DeleteLogAnalyticsWorkspaceCommand                       100%
   InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.DeleteLogAnalyticsWorkspace.DeleteLogAnalyticsWorkspaceCommandHandler                  0%
-  InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.DeleteLogAnalyticsWorkspace.DeleteLogAnalyticsWorkspaceCommandValidator                0%
+  InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.DeleteLogAnalyticsWorkspace.DeleteLogAnalyticsWorkspaceCommandValidator              100%
   InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.UpdateLogAnalyticsWorkspace.UpdateLogAnalyticsWorkspaceCommand                         0%
   InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.UpdateLogAnalyticsWorkspace.UpdateLogAnalyticsWorkspaceCommandHandler                  0%
   InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.UpdateLogAnalyticsWorkspace.UpdateLogAnalyticsWorkspaceCommandValidator                0%
@@ -473,12 +473,12 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.Projects.Commands.CreateProject.CreateProjectCommand                                                                 100%
   InfraFlowSculptor.Application.Projects.Commands.CreateProject.CreateProjectCommandHandler                                                          100%
   InfraFlowSculptor.Application.Projects.Commands.CreateProject.CreateProjectCommandValidator                                                        100%
-  InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.CreateProjectWithSetupCommand                                              85.7%
+  InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.CreateProjectWithSetupCommand                                               100%
   InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.CreateProjectWithSetupCommandHandler                                          0%
-  InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.CreateProjectWithSetupCommandValidator                                        0%
-  InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.EnvironmentSetupItem                                                       44.4%
+  InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.CreateProjectWithSetupCommandValidator                                      100%
+  InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.EnvironmentSetupItem                                                       55.5%
   InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.ProjectSetupDefaults                                                       66.6%
-  InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.RepositorySetupItem                                                          50%
+  InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.RepositorySetupItem                                                         100%
   InfraFlowSculptor.Application.Projects.Commands.DeleteProject.DeleteProjectCommand                                                                 100%
   InfraFlowSculptor.Application.Projects.Commands.DeleteProject.DeleteProjectCommandHandler                                                          100%
   InfraFlowSculptor.Application.Projects.Commands.DeleteProject.DeleteProjectCommandValidator                                                        100%
@@ -612,9 +612,9 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.RedisCaches.Commands.CreateRedisCache.CreateRedisCacheCommandValidator                                                 0%
   InfraFlowSculptor.Application.RedisCaches.Commands.DeleteRedisCache.DeleteRedisCacheCommand                                                        100%
   InfraFlowSculptor.Application.RedisCaches.Commands.DeleteRedisCache.DeleteRedisCacheCommandHandler                                                88.2%
-  InfraFlowSculptor.Application.RedisCaches.Commands.DeleteRedisCache.DeleteRedisCacheCommandValidator                                                 0%
-  InfraFlowSculptor.Application.RedisCaches.Commands.UpdateRedisCache.UpdateRedisCacheCommand                                                          0%
-  InfraFlowSculptor.Application.RedisCaches.Commands.UpdateRedisCache.UpdateRedisCacheCommandHandler                                                   0%
+  InfraFlowSculptor.Application.RedisCaches.Commands.DeleteRedisCache.DeleteRedisCacheCommandValidator                                               100%
+  InfraFlowSculptor.Application.RedisCaches.Commands.UpdateRedisCache.UpdateRedisCacheCommand                                                        100%
+  InfraFlowSculptor.Application.RedisCaches.Commands.UpdateRedisCache.UpdateRedisCacheCommandHandler                                                58.9%
   InfraFlowSculptor.Application.RedisCaches.Commands.UpdateRedisCache.UpdateRedisCacheCommandValidator                                                 0%
   InfraFlowSculptor.Application.RedisCaches.Common.RedisCacheEnvironmentConfigData                                                                     0%
   InfraFlowSculptor.Application.RedisCaches.Common.RedisCacheResult                                                                                    0%
@@ -681,9 +681,9 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.CreateServiceBusNamespace.CreateServiceBusNamespaceCommand                            28.5%
   InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.CreateServiceBusNamespace.CreateServiceBusNamespaceCommandHandler                        0%
   InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.CreateServiceBusNamespace.CreateServiceBusNamespaceCommandValidator                      0%
-  InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.DeleteServiceBusNamespace.DeleteServiceBusNamespaceCommand                               0%
+  InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.DeleteServiceBusNamespace.DeleteServiceBusNamespaceCommand                             100%
   InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.DeleteServiceBusNamespace.DeleteServiceBusNamespaceCommandHandler                        0%
-  InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.DeleteServiceBusNamespace.DeleteServiceBusNamespaceCommandValidator                      0%
+  InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.DeleteServiceBusNamespace.DeleteServiceBusNamespaceCommandValidator                    100%
   InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.RemoveServiceBusQueue.RemoveServiceBusQueueCommand                                       0%
   InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.RemoveServiceBusQueue.RemoveServiceBusQueueCommandHandler                                0%
   InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.RemoveServiceBusTopicSubscription.RemoveServiceBusTopicSubscriptionCommand               0%
@@ -702,7 +702,7 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.SqlDatabases.Commands.CreateSqlDatabase.CreateSqlDatabaseCommandValidator                                              0%
   InfraFlowSculptor.Application.SqlDatabases.Commands.DeleteSqlDatabase.DeleteSqlDatabaseCommand                                                     100%
   InfraFlowSculptor.Application.SqlDatabases.Commands.DeleteSqlDatabase.DeleteSqlDatabaseCommandHandler                                             88.2%
-  InfraFlowSculptor.Application.SqlDatabases.Commands.DeleteSqlDatabase.DeleteSqlDatabaseCommandValidator                                              0%
+  InfraFlowSculptor.Application.SqlDatabases.Commands.DeleteSqlDatabase.DeleteSqlDatabaseCommandValidator                                            100%
   InfraFlowSculptor.Application.SqlDatabases.Commands.UpdateSqlDatabase.UpdateSqlDatabaseCommand                                                       0%
   InfraFlowSculptor.Application.SqlDatabases.Commands.UpdateSqlDatabase.UpdateSqlDatabaseCommandHandler                                                0%
   InfraFlowSculptor.Application.SqlDatabases.Common.SqlDatabaseEnvironmentConfigData                                                                   0%
@@ -714,7 +714,7 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.SqlServers.Commands.CreateSqlServer.CreateSqlServerCommandValidator                                                    0%
   InfraFlowSculptor.Application.SqlServers.Commands.DeleteSqlServer.DeleteSqlServerCommand                                                           100%
   InfraFlowSculptor.Application.SqlServers.Commands.DeleteSqlServer.DeleteSqlServerCommandHandler                                                   79.1%
-  InfraFlowSculptor.Application.SqlServers.Commands.DeleteSqlServer.DeleteSqlServerCommandValidator                                                    0%
+  InfraFlowSculptor.Application.SqlServers.Commands.DeleteSqlServer.DeleteSqlServerCommandValidator                                                  100%
   InfraFlowSculptor.Application.SqlServers.Commands.UpdateSqlServer.UpdateSqlServerCommand                                                             0%
   InfraFlowSculptor.Application.SqlServers.Commands.UpdateSqlServer.UpdateSqlServerCommandHandler                                                      0%
   InfraFlowSculptor.Application.SqlServers.Common.SqlServerEnvironmentConfigData                                                                       0%
@@ -731,7 +731,7 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.StorageAccounts.Commands.CreateStorageAccount.CreateStorageAccountCommandHandler                                    62.9%
   InfraFlowSculptor.Application.StorageAccounts.Commands.DeleteStorageAccount.DeleteStorageAccountCommand                                            100%
   InfraFlowSculptor.Application.StorageAccounts.Commands.DeleteStorageAccount.DeleteStorageAccountCommandHandler                                     100%
-  InfraFlowSculptor.Application.StorageAccounts.Commands.DeleteStorageAccount.DeleteStorageAccountCommandValidator                                     0%
+  InfraFlowSculptor.Application.StorageAccounts.Commands.DeleteStorageAccount.DeleteStorageAccountCommandValidator                                   100%
   InfraFlowSculptor.Application.StorageAccounts.Commands.RemoveBlobContainer.RemoveBlobContainerCommand                                                0%
   InfraFlowSculptor.Application.StorageAccounts.Commands.RemoveBlobContainer.RemoveBlobContainerCommandHandler                                         0%
   InfraFlowSculptor.Application.StorageAccounts.Commands.RemoveQueue.RemoveQueueCommand                                                                0%
@@ -760,9 +760,9 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.UserAssignedIdentities.Commands.CreateUserAssignedIdentity.CreateUserAssignedIdentityCommand                        33.3%
   InfraFlowSculptor.Application.UserAssignedIdentities.Commands.CreateUserAssignedIdentity.CreateUserAssignedIdentityCommandHandler                    0%
   InfraFlowSculptor.Application.UserAssignedIdentities.Commands.CreateUserAssignedIdentity.CreateUserAssignedIdentityCommandValidator                  0%
-  InfraFlowSculptor.Application.UserAssignedIdentities.Commands.DeleteUserAssignedIdentity.DeleteUserAssignedIdentityCommand                           0%
+  InfraFlowSculptor.Application.UserAssignedIdentities.Commands.DeleteUserAssignedIdentity.DeleteUserAssignedIdentityCommand                         100%
   InfraFlowSculptor.Application.UserAssignedIdentities.Commands.DeleteUserAssignedIdentity.DeleteUserAssignedIdentityCommandHandler                    0%
-  InfraFlowSculptor.Application.UserAssignedIdentities.Commands.DeleteUserAssignedIdentity.DeleteUserAssignedIdentityCommandValidator                  0%
+  InfraFlowSculptor.Application.UserAssignedIdentities.Commands.DeleteUserAssignedIdentity.DeleteUserAssignedIdentityCommandValidator                100%
   InfraFlowSculptor.Application.UserAssignedIdentities.Commands.UnlinkResourceFromIdentity.UnlinkResourceFromIdentityCommand                           0%
   InfraFlowSculptor.Application.UserAssignedIdentities.Commands.UnlinkResourceFromIdentity.UnlinkResourceFromIdentityCommandHandler                    0%
   InfraFlowSculptor.Application.UserAssignedIdentities.Commands.UpdateUserAssignedIdentity.UpdateUserAssignedIdentityCommand                           0%
@@ -774,7 +774,7 @@ InfraFlowSculptor.Application                                                   
   InfraFlowSculptor.Application.WebApps.Commands.CreateWebApp.CreateWebAppCommandHandler                                                            90.5%
   InfraFlowSculptor.Application.WebApps.Commands.DeleteWebApp.DeleteWebAppCommand                                                                    100%
   InfraFlowSculptor.Application.WebApps.Commands.DeleteWebApp.DeleteWebAppCommandHandler                                                            88.2%
-  InfraFlowSculptor.Application.WebApps.Commands.DeleteWebApp.DeleteWebAppCommandValidator                                                             0%
+  InfraFlowSculptor.Application.WebApps.Commands.DeleteWebApp.DeleteWebAppCommandValidator                                                           100%
   InfraFlowSculptor.Application.WebApps.Commands.UpdateWebApp.UpdateWebAppCommand                                                                      0%
   InfraFlowSculptor.Application.WebApps.Commands.UpdateWebApp.UpdateWebAppCommandHandler                                                               0%
   InfraFlowSculptor.Application.WebApps.Common.WebAppEnvironmentConfigData                                                                             0%
@@ -1346,6 +1346,216 @@ InfraFlowSculptor.GenerationCore                                                
   System.Text.RegularExpressions.Generated.RunnerFactory                                                                                                 
   System.Text.RegularExpressions.Generated.RunnerFactory.Runner                                                                                          
 
+InfraFlowSculptor.Infrastructure                                                                                                                     1.3%
+  InfraFlowSculptor.Infrastructure.Auth.PersonalAccessTokenAuthenticationHandler                                                                       0%
+  InfraFlowSculptor.Infrastructure.DependencyInjection                                                                                                 0%
+  InfraFlowSculptor.Infrastructure.Extensions.MigrateDbContextExtensions                                                                               0%
+  InfraFlowSculptor.Infrastructure.Extensions.MigrateDbContextExtensions.MigrationHostedService<TContext>                                              0%
+  InfraFlowSculptor.Infrastructure.Extensions.MigrateDbContextExtensions<TContext, TDbSeeder>                                                          0%
+  InfraFlowSculptor.Infrastructure.Extensions.MigrateDbContextExtensions<TContext>                                                                     0%
+  InfraFlowSculptor.Infrastructure.Migrations.AceWithLaw                                                                                               0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddAcrAuthModeToComputeApps                                                                              0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddAppConfiguration                                                                                      0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddAppConfigurationKeys                                                                                  0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddAppPipelineProperties                                                                                 0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddAppServicePlanAndWebApp                                                                               0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddAppSettingEnvironmentValues                                                                           0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddAppSettings                                                                                           0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddAssignedUserAssignedIdentityIdToAzureResource                                                         0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddAzureResourceManagerConnection                                                                        0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddBlobLifecycleRules                                                                                    0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddContainerAppEnvironmentAndContainerApp                                                                0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddContainerRegistry                                                                                     0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddCorsRuleServiceType                                                                                   0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddCosmosDb                                                                                              0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddCrossConfigResourceReferences                                                                         0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddDockerImageNameToContainerApp                                                                         0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddEventHubNamespace                                                                                     0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddFunctionApp                                                                                           0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddGitRepositoryConfiguration                                                                            0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddHealthProbeFields                                                                                     0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddIsExistingToAzureResource                                                                             0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddKeyVaultGeneralProperties                                                                             0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddLogAnalyticsWorkspaceAndApplicationInsights                                                           0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddMultiRepoTopologyV1                                                                                   0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddPersonalAccessTokens                                                                                  0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddPipelineVariableGroups                                                                                0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddProjectAggregate                                                                                      0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddProjectEnvironmentsAndNaming                                                                          0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddProjectPipelineVariableGroups                                                                         0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddRegistry                                                                                              0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddRepositoryModeToProject                                                                               0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddResourceAbbreviationOverrides                                                                         0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddResourceEnvironmentConfigs                                                                            0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddResourceTypeAndEnvSettingsView                                                                        0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddRoleAssignmentUniqueIndex                                                                             0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddSecrets                                                                                               0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddSecretValueAssignmentToAppSetting                                                                     0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddServiceBusNamespace                                                                                   0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddShortNameToEnvironments                                                                               0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddSqlServerAndSqlDatabase                                                                               0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddStorageAccountCorsRules                                                                               0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddUserAssignedIdentity                                                                                  0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddUserAssignedIdentityFkOnRoleAssignment                                                                0%
+  InfraFlowSculptor.Infrastructure.Migrations.AddUserAssignedIdentityIdToRoleAssignment                                                                0%
+  InfraFlowSculptor.Infrastructure.Migrations.CentralizeKeyVault                                                                                       0%
+  InfraFlowSculptor.Infrastructure.Migrations.ConfigAzureFucntion                                                                                      0%
+  InfraFlowSculptor.Infrastructure.Migrations.ConfigAzureFunction                                                                                      0%
+  InfraFlowSculptor.Infrastructure.Migrations.Copnfiguration                                                                                           0%
+  InfraFlowSculptor.Infrastructure.Migrations.customName                                                                                               0%
+  InfraFlowSculptor.Infrastructure.Migrations.DropResourceEnvironmentConfigs                                                                           0%
+  InfraFlowSculptor.Infrastructure.Migrations.existing                                                                                                 0%
+  InfraFlowSculptor.Infrastructure.Migrations.FixAllRestrictCascadeDeleteForProjectDeletion                                                            0%
+  InfraFlowSculptor.Infrastructure.Migrations.FixCrossResourceFKCascadeForProjectDeletion                                                              0%
+  InfraFlowSculptor.Infrastructure.Migrations.FixRoleAssignmentTargetCascadeDelete                                                                     0%
+  InfraFlowSculptor.Infrastructure.Migrations.GenerationPipeline                                                                                       0%
+  InfraFlowSculptor.Infrastructure.Migrations.gitConfig                                                                                                0%
+  InfraFlowSculptor.Infrastructure.Migrations.LayoutDrivenRepoConfiguration                                                                            0%
+  InfraFlowSculptor.Infrastructure.Migrations.PipelineApplicatives                                                                                     0%
+  InfraFlowSculptor.Infrastructure.Migrations.PoolPipeline                                                                                             0%
+  InfraFlowSculptor.Infrastructure.Migrations.PoolProjectNotConfiguration                                                                              0%
+  InfraFlowSculptor.Infrastructure.Migrations.ProjectDbContextModelSnapshot                                                                            0%
+  InfraFlowSculptor.Infrastructure.Migrations.Projects                                                                                                 0%
+  InfraFlowSculptor.Infrastructure.Migrations.RemoveConfigEnvironments                                                                                 0%
+  InfraFlowSculptor.Infrastructure.Migrations.RemoveFunctionsWorkerRuntimeFromFunctionAppEnvSettings                                                   0%
+  InfraFlowSculptor.Infrastructure.Migrations.RemoveGeneralResourceConfig                                                                              0%
+  InfraFlowSculptor.Infrastructure.Migrations.RemoveLegacyGitRepositoryConfiguration                                                                   0%
+  InfraFlowSculptor.Infrastructure.Migrations.RemoveTenantIdFromEnvironments                                                                           0%
+  InfraFlowSculptor.Infrastructure.Migrations.RevertUniqueIndexResourceGroupIdName                                                                     0%
+  InfraFlowSculptor.Infrastructure.Migrations.TypedEnvironmentSettings                                                                                 0%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.AppConfigurationConfiguration                                                          100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.AppConfigurationEnvironmentSettingsConfiguration                                       100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.AppConfigurationKeyConfiguration                                                       100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.AppConfigurationKeyEnvironmentValueConfiguration                                       100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ApplicationInsightsEfConfiguration                                                     100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ApplicationInsightsEnvironmentSettingsConfiguration                                    100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.AppServicePlanConfiguration                                                            100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.AppServicePlanEnvironmentSettingsConfiguration                                         100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.AppSettingConfiguration                                                                100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.AppSettingEnvironmentValueConfiguration                                                100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.AzureResourceConfiguration                                                             100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.BlobContainerConfiguration                                                             100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.BlobLifecycleRuleConfiguration                                                         100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ContainerAppConfiguration                                                              100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ContainerAppEnvironmentConfiguration                                                   100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ContainerAppEnvironmentEnvironmentSettingsConfiguration                                100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ContainerAppEnvironmentSettingsConfiguration                                           100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ContainerRegistryConfiguration                                                         100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ContainerRegistryEnvironmentSettingsConfiguration                                      100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters.EnumValueConverter<TEnumValueObject, TEnum>                                 100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters.IdValueConverter<TId>                                                       100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters.ParameterUsageConverter                                                     100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters.RepositoryAliasConverter                                                    100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters.RepositoryContentKindsConverter                                             100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters.SingleValueConverter<TValueObject, TValue>                                  100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.CorsRuleConfiguration                                                                  100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.CosmosDbConfiguration                                                                  100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.CosmosDbEnvironmentSettingsConfiguration                                               100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.CrossConfigResourceReferenceConfiguration                                              100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.CustomDomainConfiguration                                                              100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.EventHubConfiguration                                                                  100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.EventHubConsumerGroupConfiguration                                                     100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.EventHubNamespaceConfiguration                                                         100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.EventHubNamespaceEnvironmentSettingsConfiguration                                      100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.Extensions.EntityTypeBuilderExtensions                                                 100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.FunctionAppConfiguration                                                               100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.FunctionAppEnvironmentSettingsConfiguration                                            100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.InfraConfigRepositoryConfiguration                                                     100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.InfrastructureConfigConfiguration                                                      100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.InputOutputLinkConfiguration                                                           100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.KeyVaultConfiguration                                                                  100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.KeyVaultEnvironmentSettingsConfiguration                                               100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.LogAnalyticsWorkspaceConfiguration                                                     100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.LogAnalyticsWorkspaceEnvironmentSettingsConfiguration                                  100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ParameterDefinitionConfiguration                                                       100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.PersonalAccessTokenConfiguration                                                       100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ProjectConfiguration                                                                   100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ProjectMemberConfiguration                                                             100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ProjectPipelineVariableGroupConfiguration                                              100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ProjectRepositoryConfiguration                                                         100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ProjectResourceAbbreviationConfiguration                                               100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ProjectResourceNamingTemplateConfiguration                                             100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.RedisCacheConfiguration                                                                100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.RedisCacheEnvironmentSettingsConfiguration                                             100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ResourceAbbreviationOverrideConfiguration                                              100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ResourceGroupConfiguration                                                             100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ResourceNamingTemplateConfiguration                                                    100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ResourceParameterUsageConfiguration                                                    100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.RoleAssignmentConfiguration                                                            100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.SecureParameterMappingConfiguration                                                    100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ServiceBusNamespaceConfiguration                                                       100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ServiceBusNamespaceEnvironmentSettingsConfiguration                                    100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ServiceBusQueueConfiguration                                                           100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.ServiceBusTopicSubscriptionConfiguration                                               100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.SqlDatabaseConfiguration                                                               100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.SqlDatabaseEnvironmentSettingsConfiguration                                            100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.SqlServerConfiguration                                                                 100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.SqlServerEnvironmentSettingsConfiguration                                              100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.StorageAccountConfiguration                                                            100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.StorageAccountEnvironmentSettingsConfiguration                                         100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.StorageQueueConfiguration                                                              100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.StorageTableConfiguration                                                              100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.UserAssignedIdentityConfiguration                                                      100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.UserConfiguration                                                                      100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.WebAppConfiguration                                                                    100%
+  InfraFlowSculptor.Infrastructure.Persistence.Configurations.WebAppEnvironmentSettingsConfiguration                                                 100%
+  InfraFlowSculptor.Infrastructure.Persistence.Migrations.AddAppConfigurationKeyOutputReference                                                        0%
+  InfraFlowSculptor.Infrastructure.Persistence.Migrations.AddProjectAndConfigTags                                                                      0%
+  InfraFlowSculptor.Infrastructure.Persistence.ProjectDbContext                                                                                      100%
+  InfraFlowSculptor.Infrastructure.Persistence.ProjectDbContextDesignTimeFactory                                                                       0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.AppConfigurationRepository                                                                 0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.ApplicationInsightsRepository                                                              0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.AppServicePlanRepository                                                                   0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.AzureResourceBaseRepository                                                                0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.AzureResourceRepository<TEntity>                                                           0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.AzureResourceRepository<TEntity>                                                         100%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.BaseRepository<TEntity, TContext>                                                       57.8%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.BaseRepository<TEntity, TContext>                                                       66.6%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.ContainerAppEnvironmentRepository                                                          0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.ContainerAppRepository                                                                     0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.ContainerRegistryRepository                                                                0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.CosmosDbRepository                                                                         0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.EventHubNamespaceRepository                                                                0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.FunctionAppRepository                                                                      0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.InfrastructureConfigReadRepository                                                         0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.InfrastructureConfigRepository                                                            65%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.KeyVaultRepository                                                                         0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.LogAnalyticsWorkspaceRepository                                                            0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.PersonalAccessTokenRepository                                                            100%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.ProjectRepository                                                                       10.9%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.RedisCacheRepository                                                                       0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.ResourceGroupRepository                                                                 28.3%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.ServiceBusNamespaceRepository                                                              0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.SqlDatabaseRepository                                                                      0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.SqlServerRepository                                                                        0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.StorageAccountRepository                                                                67.5%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.UserAssignedIdentityRepository                                                             0%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.UserRepository                                                                           5.8%
+  InfraFlowSculptor.Infrastructure.Persistence.Repositories.WebAppRepository                                                                           0%
+  InfraFlowSculptor.Infrastructure.Persistence.UnitOfWork                                                                                              0%
+  InfraFlowSculptor.Infrastructure.Persistence.Views.ChildToParentLinkView                                                                             0%
+  InfraFlowSculptor.Infrastructure.Persistence.Views.ResourceEnvironmentEntryView                                                                      0%
+  InfraFlowSculptor.Infrastructure.Services.AzureNameAvailability.DnsNameAvailabilityChecker                                                           0%
+  InfraFlowSculptor.Infrastructure.Services.BlobService.BlobService                                                                                   20%
+  InfraFlowSculptor.Infrastructure.Services.BlobService.BlobSettings                                                                                 100%
+  InfraFlowSculptor.Infrastructure.Services.CurrentUser                                                                                                0%
+  InfraFlowSculptor.Infrastructure.Services.DateTimeProvider                                                                                           0%
+  InfraFlowSculptor.Infrastructure.Services.GeneratedArtifactService                                                                                   0%
+  InfraFlowSculptor.Infrastructure.Services.GitProviders.AzureDevOpsGitProviderService                                                                 0%
+  InfraFlowSculptor.Infrastructure.Services.GitProviders.AzureDevOpsGitProviderService.AdoCommit                                                       0%
+  InfraFlowSculptor.Infrastructure.Services.GitProviders.AzureDevOpsGitProviderService.AdoItem                                                         0%
+  InfraFlowSculptor.Infrastructure.Services.GitProviders.AzureDevOpsGitProviderService.AdoItemList                                                     0%
+  InfraFlowSculptor.Infrastructure.Services.GitProviders.AzureDevOpsGitProviderService.AdoPushResult                                                   0%
+  InfraFlowSculptor.Infrastructure.Services.GitProviders.AzureDevOpsGitProviderService.AdoRef                                                          0%
+  InfraFlowSculptor.Infrastructure.Services.GitProviders.AzureDevOpsGitProviderService.AdoRefList                                                      0%
+  InfraFlowSculptor.Infrastructure.Services.GitProviders.AzureDevOpsGitProviderService.AdoRepository                                                   0%
+  InfraFlowSculptor.Infrastructure.Services.GitProviders.AzureDevOpsGitProviderService.PreparedAzureDevOpsPush                                         0%
+  InfraFlowSculptor.Infrastructure.Services.GitProviders.GitHubCreateTreeResponse                                                                      0%
+  InfraFlowSculptor.Infrastructure.Services.GitProviders.GitHubGitProviderService                                                                      0%
+  InfraFlowSculptor.Infrastructure.Services.GitProviders.GitHubGitProviderService.PreparedGitHubPush                                                   0%
+  InfraFlowSculptor.Infrastructure.Services.GitProviders.GitProviderFactory                                                                            0%
+  InfraFlowSculptor.Infrastructure.Services.KeyVault.KeyVaultSecretClient                                                                              0%
+
 InfraFlowSculptor.Mcp                                                                                                                               45.9%
   InfraFlowSculptor.Mcp.Common.InMemoryCleanupService                                                                                                  0%
   InfraFlowSculptor.Mcp.Common.McpJsonDefaults                                                                                                       100%
@@ -1395,3 +1605,47 @@ InfraFlowSculptor.Mcp                                                           
   Microsoft.AspNetCore.OpenApi.Generated                                                                                                               0%
   Program                                                                                                                                              0%
   System.Runtime.CompilerServices                                                                                                                      0%
+
+InfraFlowSculptor.PipelineGeneration                                                                                                                89.2%
+  InfraFlowSculptor.PipelineGeneration.AppPipelineGenerationEngine                                                                                  70.8%
+  InfraFlowSculptor.PipelineGeneration.Bootstrap.BootstrapPipeline                                                                                   100%
+  InfraFlowSculptor.PipelineGeneration.Bootstrap.BootstrapPipelineContext                                                                            100%
+  InfraFlowSculptor.PipelineGeneration.Bootstrap.BootstrapYamlHelpers                                                                                100%
+  InfraFlowSculptor.PipelineGeneration.Bootstrap.Stages.EnvironmentProvisionJobStage                                                                91.6%
+  InfraFlowSculptor.PipelineGeneration.Bootstrap.Stages.HeaderEmissionStage                                                                          100%
+  InfraFlowSculptor.PipelineGeneration.Bootstrap.Stages.NoOpFallbackStage                                                                            100%
+  InfraFlowSculptor.PipelineGeneration.Bootstrap.Stages.PipelineProvisionJobStage                                                                   98.2%
+  InfraFlowSculptor.PipelineGeneration.Bootstrap.Stages.ValidateSharedResourcesJobStage                                                              100%
+  InfraFlowSculptor.PipelineGeneration.Bootstrap.Stages.VariableGroupProvisionJobStage                                                              98.8%
+  InfraFlowSculptor.PipelineGeneration.BootstrapPipelineGenerationEngine                                                                             100%
+  InfraFlowSculptor.PipelineGeneration.Generators.App.AppBuildStepEmitter                                                                              0%
+  InfraFlowSculptor.PipelineGeneration.Generators.App.AppCiPipelineBuilder                                                                          90.1%
+  InfraFlowSculptor.PipelineGeneration.Generators.App.AppHeaderEmitter                                                                               9.6%
+  InfraFlowSculptor.PipelineGeneration.Generators.App.AppNamingHelper                                                                               30.9%
+  InfraFlowSculptor.PipelineGeneration.Generators.App.AppPipelineTemplatesGenerator                                                                  100%
+  InfraFlowSculptor.PipelineGeneration.Generators.App.AppReleasePipelineBuilder                                                                     85.3%
+  InfraFlowSculptor.PipelineGeneration.Generators.App.ContainerAppPipelineGenerator                                                                  100%
+  InfraFlowSculptor.PipelineGeneration.Generators.App.FunctionAppCodePipelineGenerator                                                               100%
+  InfraFlowSculptor.PipelineGeneration.Generators.App.FunctionAppContainerPipelineGenerator                                                          100%
+  InfraFlowSculptor.PipelineGeneration.Generators.App.WebAppCodePipelineGenerator                                                                    100%
+  InfraFlowSculptor.PipelineGeneration.Generators.App.WebAppContainerPipelineGenerator                                                               100%
+  InfraFlowSculptor.PipelineGeneration.Generators.PipelineResourceSteps                                                                                0%
+  InfraFlowSculptor.PipelineGeneration.Infra.InfraPipeline                                                                                           100%
+  InfraFlowSculptor.PipelineGeneration.Infra.InfraPipelineContext                                                                                    100%
+  InfraFlowSculptor.PipelineGeneration.Infra.Stages.CiPipelineStage                                                                                  100%
+  InfraFlowSculptor.PipelineGeneration.Infra.Stages.ConfigPipelineBuilder                                                                            100%
+  InfraFlowSculptor.PipelineGeneration.Infra.Stages.ConfigPipelineOptions                                                                            100%
+  InfraFlowSculptor.PipelineGeneration.Infra.Stages.ConfigVarsStage                                                                                  100%
+  InfraFlowSculptor.PipelineGeneration.Infra.Stages.EnvironmentVarsStage                                                                             100%
+  InfraFlowSculptor.PipelineGeneration.Infra.Stages.PrPipelineStage                                                                                  100%
+  InfraFlowSculptor.PipelineGeneration.Infra.Stages.ReleasePipelineStage                                                                             100%
+  InfraFlowSculptor.PipelineGeneration.Models.BootstrapEnvironmentDefinition                                                                         100%
+  InfraFlowSculptor.PipelineGeneration.Models.BootstrapGenerationRequest                                                                             100%
+  InfraFlowSculptor.PipelineGeneration.Models.BootstrapPipelineDefinition                                                                            100%
+  InfraFlowSculptor.PipelineGeneration.Models.BootstrapVariable                                                                                      100%
+  InfraFlowSculptor.PipelineGeneration.Models.BootstrapVariableGroupDefinition                                                                       100%
+  InfraFlowSculptor.PipelineGeneration.Models.MonoRepoPipelineResult                                                                                 100%
+  InfraFlowSculptor.PipelineGeneration.Models.PipelineGenerationOptions                                                                                0%
+  InfraFlowSculptor.PipelineGeneration.Models.PipelineGenerationResult                                                                               100%
+  InfraFlowSculptor.PipelineGeneration.MonoRepoPipelineAssembler                                                                                     100%
+  InfraFlowSculptor.PipelineGeneration.PipelineGenerationEngine                                                                                       99%
