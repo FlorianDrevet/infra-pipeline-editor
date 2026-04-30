@@ -1264,8 +1264,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           dockerImageTag: [settings?.dockerImageTag ?? null],
         });
       }
-      default:
-        return this.fb.group({});
       case 'AppConfiguration': {
         const ac = resource as AppConfigurationResponse;
         const settings = ac.environmentSettings?.find(s => s.environmentName === envName);
@@ -1381,6 +1379,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           zoneRedundant: [settings?.zoneRedundant ?? null],
         });
       }
+      default:
+        return this.fb.group({});
     }
   }
 
@@ -3283,7 +3283,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
   }
 
-  private validateCorsHeader(value: string, field: 'allowedHeaders' | 'exposedHeaders'): string {
+  private validateCorsHeader(value: string, _field: 'allowedHeaders' | 'exposedHeaders'): string {
     const normalized = value.trim();
     if (!normalized) {
       return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_EMPTY_VALUE';
@@ -3297,7 +3297,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_HEADER';
     }
 
-    void field;
     return '';
   }
 

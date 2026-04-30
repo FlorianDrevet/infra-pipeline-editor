@@ -36,9 +36,11 @@ public sealed class StorageAccount : AzureResource
     public IReadOnlyList<CorsRule> AllCorsRules => _corsRules.AsReadOnly();
 
     /// <summary>Gets CORS rules applicable to the Blob service.</summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2365:Properties should not make collection or array copies", Justification = "Intentional filtered projection over the internal _corsRules backing list; consumers expect a snapshot of the Blob-typed subset.")]
     public IReadOnlyList<CorsRule> CorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Blob)).ToList();
 
     /// <summary>Gets CORS rules applicable to the Table service.</summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2365:Properties should not make collection or array copies", Justification = "Intentional filtered projection over the internal _corsRules backing list; consumers expect a snapshot of the Table-typed subset.")]
     public IReadOnlyList<CorsRule> TableCorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Table)).ToList();
 
     private readonly List<BlobLifecycleRule> _lifecycleRules = [];

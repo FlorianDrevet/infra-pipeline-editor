@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 
 namespace InfraFlowSculptor.GenerationCore;
 
@@ -33,7 +34,7 @@ public static class AzureResourceTypes
     /// <summary>
     /// Azure ARM resource provider type strings (e.g. "Microsoft.KeyVault/vaults").
     /// </summary>
-#pragma warning disable S3218
+    [SuppressMessage("Critical Code Smell", "S3218:Inner class members should not shadow outer class \"static\" or type members", Justification = "The inner ArmTypes constants intentionally mirror the outer friendly-name constants (same Azure resource concept, different value). This naming symmetry is the public contract: callers write AzureResourceTypes.KeyVault for the friendly name and AzureResourceTypes.ArmTypes.KeyVault for the ARM type. Renaming would break the symmetry without adding clarity.")]
     public static class ArmTypes
     {
         public const string KeyVault = "Microsoft.KeyVault/vaults";
@@ -55,12 +56,12 @@ public static class AzureResourceTypes
         public const string ContainerRegistry = "Microsoft.ContainerRegistry/registries";
         public const string EventHubNamespace = "Microsoft.EventHub/namespaces";
     }
-#pragma warning restore S3218
 
     /// <summary>
     /// Maps Azure ARM resource type strings to their friendly type names.
     /// Case-insensitive lookup.
     /// </summary>
+    [SuppressMessage("Minor Bug", "S3887:Use an immutable collection or reduce the accessibility of the non-private readonly field", Justification = "Backed by a FrozenDictionary which is immutable; the IReadOnlyDictionary interface used as the declared type also prevents mutation by callers.")]
     public static IReadOnlyDictionary<string, string> ArmTypeToFriendlyName { get; } =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {

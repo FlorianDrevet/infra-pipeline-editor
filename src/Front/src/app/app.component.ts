@@ -71,7 +71,7 @@ export class AppComponent {
     this.annotationRef()?.nativeElement.activate();
   }
 
-  private readonly onAnnotationCreate = (event: Event): void => {
-    void event;
+  private readonly onAnnotationCreate = (_event: Event): void => {
+    // Annotation create event consumed by ds-annotation listener; no-op here.
   };
 }
