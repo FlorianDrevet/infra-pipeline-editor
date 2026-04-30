@@ -13,7 +13,8 @@
     "USER_DEFAULT_NAME": "Workspace member",
     "USER_DEFAULT_EMAIL": "Connected with Microsoft Entra ID",
     "LOGGING_OUT": "Signing out...",
-    "LOGOUT": "Sign out"
+    "LOGOUT": "Sign out",
+    "SETTINGS": "Settings"
   },
   "FOOTER": {
     "BRAND_DESCRIPTION": "Infrastructure as Data, Bicep as Code. Secure workspace for Azure platform teams.",
@@ -228,7 +229,29 @@
   "COMMON": {
     "CANCEL": "Cancel",
     "CLOSE": "Close",
-    "DELETE": "Delete"
+    "DELETE": "Delete",
+    "DATE_PICKER": {
+      "ARIA": {
+        "CLEAR": "Clear date",
+        "PREVIOUS_YEAR": "Previous year",
+        "OPEN_YEAR_SELECTION": "Open year selection",
+        "NEXT_YEAR": "Next year",
+        "PREVIOUS_MONTH": "Previous month",
+        "OPEN_MONTH_SELECTION": "Open month selection",
+        "NEXT_MONTH": "Next month",
+        "PREVIOUS_YEAR_RANGE": "Previous year range",
+        "RETURN_TO_DAYS": "Return to calendar days",
+        "NEXT_YEAR_RANGE": "Next year range",
+        "YEAR_SELECTION": "Year selection",
+        "MONTH_SELECTION": "Month selection",
+        "CHOOSE_YEAR": "Choose year {{year}}",
+        "CHOOSE_MONTH": "Choose month {{month}}"
+      },
+      "HINTS": {
+        "SELECT_YEAR": "Select year",
+        "SELECT_MONTH": "Select month"
+      }
+    }
   },
   "CONFIG_DETAIL": {
     "HEADER": {
@@ -2129,5 +2152,50 @@
     "RESET_CONFIRM_YES": "Reset",
     "RESET_CONFIRM_CANCEL": "Cancel",
     "RESET_ERROR": "Unable to reset the abbreviation."
+  },
+  "SETTINGS": {
+    "TITLE": "Settings",
+    "SUBTITLE": "Manage your account settings",
+    "PAT_SECTION_TITLE": "Personal Access Tokens",
+    "PAT_SECTION_DESCRIPTION": "Personal access tokens are used to authenticate MCP (Model Context Protocol) clients. Create a token and configure it in your MCP client.",
+    "CREATE_TOKEN": "Create Token",
+    "NO_TOKENS": "No personal access tokens yet.",
+    "LOAD_ERROR": "Unable to load personal access tokens.",
+    "REVOKE_ERROR": "Unable to revoke the token.",
+    "TABLE": {
+      "NAME": "Name",
+      "PREFIX": "Token Prefix",
+      "CREATED": "Created",
+      "LAST_USED": "Last Used",
+      "EXPIRES": "Expires",
+      "STATUS": "Status",
+      "ACTIONS": "Actions",
+      "NEVER": "Never",
+      "NO_EXPIRY": "No expiry",
+      "ACTIVE": "Active",
+      "REVOKED": "Revoked",
+      "EXPIRED": "Expired"
+    },
+    "REVOKE": "Revoke",
+    "REVOKE_CONFIRM_TITLE": "Revoke Token",
+    "REVOKE_CONFIRM_MESSAGE": "Are you sure you want to revoke the token \"{{name}}\"? This action cannot be undone.",
+    "CREATE_DIALOG": {
+      "TITLE": "Create Personal Access Token",
+      "NAME_LABEL": "Token Name",
+      "NAME_PLACEHOLDER": "e.g. VS Code MCP",
+      "EXPIRY_LABEL": "Expiration Date",
+      "EXPIRY_HINT": "Leave empty for no expiration",
+      "EXPIRY_PLACEHOLDER": "Select a date",
+      "CREATE": "Create",
+      "CANCEL": "Cancel",
+      "ERROR": "Unable to create the token. Please try again."
+    },
+    "TOKEN_CREATED": {
+      "TITLE": "Token Created Successfully",
+      "WARNING": "This token will only be shown once. Make sure to copy it now — you won't be able to see it again.",
+      "COPY": "Copy to Clipboard",
+      "COPIED": "Copied!",
+      "DONE": "I've Copied the Token"
+    }
   }
 }

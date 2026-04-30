@@ -40,6 +40,7 @@ using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
 using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
+using InfraFlowSculptor.Domain.PersonalAccessTokenAggregate;
 using InfraFlowSculptor.Infrastructure.Persistence.Views;
 using Microsoft.EntityFrameworkCore;
 
@@ -115,6 +116,8 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<Domain.InfrastructureConfigAggregate.Entities.InfraConfigRepository> InfraConfigRepositories { get; set; } = null!;
     public DbSet<CrossConfigResourceReference> CrossConfigResourceReferences { get; set; } = null!;
     public DbSet<ProjectPipelineVariableGroup> ProjectPipelineVariableGroups { get; set; } = null!;
+
+    public DbSet<PersonalAccessToken> PersonalAccessTokens { get; set; } = null!;
 
     /// <summary>Keyless entity mapped to the <c>vw_ResourceEnvironmentEntries</c> PostgreSQL view.</summary>
     public DbSet<ResourceEnvironmentEntryView> ResourceEnvironmentEntryViews { get; set; } = null!;

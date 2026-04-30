@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Infra;
 using InfraFlowSculptor.PipelineGeneration.Infra.Stages;
@@ -56,7 +57,7 @@ public sealed class EnvironmentVarsStageTests
         // Assert
         var devFile = context.Files["variables/dev.yml"];
         devFile.Should().Contain("subscriptionId: 'sub-dev'");
-        devFile.Should().Contain("location: 'westeurope'");
+        devFile.Should().Contain($"location: '{Location.DefaultAzureRegionKey}'");
     }
 
     private static InfraPipelineContext CreateContext(bool isMonoRepo) => new()
@@ -65,8 +66,8 @@ public sealed class EnvironmentVarsStageTests
         {
             Environments =
             [
-                new EnvironmentDefinition { Name = "Development", ShortName = "dev", Location = "westeurope", SubscriptionId = "sub-dev" },
-                new EnvironmentDefinition { Name = "Production", ShortName = "prd", Location = "northeurope", SubscriptionId = "sub-prd" },
+                new EnvironmentDefinition { Name = "Development", ShortName = "dev", Location = Location.DefaultAzureRegionKey, SubscriptionId = "sub-dev" },
+                new EnvironmentDefinition { Name = "Production", ShortName = "prd", Location = Location.ToAzureRegionKey(Location.LocationEnum.NorthEurope), SubscriptionId = "sub-prd" },
             ],
         },
         ConfigName = "my-config",

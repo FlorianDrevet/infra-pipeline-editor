@@ -132,10 +132,94 @@ dotnet build .\src\Api\InfraFlowSculptor.Api\InfraFlowSculptor.Api.csproj
 
 ---
 
+## MCP
+
+Le dépôt expose un serveur **Model Context Protocol** pour brancher **VS Code / Copilot** directement sur les capacités métier d'Infra Flow Sculptor. Le serveur MCP est exposé en HTTP sur `http://127.0.0.1:5258/mcp` et protégé par un **PAT Infra Flow Sculptor**.
+
+### Ce Que Le Serveur Permet
+
+- découvrir les topologies de dépôt et les types de ressources supportés
+- créer un projet à partir d'un prompt via un workflow `draft -> validation -> création`
+- prévisualiser puis appliquer un import IaC
+- générer le Bicep d'un projet existant
+- configurer après création les templates de nommage, les réglages par environnement et les app settings des ressources de calcul
+
+### Prérequis
+
+- `.NET SDK 10.0.100`
+- le workspace ouvert dans VS Code
+- le stack local lancé, idéalement via Aspire
+- un **PAT Infra Flow Sculptor** généré depuis l'application
+
+### Lancer Le Serveur MCP
+
+Option recommandée, avec toutes les dépendances locales câblées via Aspire :
+
+```pwsh
+dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj
+```
+
+Option serveur MCP seul, utile pour travailler sur l'hôte MCP lui-même :
+
+```pwsh
+dotnet run --project .\src\Mcp\InfraFlowSculptor.Mcp\InfraFlowSculptor.Mcp.csproj
+```
+
+### Générer Un PAT
+
+- lancer l'application localement
+- ouvrir `Settings > Personal Access Tokens`
+- créer un token et le copier immédiatement
+- utiliser ce token quand VS Code demande la valeur `ifs_pat`
+
+Ce token est **interne à Infra Flow Sculptor**. Il ne remplace pas les tokens GitHub, Azure DevOps ou Postman utilisés par d'autres serveurs MCP du workspace.
+
+### Configurer VS Code
+
+Le workspace fournit déjà une entrée dédiée dans [.vscode/mcp.json](.vscode/mcp.json). L'extrait utile est le suivant :
+
+```json
+{
+	"servers": {
+		"infraflowsculptor-mcp": {
+			"type": "http",
+			"url": "http://127.0.0.1:5258/mcp",
+			"headers": {
+				"Authorization": "Bearer ${input:ifs_pat}"
+			}
+		}
+	}
+}
+```
+
+Si l'URL du serveur change, adaptez `url` et conservez le header `Authorization` avec le bearer token `ifs_pat`.
+
+### Utiliser Le MCP Dans Copilot / Agent Mode
+
+- démarrer le serveur MCP
+- ouvrir le workspace dans VS Code
+- renseigner `ifs_pat` lorsque le prompt apparaît
+- demander ensuite à l'agent d'utiliser les capacités MCP du projet
+
+Exemples de demandes utiles :
+
+- `crée un draft de projet avec Key Vault, Container App et SQL Server`
+- `valide le draft et liste les clarifications manquantes`
+- `génère le Bicep du projet <id>`
+- `configure le naming template du projet <id>`
+- `ajoute un app setting sur la Container App <resourceId>`
+
+### Documentation Détaillée
+
+Pour l'architecture runtime, l'authentification PAT, l'inventaire des capacités MCP et le guide de lecture du code, voir [docs/architecture/mcp-integration.md](docs/architecture/mcp-integration.md).
+
+---
+
 ## Documentation
 
 - [Documentation technique](docs/README.md)
 - [Vue d'ensemble de l'architecture](docs/architecture/overview.md)
+- [Intégration MCP](docs/architecture/mcp-integration.md)
 - [DDD et concepts métier](docs/architecture/ddd-concepts.md)
 - [CQRS et MediatR](docs/architecture/cqrs-patterns.md)
 - [Persistance EF Core](docs/architecture/persistence.md)

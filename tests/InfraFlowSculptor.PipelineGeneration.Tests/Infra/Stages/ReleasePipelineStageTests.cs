@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Infra;
 using InfraFlowSculptor.PipelineGeneration.Infra.Stages;
@@ -64,8 +65,8 @@ public sealed class ReleasePipelineStageTests
         {
             Environments =
             [
-                new EnvironmentDefinition { Name = "Development", ShortName = "dev", Location = "westeurope", SubscriptionId = "sub-1", AzureResourceManagerConnection = "arm-dev" },
-                new EnvironmentDefinition { Name = "Production", ShortName = "prd", Location = "westeurope", SubscriptionId = "sub-2", AzureResourceManagerConnection = "arm-prd" },
+                new EnvironmentDefinition { Name = "Development", ShortName = "dev", Location = Location.DefaultAzureRegionKey, SubscriptionId = "sub-1", AzureResourceManagerConnection = "arm-dev" },
+                new EnvironmentDefinition { Name = "Production", ShortName = "prd", Location = Location.DefaultAzureRegionKey, SubscriptionId = "sub-2", AzureResourceManagerConnection = "arm-prd" },
             ],
         },
         ConfigName = "my-config",

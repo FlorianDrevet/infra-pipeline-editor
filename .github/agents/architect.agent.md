@@ -55,8 +55,11 @@ Ces résultats alimentent directement l'étape 4 (Challenge).
 |----------|--------|
 | **Pertinence** | Est-ce que cette feature/modification a sa place dans l'architecture actuelle ? Est-ce le bon projet/couche/agrégat pour la porter ? |
 | **Cohérence** | Est-ce que la proposition est cohérente avec les patterns existants (DDD, CQRS, ErrorOr, TPT, etc.) ? Sinon, quel pattern devrait-on suivre ? |
+| **Pattern de conception** | Quels patterns plausibles existent (`aucun pattern additionnel`, Strategy, Factory, Builder, Specification, Policy, etc.) ? Comparer au moins 2 options et retenir la plus simple qui améliore réellement lisibilité, maintenabilité, et scalabilité. |
 | **Duplication** | Utiliser `gitnexus_query("concept")` pour détecter les mécanismes existants. Est-ce qu'un mécanisme existant couvre déjà ce besoin, en tout ou en partie ? Faut-il étendre plutôt que créer ? |
 | **Impact** | Exécuter `gitnexus_impact(target, "upstream")` sur chaque symbole modifié. Reporter le blast radius (d=1 WILL BREAK, d=2 LIKELY, d=3 MAY NEED TESTING). Quelles couches sont impactées ? Y a-t-il un risque de régression ? |
+| **Typage / shape des données** | Peut-on modéliser explicitement les données plutôt que manipuler `object`, `Dictionary`, `JsonDocument`, ou des blobs JSON ? Si oui, imposer les types applicatifs et de persistance adaptés. |
+| **Granularité des fichiers** | La solution garde-t-elle un type public top-level par fichier ou introduit-elle des fichiers poubelles (`Dtos.cs`, `Models.cs`, etc.) ? |
 | **Dette technique** | La zone de code visée a-t-elle de la dette technique qu'il faudrait traiter en même temps ? Est-ce qu'ajouter sans refactorer va empirer la situation ? |
 | **Alternative** | Existe-t-il une approche plus simple, plus maintenable, ou plus alignée avec l'architecture ? |
 | **Refonte nécessaire ?** | Si la meilleure solution impose de modifier l'existant (renommer, restructurer, migrer), le dire clairement avec la justification. |
@@ -64,6 +67,8 @@ Ces résultats alimentent directement l'étape 4 (Challenge).
 ### 5. Produire le plan d'implémentation
 
 Le plan doit être **directement exécutable** par les agents spécialisés. Il doit suivre ce format strict :
+
+Si la tâche introduit un mécanisme structurel ou un nouveau modèle de données, le plan doit aussi nommer les patterns envisagés puis écartés, et rappeler explicitement les garde-fous de typage fort et de granularité de fichiers.
 
 ---
 

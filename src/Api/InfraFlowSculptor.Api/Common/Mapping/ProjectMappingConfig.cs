@@ -117,19 +117,7 @@ public sealed class ProjectMappingConfig : IRegister
 
         // Project domain -> ProjectResult
         config.NewConfig<Project, ProjectResult>()
-            .Map(dest => dest.Id, src => src.Id)
-            .Map(dest => dest.Name, src => src.Name)
-            .Map(dest => dest.Description, src => src.Description)
-            .Map(dest => dest.Members, src => src.Members)
-            .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
-            .Map(dest => dest.DefaultNamingTemplate,
-                src => src.DefaultNamingTemplate != null ? src.DefaultNamingTemplate.Value : null)
-            .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
-            .Map(dest => dest.ResourceAbbreviations, src => src.ResourceAbbreviations)
-            .Map(dest => dest.LayoutPreset, src => src.LayoutPreset.Value.ToString())
-            .Map(dest => dest.Repositories, src => src.Repositories)
-            .Map(dest => dest.Tags, src => src.Tags)
-            .Map(dest => dest.AgentPoolName, src => src.AgentPoolName);
+            .MapWith(src => ProjectResultMapper.ToProjectResult(src));
 
         // ProjectResult -> ProjectResponse
         config.NewConfig<ProjectResult, ProjectResponse>()

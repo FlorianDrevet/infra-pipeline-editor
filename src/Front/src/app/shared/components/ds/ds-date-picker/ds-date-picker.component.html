@@ -1,0 +1,268 @@
+<div
+  class="ds-field"
+  [class.ds-field--invalid]="!!error()"
+  [class.ds-field--disabled]="disabledState()"
+  [class.ds-field--focused]="isOpen()"
+>
+  @if (label()) {
+    <label class="ds-field__label" [for]="inputId">
+      {{ label() }}
+      @if (required()) {
+        <span class="ds-field__required">*</span>
+      }
+    </label>
+  }
+  <button
+    #trigger
+    cdkOverlayOrigin
+    type="button"
+    class="ds-field__control ds-date-picker__trigger"
+    [id]="inputId"
+    [disabled]="disabledState()"
+    (click)="toggleOpen()"
+  >
+    <span
+      class="ds-date-picker__value"
+      [class.ds-date-picker__value--placeholder]="!displayValue()"
+    >
+      {{ displayValue() || placeholder() }}
+    </span>
+    @if (clearable() && value() && !disabledState()) {
+      <button
+        type="button"
+        class="ds-field__clear"
+        (click)="clear($event)"
+        tabindex="-1"
+        [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.CLEAR' | translate"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+    <mat-icon class="ds-date-picker__calendar-icon">calendar_today</mat-icon>
+  </button>
+
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="trigger"
+    [cdkConnectedOverlayOpen]="isOpen()"
+    [cdkConnectedOverlayPositions]="overlayPositions"
+    [cdkConnectedOverlayWidth]="overlayWidth()"
+    [cdkConnectedOverlayViewportMargin]="12"
+    [cdkConnectedOverlayPush]="true"
+    [cdkConnectedOverlayHasBackdrop]="true"
+    cdkConnectedOverlayBackdropClass="ds-date-picker__backdrop"
+    (backdropClick)="close()"
+    (detach)="close()"
+  >
+    <dialog class="ds-date-picker__panel" open aria-modal="true">
+      <div class="ds-date-picker__header">
+        @if (viewMode() === 'days') {
+          <div class="ds-date-picker__header-row ds-date-picker__header-row--year">
+            <button
+              type="button"
+              class="ds-date-picker__year-nav-button ds-date-picker__year-nav-button--previous"
+              [disabled]="!canNavigateToPreviousYear()"
+              [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.PREVIOUS_YEAR' | translate"
+              (click)="showPreviousYear()"
+            >
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+
+            <div class="ds-date-picker__header-cell ds-date-picker__header-cell--center">
+              <button
+                type="button"
+                class="ds-date-picker__year-label-button"
+                (click)="showYearSelection()"
+                [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.OPEN_YEAR_SELECTION' | translate"
+                [attr.aria-pressed]="false"
+              >
+                {{ yearLabel() }}
+              </button>
+            </div>
+
+            <button
+              type="button"
+              class="ds-date-picker__year-nav-button ds-date-picker__year-nav-button--next"
+              [disabled]="!canNavigateToNextYear()"
+              [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.NEXT_YEAR' | translate"
+              (click)="showNextYear()"
+            >
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+
+          <div class="ds-date-picker__header-row ds-date-picker__header-row--month">
+            <button
+              type="button"
+              class="ds-date-picker__nav ds-date-picker__month-nav-button ds-date-picker__month-nav-button--previous"
+              [disabled]="!canNavigateToPreviousMonth()"
+              (click)="prevMonth()"
+              [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.PREVIOUS_MONTH' | translate"
+            >
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+
+            <div class="ds-date-picker__header-cell ds-date-picker__header-cell--center">
+              <button
+                type="button"
+                class="ds-date-picker__month-label-button"
+                (click)="showMonthSelection()"
+                [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.OPEN_MONTH_SELECTION' | translate"
+                [attr.aria-pressed]="false"
+              >
+                <span class="ds-date-picker__month-label">{{ monthLabel() }}</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              class="ds-date-picker__nav ds-date-picker__month-nav-button ds-date-picker__month-nav-button--next"
+              [disabled]="!canNavigateToNextMonth()"
+              (click)="nextMonth()"
+              [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.NEXT_MONTH' | translate"
+            >
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        } @else if (viewMode() === 'years') {
+          <div class="ds-date-picker__header-row ds-date-picker__header-row--range">
+            <button
+              type="button"
+              class="ds-date-picker__nav"
+              (click)="showPreviousYearRange()"
+              [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.PREVIOUS_YEAR_RANGE' | translate"
+            >
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+
+            <div class="ds-date-picker__header-cell ds-date-picker__header-cell--center">
+              <button
+                type="button"
+                class="ds-date-picker__month-label-button"
+                (click)="showDaySelection()"
+                [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.RETURN_TO_DAYS' | translate"
+                [attr.aria-pressed]="true"
+              >
+                <span class="ds-date-picker__year-range-label">{{ yearRangeLabel() }}</span>
+                <span class="ds-date-picker__header-hint">{{ 'COMMON.DATE_PICKER.HINTS.SELECT_YEAR' | translate }}</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              class="ds-date-picker__nav"
+              (click)="showNextYearRange()"
+              [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.NEXT_YEAR_RANGE' | translate"
+            >
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        } @else {
+          <div class="ds-date-picker__header-row ds-date-picker__header-row--range">
+            <button
+              type="button"
+              class="ds-date-picker__year-nav-button ds-date-picker__year-nav-button--previous"
+              [disabled]="!canNavigateToPreviousYear()"
+              [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.PREVIOUS_YEAR' | translate"
+              (click)="showPreviousYear()"
+            >
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+
+            <div class="ds-date-picker__header-cell ds-date-picker__header-cell--center">
+              <button
+                type="button"
+                class="ds-date-picker__month-label-button"
+                (click)="showDaySelection()"
+                [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.RETURN_TO_DAYS' | translate"
+                [attr.aria-pressed]="true"
+              >
+                <span class="ds-date-picker__year-range-label">{{ yearLabel() }}</span>
+                <span class="ds-date-picker__header-hint">{{ 'COMMON.DATE_PICKER.HINTS.SELECT_MONTH' | translate }}</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              class="ds-date-picker__year-nav-button ds-date-picker__year-nav-button--next"
+              [disabled]="!canNavigateToNextYear()"
+              [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.NEXT_YEAR' | translate"
+              (click)="showNextYear()"
+            >
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (viewMode() === 'days') {
+        <div class="ds-date-picker__weekdays">
+          @for (wd of weekdays(); track wd) {
+            <span class="ds-date-picker__weekday">{{ wd }}</span>
+          }
+        </div>
+
+        <div class="ds-date-picker__grid">
+          @for (day of calendarDays(); track day.date.getTime()) {
+            <button
+              type="button"
+              class="ds-date-picker__day"
+              [class.ds-date-picker__day--today]="day.isToday"
+              [class.ds-date-picker__day--selected]="day.isSelected"
+              [class.ds-date-picker__day--disabled]="day.isDisabled"
+              [class.ds-date-picker__day--outside]="!day.isCurrentMonth"
+              [disabled]="day.isDisabled || !day.isCurrentMonth"
+              (click)="selectDay(day)"
+            >
+              {{ day.day }}
+            </button>
+          }
+        </div>
+      } @else if (viewMode() === 'years') {
+        <div class="ds-date-picker__year-grid" [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.YEAR_SELECTION' | translate">
+          @for (yearOption of yearOptions(); track yearOption.year) {
+            <button
+              type="button"
+              class="ds-date-picker__year"
+              [class.ds-date-picker__year--current]="yearOption.isCurrent"
+              [class.ds-date-picker__year--selected]="yearOption.isSelected"
+              [class.ds-date-picker__year--disabled]="yearOption.isDisabled"
+              [disabled]="yearOption.isDisabled"
+              [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.CHOOSE_YEAR' | translate: { year: yearOption.year }"
+              [attr.aria-current]="yearOption.isCurrent ? 'date' : null"
+              [attr.aria-pressed]="yearOption.isSelected"
+              (click)="selectYear(yearOption.year)"
+            >
+              {{ yearOption.year }}
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="ds-date-picker__month-grid" [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.MONTH_SELECTION' | translate">
+          @for (monthOption of monthOptions(); track monthOption.month) {
+            <button
+              type="button"
+              class="ds-date-picker__month"
+              [class.ds-date-picker__month--current]="monthOption.isCurrent"
+              [class.ds-date-picker__month--selected]="monthOption.isSelected"
+              [class.ds-date-picker__month--disabled]="monthOption.isDisabled"
+              [disabled]="monthOption.isDisabled"
+              [attr.aria-label]="'COMMON.DATE_PICKER.ARIA.CHOOSE_MONTH' | translate: { month: monthOption.fullLabel }"
+              [attr.aria-current]="monthOption.isCurrent ? 'date' : null"
+              [attr.aria-pressed]="monthOption.isSelected"
+              (click)="selectMonth(monthOption.month)"
+            >
+              {{ monthOption.label }}
+            </button>
+          }
+        </div>
+      }
+    </dialog>
+  </ng-template>
+
+  @if (error()) {
+    <span class="ds-field__message ds-field__message--error">{{ error() }}</span>
+  } @else if (hint()) {
+    <span class="ds-field__message ds-field__message--hint">{{ hint() }}</span>
+  }
+</div>

@@ -6,6 +6,20 @@
 - **Admin policy:** `"IsAdmin"` policy
 - **Current user:** `ICurrentUser` → `CurrentUser` service
 
+## PAT Authentication (MCP) [2026-04-28]
+
+- **Scheme:** `PersonalAccessToken` (custom `AuthenticationHandler`)
+- **Token format:** `ifs_` prefix + 32 random bytes base64url encoded; SHA-256 hash stored in DB
+- **Flow:** MCP HTTP request → `Authorization: Bearer ifs_...` → handler computes hash → DB lookup → validates not revoked/expired → sets `HttpContext.Items["ProvisionedUserId"]` → `ICurrentUser` resolves transparently
+- **API endpoints:** `GET /personal-access-tokens` (list), `POST /personal-access-tokens` (create, returns one-time plaintext), `DELETE /personal-access-tokens/{id}` (revoke)
+- **VS Code:** `.vscode/mcp.json` includes `Authorization: Bearer ${input:ifs_pat}` header with password input
+- **Workspace MCP file:** `.vscode/mcp.json` is now multi-server; InfraFlowSculptor uses the `infraflowsculptor-mcp` HTTP entry inside that file
+- **MCP endpoint config:** defaults come from `McpOptions` (`http://127.0.0.1:5258` + `/mcp`) and can be overridden via `Mcp:ListenUrl`, `MCP__LISTENURL`, and `Mcp:Route`
+- **Registration:** `AddPatAuthentication()` in `DependencyInjection.cs`
+- **Domain:** `PersonalAccessToken` aggregate in `PersonalAccessTokenAggregate/`
+- **Frontend:** Settings page at `/settings` with PAT management (create dialog with one-time token display, list, revoke)
+- **Primary onboarding doc:** `docs/architecture/mcp-integration.md` now documents the real MCP runtime (`/mcp` over HTTP), the PAT flow, and the exact exposed surface (8 tools, 2 resources, 1 prompt)
+
 ## Build & Run Commands
 
 ```powershell
@@ -27,11 +41,17 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 ```
 
 - Active .NET test projects currently checked in:
+	- `tests/InfraFlowSculptor.Application.Tests/`
 	- `tests/InfraFlowSculptor.BicepGeneration.Tests/`
+	- `tests/InfraFlowSculptor.Contracts.Tests/`
+	- `tests/InfraFlowSculptor.Domain.Tests/`
+	- `tests/InfraFlowSculptor.Infrastructure.Tests/`
+	- `tests/InfraFlowSculptor.Mcp.Tests/`
 	- `tests/InfraFlowSculptor.PipelineGeneration.Tests/`
 - All .NET test projects live under `tests/`.
 - Unit test projects follow `<TargetAssembly>.Tests` and reference a single production assembly.
 - `tests/InfraFlowSculptor.GenerationParity.Tests/` is currently an empty placeholder folder with no `.csproj`.
+- `tmp/test-output-mcp/` is currently not covered by root `.gitignore`; generated MCP test/runtime artifacts under that folder can appear in `origin/main...HEAD` branch diffs if produced locally.
 
 ## API Runtime Hardening [2026-04-23]
 
@@ -95,6 +115,7 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 
 ## Sonar Quick Wins [2026-04-28]
 
+- PR #324 branch remediation: `Application/Imports/Common/Creation/ResourceCommandFactory` now reduces cognitive complexity in two hot spots. `CreateResourceAsync` dispatches through a typed static handler table instead of a giant switch body, and `OrderByDependency` keeps the same Kahn topological sort behavior while delegating graph construction / queue draining / cycle fallback to small private helpers. Focused `InfraFlowSculptor.Application.Tests` factory dispatch + mapping + ordering tests validate the behavior.
 - Backend regex hotspots now use explicit `TimeSpan.FromMilliseconds(250)` match timeouts in local helpers and validators (`BicepGeneration`, `Contracts`, `Domain`) instead of unbounded regex evaluation.
 - Two new focused .NET test projects were added: `tests/InfraFlowSculptor.Contracts.Tests/` and `tests/InfraFlowSculptor.Domain.Tests/`. They currently cover the touched Sonar remediation slices only; broader DTO/domain coverage remains tracked in `.github/test-debt.md`.
 - `.github/workflows/copilot-setup-steps.yml` now pins external actions to full commit SHAs and uses `npm ci --ignore-scripts` for the frontend setup step.

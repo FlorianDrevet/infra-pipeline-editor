@@ -65,6 +65,14 @@ Après lecture de `MEMORY.md`, identifier :
 - `gitnexus_impact(target, "upstream")` → blast radius si modification prévue
 - Référence complète : charger le skill `gitnexus-workflow` (`.github/skills/gitnexus-workflow/SKILL.md`)
 
+**Étape 1bis — Graphify (corpus, transversal) :**
+Si la tâche touche à la documentation, l'architecture transversale, un audit, ou l'onboarding :
+- Lire `graphify-out/GRAPH_REPORT.md` pour identifier god nodes et communautés pertinentes
+- Utiliser `graphify query "concept"` ou le MCP Graphify pour des liens code ↔ docs
+- Référence complète : charger le skill `graphify-corpus` (`.github/skills/graphify-corpus/SKILL.md`)
+
+**Règle de priorité :** GitNexus pour le code, Graphify pour le corpus. Ne jamais utiliser Graphify pour l'impact analysis ou le rename. Ne jamais utiliser GitNexus pour la traçabilité doc-to-code.
+
 **Étape 2 — @Explore (contenu, détail) :**
 `@Explore` reste utile pour la lecture brute de fichiers identifiés par GitNexus.
 `@Explore` est un sous-agent rapide, read-only, spécialisé dans l'exploration et le Q&A codebase.
@@ -153,10 +161,14 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 |-------|------------------|---------|
 | Explorer le codebase (fichiers, patterns, conventions) avant délégation | **`Explore`** | sous-agent built-in, aucun fichier agent |
 | Analyse d'impact / exploration structurelle avant modification | Charger le skill **`gitnexus-workflow`** | `.github/skills/gitnexus-workflow/SKILL.md` |
+| Exploration corpus (docs+code+audits+diagrammes), onboarding, architecture transversale | Charger le skill **`graphify-corpus`** | `.github/skills/graphify-corpus/SKILL.md` |
 | Audit technique complet du dépôt avec synchronisation GitHub | **`audit-expert`** + charger le skill `audit-workflow` | `.github/agents/audit-expert.agent.md` |
+| Rediger ou refondre de la documentation technique, un cours d'onboarding, un guide de lecture du code, ou une explication de patterns du projet | **`documentation-professor`** | `.github/agents/documentation-professor.agent.md` |
 | Revue de code pré-merge, review de diff contre `main`, gate qualité avant merge | **`review-expert`** | `.github/agents/review-expert.agent.md` |
+| Revue technique anti-vibe coding, chasse aux smells de code généré et dette structurelle cachée | **`vibe-coding-refractaire`** | `.github/agents/vibe-coding-refractaire.agent.md` |
 | Appliquer un backlog de correction issu d'une review pré-merge | **`review-remediator`** | `.github/agents/review-remediator.agent.md` |
 | Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` |
+| Concevoir, planifier ou implémenter un serveur MCP .NET / exposition VS Code / import IaC | Charger le skill **`mcp-dotnet-server`**, puis déléguer à **`architect`** pour le plan et à **`dotnet-dev`** pour l'implémentation | `.github/skills/mcp-dotnet-server/SKILL.md` |
 | Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
 | Modifier/créer du code C#/.NET | **`dotnet-dev`** + charger les skills `tdd-workflow` + `xunit-unit-testing` | `.github/agents/dotnet-dev.agent.md` |
 | Rédiger ou corriger des tests unitaires .NET/xUnit | **`dotnet-dev`** + charger le skill `xunit-unit-testing` | `.github/skills/xunit-unit-testing/SKILL.md` |
@@ -187,6 +199,13 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 > - Enregistrer la dette de tests détectée dans `.github/test-debt.md`
 > - Vérifier `dotnet test .\InfraFlowSculptor.slnx` en fin de tâche
 
+> **RÈGLE DE GARDE-FOUS STRUCTURELS — Toute délégation de code DOIT rappeler explicitement :**
+> - pas de magic strings ; utiliser enums, constantes dédiées, ou `nameof()`
+> - un seul type public top-level par fichier ; aucun fichier poubelle `Dtos.cs`, `Models.cs`, `Responses.cs`, `Helpers.cs`
+> - pas de `object`, `dynamic`, `Dictionary<string, object>`, `JsonDocument`, `any`, ou `Record<string, unknown>` si un contrat typé est possible
+> - si une forme faible est inévitable à une frontière externe, la mapper immédiatement vers un modèle typé et ne pas la propager
+> - ne pas introduire un pattern par réflexe ; comparer les options plausibles et garder la plus lisible, maintenable, et scalable
+
 - **Nouvelle feature, demande complexe, ou changement architectural significatif** :
   Déléguer d'abord à `architect` pour obtenir un plan d'implémentation validé. L'architecte challenge la demande, vérifie la cohérence avec l'existant, et produit un plan étape par étape attribuant chaque action à l'agent expert approprié. Une fois le plan reçu, `dev` coordonne l'exécution en suivant le plan à la lettre.
 
@@ -197,8 +216,12 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
   Déléguer directement à `dotnet-dev` — il a toutes les règles de qualité .NET.
 
 - **Code review / review pré-merge / revue d'un diff généré par des agents** :
-  Déléguer à `review-expert`.
-  Cet agent relit le diff destiné à `main`, priorise les findings par sévérité, explique le risque, puis produit un backlog de correction réutilisable.
+  Déléguer d'abord à `review-expert`, puis à `vibe-coding-refractaire`.
+  `review-expert` couvre la merge-readiness, la sécurité et l'architecture; `vibe-coding-refractaire` ajoute une seconde passe hater du vibe coding pour remonter les abstractions bidon, duplications paresseuses, tests théâtre et autres signaux de code faible.
+
+- **Documentation technique / onboarding / pédagogie projet** :
+  Déléguer à `documentation-professor`.
+  Cet agent doit expliquer les notions et patterns a partir du code reel, guider l'ordre de lecture des fichiers, et produire une documentation qui sert autant de reference que de support d'apprentissage.
 
 - **Correction d'un backlog issu de `review-expert`** :
   Déléguer à `review-remediator`.
@@ -260,6 +283,11 @@ Un skill est **différent d'un agent** :
 - **Fichier :** `.github/skills/cqrs-feature/SKILL.md`
 - **Contenu :** les 9 étapes pour générer un agrégat DDD complet (Domain → Application → Infrastructure → Contracts → API → Migration), les patterns de code avec exemples, la checklist de validation
 
+#### `mcp-dotnet-server`
+- **Quand le charger :** dès qu'une tâche porte sur la conception, le plan, ou l'implémentation d'un serveur MCP / Model Context Protocol en C#/.NET, l'exposition dans VS Code via `.vscode/mcp.json`, l'import d'IaC/diagrammes, ou la stratégie d'intégration long terme avec InfraFlowSculptor
+- **Fichier :** `.github/skills/mcp-dotnet-server/SKILL.md`
+- **Contenu :** baseline officielle du SDK C#, choix de transport `stdio`/HTTP, architecture cible pour ce dépôt, pipeline d'import canonique, mapping tools/resources/prompts, sécurité, tests, pièges, et feuille de route d'adoption
+
 #### `ui-ux-front-saas`
 - **Quand le charger :** dès qu'une tâche frontend modifie une interface (page, composant, layout, styles, états UX)
 - **Fichier :** `.github/skills/ui-ux-front-saas/SKILL.md`
@@ -269,6 +297,11 @@ Un skill est **différent d'un agent** :
 - **Quand le charger :** dès qu'une tâche nécessite de l'exploration structurelle (flux d'exécution, dépendances), de l'analyse d'impact avant modification, ou de la validation post-changement
 - **Fichier :** `.github/skills/gitnexus-workflow/SKILL.md`
 - **Contenu :** les commandes GitNexus par phase (exploration, impact, validation, refactoring), les conventions de nommage pour formuler des requêtes précises, l'intégration avec la mémoire projet
+
+#### `graphify-corpus`
+- **Quand le charger :** dès qu'une tâche nécessite une vue transversale code+docs, une orientation architecture à partir du corpus complet, une analyse de communautés/god nodes, ou une exploration de liens conceptuels entre documentation et code
+- **Fichier :** `.github/skills/graphify-corpus/SKILL.md`
+- **Contenu :** les commandes Graphify (build, update, query, path, explain), le serveur MCP, les sorties (GRAPH_REPORT.md, graph.json), les règles de priorité vs GitNexus, l'intégration avec chaque agent
 
 #### `audit-workflow`
 - **Quand le charger :** dès qu'une tâche consiste à produire un audit technique du dépôt, écrire le rapport dans `audits/`, ou réconcilier les issues GitHub d'audit avec les findings

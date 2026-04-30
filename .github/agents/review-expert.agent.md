@@ -118,6 +118,9 @@ Pour chaque zone sensible du diff :
 - fuite d'infrastructure dans le domaine
 - handlers/services god objects
 - duplication, couplage, magic strings, branching complexe
+- types faibles (`object`, `dynamic`, dictionnaires, JSON documents, `any`) la ou le schema etait connu
+- fichiers poubelles qui empilent plusieurs DTOs, models, requests, responses, ou helpers au lieu d'un type public top-level par fichier
+- pattern ajoute sans levier clair ni comparaison avec une option plus simple
 - abstractions faibles, APIs peu explicites, dette qui rendra les prochaines features plus cheres
 
 ### Operabilite
@@ -134,6 +137,20 @@ Pour chaque zone sensible du diff :
 - tests trop superficiels
 - pas de non-regression pour bug critique
 - diff risque sans validation executable adequate
+
+### Garde-fous obligatoirement remontes
+
+Les cas suivants ne sont **pas** des nitpicks de style ; ils doivent etre remontes quand ils apparaissent sur une zone importante du diff :
+
+- magic strings disperses dans des contrats, policies, routes, types de ressources, noms de colonnes, ou comportements metier
+- usage de `object`, `dynamic`, `Dictionary<string, object>`, `JsonDocument`, `JsonNode`, `JObject`, `any`, ou `Record<string, unknown>` alors qu'un contrat explicite etait possible
+- fichiers poubelles du type `Dtos.cs`, `Models.cs`, `Requests.cs`, `Responses.cs`, `Helpers.cs` qui accumulent des types top-level
+- abstraction decorative (`Factory`, `Manager`, `Helper`, `Processor`, wrapper) sans responsabilite nette ni benefice clair sur lisibilite, maintenabilite, ou scalabilite
+
+Par defaut :
+
+- si cela degrade un contrat public, une zone critique, ou la maintenabilite structurelle du slice, classer au minimum en `HIGH`
+- si cela rend le comportement faux, opaque, ou difficilement corrigeable avant merge, classer en `BLOCKER`
 
 ---
 

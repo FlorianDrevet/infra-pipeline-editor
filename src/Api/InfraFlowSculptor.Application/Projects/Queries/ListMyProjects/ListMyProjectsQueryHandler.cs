@@ -2,7 +2,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Projects.Common;
-using MapsterMapper;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
@@ -10,8 +9,7 @@ namespace InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
 /// <summary>Handles the <see cref="ListMyProjectsQuery"/>.</summary>
 public sealed class ListMyProjectsQueryHandler(
     IProjectRepository repository,
-    ICurrentUser currentUser,
-    IMapper mapper)
+    ICurrentUser currentUser)
     : IQueryHandler<ListMyProjectsQuery, List<ProjectResult>>
 {
     /// <inheritdoc />
@@ -21,6 +19,6 @@ public sealed class ListMyProjectsQueryHandler(
     {
         var userId = await currentUser.GetUserIdAsync(cancellationToken);
         var projects = await repository.GetAllForUserAsync(userId, cancellationToken);
-        return projects.Select(p => mapper.Map<ProjectResult>(p)).ToList();
+        return projects.Select(ProjectResultMapper.ToProjectResult).ToList();
     }
 }

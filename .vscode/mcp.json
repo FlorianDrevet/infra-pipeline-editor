@@ -1,5 +1,12 @@
 {
 	"servers": {
+		"infraflowsculptor-mcp": {
+			"type": "http",
+			"url": "http://127.0.0.1:5258/mcp",
+			"headers": {
+				"Authorization": "Bearer ${input:ifs_pat}"
+			}
+		},
 		"com.postman/postman-mcp-server": {
 			"type": "stdio",
 			"command": "npx",
@@ -8,16 +15,15 @@
 			],
 			"env": {
 				"POSTMAN_API_KEY": "${input:POSTMAN_API_KEY}"
-			},
-			"gallery": "https://api.mcp.github.com",
-			"version": "2.8.4"
+			}
 		},
 		"aspire": {
 			"type": "stdio",
 			"command": "aspire",
 			"args": [
+				"agent",
 				"mcp",
-				"start"
+				"--non-interactive"
 			]
 		},
 		"io.github.github/github-mcp-server": {
@@ -25,13 +31,11 @@
 			"command": "npx",
 			"args": [
 				"-y",
-				"@modelcontextprotocol/server-github"
+				"@modelcontextprotocol/server-github@0.33.0"
 			],
 			"env": {
 				"GITHUB_PERSONAL_ACCESS_TOKEN": "${input:token}"
-			},
-			"gallery": "https://api.mcp.github.com",
-			"version": "0.33.0"
+			}
 		},
 		"gitnexus": {
 			"type": "stdio",
@@ -47,13 +51,11 @@
 			"command": "npx",
 			"args": [
 				"-y",
-				"@azure-devops/mcp@latest",
+				"@azure-devops/mcp@1.0.0",
 				"${input:ado_org}",
 				"-d",
 				"${input:ado_domain}"
-			],
-			"gallery": "https://api.mcp.github.com",
-			"version": "1.0.0"
+			]
 		},
 		"playwright": {
 			"type": "stdio",
@@ -62,9 +64,24 @@
 				"-y",
 				"@playwright/mcp"
 			]
+		},
+		"graphify": {
+			"type": "stdio",
+			"command": "python",
+			"args": [
+				"-m",
+				"graphify.serve",
+				"graphify-out/graph.json"
+			]
 		}
 	},
 	"inputs": [
+		{
+			"id": "ifs_pat",
+			"type": "promptString",
+			"description": "InfraFlowSculptor personal access token (generate from Settings > Personal Access Tokens).",
+			"password": true
+		},
 		{
 			"id": "POSTMAN_API_KEY",
 			"type": "promptString",

@@ -28,6 +28,27 @@
 
 ---
 
+## GitNexus vs Graphify — Séparation des responsabilités
+
+Ce dépôt utilise **deux graphes de connaissance** complémentaires. Ne pas confondre leurs rôles :
+
+| Question | Outil correct | Outil incorrect |
+|----------|---------------|-----------------|
+| "Qui appelle ce handler ?" | **GitNexus** `context()` | ~~Graphify~~ (trop imprécis sur les appels) |
+| "Quel est le blast radius si je modifie X ?" | **GitNexus** `impact()` | ~~Graphify~~ (pas d'impact analysis) |
+| "Comment la doc architecture se relie à la génération Bicep ?" | **Graphify** `query` / `path` | ~~GitNexus~~ (ne voit pas les docs) |
+| "Quels sont les god nodes du projet (concepts les plus connectants) ?" | **Graphify** `GRAPH_REPORT.md` | ~~GitNexus~~ (pas de community detection cross-corpus) |
+| "Je veux renommer un symbole proprement" | **GitNexus** `rename()` | ~~Graphify~~ (pas de mutation) |
+| "Quels audits parlent de cette zone du code ?" | **Graphify** `query` / `path` | ~~GitNexus~~ (ne voit pas les audits) |
+| "Quels fichiers et flux sont impactés par mes changements ?" | **GitNexus** `detect_changes()` | ~~Graphify~~ (pas de détection de changements) |
+| "Vue d'ensemble architecture pour un nouvel arrivant ?" | **Graphify** `GRAPH_REPORT.md` + communautés | ~~GitNexus~~ (trop granulaire pour l'onboarding) |
+
+**Règle absolue :** Ne jamais utiliser Graphify pour l'impact analysis, le rename, ou la détection de changements. Ne jamais utiliser GitNexus pour la traçabilité doc-to-code ou l'analyse de communautés cross-corpus.
+
+Pour charger le skill Graphify : `.github/skills/graphify-corpus/SKILL.md`
+
+---
+
 ## Commandes par phase de travail
 
 ### Phase 1 — Exploration / Compréhension

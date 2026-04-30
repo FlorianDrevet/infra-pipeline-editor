@@ -1,0 +1,89 @@
+<div class="create-pat-dialog">
+  @if (!tokenCreated()) {
+    <!-- ═══ Creation form ═══ -->
+    <h2 mat-dialog-title class="create-pat-dialog__title">
+      <mat-icon>vpn_key</mat-icon>
+      {{ 'SETTINGS.CREATE_DIALOG.TITLE' | translate }}
+    </h2>
+
+    <mat-dialog-content class="create-pat-dialog__content">
+      <div class="create-pat-dialog__field">
+        <app-ds-text-field
+          [label]="'SETTINGS.CREATE_DIALOG.NAME_LABEL' | translate"
+          [placeholder]="'SETTINGS.CREATE_DIALOG.NAME_PLACEHOLDER' | translate"
+          [required]="true"
+          [ngModel]="tokenName()"
+          (ngModelChange)="tokenName.set($event)"
+          [ngModelOptions]="{ standalone: true }">
+        </app-ds-text-field>
+      </div>
+
+      <div class="create-pat-dialog__field">
+        <app-ds-date-picker
+          [label]="'SETTINGS.CREATE_DIALOG.EXPIRY_LABEL' | translate"
+          [hint]="'SETTINGS.CREATE_DIALOG.EXPIRY_HINT' | translate"
+          [placeholder]="'SETTINGS.CREATE_DIALOG.EXPIRY_PLACEHOLDER' | translate"
+          [ngModel]="expiresAt()"
+          (ngModelChange)="expiresAt.set($event)"
+          [ngModelOptions]="{ standalone: true }"
+          [min]="minExpiryDate"
+          [max]="maxExpiryDate"
+          [clearable]="true">
+        </app-ds-date-picker>
+      </div>
+
+      @if (errorKey()) {
+        <app-ds-alert severity="error">
+          {{ errorKey() | translate }}
+        </app-ds-alert>
+      }
+    </mat-dialog-content>
+
+    <mat-dialog-actions class="create-pat-dialog__actions" align="end">
+      <button mat-stroked-button (click)="onCancel()" [disabled]="isSubmitting()">
+        {{ 'SETTINGS.CREATE_DIALOG.CANCEL' | translate }}
+      </button>
+      <app-ds-button
+        variant="primary"
+        icon="add"
+        [loading]="isSubmitting()"
+        [disabled]="!tokenName().trim()"
+        (clicked)="onCreate()">
+        {{ 'SETTINGS.CREATE_DIALOG.CREATE' | translate }}
+      </app-ds-button>
+    </mat-dialog-actions>
+  } @else {
+    <!-- ═══ Token created — one-time display ═══ -->
+    <h2 mat-dialog-title class="create-pat-dialog__title create-pat-dialog__title--success">
+      <mat-icon>check_circle</mat-icon>
+      {{ 'SETTINGS.TOKEN_CREATED.TITLE' | translate }}
+    </h2>
+
+    <mat-dialog-content class="create-pat-dialog__content">
+      <app-ds-alert severity="warning">
+        {{ 'SETTINGS.TOKEN_CREATED.WARNING' | translate }}
+      </app-ds-alert>
+
+      <div class="create-pat-dialog__token-display">
+        <code class="create-pat-dialog__token-value">{{ createdToken() }}</code>
+        <app-ds-button
+          [variant]="copied() ? 'success' : 'secondary'"
+          size="sm"
+          [icon]="copied() ? 'check' : 'content_copy'"
+          (clicked)="copyToken()">
+          @if (copied()) {
+            {{ 'SETTINGS.TOKEN_CREATED.COPIED' | translate }}
+          } @else {
+            {{ 'SETTINGS.TOKEN_CREATED.COPY' | translate }}
+          }
+        </app-ds-button>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions class="create-pat-dialog__actions" align="end">
+      <app-ds-button variant="primary" (clicked)="onDone()">
+        {{ 'SETTINGS.TOKEN_CREATED.DONE' | translate }}
+      </app-ds-button>
+    </mat-dialog-actions>
+  }
+</div>

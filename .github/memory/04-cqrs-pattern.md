@@ -33,6 +33,12 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 
 **Convention:** never use `IRequest<ErrorOr<T>>` or `IRequestHandler<,>` directly.
 
+## Typed Dynamic Dispatch [2026-04-29]
+
+- For heterogeneous resource-creation flows (`Application/Imports/Common/Creation/ResourceCommandFactory`), keep the dynamic selection at the command-building boundary, but dispatch concrete creation commands through explicit `ICommand<TResult>` cases.
+- Canonical shape: resource type + typed context in, typed switch on concrete `Create*Command`, generic helper constrained to `ICommand<TResult>`, and `ErrorOr<Guid>` out.
+- Do not reintroduce `IMediator.Send((object)...)`, reflection over `ErrorOr<T>`, or `object`-based post-processing to recover `Id`/errors.
+
 ## Unit of Work [2026-03-30]
 
 - `IUnitOfWork` / `UnitOfWork` wraps `ProjectDbContext.SaveChangesAsync`
@@ -44,6 +50,13 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 
 - `DependencyInjection.cs` (Application) registers MediatR, ValidationBehavior, UnitOfWorkBehavior, validators by assembly scan.
 - `DependencyInjection.cs` (Infrastructure) registers `IUnitOfWork`.
+
+## Project Result Mapping [2026-04-29]
+
+- The `Projects` slice no longer relies on injected `MapsterMapper.IMapper` inside `CreateProjectCommandHandler`, `CreateProjectWithSetupCommandHandler`, `GetProjectQueryHandler`, and `ListMyProjectsQueryHandler`.
+- Canonical mapping from `Domain.ProjectAggregate.Project` to `Application.Projects.Common.ProjectResult` now lives in `Application/Projects/Common/ProjectResultMapper.cs`.
+- `Api/Common/Mapping/ProjectMappingConfig.cs` delegates its `Project -> ProjectResult` Mapster rule to the same helper so API and MCP return the same shape without forcing the MCP host to load API-host DI registrations.
+- Use this pattern when an Application handler needs to return an Application result model that is also consumed outside the API host: keep the domain-to-application mapping in Application, not in the API executable composition root.
 
 ## User Provisioning [2026-04-22]
 

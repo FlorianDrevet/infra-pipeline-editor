@@ -1,0 +1,55 @@
+# Graphify ignore — exclude build outputs, dependencies, and generated content
+
+# Dependencies
+node_modules/
+.nuget/
+
+# Build outputs
+bin/
+obj/
+dist/
+.angular/
+
+# Aspire / Docker
+.aspire/
+docker-compose*.yml
+
+# Graphify own output
+graphify-out/
+
+# Agent instruction files — don't extract your own instructions as knowledge
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.github/agents/
+.github/skills/
+.github/instructions/
+.github/prompts/
+.github/memory/
+.github/audit/
+
+# Memory files
+MEMORY.md
+MEMORY.md.bak
+
+# IDE / tooling
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Git internals
+.git/
+.gitnexus/
+
+# Temp / scripts
+tmp/
+scripts/
+
+# Test snapshots and verified outputs (large, repetitive)
+tests/**/Snapshots/
+tests/**/Verified/
+
+# Lock files
+package-lock.json

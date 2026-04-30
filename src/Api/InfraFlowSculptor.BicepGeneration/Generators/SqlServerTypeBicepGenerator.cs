@@ -57,7 +57,7 @@ public sealed class SqlServerTypeBicepGenerator
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
-        var rawVersion = resource.Properties.GetValueOrDefault("version", "12.0");
+        var rawVersion = resource.Properties.GetValueOrDefault("version", AzureResourceDefaults.SqlServerVersion);
         var version = NormalizeSqlServerVersion(rawVersion);
 
         return new GeneratedTypeModule
@@ -71,8 +71,8 @@ public sealed class SqlServerTypeBicepGenerator
             Parameters = new Dictionary<string, object>
             {
                 ["version"] = version,
-                ["administratorLogin"] = resource.Properties.GetValueOrDefault("administratorLogin", "sqladmin"),
-                ["minimalTlsVersion"] = resource.Properties.GetValueOrDefault("minimalTlsVersion", "1.2"),
+                ["administratorLogin"] = resource.Properties.GetValueOrDefault("administratorLogin", AzureResourceDefaults.SqlServerAdministratorLogin),
+                ["minimalTlsVersion"] = resource.Properties.GetValueOrDefault("minimalTlsVersion", AzureResourceDefaults.MinimumTlsVersion),
             },
             SecureParameters = ["administratorLoginPassword"]
         };

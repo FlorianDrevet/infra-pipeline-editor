@@ -25,6 +25,7 @@
 | `ServiceBusNamespace` | extends `AzureResource` | `ServiceBusNamespaceEnvironmentSettings` | TPT; sub-resources: Queue, TopicSubscription |
 | `EventHubNamespace` | extends `AzureResource` | `EventHubNamespaceEnvironmentSettings` | TPT; sub-resources: EventHub, ConsumerGroup |
 | `ContainerRegistry` | extends `AzureResource` | `ContainerRegistryEnvironmentSettings` | TPT; abbreviation `acr` |
+| `PersonalAccessToken` | `PersonalAccessToken` | `TokenHash` (VO), `PersonalAccessTokenId` (VO) | PAT for MCP auth. `ifs_` prefix + SHA-256 hash stored, plaintext returned once. `UserId` FK. `Revoke()`, `RecordUsage()`, `IsValid()` methods. |
 | `User` | `User` | — | Azure AD user info |
 
 ## Shared Base Entities (Common/BaseModels/Entites)
@@ -90,6 +91,7 @@ These reusable entity types are owned by multiple aggregates:
 - All `EnumValueObject<T>`-derived classes must be declared `sealed` [2026-04-16].
 - Value object properties must use `private set`.
 - Error strings must be in English.
+- `Location` is the canonical source for Azure wire-format region keys: use `Location.DefaultAzureRegionKey` for the default region and `Location.ToAzureRegionKey(...)` instead of hardcoding values like `westeurope` or `francecentral` [2026-04-29].
 
 ## IsExisting Resources [2026-04-23]
 

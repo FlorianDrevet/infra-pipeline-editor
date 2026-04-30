@@ -110,6 +110,9 @@
 }
 
 .nav-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
 	padding: 0.7rem 1rem;
 	border-radius: 999px;
 	color: rgba(223, 239, 255, 0.82);
@@ -125,6 +128,12 @@
 		transform: translateY(-1px);
 		outline: none;
 	}
+}
+
+.nav-link__icon {
+	font-size: 1.15rem;
+	width: 1.15rem;
+	height: 1.15rem;
 }
 
 .nav-link--active {

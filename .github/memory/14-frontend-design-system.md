@@ -18,7 +18,7 @@
 
 - Layout and CTA primitives: `app-ds-button`, `app-ds-card`, `app-ds-alert`, `app-ds-section-header`, `app-ds-page-header`.
 - CVA form controls: `app-ds-text-field`, `app-ds-textarea`, `app-ds-select`, `app-ds-toggle`, `app-ds-checkbox`, `app-ds-radio-group`.
-- Support controls: `app-ds-chip`, `app-ds-icon-button`, `app-ds-panel-action-button`.
+- Support controls: `app-ds-chip`, `app-ds-icon-button`, `app-ds-panel-action-button`, `app-ds-date-picker`.
 - `DsSelectComponent` uses `cdkConnectedOverlay` so dropdowns escape scrollable/tabbed containers instead of creating nested scrollbars.
 - `DsToggleComponent` exposes `ariaLabel` for icon-only or label-less usages and is reused by `ToggleSectionCardComponent`.
 - `DsPanelActionButtonComponent` targets compact panel-header actions with `tone` (`neutral | accent | danger`), `surface` (`light | dark`), optional `pressed`/`ariaExpanded`, and a premium glassy soft-square visual. It currently powers the generation-panel collapse/close cluster in `config-detail` and `project-detail`.
@@ -50,3 +50,18 @@
 ## UI Caveats
 
 - Standalone shared components (e.g. `DockerfilePickerComponent`) embedded in light DS forms must use brand-palette colors (`#0d65c0` family) for triggers/borders, not white-on-white styling. The resource-edit form surfaces are light translucent (`rgba(255,255,255,0.84)`); white triggers become invisible. Verify trigger contrast on the actual host form before shipping a new shared icon control.
+
+## Shared SCSS Mixins [2026-04-28]
+
+- `@include ifs-data-table` (in `src/Front/src/scss/_tables.scss`) provides reusable flex-based data table styling with `.ifs-table__header`, `.ifs-table__row`, `.ifs-table__col`, `.ifs-table__muted`, `.ifs-table__mono`. Used in settings PAT table. Consumer adds local `*-col--*` flex rules.
+- `DsTextFieldComponent` now supports `type="date"` and a `min` input for date constraints.
+- `DsDatePickerComponent` provides a fully custom calendar date picker (CDK overlay, brand gradient header, 42-day grid, min/max constraints, locale-aware formatting via `Intl.DateTimeFormat`, CVA support). Used in PAT creation dialog.
+- `DsDatePickerComponent` now includes a fast year-selection mode: clicking the header label switches to a 12-year grid with previous/next range navigation, selected/current year highlighting, and disabled years when fully outside `min`/`max`.
+- `DsDatePickerComponent` now also exposes direct year stepping inside the day-view header, next to the current year chip, and that navigation is disabled whenever the target month would fall outside `min`/`max`. The PAT creation dialog binds dynamic bounds from `today` to `today + 1 year` through the shared `min`/`max` API instead of hardcoded template dates.
+- The day-view header of `DsDatePickerComponent` now renders as two aligned rows on the same three-column grid: top row for year previous/current/next, second row for month previous/current/next. This removes the offset between month and year arrows and keeps both navigations visually stacked.
+- `DsDatePickerComponent` now has a third `months` view: clicking the month label opens a 12-month grid for the visible year, with impossible months disabled from `min` / `max`. Year navigation no longer hard-blocks when only the current month is invalid in the target year; it clamps to the nearest allowed month in that year (for example May -> next year under an April max lands on April). Internal hints/ARIA labels now live under `COMMON.DATE_PICKER.*`, and all Intl formatting uses the app language from `LanguageService` rather than `navigator.language`.
+
+## DS Integration Rule [2026-04-28]
+
+- **Mandatory**: Any new screen/dialog/form MUST use existing `app-ds-*` components. If a UI pattern has no DS component yet, create a reusable one in `shared/components/ds/` BEFORE using it.
+- This rule is enforced in `copilot-instructions.md` (pitfall #12) and `angular-patterns/SKILL.md`.

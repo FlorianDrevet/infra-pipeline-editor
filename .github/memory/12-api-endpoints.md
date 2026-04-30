@@ -1,6 +1,6 @@
 # API Endpoints Reference
 
-> 29 controllers — 18 Azure resource types + InfrastructureConfig + Project + ResourceGroup + BicepGeneration + PipelineGeneration + NamingTemplate + AppConfigurationKey + AppSetting + RoleAssignment + SecureParameterMapping + CustomDomain
+> 31 controllers — 18 Azure resource types + InfrastructureConfig + Project + ResourceGroup + BicepGeneration + PipelineGeneration + NamingTemplate + AppConfigurationKey + AppSetting + RoleAssignment + SecureParameterMapping + CustomDomain + PersonalAccessToken + Import
 
 ## Core Aggregates
 
@@ -97,6 +97,21 @@ Note [2026-04-26]: the create-project wizard submit path depends on an explicit 
 | `/projects/{id}/naming` | DELETE | `/templates/{resourceType}` | `RemoveProjectResourceNamingTemplateCommand` |
 | `/projects/{id}/naming` | PUT | `/abbreviations/{resourceType}` | `SetProjectResourceAbbreviationCommand` |
 | `/projects/{id}/naming` | DELETE | `/abbreviations/{resourceType}` | `RemoveProjectResourceAbbreviationCommand` |
+
+## Personal Access Tokens [2026-04-28]
+
+| Group | Method | Route | Command/Query |
+|---|---|---|---|
+| `/personal-access-tokens` | GET | `` | `ListPersonalAccessTokensQuery` |
+| `/personal-access-tokens` | POST | `` | `CreatePersonalAccessTokenCommand` → returns one-time plaintext token |
+| `/personal-access-tokens` | DELETE | `/{id:guid}` | `RevokePersonalAccessTokenCommand` |
+
+## Import Workflows [2026-04-28]
+
+| Group | Method | Route | Command/Query |
+|---|---|---|---|
+| `/imports` | POST | `/preview` | `PreviewIacImportQuery` (read-only ARM import analysis; returns mapped resources, gaps, dependencies, metadata, summary; currently supports `arm-json` only) |
+| `/imports` | POST | `/apply` | `ApplyImportPreviewCommand` (stateless import apply for a new project; request body carries project setup + nested preview payload; creates project, infra config, resource group, and auto-creatable mapped resources) |
 
 ## Generation Controllers
 

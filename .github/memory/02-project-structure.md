@@ -22,6 +22,14 @@ src/
 │   ├── src/app/shared                      Cross-cutting frontend services/guards/facades
 │   ├── src/environments                    API base URL and runtime environment config
 │   └── src/scss                            Global theming variables and style modules
+├── Mcp/
+│   └── InfraFlowSculptor.Mcp              MCP server (HTTP transport under Aspire, ModelContextProtocol SDK v1.2.0)
+│       ├── Common/                        McpJsonDefaults, IacSourceFormat, LayoutPresetEnum
+│       ├── Tools/                         DiscoveryTools, ProjectDraftTools, ProjectCreationTools, BicepGenerationTools, IacImportTools, ProjectSetupOrchestrator
+│       ├── Drafts/                        IProjectDraftService, ProjectDraftService, DraftOverrides, DraftProjectIntent (one-class-per-file)
+│       ├── Imports/                       MCP-local preview storage (IImportPreviewService, ImportPreviewService) + ImportPreviewResources; ARM analysis extracted to Application/Imports
+│       ├── Prompts/                       ProjectCreationPrompts
+│       └── Resources/                     ProjectResources
 └── Aspire/
     ├── InfraFlowSculptor.AppHost           Service orchestration (PostgreSQL, DbGate, single API)
     └── InfraFlowSculptor.ServiceDefaults   Shared Aspire defaults
@@ -30,7 +38,13 @@ src/
 ## Documentation Artifacts
 
 - `docs/architecture/overview.md` provides the written architecture overview.
+- `docs/architecture/mcp-integration.md` is the MCP onboarding course for this repository: concepts, .NET integration model, local vs remote exposure, recommended tool surface, and review checklist for future generated MCP code. The current workspace now runs MCP through HTTP under Aspire rather than workspace-local stdio.
+- `docs/architecture/mcp-v1-implementation-plan.md` is the MCP V1 implementation plan: 5 phases (scaffolding → discovery → creation → generation → import), exhaustive JSON contracts for 8 tools, 2 resources, 1 prompt, canonical import model (`ImportedProjectDefinition`), test strategy, and validation checklist.
 - `docs/architecture/infraflowsculptor-architecture.drawio` provides a visual Azure deployment diagram centered on deployed resources and interactions, with separate frontend/backend Azure Container Apps and surrounding Azure services.
+- `src/Api/InfraFlowSculptor.Application/Imports/` [2026-04-28] now owns the shared ARM preview analyzer (`IImportPreviewAnalyzer`, `ImportPreviewAnalyzer`), the `PreviewIacImportQuery` slice, and the stateless `ApplyImportPreviewCommand` orchestration reused by both the API and MCP.
+- `src/Api/InfraFlowSculptor.Application/Imports/Common/Arm/` [2026-04-30] contains the strongly typed ARM deserialization models (`ArmTemplateDocument`, `ArmResource`, `ArmSku`) consumed by `ImportPreviewAnalyzer` and typed property extractors. If this folder is missing, the Application assembly fails to build with missing-type errors in the import preview slice.
+- `src/Api/InfraFlowSculptor.Application/Imports/Common/Creation/` [2026-04-29] now also owns the shared resource-creation dispatch (`ResourceCommandFactory`). The factory keeps the selection dynamic by resource type, but builds+sends supported MediatR creation commands through explicit typed `ICommand<TResult>` cases and returns `ErrorOr<Guid>` instead of `object`/reflection.
+- `tests/InfraFlowSculptor.Application.Tests/` [2026-04-28] now exists as a dedicated xUnit project and currently covers the import apply handler slice.
 
 ## Automation Scripts
 

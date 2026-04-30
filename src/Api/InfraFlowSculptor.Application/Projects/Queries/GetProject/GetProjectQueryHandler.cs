@@ -3,7 +3,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MapsterMapper;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Queries.GetProject;
@@ -12,8 +11,7 @@ namespace InfraFlowSculptor.Application.Projects.Queries.GetProject;
 public sealed class GetProjectQueryHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
-    IResourceGroupRepository resourceGroupRepository,
-    IMapper mapper)
+    IResourceGroupRepository resourceGroupRepository)
     : IQueryHandler<GetProjectQuery, ProjectResult>
 {
     /// <inheritdoc />
@@ -33,7 +31,7 @@ public sealed class GetProjectQueryHandler(
         var usedResourceTypes = await resourceGroupRepository.GetDistinctResourceTypesByProjectIdAsync(
             query.Id, cancellationToken);
 
-        var result = mapper.Map<ProjectResult>(project);
+        var result = ProjectResultMapper.ToProjectResult(project);
         return result with { UsedResourceTypes = usedResourceTypes };
     }
 }
