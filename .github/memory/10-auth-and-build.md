@@ -45,6 +45,7 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 	- `tests/InfraFlowSculptor.BicepGeneration.Tests/`
 	- `tests/InfraFlowSculptor.Contracts.Tests/`
 	- `tests/InfraFlowSculptor.Domain.Tests/`
+	- `tests/InfraFlowSculptor.Infrastructure.Tests/`
 	- `tests/InfraFlowSculptor.Mcp.Tests/`
 	- `tests/InfraFlowSculptor.PipelineGeneration.Tests/`
 - All .NET test projects live under `tests/`.
