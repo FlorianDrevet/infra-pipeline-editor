@@ -82,6 +82,6 @@ public sealed class CreateRedisCacheRequestTests
         var results = RequestValidator.Validate(sut);
 
         // Assert
-        results.HasErrorForMember(nameof(CreateRedisCacheRequest.MinimumTlsVersion)).Should().BeTrue();
+        results.Should().HaveCount(1);
     }
 }

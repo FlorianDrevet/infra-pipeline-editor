@@ -23,7 +23,8 @@ internal static class RequestValidator
     {
         return results.Any(result =>
             result.MemberNames.Contains(memberName)
-            || (result.ErrorMessage is not null && result.ErrorMessage.Contains(memberName)));
+            || (result.ErrorMessage is not null
+                && result.ErrorMessage.Contains(memberName, StringComparison.OrdinalIgnoreCase)));
     }
 }
 

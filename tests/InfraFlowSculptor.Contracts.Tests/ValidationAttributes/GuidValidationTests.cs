@@ -76,8 +76,8 @@ public sealed class GuidValidationTests
         var results = ValidateInstance(sut);
 
         // Assert
-        results.Should().ContainSingle()
-            .Which.MemberNames.Should().Contain(nameof(StringHolder.Value));
+        results.Should().HaveCount(1);
+        results[0].ErrorMessage.Should().Contain(nameof(StringHolder.Value));
     }
 
     [Fact]
@@ -91,8 +91,8 @@ public sealed class GuidValidationTests
         var results = ValidateInstance(sut);
 
         // Assert
-        results.Should().ContainSingle()
-            .Which.MemberNames.Should().Contain(nameof(StringHolder.Value));
+        results.Should().HaveCount(1);
+        results[0].ErrorMessage.Should().Contain(nameof(StringHolder.Value));
     }
 
     [Fact]
@@ -118,8 +118,8 @@ public sealed class GuidValidationTests
         var results = ValidateInstance(sut);
 
         // Assert
-        results.Should().ContainSingle()
-            .Which.MemberNames.Should().Contain(nameof(GuidHolder.Value));
+        results.Should().HaveCount(1);
+        results[0].ErrorMessage.Should().Contain(nameof(GuidHolder.Value));
     }
 
     [Fact]
