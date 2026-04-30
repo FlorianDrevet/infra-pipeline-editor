@@ -51,6 +51,19 @@ namespace InfraFlowSculptor.Application.Imports.Common.Creation;
 /// </summary>
 public static class ResourceCommandFactory
 {
+    /// <summary>
+    /// Default values used when auto-creating resources. These must match the domain enum names
+    /// (e.g. <c>Tls12</c>, <c>DotNet</c>, <c>Code</c>) because Application command handlers parse
+    /// them via <see cref="Enum.Parse(Type, string)"/>.
+    /// </summary>
+    private const string DefaultTlsVersionEnumName = "Tls12";
+    private const string DefaultWebRuntimeStackEnumName = "DotNet";
+    private const string DefaultFunctionRuntimeStackEnumName = "DotNet";
+    private const string DefaultDeploymentModeEnumName = "Code";
+    private const string DefaultSqlServerVersionEnumName = "V12";
+    private const string DefaultWebRuntimeVersion = "8";
+    private const string DefaultFunctionRuntimeVersion = "8-isolated";
+
     private delegate Task<ErrorOr<Guid>>? ResourceCreationDispatcher(
         ISender mediator,
         ResourceGroupId resourceGroupId,
@@ -138,7 +151,7 @@ public static class ResourceCommandFactory
                     location,
                     RedisVersion: null,
                     EnableNonSslPort: false,
-                    MinimumTlsVersion: AzureResourceDefaults.MinimumTlsVersion,
+                    MinimumTlsVersion: DefaultTlsVersionEnumName,
                     DisableAccessKeyAuthentication: false,
                     EnableAadAuth: true),
                 static (RedisCacheResult result) => result.Id.Value,
@@ -186,7 +199,7 @@ public static class ResourceCommandFactory
                     resourceGroupId,
                     name,
                     location,
-                    Version: AzureResourceDefaults.SqlServerVersion,
+                    Version: DefaultSqlServerVersionEnumName,
                     AdministratorLogin: AzureResourceDefaults.SqlServerAdministratorLogin),
                 static (SqlServerResult result) => result.Id.Value,
                 cancellationToken),
@@ -479,7 +492,7 @@ public static class ResourceCommandFactory
             AccessTier: AzureResourceDefaults.StorageAccountAccessTier,
             AllowBlobPublicAccess: false,
             EnableHttpsTrafficOnly: true,
-            MinimumTlsVersion: AzureResourceDefaults.MinimumTlsVersionLabel);
+            MinimumTlsVersion: DefaultTlsVersionEnumName);
     }
 
     private static IBaseRequest? BuildWebAppCommand(
@@ -492,11 +505,11 @@ public static class ResourceCommandFactory
         return new CreateWebAppCommand(
             rgId, name, location,
             AppServicePlanId: aspId.Value,
-            RuntimeStack: wa?.RuntimeStack ?? WebAppExtractedProperties.DefaultRuntimeStack,
-            RuntimeVersion: wa?.RuntimeVersion ?? WebAppExtractedProperties.DefaultRuntimeVersion,
+            RuntimeStack: NormalizeWebRuntimeStack(wa?.RuntimeStack),
+            RuntimeVersion: NormalizeWebRuntimeVersion(wa?.RuntimeStack, wa?.RuntimeVersion),
             AlwaysOn: false,
             HttpsOnly: true,
-            DeploymentMode: AzureResourceDefaults.AppServiceDeploymentMode,
+            DeploymentMode: DefaultDeploymentModeEnumName,
             ContainerRegistryId: null,
             AcrAuthMode: null,
             DockerImageName: null);
@@ -512,10 +525,10 @@ public static class ResourceCommandFactory
         return new CreateFunctionAppCommand(
             rgId, name, location,
             AppServicePlanId: aspId.Value,
-            RuntimeStack: fa?.RuntimeStack ?? FunctionAppExtractedProperties.DefaultRuntimeStack,
-            RuntimeVersion: fa?.RuntimeVersion ?? FunctionAppExtractedProperties.DefaultRuntimeVersion,
+            RuntimeStack: NormalizeFunctionRuntimeStack(fa?.RuntimeStack),
+            RuntimeVersion: NormalizeFunctionRuntimeVersion(fa?.RuntimeStack, fa?.RuntimeVersion),
             HttpsOnly: true,
-            DeploymentMode: AzureResourceDefaults.AppServiceDeploymentMode,
+            DeploymentMode: DefaultDeploymentModeEnumName,
             ContainerRegistryId: null,
             AcrAuthMode: null,
             DockerImageName: null);
@@ -554,5 +567,81 @@ public static class ResourceCommandFactory
             rgId, name, location,
             SqlServerId: sqlServerId.Value,
             Collation: AzureResourceDefaults.SqlDatabaseCollation);
+    }
+
+    /// <summary>
+    /// Maps a runtime-stack string (which may be either an ARM/Azure label like <c>"DOTNETCORE"</c>
+    /// or already an enum name like <c>"DotNet"</c>) to the matching <c>WebAppRuntimeStackEnum</c> name.
+    /// Falls back to <see cref="DefaultWebRuntimeStackEnumName"/> when the input cannot be resolved.
+    /// </summary>
+    private static string NormalizeWebRuntimeStack(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return DefaultWebRuntimeStackEnumName;
+
+        if (Enum.TryParse<Domain.WebAppAggregate.ValueObjects.WebAppRuntimeStack.WebAppRuntimeStackEnum>(value, ignoreCase: true, out var direct))
+            return direct.ToString();
+
+        var armToken = value.Trim().ToUpperInvariant();
+        return armToken switch
+        {
+            "DOTNETCORE" or "DOTNET" or "DOTNET-ISOLATED" => "DotNet",
+            "NODE" => "Node",
+            "PYTHON" => "Python",
+            "JAVA" => "Java",
+            "PHP" => "Php",
+            _ => DefaultWebRuntimeStackEnumName,
+        };
+    }
+
+    /// <summary>
+    /// Maps a runtime-stack string for Function Apps to the matching <c>FunctionAppRuntimeStackEnum</c> name.
+    /// </summary>
+    private static string NormalizeFunctionRuntimeStack(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return DefaultFunctionRuntimeStackEnumName;
+
+        if (Enum.TryParse<Domain.FunctionAppAggregate.ValueObjects.FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum>(value, ignoreCase: true, out var direct))
+            return direct.ToString();
+
+        var armToken = value.Trim().ToUpperInvariant();
+        return armToken switch
+        {
+            "DOTNET-ISOLATED" or "DOTNET" or "DOTNETCORE" => "DotNet",
+            "NODE" => "Node",
+            "PYTHON" => "Python",
+            "JAVA" => "Java",
+            "POWERSHELL" => "PowerShell",
+            _ => DefaultFunctionRuntimeStackEnumName,
+        };
+    }
+
+    /// <summary>
+    /// Returns a runtime version that is valid for the resolved Web App stack per <see cref="Domain.Common.Catalogs.RuntimeVersionCatalog"/>.
+    /// Falls back to the most recent supported version when the input value is missing or unrecognized.
+    /// </summary>
+    private static string NormalizeWebRuntimeVersion(string? stackInput, string? versionInput)
+    {
+        var stackName = NormalizeWebRuntimeStack(stackInput);
+        var stack = Enum.Parse<Domain.WebAppAggregate.ValueObjects.WebAppRuntimeStack.WebAppRuntimeStackEnum>(stackName);
+        var supported = Domain.Common.Catalogs.RuntimeVersionCatalog.GetWebAppVersions(stack);
+        if (!string.IsNullOrWhiteSpace(versionInput) && supported.Contains(versionInput))
+            return versionInput;
+        return supported.Count > 0 ? supported[0] : DefaultWebRuntimeVersion;
+    }
+
+    /// <summary>
+    /// Returns a runtime version that is valid for the resolved Function App stack per <see cref="Domain.Common.Catalogs.RuntimeVersionCatalog"/>.
+    /// Falls back to the most recent supported version when the input value is missing or unrecognized.
+    /// </summary>
+    private static string NormalizeFunctionRuntimeVersion(string? stackInput, string? versionInput)
+    {
+        var stackName = NormalizeFunctionRuntimeStack(stackInput);
+        var stack = Enum.Parse<Domain.FunctionAppAggregate.ValueObjects.FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum>(stackName);
+        var supported = Domain.Common.Catalogs.RuntimeVersionCatalog.GetFunctionAppVersions(stack);
+        if (!string.IsNullOrWhiteSpace(versionInput) && supported.Contains(versionInput))
+            return versionInput;
+        return supported.Count > 0 ? supported[0] : DefaultFunctionRuntimeVersion;
     }
 }

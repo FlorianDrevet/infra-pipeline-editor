@@ -283,4 +283,149 @@ public sealed class ResourceCommandFactoryDispatchMappingTests
     {
         ResourceCommandFactory.GetRequiredDependencyType(AzureResourceTypes.KeyVault).Should().BeNull();
     }
+
+    [Fact]
+    public async Task Given_StorageAccountWithDefaults_When_CreateResourceAsync_Then_DispatchesEnumParseableValues()
+    {
+        var mediator = CreateConfiguredMediator();
+        var context = new ResourceCreationContext(new Dictionary<string, Guid>());
+
+        var task = ResourceCommandFactory.CreateResourceAsync(
+            mediator, AzureResourceTypes.StorageAccount, TestRgId, TestName, TestLocation, context, CancellationToken.None);
+
+        task.Should().NotBeNull();
+        await task!;
+
+        var command = (CreateStorageAccountCommand)mediator.ReceivedCalls()
+            .Single(c => c.GetArguments()[0] is CreateStorageAccountCommand)
+            .GetArguments()[0]!;
+        Enum.TryParse<Domain.StorageAccountAggregate.ValueObjects.StorageAccountKind.Kind>(command.Kind, ignoreCase: true, out _).Should().BeTrue();
+        Enum.TryParse<Domain.StorageAccountAggregate.ValueObjects.StorageAccessTier.Tier>(command.AccessTier, ignoreCase: true, out _).Should().BeTrue();
+        Enum.TryParse<Domain.StorageAccountAggregate.ValueObjects.StorageAccountTlsVersion.Version>(command.MinimumTlsVersion, ignoreCase: true, out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Given_WebAppWithDefaults_When_CreateResourceAsync_Then_DispatchesEnumParseableValues()
+    {
+        var mediator = CreateConfiguredMediator();
+        var context = new ResourceCreationContext(new Dictionary<string, Guid>
+        {
+            [AzureResourceTypes.AppServicePlan] = Guid.NewGuid(),
+        });
+
+        var task = ResourceCommandFactory.CreateResourceAsync(
+            mediator, AzureResourceTypes.WebApp, TestRgId, TestName, TestLocation, context, CancellationToken.None);
+
+        task.Should().NotBeNull();
+        await task!;
+
+        var command = (CreateWebAppCommand)mediator.ReceivedCalls()
+            .Single(c => c.GetArguments()[0] is CreateWebAppCommand)
+            .GetArguments()[0]!;
+        Enum.TryParse<Domain.WebAppAggregate.ValueObjects.WebAppRuntimeStack.WebAppRuntimeStackEnum>(command.RuntimeStack, ignoreCase: true, out _).Should().BeTrue();
+        Enum.TryParse<Domain.Common.ValueObjects.DeploymentMode.DeploymentModeType>(command.DeploymentMode, ignoreCase: true, out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Given_FunctionAppWithDefaults_When_CreateResourceAsync_Then_DispatchesEnumParseableValues()
+    {
+        var mediator = CreateConfiguredMediator();
+        var context = new ResourceCreationContext(new Dictionary<string, Guid>
+        {
+            [AzureResourceTypes.AppServicePlan] = Guid.NewGuid(),
+        });
+
+        var task = ResourceCommandFactory.CreateResourceAsync(
+            mediator, AzureResourceTypes.FunctionApp, TestRgId, TestName, TestLocation, context, CancellationToken.None);
+
+        task.Should().NotBeNull();
+        await task!;
+
+        var command = (CreateFunctionAppCommand)mediator.ReceivedCalls()
+            .Single(c => c.GetArguments()[0] is CreateFunctionAppCommand)
+            .GetArguments()[0]!;
+        Enum.TryParse<Domain.FunctionAppAggregate.ValueObjects.FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum>(command.RuntimeStack, ignoreCase: true, out _).Should().BeTrue();
+        Enum.TryParse<Domain.Common.ValueObjects.DeploymentMode.DeploymentModeType>(command.DeploymentMode, ignoreCase: true, out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Given_RedisCacheWithDefaults_When_CreateResourceAsync_Then_DispatchesEnumParseableTlsVersion()
+    {
+        var mediator = CreateConfiguredMediator();
+        var context = new ResourceCreationContext(new Dictionary<string, Guid>());
+
+        var task = ResourceCommandFactory.CreateResourceAsync(
+            mediator, AzureResourceTypes.RedisCache, TestRgId, TestName, TestLocation, context, CancellationToken.None);
+
+        task.Should().NotBeNull();
+        await task!;
+
+        var command = (CreateRedisCacheCommand)mediator.ReceivedCalls()
+            .Single(c => c.GetArguments()[0] is CreateRedisCacheCommand)
+            .GetArguments()[0]!;
+        command.MinimumTlsVersion.Should().NotBeNull();
+        Enum.TryParse<Domain.RedisCacheAggregate.ValueObjects.TlsVersion.Version>(command.MinimumTlsVersion, ignoreCase: true, out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Given_SqlServerWithDefaults_When_CreateResourceAsync_Then_DispatchesEnumParseableVersion()
+    {
+        var mediator = CreateConfiguredMediator();
+        var context = new ResourceCreationContext(new Dictionary<string, Guid>());
+
+        var task = ResourceCommandFactory.CreateResourceAsync(
+            mediator, AzureResourceTypes.SqlServer, TestRgId, TestName, TestLocation, context, CancellationToken.None);
+
+        task.Should().NotBeNull();
+        await task!;
+
+        var command = (CreateSqlServerCommand)mediator.ReceivedCalls()
+            .Single(c => c.GetArguments()[0] is CreateSqlServerCommand)
+            .GetArguments()[0]!;
+        Enum.TryParse<Domain.SqlServerAggregate.ValueObjects.SqlServerVersion.SqlServerVersionEnum>(command.Version, ignoreCase: true, out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Given_FunctionAppWithDefaults_When_CreateResourceAsync_Then_RuntimeVersionIsValidForStack()
+    {
+        var mediator = CreateConfiguredMediator();
+        var context = new ResourceCreationContext(new Dictionary<string, Guid>
+        {
+            [AzureResourceTypes.AppServicePlan] = Guid.NewGuid(),
+        });
+
+        var task = ResourceCommandFactory.CreateResourceAsync(
+            mediator, AzureResourceTypes.FunctionApp, TestRgId, TestName, TestLocation, context, CancellationToken.None);
+
+        task.Should().NotBeNull();
+        await task!;
+
+        var command = (CreateFunctionAppCommand)mediator.ReceivedCalls()
+            .Single(c => c.GetArguments()[0] is CreateFunctionAppCommand)
+            .GetArguments()[0]!;
+        var stack = Enum.Parse<Domain.FunctionAppAggregate.ValueObjects.FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum>(command.RuntimeStack, ignoreCase: true);
+        Domain.Common.Catalogs.RuntimeVersionCatalog.IsValidFunctionAppVersion(stack, command.RuntimeVersion).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Given_WebAppWithDefaults_When_CreateResourceAsync_Then_RuntimeVersionIsValidForStack()
+    {
+        var mediator = CreateConfiguredMediator();
+        var context = new ResourceCreationContext(new Dictionary<string, Guid>
+        {
+            [AzureResourceTypes.AppServicePlan] = Guid.NewGuid(),
+        });
+
+        var task = ResourceCommandFactory.CreateResourceAsync(
+            mediator, AzureResourceTypes.WebApp, TestRgId, TestName, TestLocation, context, CancellationToken.None);
+
+        task.Should().NotBeNull();
+        await task!;
+
+        var command = (CreateWebAppCommand)mediator.ReceivedCalls()
+            .Single(c => c.GetArguments()[0] is CreateWebAppCommand)
+            .GetArguments()[0]!;
+        var stack = Enum.Parse<Domain.WebAppAggregate.ValueObjects.WebAppRuntimeStack.WebAppRuntimeStackEnum>(command.RuntimeStack, ignoreCase: true);
+        Domain.Common.Catalogs.RuntimeVersionCatalog.IsValidWebAppVersion(stack, command.RuntimeVersion).Should().BeTrue();
+    }
 }
