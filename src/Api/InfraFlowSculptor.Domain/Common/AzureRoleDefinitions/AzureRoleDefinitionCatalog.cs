@@ -30,6 +30,22 @@ public static class AzureRoleDefinitionCatalog
     /// <summary>Well-known role definition ID for "AcrPull".</summary>
     public const string AcrPull = "7f951dda-4ed3-4680-a7ca-43fe172d538e";
 
+    private const string WebsiteContributorRoleDefinitionId = "de139f84-1756-47ae-9be6-808fbbe84772";
+    private const string WebsiteContributorRoleName = "Website Contributor";
+    private const string WebsiteContributorRoleDescription = "Lets you manage websites (not web plans), but not access to them.";
+
+    private const string ContributorRoleDefinitionId = "b24988ac-6180-42a0-ab88-20f7382dd24c";
+    private const string ContributorRoleName = "Contributor";
+    private const string ContributorRoleDescription = "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.";
+
+    private const string ReaderRoleDefinitionId = "acdd72a7-3385-48ef-bd42-f606fba81ae7";
+    private const string ReaderRoleName = "Reader";
+    private const string ReaderRoleDescription = "View all resources, but does not allow you to make any changes.";
+
+    private const string SqlServerContributorRoleDefinitionId = "6d8ee4ec-f05a-4a1d-8b00-a9b17e38b437";
+    private const string SqlServerContributorRoleName = "SQL Server Contributor";
+    private const string SqlServerContributorRoleDescription = "Lets you manage SQL servers and databases, but not access to them, and not their security-related policies.";
+
     private const string KeyVaultDocsUrl =
         "https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide";
 
@@ -44,6 +60,30 @@ public static class AzureRoleDefinitionCatalog
 
     private const string WebAppDocsUrl =
         "https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity";
+
+    private static AzureRoleDefinition CreateWebsiteContributorRole(string documentationUrl) =>
+        new(WebsiteContributorRoleDefinitionId,
+            WebsiteContributorRoleName,
+            WebsiteContributorRoleDescription,
+            documentationUrl);
+
+    private static AzureRoleDefinition CreateContributorRole(string documentationUrl) =>
+        new(ContributorRoleDefinitionId,
+            ContributorRoleName,
+            ContributorRoleDescription,
+            documentationUrl);
+
+    private static AzureRoleDefinition CreateReaderRole(string documentationUrl) =>
+        new(ReaderRoleDefinitionId,
+            ReaderRoleName,
+            ReaderRoleDescription,
+            documentationUrl);
+
+    private static AzureRoleDefinition CreateSqlServerContributorRole(string documentationUrl) =>
+        new(SqlServerContributorRoleDefinitionId,
+            SqlServerContributorRoleName,
+            SqlServerContributorRoleDescription,
+            documentationUrl);
 
     private static readonly IReadOnlyList<AzureRoleDefinition> KeyVaultRoles =
     [
@@ -161,20 +201,9 @@ public static class AzureRoleDefinitionCatalog
 
     private static readonly IReadOnlyList<AzureRoleDefinition> AppServicePlanRoles =
     [
-        new("de139f84-1756-47ae-9be6-808fbbe84772",
-            "Website Contributor",
-            "Lets you manage websites (not web plans), but not access to them.",
-            AppServicePlanDocsUrl),
-
-        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
-            "Contributor",
-            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
-            AppServicePlanDocsUrl),
-
-        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "Reader",
-            "View all resources, but does not allow you to make any changes.",
-            AppServicePlanDocsUrl),
+        CreateWebsiteContributorRole(AppServicePlanDocsUrl),
+        CreateContributorRole(AppServicePlanDocsUrl),
+        CreateReaderRole(AppServicePlanDocsUrl),
     ];
 
     private const string UserAssignedIdentityDocsUrl =
@@ -194,20 +223,9 @@ public static class AzureRoleDefinitionCatalog
 
     private static readonly IReadOnlyList<AzureRoleDefinition> WebAppRoles =
     [
-        new("de139f84-1756-47ae-9be6-808fbbe84772",
-            "Website Contributor",
-            "Lets you manage websites (not web plans), but not access to them.",
-            WebAppDocsUrl),
-
-        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
-            "Contributor",
-            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
-            WebAppDocsUrl),
-
-        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "Reader",
-            "View all resources, but does not allow you to make any changes.",
-            WebAppDocsUrl),
+        CreateWebsiteContributorRole(WebAppDocsUrl),
+        CreateContributorRole(WebAppDocsUrl),
+        CreateReaderRole(WebAppDocsUrl),
     ];
 
     private const string FunctionAppDocsUrl =
@@ -215,20 +233,9 @@ public static class AzureRoleDefinitionCatalog
 
     private static readonly IReadOnlyList<AzureRoleDefinition> FunctionAppRoles =
     [
-        new("de139f84-1756-47ae-9be6-808fbbe84772",
-            "Website Contributor",
-            "Lets you manage websites (not web plans), but not access to them.",
-            FunctionAppDocsUrl),
-
-        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
-            "Contributor",
-            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
-            FunctionAppDocsUrl),
-
-        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "Reader",
-            "View all resources, but does not allow you to make any changes.",
-            FunctionAppDocsUrl),
+        CreateWebsiteContributorRole(FunctionAppDocsUrl),
+        CreateContributorRole(FunctionAppDocsUrl),
+        CreateReaderRole(FunctionAppDocsUrl),
     ];
 
     private const string AppConfigurationDocsUrl =
@@ -246,10 +253,7 @@ public static class AzureRoleDefinitionCatalog
             "Allows full access to App Configuration data.",
             AppConfigurationDocsUrl),
 
-        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
-            "Contributor",
-            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
-            AppConfigurationDocsUrl),
+        CreateContributorRole(AppConfigurationDocsUrl),
     ];
 
     private const string ContainerAppEnvironmentDocsUrl =
@@ -262,15 +266,8 @@ public static class AzureRoleDefinitionCatalog
             "Manage Container App Environments.",
             ContainerAppEnvironmentDocsUrl),
 
-        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
-            "Contributor",
-            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
-            ContainerAppEnvironmentDocsUrl),
-
-        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "Reader",
-            "View all resources, but does not allow you to make any changes.",
-            ContainerAppEnvironmentDocsUrl),
+        CreateContributorRole(ContainerAppEnvironmentDocsUrl),
+        CreateReaderRole(ContainerAppEnvironmentDocsUrl),
     ];
 
     private const string ContainerAppDocsUrl =
@@ -283,15 +280,8 @@ public static class AzureRoleDefinitionCatalog
             "Manage Container Apps.",
             ContainerAppDocsUrl),
 
-        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
-            "Contributor",
-            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
-            ContainerAppDocsUrl),
-
-        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "Reader",
-            "View all resources, but does not allow you to make any changes.",
-            ContainerAppDocsUrl),
+        CreateContributorRole(ContainerAppDocsUrl),
+        CreateReaderRole(ContainerAppDocsUrl),
     ];
 
     private const string LogAnalyticsWorkspaceDocsUrl =
@@ -309,15 +299,8 @@ public static class AzureRoleDefinitionCatalog
             "Can view and search all monitoring data as well as view monitoring settings.",
             LogAnalyticsWorkspaceDocsUrl),
 
-        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
-            "Contributor",
-            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
-            LogAnalyticsWorkspaceDocsUrl),
-
-        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "Reader",
-            "View all resources, but does not allow you to make any changes.",
-            LogAnalyticsWorkspaceDocsUrl),
+        CreateContributorRole(LogAnalyticsWorkspaceDocsUrl),
+        CreateReaderRole(LogAnalyticsWorkspaceDocsUrl),
     ];
 
     private const string CosmosDbDocsUrl =
@@ -340,15 +323,8 @@ public static class AzureRoleDefinitionCatalog
             "Lets you manage Azure Cosmos DB accounts, but not access data in them.",
             CosmosDbDocsUrl),
 
-        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
-            "Contributor",
-            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
-            CosmosDbDocsUrl),
-
-        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "Reader",
-            "View all resources, but does not allow you to make any changes.",
-            CosmosDbDocsUrl),
+        CreateContributorRole(CosmosDbDocsUrl),
+        CreateReaderRole(CosmosDbDocsUrl),
     ];
 
     private const string ApplicationInsightsDocsUrl =
@@ -371,10 +347,7 @@ public static class AzureRoleDefinitionCatalog
             "Can read all monitoring data.",
             ApplicationInsightsDocsUrl),
 
-        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "Reader",
-            "View all resources, but does not allow you to make any changes.",
-            ApplicationInsightsDocsUrl),
+        CreateReaderRole(ApplicationInsightsDocsUrl),
     ];
 
     private const string SqlServerDocsUrl =
@@ -382,25 +355,15 @@ public static class AzureRoleDefinitionCatalog
 
     private static readonly IReadOnlyList<AzureRoleDefinition> SqlServerRoles =
     [
-        new("6d8ee4ec-f05a-4a1d-8b00-a9b17e38b437",
-            "SQL Server Contributor",
-            "Lets you manage SQL servers and databases, but not access to them, and not their security-related policies.",
-            SqlServerDocsUrl),
+        CreateSqlServerContributorRole(SqlServerDocsUrl),
 
         new("056cd41c-7e88-42e1-933e-a3ba3f36885e",
             "SQL Security Manager",
             "Lets you manage the security-related policies of SQL servers and databases, but not access to them.",
             SqlServerDocsUrl),
 
-        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
-            "Contributor",
-            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
-            SqlServerDocsUrl),
-
-        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "Reader",
-            "View all resources, but does not allow you to make any changes.",
-            SqlServerDocsUrl),
+        CreateContributorRole(SqlServerDocsUrl),
+        CreateReaderRole(SqlServerDocsUrl),
     ];
 
     private const string ServiceBusNamespaceDocsUrl =
@@ -423,15 +386,8 @@ public static class AzureRoleDefinitionCatalog
             "Allows for receive access to Azure Service Bus resources.",
             ServiceBusNamespaceDocsUrl),
 
-        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
-            "Contributor",
-            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
-            ServiceBusNamespaceDocsUrl),
-
-        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "Reader",
-            "View all resources, but does not allow you to make any changes.",
-            ServiceBusNamespaceDocsUrl),
+        CreateContributorRole(ServiceBusNamespaceDocsUrl),
+        CreateReaderRole(ServiceBusNamespaceDocsUrl),
     ];
 
     private const string ContainerRegistryDocsUrl =
@@ -457,15 +413,8 @@ public static class AzureRoleDefinitionCatalog
             "Allows receive access to Azure Event Hubs resources.",
             EventHubNamespaceDocsUrl),
 
-        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
-            "Contributor",
-            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
-            EventHubNamespaceDocsUrl),
-
-        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "Reader",
-            "View all resources, but does not allow you to make any changes.",
-            EventHubNamespaceDocsUrl),
+        CreateContributorRole(EventHubNamespaceDocsUrl),
+        CreateReaderRole(EventHubNamespaceDocsUrl),
     ];
 
     /// <summary>Azure RBAC role definitions for Container Registry.</summary>
@@ -481,15 +430,8 @@ public static class AzureRoleDefinitionCatalog
             "Allows pull of images from an Azure Container Registry.",
             ContainerRegistryDocsUrl),
 
-        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
-            "Contributor",
-            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
-            ContainerRegistryDocsUrl),
-
-        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "Reader",
-            "View all resources, but does not allow you to make any changes.",
-            ContainerRegistryDocsUrl),
+        CreateContributorRole(ContainerRegistryDocsUrl),
+        CreateReaderRole(ContainerRegistryDocsUrl),
     ];
 
     private const string SqlDatabaseDocsUrl =
@@ -502,20 +444,9 @@ public static class AzureRoleDefinitionCatalog
             "Lets you manage SQL databases, but not access to them. Also, you can't manage their security-related policies or their parent SQL servers.",
             SqlDatabaseDocsUrl),
 
-        new("6d8ee4ec-f05a-4a1d-8b00-a9b17e38b437",
-            "SQL Server Contributor",
-            "Lets you manage SQL servers and databases, but not access to them, and not their security-related policies.",
-            SqlDatabaseDocsUrl),
-
-        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
-            "Contributor",
-            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
-            SqlDatabaseDocsUrl),
-
-        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "Reader",
-            "View all resources, but does not allow you to make any changes.",
-            SqlDatabaseDocsUrl),
+        CreateSqlServerContributorRole(SqlDatabaseDocsUrl),
+        CreateContributorRole(SqlDatabaseDocsUrl),
+        CreateReaderRole(SqlDatabaseDocsUrl),
     ];
 
     private static readonly Dictionary<string, IReadOnlyList<AzureRoleDefinition>> Catalog = new()

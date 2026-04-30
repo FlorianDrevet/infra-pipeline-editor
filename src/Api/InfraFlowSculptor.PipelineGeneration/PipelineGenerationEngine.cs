@@ -16,6 +16,18 @@ public sealed class PipelineGenerationEngine
 {
     private readonly InfraPipeline _pipeline;
 
+    private const string AzureDevOpsDirectory = ".azuredevops";
+    private const string CommonDirectory = "Common";
+    private const string ProjectNameParameterExpression = "${{ parameters.projectName }}";
+    private const string MainBicepFileName = "main.bicep";
+    private const string LegacyMainBicepUsingStatement = "using 'main.bicep'";
+    private const string ParentMainBicepUsingStatement = "using '../main.bicep'";
+    private const string ResolvedTemplateFileVariable = "$(ResolvedTemplateFile)";
+    private const string ResolvedParametersFileVariable = "$(ResolvedParametersFile)";
+    private const string SubscriptionDeploymentScope = "Subscription";
+    private const string ValidationDeploymentMode = "Validation";
+    private const string IncrementalDeploymentMode = "Incremental";
+
     /// <summary>
     /// Initializes a new instance using the provided pipeline orchestrator (DI path).
     /// </summary>
@@ -159,9 +171,9 @@ public sealed class PipelineGenerationEngine
     {
         var checkoutDirectories = new[]
         {
-            BuildRepoRelativePath(pipelineBasePath, ".azuredevops"),
-            BuildRepoRelativePath(bicepBasePath, "Common"),
-            BuildRepoRelativePath(bicepBasePath, "${{ parameters.projectName }}"),
+            BuildRepoRelativePath(pipelineBasePath, AzureDevOpsDirectory),
+            BuildRepoRelativePath(bicepBasePath, CommonDirectory),
+            BuildRepoRelativePath(bicepBasePath, ProjectNameParameterExpression),
         }.Distinct().ToList();
 
         var sb = new StringBuilder();
@@ -187,7 +199,7 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine();
         sb.AppendLine("variables:");
         sb.AppendLine("  - name: workingDirectory");
-        sb.AppendLine($"    value: {BuildSourcesDirectoryPath(BuildRepoRelativePath(bicepBasePath, "${{ parameters.projectName }}"))}");
+        sb.AppendLine($"    value: {BuildSourcesDirectoryPath(BuildRepoRelativePath(bicepBasePath, ProjectNameParameterExpression))}");
         sb.AppendLine();
         sb.AppendLine("stages:");
         sb.AppendLine("  - stage: validate");
@@ -260,9 +272,9 @@ public sealed class PipelineGenerationEngine
     {
         var checkoutDirectories = new[]
         {
-            BuildRepoRelativePath(pipelineBasePath, ".azuredevops"),
-            BuildRepoRelativePath(bicepBasePath, "Common"),
-            BuildRepoRelativePath(bicepBasePath, "${{ parameters.projectName }}"),
+            BuildRepoRelativePath(pipelineBasePath, AzureDevOpsDirectory),
+            BuildRepoRelativePath(bicepBasePath, CommonDirectory),
+            BuildRepoRelativePath(bicepBasePath, ProjectNameParameterExpression),
         }.Distinct().ToList();
 
         var sb = new StringBuilder();
@@ -486,13 +498,13 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine();
         sb.AppendLine("      if ([System.IO.Path]::GetExtension($resolvedParametersFile).Equals('.bicepparam', [System.StringComparison]::OrdinalIgnoreCase)) {");
         sb.AppendLine("        $parametersDirectory = Split-Path -Path $resolvedParametersFile -Parent");
-        sb.AppendLine("        $legacyMainPath = Join-Path $parametersDirectory 'main.bicep'");
-        sb.AppendLine("        $actualMainPath = Join-Path (Split-Path -Path $parametersDirectory -Parent) 'main.bicep'");
+        sb.AppendLine($"        $legacyMainPath = Join-Path $parametersDirectory '{MainBicepFileName}'");
+        sb.AppendLine($"        $actualMainPath = Join-Path (Split-Path -Path $parametersDirectory -Parent) '{MainBicepFileName}'");
         sb.AppendLine("        $parametersContent = Get-Content -LiteralPath $resolvedParametersFile -Raw");
         sb.AppendLine();
-        sb.AppendLine("        if (-not (Test-Path -LiteralPath $legacyMainPath) -and (Test-Path -LiteralPath $actualMainPath) -and $parametersContent.Contains(\"using 'main.bicep'\")) {");
+        sb.AppendLine($"        if (-not (Test-Path -LiteralPath $legacyMainPath) -and (Test-Path -LiteralPath $actualMainPath) -and $parametersContent.Contains(\"{LegacyMainBicepUsingStatement}\")) {{");
         sb.AppendLine("          $patchedParametersFile = Join-Path $parametersDirectory (([System.IO.Path]::GetFileNameWithoutExtension($resolvedParametersFile)) + '.autofix.bicepparam')");
-        sb.AppendLine("          $patchedParametersContent = $parametersContent.Replace(\"using 'main.bicep'\", \"using '../main.bicep'\")");
+        sb.AppendLine($"          $patchedParametersContent = $parametersContent.Replace(\"{LegacyMainBicepUsingStatement}\", \"{ParentMainBicepUsingStatement}\")");
         sb.AppendLine("          Set-Content -LiteralPath $patchedParametersFile -Value $patchedParametersContent -NoNewline");
         sb.AppendLine("          $parametersFileForCompilation = $patchedParametersFile");
         sb.AppendLine("          Write-Warning \"Patched legacy parameters file using-path for compilation: $patchedParametersFile\"");
@@ -516,28 +528,28 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("  - task: AzureResourceManagerTemplateDeployment@3");
         sb.AppendLine("    displayName: 'Validate - ${{ parameters.deploymentName }}'");
         sb.AppendLine("    inputs:");
-        sb.AppendLine("      deploymentScope: 'Subscription'");
+        sb.AppendLine($"      deploymentScope: '{SubscriptionDeploymentScope}'");
         sb.AppendLine("      azureResourceManagerConnection: '${{ parameters.azureResourceManagerConnection }}'");
         sb.AppendLine("      subscriptionId: '${{ parameters.subscriptionId }}'");
         sb.AppendLine("      location: '${{ parameters.location }}'");
         sb.AppendLine("      templateLocation: 'Linked artifact'");
-        sb.AppendLine("      csmFile: '$(ResolvedTemplateFile)'");
-        sb.AppendLine("      csmParametersFile: '$(ResolvedParametersFile)'");
+        sb.AppendLine($"      csmFile: '{ResolvedTemplateFileVariable}'");
+        sb.AppendLine($"      csmParametersFile: '{ResolvedParametersFileVariable}'");
         sb.AppendLine("      overrideParameters: '${{ parameters.overrideParameters }}'");
-        sb.AppendLine("      deploymentMode: 'Validation'");
+        sb.AppendLine($"      deploymentMode: '{ValidationDeploymentMode}'");
         sb.AppendLine();
         sb.AppendLine("  - task: AzureResourceManagerTemplateDeployment@3");
         sb.AppendLine("    displayName: 'Deploy - ${{ parameters.deploymentName }}'");
         sb.AppendLine("    inputs:");
-        sb.AppendLine("      deploymentScope: 'Subscription'");
+        sb.AppendLine($"      deploymentScope: '{SubscriptionDeploymentScope}'");
         sb.AppendLine("      azureResourceManagerConnection: '${{ parameters.azureResourceManagerConnection }}'");
         sb.AppendLine("      subscriptionId: '${{ parameters.subscriptionId }}'");
         sb.AppendLine("      location: '${{ parameters.location }}'");
         sb.AppendLine("      templateLocation: 'Linked artifact'");
-        sb.AppendLine("      csmFile: '$(ResolvedTemplateFile)'");
-        sb.AppendLine("      csmParametersFile: '$(ResolvedParametersFile)'");
+        sb.AppendLine($"      csmFile: '{ResolvedTemplateFileVariable}'");
+        sb.AppendLine($"      csmParametersFile: '{ResolvedParametersFileVariable}'");
         sb.AppendLine("      overrideParameters: '${{ parameters.overrideParameters }}'");
-        sb.AppendLine("      deploymentMode: 'Incremental'");
+        sb.AppendLine($"      deploymentMode: '{IncrementalDeploymentMode}'");
         sb.AppendLine("      deploymentOutputs: 'armOutputs'");
         sb.AppendLine();
         sb.AppendLine("  - powershell: |");
