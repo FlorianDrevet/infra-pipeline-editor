@@ -50,7 +50,7 @@
 
 .detail-header__id {
   margin: 0;
-  color: rgba(245, 251, 255, 0.65);
+  color: $ifs-on-brand-muted;
   font-size: 0.82rem;
   word-break: break-all;
   font-family: monospace;
@@ -314,7 +314,7 @@
   align-items: center;
   justify-content: center;
   padding: 0.25rem 0;
-  color: rgba(0, 188, 212, 0.55);
+  color: $ifs-accent-soft-contrast;
 
   mat-icon {
     font-size: 1.3rem;
@@ -825,7 +825,7 @@
   padding: 1.5rem 0;
   text-align: center;
 
-  mat-icon { font-size: 2rem; width: 2rem; height: 2rem; color: rgba(13, 101, 192, 0.18); }
+  mat-icon { font-size: 2rem; width: 2rem; height: 2rem; color: $ifs-accent-soft-contrast; }
   p { margin: 0; color: #60758e; font-size: 0.84rem; }
 }
 
@@ -998,7 +998,7 @@
   color: #6a7f95;
   font-size: 0.82rem;
 
-  mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; color: rgba(13, 101, 192, 0.2); }
+  mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; color: $ifs-accent-soft-contrast; }
 }
 
 .add-child-resource-btn {
@@ -1205,7 +1205,7 @@
 
 .empty-state__icon {
   font-size: 2.5rem; width: 2.5rem; height: 2.5rem;
-  color: rgba(13, 101, 192, 0.2);
+  color: $ifs-accent-soft-contrast;
 }
 
 .state-card {
@@ -1510,9 +1510,9 @@
   border: 1px solid rgba(0, 188, 212, 0.2);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   overflow: hidden;
-  --mat-tab-inactive-label-text-color: rgba(255, 255, 255, 0.6);
-  --mat-tab-inactive-hover-label-text-color: rgba(255, 255, 255, 0.82);
-  --mat-tab-inactive-focus-label-text-color: rgba(255, 255, 255, 0.82);
+  --mat-tab-inactive-label-text-color: #{$ifs-on-dark-subtle};
+  --mat-tab-inactive-hover-label-text-color: #{$ifs-on-dark-muted};
+  --mat-tab-inactive-focus-label-text-color: #{$ifs-on-dark-muted};
   --mat-tab-active-label-text-color: #00bcd4;
   --mat-tab-active-hover-label-text-color: #00e5ff;
   --mat-tab-active-focus-label-text-color: #00e5ff;
@@ -1531,7 +1531,7 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: $ifs-on-dark-subtle;
     font-weight: 600;
     font-size: 0.84rem;
   }
@@ -1567,7 +1567,7 @@
   margin: 0;
   padding: 1.5rem;
   text-align: center;
-  color: rgba(255, 255, 255, 0.45);
+  color: $ifs-on-dark-subtle;
   font-size: 0.88rem;
 }
 
@@ -1608,7 +1608,7 @@
   font-size: 1.2rem;
   width: 1.2rem;
   height: 1.2rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: $ifs-on-dark-subtle;
   transition: transform 0.2s ease;
 
   &--open {
@@ -1662,11 +1662,11 @@
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: $ifs-on-dark-subtle;
   cursor: pointer;
 
   mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
-  &:hover { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.8); }
+  &:hover { background: rgba(255, 255, 255, 0.08); color: $ifs-on-dark-muted; }
 }
 
 .bicep-panel__loading {
@@ -1765,7 +1765,7 @@
 .bicep-terminal__bar-title {
   margin-left: auto;
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: $ifs-on-dark-subtle;
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 }
 
@@ -1891,7 +1891,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 0.75rem 0.2rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: $ifs-on-dark-subtle;
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 0.78rem;
   font-weight: 600;
@@ -1905,7 +1905,7 @@
 
   &:hover {
     background: rgba(139, 233, 253, 0.06);
-    color: rgba(255, 255, 255, 0.65);
+    color: $ifs-on-dark-muted;
   }
 }
 
@@ -1913,7 +1913,7 @@
   font-size: 1rem;
   width: 1rem;
   height: 1rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: $ifs-on-dark-subtle;
   transition: transform 0.2s ease;
 
   &--open {
@@ -1937,7 +1937,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.4rem 0.75rem 0.2rem 1.75rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: $ifs-on-dark-subtle;
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 0.76rem;
   font-weight: 600;
@@ -1951,7 +1951,7 @@
 
   &:hover {
     background: rgba(241, 250, 140, 0.04);
-    color: rgba(255, 255, 255, 0.55);
+    color: $ifs-on-dark-muted;
   }
 }
 
@@ -2116,12 +2116,12 @@
   border-radius: 50%;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.4);
+  color: $ifs-on-dark-subtle;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 
   mat-icon { font-size: 0.9rem; width: 0.9rem; height: 0.9rem; }
-  &:hover { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.8); }
+  &:hover { background: rgba(255, 255, 255, 0.08); color: $ifs-on-dark-muted; }
 }
 
 .bicep-viewer__body {
@@ -2231,7 +2231,7 @@
   &__section-help {
     margin: 0;
     font-size: 0.85rem;
-    color: rgba(0, 0, 0, 0.55);
+    color: $ifs-text-secondary;
   }
 }
 
@@ -2276,7 +2276,7 @@
 
   &__desc {
     font-size: 0.8rem;
-    color: rgba(0, 0, 0, 0.6);
+    color: $ifs-text-secondary;
     line-height: 1.4;
   }
 }
@@ -2322,7 +2322,7 @@
   }
 
   &__label {
-    color: rgba(0, 0, 0, 0.55);
+    color: $ifs-text-secondary;
   }
 
   &__link {
@@ -2387,7 +2387,7 @@
 
   &__desc {
     font-size: 0.8rem;
-    color: rgba(0, 0, 0, 0.55);
+    color: $ifs-text-secondary;
     line-height: 1.4;
   }
 }

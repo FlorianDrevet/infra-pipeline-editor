@@ -1,3 +1,5 @@
+@use "scss/main" as *;
+
 :host {
   display: block;
 }
@@ -23,7 +25,7 @@
   &-label {
     font-size: 0.78rem;
     font-weight: 500;
-    color: rgba(0, 0, 0, 0.54);
+    color: $ifs-text-secondary;
   }
 }
 

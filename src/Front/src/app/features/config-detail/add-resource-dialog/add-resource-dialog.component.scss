@@ -1,3 +1,5 @@
+@use "scss/main" as *;
+
 :host {
   display: block;
   overflow: hidden;
@@ -432,7 +434,7 @@ mat-slide-toggle {
     .name-availability-env--available & { color: #2e7d32; }
     .name-availability-env--unavailable & { color: #c62828; }
     .name-availability-env--invalid & { color: #b8770a; }
-    .name-availability-env--unknown & { color: rgba(16, 52, 84, 0.5); }
+    .name-availability-env--unknown & { color: $ifs-text-secondary; }
   }
 
   &__name {
@@ -447,7 +449,7 @@ mat-slide-toggle {
     padding: 0.05rem 0.35rem;
     border-radius: 999px;
     background: rgba(16, 52, 84, 0.08);
-    color: rgba(16, 52, 84, 0.65);
+    color: $ifs-text-secondary;
     font-weight: 600;
   }
 
@@ -462,7 +464,7 @@ mat-slide-toggle {
 
   &__message {
     font-size: 0.72rem;
-    color: rgba(16, 52, 84, 0.6);
+    color: $ifs-text-secondary;
     font-style: italic;
   }
 }

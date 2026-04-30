@@ -256,30 +256,30 @@
             <div class="rg-list">
               @for (rg of resourceGroups(); track rg.id) {
                 <article class="rg-accordion" [class.rg-accordion--expanded]="expandedRgId() === rg.id">
-                  <div
-                    class="rg-accordion__header"
-                    role="button"
-                    tabindex="0"
-                    [attr.aria-expanded]="expandedRgId() === rg.id"
-                    (click)="toggleRgExpand(rg.id)"
-                    (keydown.enter)="toggleRgExpand(rg.id)"
-                    (keydown.space)="toggleRgExpand(rg.id); $event.preventDefault()">
-                    <mat-icon class="rg-accordion__chevron">expand_more</mat-icon>
-                    <div class="rg-accordion__info">
-                      <div class="rg-name-row">
-                        <strong>{{ rg.name }}</strong>
-                        @if (resolveNamingPreview(rg.name, 'ResourceGroup'); as preview) {
-                          <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
-                            <mat-icon class="naming-preview__icon">label</mat-icon>
-                            {{ preview }}
-                          </span>
-                        }
+                  <div class="rg-accordion__header">
+                    <button
+                      type="button"
+                      [attr.aria-controls]="'rg-body-' + rg.id"
+                      [attr.aria-expanded]="expandedRgId() === rg.id"
+                      (click)="toggleRgExpand(rg.id)"
+                      style="display:flex; align-items:center; gap:0.75rem; flex:1 1 auto; min-width:0; padding:0; border:none; background:transparent; color:inherit; font:inherit; text-align:left; cursor:pointer;">
+                      <mat-icon class="rg-accordion__chevron">expand_more</mat-icon>
+                      <div class="rg-accordion__info">
+                        <div class="rg-name-row">
+                          <strong>{{ rg.name }}</strong>
+                          @if (resolveNamingPreview(rg.name, 'ResourceGroup'); as preview) {
+                            <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                              <mat-icon class="naming-preview__icon">label</mat-icon>
+                              {{ preview }}
+                            </span>
+                          }
+                        </div>
+                        <span class="rg-accordion__location">
+                          <mat-icon>location_on</mat-icon>
+                          {{ rg.location }}
+                        </span>
                       </div>
-                      <span class="rg-accordion__location">
-                        <mat-icon>location_on</mat-icon>
-                        {{ rg.location }}
-                      </span>
-                    </div>
+                    </button>
                     @if (canWrite()) {
                       <button class="add-resource-btn add-resource-btn--inline" (click)="openAddResourceDialog(rg.id); $event.stopPropagation()">
                         <mat-icon class="add-resource-btn__icon">add_circle_outline</mat-icon>
@@ -297,7 +297,7 @@
                     </span>
                   </div>
                   @if (expandedRgId() === rg.id) {
-                    <div class="rg-accordion__body">
+                    <div class="rg-accordion__body" [attr.id]="'rg-body-' + rg.id">
                       @if (rgResourcesLoading() === rg.id) {
                         <div class="rg-resources-loading">
                           <mat-spinner diameter="22"></mat-spinner>
@@ -346,10 +346,11 @@
                                       }
                                     </span>
                                     <span class="resource-item__location">{{ item.resource.location }}</span>
-                                    <div class="resource-item__actions" (click)="$event.stopPropagation()">
+                                    <div class="resource-item__actions">
                                       <a
                                         class="resource-action-btn resource-action-btn--edit"
                                         [routerLink]="['/config', config()!.id, 'resource', item.resource.resourceType, item.resource.id]"
+                                        (click)="$event.stopPropagation()"
                                         [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
                                         <mat-icon>edit</mat-icon>
                                       </a>
@@ -357,7 +358,7 @@
                                         <button
                                           class="resource-action-btn resource-action-btn--delete"
                                           [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
-                                          (click)="openDeleteResourceDialog(item.resource, rg.id)">
+                                          (click)="openDeleteResourceDialog(item.resource, rg.id); $event.stopPropagation()">
                                           <mat-icon>delete_outline</mat-icon>
                                         </button>
                                       }
@@ -491,10 +492,11 @@
                                       <span class="resource-item__location">{{ item.resource.location }}</span>
                                     }
                                     @if (!item.crossConfigRef) {
-                                      <div class="resource-item__actions" (click)="$event.stopPropagation()">
+                                      <div class="resource-item__actions">
                                         <a
                                           class="resource-action-btn resource-action-btn--edit"
                                           [routerLink]="['/config', config()!.id, 'resource', item.resource.resourceType, item.resource.id]"
+                                          (click)="$event.stopPropagation()"
                                           [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
                                           <mat-icon>edit</mat-icon>
                                         </a>
@@ -502,7 +504,7 @@
                                           <button
                                             class="resource-action-btn resource-action-btn--delete"
                                             [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
-                                            (click)="openDeleteResourceDialog(item.resource, rg.id)">
+                                            (click)="openDeleteResourceDialog(item.resource, rg.id); $event.stopPropagation()">
                                             <mat-icon>delete_outline</mat-icon>
                                           </button>
                                         }

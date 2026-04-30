@@ -45,6 +45,7 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 	- `tests/InfraFlowSculptor.BicepGeneration.Tests/`
 	- `tests/InfraFlowSculptor.Contracts.Tests/`
 	- `tests/InfraFlowSculptor.Domain.Tests/`
+	- `tests/InfraFlowSculptor.GenerationCore.Tests/`
 	- `tests/InfraFlowSculptor.Infrastructure.Tests/`
 	- `tests/InfraFlowSculptor.Mcp.Tests/`
 	- `tests/InfraFlowSculptor.PipelineGeneration.Tests/`
@@ -123,3 +124,5 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 - Sonar remediation now starts with a **Lot 0** blocker fix: `scripts/fix-legacy-repository-topology.ps1` no longer reads or forwards `POSTGRES_PASSWORD`; it runs `psql` as the local container `postgres` user instead.
 - The first backend quick-win batch also landed in `BicepGeneration` / `PipelineGeneration`: `BicepEmitter` output parity was locked by stronger tests while removing a dead local, `ConfigVarsStage` dropped an unused parameter with unchanged YAML output, and `IdentityTransformer` / `AppSettingsTransformer` now use targeted constants for repeated semantic keys instead of literal duplication.
 - The next Sonar backend batch targeted generator-heavy S1192 noise in `ContainerAppTypeBicepGenerator`, `RedisCacheTypeBicepGenerator`, and `WebAppTypeBicepGenerator`; the refactor stayed behavior-neutral and was validated by the dedicated `InfraFlowSculptor.BicepGeneration.Tests` project plus full-solution `dotnet test` / `dotnet build`.
+- Latest local Sonar-zero batch: `InfraFlowSculptor.GenerationCore/AzureResourceTypes` now exposes its ARM-type lookup as an immutable case-insensitive frozen dictionary through `IReadOnlyDictionary`, with focused coverage in the new `tests/InfraFlowSculptor.GenerationCore.Tests/` project. `Application/Imports/Common/Creation/ResourceCommandFactory` also reuses a single `DotNet` enum-name constant for both Web App and Function App defaults.
+- Frontend local Sonar-zero batch: `src/Front/src/app/features/project-detail/project-detail.component.ts` dropped dead Angular animation metadata, moved tree-shaping logic into pure `project-detail-tree.helpers.ts` helpers with focused spec coverage, tightened the explicit ZIP-load safety wrapper around `JSZip.loadAsync`, and `src/Front/tsconfig.json` now sets `rootDir` to `./src` to keep IDE diagnostics aligned with the Angular build.

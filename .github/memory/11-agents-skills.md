@@ -92,6 +92,16 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 - Default GitHub repository for this project is `FlorianDrevet/infra-pipeline-editor` unless the user explicitly names another repository.
 - Audit issue workflows use reports under `audits/` (for example `audits/audit-14-04-2026`) together with `scripts/sync-audit-issues.ps1`; on 2026-04-15, 66 findings were recreated as GitHub issues and the `phase:*` / `severity:*` label mojibake was cleaned up.
 
+## Parallel Worktree Workflow [2026-04-30]
+
+- Recommended isolation unit for concurrent Copilot work is `1 feature = 1 branch = 1 git worktree = 1 VS Code window = 1 PR`.
+- For this repository, prefer one dedicated worktree hub on `origin/main` plus 2 to 3 active feature worktrees; keep additional worktrees review-only or cold.
+- Prefer one VS Code window per worktree. Avoid multi-root workspaces for active agentic coding because Git, chat, problems, and terminal contexts become too easy to mix.
+- Treat the local runtime as shared and effectively single-owner: `.vscode/mcp.json` points all windows to the same local MCP HTTP endpoint (`http://127.0.0.1:5258/mcp`), and Aspire/AppHost local ports are shared.
+- Default branch naming convention: `copilot/<slot>/<scope>-<slug>` with matching folder names like `ifs-<slot>-<scope>-<slug>`.
+- Prefer regular merges from `origin/main` into long-lived feature branches instead of continuous rebases while several agents are working in parallel.
+- Local hygiene note: `tmp/test-output-mcp/` should be added to `.git/info/exclude` on developer machines to avoid noisy diffs across worktrees.
+
 ## MCP Skill [2026-04-29]
 
 - New skill: `mcp-dotnet-server`.

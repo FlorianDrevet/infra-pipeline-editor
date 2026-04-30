@@ -65,7 +65,7 @@
 
 .resource-header__id {
   margin: 0;
-  color: rgba(245, 251, 255, 0.65);
+  color: $ifs-on-brand-muted;
   font-size: 0.82rem;
   word-break: break-all;
   font-family: monospace;
@@ -798,7 +798,7 @@
   font-size: 2.5rem;
   width: 2.5rem;
   height: 2.5rem;
-  color: rgba(13, 101, 192, 0.2);
+  color: $ifs-accent-soft-contrast;
 }
 
 .state-card {
@@ -1412,7 +1412,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(0, 0, 0, 0.45);
+  color: $ifs-text-secondary;
   font-size: 0.82rem;
   padding: 0.35rem 0;
 
@@ -1420,7 +1420,7 @@
     font-size: 18px;
     width: 18px;
     height: 18px;
-    color: rgba(103, 58, 183, 0.4);
+    color: $ifs-accent-soft-contrast;
   }
 }
 
@@ -2174,7 +2174,7 @@
     font-size: 2.2rem;
     width: 2.2rem;
     height: 2.2rem;
-    color: rgba(13, 101, 192, 0.18);
+    color: $ifs-accent-soft-contrast;
   }
 
   p {
@@ -2554,7 +2554,7 @@
   &__message {
     font-size: 0.8rem;
     line-height: 1.5;
-    color: rgba(16, 52, 84, 0.65);
+    color: $ifs-text-secondary;
     margin: 0;
   }
 
@@ -2570,7 +2570,7 @@
   &__section-label {
     font-size: 0.7rem;
     font-weight: 600;
-    color: rgba(16, 52, 84, 0.5);
+    color: $ifs-text-secondary;
     text-transform: uppercase;
     letter-spacing: 0.03em;
   }
@@ -2645,7 +2645,7 @@
     align-items: center;
     gap: 0.35rem;
     font-size: 0.73rem;
-    color: rgba(16, 52, 84, 0.5);
+    color: $ifs-text-secondary;
     padding-top: 0.25rem;
     border-top: 1px solid rgba(16, 52, 84, 0.06);
 
@@ -2717,7 +2717,7 @@
   &__message {
     font-size: 0.8rem;
     line-height: 1.5;
-    color: rgba(16, 52, 84, 0.65);
+    color: $ifs-text-secondary;
     margin: 0;
   }
 
@@ -2733,7 +2733,7 @@
   &__section-label {
     font-size: 0.7rem;
     font-weight: 600;
-    color: rgba(16, 52, 84, 0.5);
+    color: $ifs-text-secondary;
     text-transform: uppercase;
     letter-spacing: 0.03em;
   }
@@ -2935,7 +2935,7 @@
     .name-availability-env--current & { color: #1565c0; }
     .name-availability-env--unavailable & { color: #c62828; }
     .name-availability-env--invalid & { color: #b8770a; }
-    .name-availability-env--unknown & { color: rgba(16, 52, 84, 0.5); }
+    .name-availability-env--unknown & { color: $ifs-text-secondary; }
   }
 
   &__name {
@@ -2950,7 +2950,7 @@
     padding: 0.05rem 0.35rem;
     border-radius: 999px;
     background: rgba(16, 52, 84, 0.08);
-    color: rgba(16, 52, 84, 0.65);
+    color: $ifs-text-secondary;
     font-weight: 600;
   }
 
@@ -2965,7 +2965,7 @@
 
   &__message {
     font-size: 0.72rem;
-    color: rgba(16, 52, 84, 0.6);
+    color: $ifs-text-secondary;
     font-style: italic;
   }
 }

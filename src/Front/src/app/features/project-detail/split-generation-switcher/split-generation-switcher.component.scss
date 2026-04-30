@@ -1,3 +1,5 @@
+@use "scss/main" as *;
+
 // Outer two-level switcher styles. Inner sub-tabs reuse the existing
 // `.generation-tabs` class from project-detail.component.scss (dark theme).
 
@@ -21,9 +23,9 @@
   overflow: hidden;
 
   // Angular Material CSS vars for outer Infra/Code tabs
-  --mat-tab-inactive-label-text-color: rgba(255, 255, 255, 0.55);
-  --mat-tab-inactive-hover-label-text-color: rgba(255, 255, 255, 0.78);
-  --mat-tab-inactive-focus-label-text-color: rgba(255, 255, 255, 0.78);
+  --mat-tab-inactive-label-text-color: #{$ifs-on-dark-subtle};
+  --mat-tab-inactive-hover-label-text-color: #{$ifs-on-dark-muted};
+  --mat-tab-inactive-focus-label-text-color: #{$ifs-on-dark-muted};
   --mat-tab-active-label-text-color: #5cb6ff;
   --mat-tab-active-hover-label-text-color: #7dc8ff;
   --mat-tab-active-focus-label-text-color: #7dc8ff;
@@ -79,7 +81,7 @@
   font-size: 1rem;
   width: 1rem;
   height: 1rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: $ifs-on-dark-subtle;
   cursor: help;
 }
 
@@ -172,7 +174,7 @@
 .split-switcher__cta-text {
   margin: 0;
   max-width: 38rem;
-  color: rgba(255, 255, 255, 0.72);
+  color: $ifs-on-dark-muted;
   font-size: 0.86rem;
   line-height: 1.5;
 }
@@ -185,9 +187,9 @@
   box-shadow: none !important;
   background: transparent;
 
-  --mat-tab-inactive-label-text-color: rgba(255, 255, 255, 0.6);
-  --mat-tab-inactive-hover-label-text-color: rgba(255, 255, 255, 0.82);
-  --mat-tab-inactive-focus-label-text-color: rgba(255, 255, 255, 0.82);
+  --mat-tab-inactive-label-text-color: #{$ifs-on-dark-subtle};
+  --mat-tab-inactive-hover-label-text-color: #{$ifs-on-dark-muted};
+  --mat-tab-inactive-focus-label-text-color: #{$ifs-on-dark-muted};
   --mat-tab-active-label-text-color: #00bcd4;
   --mat-tab-active-hover-label-text-color: #00e5ff;
   --mat-tab-active-focus-label-text-color: #00e5ff;
@@ -278,7 +280,7 @@
   margin: 0;
   padding: 2.5rem 1.5rem;
   text-align: center;
-  color: rgba(255, 255, 255, 0.45);
+  color: $ifs-on-dark-subtle;
   font-size: 0.9rem;
 }
 

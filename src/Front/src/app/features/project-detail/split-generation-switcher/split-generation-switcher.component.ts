@@ -216,9 +216,7 @@ function buildBicepNodes(
     ensureFolderNode(nodes, 'Common', 'Common/', 0, undefined, 'folder_shared');
 
     for (const filePath of commonEntries) {
-      const relativePath = filePath.startsWith('Common/')
-        ? filePath.slice('Common/'.length)
-        : filePath;
+      const relativePath = toCommonRelativePath(filePath);
 
       if (!relativePath) {
         continue;
@@ -229,23 +227,7 @@ function buildBicepNodes(
         'Common',
         filePath,
         relativePath,
-        (entryPath, displayName) => {
-          if (entryPath.startsWith('modules/')) {
-            return displayName === 'types.bicep'
-              ? 'types'
-              : displayName.endsWith('.roleassignments.module.bicep')
-                ? 'role-assignments'
-                : 'module-type';
-          }
-
-          return displayName === 'types.bicep'
-            ? 'types'
-            : displayName === 'functions.bicep'
-              ? 'functions'
-              : displayName === 'constants.bicep'
-                ? 'constants'
-                : 'generic';
-        },
+        resolveCommonBicepFileType,
       );
     }
   }
@@ -254,12 +236,8 @@ function buildBicepNodes(
     ensureFolderNode(nodes, configName, `${configName}/`, 0);
 
     for (const fileName of Object.keys(files)) {
-      const backendPath = fileName.startsWith(`${configName}/`)
-        ? fileName
-        : `${configName}/${fileName}`;
-      const relativePath = backendPath.startsWith(`${configName}/`)
-        ? backendPath.slice(configName.length + 1)
-        : backendPath;
+      const backendPath = toConfigBackendPath(configName, fileName);
+      const relativePath = toConfigRelativePath(configName, backendPath);
 
       if (!relativePath) {
         continue;
@@ -270,17 +248,7 @@ function buildBicepNodes(
         configName,
         backendPath,
         relativePath,
-        (entryPath, displayName) => {
-          if (displayName === 'main.bicep' && !entryPath.includes('/')) {
-            return 'entry-point';
-          }
-
-          return displayName.endsWith('.bicepparam')
-            ? 'params'
-            : displayName.endsWith('.roleassignments.module.bicep')
-              ? 'role-assignments'
-              : 'generic';
-        },
+        resolveConfigBicepFileType,
       );
     }
   }
@@ -304,9 +272,7 @@ function buildPipelineNodes(
   ensureFolderNode(nodes, '.azuredevops', '.azuredevops/', 0, undefined, 'folder_shared');
 
   for (const filePath of commonEntries) {
-    const relativePath = filePath.startsWith('.azuredevops/')
-      ? filePath.slice('.azuredevops/'.length)
-      : filePath;
+    const relativePath = toAzureDevOpsRelativePath(filePath);
 
     if (!relativePath) {
       continue;
@@ -317,14 +283,8 @@ function buildPipelineNodes(
 
   for (const [configName, files] of configEntries) {
     for (const filePath of Object.keys(files)) {
-      const backendPath = filePath.startsWith('.azuredevops/')
-        ? filePath
-        : filePath.startsWith(`${configName}/`)
-          ? filePath
-          : `${configName}/${filePath}`;
-      const relativePath = backendPath.startsWith('.azuredevops/')
-        ? backendPath.slice('.azuredevops/'.length)
-        : backendPath;
+      const backendPath = toPipelineBackendPath(configName, filePath);
+      const relativePath = toAzureDevOpsRelativePath(backendPath);
 
       if (!relativePath) {
         continue;
@@ -335,6 +295,90 @@ function buildPipelineNodes(
   }
 
   return nodes;
+}
+
+function toCommonRelativePath(filePath: string): string {
+  return filePath.startsWith('Common/')
+    ? filePath.slice('Common/'.length)
+    : filePath;
+}
+
+function resolveCommonBicepFileType(entryPath: string, displayName: string): BicepFileType {
+  if (entryPath.startsWith('modules/')) {
+    return resolveModuleBicepFileType(displayName);
+  }
+
+  if (displayName === 'types.bicep') {
+    return 'types';
+  }
+
+  if (displayName === 'functions.bicep') {
+    return 'functions';
+  }
+
+  if (displayName === 'constants.bicep') {
+    return 'constants';
+  }
+
+  return 'generic';
+}
+
+function resolveModuleBicepFileType(displayName: string): BicepFileType {
+  if (displayName === 'types.bicep') {
+    return 'types';
+  }
+
+  if (displayName.endsWith('.roleassignments.module.bicep')) {
+    return 'role-assignments';
+  }
+
+  return 'module-type';
+}
+
+function toConfigBackendPath(configName: string, fileName: string): string {
+  return fileName.startsWith(`${configName}/`)
+    ? fileName
+    : `${configName}/${fileName}`;
+}
+
+function toConfigRelativePath(configName: string, backendPath: string): string {
+  return backendPath.startsWith(`${configName}/`)
+    ? backendPath.slice(configName.length + 1)
+    : backendPath;
+}
+
+function resolveConfigBicepFileType(entryPath: string, displayName: string): BicepFileType {
+  if (displayName === 'main.bicep' && !entryPath.includes('/')) {
+    return 'entry-point';
+  }
+
+  if (displayName.endsWith('.bicepparam')) {
+    return 'params';
+  }
+
+  if (displayName.endsWith('.roleassignments.module.bicep')) {
+    return 'role-assignments';
+  }
+
+  return 'generic';
+}
+
+function toAzureDevOpsRelativePath(filePath: string): string {
+  return filePath.startsWith('.azuredevops/')
+    ? filePath.slice('.azuredevops/'.length)
+    : filePath;
+}
+
+function toPipelineBackendPath(configName: string, filePath: string): string {
+  if (filePath.startsWith('.azuredevops/')) {
+    return filePath;
+  }
+
+  if (filePath.startsWith(`${configName}/`)) {
+    return filePath;
+  }
+
+  return `${configName}/${filePath}`;
 }
 
 function buildBootstrapNodes(
@@ -395,7 +439,7 @@ function appendHierarchicalFileNode(
     parentKey = folderKey;
   }
 
-  const displayName = parts[parts.length - 1];
+  const displayName = parts.at(-1)!;
   nodes.push({
     kind: 'file',
     path: backendPath,
@@ -424,7 +468,7 @@ function appendBucketedFileNode(
     parentKey = folderKey;
   }
 
-  const displayName = parts[parts.length - 1];
+  const displayName = parts.at(-1)!;
   nodes.push({
     kind: 'file',
     path: relativePath,

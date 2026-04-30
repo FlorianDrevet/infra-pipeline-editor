@@ -12,8 +12,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   InfrastructureConfigResponse,
   ResourceNamingTemplateResponse,
-  ResourceAbbreviationOverrideResponse,
-  SetInfraConfigTagsRequest,
   TagRequest,
 } from '../../shared/interfaces/infra-config.interface';
 import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
@@ -66,13 +64,17 @@ import { GeneratePipelineResponse } from '../../shared/interfaces/pipeline-gener
 import { saveAs } from 'file-saver';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
-import { ProjectResponse, TestGitConnectionResponse } from '../../shared/interfaces/project.interface';
+import {
+  ProjectPipelineVariableGroupResponse,
+  ProjectResponse,
+  TestGitConnectionResponse,
+} from '../../shared/interfaces/project.interface';
 import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS, PARENT_CHILD_RESOURCE_TYPES, CHILD_RESOURCE_TYPES } from './enums/resource-type.enum';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
-import { StorageAccountResponse, StorageAccountSubResourcesResponse } from '../../shared/interfaces/storage-account.interface';
+import { StorageAccountSubResourcesResponse } from '../../shared/interfaces/storage-account.interface';
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
 import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
 import {
@@ -88,7 +90,6 @@ import {
   CrossConfigReferenceResponse,
   IncomingCrossConfigReferenceResponse,
 } from '../../shared/interfaces/cross-config-reference.interface';
-import { ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
 import { AddVariableGroupDialogComponent } from './add-variable-group-dialog/add-variable-group-dialog.component';
 import { DiagnosticPopoverComponent } from '../../shared/components/diagnostic-popover/diagnostic-popover.component';
 import {
@@ -97,6 +98,7 @@ import {
   MissingEnvResource,
 } from '../../shared/components/generation-diagnostics-dialog/generation-diagnostics-dialog.component';
 import { firstValueFrom } from 'rxjs';
+import { sortResourceTypesAlphabetically } from './resource-type-sort.helpers';
 
 interface ResourceDisplayItem {
   resource: AzureResourceResponse;
@@ -105,6 +107,24 @@ interface ResourceDisplayItem {
   isParent: boolean;
   crossConfigRef?: CrossConfigReferenceResponse;
 }
+
+interface BicepModuleFileEntry {
+  path: string;
+  displayName: string;
+  uri: string;
+}
+
+interface BicepModuleFolderEntry {
+  name: string;
+  files: BicepModuleFileEntry[];
+}
+
+interface ResourceGroupingContext {
+  parentMap: Map<string, AzureResourceResponse>;
+  childrenByParent: Map<string, AzureResourceResponse[]>;
+}
+
+type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | undefined };
 
 
 @Component({
@@ -199,60 +219,123 @@ export class ConfigDetailComponent implements OnInit {
 
   protected readonly configBicepNodes = computed<BicepTreeNode[]>(() => {
     const result = this.bicepResult();
-    if (!result) return [];
-    const nodes: BicepTreeNode[] = [];
-
-    // Root-level files — uri is the file path, passed to getFileContent() by loadConfigBicepFile
-    nodes.push({ kind: 'file', path: 'types.bicep', displayName: 'types.bicep', type: 'types', uri: 'types.bicep', depth: 0, parentFolderKey: '' });
-    nodes.push({ kind: 'file', path: 'functions.bicep', displayName: 'functions.bicep', type: 'functions', uri: 'functions.bicep', depth: 0, parentFolderKey: '' });
-    if (result.constantsBicepUri) {
-      nodes.push({ kind: 'file', path: 'constants.bicep', displayName: 'constants.bicep', type: 'constants', uri: 'constants.bicep', depth: 0, parentFolderKey: '' });
-    }
-    nodes.push({ kind: 'file', path: 'main.bicep', displayName: 'main.bicep', type: 'entry-point', uri: 'main.bicep', depth: 0, parentFolderKey: '' });
-
-    // parameters/ folder
-    const params = Object.entries(result.parameterFileUris ?? {});
-    if (params.length > 0) {
-      nodes.push({ kind: 'folder', key: 'parameters', name: 'parameters/', folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
-      for (const [name, uri] of params) {
-        nodes.push({ kind: 'file', path: name, displayName: name.split('/').at(-1)!, type: 'params', uri, depth: 1, parentFolderKey: 'parameters' });
-      }
-    }
-
-    // modules/ folder (with per-resource sub-folders)
-    if (result.moduleUris && Object.keys(result.moduleUris).length > 0) {
-      const folderMap = new Map<string, { name: string; files: Array<{ path: string; displayName: string; uri: string }> }>();
-      for (const [filePath, uri] of Object.entries(result.moduleUris)) {
-        const parts = filePath.split('/');
-        if (parts.length < 3) continue;
-        const folderName = parts[1];
-        const displayName = parts[2];
-        const folderKey = `modules/${folderName}`;
-        if (!folderMap.has(folderKey)) folderMap.set(folderKey, { name: folderName, files: [] });
-        folderMap.get(folderKey)!.files.push({ path: filePath, displayName, uri });
-      }
-      if (folderMap.size > 0) {
-        nodes.push({ kind: 'folder', key: 'modules', name: 'modules/', folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
-        for (const [folderKey, folder] of folderMap) {
-          nodes.push({ kind: 'folder', key: folderKey, name: `${folder.name}/`, folderIcon: 'folder', depth: 1, parentFolderKey: 'modules' } satisfies BicepFolderNode);
-          for (const file of folder.files) {
-            const type =
-              file.displayName === 'types.bicep' ? 'types'
-              : file.displayName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
-              : 'module-type';
-            nodes.push({ kind: 'file', path: file.path, displayName: file.displayName, type, uri: file.uri, depth: 2, parentFolderKey: folderKey } satisfies BicepFileNode);
-          }
-        }
-      }
-    }
-
-    return nodes;
+    return result ? this.buildConfigBicepNodes(result) : [];
   });
 
   protected readonly loadConfigBicepFile = (filePath: string): Promise<string> => {
     const configId = this.config()?.id ?? '';
     return this.bicepService.getFileContent(configId, filePath);
   };
+
+  private buildConfigBicepNodes(result: GenerateBicepResponse): BicepTreeNode[] {
+    return [
+      ...this.buildRootBicepNodes(result),
+      ...this.buildParameterBicepNodes(result),
+      ...this.buildModuleBicepNodes(result),
+    ];
+  }
+
+  private buildRootBicepNodes(result: GenerateBicepResponse): BicepTreeNode[] {
+    return [
+      { kind: 'file', path: 'types.bicep', displayName: 'types.bicep', type: 'types', uri: 'types.bicep', depth: 0, parentFolderKey: '' } satisfies BicepFileNode,
+      { kind: 'file', path: 'functions.bicep', displayName: 'functions.bicep', type: 'functions', uri: 'functions.bicep', depth: 0, parentFolderKey: '' } satisfies BicepFileNode,
+      ...(result.constantsBicepUri
+        ? [{ kind: 'file', path: 'constants.bicep', displayName: 'constants.bicep', type: 'constants', uri: 'constants.bicep', depth: 0, parentFolderKey: '' } satisfies BicepFileNode]
+        : []),
+      { kind: 'file', path: 'main.bicep', displayName: 'main.bicep', type: 'entry-point', uri: 'main.bicep', depth: 0, parentFolderKey: '' } satisfies BicepFileNode,
+    ];
+  }
+
+  private buildParameterBicepNodes(result: GenerateBicepResponse): BicepTreeNode[] {
+    const parameterEntries = Object.entries(result.parameterFileUris ?? {});
+    if (parameterEntries.length === 0) {
+      return [];
+    }
+
+    return [
+      { kind: 'folder', key: 'parameters', name: 'parameters/', folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode,
+      ...parameterEntries.map(([name, uri]) => ({
+        kind: 'file',
+        path: name,
+        displayName: name.split('/').at(-1)!,
+        type: 'params',
+        uri,
+        depth: 1,
+        parentFolderKey: 'parameters',
+      } satisfies BicepFileNode)),
+    ];
+  }
+
+  private buildModuleBicepNodes(result: GenerateBicepResponse): BicepTreeNode[] {
+    const folderMap = this.buildModuleFolderMap(result.moduleUris);
+    if (folderMap.size === 0) {
+      return [];
+    }
+
+    return [
+      { kind: 'folder', key: 'modules', name: 'modules/', folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode,
+      ...Array.from(folderMap.entries()).flatMap(([folderKey, folder]) => [
+        { kind: 'folder', key: folderKey, name: `${folder.name}/`, folderIcon: 'folder', depth: 1, parentFolderKey: 'modules' } satisfies BicepFolderNode,
+        ...folder.files.map((file) => this.createModuleBicepFileNode(folderKey, file)),
+      ]),
+    ];
+  }
+
+  private buildModuleFolderMap(moduleUris?: Record<string, string>): Map<string, BicepModuleFolderEntry> {
+    const folderMap = new Map<string, BicepModuleFolderEntry>();
+    if (!moduleUris) {
+      return folderMap;
+    }
+
+    for (const [filePath, uri] of Object.entries(moduleUris)) {
+      const parts = filePath.split('/');
+      if (parts.length < 3) {
+        continue;
+      }
+
+      const folderName = parts[1];
+      const folderKey = `modules/${folderName}`;
+      const existingFolder = folderMap.get(folderKey);
+      const file: BicepModuleFileEntry = {
+        path: filePath,
+        displayName: parts[2],
+        uri,
+      };
+
+      if (existingFolder) {
+        existingFolder.files.push(file);
+        continue;
+      }
+
+      folderMap.set(folderKey, { name: folderName, files: [file] });
+    }
+
+    return folderMap;
+  }
+
+  private createModuleBicepFileNode(folderKey: string, file: BicepModuleFileEntry): BicepFileNode {
+    return {
+      kind: 'file',
+      path: file.path,
+      displayName: file.displayName,
+      type: this.getModuleBicepFileType(file.displayName),
+      uri: file.uri,
+      depth: 2,
+      parentFolderKey: folderKey,
+    } satisfies BicepFileNode;
+  }
+
+  private getModuleBicepFileType(displayName: string): BicepFileNode['type'] {
+    if (displayName === 'types.bicep') {
+      return 'types';
+    }
+
+    if (displayName.endsWith('.roleassignments.module.bicep')) {
+      return 'role-assignments';
+    }
+
+    return 'module-type';
+  }
 
   // ─── Pipeline Generation ───
   protected readonly pipelineLoading = signal(false);
@@ -272,7 +355,7 @@ export class ConfigDetailComponent implements OnInit {
       const parts = filePath.split('/');
       if (parts.length >= 2) {
         const folderName = parts.slice(0, -1).join('/');
-        const displayName = parts[parts.length - 1];
+        const displayName = parts.at(-1)!;
         if (!folderMap.has(folderName)) folderMap.set(folderName, { name: folderName, files: [] });
         folderMap.get(folderName)!.files.push({ path: filePath, displayName, uri });
       } else {
@@ -547,10 +630,14 @@ export class ConfigDetailComponent implements OnInit {
       location: env.location,
     };
 
-    return template.replace(/\{(\w+)}/g, (_, key: string) => replacements[key] ?? `{${key}}`);
+    return template.replaceAll(/\{(\w+)}/g, (_, key: string) => replacements[key] ?? `{${key}}`);
   }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
+    void this.initializeComponent();
+  }
+
+  private async initializeComponent(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
       this.loadError.set('CONFIG_DETAIL.ERROR.NO_ID');
@@ -559,13 +646,16 @@ export class ConfigDetailComponent implements OnInit {
     await this.loadConfig(id);
 
     // React to route param changes (e.g. cross-config navigation)
-    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async (params) => {
-      const newId = params.get('id');
-      if (newId && newId !== this.config()?.id) {
-        this.resetState();
-        await this.loadConfig(newId);
-      }
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      void this.handleRouteParamChange(params.get('id'));
     });
+  }
+
+  private async handleRouteParamChange(newId: string | null): Promise<void> {
+    if (newId && newId !== this.config()?.id) {
+      this.resetState();
+      await this.loadConfig(newId);
+    }
   }
 
   private resetState(): void {
@@ -745,58 +835,125 @@ export class ConfigDetailComponent implements OnInit {
     const resources = this.rgResources()[rgId] ?? [];
     if (resources.length === 0) return [];
 
+    const grouping = this.createResourceGrouping(resources);
+    const crossConfigParentRefs = this.createCrossConfigParentRefs(grouping.parentMap, grouping.childrenByParent);
+    const standaloneResources = this.collectStandaloneResources(
+      resources,
+      grouping.parentMap,
+      crossConfigParentRefs,
+      grouping.childrenByParent,
+    );
+
+    return this.buildResourceDisplayItems(
+      grouping.parentMap,
+      grouping.childrenByParent,
+      crossConfigParentRefs,
+      this.createIncomingChildrenMap(),
+      standaloneResources,
+    );
+  }
+
+  private createResourceGrouping(resources: AzureResourceResponse[]): ResourceGroupingContext {
     const parentMap = new Map<string, AzureResourceResponse>();
     const childrenByParent = new Map<string, AzureResourceResponse[]>();
-    const standalone: AzureResourceResponse[] = [];
 
-    // Index local parents
-    for (const res of resources) {
-      if (PARENT_CHILD_RESOURCE_TYPES[res.resourceType]) {
-        parentMap.set(res.id, res);
-        if (!childrenByParent.has(res.id)) {
-          childrenByParent.set(res.id, []);
-        }
+    for (const resource of resources) {
+      if (!PARENT_CHILD_RESOURCE_TYPES[resource.resourceType]) {
+        continue;
       }
+
+      parentMap.set(resource.id, resource);
+      childrenByParent.set(resource.id, []);
     }
 
-    // Index cross-config references whose type is a parent type as virtual parents
+    return { parentMap, childrenByParent };
+  }
+
+  private createCrossConfigParentRefs(
+    parentMap: Map<string, AzureResourceResponse>,
+    childrenByParent: Map<string, AzureResourceResponse[]>,
+  ): Map<string, CrossConfigReferenceResponse> {
     const crossConfigParentRefs = new Map<string, CrossConfigReferenceResponse>();
-    for (const ref of this.crossConfigReferences()) {
-      if (PARENT_CHILD_RESOURCE_TYPES[ref.targetResourceType] && !parentMap.has(ref.targetResourceId)) {
-        crossConfigParentRefs.set(ref.targetResourceId, ref);
-        if (!childrenByParent.has(ref.targetResourceId)) {
-          childrenByParent.set(ref.targetResourceId, []);
-        }
+
+    for (const reference of this.crossConfigReferences()) {
+      if (!PARENT_CHILD_RESOURCE_TYPES[reference.targetResourceType] || parentMap.has(reference.targetResourceId)) {
+        continue;
+      }
+
+      crossConfigParentRefs.set(reference.targetResourceId, reference);
+      if (!childrenByParent.has(reference.targetResourceId)) {
+        childrenByParent.set(reference.targetResourceId, []);
       }
     }
 
-    // Assign children to their parents (local or cross-config); fallback to standalone
-    for (const res of resources) {
-      if (parentMap.has(res.id)) continue; // skip local parents
-      if (CHILD_RESOURCE_TYPES.has(res.resourceType) && res.parentResourceId) {
-        if (parentMap.has(res.parentResourceId)) {
-          childrenByParent.get(res.parentResourceId)!.push(res);
-        } else if (crossConfigParentRefs.has(res.parentResourceId)) {
-          childrenByParent.get(res.parentResourceId)!.push(res);
-        } else {
-          standalone.push(res);
-        }
-      } else {
-        standalone.push(res);
+    return crossConfigParentRefs;
+  }
+
+  private collectStandaloneResources(
+    resources: AzureResourceResponse[],
+    parentMap: Map<string, AzureResourceResponse>,
+    crossConfigParentRefs: Map<string, CrossConfigReferenceResponse>,
+    childrenByParent: Map<string, AzureResourceResponse[]>,
+  ): AzureResourceResponse[] {
+    const standaloneResources: AzureResourceResponse[] = [];
+
+    for (const resource of resources) {
+      if (parentMap.has(resource.id)) {
+        continue;
+      }
+
+      if (!this.tryAttachChildResource(resource, parentMap, crossConfigParentRefs, childrenByParent)) {
+        standaloneResources.push(resource);
       }
     }
 
-    // Build a map of incoming children per target resource (resources from OTHER configs that depend on THIS config's resources)
+    return standaloneResources;
+  }
+
+  private tryAttachChildResource(
+    resource: AzureResourceResponse,
+    parentMap: Map<string, AzureResourceResponse>,
+    crossConfigParentRefs: Map<string, CrossConfigReferenceResponse>,
+    childrenByParent: Map<string, AzureResourceResponse[]>,
+  ): boolean {
+    if (!CHILD_RESOURCE_TYPES.has(resource.resourceType) || !resource.parentResourceId) {
+      return false;
+    }
+
+    const parentId = resource.parentResourceId;
+    if (!parentMap.has(parentId) && !crossConfigParentRefs.has(parentId)) {
+      return false;
+    }
+
+    childrenByParent.get(parentId)?.push(resource);
+    return true;
+  }
+
+  private createIncomingChildrenMap(): Map<string, IncomingCrossConfigReferenceResponse[]> {
     const incomingByTarget = new Map<string, IncomingCrossConfigReferenceResponse[]>();
-    for (const inc of this.incomingCrossConfigReferences()) {
-      const existing = incomingByTarget.get(inc.targetResourceId) ?? [];
-      existing.push(inc);
-      incomingByTarget.set(inc.targetResourceId, existing);
+
+    for (const incomingReference of this.incomingCrossConfigReferences()) {
+      const existing = incomingByTarget.get(incomingReference.targetResourceId);
+      if (existing) {
+        existing.push(incomingReference);
+        continue;
+      }
+
+      incomingByTarget.set(incomingReference.targetResourceId, [incomingReference]);
     }
 
+    return incomingByTarget;
+  }
+
+  private buildResourceDisplayItems(
+    parentMap: Map<string, AzureResourceResponse>,
+    childrenByParent: Map<string, AzureResourceResponse[]>,
+    crossConfigParentRefs: Map<string, CrossConfigReferenceResponse>,
+    incomingByTarget: Map<string, IncomingCrossConfigReferenceResponse[]>,
+    standaloneResources: AzureResourceResponse[],
+  ): ResourceDisplayItem[] {
     const result: ResourceDisplayItem[] = [];
 
-    // Emit local parents with their children + incoming children
     for (const [parentId, parent] of parentMap) {
       result.push({
         resource: parent,
@@ -806,27 +963,27 @@ export class ConfigDetailComponent implements OnInit {
       });
     }
 
-    // Emit cross-config parents that have local children
-    for (const [refResourceId, ref] of crossConfigParentRefs) {
+    for (const [refResourceId, reference] of crossConfigParentRefs) {
       const children = childrenByParent.get(refResourceId) ?? [];
-      if (children.length > 0) {
-        result.push({
-          resource: {
-            id: ref.targetResourceId,
-            name: ref.targetResourceName,
-            resourceType: ref.targetResourceType,
-            location: '',
-          },
-          children,
-          isParent: true,
-          crossConfigRef: ref,
-        });
+      if (children.length === 0) {
+        continue;
       }
+
+      result.push({
+        resource: {
+          id: reference.targetResourceId,
+          name: reference.targetResourceName,
+          resourceType: reference.targetResourceType,
+          location: '',
+        },
+        children,
+        isParent: true,
+        crossConfigRef: reference,
+      });
     }
 
-    // Emit standalone resources
-    for (const res of standalone) {
-      result.push({ resource: res, isParent: false });
+    for (const resource of standaloneResources) {
+      result.push({ resource, isParent: false });
     }
 
     return result;
@@ -1061,13 +1218,15 @@ export class ConfigDetailComponent implements OnInit {
     const currentConfig = this.config();
     if (!currentConfig || !this.canWrite()) return;
 
-    const usedResourceTypes = currentConfig.resourceNamingTemplates
-      .map((item) => item.resourceType)
-      .filter((resourceType) => resourceType !== existing?.resourceType);
+    const usedResourceTypes = new Set(
+      currentConfig.resourceNamingTemplates
+        .map((item) => item.resourceType)
+        .filter((resourceType) => resourceType !== existing?.resourceType),
+    );
 
     const availableResourceTypes = this.resourceTypeOptions
       .map((option) => option.value)
-      .filter((resourceType) => !usedResourceTypes.includes(resourceType));
+      .filter((resourceType) => !usedResourceTypes.has(resourceType));
 
     const dialogRef = this.dialog.open(AddNamingTemplateDialogComponent, {
       data: {
@@ -1177,7 +1336,7 @@ export class ConfigDetailComponent implements OnInit {
 
     const overrideMap = new Map(overrides.map((o) => [o.resourceType, o]));
 
-    return [...usedTypes].sort().map((resourceType) => {
+    return sortResourceTypesAlphabetically(usedTypes).map((resourceType) => {
       const override = overrideMap.get(resourceType);
       const defaultAbbr = RESOURCE_TYPE_ABBREVIATIONS[resourceType] ?? resourceType.toLowerCase();
       return {
@@ -1642,66 +1801,24 @@ export class ConfigDetailComponent implements OnInit {
   // ─── Generation Diagnostics Dialog ───
 
   private async showDiagnosticsDialog(): Promise<boolean> {
-    const currentDiagnostics = this.diagnostics();
-    const configId = this.config()?.id;
-    const configName = this.config()?.name ?? '';
+    const currentConfig = this.config();
+    const configId = currentConfig?.id;
     if (!configId) return true;
 
-    // Ensure all RG resources are loaded
-    const rgs = this.resourceGroups();
-    const allResources = { ...this.rgResources() };
-    const rgIdsToLoad = rgs.filter(rg => allResources[rg.id] === undefined).map(rg => rg.id);
-    if (rgIdsToLoad.length > 0) {
-      const loaded = await Promise.all(
-        rgIdsToLoad.map(async (rgId) => {
-          try {
-            const resources = await this.resourceGroupService.getResources(rgId);
-            return { rgId, resources };
-          } catch {
-            return { rgId, resources: [] as AzureResourceResponse[] };
-          }
-        }),
-      );
-      for (const { rgId, resources } of loaded) {
-        allResources[rgId] = resources;
-      }
-      this.rgResources.set(allResources);
+    const currentDiagnostics = this.diagnostics();
+    const allResources = await this.getAllResourceGroupResources();
+    const missingEnvResources = this.collectMissingEnvResources(allResources);
+
+    if (currentDiagnostics.length === 0 && missingEnvResources.length === 0) {
+      return true;
     }
 
-    // Collect missing environment settings from loaded resources
-    const missingEnvResources: MissingEnvResource[] = [];
-    for (const resources of Object.values(allResources)) {
-      if (!resources) continue;
-      for (const resource of resources) {
-        const missing = this.getMissingEnvironments(resource);
-        if (missing.length > 0) {
-          missingEnvResources.push({
-            resourceId: resource.id,
-            resourceName: resource.name,
-            resourceType: resource.resourceType,
-            missingEnvironments: missing,
-          });
-        }
-      }
-    }
-
-    const hasDiagnostics = currentDiagnostics.length > 0;
-    const hasMissingEnvs = missingEnvResources.length > 0;
-
-    if (!hasDiagnostics && !hasMissingEnvs) return true;
-
-    const dialogData: GenerationDiagnosticsDialogData = {
-      configDiagnostics: hasDiagnostics ? [{
-        configId,
-        configName,
-        diagnostics: currentDiagnostics,
-      }] : [],
-      missingEnvConfigs: hasMissingEnvs ? [{
-        configId,
-        configName,
-        resources: missingEnvResources,
-      }] : undefined,
-    };
+    const dialogData = this.buildGenerationDiagnosticsDialogData(
+      configId,
+      currentConfig.name,
+      currentDiagnostics,
+      missingEnvResources,
+    );
     const dialogRef = this.dialog.open(GenerationDiagnosticsDialogComponent, {
       data: dialogData,
       width: '640px',
@@ -1709,6 +1826,84 @@ export class ConfigDetailComponent implements OnInit {
     });
     const result = await firstValueFrom(dialogRef.afterClosed());
     return result === true;
+  }
+
+  private async getAllResourceGroupResources(): Promise<ResourceGroupResourcesById> {
+    const allResources: ResourceGroupResourcesById = { ...this.rgResources() };
+    const rgIdsToLoad = this.resourceGroups()
+      .filter((resourceGroup) => allResources[resourceGroup.id] === undefined)
+      .map((resourceGroup) => resourceGroup.id);
+
+    if (rgIdsToLoad.length === 0) {
+      return allResources;
+    }
+
+    const loadedResources = await Promise.all(rgIdsToLoad.map((rgId) => this.loadResourceGroupResources(rgId)));
+    for (const { rgId, resources } of loadedResources) {
+      allResources[rgId] = resources;
+    }
+
+    this.rgResources.set(allResources);
+    return allResources;
+  }
+
+  private async loadResourceGroupResources(rgId: string): Promise<{ rgId: string; resources: AzureResourceResponse[] }> {
+    try {
+      const resources = await this.resourceGroupService.getResources(rgId);
+      return { rgId, resources };
+    } catch {
+      return { rgId, resources: [] };
+    }
+  }
+
+  private collectMissingEnvResources(allResources: ResourceGroupResourcesById): MissingEnvResource[] {
+    const missingEnvResources: MissingEnvResource[] = [];
+
+    for (const resources of Object.values(allResources)) {
+      if (!resources) {
+        continue;
+      }
+
+      for (const resource of resources) {
+        const missingEnvironments = this.getMissingEnvironments(resource);
+        if (missingEnvironments.length === 0) {
+          continue;
+        }
+
+        missingEnvResources.push({
+          resourceId: resource.id,
+          resourceName: resource.name,
+          resourceType: resource.resourceType,
+          missingEnvironments,
+        });
+      }
+    }
+
+    return missingEnvResources;
+  }
+
+  private buildGenerationDiagnosticsDialogData(
+    configId: string,
+    configName: string,
+    diagnostics: ResourceDiagnosticResponse[],
+    missingEnvResources: MissingEnvResource[],
+  ): GenerationDiagnosticsDialogData {
+    return {
+      configDiagnostics: diagnostics.length > 0
+        ? [{
+          configId,
+          configName,
+          diagnostics,
+        }]
+        : [],
+      missingEnvConfigs: missingEnvResources.length > 0
+        ? [{
+          configId,
+          configName,
+          resources: missingEnvResources,
+        }]
+        : undefined,
+    };
   }
 
   // ─── Configuration Diagnostics ───

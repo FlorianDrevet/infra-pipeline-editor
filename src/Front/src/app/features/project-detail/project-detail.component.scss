@@ -81,7 +81,7 @@
 
 .detail-header__id {
   margin: 0;
-  color: rgba(245, 251, 255, 0.65);
+  color: $ifs-on-brand-muted;
   font-size: 0.82rem;
   word-break: break-all;
   font-family: monospace;
@@ -593,7 +593,7 @@ a.config-card {
   align-items: center;
   justify-content: center;
   padding: 0.25rem 0;
-  color: rgba(0, 188, 212, 0.55);
+  color: $ifs-accent-soft-contrast;
 
   mat-icon {
     font-size: 1.3rem;
@@ -1010,9 +1010,9 @@ a.config-card {
   border: 1px solid rgba(0, 188, 212, 0.2);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   overflow: hidden;
-  --mat-tab-inactive-label-text-color: rgba(255, 255, 255, 0.6);
-  --mat-tab-inactive-hover-label-text-color: rgba(255, 255, 255, 0.82);
-  --mat-tab-inactive-focus-label-text-color: rgba(255, 255, 255, 0.82);
+  --mat-tab-inactive-label-text-color: #{$ifs-on-dark-subtle};
+  --mat-tab-inactive-hover-label-text-color: #{$ifs-on-dark-muted};
+  --mat-tab-inactive-focus-label-text-color: #{$ifs-on-dark-muted};
   --mat-tab-active-label-text-color: #00bcd4;
   --mat-tab-active-hover-label-text-color: #00e5ff;
   --mat-tab-active-focus-label-text-color: #00e5ff;
@@ -1031,7 +1031,7 @@ a.config-card {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: $ifs-on-dark-subtle;
     font-weight: 600;
     font-size: 0.84rem;
   }
@@ -1062,7 +1062,7 @@ a.config-card {
   margin: 0;
   padding: 1.5rem;
   text-align: center;
-  color: rgba(255, 255, 255, 0.45);
+  color: $ifs-on-dark-subtle;
   font-size: 0.88rem;
 }
 
@@ -1106,7 +1106,7 @@ a.config-card {
   font-size: 1.2rem;
   width: 1.2rem;
   height: 1.2rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: $ifs-on-dark-subtle;
   transition: transform 0.2s ease;
 
   &--open {
@@ -1191,11 +1191,11 @@ a.config-card {
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: $ifs-on-dark-subtle;
   cursor: pointer;
 
   mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
-  &:hover { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.8); }
+  &:hover { background: rgba(255, 255, 255, 0.08); color: $ifs-on-dark-muted; }
 }
 
 .bicep-panel__loading {
@@ -1263,7 +1263,7 @@ a.config-card {
 .bicep-terminal__bar-title {
   margin-left: auto;
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: $ifs-on-dark-subtle;
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 }
 
@@ -1391,7 +1391,7 @@ a.config-card {
   align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 0.75rem 0.2rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: $ifs-on-dark-subtle;
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 0.78rem;
   font-weight: 600;
@@ -1405,7 +1405,7 @@ a.config-card {
 
   &:hover {
     background: rgba(139, 233, 253, 0.06);
-    color: rgba(255, 255, 255, 0.65);
+    color: $ifs-on-dark-muted;
   }
 }
 
@@ -1413,7 +1413,7 @@ a.config-card {
   font-size: 1rem;
   width: 1rem;
   height: 1rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: $ifs-on-dark-subtle;
   transition: transform 0.2s ease;
 
   &--open {
@@ -1437,7 +1437,7 @@ a.config-card {
   align-items: center;
   gap: 0.4rem;
   padding: 0.4rem 0.75rem 0.2rem 1.75rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: $ifs-on-dark-subtle;
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 0.76rem;
   font-weight: 600;
@@ -1451,7 +1451,7 @@ a.config-card {
 
   &:hover {
     background: rgba(241, 250, 140, 0.04);
-    color: rgba(255, 255, 255, 0.55);
+    color: $ifs-on-dark-muted;
   }
 }
 
@@ -1519,12 +1519,12 @@ a.config-card {
   border-radius: 50%;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.4);
+  color: $ifs-on-dark-subtle;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 
   mat-icon { font-size: 0.9rem; width: 0.9rem; height: 0.9rem; }
-  &:hover { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.8); }
+  &:hover { background: rgba(255, 255, 255, 0.08); color: $ifs-on-dark-muted; }
 }
 
 .bicep-viewer__body {
