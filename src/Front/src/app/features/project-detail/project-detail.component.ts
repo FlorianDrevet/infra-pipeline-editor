@@ -1,5 +1,4 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { trigger, transition, style, animate } from '@angular/animations';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -12,16 +11,15 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse, GenerateProjectPipelineResponse, GenerateProjectBootstrapPipelineResponse, ProjectPipelineVariableGroupResponse, SetProjectTagsRequest } from '../../shared/interfaces/project.interface';
+import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse, GenerateProjectPipelineResponse, GenerateProjectBootstrapPipelineResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
 import {
   InfrastructureConfigResponse,
   EnvironmentDefinitionResponse,
   ResourceNamingTemplateResponse,
-  ResourceAbbreviationOverrideResponse,
   SetResourceAbbreviationOverrideRequest,
   TagRequest,
+  UserResponse,
 } from '../../shared/interfaces/infra-config.interface';
-import { UserResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
@@ -66,7 +64,7 @@ import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
-import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepFileType, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
+import { BicepFilePanelComponent, BicepFileNode, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
 import {
   GenerationDiagnosticsDialogComponent,
   GenerationDiagnosticsDialogData,
@@ -82,6 +80,7 @@ import {
   GeneratedArtifactArchiveSourceSpec,
   resolveGeneratedArtifactEntryPath,
 } from './project-generated-artifact-paths';
+import { buildAzureDevOpsNodes, buildProjectBicepNodes } from './project-detail-tree.helpers';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
@@ -90,6 +89,10 @@ const MAX_PROJECT_ARCHIVE_SOURCE_BYTES = 10 * 1024 * 1024;
 const MAX_PROJECT_ARCHIVE_ENTRY_COUNT = 500;
 const MAX_PROJECT_ARCHIVE_ENTRY_BYTES = 2 * 1024 * 1024;
 const MAX_PROJECT_ARCHIVE_TOTAL_BYTES = 25 * 1024 * 1024;
+const COMBINED_ARCHIVE_LOAD_OPTIONS = {
+  checkCRC32: true,
+  createFolders: false,
+} as const;
 
 interface CombinedArtifactArchiveSource extends GeneratedArtifactArchiveSourceSpec {
   archivePromise: Promise<Blob>;
@@ -97,105 +100,6 @@ interface CombinedArtifactArchiveSource extends GeneratedArtifactArchiveSourceSp
 
 interface CombinedProjectArchiveExtractionState {
   totalExtractedBytes: number;
-}
-
-function ensureTreeFolderNode(
-  nodes: BicepTreeNode[],
-  key: string,
-  name: string,
-  depth: number,
-  parentFolderKey?: string,
-  folderIcon: BicepFolderNode['folderIcon'] = 'folder',
-): void {
-  if (nodes.some((node) => node.kind === 'folder' && node.key === key)) {
-    return;
-  }
-
-  nodes.push({
-    kind: 'folder',
-    key,
-    name,
-    folderIcon,
-    depth,
-    parentFolderKey,
-  } satisfies BicepFolderNode);
-}
-
-function appendTreeFileNode(
-  nodes: BicepTreeNode[],
-  rootKey: string,
-  backendPath: string,
-  relativePath: string,
-): void {
-  const parts = relativePath.split('/').filter((part) => part.length > 0);
-  if (parts.length === 0) {
-    return;
-  }
-
-  let parentKey = rootKey;
-  for (let index = 0; index < parts.length - 1; index++) {
-    const folderKey = `${rootKey}/${parts.slice(0, index + 1).join('/')}`;
-    ensureTreeFolderNode(nodes, folderKey, `${parts[index]}/`, index + 1, parentKey);
-    parentKey = folderKey;
-  }
-
-  nodes.push({
-    kind: 'file',
-    path: backendPath,
-    displayName: parts[parts.length - 1],
-    type: 'generic',
-    uri: backendPath,
-    depth: parts.length,
-    parentFolderKey: parentKey,
-  } satisfies BicepFileNode);
-}
-
-function buildAzureDevOpsNodes(
-  commonFileUris: Record<string, string>,
-  configFileUris: Record<string, Record<string, string>>,
-): BicepTreeNode[] {
-  const nodes: BicepTreeNode[] = [];
-  const commonEntries = Object.keys(commonFileUris ?? {});
-  const configEntries = Object.entries(configFileUris ?? {});
-
-  if (commonEntries.length === 0 && configEntries.length === 0) {
-    return nodes;
-  }
-
-  ensureTreeFolderNode(nodes, '.azuredevops', '.azuredevops/', 0, undefined, 'folder_shared');
-
-  for (const filePath of commonEntries) {
-    const relativePath = filePath.startsWith('.azuredevops/')
-      ? filePath.slice('.azuredevops/'.length)
-      : filePath;
-
-    if (!relativePath) {
-      continue;
-    }
-
-    appendTreeFileNode(nodes, '.azuredevops', filePath, relativePath);
-  }
-
-  for (const [configName, files] of configEntries) {
-    for (const filePath of Object.keys(files)) {
-      const backendPath = filePath.startsWith('.azuredevops/')
-        ? filePath
-        : filePath.startsWith(`${configName}/`)
-          ? filePath
-          : `${configName}/${filePath}`;
-      const relativePath = backendPath.startsWith('.azuredevops/')
-        ? backendPath.slice('.azuredevops/'.length)
-        : backendPath;
-
-      if (!relativePath) {
-        continue;
-      }
-
-      appendTreeFileNode(nodes, '.azuredevops', backendPath, relativePath);
-    }
-  }
-
-  return nodes;
 }
 
 @Component({
@@ -225,14 +129,6 @@ function buildAzureDevOpsNodes(
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',
-  animations: [
-    trigger('slideIn', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(-8px)' }),
-        animate('200ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
-      ]),
-    ]),
-  ],
 })
 export class ProjectDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -323,85 +219,9 @@ export class ProjectDetailComponent implements OnInit {
 
   protected readonly projectBicepNodes = computed<BicepTreeNode[]>(() => {
     const result = this.projectBicepResult();
-    if (!result) return [];
-    const nodes: BicepTreeNode[] = [];
-
-    // ── Common/ folder ──
-    // Backend stores keys with "Common/" prefix (e.g. "Common/types.bicep", "Common/modules/WebApp/...").
-    // Strip it so filters like key.startsWith('modules/') and path templates work correctly.
-    const commonEntries = Object.entries(result.commonFileUris)
-      .map(([key, uri]) => [key.startsWith('Common/') ? key.slice('Common/'.length) : key, uri] as [string, string]);
-    if (commonEntries.length > 0) {
-      nodes.push({ kind: 'folder', key: 'Common', name: 'Common/', badge: 'PROJECT_DETAIL.BICEP.SHARED', badgeVariant: 'types', folderIcon: 'folder_shared', depth: 0 } satisfies BicepFolderNode);
-
-      for (const [key, uri] of commonEntries) {
-        if (key.startsWith('modules/')) continue;
-        const type: BicepFileType =
-          key === 'types.bicep' ? 'types'
-          : key === 'functions.bicep' ? 'functions'
-          : key === 'constants.bicep' ? 'constants'
-          : 'generic';
-        nodes.push({ kind: 'file', path: `Common/${key}`, displayName: key, type, uri: `Common/${key}`, depth: 1, parentFolderKey: 'Common' } satisfies BicepFileNode);
-      }
-
-      const moduleEntries = commonEntries.filter(([key]) => key.startsWith('modules/'));
-      if (moduleEntries.length > 0) {
-        nodes.push({ kind: 'folder', key: 'Common/modules', name: 'modules/', folderIcon: 'folder', depth: 1, parentFolderKey: 'Common' } satisfies BicepFolderNode);
-        const folderMap = new Map<string, { name: string; files: Array<{ path: string; displayName: string; uri: string }> }>();
-        for (const [filePath, uri] of moduleEntries) {
-          const parts = filePath.split('/');
-          if (parts.length < 3) continue;
-          const fn = parts[1];
-          const folderKey = `Common/modules/${fn}`;
-          if (!folderMap.has(folderKey)) folderMap.set(folderKey, { name: fn, files: [] });
-          folderMap.get(folderKey)!.files.push({ path: `Common/${filePath}`, displayName: parts[2], uri });
-        }
-        for (const [folderKey, folder] of folderMap) {
-          nodes.push({ kind: 'folder', key: folderKey, name: `${folder.name}/`, folderIcon: 'folder', depth: 2, parentFolderKey: 'Common/modules' } satisfies BicepFolderNode);
-          for (const file of folder.files) {
-            const type: BicepFileType =
-              file.displayName === 'types.bicep' ? 'types'
-              : file.displayName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
-              : 'module-type';
-            nodes.push({ kind: 'file', path: file.path, displayName: file.displayName, type, uri: file.path, depth: 3, parentFolderKey: folderKey } satisfies BicepFileNode);
-          }
-        }
-      }
-    }
-
-    // ── Per-config folders ──
-    for (const [configName, files] of Object.entries(result.configFileUris)) {
-      nodes.push({ kind: 'folder', key: configName, name: `${configName}/`, folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
-      for (const [fileName, uri] of Object.entries(files)) {
-        const parts = fileName.split('/');
-        if (parts.length > 1) {
-          // File is nested (e.g. "parameters/main.dev.bicepparam") — create intermediate folder nodes.
-          let parentKey = configName;
-          for (let i = 0; i < parts.length - 1; i++) {
-            const folderKey = `${configName}/${parts.slice(0, i + 1).join('/')}`;
-            if (!nodes.some(n => n.kind === 'folder' && n.key === folderKey)) {
-              nodes.push({ kind: 'folder', key: folderKey, name: `${parts[i]}/`, folderIcon: 'folder', depth: i + 1, parentFolderKey: parentKey } satisfies BicepFolderNode);
-            }
-            parentKey = folderKey;
-          }
-          const displayName = parts[parts.length - 1];
-          const type: BicepFileType =
-            displayName.endsWith('.bicepparam') ? 'params'
-            : displayName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
-            : 'generic';
-          nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName, type, uri: `${configName}/${fileName}`, depth: parts.length, parentFolderKey: parentKey } satisfies BicepFileNode);
-        } else {
-          const type: BicepFileType =
-            fileName === 'main.bicep' ? 'entry-point'
-            : fileName.endsWith('.bicepparam') ? 'params'
-            : fileName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
-            : 'generic';
-          nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: fileName, type, uri: `${configName}/${fileName}`, depth: 1, parentFolderKey: configName } satisfies BicepFileNode);
-        }
-      }
-    }
-
-    return nodes;
+    return result
+      ? buildProjectBicepNodes(result.commonFileUris, result.configFileUris)
+      : [];
   });
 
   protected readonly loadProjectBicepFile = (filePath: string): Promise<string> => {
@@ -480,13 +300,14 @@ export class ProjectDetailComponent implements OnInit {
     return me?.role === 'Owner' || me?.role === 'Contributor';
   });
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
       this.loadError.set('PROJECT_DETAIL.ERROR.NO_ID');
       return;
     }
-    await this.loadProject(id);
+
+    void this.loadProject(id);
   }
 
   private async loadProject(id: string): Promise<void> {
@@ -709,13 +530,15 @@ export class ProjectDetailComponent implements OnInit {
     const project = this.project();
     if (!project || !this.canWrite()) return;
 
-    const usedResourceTypes = project.resourceNamingTemplates
+    const usedResourceTypes = new Set(
+      project.resourceNamingTemplates
       .map((item) => item.resourceType)
-      .filter((resourceType) => resourceType !== existing?.resourceType);
+      .filter((resourceType) => resourceType !== existing?.resourceType),
+    );
 
     const availableResourceTypes = this.resourceTypeOptions
       .map((option) => option.value)
-      .filter((resourceType) => !usedResourceTypes.includes(resourceType));
+      .filter((resourceType) => !usedResourceTypes.has(resourceType));
 
     const dialogRef = this.dialog.open(AddProjectNamingTemplateDialogComponent, {
       data: {
@@ -804,18 +627,18 @@ export class ProjectDetailComponent implements OnInit {
     if (!proj) return [];
 
     const overrides = proj.resourceAbbreviations ?? [];
-    const overrideMap = new Map(overrides.map(o => [o.resourceType, o.abbreviation]));
+    const overrideMap = new Map(overrides.map((override) => [override.resourceType, override.abbreviation]));
 
-    const usedTypes = proj.usedResourceTypes ?? [];
+    const usedTypes: string[] = proj.usedResourceTypes ?? [];
+    const sortedUsedTypes = [...usedTypes].sort((left, right) => left.localeCompare(right));
 
-    return usedTypes
-      .sort()
-      .map(rt => {
-        const defaultAbbr = RESOURCE_TYPE_ABBREVIATIONS[rt] ?? rt.toLowerCase();
-        const customAbbr = overrideMap.get(rt);
+    return sortedUsedTypes
+      .map((resourceType) => {
+        const defaultAbbr = RESOURCE_TYPE_ABBREVIATIONS[resourceType] ?? resourceType.toLowerCase();
+        const customAbbr = overrideMap.get(resourceType);
         return {
-          resourceType: rt,
-          icon: RESOURCE_TYPE_ICONS[rt] ?? 'widgets',
+          resourceType,
+          icon: RESOURCE_TYPE_ICONS[resourceType] ?? 'widgets',
           defaultAbbreviation: defaultAbbr,
           customAbbreviation: customAbbr ?? null,
           effectiveAbbreviation: customAbbr ?? defaultAbbr,
@@ -1305,7 +1128,7 @@ export class ProjectDetailComponent implements OnInit {
 
   protected openProjectPushAllToGitDialog(): void {
     const project = this.project();
-    if (!project || !(project.repositories?.length) || project.layoutPreset === 'SplitInfraCode') return;
+    if (project?.layoutPreset === 'SplitInfraCode' || !project?.repositories?.length) return;
 
     const data: PushToGitDialogData = {
       configId: '', // Not used for project push
@@ -1357,9 +1180,7 @@ export class ProjectDetailComponent implements OnInit {
     source: CombinedArtifactArchiveSource,
     extractionState: CombinedProjectArchiveExtractionState,
   ): Promise<void> {
-    this.ensureCombinedArchiveSourceSizeWithinLimits(sourceArchiveBlob);
-
-    const sourceArchive = await JSZip.loadAsync(sourceArchiveBlob, { checkCRC32: true });
+    const sourceArchive = await this.loadCombinedArchiveSafely(sourceArchiveBlob);
     const fileEntries = Object.values(sourceArchive.files).filter((entry) => !entry.dir);
     if (fileEntries.length > MAX_PROJECT_ARCHIVE_ENTRY_COUNT) {
       throw new Error('Generated artifact archive contains too many files.');
@@ -1391,6 +1212,13 @@ export class ProjectDetailComponent implements OnInit {
       extractionState.totalExtractedBytes += entryBytes.byteLength;
       targetArchive.file(entryPath, entryBytes);
     }
+  }
+
+  private async loadCombinedArchiveSafely(sourceArchiveBlob: Blob): Promise<JSZip> {
+    this.ensureCombinedArchiveSourceSizeWithinLimits(sourceArchiveBlob);
+
+    // Keep folder creation virtual and verify CRCs before any entry bytes are materialized.
+    return JSZip.loadAsync(sourceArchiveBlob, COMBINED_ARCHIVE_LOAD_OPTIONS);
   }
 
   private ensureCombinedArchiveSourceSizeWithinLimits(sourceArchiveBlob: Blob): void {
