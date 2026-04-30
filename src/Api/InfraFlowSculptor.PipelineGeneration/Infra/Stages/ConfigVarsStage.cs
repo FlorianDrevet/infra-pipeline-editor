@@ -9,6 +9,9 @@ namespace InfraFlowSculptor.PipelineGeneration.Infra.Stages;
 /// </summary>
 public sealed class ConfigVarsStage : IInfraPipelineStage
 {
+    private const string CanonicalLineEnding = "\n";
+    private static readonly char[] TrailingLineEndingCharacters = ['\n', '\r'];
+
     /// <inheritdoc />
     public int Order => 400;
 
@@ -36,6 +39,6 @@ public sealed class ConfigVarsStage : IInfraPipelineStage
             sb.AppendLine($"  azureResourceManagerConnection: '{armConnection}'");
         }
 
-        return sb.ToString();
+        return sb.ToString().ReplaceLineEndings(CanonicalLineEnding).TrimEnd(TrailingLineEndingCharacters) + CanonicalLineEnding;
     }
 }

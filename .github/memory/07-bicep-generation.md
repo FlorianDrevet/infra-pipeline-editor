@@ -47,6 +47,7 @@ Legacy 920-line `BicepGenerationEngine` → thin facade (~85 LOC) + `BicepGenera
 - **Interface:** `IResourceTypeBicepSpecGenerator` extends `IResourceTypeBicepGenerator`, adds `GenerateSpec()`
 - **Output pruning [2026-04-27]:** `IrOutputPruningStage` (Order 950) + `IrMonoRepoOutputPruner` replace regex-based pruner. `OutputUsageTracker` (emit-time tracking in `MainBicepAssembler`) feeds consumed outputs — 0 regex.
 - **Key decisions:** identity in `Body` as property, `IReadOnlyList<T>`, collection expressions `[..existing, new]`, LF line endings
+- **Cross-platform text output [2026-04-30]:** generated artifacts consumed by tests must canonicalize line endings to LF before returning strings. `BicepEmitter` and `ConfigVarsStage` now normalize `AppendLine()` output with `ReplaceLineEndings("\n")` to avoid Windows-only CRLF regressions in exact/golden assertions.
 
 ## Bootstrap Split (SplitInfraCode) [2026-04-25]
 - `BootstrapMode` enum: `FullOwner` (infra: 3 jobs) vs `ApplicationOnly` (code: validate + provision pipelines).

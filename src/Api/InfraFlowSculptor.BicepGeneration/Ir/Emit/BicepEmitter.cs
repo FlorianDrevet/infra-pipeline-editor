@@ -9,6 +9,7 @@ namespace InfraFlowSculptor.BicepGeneration.Ir.Emit;
 /// </summary>
 public sealed class BicepEmitter
 {
+    private const string CanonicalLineEnding = "\n";
     private readonly char[] _trailingLineEndingCharacters = ['\n', '\r'];
 
     /// <summary>
@@ -311,7 +312,7 @@ public sealed class BicepEmitter
     };
 
     private string EnsureTrailingNewline(string value)
-        => value.TrimEnd(_trailingLineEndingCharacters) + "\n";
+        => value.ReplaceLineEndings(CanonicalLineEnding).TrimEnd(_trailingLineEndingCharacters) + CanonicalLineEnding;
 
     private static string EscapeBicepString(string value)
         => value.Replace("\\", "\\\\").Replace("'", "\\'");
