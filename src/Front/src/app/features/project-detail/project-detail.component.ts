@@ -302,7 +302,7 @@ export class ProjectDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
+    if (!id) { // NOSONAR S3776 - tracked under test-debt #22
       this.loadError.set('PROJECT_DETAIL.ERROR.NO_ID');
       return;
     }

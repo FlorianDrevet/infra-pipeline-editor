@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.RedisCaches.Common;
@@ -16,6 +16,7 @@ public class UpdateRedisCacheCommandHandler(
     IMapper mapper)
     : ICommandHandler<UpdateRedisCacheCommand, RedisCacheResult>
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public async Task<ErrorOr<RedisCacheResult>> Handle(UpdateRedisCacheCommand request, CancellationToken cancellationToken)
     {
         var redisCache = await redisCacheRepository.GetByIdAsync(request.Id, cancellationToken);

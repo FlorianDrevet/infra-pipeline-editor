@@ -33,6 +33,8 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 npm install; npm run start; npm run build; npm run typecheck
 ```
 
+- On Windows, `dotnet build .\InfraFlowSculptor.slnx` can fail with `MSB3021` / `MSB3027` if `InfraFlowSculptor.Api.exe`, `InfraFlowSculptor.Mcp.exe`, or `InfraFlowSculptor.AppHost.exe` are already running from the repo `bin\Debug\net10.0` outputs. Stop those processes first to release locked assemblies before rebuilding.
+
 ## Tests
 
 ```powershell

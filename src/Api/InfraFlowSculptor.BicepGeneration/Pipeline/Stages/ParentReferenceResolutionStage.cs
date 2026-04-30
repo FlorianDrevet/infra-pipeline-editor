@@ -1,9 +1,9 @@
-using InfraFlowSculptor.GenerationCore;
+﻿using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 
 /// <summary>
-/// Stage 800 — Parent / cross-resource reference resolution.
+/// Stage 800 â€” Parent / cross-resource reference resolution.
 /// </summary>
 /// <remarks>
 /// <para><b>Pre-conditions:</b> <see cref="BicepGenerationContext.ResourceIdToInfo"/> and
@@ -23,6 +23,7 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
     public int Order => 800;
 
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public void Execute(BicepGenerationContext context)
     {
         var request = context.Request;

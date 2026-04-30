@@ -69,44 +69,15 @@ public sealed class CheckResourceNameAvailabilityQueryHandler(
         var environments = new List<EnvironmentNameAvailabilityResult>(resolveResult.Value.Count);
         foreach (var resolved in resolveResult.Value)
         {
-            // Short-circuit: the generated name matches the currently persisted name → "current".
-            if (nameUnchanged || IsCurrentName(resolved, persistedGeneratedNames))
-            {
-                environments.Add(BuildItem(resolved, StatusCurrent, reason: null, message: null));
-                continue;
-            }
-
-            var validationError = ValidateGeneratedName(resolved.GeneratedName, constraint);
-            if (validationError is not null)
-            {
-                environments.Add(BuildItem(resolved, StatusInvalid, reason: "Invalid", message: validationError));
-                continue;
-            }
-
-            if (!supported)
-            {
-                environments.Add(BuildItem(
-                    resolved,
-                    StatusUnknown,
-                    reason: null,
-                    message: "Availability check not supported for this resource type."));
-                continue;
-            }
-
-            var availability = await checker.CheckAsync(
-                request.ResourceType,
-                resolved.SubscriptionId,
-                resolved.GeneratedName,
+            var item = await ResolveEnvironmentAvailabilityAsync(
+                resolved,
+                request,
+                nameUnchanged,
+                persistedGeneratedNames,
+                constraint,
+                supported,
                 cancellationToken);
-
-            var status = availability.Status switch
-            {
-                AzureNameAvailabilityStatus.Available => StatusAvailable,
-                AzureNameAvailabilityStatus.Unavailable => StatusUnavailable,
-                _ => StatusUnknown
-            };
-
-            environments.Add(BuildItem(resolved, status, availability.Reason, availability.Message));
+            environments.Add(item);
         }
 
         return new CheckResourceNameAvailabilityResult(
@@ -114,6 +85,55 @@ public sealed class CheckResourceNameAvailabilityQueryHandler(
             request.Name,
             supported,
             environments);
+    }
+
+    /// <summary>
+    /// Computes the availability result for a single resolved environment, applying the
+    /// short-circuit (current name) → static validation → live availability check pipeline.
+    /// </summary>
+    private async Task<EnvironmentNameAvailabilityResult> ResolveEnvironmentAvailabilityAsync(
+        ResolvedResourceName resolved,
+        CheckResourceNameAvailabilityQuery request,
+        bool nameUnchanged,
+        Dictionary<string, string>? persistedGeneratedNames,
+        AzureNamingConstraint? constraint,
+        bool supported,
+        CancellationToken cancellationToken)
+    {
+        if (nameUnchanged || IsCurrentName(resolved, persistedGeneratedNames))
+        {
+            return BuildItem(resolved, StatusCurrent, reason: null, message: null);
+        }
+
+        var validationError = ValidateGeneratedName(resolved.GeneratedName, constraint);
+        if (validationError is not null)
+        {
+            return BuildItem(resolved, StatusInvalid, reason: "Invalid", message: validationError);
+        }
+
+        if (!supported)
+        {
+            return BuildItem(
+                resolved,
+                StatusUnknown,
+                reason: null,
+                message: "Availability check not supported for this resource type.");
+        }
+
+        var availability = await checker.CheckAsync(
+            request.ResourceType,
+            resolved.SubscriptionId,
+            resolved.GeneratedName,
+            cancellationToken);
+
+        var status = availability.Status switch
+        {
+            AzureNameAvailabilityStatus.Available => StatusAvailable,
+            AzureNameAvailabilityStatus.Unavailable => StatusUnavailable,
+            _ => StatusUnknown,
+        };
+
+        return BuildItem(resolved, status, availability.Reason, availability.Message);
     }
 
     private static EnvironmentNameAvailabilityResult BuildItem(

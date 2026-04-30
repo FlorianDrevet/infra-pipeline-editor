@@ -13,7 +13,7 @@ public class AzureResourceRepository<TEntity>: BaseRepository<TEntity, ProjectDb
     {
     }
     
-    public override async Task<TEntity?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
+    public override async Task<TEntity?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await Context.Set<TEntity>()
             .Include(r => r.DependsOn)

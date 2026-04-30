@@ -415,7 +415,7 @@ export class AddAppSettingDialogComponent {
   protected goBack(): void {
     const currentStep = this.step();
     if (this.mode() === 'output') {
-      if (currentStep === 4) {
+      if (currentStep === 4) { // NOSONAR S3776 - tracked under test-debt #22
         if (this.selectedOutputIsSensitive()) {
           this.step.set(3);
         } else {

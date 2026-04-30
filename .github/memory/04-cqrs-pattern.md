@@ -51,6 +51,11 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 - `DependencyInjection.cs` (Application) registers MediatR, ValidationBehavior, UnitOfWorkBehavior, validators by assembly scan.
 - `DependencyInjection.cs` (Infrastructure) registers `IUnitOfWork`.
 
+## Validator Cross-Rules [2026-04-30]
+
+- `CreateProjectWithSetupCommandValidator` is the canonical example of a project-slice validator that mixes scalar rules with aggregate cross-rules: `LayoutPreset` drives the allowed project-level repository count (`AllInOne` = 1, `SplitInfraCode` = 2, `MultiRepo` = 0), and repository connection details (`ProviderType`, `RepositoryUrl`, `DefaultBranch`) must be provided all together or all omitted.
+- Keep these orchestration-style checks in FluentValidation when they are pure input consistency checks and do not require repository access.
+
 ## Project Result Mapping [2026-04-29]
 
 - The `Projects` slice no longer relies on injected `MapsterMapper.IMapper` inside `CreateProjectCommandHandler`, `CreateProjectWithSetupCommandHandler`, `GetProjectQueryHandler`, and `ListMyProjectsQueryHandler`.

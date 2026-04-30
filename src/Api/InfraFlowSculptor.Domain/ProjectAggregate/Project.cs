@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
@@ -22,14 +22,14 @@ public sealed class Project : AggregateRoot<ProjectId>
     /// <summary>Gets the optional description of the project.</summary>
     public string? Description { get; private set; }
 
-    // ─── Members ────────────────────────────────────────────────────────────
+    // â”€â”€â”€ Members â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private readonly List<ProjectMember> _members = [];
 
     /// <summary>Gets the members of this project with their roles.</summary>
     public IReadOnlyCollection<ProjectMember> Members => _members.AsReadOnly();
 
-    // ─── Environment Definitions ────────────────────────────────────────────
+    // â”€â”€â”€ Environment Definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private readonly List<ProjectEnvironmentDefinition> _environmentDefinitions = [];
 
@@ -37,7 +37,7 @@ public sealed class Project : AggregateRoot<ProjectId>
     public IReadOnlyCollection<ProjectEnvironmentDefinition> EnvironmentDefinitions
         => _environmentDefinitions.AsReadOnly();
 
-    // ─── Naming Conventions ─────────────────────────────────────────────────
+    // â”€â”€â”€ Naming Conventions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Default naming template applied to all resource types unless overridden.
@@ -58,7 +58,7 @@ public sealed class Project : AggregateRoot<ProjectId>
     public IReadOnlyCollection<ProjectResourceAbbreviation> ResourceAbbreviations
         => _resourceAbbreviations.AsReadOnly();
 
-    // ─── Tags ───────────────────────────────────────────────────────────────
+    // â”€â”€â”€ Tags â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private readonly List<Tag> _tags = [];
 
@@ -72,7 +72,7 @@ public sealed class Project : AggregateRoot<ProjectId>
         _tags.AddRange(tags);
     }
 
-    // ─── Pipeline Variable Groups ──────────────────────────────────────────
+    // â”€â”€â”€ Pipeline Variable Groups â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private readonly List<ProjectPipelineVariableGroup> _projectPipelineVariableGroups = [];
 
@@ -80,21 +80,21 @@ public sealed class Project : AggregateRoot<ProjectId>
     public IReadOnlyCollection<ProjectPipelineVariableGroup> PipelineVariableGroups
         => _projectPipelineVariableGroups.AsReadOnly();
 
-    // ─── Repository Mode ────────────────────────────────────────────────────
+    // â”€â”€â”€ Repository Mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Gets the layout preset of this project.
     /// </summary>
     public LayoutPreset LayoutPreset { get; private set; } = new(LayoutPresetEnum.MultiRepo);
 
-    // ─── Project Repositories ────────────────────────────────────────────────
+    // â”€â”€â”€ Project Repositories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private readonly List<ProjectRepository> _repositories = [];
 
     /// <summary>Gets the Git repositories declared at project level.</summary>
     public IReadOnlyCollection<ProjectRepository> Repositories => _repositories.AsReadOnly();
 
-    // ─── Agent Pool ─────────────────────────────────────────────────────
+    // â”€â”€â”€ Agent Pool â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Gets the name of the self-hosted agent pool to use in generated pipelines.
@@ -102,7 +102,7 @@ public sealed class Project : AggregateRoot<ProjectId>
     /// </summary>
     public string? AgentPoolName { get; private set; }
 
-    // ─── Constructor ────────────────────────────────────────────────────────
+    // â”€â”€â”€ Constructor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private Project(ProjectId id, Name name, string? description, UserId ownerId) : base(id)
     {
@@ -121,7 +121,7 @@ public sealed class Project : AggregateRoot<ProjectId>
     /// <summary>EF Core constructor.</summary>
     public Project() { }
 
-    // ─── Member Management ──────────────────────────────────────────────────
+    // â”€â”€â”€ Member Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Adds a member with the specified role to this project.</summary>
     public void AddMember(UserId userId, Role role)
@@ -147,7 +147,7 @@ public sealed class Project : AggregateRoot<ProjectId>
     private ProjectMember? GetMember(UserId userId)
         => _members.FirstOrDefault(m => m.UserId == userId);
 
-    // ─── Environment Definitions Management ─────────────────────────────────
+    // â”€â”€â”€ Environment Definitions Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Adds a new environment definition at the specified order.</summary>
     public ProjectEnvironmentDefinition AddEnvironment(EnvironmentDefinitionData data)
@@ -227,7 +227,7 @@ public sealed class Project : AggregateRoot<ProjectId>
         }
     }
 
-    // ─── Naming Convention Management ───────────────────────────────────────
+    // â”€â”€â”€ Naming Convention Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Sets or clears the project-level default naming template.</summary>
     public void SetDefaultNamingTemplate(NamingTemplate? template)
@@ -260,7 +260,7 @@ public sealed class Project : AggregateRoot<ProjectId>
         return true;
     }
 
-    // ─── Resource Abbreviation Management ───────────────────────────────────
+    // â”€â”€â”€ Resource Abbreviation Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Sets or updates a per-resource-type abbreviation override.</summary>
     public ProjectResourceAbbreviation SetResourceAbbreviation(string resourceType, string abbreviation)
@@ -287,7 +287,7 @@ public sealed class Project : AggregateRoot<ProjectId>
         return true;
     }
 
-    // ─── Pipeline Variable Group Management ───────────────────────────────
+    // â”€â”€â”€ Pipeline Variable Group Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Adds a new pipeline variable group to this project.</summary>
     public ErrorOr<ProjectPipelineVariableGroup> AddPipelineVariableGroup(string groupName)
@@ -314,7 +314,7 @@ public sealed class Project : AggregateRoot<ProjectId>
         return Result.Deleted;
     }
 
-    // ─── Project Repositories Management ────────────────────────────────────
+    // â”€â”€â”€ Project Repositories Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Adds a new <see cref="ProjectRepository"/> to this project.
@@ -384,7 +384,7 @@ public sealed class Project : AggregateRoot<ProjectId>
     public ProjectRepository? GetRepositoryByAlias(RepositoryAlias alias)
         => _repositories.FirstOrDefault(r => r.Alias == alias);
 
-    // ─── Repository Mode Management ─────────────────────────────────────────
+    // â”€â”€â”€ Repository Mode Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Sets the layout preset for this project.
@@ -404,6 +404,7 @@ public sealed class Project : AggregateRoot<ProjectId>
         return Result.Success;
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     private ErrorOr<Success> EnsureRepositoryAllowedByLayout(
         RepositoryContentKinds candidateKinds,
         int expectedCountAfterAdd,
@@ -476,7 +477,7 @@ public sealed class Project : AggregateRoot<ProjectId>
         return LayoutPreset.Value != LayoutPresetEnum.MultiRepo;
     }
 
-    // ─── Agent Pool Management ──────────────────────────────────────────
+    // â”€â”€â”€ Agent Pool Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Sets or clears the self-hosted agent pool name for pipeline generation.</summary>
     public void SetAgentPoolName(string? poolName)

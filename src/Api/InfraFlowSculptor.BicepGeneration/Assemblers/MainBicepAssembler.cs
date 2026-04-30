@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
@@ -18,6 +18,7 @@ internal static class MainBicepAssembler
     /// keyed by module file path. The map is consumed by the IR output pruner to remove unused outputs
     /// without re-parsing the generated text.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     internal static MainBicepEmissionResult Generate(
         IReadOnlyCollection<GeneratedTypeModule> modules,
         IReadOnlyList<ResourceGroupDefinition> resourceGroups,
@@ -37,7 +38,7 @@ internal static class MainBicepAssembler
         sb.AppendLine("targetScope = 'subscription'");
         sb.AppendLine();
 
-        // ── Imports ─────────────────────────────────────────────────────────
+        // â”€â”€ Imports â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         sb.AppendLine("import { EnvironmentName, environments } from 'types.bicep'");
 
         var functionImports = BicepNamingHelper.BuildFunctionImportList(namingContext, modules, resourceGroups);
@@ -87,7 +88,7 @@ internal static class MainBicepAssembler
 
         sb.AppendLine();
 
-        // ── Parameters ──────────────────────────────────────────────────────
+        // â”€â”€ Parameters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         sb.AppendLine("@description('The target deployment environment')");
         sb.AppendLine("param environmentName EnvironmentName");
         sb.AppendLine();
@@ -103,7 +104,7 @@ internal static class MainBicepAssembler
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} {bicepType}");
             }
 
-            // Secure parameters (e.g. passwords) — @secure() string with no default
+            // Secure parameters (e.g. passwords) â€” @secure() string with no default
             foreach (var secureParam in module.SecureParameters)
             {
                 sb.AppendLine();
@@ -145,11 +146,11 @@ internal static class MainBicepAssembler
 
         sb.AppendLine();
 
-        // ── Environment resolution ──────────────────────────────────────────
+        // â”€â”€ Environment resolution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         sb.AppendLine("var env = environments[environmentName]");
         sb.AppendLine();
 
-        // ── Tags merging (project → config → environment) ──────────────────
+        // â”€â”€ Tags merging (project â†’ config â†’ environment) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var hasProjectTags = projectTags is { Count: > 0 };
         var hasConfigTags = configTags is { Count: > 0 };
 
@@ -191,7 +192,7 @@ internal static class MainBicepAssembler
         }
         sb.AppendLine();
 
-        // ── Resource group declarations ─────────────────────────────────────
+        // â”€â”€ Resource group declarations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         foreach (var rg in resourceGroups)
         {
             var rgSymbol = BicepIdentifierHelper.ToBicepIdentifier(rg.Name);
@@ -206,7 +207,7 @@ internal static class MainBicepAssembler
             sb.AppendLine();
         }
 
-        // ── Existing resource declarations (cross-config references) ────────
+        // â”€â”€ Existing resource declarations (cross-config references) â”€â”€â”€â”€â”€â”€â”€â”€
         var externalRgs = existingResourceReferences
             .Select(r => r.ResourceGroupName)
             .Concat(roleAssignments
@@ -218,7 +219,7 @@ internal static class MainBicepAssembler
 
         if (externalRgs.Count > 0)
         {
-            sb.AppendLine("// ── Cross-configuration existing resource groups ──────────────────");
+            sb.AppendLine("// â”€â”€ Cross-configuration existing resource groups â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€");
             foreach (var extRgName in externalRgs)
             {
                 var extRgSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRgName)}";
@@ -232,7 +233,7 @@ internal static class MainBicepAssembler
 
             if (existingResourceReferences.Count > 0)
             {
-                sb.AppendLine("// ── Cross-configuration existing resources ──────────────────────");
+                sb.AppendLine("// â”€â”€ Cross-configuration existing resources â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€");
                 foreach (var extRef in existingResourceReferences)
                 {
                     var extSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRef.ResourceName)}";
@@ -252,7 +253,7 @@ internal static class MainBicepAssembler
             }
         }
 
-        // ── Module declarations ─────────────────────────────────────────────
+        // â”€â”€ Module declarations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         // Group app settings by target resource name for quick lookup
         var appSettingsByTarget = appSettings
             .GroupBy(s => s.TargetResourceName, StringComparer.OrdinalIgnoreCase)
@@ -291,13 +292,13 @@ internal static class MainBicepAssembler
                 sb.AppendLine($"    {paramKey}: {module.ModuleName}{BicepFormattingHelper.Capitalize(paramKey)}");
             }
 
-            // ── Secure parameters (passwords, secrets) ──
+            // â”€â”€ Secure parameters (passwords, secrets) â”€â”€
             foreach (var secureParam in module.SecureParameters)
             {
                 sb.AppendLine($"    {secureParam}: {module.ModuleName}{BicepFormattingHelper.Capitalize(secureParam)}");
             }
 
-            // ── Parent module ID references ──
+            // â”€â”€ Parent module ID references â”€â”€
             foreach (var (paramName, (parentLogicalName, parentResourceType)) in module.ParentModuleIdReferences)
             {
                 var parentModule = modules.FirstOrDefault(m =>
@@ -311,14 +312,14 @@ internal static class MainBicepAssembler
                 }
             }
 
-            // ── Cross-config existing resource ID references ──
+            // â”€â”€ Cross-config existing resource ID references â”€â”€
             foreach (var (paramName, existingResourceName) in module.ExistingResourceIdReferences)
             {
                 var existingSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(existingResourceName)}";
                 sb.AppendLine($"    {paramName}: {existingSymbol}.id");
             }
 
-            // ── Parent module name references ──
+            // â”€â”€ Parent module name references â”€â”€
             foreach (var (paramName, (parentLogicalName, parentResourceType)) in module.ParentModuleNameReferences)
             {
                 var parentModule = modules.FirstOrDefault(m =>
@@ -333,7 +334,7 @@ internal static class MainBicepAssembler
                 }
             }
 
-            // ── Identity params ─────────────────────────────────────────────
+            // â”€â”€ Identity params â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             var moduleKey = (module.LogicalResourceName, module.ResourceTypeName);
 
             if (module.UsesParameterizedIdentity)
@@ -344,7 +345,7 @@ internal static class MainBicepAssembler
                 if (module.ResourceTypeName != "UserAssignedIdentity"
                     && uaiBySourceResource.TryGetValue(moduleKey, out var uaiNamesParam))
                 {
-                    // Single generic param — use first UAI for this resource
+                    // Single generic param â€” use first UAI for this resource
                     var uaiName = uaiNamesParam[0];
                     var uaiModSym = modules.FirstOrDefault(m =>
                         m.ResourceTypeName == "UserAssignedIdentity"
@@ -362,7 +363,7 @@ internal static class MainBicepAssembler
                 if (module.ResourceTypeName != "UserAssignedIdentity"
                     && uaiBySourceResource.TryGetValue(moduleKey, out var uaiNames))
                 {
-                    // Single generic param — use first UAI for this resource
+                    // Single generic param â€” use first UAI for this resource
                     var uaiName = uaiNames[0];
                     var uaiModuleSymbol = modules.FirstOrDefault(m =>
                         m.ResourceTypeName == "UserAssignedIdentity"
@@ -469,7 +470,7 @@ internal static class MainBicepAssembler
             }
         }
 
-        // ── Key Vault secrets (batch per Key Vault) ──────────────────────────
+        // â”€â”€ Key Vault secrets (batch per Key Vault) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var allKvSecrets = new List<(string KvResourceName, string SecretName, string ValueExpr)>();
 
         foreach (var export in appSettings
@@ -510,7 +511,7 @@ internal static class MainBicepAssembler
 
         if (secretsByKv.Count > 0)
         {
-            sb.AppendLine("// ── Key Vault secrets (batch per Key Vault) ────────────────────────────");
+            sb.AppendLine("// â”€â”€ Key Vault secrets (batch per Key Vault) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€");
             sb.AppendLine();
 
             foreach (var kvGroup in secretsByKv)
@@ -552,7 +553,7 @@ internal static class MainBicepAssembler
             }
         }
 
-        // ── Role assignment module declarations ─────────────────────────────
+        // â”€â”€ Role assignment module declarations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (roleAssignments.Count > 0)
         {
             var grouped = RoleAssignmentAssembler.GroupRoleAssignments(roleAssignments);

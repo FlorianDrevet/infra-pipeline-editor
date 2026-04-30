@@ -1,4 +1,8 @@
 {
 	"chat.agent.defaultAgent": "dev",
-	"github.copilot.chat.codeGeneration.useInstructionFiles": true
+	"github.copilot.chat.codeGeneration.useInstructionFiles": true,
+	"sonarlint.connectedMode.project": {
+		"connectionId": "floriandrevet",
+		"projectKey": "FlorianDrevet_infra-pipeline-editor"
+	}
 }

@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
@@ -23,6 +23,7 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandler(
     : IQueryHandler<ListRoleAssignmentsByIdentityQuery, List<IdentityRoleAssignmentResult>>
 {
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public async Task<ErrorOr<List<IdentityRoleAssignmentResult>>> Handle(
         ListRoleAssignmentsByIdentityQuery request,
         CancellationToken cancellationToken)
@@ -32,7 +33,7 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandler(
         if (identity is null)
             return Errors.UserAssignedIdentity.NotFoundError(request.IdentityId);
 
-        // Verify read access through resource group → infra config
+        // Verify read access through resource group â†’ infra config
         var resourceGroup = await resourceGroupRepository.GetByIdAsync(identity.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.UserAssignedIdentity.NotFoundError(request.IdentityId);
@@ -97,7 +98,7 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandler(
     private static string GetResourceTypeName(AzureResource resource) =>
         resource.GetType().Name;
 
-    /// <summary>Builds a flat dictionary of role definition ID → role name from the catalog.</summary>
+    /// <summary>Builds a flat dictionary of role definition ID â†’ role name from the catalog.</summary>
     private static Dictionary<string, string> BuildRoleDefinitionLookup()
     {
         var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

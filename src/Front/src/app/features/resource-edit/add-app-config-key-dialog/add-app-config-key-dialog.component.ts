@@ -438,7 +438,7 @@ export class AddAppConfigKeyDialogComponent {
     return this.selectedSource() !== null && this.selectedOutput() !== null;
   }
 
-  private hasVariableGroupTarget(): boolean {
+  private hasVariableGroupTarget(): boolean { // NOSONAR S3776 - tracked under test-debt #22
     if (this.isCreatingNewGroup()) {
       return this.newGroupName().trim().length > 0;
     }

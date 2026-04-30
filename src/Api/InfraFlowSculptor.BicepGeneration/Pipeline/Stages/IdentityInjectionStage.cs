@@ -25,39 +25,46 @@ public sealed class IdentityInjectionStage : IBicepGenerationStage
 
         foreach (var item in context.WorkItems)
         {
-            var resource = item.Resource;
-            var key = (resource.Name, resource.Type);
-            var needsSystem = identity.SystemIdentityResources.Contains(key);
-            identity.UserIdentityResources.TryGetValue(key, out var uaiIdentifiers);
-            var needsUser = resource.Type != "Microsoft.ManagedIdentity/userAssignedIdentities"
-                && uaiIdentifiers is { Count: > 0 };
-            var isMixed = identity.MixedIdentityArmTypes.Contains(resource.Type);
-
-            string? identityKind = null;
-            if (needsSystem && needsUser)
-                identityKind = "SystemAssigned, UserAssigned";
-            else if (needsSystem)
-                identityKind = "SystemAssigned";
-            else if (needsUser)
-                identityKind = "UserAssigned";
-
-            item.IdentityKind = identityKind;
-            item.UsesParameterizedIdentity = isMixed;
-
-            if (isMixed)
-            {
-                var hasAnyUaiForType = identity.UserIdentityResources
-                    .Any(kv => kv.Key.Type == resource.Type);
-                item.Spec = item.Spec.WithParameterizedIdentity(hasAnyUaiForType);
-            }
-            else
-            {
-                if (needsSystem)
-                    item.Spec = item.Spec.WithSystemAssignedIdentity();
-
-                if (needsUser)
-                    item.Spec = item.Spec.WithUserAssignedIdentity(needsSystem);
-            }
+            ApplyIdentity(item, identity);
         }
+    }
+
+    private static void ApplyIdentity(ModuleWorkItem item, IdentityAnalysisResult identity)
+    {
+        var resource = item.Resource;
+        var key = (resource.Name, resource.Type);
+        var needsSystem = identity.SystemIdentityResources.Contains(key);
+        identity.UserIdentityResources.TryGetValue(key, out var uaiIdentifiers);
+        var needsUser = resource.Type != "Microsoft.ManagedIdentity/userAssignedIdentities"
+            && uaiIdentifiers is { Count: > 0 };
+        var isMixed = identity.MixedIdentityArmTypes.Contains(resource.Type);
+
+        item.IdentityKind = ResolveIdentityKind(needsSystem, needsUser);
+        item.UsesParameterizedIdentity = isMixed;
+
+        if (isMixed)
+        {
+            var hasAnyUaiForType = identity.UserIdentityResources
+                .Any(kv => kv.Key.Type == resource.Type);
+            item.Spec = item.Spec.WithParameterizedIdentity(hasAnyUaiForType);
+            return;
+        }
+
+        if (needsSystem)
+            item.Spec = item.Spec.WithSystemAssignedIdentity();
+
+        if (needsUser)
+            item.Spec = item.Spec.WithUserAssignedIdentity(needsSystem);
+    }
+
+    private static string? ResolveIdentityKind(bool needsSystem, bool needsUser)
+    {
+        if (needsSystem && needsUser)
+            return "SystemAssigned, UserAssigned";
+        if (needsSystem)
+            return "SystemAssigned";
+        if (needsUser)
+            return "UserAssigned";
+        return null;
     }
 }

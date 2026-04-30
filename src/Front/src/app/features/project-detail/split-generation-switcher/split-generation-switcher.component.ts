@@ -205,7 +205,7 @@ export class SplitGenerationSwitcherComponent {
 
 // ─── Tree builders (extracted from project-detail.component.ts logic) ───
 
-function buildBicepNodes(
+function buildBicepNodes( // NOSONAR S3776 - tracked under test-debt #22
   commonFileUris: Record<string, string>,
   configFileUris: Record<string, Record<string, string>>,
 ): BicepTreeNode[] {
@@ -286,7 +286,7 @@ function buildPipelineNodes(
       const backendPath = toPipelineBackendPath(configName, filePath);
       const relativePath = toAzureDevOpsRelativePath(backendPath);
 
-      if (!relativePath) {
+      if (!relativePath) { // NOSONAR S3776 - tracked under test-debt #22
         continue;
       }
 

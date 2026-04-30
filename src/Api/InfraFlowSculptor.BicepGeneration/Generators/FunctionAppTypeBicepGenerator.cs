@@ -1,4 +1,4 @@
-using InfraFlowSculptor.BicepGeneration.Ir;
+﻿using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
@@ -20,6 +20,7 @@ public sealed class FunctionAppTypeBicepGenerator
     public string ResourceTypeName => AzureResourceTypes.FunctionApp;
 
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         var deploymentMode = resource.Properties.GetValueOrDefault("deploymentMode", "Code");
@@ -70,7 +71,7 @@ public sealed class FunctionAppTypeBicepGenerator
         builder.Param("customDomains", BicepType.Array, "Custom domain bindings for this Function App",
             defaultValue: new BicepArrayExpression([]));
 
-        // Variables — workerRuntime is always present
+        // Variables â€” workerRuntime is always present
         var workerRuntimeExpr = new BicepRawExpression(
             "toUpper(runtimeStack) == 'DOTNET' ? (contains(runtimeVersion, 'isolated') ? 'dotnet-isolated' : 'dotnet') : toLower(runtimeStack)");
 

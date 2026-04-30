@@ -73,7 +73,7 @@ internal static class MigrateDbContextExtensions
             return serviceProvider.MigrateDbContextAsync(seeder);
         }
 
-        protected override Task ExecuteAsync(CancellationToken _)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             return Task.CompletedTask;
         }

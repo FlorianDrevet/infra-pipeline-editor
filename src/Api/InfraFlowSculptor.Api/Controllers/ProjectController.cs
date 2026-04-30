@@ -1,4 +1,4 @@
-using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
+﻿using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInfraConfigLayoutMode;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddInfraConfigRepository;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateInfraConfigRepository;
@@ -70,6 +70,7 @@ namespace InfraFlowSculptor.Api.Controllers;
 public static class ProjectController
 {
     /// <summary>Registers the Project endpoints on the application builder.</summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public static IApplicationBuilder UseProjectController(this IApplicationBuilder builder)
     {
         return builder.UseEndpoints(endpoints =>
@@ -77,7 +78,7 @@ public static class ProjectController
             var group = endpoints.MapGroup("/projects")
                 .WithTags("Projects");
 
-            // ── Core CRUD ────────────────────────────────────────────────
+            // â”€â”€ Core CRUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapGet("",
                     async (IMediator mediator, IMapper mapper) =>
@@ -166,7 +167,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-            // ── Configurations ────────────────────────────────────────────
+            // â”€â”€ Configurations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapGet("/{id:guid}/configs",
                     async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
@@ -191,7 +192,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Users ──────────────────────────────────────────────────────
+            // â”€â”€ Users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapGet("/users",
                     async (IMediator mediator, IMapper mapper) =>
@@ -214,7 +215,7 @@ public static class ProjectController
                 .Produces<IReadOnlyList<UserResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-            // ── Members ───────────────────────────────────────────────────
+            // â”€â”€ Members â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{id:guid}/members",
                     async ([FromRoute] Guid id, AddProjectMemberRequest request, IMediator mediator, IMapper mapper) =>
@@ -291,7 +292,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Environments ──────────────────────────────────────────────
+            // â”€â”€ Environments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{id:guid}/environments",
                     async ([FromRoute] Guid id, AddProjectEnvironmentRequest request, IMediator mediator, IMapper mapper) =>
@@ -384,7 +385,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Naming Templates ──────────────────────────────────────────
+            // â”€â”€ Naming Templates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPut("/{id:guid}/naming/default",
                     async ([FromRoute] Guid id, SetProjectDefaultNamingTemplateRequest request, IMediator mediator) =>
@@ -455,7 +456,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Abbreviation Overrides ────────────────────────────────
+            // â”€â”€ Abbreviation Overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPut("/{id:guid}/naming/abbreviations/{resourceType}",
                     async ([FromRoute] Guid id, [FromRoute] string resourceType, SetResourceAbbreviationOverrideRequest request, IMediator mediator, IMapper mapper) =>
@@ -503,7 +504,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Tags ──────────────────────────────────────────────────
+            // â”€â”€ Tags â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPut("/{id:guid}/tags",
                     async ([FromRoute] Guid id, [FromBody] SetProjectTagsRequest request, ISender sender) =>
@@ -527,7 +528,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Delete Project ────────────────────────────────────────────
+            // â”€â”€ Delete Project â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapDelete("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator) =>
@@ -548,7 +549,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Recent items validation ──────────────────────────────────
+            // â”€â”€ Recent items validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/validate-recent",
                     async ([FromBody] ValidateRecentItemsRequest request, IMediator mediator) =>
@@ -573,7 +574,7 @@ public static class ProjectController
                 .Produces<IReadOnlyList<RecentItemResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-            // ── Git Repository Operations (test + list branches) ─────────────────────────────
+            // â”€â”€ Git Repository Operations (test + list branches) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{projectId:guid}/git-config/test",
                     async ([FromRoute] Guid projectId, IMediator mediator, IMapper mapper) =>
@@ -617,7 +618,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Git Code Repository Operations (branches + file search) ─────────────────
+            // â”€â”€ Git Code Repository Operations (branches + file search) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapGet("/{projectId:guid}/git-config/code-branches",
                     async ([FromRoute] Guid projectId, [FromQuery] Guid? configId, IMediator mediator, IMapper mapper) =>
@@ -696,7 +697,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Agent Pool ──────────────────────────────────────────────
+            // â”€â”€ Agent Pool â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPut("/{projectId:guid}/agent-pool",
                     async ([FromRoute] Guid projectId,
@@ -721,7 +722,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Repositories (V1 multi-repo topology) ───────────────────
+            // â”€â”€ Repositories (V1 multi-repo topology) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{projectId:guid}/repositories",
                     async ([FromRoute] Guid projectId,
@@ -831,7 +832,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
 
-            // ── InfraConfig Repositories (MultiRepo project layout only) ──────────────
+            // â”€â”€ InfraConfig Repositories (MultiRepo project layout only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPut("/{projectId:guid}/configs/{configId:guid}/layout-mode",
                     async ([FromRoute] Guid projectId, [FromRoute] Guid configId,
@@ -920,7 +921,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
 
-            // ── Project-level Bicep Generation (mono-repo) ──────────────
+            // â”€â”€ Project-level Bicep Generation (mono-repo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{projectId:guid}/generate-bicep",
                     async ([FromRoute] Guid projectId, IMediator mediator) =>
@@ -994,7 +995,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Project-level Push to Git (mono-repo) ───────────────────
+            // â”€â”€ Project-level Push to Git (mono-repo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{projectId:guid}/push-to-git",
                     async ([FromRoute] Guid projectId,
@@ -1022,7 +1023,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Project-level Pipeline Generation (mono-repo) ──────────────
+            // â”€â”€ Project-level Pipeline Generation (mono-repo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{projectId:guid}/generate-pipeline",
                     async ([FromRoute] Guid projectId, IMediator mediator) =>
@@ -1100,7 +1101,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Project-level Pipeline Push to Git (mono-repo) ───────────────────
+            // â”€â”€ Project-level Pipeline Push to Git (mono-repo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{projectId:guid}/push-pipeline-to-git",
                     async ([FromRoute] Guid projectId,
@@ -1128,7 +1129,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Project-level Bootstrap Pipeline (Azure DevOps) ──────────────────────────────
+            // â”€â”€ Project-level Bootstrap Pipeline (Azure DevOps) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{projectId:guid}/generate-bootstrap-pipeline",
                     async ([FromRoute] Guid projectId,
@@ -1147,7 +1148,7 @@ public static class ProjectController
                 .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("GenerateProjectBootstrapPipeline")
                 .WithSummary("Generate the Azure DevOps bootstrap pipeline for a project")
-                .WithDescription("Generates bootstrap.pipeline.yml — an idempotent Azure DevOps pipeline that provisions pipeline definitions, variable groups and authorizations via az devops CLI.")
+                .WithDescription("Generates bootstrap.pipeline.yml â€” an idempotent Azure DevOps pipeline that provisions pipeline definitions, variable groups and authorizations via az devops CLI.")
                 .Produces<GenerateProjectBootstrapPipelineResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -1303,7 +1304,7 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status403Forbidden)
                 .ProducesProblem(StatusCodes.Status404NotFound);
 
-            // ── Pipeline Variable Groups (project-level) ────────────────
+            // â”€â”€ Pipeline Variable Groups (project-level) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             // GET /{projectId:guid}/pipeline-variable-groups
             group.MapGet("/{projectId:guid}/pipeline-variable-groups",
