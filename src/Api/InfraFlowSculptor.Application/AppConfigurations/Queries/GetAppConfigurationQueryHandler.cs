@@ -35,7 +35,7 @@ public class GetAppConfigurationQueryHandler(
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
-            return Errors.AppConfiguration.NotFoundError(query.Id);
+            return authResult.Errors;
 
         return mapper.Map<AppConfigurationResult>(appConfiguration);
     }

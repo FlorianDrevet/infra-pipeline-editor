@@ -34,7 +34,7 @@ public class GetServiceBusNamespaceQueryHandler(
 
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
-            return Errors.ServiceBusNamespace.NotFoundError(query.Id);
+            return authResult.Errors;
 
         return mapper.Map<ServiceBusNamespaceResult>(sb);
     }

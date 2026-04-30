@@ -23,7 +23,7 @@ public class ListRedisCachesQueryHandler(
 
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
-            return Errors.ResourceGroup.NotFound(query.ResourceGroupId);
+            return authResult.Errors;
 
         var redisCaches = await redisCacheRepository.GetByResourceGroupIdAsync(query.ResourceGroupId, cancellationToken);
 

@@ -346,6 +346,27 @@ Le service résout l'accès via l'appartenance au **projet** parent :
 2. Vérifie que l'utilisateur courant est membre du projet avec le rôle requis
 3. Retourne `Error.NotFound` pour un non-membre (pas d'info leak) ou `Error.Forbidden` pour un Reader essayant d'écrire
 
+### Pattern standardisé — Propagation de l'erreur d'accès
+
+**Règle absolue :** tous les handlers (commandes et queries) propagent l'erreur retournée par le service d'accès via `return authResult.Errors`. Ne jamais remplacer cette erreur par un `NotFoundError` propre à la ressource.
+
+```csharp
+// ✅ CORRECT — toujours utiliser authResult.Errors
+var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+if (authResult.IsError)
+    return authResult.Errors;
+
+// ❌ INCORRECT — masquage redondant et incohérent avec les commandes
+var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+if (authResult.IsError)
+    return Errors.ContainerApp.NotFoundError(query.Id);
+```
+
+**Pourquoi `return authResult.Errors` suffit :**
+- `VerifyReadAccessAsync` retourne déjà `InfrastructureConfig.NotFoundError` pour les non-membres (masquage intégré au service, pas d'info leak).
+- `VerifyWriteAccessAsync` retourne `InfrastructureConfig.NotFoundError` pour les non-membres **et** `Project.ForbiddenError` pour les lecteurs (rôle Reader) — cette distinction doit être préservée jusqu'au client.
+- Remplacer l'erreur du service par un `NotFoundError` propre à la ressource masque silencieusement les erreurs `Forbidden`, rendant les commandes (écriture) indétectables pour les Readers.
+
 ---
 
 ## Interfaces de marquage CQRS

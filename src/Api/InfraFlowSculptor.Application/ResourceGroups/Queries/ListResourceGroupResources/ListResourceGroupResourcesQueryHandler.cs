@@ -25,7 +25,7 @@ public class ListResourceGroupResourcesQueryHandler(
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
-            return Errors.ResourceGroup.NotFound(query.Id);
+            return authResult.Errors;
 
         // Query parent FK mappings directly from child TPT tables
         // to guarantee correct resolution regardless of TPT materialization order.

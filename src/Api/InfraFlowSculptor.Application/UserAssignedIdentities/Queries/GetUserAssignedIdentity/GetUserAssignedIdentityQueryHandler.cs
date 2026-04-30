@@ -34,7 +34,7 @@ public sealed class GetUserAssignedIdentityQueryHandler(
 
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
-            return Errors.UserAssignedIdentity.NotFoundError(query.Id);
+            return authResult.Errors;
 
         return mapper.Map<UserAssignedIdentityResult>(identity);
     }

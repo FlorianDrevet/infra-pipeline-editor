@@ -34,7 +34,7 @@ public sealed class GetLogAnalyticsWorkspaceQueryHandler(
 
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
-            return Errors.LogAnalyticsWorkspace.NotFoundError(query.Id);
+            return authResult.Errors;
 
         return mapper.Map<LogAnalyticsWorkspaceResult>(logAnalyticsWorkspace);
     }

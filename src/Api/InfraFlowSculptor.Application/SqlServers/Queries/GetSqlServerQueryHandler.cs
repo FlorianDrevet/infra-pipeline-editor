@@ -31,7 +31,7 @@ public class GetSqlServerQueryHandler(
 
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
-            return Errors.SqlServer.NotFoundError(query.Id);
+            return authResult.Errors;
 
         return mapper.Map<SqlServerResult>(server);
     }

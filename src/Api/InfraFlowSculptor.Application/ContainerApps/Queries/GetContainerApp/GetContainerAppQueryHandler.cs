@@ -34,7 +34,7 @@ public sealed class GetContainerAppQueryHandler(
 
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
-            return Errors.ContainerApp.NotFoundError(query.Id);
+            return authResult.Errors;
 
         return mapper.Map<ContainerAppResult>(containerApp);
     }
