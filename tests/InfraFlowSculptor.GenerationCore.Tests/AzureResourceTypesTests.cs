@@ -42,6 +42,6 @@ public sealed class AzureResourceTypesTests
     [Fact]
     public void Given_PublicArmTypeMap_When_Inspected_Then_UsesFrozenDictionary()
     {
-        AzureResourceTypes.ArmTypeToFriendlyName.Should().BeOfType<FrozenDictionary<string, string>>();
+        AzureResourceTypes.ArmTypeToFriendlyName.Should().BeAssignableTo<FrozenDictionary<string, string>>();
     }
 }
