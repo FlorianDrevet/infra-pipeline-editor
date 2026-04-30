@@ -1,127 +1,139 @@
-# Infra Flow Sculptor
+<div align="center">
+  <h1>InfraFlowSculptor</h1>
+  <p><strong>Plateforme de modélisation d'infrastructure Azure.</strong></p>
+  <p>Modéliser l'infrastructure comme un domaine métier, garder une source de vérité unique, puis générer du Bicep, des assets de delivery Azure DevOps et des workflows MCP à partir du même cœur applicatif.</p>
+</div>
 
 <p align="center">
-	<strong>Plateforme de modélisation d'infrastructure Azure avec génération automatique de Bicep et d'assets de delivery.</strong>
+  <img src="https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET 10" />
+  <img src="https://img.shields.io/badge/Angular-21-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular 21" />
+  <img src="https://img.shields.io/badge/Azure-Bicep-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white" alt="Azure Bicep" />
+  <img src="https://img.shields.io/badge/MCP-HTTP-0F172A?style=for-the-badge" alt="MCP HTTP" />
+  <img src="https://img.shields.io/badge/.NET-Aspire-6B21A8?style=for-the-badge" alt=".NET Aspire" />
+  <img src="https://img.shields.io/badge/License-PolyForm%20Noncommercial-111827?style=for-the-badge" alt="PolyForm Noncommercial" />
 </p>
 
 <p align="center">
-	Concevoir une infrastructure comme un modèle métier, appliquer des conventions cohérentes, puis produire des artefacts prêts à industrialiser.
+  <a href="#overview">Vue d'ensemble</a> ·
+  <a href="#capabilities">Capacités</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#tech-foundation">Socle technique</a> ·
+  <a href="#quick-start">Démarrage rapide</a> ·
+  <a href="#mcp">MCP</a> ·
+  <a href="#repo-structure">Structure du dépôt</a> ·
+  <a href="#documentation">Documentation</a> ·
+  <a href="#license">Licence</a>
 </p>
 
-<p align="center">
-	<img src="https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET 10" />
-	<img src="https://img.shields.io/badge/Angular-19-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular 19" />
-	<img src="https://img.shields.io/badge/Azure-Bicep-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white" alt="Azure Bicep" />
-	<img src="https://img.shields.io/badge/Architecture-DDD%20%2B%20CQRS-111827?style=for-the-badge" alt="DDD and CQRS" />
-	<img src="https://img.shields.io/badge/Orchestration-.NET%20Aspire-6B21A8?style=for-the-badge" alt=".NET Aspire" />
-</p>
+| Positionnement | Sorties générées | Surfaces exposées | Licence |
+|---|---|---|---|
+| Source de vérité d'infrastructure Azure | Bicep, pipelines Azure DevOps, bootstrap et artefacts de configuration | Front Angular, Minimal APIs .NET, serveur MCP HTTP | PolyForm Noncommercial 1.0.0 |
 
----
+> InfraFlowSculptor n'est pas un pack de templates. Le dépôt porte un modèle métier, des règles de validation, une persistance PostgreSQL, des moteurs de génération spécialisés, une interface Angular, un serveur MCP et une orchestration locale Aspire autour du même cœur applicatif.
 
-## Vision
+<a id="overview"></a>
+## Vue d'ensemble
 
-**Infra Flow Sculptor** répond à un problème classique des plateformes cloud : la configuration d'infrastructure est souvent dispersée entre conventions implicites, fichiers IaC dupliqués, scripts ad hoc et décisions d'architecture peu traçables.
+Les plateformes cloud finissent souvent décrites à plusieurs endroits en même temps : fichiers IaC dupliqués, conventions de nommage implicites, scripts ad hoc, règles de validation éparpillées et faible traçabilité des choix d'architecture.
 
-L'objectif du projet est de fournir une **source de vérité applicative** pour décrire une infrastructure Azure, ses environnements, ses règles de nommage et ses dépendances, puis de **générer automatiquement** les artefacts techniques nécessaires.
+InfraFlowSculptor prend le problème à l'envers : l'infrastructure est d'abord modélisée comme un domaine applicatif, puis les artefacts techniques sont produits depuis cette source de vérité. Le frontend, l'API et le serveur MCP s'appuient donc sur les mêmes règles métier, la même validation, les mêmes services d'infrastructure et les mêmes moteurs de génération.
 
-En pratique, le dépôt met en avant un travail full stack structuré autour de trois axes :
+Le périmètre couvre déjà un ensemble significatif de ressources Azure et de scénarios projet : Key Vault, Storage Account, App Service Plan, Web App, Function App, Container Apps, SQL Server, SQL Database, Cosmos DB, Service Bus, Event Hub, Redis, ACR, Application Insights, Log Analytics, User Assigned Identity, App Configuration, templates de nommage, paramètres d'environnement, références cross-config et génération d'artefacts de delivery.
 
-- **Modéliser** l'infrastructure avec une approche DDD explicite
-- **Orchestrer** les règles métier via CQRS, validation et persistance robuste
-- **Générer** des sorties exploitables pour Azure et les workflows de delivery
+<a id="capabilities"></a>
+## Capacités clés
 
----
+| Axe | Ce que le produit couvre |
+|---|---|
+| Modélisation | Projets, configurations, environnements, ressources Azure, conventions de nommage, dépendances et références cross-config |
+| Génération IaC | Production de Bicep à partir du modèle métier |
+| Delivery | Génération d'assets Azure DevOps pour pipelines et bootstrap |
+| MCP | Workflow `draft -> validation -> création`, import IaC, génération Bicep, configuration post-création |
+| Exploitation locale | Stack complet orchestré par .NET Aspire |
 
-## Ce Que Le Projet Fait
-
-- Modélisation de configurations d'infrastructure Azure multi-environnements
-- Gestion de conventions de nommage, paramètres, dépendances et références cross-config
-- Génération automatique de fichiers **Bicep** à partir du modèle métier
-- Génération d'assets de **pipelines Azure DevOps** pour industrialiser le delivery
-- Gestion d'un large spectre de ressources Azure : Key Vault, Storage Account, App Service Plan, Web App, Function App, Container App, Container App Environment, SQL Server, SQL Database, Cosmos DB, Service Bus, Event Hub, Redis, ACR, Application Insights, Log Analytics, User Assigned Identity, App Configuration, et plus encore
-- API unifiée exposée en **Minimal APIs**, consommée par un frontend **Angular 19**
-
----
-
-## Pourquoi Le Dépôt Est Solide Techniquement
-
-- **DDD réel, pas cosmétique** : agrégats, entités, value objects, invariants et erreurs métier dédiées
-- **CQRS propre** : commandes, queries, handlers, validators et pipeline behaviors clairement séparés
-- **Architecture propre** : Domain, Application, Infrastructure, Contracts et API sont explicitement découplés
-- **Génération spécialisée** : le moteur de génération Bicep est isolé dans un projet dédié, indépendant du domaine
-- **Persistance maîtrisée** : EF Core, PostgreSQL, mapping structuré, Unit of Work et repository pattern
-- **Auth et sécurité** : Microsoft Entra ID, JWT Bearer, politiques d'autorisation et contexte utilisateur courant
-- **Expérience locale sérieuse** : orchestration via .NET Aspire pour lancer l'ensemble du stack
-- **Documentation versionnée** : architecture, DDD, CQRS, persistance et conventions sont documentés dans le repo
-
----
-
+<a id="architecture"></a>
 ## Architecture
+
+Le principe directeur est simple : les surfaces d'entrée changent, le cœur applicatif reste le même.
 
 ```mermaid
 flowchart LR
-		UI[Angular 19 Frontend] --> API[Minimal API]
-		API --> APP[Application Layer\nCQRS + Validation]
-		APP --> DOMAIN[Domain Layer\nDDD Aggregates]
-		APP --> INFRA[Infrastructure Layer\nEF Core + Azure Services]
-		APP --> GEN[Bicep / Pipeline Generation]
-		INFRA --> DB[(PostgreSQL)]
+    UI[Angular 21 Frontend] --> API[Minimal APIs]
+    Agent[VS Code / Copilot / client MCP] --> MCP[Serveur MCP HTTP]
+    API --> APP[Application Layer\nCQRS + Validation]
+    MCP --> APP
+    APP --> DOMAIN[Domain Layer\nAggregates + Value Objects]
+    APP --> INFRA[Infrastructure\nEF Core + Azure services]
+    APP --> GEN[Generation\nBicep + Pipelines]
+    INFRA --> DB[(PostgreSQL)]
 ```
 
-### Découpage de la solution
+### Découpage principal
 
-| Couche | Responsabilité principale |
-|--------|---------------------------|
-| `InfraFlowSculptor.Api` | Endpoints Minimal API, mapping, DI, erreurs, configuration HTTP |
-| `InfraFlowSculptor.Application` | Use cases CQRS, validation, orchestration métier, interfaces |
-| `InfraFlowSculptor.Domain` | Agrégats, entités, value objects, invariants, erreurs métier |
-| `InfraFlowSculptor.Infrastructure` | EF Core, repositories, auth, intégrations Azure, implémentations techniques |
-| `InfraFlowSculptor.Contracts` | DTOs request/response partagés entre API et frontend |
-| `InfraFlowSculptor.BicepGeneration` | Moteur de génération Bicep découplé du domaine |
-| `InfraFlowSculptor.PipelineGeneration` | Génération de pipelines Azure DevOps |
-| `Front` | Interface Angular 19, expérience utilisateur et consommation API |
-| `Aspire` | Orchestration locale du stack |
+| Zone | Rôle |
+|---|---|
+| `src/Api` | API, Application, Domain, Infrastructure, Contracts et moteurs de génération |
+| `src/Front` | Application Angular et expérience utilisateur |
+| `src/Mcp` | Serveur MCP HTTP exposé sur `/mcp` |
+| `src/Aspire` | AppHost de développement local et câblage des services |
+| `tests` | Suites xUnit par assembly cible |
+| `docs` | Documentation d'architecture, d'Azure et des features |
 
----
+### Ce que l'AppHost lance en local
 
-## Stack Technique
+- PostgreSQL
+- DbGate
+- l'API principale
+- le frontend Angular
+- le service MCP HTTP
+- les services utilitaires de stockage utilisés par la génération
+
+<a id="tech-foundation"></a>
+## Socle technique
 
 | Domaine | Choix |
-|--------|-------|
+|---|---|
 | Backend | .NET 10, ASP.NET Core Minimal APIs |
-| Architecture applicative | DDD, CQRS, MediatR |
-| Validation | FluentValidation |
-| Mapping | Mapster |
-| Persistance | EF Core + PostgreSQL |
-| Gestion des résultats | ErrorOr |
-| Frontend | Angular 19, Angular Material, Tailwind CSS, Axios |
-| Authentification | Microsoft Entra ID / JWT Bearer |
+| Architecture applicative | MediatR, CQRS, FluentValidation, Mapster |
+| Domaine et persistance | DDD, EF Core, PostgreSQL |
+| Frontend | Angular 21 standalone, Angular Material, Tailwind CSS, Axios |
+| Authentification applicative | Microsoft Entra ID / JWT Bearer |
+| Authentification MCP | PAT interne `ifs_...` |
 | Orchestration locale | .NET Aspire |
-| Gestion des packages | Central Package Management |
+| Tests | xUnit, projets dédiés sous `tests/` |
 
----
+<a id="quick-start"></a>
+## Démarrage rapide
 
-## Démarrage Rapide
+Les commandes ci-dessous correspondent aux commandes documentées et utilisées dans le dépôt.
 
 ### Prérequis
 
 - .NET SDK `10.0.100`
 - Node.js pour le frontend Angular
-- Un environnement local compatible avec PostgreSQL via Aspire
+- Docker ou un environnement compatible avec l'exécution locale orchestrée par Aspire
 
-### Lancer le projet en local
+### Construire et lancer le stack complet
 
 ```pwsh
 dotnet build .\InfraFlowSculptor.slnx
 dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj
 ```
 
-### Lancer le frontend seul
+### Travailler sur le frontend
 
 ```pwsh
 Set-Location .\src\Front
 npm install
 npm run start
+npm run build
+npm run typecheck
+```
+
+### Exécuter les tests
+
+```pwsh
+dotnet test .\InfraFlowSculptor.slnx
 ```
 
 ### Construire uniquement l'API
@@ -130,78 +142,42 @@ npm run start
 dotnet build .\src\Api\InfraFlowSculptor.Api\InfraFlowSculptor.Api.csproj
 ```
 
----
-
+<a id="mcp"></a>
 ## MCP
 
-Le dépôt expose un serveur **Model Context Protocol** pour brancher **VS Code / Copilot** directement sur les capacités métier d'Infra Flow Sculptor. Le serveur MCP est exposé en HTTP sur `http://127.0.0.1:5258/mcp` et protégé par un **PAT Infra Flow Sculptor**.
+InfraFlowSculptor expose un serveur Model Context Protocol pour connecter un client IA aux capacités métier du produit sans dupliquer la logique applicative.
 
-### Ce Que Le Serveur Permet
+| Élément | Valeur |
+|---|---|
+| Endpoint | `/mcp` |
+| URL locale par défaut | `http://127.0.0.1:5258/mcp` |
+| Hébergement local | Service HTTP lancé avec l'AppHost Aspire |
+| Authentification | `Authorization: Bearer ifs_...` |
+| Flux principaux | draft de projet, validation, création, import IaC, génération Bicep, configuration post-création |
 
-- découvrir les topologies de dépôt et les types de ressources supportés
-- créer un projet à partir d'un prompt via un workflow `draft -> validation -> création`
-- prévisualiser puis appliquer un import IaC
-- générer le Bicep d'un projet existant
-- configurer après création les templates de nommage, les réglages par environnement et les app settings des ressources de calcul
+Le flux MCP est volontairement orienté métier plutôt que transport :
 
-### Prérequis
-
-- `.NET SDK 10.0.100`
-- le workspace ouvert dans VS Code
-- le stack local lancé, idéalement via Aspire
-- un **PAT Infra Flow Sculptor** généré depuis l'application
-
-### Lancer Le Serveur MCP
-
-Option recommandée, avec toutes les dépendances locales câblées via Aspire :
-
-```pwsh
-dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj
+```text
+prompt libre -> draft structuré -> validation -> création du projet -> génération / configuration
 ```
 
-Option serveur MCP seul, utile pour travailler sur l'hôte MCP lui-même :
-
-```pwsh
-dotnet run --project .\src\Mcp\InfraFlowSculptor.Mcp\InfraFlowSculptor.Mcp.csproj
-```
-
-### Générer Un PAT
-
-- lancer l'application localement
-- ouvrir `Settings > Personal Access Tokens`
-- créer un token et le copier immédiatement
-- utiliser ce token quand VS Code demande la valeur `ifs_pat`
-
-Ce token est **interne à Infra Flow Sculptor**. Il ne remplace pas les tokens GitHub, Azure DevOps ou Postman utilisés par d'autres serveurs MCP du workspace.
-
-### Configurer VS Code
-
-Le workspace fournit déjà une entrée dédiée dans [.vscode/mcp.json](.vscode/mcp.json). L'extrait utile est le suivant :
+### Exemple de configuration VS Code
 
 ```json
 {
-	"servers": {
-		"infraflowsculptor-mcp": {
-			"type": "http",
-			"url": "http://127.0.0.1:5258/mcp",
-			"headers": {
-				"Authorization": "Bearer ${input:ifs_pat}"
-			}
-		}
-	}
+  "servers": {
+    "infraflowsculptor-mcp": {
+      "type": "http",
+      "url": "http://127.0.0.1:5258/mcp",
+      "headers": {
+        "Authorization": "Bearer ${input:ifs_pat}"
+      }
+    }
+  }
 }
 ```
 
-Si l'URL du serveur change, adaptez `url` et conservez le header `Authorization` avec le bearer token `ifs_pat`.
-
-### Utiliser Le MCP Dans Copilot / Agent Mode
-
-- démarrer le serveur MCP
-- ouvrir le workspace dans VS Code
-- renseigner `ifs_pat` lorsque le prompt apparaît
-- demander ensuite à l'agent d'utiliser les capacités MCP du projet
-
-Exemples de demandes utiles :
+### Exemples de demandes utiles
 
 - `crée un draft de projet avec Key Vault, Container App et SQL Server`
 - `valide le draft et liste les clarifications manquantes`
@@ -209,66 +185,47 @@ Exemples de demandes utiles :
 - `configure le naming template du projet <id>`
 - `ajoute un app setting sur la Container App <resourceId>`
 
-### Documentation Détaillée
+Pour l'architecture runtime, l'authentification PAT et l'inventaire exact des capacités MCP, voir [docs/architecture/mcp-integration.md](docs/architecture/mcp-integration.md).
 
-Pour l'architecture runtime, l'authentification PAT, l'inventaire des capacités MCP et le guide de lecture du code, voir [docs/architecture/mcp-integration.md](docs/architecture/mcp-integration.md).
-
----
-
-## Documentation
-
-- [Documentation technique](docs/README.md)
-- [Vue d'ensemble de l'architecture](docs/architecture/overview.md)
-- [Intégration MCP](docs/architecture/mcp-integration.md)
-- [DDD et concepts métier](docs/architecture/ddd-concepts.md)
-- [CQRS et MediatR](docs/architecture/cqrs-patterns.md)
-- [Persistance EF Core](docs/architecture/persistence.md)
-- [Génération Bicep](docs/architecture/bicep-generation.md)
-- [Génération de pipelines](docs/architecture/pipeline-generation.md)
-
----
-
-## Structure Du Dépôt
+<a id="repo-structure"></a>
+## Structure du dépôt
 
 ```text
 src/
-├── Api/       API, domaine, application, infrastructure, contracts, génération
-├── Front/     Application Angular
-└── Aspire/    AppHost et defaults partagés
+├── Api/        API, Application, Domain, Infrastructure, Contracts, GenerationCore, Bicep, Pipeline
+├── Front/      Frontend Angular
+├── Mcp/        Serveur MCP HTTP
+└── Aspire/     AppHost et orchestration locale
 
-docs/          Documentation technique et fonctionnelle
-scripts/       Scripts d'automatisation
-audits/        Audits du dépôt et historique qualité
+tests/          Projets xUnit par assembly
+docs/           Documentation technique et fonctionnelle
+scripts/        Automatisation et maintenance
+audits/         Audits techniques du dépôt
 ```
 
----
+<a id="documentation"></a>
+## Documentation
 
-## Ce Que Ce Repo Met En Avant
+### Parcours de lecture recommandé
 
-Ce dépôt n'est pas seulement une démo d'interface ou un générateur de templates. Il montre un travail d'ingénierie cohérent sur l'ensemble de la chaîne :
+1. [docs/architecture/overview.md](docs/architecture/overview.md) pour la structure globale.
+2. [docs/architecture/ddd-concepts.md](docs/architecture/ddd-concepts.md) pour le modèle métier.
+3. [docs/architecture/cqrs-patterns.md](docs/architecture/cqrs-patterns.md) pour les flux applicatifs.
+4. [docs/architecture/bicep-generation.md](docs/architecture/bicep-generation.md) pour le moteur de génération IaC.
+5. [docs/architecture/pipeline-generation.md](docs/architecture/pipeline-generation.md) pour la génération d'assets de delivery.
+6. [docs/architecture/mcp-integration.md](docs/architecture/mcp-integration.md) pour le serveur MCP, le runtime HTTP et l'authentification PAT.
 
-- conception d'un modèle métier riche pour l'infrastructure cloud
-- industrialisation de la génération d'artefacts Azure
-- structuration propre d'une solution .NET moderne
-- intégration d'un frontend Angular avec un backend fortement typé
-- documentation, conventions et architecture pensées pour durer
+### Index documentaire
 
-Si l'objectif est d'évaluer la qualité du projet et la rigueur de l'implémentation, le meilleur point d'entrée reste la documentation d'architecture puis le découpage des couches dans `src/Api/`.
+- [docs/README.md](docs/README.md)
+- [docs/architecture/getting-started.md](docs/architecture/getting-started.md)
+- [docs/azure/README.md](docs/azure/README.md)
+- [docs/features/push-bicep-to-git.md](docs/features/push-bicep-to-git.md)
+- [docs/features/cross-config-references.md](docs/features/cross-config-references.md)
 
----
-
-## Roadmap
-
-- étendre encore la couverture des ressources Azure et des scénarios multi-environnements
-- enrichir la génération de pipelines et les scénarios de delivery mono-repo
-- poursuivre l'industrialisation autour de la gouvernance, de la validation et du push des artefacts générés
-
----
-
+<a id="license"></a>
 ## Licence
 
-Ce projet est distribué sous licence PolyForm Noncommercial 1.0.0, disponible dans [LICENSE](LICENSE).
+Ce dépôt est distribué sous [PolyForm Noncommercial 1.0.0](LICENSE).
 
-Le code reste public pour consultation, apprentissage et évaluation technique, mais son usage est limité aux usages non commerciaux définis par cette licence.
-
-Tout usage commercial, intégration dans une offre payante, exploitation pour un client ou usage interne à finalité commerciale nécessite un accord de licence commercial séparé avec l'auteur.
+Le code reste public pour lecture, évaluation et usage non commercial. Toute utilisation commerciale, intégration dans une offre payante, exploitation pour un client ou usage interne à finalité commerciale nécessite un accord séparé avec l'auteur.
