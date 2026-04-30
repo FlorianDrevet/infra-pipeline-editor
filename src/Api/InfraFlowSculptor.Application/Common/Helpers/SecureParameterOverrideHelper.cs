@@ -45,8 +45,6 @@ public static class SecureParameterOverrideHelper
             {
                 var fullBicepParamName = $"{qualifiedModuleName}{Capitalize(secureParam)}";
 
-                // Check if the user configured a custom mapping for this param
-                // Resource ID lookup: we need to match by resource name since ResourceDefinition doesn't carry the GUID
                 var customMapping = secureParameterMappings?
                     .FirstOrDefault(m =>
                         m.ResourceName == resource.Name &&
@@ -56,43 +54,50 @@ public static class SecureParameterOverrideHelper
 
                 if (customMapping is not null)
                 {
-                    // Merge into the variable group definitions
-                    var vgName = customMapping.VariableGroupName!;
-                    var existingVg = variableGroups.FirstOrDefault(
-                        g => string.Equals(g.GroupName, vgName, StringComparison.OrdinalIgnoreCase));
-
-                    var mapping = new PipelineVariableMappingDefinition
-                    {
-                        PipelineVariableName = customMapping.PipelineVariableName!,
-                        BicepParameterName = fullBicepParamName,
-                    };
-
-                    if (existingVg is not null)
-                    {
-                        // Add to existing group's mappings
-                        var currentMappings = existingVg.Mappings.ToList();
-                        currentMappings.Add(mapping);
-                        existingVg.Mappings = currentMappings;
-                    }
-                    else
-                    {
-                        // Create a new variable group definition
-                        variableGroups.Add(new PipelineVariableGroupDefinition
-                        {
-                            GroupName = vgName,
-                            Mappings = [mapping],
-                        });
-                    }
+                    MergeCustomMappingIntoVariableGroups(customMapping, fullBicepParamName, variableGroups);
                 }
                 else
                 {
-                    // No custom mapping → auto-derived override
                     autoDerived.Add(fullBicepParamName);
                 }
             }
         }
 
         return autoDerived;
+    }
+
+    /// <summary>
+    /// Merges a custom variable-group mapping for a secure parameter into the mutable
+    /// list of variable group definitions, creating the group if it does not yet exist.
+    /// </summary>
+    private static void MergeCustomMappingIntoVariableGroups(
+        SecureParameterMappingReadModel customMapping,
+        string fullBicepParamName,
+        List<PipelineVariableGroupDefinition> variableGroups)
+    {
+        var vgName = customMapping.VariableGroupName!;
+        var existingVg = variableGroups.FirstOrDefault(
+            g => string.Equals(g.GroupName, vgName, StringComparison.OrdinalIgnoreCase));
+
+        var mapping = new PipelineVariableMappingDefinition
+        {
+            PipelineVariableName = customMapping.PipelineVariableName!,
+            BicepParameterName = fullBicepParamName,
+        };
+
+        if (existingVg is not null)
+        {
+            var currentMappings = existingVg.Mappings.ToList();
+            currentMappings.Add(mapping);
+            existingVg.Mappings = currentMappings;
+            return;
+        }
+
+        variableGroups.Add(new PipelineVariableGroupDefinition
+        {
+            GroupName = vgName,
+            Mappings = [mapping],
+        });
     }
 
     /// <summary>

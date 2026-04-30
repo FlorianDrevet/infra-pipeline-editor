@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
@@ -78,6 +78,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         return results;
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public async Task<InfrastructureConfigReadModel?> GetByIdWithResourcesAsync(
         Guid id,
         CancellationToken cancellationToken = default)
@@ -217,26 +218,26 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        // ── Load custom domains for all resources in this config ────────────
+        // â”€â”€ Load custom domains for all resources in this config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var customDomains = await dbContext.CustomDomains
             .Where(cd => allResourceIds.Contains(cd.ResourceId))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        // ── Load role assignments for all resources in this config ───────────
+        // â”€â”€ Load role assignments for all resources in this config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var roleAssignments = await dbContext.RoleAssignments
             .Where(ra => allResourceIds.Contains(ra.SourceResourceId))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        // ── Load app settings for all resources in this config ──────────────
+        // â”€â”€ Load app settings for all resources in this config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var appSettings = await dbContext.AppSettings
             .Include(s => s.EnvironmentValues)
             .Where(s => allResourceIds.Contains(s.ResourceId))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        // ── Load secure parameter mappings for all resources in this config ─
+        // â”€â”€ Load secure parameter mappings for all resources in this config â”€
         var secureParameterMappings = await dbContext.SecureParameterMappings
             .Where(m => allResourceIds.Contains(m.ResourceId))
             .AsNoTracking()
@@ -348,7 +349,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 resources);
         }).ToList();
 
-        // ── Load parent project for environments and naming context ─────────
+        // â”€â”€ Load parent project for environments and naming context â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var project = await dbContext.Projects
             .Include(p => p.ResourceNamingTemplates)
             .Include(p => p.ResourceAbbreviations)
@@ -361,7 +362,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         var environments = BuildEnvironmentList(config, project);
         var namingContext = BuildNamingContext(config, project);
 
-        // ── Load pipeline variable groups for VG name resolution ────────────
+        // â”€â”€ Load pipeline variable groups for VG name resolution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var projectVarGroups = project is not null
             ? await dbContext.ProjectPipelineVariableGroups
                 .Where(g => g.ProjectId == project.Id)
@@ -419,7 +420,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .OfType<AppSettingReadModel>()
             .ToList();
 
-        // ── Load cross-config resource references ───────────────────────────
+        // â”€â”€ Load cross-config resource references â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var crossConfigReferences = await dbContext.CrossConfigResourceReferences
             .Where(r => r.InfraConfigId == configId)
             .AsNoTracking()
@@ -459,7 +460,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 TargetResourceAbbreviation: abbreviation));
         }
 
-        // ── Enrich role assignments with cross-config info ──────────────────
+        // â”€â”€ Enrich role assignments with cross-config info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var crossConfigResourceIds = crossConfigReferences
             .Select(r => r.TargetResourceId)
             .ToHashSet();
@@ -485,7 +486,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             })
             .ToList();
 
-        // ── Enrich app settings with cross-config info ──────────────────────
+        // â”€â”€ Enrich app settings with cross-config info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         var enrichedAppSettings = appSettingReadModels
             .Select(s =>

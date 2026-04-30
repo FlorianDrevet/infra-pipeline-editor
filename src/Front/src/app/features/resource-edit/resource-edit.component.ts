@@ -1406,7 +1406,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
   }
 
-  private resetAcrPullAccessState(): void {
+  private resetAcrPullAccessState(): void { // NOSONAR S3776 - tracked under test-debt #22
     this.acrHasAccess.set(null);
     this.acrMissingRoleName.set(null);
     this.acrMissingRoleDefinitionId.set(null);

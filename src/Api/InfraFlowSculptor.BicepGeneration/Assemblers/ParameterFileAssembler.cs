@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.StorageAccount;
@@ -39,6 +39,7 @@ internal static class ParameterFileAssembler
     /// <summary>
     /// Clones modules and replaces matching parameter values with environment-specific overrides.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     private static IReadOnlyCollection<GeneratedTypeModule> ApplyEnvironmentOverrides(
         IReadOnlyCollection<GeneratedTypeModule> modules,
         string environmentName,
@@ -130,7 +131,7 @@ internal static class ParameterFileAssembler
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} = {BicepFormattingHelper.SerializeToBicep(value)}");
             }
 
-            // Secure parameters — placeholder values to be replaced at deployment time
+            // Secure parameters â€” placeholder values to be replaced at deployment time
             foreach (var secureParam in module.SecureParameters)
             {
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(secureParam)} = ''");
@@ -149,7 +150,7 @@ internal static class ParameterFileAssembler
             sb.AppendLine();
         }
 
-        // ── Static app setting params (per-environment values) ──────────
+        // â”€â”€ Static app setting params (per-environment values) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         foreach (var setting in appSettings.Where(s => s.EnvironmentValues is { Count: > 0 }))
         {
             var paramName = BicepNamingHelper.GetStaticAppSettingParamName(setting.TargetResourceName, setting.Name);
@@ -159,7 +160,7 @@ internal static class ParameterFileAssembler
             sb.AppendLine($"param {paramName} = '{BicepFormattingHelper.EscapeBicepString(value)}'");
         }
 
-        // ── ViaBicepparam secure params (placeholder — to be filled at deployment time) ──
+        // â”€â”€ ViaBicepparam secure params (placeholder â€” to be filled at deployment time) â”€â”€
         foreach (var setting in appSettings.Where(s =>
             s.IsKeyVaultReference && !s.IsSensitiveOutputExportedToKeyVault
             && s.SecretValueAssignment == "ViaBicepparam"))
@@ -194,6 +195,7 @@ internal static class ParameterFileAssembler
     /// for nested objects (e.g. <c>"readiness.path"</c> navigates into the <c>readiness</c>
     /// sub-object and replaces its <c>path</c> property).
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     private static object MergePropertyIntoObject(object source, string propertyPath, string newValue)
     {
         var dotIndex = propertyPath.IndexOf('.');

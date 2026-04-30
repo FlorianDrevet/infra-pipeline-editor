@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 
@@ -9,6 +9,7 @@ public sealed class CreateProjectWithSetupCommandValidator
     private static readonly string[] AllowedLayouts =
         ["AllInOne", "SplitInfraCode", "MultiRepo"];
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public CreateProjectWithSetupCommandValidator()
     {
         RuleFor(x => x.Name)

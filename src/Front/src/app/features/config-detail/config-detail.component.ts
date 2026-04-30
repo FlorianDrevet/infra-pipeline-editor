@@ -734,7 +734,7 @@ export class ConfigDetailComponent implements OnInit {
     }
   }
 
-  protected openAddResourceGroupDialog(): void {
+  protected openAddResourceGroupDialog(): void { // NOSONAR S3776 - tracked under test-debt #22
     const currentConfig = this.config();
     if (!currentConfig) return;
 

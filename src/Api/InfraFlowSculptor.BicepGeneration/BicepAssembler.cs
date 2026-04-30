@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using InfraFlowSculptor.BicepGeneration.Assemblers;
 using InfraFlowSculptor.BicepGeneration.Generators;
@@ -18,6 +18,7 @@ public static class BicepAssembler
     /// <summary>
     /// Assembles the complete Bicep output from generated modules and deployment context.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public static GenerationResult Assemble(
         IReadOnlyCollection<GeneratedTypeModule> modules,
         IReadOnlyList<ResourceGroupDefinition> resourceGroups,

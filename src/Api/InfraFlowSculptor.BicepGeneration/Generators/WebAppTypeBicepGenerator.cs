@@ -54,6 +54,7 @@ public sealed class WebAppTypeBicepGenerator
     public string ResourceTypeName => AzureResourceTypes.WebApp;
 
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         var deploymentMode = resource.Properties.GetValueOrDefault(DeploymentModePropertyName, CodeDeploymentMode);

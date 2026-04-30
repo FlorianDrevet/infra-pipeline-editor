@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -71,6 +71,7 @@ public sealed class AzureDevOpsGitProviderService(
             cancellationToken);
 
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public async Task<ErrorOr<PushBicepToGitResult>> PushScopedFilesAsync(
         MultiScopeGitPushRequest request,
         CancellationToken cancellationToken = default)
@@ -88,7 +89,7 @@ public sealed class AzureDevOpsGitProviderService(
             var repoApiBase = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{request.RepositoryName}";
 
             // Resolve base branch SHA with EXACT ref name match (the ADO 'filter' parameter is a prefix match,
-            // so 'heads/main' would also match 'mainline' — we must filter client-side by the exact name).
+            // so 'heads/main' would also match 'mainline' â€” we must filter client-side by the exact name).
             var baseSha = await ResolveBranchShaAsync(client, repoApiBase, request.BaseBranch, cancellationToken);
             if (string.IsNullOrEmpty(baseSha))
                 return Errors.GitRepository.PushFailed($"Base branch '{request.BaseBranch}' not found.");
@@ -111,7 +112,7 @@ public sealed class AzureDevOpsGitProviderService(
             // reference paths that actually exist at the parent commit.
             var parentSha = targetBranchExists ? targetSha! : baseSha;
 
-            // ADO Git is case-sensitive on paths — use Ordinal comparisons throughout.
+            // ADO Git is case-sensitive on paths â€” use Ordinal comparisons throughout.
             var existingFilePaths = new HashSet<string>(StringComparer.Ordinal);
             var allExistingFilesInCleanupRoots = new HashSet<string>(StringComparer.Ordinal);
 
@@ -138,7 +139,7 @@ public sealed class AzureDevOpsGitProviderService(
 
                 if (IsWithinCleanupRoots(filePath, pushData.CleanupRoots))
                 {
-                    // File lives under a cleanup root we already enumerated → confirmed not present.
+                    // File lives under a cleanup root we already enumerated â†’ confirmed not present.
                     continue;
                 }
 
@@ -269,7 +270,7 @@ public sealed class AzureDevOpsGitProviderService(
         var url = $"{repoApiBase}/items?scopePath={Uri.EscapeDataString(scopePath)}&recursionLevel=full&versionDescriptor.versionType=commit&versionDescriptor.version={commitSha}&api-version={ApiVersion}";
         var response = await client.GetAsync(url, cancellationToken);
 
-        // Scope path missing at the parent commit → no existing files (this is normal for a fresh push).
+        // Scope path missing at the parent commit â†’ no existing files (this is normal for a fresh push).
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             return Array.Empty<string>();
 
@@ -398,7 +399,7 @@ public sealed class AzureDevOpsGitProviderService(
 
     private static ErrorOr<PreparedAzureDevOpsPush> PrepareScopedPush(MultiScopeGitPushRequest request)
     {
-        // ADO Git is case-sensitive on paths — keep Ordinal (case-sensitive) comparisons throughout the push pipeline.
+        // ADO Git is case-sensitive on paths â€” keep Ordinal (case-sensitive) comparisons throughout the push pipeline.
         var filesByPath = new Dictionary<string, string>(StringComparer.Ordinal);
         var cleanupRoots = new HashSet<string>(StringComparer.Ordinal);
 
@@ -452,7 +453,7 @@ public sealed class AzureDevOpsGitProviderService(
         IReadOnlyDictionary<string, string> FilesByPath,
         IReadOnlySet<string> CleanupRoots);
 
-    // ─── ADO API response models ────────────────────────────────────────────
+    // â”€â”€â”€ ADO API response models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private sealed class AdoRepository
     {

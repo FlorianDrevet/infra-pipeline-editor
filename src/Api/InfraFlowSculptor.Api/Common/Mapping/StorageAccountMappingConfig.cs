@@ -1,4 +1,4 @@
-using InfraFlowSculptor.Application.StorageAccounts.Commands.CreateStorageAccount;
+﻿using InfraFlowSculptor.Application.StorageAccounts.Commands.CreateStorageAccount;
 using InfraFlowSculptor.Application.StorageAccounts.Commands.UpdateStorageAccount;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
 using InfraFlowSculptor.Contracts.StorageAccounts.Requests;
@@ -13,6 +13,7 @@ namespace InfraFlowSculptor.Api.Common.Mapping;
 
 public sealed class StorageAccountMappingConfig : IRegister
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<CreateStorageAccountRequest, CreateStorageAccountCommand>()

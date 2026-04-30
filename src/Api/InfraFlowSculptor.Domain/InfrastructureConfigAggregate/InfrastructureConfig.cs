@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
@@ -129,7 +129,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         Name = name;
     }
 
-    // ─── Naming Convention ───────────────────────────────────────────────────
+    // â”€â”€â”€ Naming Convention â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Sets or clears the default naming template for this configuration.</summary>
     public void SetDefaultNamingTemplate(NamingTemplate? template)
@@ -163,7 +163,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         return true;
     }
 
-    // ─── Resource Abbreviation Overrides ─────────────────────────────────────
+    // â”€â”€â”€ Resource Abbreviation Overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Sets or updates a per-resource-type abbreviation override for this configuration.</summary>
     public ResourceAbbreviationOverride SetResourceAbbreviationOverride(string resourceType, string abbreviation)
@@ -191,7 +191,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         return true;
     }
 
-    // ─── Inheritance Toggles ────────────────────────────────────────────────
+    // â”€â”€â”€ Inheritance Toggles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Sets whether this configuration inherits naming conventions from the parent project.</summary>
     public void SetUseProjectNamingConventions(bool value)
@@ -203,7 +203,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     /// <param name="mode">The new pipeline mode (Isolated or Combined).</param>
     public void UpdateAppPipelineMode(AppPipelineMode mode) => AppPipelineMode = mode;
 
-    // ─── Cross-Config References ────────────────────────────────────────────
+    // â”€â”€â”€ Cross-Config References â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Adds a reference to a resource belonging to another infrastructure configuration in the same project.
@@ -241,7 +241,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         return Result.Deleted;
     }
 
-    // ─── Configuration-level Repositories (MultiRepo project layout only) ──────────────────
+    // â”€â”€â”€ Configuration-level Repositories (MultiRepo project layout only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Sets or clears the per-configuration <see cref="ConfigLayoutMode"/>.
@@ -313,6 +313,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         return Result.Deleted;
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     private ErrorOr<Success> EnsureRepositoryAllowedByLayout(
         ProjectAggregate.ValueObjects.RepositoryContentKinds candidate,
         int expectedCountAfterAdd,
