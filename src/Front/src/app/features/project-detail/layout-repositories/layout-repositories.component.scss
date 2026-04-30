@@ -1,3 +1,5 @@
+@use "scss/main" as *;
+
 :host {
   display: block;
 }
@@ -43,7 +45,7 @@
   &__section-help {
     margin: 0;
     font-size: 0.85rem;
-    color: rgba(0, 0, 0, 0.55);
+    color: $ifs-text-secondary;
   }
 }
 
@@ -100,7 +102,7 @@
   }
 
   &__label {
-    color: rgba(0, 0, 0, 0.55);
+    color: $ifs-text-secondary;
   }
 
   &__link {
@@ -134,7 +136,7 @@
   background: rgba(0, 0, 0, 0.02);
   border-radius: 0.75rem;
   border: 1px dashed rgba(0, 0, 0, 0.1);
-  color: rgba(0, 0, 0, 0.55);
+  color: $ifs-text-secondary;
 
   &__icon {
     font-size: 2rem;
@@ -179,7 +181,7 @@
 
   &__desc {
     font-size: 0.8rem;
-    color: rgba(0, 0, 0, 0.55);
+    color: $ifs-text-secondary;
     line-height: 1.4;
   }
 }
@@ -208,7 +210,7 @@
   &__desc {
     margin: 0;
     font-size: 0.85rem;
-    color: rgba(0, 0, 0, 0.65);
+    color: $ifs-text-secondary;
     line-height: 1.5;
   }
 }

@@ -9,6 +9,20 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class SqlServerTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
+    private const string SqlServerModuleName = "sqlServer";
+    private const string SqlServerModuleFolderName = "SqlServer";
+    private const string TypesFilePath = "./types.bicep";
+    private const string SqlServerVersionTypeName = "SqlServerVersion";
+    private const string TlsVersionTypeName = "TlsVersion";
+    private const string VersionParameterName = "version";
+    private const string MinimalTlsVersionParameterName = "minimalTlsVersion";
+    private const string SqlServerArmType = "Microsoft.Sql/servers@2023-08-01-preview";
+    private const string DefaultSqlServerVersion = "12.0";
+    private const string LegacySqlServerVersion = "V12";
+    private const string DefaultMinimumTlsVersion = "1.2";
+    private const string SupportedTlsVersionUnion = "'1.0' | '1.1' | '1.2'";
+    private const string PublicNetworkAccessEnabled = "Enabled";
+
     /// <inheritdoc />
     public string ResourceType
         => AzureResourceTypes.ArmTypes.SqlServer;
@@ -20,36 +34,36 @@ public sealed class SqlServerTypeBicepGenerator
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         return new BicepModuleBuilder()
-            .Module("sqlServer", "SqlServer", ResourceTypeName)
-            .Import("./types.bicep", "SqlServerVersion", "TlsVersion")
+            .Module(SqlServerModuleName, SqlServerModuleFolderName, ResourceTypeName)
+            .Import(TypesFilePath, SqlServerVersionTypeName, TlsVersionTypeName)
             .Param("location", BicepType.String, "Azure region for the SQL Server")
             .Param("name", BicepType.String, "Name of the SQL Server")
-            .Param("version", BicepType.Custom("SqlServerVersion"), "SQL Server version",
-                defaultValue: new BicepStringLiteral("12.0"))
+            .Param(VersionParameterName, BicepType.Custom(SqlServerVersionTypeName), "SQL Server version",
+                defaultValue: new BicepStringLiteral(DefaultSqlServerVersion))
             .Param("administratorLogin", BicepType.String, "Administrator login name")
             .Param("administratorLoginPassword", BicepType.String, "Administrator login password",
                 secure: true)
-            .Param("minimalTlsVersion", BicepType.Custom("TlsVersion"), "Minimum TLS version for client connections",
-                defaultValue: new BicepStringLiteral("1.2"))
-            .Resource("sqlServer", "Microsoft.Sql/servers@2023-08-01-preview")
+            .Param(MinimalTlsVersionParameterName, BicepType.Custom(TlsVersionTypeName), "Minimum TLS version for client connections",
+                defaultValue: new BicepStringLiteral(DefaultMinimumTlsVersion))
+            .Resource(SqlServerModuleName, SqlServerArmType)
             .Property("name", new BicepReference("name"))
             .Property("location", new BicepReference("location"))
             .Property("properties", props => props
-                .Property("version", new BicepReference("version"))
+                .Property(VersionParameterName, new BicepReference(VersionParameterName))
                 .Property("administratorLogin", new BicepReference("administratorLogin"))
                 .Property("administratorLoginPassword", new BicepReference("administratorLoginPassword"))
-                .Property("minimalTlsVersion", new BicepReference("minimalTlsVersion"))
-                .Property("publicNetworkAccess", new BicepStringLiteral("Enabled")))
-            .Output("id", BicepType.String, new BicepRawExpression("sqlServer.id"),
+                .Property(MinimalTlsVersionParameterName, new BicepReference(MinimalTlsVersionParameterName))
+                .Property("publicNetworkAccess", new BicepStringLiteral(PublicNetworkAccessEnabled)))
+            .Output("id", BicepType.String, new BicepRawExpression($"{SqlServerModuleName}.id"),
                 description: "The resource ID of the SQL Server")
             .Output("fullyQualifiedDomainName", BicepType.String,
-                new BicepRawExpression("sqlServer.properties.fullyQualifiedDomainName"),
+                new BicepRawExpression($"{SqlServerModuleName}.properties.fullyQualifiedDomainName"),
                 description: "The fully qualified domain name of the SQL Server")
-            .ExportedType("SqlServerVersion",
-                new BicepRawExpression("'12.0'"),
+            .ExportedType(SqlServerVersionTypeName,
+                new BicepRawExpression($"'{DefaultSqlServerVersion}'"),
                 description: "SQL Server version")
-            .ExportedType("TlsVersion",
-                new BicepRawExpression("'1.0' | '1.1' | '1.2'"),
+            .ExportedType(TlsVersionTypeName,
+                new BicepRawExpression(SupportedTlsVersionUnion),
                 description: "Minimum TLS version for SQL Server connections")
             .Build();
     }
@@ -62,17 +76,17 @@ public sealed class SqlServerTypeBicepGenerator
 
         return new GeneratedTypeModule
         {
-            ModuleName = "sqlServer",
-            ModuleFileName = "sqlServer",
-            ModuleFolderName = "SqlServer",
+            ModuleName = SqlServerModuleName,
+            ModuleFileName = SqlServerModuleName,
+            ModuleFolderName = SqlServerModuleFolderName,
             ModuleBicepContent = SqlServerModuleTemplate,
             ModuleTypesBicepContent = SqlServerTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>
             {
-                ["version"] = version,
+                [VersionParameterName] = version,
                 ["administratorLogin"] = resource.Properties.GetValueOrDefault("administratorLogin", AzureResourceDefaults.SqlServerAdministratorLogin),
-                ["minimalTlsVersion"] = resource.Properties.GetValueOrDefault("minimalTlsVersion", AzureResourceDefaults.MinimumTlsVersion),
+                [MinimalTlsVersionParameterName] = resource.Properties.GetValueOrDefault(MinimalTlsVersionParameterName, AzureResourceDefaults.MinimumTlsVersion),
             },
             SecureParameters = ["administratorLoginPassword"]
         };
@@ -83,22 +97,22 @@ public sealed class SqlServerTypeBicepGenerator
     /// </summary>
     private static string NormalizeSqlServerVersion(string version) => version.ToUpperInvariant() switch
     {
-        "V12" => "12.0",
+        LegacySqlServerVersion => DefaultSqlServerVersion,
         _ => version
     };
 
-    private const string SqlServerTypesTemplate = """
+    private static readonly string SqlServerTypesTemplate = $$"""
         @export()
         @description('SQL Server version')
-        type SqlServerVersion = '12.0'
+        type {{SqlServerVersionTypeName}} = '{{DefaultSqlServerVersion}}'
 
         @export()
         @description('Minimum TLS version for SQL Server connections')
-        type TlsVersion = '1.0' | '1.1' | '1.2'
+        type {{TlsVersionTypeName}} = '1.0' | '1.1' | '{{DefaultMinimumTlsVersion}}'
         """;
 
-    private const string SqlServerModuleTemplate = """
-        import { SqlServerVersion, TlsVersion } from './types.bicep'
+    private static readonly string SqlServerModuleTemplate = $$"""
+        import { {{SqlServerVersionTypeName}}, {{TlsVersionTypeName}} } from '{{TypesFilePath}}'
 
         @description('Azure region for the SQL Server')
         param location string
@@ -107,7 +121,7 @@ public sealed class SqlServerTypeBicepGenerator
         param name string
 
         @description('SQL Server version')
-        param version SqlServerVersion = '12.0'
+        param {{VersionParameterName}} {{SqlServerVersionTypeName}} = '{{DefaultSqlServerVersion}}'
 
         @description('Administrator login name')
         param administratorLogin string
@@ -117,21 +131,21 @@ public sealed class SqlServerTypeBicepGenerator
         param administratorLoginPassword string
 
         @description('Minimum TLS version for client connections')
-        param minimalTlsVersion TlsVersion = '1.2'
+        param {{MinimalTlsVersionParameterName}} {{TlsVersionTypeName}} = '{{DefaultMinimumTlsVersion}}'
 
-        resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {
+        resource {{SqlServerModuleName}} '{{SqlServerArmType}}' = {
           name: name
           location: location
           properties: {
-            version: version
+            {{VersionParameterName}}: {{VersionParameterName}}
             administratorLogin: administratorLogin
             administratorLoginPassword: administratorLoginPassword
-            minimalTlsVersion: minimalTlsVersion
-            publicNetworkAccess: 'Enabled'
+            {{MinimalTlsVersionParameterName}}: {{MinimalTlsVersionParameterName}}
+            publicNetworkAccess: '{{PublicNetworkAccessEnabled}}'
           }
         }
 
-        output id string = sqlServer.id
-        output fullyQualifiedDomainName string = sqlServer.properties.fullyQualifiedDomainName
+        output id string = {{SqlServerModuleName}}.id
+        output fullyQualifiedDomainName string = {{SqlServerModuleName}}.properties.fullyQualifiedDomainName
         """;
 }

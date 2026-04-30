@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, signal, computed } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, computed } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, Observable, switchMap, tap } from 'rxjs';
@@ -10,7 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TranslateModule } from '@ngx-translate/core';
 import { LOCATION_OPTIONS } from '../enums/location.enum';
-import { RESOURCE_TYPE_OPTIONS, ResourceTypeEnum, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_CATEGORIES, PARENT_CHILD_RESOURCE_TYPES, ResourceTypeCategory } from '../enums/resource-type.enum';
+import { RESOURCE_TYPE_OPTIONS, ResourceTypeEnum, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_CATEGORIES, PARENT_CHILD_RESOURCE_TYPES } from '../enums/resource-type.enum';
 import { OS_TYPE_OPTIONS } from '../enums/os-type.enum';
 import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../enums/app-service-plan-sku.enum';
 import { RUNTIME_STACK_OPTIONS } from '../enums/runtime-stack.enum';
@@ -277,7 +277,7 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
   templateUrl: './add-resource-dialog.component.html',
   styleUrl: './add-resource-dialog.component.scss',
 })
-export class AddResourceDialogComponent {
+export class AddResourceDialogComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<AddResourceDialogComponent>);
   private readonly data: AddResourceDialogData = inject(MAT_DIALOG_DATA);
   private readonly keyVaultService = inject(KeyVaultService);
@@ -360,9 +360,7 @@ export class AddResourceDialogComponent {
 
   // ── Parent resource pre-selection ──
   private readonly parentResource = this.data.parentResource;
-  private readonly allowedChildTypes: ResourceTypeEnum[] | null = this.parentResource
-    ? (PARENT_CHILD_RESOURCE_TYPES[this.parentResource.resourceType] as ResourceTypeEnum[] | undefined) ?? null
-    : null;
+  private readonly allowedChildTypes: ResourceTypeEnum[] | null = this.resolveAllowedChildTypes();
   protected readonly hasParentResource = !!this.parentResource;
 
   // ── Plan selection state (WebApp flow) ──
@@ -514,22 +512,61 @@ export class AddResourceDialogComponent {
 
   constructor() {
     this.wireNameAvailabilityCheck();
+  }
 
-    if (this.parentResource && this.allowedChildTypes) {
-      this.selectedPlanId.set(this.parentResource.id);
-      this.selectedPlanName.set(this.parentResource.name);
-      if (this.allowedChildTypes.length === 1) {
-        const childType = this.allowedChildTypes[0];
-        this.selectedType.set(childType);
-        this.buildEnvForms(childType);
-        this.updateCommonFormValidators(childType);
-        this.prefillParentFormField(childType);
-        this.step.set('common');
-        if (childType === ResourceTypeEnum.WebApp || childType === ResourceTypeEnum.FunctionApp || childType === ResourceTypeEnum.ContainerApp) {
-          this.loadAvailableContainerRegistries();
-        }
-      }
+  ngOnInit(): void {
+    this.initializeParentSelection();
+  }
+
+  private resolveAllowedChildTypes(): ResourceTypeEnum[] | null {
+    if (!this.parentResource) {
+      return null;
     }
+
+    return (PARENT_CHILD_RESOURCE_TYPES[this.parentResource.resourceType] as ResourceTypeEnum[] | undefined) ?? null;
+  }
+
+  private initializeParentSelection(): void {
+    if (!this.parentResource || !this.allowedChildTypes) {
+      return;
+    }
+
+    this.selectedPlanId.set(this.parentResource.id);
+    this.selectedPlanName.set(this.parentResource.name);
+
+    if (this.allowedChildTypes.length !== 1) {
+      return;
+    }
+
+    const childType = this.allowedChildTypes[0];
+    this.applySelectedType(childType);
+    this.prefillParentFormField(childType);
+    this.step.set('common');
+
+    if (this.requiresContainerRegistryLoading(childType)) {
+      void this.loadAvailableContainerRegistries();
+    }
+  }
+
+  private applySelectedType(type: ResourceTypeEnum): void {
+    this.selectedType.set(type);
+    this.buildEnvForms(type);
+    this.updateCommonFormValidators(type);
+  }
+
+  private requiresContainerRegistryLoading(type: ResourceTypeEnum): boolean {
+    return type === ResourceTypeEnum.WebApp
+      || type === ResourceTypeEnum.FunctionApp
+      || type === ResourceTypeEnum.ContainerApp;
+  }
+
+  private requiresPlanSelection(type: ResourceTypeEnum): boolean {
+    return type === ResourceTypeEnum.WebApp
+      || type === ResourceTypeEnum.FunctionApp
+      || type === ResourceTypeEnum.ContainerApp
+      || type === ResourceTypeEnum.ApplicationInsights
+      || type === ResourceTypeEnum.ContainerAppEnvironment
+      || type === ResourceTypeEnum.SqlDatabase;
   }
 
   private wireNameAvailabilityCheck(): void {
@@ -593,23 +630,25 @@ export class AddResourceDialogComponent {
 
   // ── Type Selection ──
   protected onSelectType(type: ResourceTypeEnum): void {
-    this.selectedType.set(type);
+    this.applySelectedType(type);
     this.errorKey.set('');
-    this.buildEnvForms(type);
-    this.updateCommonFormValidators(type);
 
     if (this.parentResource) {
       this.prefillParentFormField(type);
       this.step.set('common');
-      if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp) {
-        this.loadAvailableContainerRegistries();
+      if (this.requiresContainerRegistryLoading(type)) {
+        void this.loadAvailableContainerRegistries();
       }
-    } else if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp || type === ResourceTypeEnum.ApplicationInsights || type === ResourceTypeEnum.ContainerAppEnvironment || type === ResourceTypeEnum.SqlDatabase) {
-      this.step.set('plan-selection');
-      this.loadExistingPlans();
-    } else {
-      this.step.set('common');
+      return;
     }
+
+    if (this.requiresPlanSelection(type)) {
+      this.step.set('plan-selection');
+      void this.loadExistingPlans();
+      return;
+    }
+
+    this.step.set('common');
   }
 
   // ── Plan selection (WebApp flow) ──
@@ -639,11 +678,7 @@ export class AddResourceDialogComponent {
   private async loadExistingPlans(): Promise<void> {
     this.plansLoading.set(true);
     try {
-      const filterType = this.selectedType() === ResourceTypeEnum.ContainerApp ? 'ContainerAppEnvironment'
-        : this.selectedType() === ResourceTypeEnum.ApplicationInsights ? 'LogAnalyticsWorkspace'
-        : this.selectedType() === ResourceTypeEnum.ContainerAppEnvironment ? 'LogAnalyticsWorkspace'
-        : this.selectedType() === ResourceTypeEnum.SqlDatabase ? 'SqlServer'
-        : 'AppServicePlan';
+      const filterType = this.resolveExistingPlanFilterType();
 
       // Load from all resource groups in this config
       const resourceGroups = await this.infraConfigService.getResourceGroups(this.data.configId);
@@ -673,6 +708,27 @@ export class AddResourceDialogComponent {
     } finally {
       this.plansLoading.set(false);
     }
+  }
+
+  private resolveExistingPlanFilterType(): string {
+    const selectedType = this.selectedType();
+
+    if (selectedType === ResourceTypeEnum.ContainerApp) {
+      return 'ContainerAppEnvironment';
+    }
+
+    if (
+      selectedType === ResourceTypeEnum.ApplicationInsights
+      || selectedType === ResourceTypeEnum.ContainerAppEnvironment
+    ) {
+      return 'LogAnalyticsWorkspace';
+    }
+
+    if (selectedType === ResourceTypeEnum.SqlDatabase) {
+      return 'SqlServer';
+    }
+
+    return 'AppServicePlan';
   }
 
   protected onSelectPlan(plan: AzureResourceResponse): void {
@@ -1118,12 +1174,11 @@ export class AddResourceDialogComponent {
   }
 
   protected onTabChange(index: number): void {
-    if (index > 0 && !this.prefilled.has(index) && this.envFormArray.length > 1) {
-      const firstGroup = this.envFormArray.at(0);
-      const targetGroup = this.envFormArray.at(index);
-      targetGroup.patchValue(firstGroup.getRawValue());
-      this.prefilled.add(index);
+    if (!this.shouldCopyFromFirstEnvironment(index)) {
+      return;
     }
+
+    this.copyEnvironmentSettingsFromFirst(index);
   }
 
   protected copyFromFirst(): void {
@@ -1133,6 +1188,18 @@ export class AddResourceDialogComponent {
       this.envFormArray.at(i).patchValue(firstValue);
       this.prefilled.add(i);
     }
+  }
+
+  private shouldCopyFromFirstEnvironment(index: number): boolean {
+    return index > 0 && !this.prefilled.has(index) && this.envFormArray.length > 1;
+  }
+
+  private copyEnvironmentSettingsFromFirst(index: number): void {
+    const firstGroup = this.envFormArray.at(0);
+    const targetGroup = this.envFormArray.at(index);
+
+    targetGroup.patchValue(firstGroup.getRawValue());
+    this.prefilled.add(index);
   }
 
   // ── Submit ──
@@ -1146,225 +1213,7 @@ export class AddResourceDialogComponent {
     const common = this.commonForm.getRawValue();
 
     try {
-      switch (type) {
-        case ResourceTypeEnum.KeyVault: {
-          await this.keyVaultService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            environmentSettings: this.buildKeyVaultEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.RedisCache: {
-          await this.redisCacheService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            redisVersion: common.redisVersion ? Number(common.redisVersion) : null,
-            enableNonSslPort: common.enableNonSslPort ?? false,
-            minimumTlsVersion: common.minimumTlsVersion || null,
-            disableAccessKeyAuthentication: common.disableAccessKeyAuthentication ?? false,
-            enableAadAuth: common.enableAadAuth ?? false,
-            environmentSettings: this.buildRedisCacheEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.StorageAccount: {
-          await this.storageAccountService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            kind: common.kind!,
-            accessTier: common.accessTier!,
-            allowBlobPublicAccess: common.allowBlobPublicAccess ?? false,
-            enableHttpsTrafficOnly: common.enableHttpsTrafficOnly ?? true,
-            minimumTlsVersion: common.minimumTlsVersion!,
-            environmentSettings: this.buildStorageAccountEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.AppServicePlan: {
-          await this.appServicePlanService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            osType: common.osType!,
-            environmentSettings: this.buildAppServicePlanEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.WebApp: {
-          const acrAuthMode = common.deploymentMode === 'Container'
-            ? this.resolveAcrAuthMode(common.containerRegistryId || null, common.acrAuthMode as AcrAuthMode | null | undefined)
-            : null;
-
-          await this.webAppService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            appServicePlanId: common.appServicePlanId!,
-            deploymentMode: common.deploymentMode || 'Code',
-            containerRegistryId: common.deploymentMode === 'Container' ? (common.containerRegistryId || null) : null,
-            acrAuthMode,
-            dockerImageName: common.deploymentMode === 'Container' ? (common.dockerImageName || null) : null,
-            runtimeStack: common.runtimeStack!,
-            runtimeVersion: common.runtimeVersion!,
-            alwaysOn: common.alwaysOn!,
-            httpsOnly: common.httpsOnly!,
-            environmentSettings: this.buildWebAppEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.FunctionApp: {
-          const acrAuthMode = common.deploymentMode === 'Container'
-            ? this.resolveAcrAuthMode(common.containerRegistryId || null, common.acrAuthMode as AcrAuthMode | null | undefined)
-            : null;
-
-          await this.functionAppService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            appServicePlanId: common.appServicePlanId!,
-            deploymentMode: common.deploymentMode || 'Code',
-            containerRegistryId: common.deploymentMode === 'Container' ? (common.containerRegistryId || null) : null,
-            acrAuthMode,
-            dockerImageName: common.deploymentMode === 'Container' ? (common.dockerImageName || null) : null,
-            runtimeStack: common.runtimeStack!,
-            runtimeVersion: common.runtimeVersion!,
-            httpsOnly: common.httpsOnly!,
-            environmentSettings: this.buildFunctionAppEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.UserAssignedIdentity: {
-          await this.userAssignedIdentityService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            isExisting: common.isExisting ?? false,
-          });
-          break;
-        }
-        case ResourceTypeEnum.AppConfiguration: {
-          await this.appConfigurationService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            environmentSettings: this.buildAppConfigurationEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.ContainerAppEnvironment: {
-          await this.containerAppEnvironmentService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            logAnalyticsWorkspaceId: common.logAnalyticsWorkspaceId || null,
-            environmentSettings: this.buildContainerAppEnvironmentEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.ContainerApp: {
-          const acrAuthMode = this.resolveAcrAuthMode(common.containerRegistryId || null, common.acrAuthMode as AcrAuthMode | null | undefined);
-
-          await this.containerAppService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            containerAppEnvironmentId: common.containerAppEnvironmentId!,
-            containerRegistryId: common.containerRegistryId || null,
-            acrAuthMode,
-            dockerImageName: common.dockerImageName || null,
-            environmentSettings: this.buildContainerAppEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.LogAnalyticsWorkspace: {
-          await this.logAnalyticsWorkspaceService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            environmentSettings: this.buildLogAnalyticsWorkspaceEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.ApplicationInsights: {
-          await this.applicationInsightsService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            logAnalyticsWorkspaceId: common.logAnalyticsWorkspaceId!,
-            environmentSettings: this.buildApplicationInsightsEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.CosmosDb: {
-          await this.cosmosDbService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            environmentSettings: this.buildCosmosDbEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.SqlServer: {
-          await this.sqlServerService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            version: common.version!,
-            administratorLogin: common.administratorLogin!,
-            environmentSettings: this.buildSqlServerEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.SqlDatabase: {
-          await this.sqlDatabaseService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            sqlServerId: common.sqlServerId!,
-            collation: common.collation!,
-            environmentSettings: this.buildSqlDatabaseEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.ServiceBusNamespace: {
-          await this.serviceBusNamespaceService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            environmentSettings: this.buildServiceBusNamespaceEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-        case ResourceTypeEnum.ContainerRegistry: {
-          await this.containerRegistryService.create({
-            resourceGroupId: this.data.resourceGroupId,
-            name: common.name!,
-            location: common.location!,
-            environmentSettings: this.buildContainerRegistryEnvironmentSettings(),
-            isExisting: common.isExisting ?? false,
-            });
-          break;
-        }
-      }
+      await this.submitSelectedResource(type, common);
       this.dialogRef.close(true);
     } catch {
       this.errorKey.set('CONFIG_DETAIL.RESOURCES.ADD_ERROR');
@@ -1373,213 +1222,376 @@ export class AddResourceDialogComponent {
     }
   }
 
+  private async submitSelectedResource(type: ResourceTypeEnum, common: ReturnType<FormGroup['getRawValue']>): Promise<void> {
+    const submitter = this.getResourceSubmitters(common)[type];
+    if (!submitter) {
+      return;
+    }
+
+    await submitter();
+  }
+
+  private getResourceSubmitters(common: ReturnType<FormGroup['getRawValue']>): Partial<Record<ResourceTypeEnum, () => Promise<unknown>>> {
+    const containerDeploymentMode = common.deploymentMode === 'Container';
+    const containerRegistryId = common.containerRegistryId || null;
+    const dockerImageName = common.dockerImageName || null;
+    const containerAcrAuthMode = this.resolveAcrAuthMode(containerRegistryId, common.acrAuthMode as AcrAuthMode | null | undefined);
+    const conditionalAcrAuthMode = containerDeploymentMode ? containerAcrAuthMode : null;
+    const conditionalContainerRegistryId = containerDeploymentMode ? containerRegistryId : null;
+    const conditionalDockerImageName = containerDeploymentMode ? dockerImageName : null;
+
+    return {
+      [ResourceTypeEnum.KeyVault]: () => this.keyVaultService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        environmentSettings: this.buildKeyVaultEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.RedisCache]: () => this.redisCacheService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        redisVersion: common.redisVersion ? Number(common.redisVersion) : null,
+        enableNonSslPort: common.enableNonSslPort ?? false,
+        minimumTlsVersion: common.minimumTlsVersion || null,
+        disableAccessKeyAuthentication: common.disableAccessKeyAuthentication ?? false,
+        enableAadAuth: common.enableAadAuth ?? false,
+        environmentSettings: this.buildRedisCacheEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.StorageAccount]: () => this.storageAccountService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        kind: common.kind!,
+        accessTier: common.accessTier!,
+        allowBlobPublicAccess: common.allowBlobPublicAccess ?? false,
+        enableHttpsTrafficOnly: common.enableHttpsTrafficOnly ?? true,
+        minimumTlsVersion: common.minimumTlsVersion!,
+        environmentSettings: this.buildStorageAccountEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.AppServicePlan]: () => this.appServicePlanService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        osType: common.osType!,
+        environmentSettings: this.buildAppServicePlanEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.WebApp]: () => this.webAppService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        appServicePlanId: common.appServicePlanId!,
+        deploymentMode: common.deploymentMode || 'Code',
+        containerRegistryId: conditionalContainerRegistryId,
+        acrAuthMode: conditionalAcrAuthMode,
+        dockerImageName: conditionalDockerImageName,
+        runtimeStack: common.runtimeStack!,
+        runtimeVersion: common.runtimeVersion!,
+        alwaysOn: common.alwaysOn!,
+        httpsOnly: common.httpsOnly!,
+        environmentSettings: this.buildWebAppEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.FunctionApp]: () => this.functionAppService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        appServicePlanId: common.appServicePlanId!,
+        deploymentMode: common.deploymentMode || 'Code',
+        containerRegistryId: conditionalContainerRegistryId,
+        acrAuthMode: conditionalAcrAuthMode,
+        dockerImageName: conditionalDockerImageName,
+        runtimeStack: common.runtimeStack!,
+        runtimeVersion: common.runtimeVersion!,
+        httpsOnly: common.httpsOnly!,
+        environmentSettings: this.buildFunctionAppEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.UserAssignedIdentity]: () => this.userAssignedIdentityService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.AppConfiguration]: () => this.appConfigurationService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        environmentSettings: this.buildAppConfigurationEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.ContainerAppEnvironment]: () => this.containerAppEnvironmentService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        logAnalyticsWorkspaceId: common.logAnalyticsWorkspaceId || null,
+        environmentSettings: this.buildContainerAppEnvironmentEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.ContainerApp]: () => this.containerAppService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        containerAppEnvironmentId: common.containerAppEnvironmentId!,
+        containerRegistryId,
+        acrAuthMode: containerAcrAuthMode,
+        dockerImageName,
+        environmentSettings: this.buildContainerAppEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.LogAnalyticsWorkspace]: () => this.logAnalyticsWorkspaceService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        environmentSettings: this.buildLogAnalyticsWorkspaceEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.ApplicationInsights]: () => this.applicationInsightsService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        logAnalyticsWorkspaceId: common.logAnalyticsWorkspaceId!,
+        environmentSettings: this.buildApplicationInsightsEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.CosmosDb]: () => this.cosmosDbService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        environmentSettings: this.buildCosmosDbEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.SqlServer]: () => this.sqlServerService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        version: common.version!,
+        administratorLogin: common.administratorLogin!,
+        environmentSettings: this.buildSqlServerEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.SqlDatabase]: () => this.sqlDatabaseService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        sqlServerId: common.sqlServerId!,
+        collation: common.collation!,
+        environmentSettings: this.buildSqlDatabaseEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.ServiceBusNamespace]: () => this.serviceBusNamespaceService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        environmentSettings: this.buildServiceBusNamespaceEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+      [ResourceTypeEnum.ContainerRegistry]: () => this.containerRegistryService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: common.name!,
+        location: common.location!,
+        environmentSettings: this.buildContainerRegistryEnvironmentSettings(),
+        isExisting: common.isExisting ?? false,
+      }),
+    };
+  }
+
+    private getEnvironmentRawValue(index: number): Record<string, unknown> {
+      return this.envFormArray.at(index).getRawValue() as Record<string, unknown>;
+    }
+
+    private buildEnvironmentSettings<T>(mapEntry: (environmentName: string, raw: Record<string, unknown>) => T): T[] {
+      return this.environments.map((environment, index) => mapEntry(environment.name, this.getEnvironmentRawValue(index)));
+    }
+
+    private buildSkuEnvironmentSettings<T extends { environmentName: string; sku?: string | null }>(): T[] {
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        sku: this.asStringOrNull(raw['sku']),
+      } as T));
+    }
+
+    private asStringOrNull(value: unknown): string | null {
+      if (typeof value !== 'string' || value.length === 0) {
+        return null;
+      }
+
+      return value;
+    }
+
+    private asNumberOrNull(value: unknown): number | null {
+      if (value === null || value === undefined || value === '') {
+        return null;
+      }
+
+      return Number(value);
+    }
+
+    private asBooleanOrNull(value: unknown): boolean | null {
+      if (typeof value !== 'boolean') {
+        return null;
+      }
+
+      return value;
+    }
+
   private buildKeyVaultEnvironmentSettings(): KeyVaultEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        sku: raw.sku || null,
-      };
-    });
+      return this.buildSkuEnvironmentSettings<KeyVaultEnvironmentConfigEntry>();
   }
 
   private buildRedisCacheEnvironmentSettings(): RedisCacheEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        sku: raw.skuName || null,
-        capacity: raw.capacity ? Number(raw.capacity) : null,
-        maxMemoryPolicy: raw.maxMemoryPolicy || null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        sku: this.asStringOrNull(raw['skuName']),
+        capacity: this.asNumberOrNull(raw['capacity']),
+        maxMemoryPolicy: this.asStringOrNull(raw['maxMemoryPolicy']),
+      }));
   }
 
   private buildStorageAccountEnvironmentSettings(): StorageAccountEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        sku: raw.sku || null,
-      };
-    });
+      return this.buildSkuEnvironmentSettings<StorageAccountEnvironmentConfigEntry>();
   }
 
   private buildAppServicePlanEnvironmentSettings(): AppServicePlanEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        sku: raw.sku || null,
-        capacity: raw.capacity ? Number(raw.capacity) : null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        sku: this.asStringOrNull(raw['sku']),
+        capacity: this.asNumberOrNull(raw['capacity']),
+      }));
   }
 
   private buildWebAppEnvironmentSettings(): WebAppEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        alwaysOn: raw.alwaysOn ?? null,
-        httpsOnly: raw.httpsOnly ?? null,
-        dockerImageTag: raw.dockerImageTag || null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        alwaysOn: this.asBooleanOrNull(raw['alwaysOn']),
+        httpsOnly: this.asBooleanOrNull(raw['httpsOnly']),
+        dockerImageTag: this.asStringOrNull(raw['dockerImageTag']),
+      }));
   }
 
   private buildFunctionAppEnvironmentSettings(): FunctionAppEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        httpsOnly: raw.httpsOnly ?? null,
-        maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
-        dockerImageTag: raw.dockerImageTag || null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        httpsOnly: this.asBooleanOrNull(raw['httpsOnly']),
+        maxInstanceCount: this.asNumberOrNull(raw['maxInstanceCount']),
+        dockerImageTag: this.asStringOrNull(raw['dockerImageTag']),
+      }));
   }
 
   private buildAppConfigurationEnvironmentSettings(): AppConfigurationEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        sku: raw.sku || null,
-        softDeleteRetentionInDays: raw.softDeleteRetentionInDays != null ? Number(raw.softDeleteRetentionInDays) : null,
-        purgeProtectionEnabled: raw.purgeProtectionEnabled ?? null,
-        disableLocalAuth: raw.disableLocalAuth ?? null,
-        publicNetworkAccess: raw.publicNetworkAccess || null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        sku: this.asStringOrNull(raw['sku']),
+        softDeleteRetentionInDays: this.asNumberOrNull(raw['softDeleteRetentionInDays']),
+        purgeProtectionEnabled: this.asBooleanOrNull(raw['purgeProtectionEnabled']),
+        disableLocalAuth: this.asBooleanOrNull(raw['disableLocalAuth']),
+        publicNetworkAccess: this.asStringOrNull(raw['publicNetworkAccess']),
+      }));
   }
 
   private buildContainerAppEnvironmentEnvironmentSettings(): ContainerAppEnvironmentEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        sku: raw.sku || null,
-        workloadProfileType: raw.workloadProfileType || null,
-        internalLoadBalancerEnabled: raw.internalLoadBalancerEnabled ?? null,
-        zoneRedundancyEnabled: raw.zoneRedundancyEnabled ?? null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        sku: this.asStringOrNull(raw['sku']),
+        workloadProfileType: this.asStringOrNull(raw['workloadProfileType']),
+        internalLoadBalancerEnabled: this.asBooleanOrNull(raw['internalLoadBalancerEnabled']),
+        zoneRedundancyEnabled: this.asBooleanOrNull(raw['zoneRedundancyEnabled']),
+      }));
   }
 
   private buildContainerAppEnvironmentSettings(): ContainerAppEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        cpuCores: raw.cpuCores || null,
-        memoryGi: raw.memoryGi || null,
-        minReplicas: raw.minReplicas != null ? Number(raw.minReplicas) : null,
-        maxReplicas: raw.maxReplicas != null ? Number(raw.maxReplicas) : null,
-        ingressEnabled: raw.ingressEnabled ?? null,
-        ingressTargetPort: raw.ingressTargetPort != null ? Number(raw.ingressTargetPort) : null,
-        ingressExternal: raw.ingressExternal ?? null,
-        transportMethod: raw.transportMethod || null,
-        readinessProbePath: raw.readinessProbePath || null,
-        readinessProbePort: raw.readinessProbePort != null ? Number(raw.readinessProbePort) : null,
-        livenessProbePath: raw.livenessProbePath || null,
-        livenessProbePort: raw.livenessProbePort != null ? Number(raw.livenessProbePort) : null,
-        startupProbePath: raw.startupProbePath || null,
-        startupProbePort: raw.startupProbePort != null ? Number(raw.startupProbePort) : null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        cpuCores: this.asStringOrNull(raw['cpuCores']),
+        memoryGi: this.asStringOrNull(raw['memoryGi']),
+        minReplicas: this.asNumberOrNull(raw['minReplicas']),
+        maxReplicas: this.asNumberOrNull(raw['maxReplicas']),
+        ingressEnabled: this.asBooleanOrNull(raw['ingressEnabled']),
+        ingressTargetPort: this.asNumberOrNull(raw['ingressTargetPort']),
+        ingressExternal: this.asBooleanOrNull(raw['ingressExternal']),
+        transportMethod: this.asStringOrNull(raw['transportMethod']),
+        readinessProbePath: this.asStringOrNull(raw['readinessProbePath']),
+        readinessProbePort: this.asNumberOrNull(raw['readinessProbePort']),
+        livenessProbePath: this.asStringOrNull(raw['livenessProbePath']),
+        livenessProbePort: this.asNumberOrNull(raw['livenessProbePort']),
+        startupProbePath: this.asStringOrNull(raw['startupProbePath']),
+        startupProbePort: this.asNumberOrNull(raw['startupProbePort']),
+      }));
   }
 
   private buildLogAnalyticsWorkspaceEnvironmentSettings(): LogAnalyticsWorkspaceEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        sku: raw.sku || null,
-        retentionInDays: raw.retentionInDays != null ? Number(raw.retentionInDays) : null,
-        dailyQuotaGb: raw.dailyQuotaGb != null ? Number(raw.dailyQuotaGb) : null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        sku: this.asStringOrNull(raw['sku']),
+        retentionInDays: this.asNumberOrNull(raw['retentionInDays']),
+        dailyQuotaGb: this.asNumberOrNull(raw['dailyQuotaGb']),
+      }));
   }
 
   private buildApplicationInsightsEnvironmentSettings(): ApplicationInsightsEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        samplingPercentage: raw.samplingPercentage != null ? Number(raw.samplingPercentage) : null,
-        retentionInDays: raw.retentionInDays != null ? Number(raw.retentionInDays) : null,
-        disableIpMasking: raw.disableIpMasking ?? null,
-        disableLocalAuth: raw.disableLocalAuth ?? null,
-        ingestionMode: raw.ingestionMode || null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        samplingPercentage: this.asNumberOrNull(raw['samplingPercentage']),
+        retentionInDays: this.asNumberOrNull(raw['retentionInDays']),
+        disableIpMasking: this.asBooleanOrNull(raw['disableIpMasking']),
+        disableLocalAuth: this.asBooleanOrNull(raw['disableLocalAuth']),
+        ingestionMode: this.asStringOrNull(raw['ingestionMode']),
+      }));
   }
 
   private buildCosmosDbEnvironmentSettings(): CosmosDbEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        databaseApiType: raw.databaseApiType || null,
-        consistencyLevel: raw.consistencyLevel || null,
-        maxStalenessPrefix: raw.maxStalenessPrefix != null ? Number(raw.maxStalenessPrefix) : null,
-        maxIntervalInSeconds: raw.maxIntervalInSeconds != null ? Number(raw.maxIntervalInSeconds) : null,
-        enableAutomaticFailover: raw.enableAutomaticFailover ?? null,
-        enableMultipleWriteLocations: raw.enableMultipleWriteLocations ?? null,
-        backupPolicyType: raw.backupPolicyType || null,
-        enableFreeTier: raw.enableFreeTier ?? null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        databaseApiType: this.asStringOrNull(raw['databaseApiType']),
+        consistencyLevel: this.asStringOrNull(raw['consistencyLevel']),
+        maxStalenessPrefix: this.asNumberOrNull(raw['maxStalenessPrefix']),
+        maxIntervalInSeconds: this.asNumberOrNull(raw['maxIntervalInSeconds']),
+        enableAutomaticFailover: this.asBooleanOrNull(raw['enableAutomaticFailover']),
+        enableMultipleWriteLocations: this.asBooleanOrNull(raw['enableMultipleWriteLocations']),
+        backupPolicyType: this.asStringOrNull(raw['backupPolicyType']),
+        enableFreeTier: this.asBooleanOrNull(raw['enableFreeTier']),
+      }));
   }
 
   private buildSqlServerEnvironmentSettings(): SqlServerEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        minimalTlsVersion: raw.minimalTlsVersion || null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        minimalTlsVersion: this.asStringOrNull(raw['minimalTlsVersion']),
+      }));
   }
 
   private buildSqlDatabaseEnvironmentSettings(): SqlDatabaseEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        sku: raw.sku || null,
-        maxSizeGb: raw.maxSizeGb != null ? Number(raw.maxSizeGb) : null,
-        zoneRedundant: raw.zoneRedundant ?? null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        sku: this.asStringOrNull(raw['sku']),
+        maxSizeGb: this.asNumberOrNull(raw['maxSizeGb']),
+        zoneRedundant: this.asBooleanOrNull(raw['zoneRedundant']),
+      }));
   }
 
   private buildServiceBusNamespaceEnvironmentSettings(): ServiceBusNamespaceEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        sku: raw.sku || null,
-        capacity: raw.capacity != null ? Number(raw.capacity) : null,
-        zoneRedundant: raw.zoneRedundant ?? null,
-        disableLocalAuth: raw.disableLocalAuth ?? null,
-        minimumTlsVersion: raw.minimumTlsVersion || null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        sku: this.asStringOrNull(raw['sku']),
+        capacity: this.asNumberOrNull(raw['capacity']),
+        zoneRedundant: this.asBooleanOrNull(raw['zoneRedundant']),
+        disableLocalAuth: this.asBooleanOrNull(raw['disableLocalAuth']),
+        minimumTlsVersion: this.asStringOrNull(raw['minimumTlsVersion']),
+      }));
   }
 
   private buildContainerRegistryEnvironmentSettings(): ContainerRegistryEnvironmentConfigEntry[] {
-    return this.environments.map((env, i) => {
-      const raw = this.envFormArray.at(i).getRawValue();
-      return {
-        environmentName: env.name,
-        sku: raw.sku || null,
-        adminUserEnabled: raw.adminUserEnabled ?? null,
-        publicNetworkAccess: raw.publicNetworkAccess || null,
-        zoneRedundancy: raw.zoneRedundancy ?? null,
-      };
-    });
+      return this.buildEnvironmentSettings((environmentName, raw) => ({
+        environmentName,
+        sku: this.asStringOrNull(raw['sku']),
+        adminUserEnabled: this.asBooleanOrNull(raw['adminUserEnabled']),
+        publicNetworkAccess: this.asStringOrNull(raw['publicNetworkAccess']),
+        zoneRedundancy: this.asBooleanOrNull(raw['zoneRedundancy']),
+      }));
   }
 
   private updateCommonFormValidators(type: ResourceTypeEnum): void {

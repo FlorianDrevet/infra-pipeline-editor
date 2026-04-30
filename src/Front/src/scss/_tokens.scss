@@ -119,3 +119,17 @@ $ifs-duration-slow: 0.4s;
 
 // --- Focus ring (a11y) ---
 $ifs-focus-ring: 0 0 0 3px rgba(2, 136, 209, 0.4);
+
+// --- On-brand / on-dark text tokens (contrast-safe for glass and dark panels) ---
+$ifs-on-brand-strong: rgba(255, 255, 255, 0.94);
+$ifs-on-brand-high: rgba(245, 251, 255, 0.88);
+$ifs-on-brand-muted: rgba(223, 239, 255, 0.84);
+$ifs-on-brand-subtle: rgba(223, 239, 255, 0.78);
+
+$ifs-on-dark-strong: rgba(255, 255, 255, 0.92);
+$ifs-on-dark-muted: rgba(233, 244, 255, 0.84);
+$ifs-on-dark-subtle: rgba(233, 244, 255, 0.78);
+
+$ifs-text-primary: $ifs-ink-700;
+$ifs-text-secondary: $ifs-ink-500;
+$ifs-accent-soft-contrast: rgba($ifs-brand-blue, 0.68);

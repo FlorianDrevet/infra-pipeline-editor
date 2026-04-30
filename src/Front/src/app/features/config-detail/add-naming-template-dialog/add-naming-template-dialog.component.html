@@ -25,7 +25,11 @@
       <mat-chip-set>
         @for (p of placeholders; track p) {
           <mat-chip
+            tabindex="0"
+            role="button"
             (click)="insertPlaceholder(p)"
+            (keydown.enter)="insertPlaceholder(p)"
+            (keydown.space)="insertPlaceholder(p); $event.preventDefault()"
             [matTooltip]="('CONFIG_DETAIL.NAMING_TEMPLATES.PLACEHOLDERS.' + p | translate)"
             class="placeholder-chip">
             <mat-icon matChipAvatar>add</mat-icon>

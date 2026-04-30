@@ -14,7 +14,7 @@ import { AzureResourceResponse } from '../../../shared/interfaces/resource-group
 import { AppSettingService } from '../../../shared/services/app-setting.service';
 import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
 import { ProjectService } from '../../../shared/services/project.service';
-import { AppSettingResponse, OutputDefinitionResponse } from '../../../shared/interfaces/app-setting.interface';
+import { OutputDefinitionResponse } from '../../../shared/interfaces/app-setting.interface';
 import { ProjectPipelineVariableGroupResponse } from '../../../shared/interfaces/project.interface';
 import { RESOURCE_TYPE_ICONS } from '../../config-detail/enums/resource-type.enum';
 
@@ -24,6 +24,14 @@ export interface AddAppSettingDialogData {
   siblingResources: AzureResourceResponse[];
   environments: { name: string }[];
   projectId: string;
+}
+
+function toSettingNameSegment(value: string): string {
+  return value.toUpperCase().replaceAll(/[^A-Z0-9]/g, '_');
+}
+
+function toSecretNameSegment(value: string): string {
+  return value.toLowerCase().replaceAll(/[^a-z0-9]/g, '-');
 }
 
 @Component({
@@ -148,57 +156,35 @@ export class AddAppSettingDialogComponent {
       const kv = this.selectedKeyVault();
       const secret = this.secretName();
       if (!kv || !secret) return '';
-      const prefix = kv.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
-      const suffix = secret.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+      const prefix = toSettingNameSegment(kv.name);
+      const suffix = toSettingNameSegment(secret);
       return `${prefix}__${suffix}`;
     }
     if (this.mode() === 'output' && this.sensitiveChoice() === 'keyvault') {
       const kv = this.selectedKeyVault();
       const secret = this.sensitiveSecretName();
       if (!kv || !secret) return '';
-      const prefix = kv.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
-      const suffix = secret.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+      const prefix = toSettingNameSegment(kv.name);
+      const suffix = toSettingNameSegment(secret);
       return `${prefix}__${suffix}`;
     }
     const source = this.selectedSource();
     const output = this.selectedOutput();
     if (!source || !output) return '';
-    const prefix = source.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
-    const suffix = output.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+    const prefix = toSettingNameSegment(source.name);
+    const suffix = toSettingNameSegment(output.name);
     return `${prefix}__${suffix}`;
   });
 
   protected readonly canSubmit = computed(() => {
     const name = this.settingName().trim();
     if (!name || this.isSubmitting()) return false;
+
     if (this.mode() === 'static') {
-      const type = this.staticType();
-      if (type === 'standard') {
-        const src = this.standardValueSource();
-        if (src === 'variableGroup') {
-          const hasVg = this.isCreatingNewGroup() ? this.newGroupName().trim().length > 0 : !!this.selectedVariableGroupId();
-          return hasVg && this.pipelineVariableName().trim().length > 0;
-        }
-        if (src === 'environments') {
-          const vals = this.environmentValues();
-          return Object.values(vals).some(v => v.trim().length > 0);
-        }
-        return false;
-      }
-      if (type === 'secret') {
-        const hasKv = !!this.selectedKeyVault() && !!this.secretName().trim();
-        if (!hasKv) return false;
-        const src = this.secretValueSource();
-        if (src === 'variableGroup') {
-          const hasVg = this.isCreatingNewGroup() ? this.newGroupName().trim().length > 0 : !!this.selectedVariableGroupId();
-          return hasVg && this.pipelineVariableName().trim().length > 0;
-        }
-        return src === 'viaBicepparam' || src === 'directInKeyVault';
-      }
-      return false;
+      return this.canSubmitStaticMode();
     }
-    // output mode — final step is now step 4
-    return !!this.selectedSource() && !!this.selectedOutput();
+
+    return this.canSubmitOutputMode();
   });
 
   protected readonly canProceedFromSensitiveStep = computed(() => {
@@ -452,73 +438,12 @@ export class AddAppSettingDialogComponent {
     this.errorKey.set('');
 
     try {
-      // If creating a new variable group, create it first
-      let variableGroupId = this.selectedVariableGroupId();
-      if (this.mode() === 'static' && this.isViaVariableGroup() && this.isCreatingNewGroup()) {
-        const newGroupName = this.newGroupName().trim();
-        if (newGroupName && this.data.projectId) {
-          const newGroup = await this.projectService.addPipelineVariableGroup(this.data.projectId, { groupName: newGroupName });
-          variableGroupId = newGroup.id;
-        }
-      }
-
-      let request;
-      if (this.mode() === 'static') {
-        if (this.isViaVariableGroup() && this.isSecret()) {
-          request = {
-            name,
-            variableGroupId: variableGroupId ?? undefined,
-            pipelineVariableName: this.pipelineVariableName().trim(),
-            keyVaultResourceId: this.selectedKeyVault()!.id,
-            secretName: this.secretName().trim(),
-            secretValueAssignment: this.secretAssignmentMode(),
-          };
-        } else if (this.isViaVariableGroup()) {
-          request = {
-            name,
-            variableGroupId: variableGroupId ?? undefined,
-            pipelineVariableName: this.pipelineVariableName().trim(),
-          };
-        } else if (this.isSecret()) {
-          request = {
-            name,
-            keyVaultResourceId: this.selectedKeyVault()!.id,
-            secretName: this.secretName().trim(),
-            secretValueAssignment: this.secretAssignmentMode(),
-          };
-        } else {
-          request = { name, environmentValues: this.environmentValues() };
-        }
-      } else if (this.mode() === 'output') {
-        if (this.sensitiveChoice() === 'keyvault') {
-          request = {
-            name,
-            sourceResourceId: this.selectedSource()!.id,
-            sourceOutputName: this.selectedOutput()!.name,
-            keyVaultResourceId: this.selectedKeyVault()!.id,
-            secretName: this.sensitiveSecretName().trim(),
-            exportToKeyVault: true,
-          };
-        } else {
-          request = {
-            name,
-            sourceResourceId: this.selectedSource()!.id,
-            sourceOutputName: this.selectedOutput()!.name,
-          };
-        }
-      } else {
-        request = { name, environmentValues: this.environmentValues() };
-      }
-
+      const variableGroupId = await this.resolveVariableGroupId();
+      const request = this.buildSubmitRequest(name, variableGroupId);
       const result = await this.appSettingService.add(this.data.resourceId, request);
       this.dialogRef.close(result);
     } catch (err: unknown) {
-      const axios = await import('axios');
-      if (axios.isAxiosError(err) && err.response?.status === 409) {
-        this.errorKey.set('RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ERROR_DUPLICATE');
-      } else {
-        this.errorKey.set('RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ERROR');
-      }
+      await this.setSubmitError(err);
     } finally {
       this.isSubmitting.set(false);
     }
@@ -529,15 +454,169 @@ export class AddAppSettingDialogComponent {
   }
 
   protected onCancel(): void {
-    this.dialogRef.close(undefined);
+    this.dialogRef.close();
+  }
+
+  private canSubmitStaticMode(): boolean {
+    if (this.staticType() === 'standard') {
+      return this.canSubmitStaticStandardMode();
+    }
+
+    if (this.staticType() === 'secret') {
+      return this.canSubmitStaticSecretMode();
+    }
+
+    return false;
+  }
+
+  private canSubmitStaticStandardMode(): boolean {
+    if (this.standardValueSource() === 'variableGroup') {
+      return this.hasVariableGroupTarget() && this.hasPipelineVariableName();
+    }
+
+    if (this.standardValueSource() === 'environments') {
+      return this.hasEnvironmentValues();
+    }
+
+    return false;
+  }
+
+  private canSubmitStaticSecretMode(): boolean {
+    if (!this.hasSecretTarget()) {
+      return false;
+    }
+
+    if (this.secretValueSource() === 'variableGroup') {
+      return this.hasVariableGroupTarget() && this.hasPipelineVariableName();
+    }
+
+    return this.secretValueSource() === 'viaBicepparam' || this.secretValueSource() === 'directInKeyVault';
+  }
+
+  private canSubmitOutputMode(): boolean {
+    return this.selectedSource() !== null && this.selectedOutput() !== null;
+  }
+
+  private hasVariableGroupTarget(): boolean {
+    if (this.isCreatingNewGroup()) {
+      return this.newGroupName().trim().length > 0;
+    }
+
+    return this.selectedVariableGroupId() !== null;
+  }
+
+  private hasPipelineVariableName(): boolean {
+    return this.pipelineVariableName().trim().length > 0;
+  }
+
+  private hasEnvironmentValues(): boolean {
+    return Object.values(this.environmentValues()).some(value => value.trim().length > 0);
+  }
+
+  private hasSecretTarget(): boolean {
+    return this.selectedKeyVault() !== null && this.secretName().trim().length > 0;
+  }
+
+  private async resolveVariableGroupId(): Promise<string | null> {
+    const currentVariableGroupId = this.selectedVariableGroupId();
+    if (this.mode() !== 'static' || !this.isViaVariableGroup() || !this.isCreatingNewGroup()) {
+      return currentVariableGroupId;
+    }
+
+    const newGroupName = this.newGroupName().trim();
+    if (!newGroupName || !this.data.projectId) {
+      return currentVariableGroupId;
+    }
+
+    const newGroup = await this.projectService.addPipelineVariableGroup(this.data.projectId, { groupName: newGroupName });
+    return newGroup.id;
+  }
+
+  private buildSubmitRequest(name: string, variableGroupId: string | null) {
+    if (this.mode() === 'static') {
+      return this.buildStaticRequest(name, variableGroupId);
+    }
+
+    return this.buildOutputRequest(name);
+  }
+
+  private buildStaticRequest(name: string, variableGroupId: string | null) {
+    if (this.isViaVariableGroup() && this.isSecret()) {
+      const selectedKeyVault = this.selectedKeyVault();
+
+      return {
+        name,
+        variableGroupId: variableGroupId ?? undefined,
+        pipelineVariableName: this.pipelineVariableName().trim(),
+        keyVaultResourceId: selectedKeyVault?.id,
+        secretName: this.secretName().trim(),
+        secretValueAssignment: this.secretAssignmentMode(),
+      };
+    }
+
+    if (this.isViaVariableGroup()) {
+      return {
+        name,
+        variableGroupId: variableGroupId ?? undefined,
+        pipelineVariableName: this.pipelineVariableName().trim(),
+      };
+    }
+
+    if (this.isSecret()) {
+      const selectedKeyVault = this.selectedKeyVault();
+
+      return {
+        name,
+        keyVaultResourceId: selectedKeyVault?.id,
+        secretName: this.secretName().trim(),
+        secretValueAssignment: this.secretAssignmentMode(),
+      };
+    }
+
+    return {
+      name,
+      environmentValues: this.environmentValues(),
+    };
+  }
+
+  private buildOutputRequest(name: string) {
+    const sourceResourceId = this.selectedSource()?.id;
+    const sourceOutputName = this.selectedOutput()?.name;
+
+    if (this.sensitiveChoice() === 'keyvault') {
+      return {
+        name,
+        sourceResourceId,
+        sourceOutputName,
+        keyVaultResourceId: this.selectedKeyVault()?.id,
+        secretName: this.sensitiveSecretName().trim(),
+        exportToKeyVault: true,
+      };
+    }
+
+    return {
+      name,
+      sourceResourceId,
+      sourceOutputName,
+    };
+  }
+
+  private async setSubmitError(err: unknown): Promise<void> {
+    const axios = await import('axios');
+    if (axios.isAxiosError(err) && err.response?.status === 409) {
+      this.errorKey.set('RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ERROR_DUPLICATE');
+      return;
+    }
+
+    this.errorKey.set('RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ERROR');
   }
 
   private generateSecretName(): string {
     const source = this.selectedSource();
     const output = this.selectedOutput();
     if (!source || !output) return '';
-    const prefix = source.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    const suffix = output.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const prefix = toSecretNameSegment(source.name);
+    const suffix = toSecretNameSegment(output.name);
     return `${prefix}-${suffix}`;
   }
 }

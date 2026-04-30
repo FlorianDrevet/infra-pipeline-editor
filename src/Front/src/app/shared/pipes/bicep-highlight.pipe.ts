@@ -10,45 +10,78 @@ const TYPES = ['string', 'int', 'bool', 'object', 'array'];
 
 const CONSTANTS = ['true', 'false', 'null'];
 
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+};
+
+const TOKEN_CLASS_BY_GROUP_INDEX = [
+  'bh-comment',
+  'bh-comment',
+  'bh-string',
+  'bh-decorator',
+  'bh-keyword',
+  'bh-type',
+  'bh-constant',
+  'bh-number',
+  'bh-property',
+];
+
 // Order matters: earlier groups take priority
 // Groups: 1=block comment, 2=line comment, 3=string, 4=decorator, 5=keyword, 6=type, 7=constant, 8=number, 9=property accessor
 const TOKEN_REGEX = new RegExp(
   [
-    `(\\/\\*[\\s\\S]*?\\*\\/)`,                                   // 1: block comment
-    `(\\/\\/[^\\n]*)`,                                             // 2: line comment
-    `('(?:[^'\\\\]|\\\\.)*')`,                                     // 3: single-quoted string
-    `(@[a-zA-Z_][a-zA-Z0-9_]*)`,                                   // 4: decorator
-    `\\b(${KEYWORDS.join('|')})\\b`,                                // 5: keyword
-    `\\b(${TYPES.join('|')})\\b`,                                   // 6: type
-    `\\b(${CONSTANTS.join('|')})\\b`,                               // 7: constant
-    `\\b(\\d+(?:\\.\\d+)?)\\b`,                                    // 8: number
-    `(\\.[a-zA-Z_][a-zA-Z0-9_]*)`,                                 // 9: property accessor
+    String.raw`(\/\*[\s\S]*?\*\/)`,                         // 1: block comment
+    String.raw`(\/\/[^\n]*)`,                                   // 2: line comment
+    String.raw`('(?:[^'\\]|\\.)*')`,                           // 3: single-quoted string
+    String.raw`(@[a-zA-Z_][a-zA-Z0-9_]*)`,                         // 4: decorator
+    String.raw`\b(${KEYWORDS.join('|')})\b`,                     // 5: keyword
+    String.raw`\b(${TYPES.join('|')})\b`,                        // 6: type
+    String.raw`\b(${CONSTANTS.join('|')})\b`,                    // 7: constant
+    String.raw`\b(\d+(?:\.\d+)?)\b`,                          // 8: number
+    String.raw`(\.[a-zA-Z_][a-zA-Z0-9_]*)`,                       // 9: property accessor
   ].join('|'),
   'g'
 );
 
 function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  let escaped = '';
+
+  for (const character of text) {
+    escaped += HTML_ESCAPE_MAP[character] ?? character;
+  }
+
+  return escaped;
 }
 
 function highlightBicep(code: string): string {
   const escaped = escapeHtml(code);
-  return escaped.replace(TOKEN_REGEX, (match, g1, g2, g3, g4, g5, g6, g7, g8, g9) => {
-    if (g1) return `<span class="bh-comment">${match}</span>`;
-    if (g2) return `<span class="bh-comment">${match}</span>`;
-    if (g3) return `<span class="bh-string">${match}</span>`;
-    if (g4) return `<span class="bh-decorator">${match}</span>`;
-    if (g5) return `<span class="bh-keyword">${match}</span>`;
-    if (g6) return `<span class="bh-type">${match}</span>`;
-    if (g7) return `<span class="bh-constant">${match}</span>`;
-    if (g8) return `<span class="bh-number">${match}</span>`;
-    if (g9) return `<span class="bh-property">${match}</span>`;
-    return match;
-  });
+  let highlighted = '';
+  let lastIndex = 0;
+
+  for (const match of escaped.matchAll(TOKEN_REGEX)) {
+    const token = match[0];
+    const startIndex = match.index ?? lastIndex;
+    const tokenClass = resolveTokenClass(match);
+
+    highlighted += escaped.slice(lastIndex, startIndex);
+    highlighted += tokenClass ? `<span class="${tokenClass}">${token}</span>` : token;
+    lastIndex = startIndex + token.length;
+  }
+
+  return highlighted + escaped.slice(lastIndex);
+}
+
+function resolveTokenClass(match: RegExpMatchArray): string | null {
+  for (let groupIndex = 1; groupIndex <= TOKEN_CLASS_BY_GROUP_INDEX.length; groupIndex++) {
+    if (match[groupIndex]) {
+      return TOKEN_CLASS_BY_GROUP_INDEX[groupIndex - 1];
+    }
+  }
+
+  return null;
 }
 
 @Pipe({ name: 'bicepHighlight', standalone: true })

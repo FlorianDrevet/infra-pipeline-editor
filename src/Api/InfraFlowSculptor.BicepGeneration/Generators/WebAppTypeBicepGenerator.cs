@@ -15,10 +15,33 @@ public sealed class WebAppTypeBicepGenerator
     private const string CodeDeploymentMode = "Code";
     private const string ContainerDeploymentMode = "Container";
     private const string DefaultRuntimeStack = "DOTNETCORE";
+    private const string DefaultRuntimeVersion = "8.0";
+    private const string DefaultDockerImageTag = "latest";
+    private const string BooleanTrueString = "true";
+    private const string EmptyParameterValue = "";
     private const string ContainerKind = "app,linux,container";
 
     private const string ManagedIdentityModuleFileName = "webAppContainerManagedIdentity";
     private const string AdminCredentialsModuleFileName = "webAppContainerAdminCredentials";
+
+    private const string RuntimeStackTypeName = "RuntimeStack";
+    private const string DeploymentModeTypeName = "DeploymentMode";
+    private const string DeploymentModePropertyName = "deploymentMode";
+    private const string RuntimeStackPropertyName = "runtimeStack";
+    private const string RuntimeVersionPropertyName = "runtimeVersion";
+    private const string AlwaysOnPropertyName = "alwaysOn";
+    private const string HttpsOnlyPropertyName = "httpsOnly";
+    private const string DockerImageNamePropertyName = "dockerImageName";
+    private const string DockerImageTagPropertyName = "dockerImageTag";
+    private const string AcrLoginServerPropertyName = "acrLoginServer";
+    private const string AcrAuthModePropertyName = "acrAuthMode";
+    private const string AcrUseManagedIdentityCredsPropertyName = "acrUseManagedIdentityCreds";
+    private const string AcrUserManagedIdentityIdPropertyName = "acrUserManagedIdentityId";
+    private const string CustomDomainsParameterName = "customDomains";
+    private const string WebAppModuleName = "webApp";
+    private const string WebAppModuleFolderName = "WebApp";
+    private const string WebAppArmType = "Microsoft.Web/sites@2023-12-01";
+    private const string HostNameBindingsArmType = "Microsoft.Web/sites/hostNameBindings@2023-12-01";
 
     private const string DockerRegistryServerUrlSettingName = "DOCKER_REGISTRY_SERVER_URL";
     private const string DockerRegistryServerUsernameSettingName = "DOCKER_REGISTRY_SERVER_USERNAME";
@@ -33,34 +56,34 @@ public sealed class WebAppTypeBicepGenerator
     /// <inheritdoc />
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
-        var deploymentMode = resource.Properties.GetValueOrDefault("deploymentMode", CodeDeploymentMode);
+        var deploymentMode = resource.Properties.GetValueOrDefault(DeploymentModePropertyName, CodeDeploymentMode);
         var isContainer = string.Equals(deploymentMode, ContainerDeploymentMode, StringComparison.OrdinalIgnoreCase);
         var acrAuthMode = GetAcrAuthMode(resource.Properties);
         var useAdminCredentials = isContainer
             && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
 
         var builder = new BicepModuleBuilder()
-            .Module("webApp", "WebApp", ResourceTypeName)
-            .Import("./types.bicep", "RuntimeStack")
+            .Module(WebAppModuleName, WebAppModuleFolderName, ResourceTypeName)
+            .Import("./types.bicep", RuntimeStackTypeName)
             .Param("location", BicepType.String, "Azure region for the Web App")
             .Param("name", BicepType.String, "Name of the Web App")
             .Param("appServicePlanId", BicepType.String, "Resource ID of the App Service Plan")
-            .Param("runtimeStack", BicepType.Custom("RuntimeStack"), "Runtime stack of the Web App",
+            .Param(RuntimeStackPropertyName, BicepType.Custom(RuntimeStackTypeName), "Runtime stack of the Web App",
                 defaultValue: new BicepStringLiteral(DefaultRuntimeStack))
-            .Param("runtimeVersion", BicepType.String, "Runtime version (e.g. 8.0, 18)")
-            .Param("alwaysOn", BicepType.Bool, "Whether the app is always on")
-            .Param("httpsOnly", BicepType.Bool, "Whether HTTPS only is enforced")
-            .Param("deploymentMode", BicepType.String, "Deployment mode",
+            .Param(RuntimeVersionPropertyName, BicepType.String, "Runtime version (e.g. 8.0, 18)")
+            .Param(AlwaysOnPropertyName, BicepType.Bool, "Whether the app is always on")
+            .Param(HttpsOnlyPropertyName, BicepType.Bool, "Whether HTTPS only is enforced")
+            .Param(DeploymentModePropertyName, BicepType.String, "Deployment mode",
                 defaultValue: new BicepStringLiteral(isContainer ? ContainerDeploymentMode : CodeDeploymentMode));
 
         // Container-specific params
         if (isContainer)
         {
             builder
-                .Param("dockerImageName", BicepType.String, "Docker image name (e.g. myapp/api)")
-                .Param("dockerImageTag", BicepType.String, "Docker image tag (e.g. latest, v1.2.3)",
-                    defaultValue: new BicepStringLiteral("latest"))
-                .Param("acrLoginServer", BicepType.String, "ACR login server (e.g. myregistry.azurecr.io)");
+                .Param(DockerImageNamePropertyName, BicepType.String, "Docker image name (e.g. myapp/api)")
+                .Param(DockerImageTagPropertyName, BicepType.String, "Docker image tag (e.g. latest, v1.2.3)",
+                    defaultValue: new BicepStringLiteral(DefaultDockerImageTag))
+                .Param(AcrLoginServerPropertyName, BicepType.String, "ACR login server (e.g. myregistry.azurecr.io)");
 
             if (useAdminCredentials)
             {
@@ -70,16 +93,16 @@ public sealed class WebAppTypeBicepGenerator
             else
             {
                 builder
-                    .Param("acrUseManagedIdentityCreds", BicepType.Bool,
+                    .Param(AcrUseManagedIdentityCredsPropertyName, BicepType.Bool,
                         "Whether to use managed identity credentials for ACR",
                         defaultValue: new BicepBoolLiteral(true))
-                    .Param("acrUserManagedIdentityId", BicepType.String,
+                    .Param(AcrUserManagedIdentityIdPropertyName, BicepType.String,
                         "Client ID of the user-assigned managed identity for ACR pull",
-                        defaultValue: new BicepStringLiteral(""));
+                        defaultValue: new BicepStringLiteral(EmptyParameterValue));
             }
         }
 
-        builder.Param("customDomains", BicepType.Array, "Custom domain bindings for this Web App",
+        builder.Param(CustomDomainsParameterName, BicepType.Array, "Custom domain bindings for this Web App",
             defaultValue: new BicepArrayExpression([]));
 
         // Variables
@@ -102,7 +125,7 @@ public sealed class WebAppTypeBicepGenerator
         }
 
         // Primary resource
-        builder.Resource("webApp", "Microsoft.Web/sites@2023-12-01")
+        builder.Resource(WebAppModuleName, WebAppArmType)
             .Property("name", new BicepReference("name"))
             .Property("location", new BicepReference("location"));
 
@@ -117,24 +140,24 @@ public sealed class WebAppTypeBicepGenerator
             new("linuxFxVersion", isContainer
                 ? new BicepRawExpression("'DOCKER|${dockerImage}'")
                 : new BicepReference("linuxFxVersion")),
-            new("alwaysOn", new BicepReference("alwaysOn")),
+            new(AlwaysOnPropertyName, new BicepReference(AlwaysOnPropertyName)),
             new("ftpsState", new BicepStringLiteral("Disabled")),
             new("minTlsVersion", new BicepStringLiteral("1.2")),
         };
 
         if (isContainer && !useAdminCredentials)
         {
-            siteConfigProps.Add(new BicepPropertyAssignment("acrUseManagedIdentityCreds",
-                new BicepReference("acrUseManagedIdentityCreds")));
+            siteConfigProps.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsPropertyName,
+                new BicepReference(AcrUseManagedIdentityCredsPropertyName)));
             siteConfigProps.Add(new BicepPropertyAssignment("acrUserManagedIdentityID",
                 new BicepConditionalExpression(
-                    new BicepRawExpression("!empty(acrUserManagedIdentityId)"),
-                    new BicepReference("acrUserManagedIdentityId"),
+                    new BicepRawExpression($"!empty({AcrUserManagedIdentityIdPropertyName})"),
+                    new BicepReference(AcrUserManagedIdentityIdPropertyName),
                     new BicepRawExpression("null"))));
         }
         else if (isContainer && useAdminCredentials)
         {
-            siteConfigProps.Add(new BicepPropertyAssignment("acrUseManagedIdentityCreds",
+            siteConfigProps.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsPropertyName,
                 new BicepBoolLiteral(false)));
             siteConfigProps.Add(new BicepPropertyAssignment("appSettings",
                 new BicepArrayExpression([
@@ -155,17 +178,17 @@ public sealed class WebAppTypeBicepGenerator
 
         builder.Property("properties", props => props
             .Property("serverFarmId", new BicepReference("appServicePlanId"))
-            .Property("httpsOnly", new BicepReference("httpsOnly"))
+            .Property(HttpsOnlyPropertyName, new BicepReference(HttpsOnlyPropertyName))
             .Property("siteConfig", new BicepObjectExpression(siteConfigProps)));
 
         // hostNameBindings for-loop child resource
-        builder.AdditionalResource("hostNameBindings", "Microsoft.Web/sites/hostNameBindings@2023-12-01",
-            forLoop: new BicepForLoop("domain", new BicepReference("customDomains")),
-            parentSymbol: "webApp",
+        builder.AdditionalResource("hostNameBindings", HostNameBindingsArmType,
+            forLoop: new BicepForLoop("domain", new BicepReference(CustomDomainsParameterName)),
+            parentSymbol: WebAppModuleName,
             bodyBuilder: body => body
                 .Property("name", new BicepRawExpression("domain.domainName"))
                 .Property("properties", p => p
-                    .Property("siteName", new BicepRawExpression("webApp.name"))
+                    .Property("siteName", new BicepRawExpression($"{WebAppModuleName}.name"))
                     .Property("hostNameType", new BicepStringLiteral("Verified"))
                     .Property("sslState", new BicepConditionalExpression(
                         new BicepRawExpression("domain.bindingType == 'SniEnabled'"),
@@ -174,25 +197,25 @@ public sealed class WebAppTypeBicepGenerator
 
         // Outputs
         builder
-            .Output("id", BicepType.String, new BicepRawExpression("webApp.id"),
+            .Output("id", BicepType.String, new BicepRawExpression($"{WebAppModuleName}.id"),
                 description: "The resource ID of the Web App")
             .Output("defaultHostName", BicepType.String,
-                new BicepRawExpression("webApp.properties.defaultHostName"),
+                new BicepRawExpression($"{WebAppModuleName}.properties.defaultHostName"),
                 description: "The default host name of the Web App")
             .Output("principalId", BicepType.String,
-                new BicepRawExpression("webApp.identity.principalId"),
+                new BicepRawExpression($"{WebAppModuleName}.identity.principalId"),
                 description: "The principal ID of the system-assigned managed identity")
             .Output("customDomainVerificationId", BicepType.String,
-                new BicepRawExpression("webApp.properties.customDomainVerificationId"),
+                new BicepRawExpression($"{WebAppModuleName}.properties.customDomainVerificationId"),
                 description: "The custom domain verification ID");
 
         // Exported types
         builder
-            .ExportedType("RuntimeStack",
+            .ExportedType(RuntimeStackTypeName,
                 new BicepRawExpression("'DOTNETCORE' | 'NODE' | 'PYTHON' | 'JAVA' | 'PHP'"),
                 description: "Runtime stack for the Web App")
-            .ExportedType("DeploymentMode",
-                new BicepRawExpression("'Code' | 'Container'"),
+            .ExportedType(DeploymentModeTypeName,
+                new BicepRawExpression($"'{CodeDeploymentMode}' | '{ContainerDeploymentMode}'"),
                 description: "Deployment mode for the Web App");
 
         return builder.Build();
@@ -200,38 +223,38 @@ public sealed class WebAppTypeBicepGenerator
 
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
-        var deploymentMode = resource.Properties.GetValueOrDefault("deploymentMode", CodeDeploymentMode);
+        var deploymentMode = resource.Properties.GetValueOrDefault(DeploymentModePropertyName, CodeDeploymentMode);
         var isContainer = string.Equals(deploymentMode, ContainerDeploymentMode, StringComparison.OrdinalIgnoreCase);
         var acrAuthMode = GetAcrAuthMode(resource.Properties);
         var useAdminCredentials = isContainer
             && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
 
-        var runtimeStack = resource.Properties.GetValueOrDefault("runtimeStack", DefaultRuntimeStack);
-        var runtimeVersion = resource.Properties.GetValueOrDefault("runtimeVersion", "8.0");
-        var alwaysOn = resource.Properties.GetValueOrDefault("alwaysOn", "true") == "true";
-        var httpsOnly = resource.Properties.GetValueOrDefault("httpsOnly", "true") == "true";
-        var dockerImageName = resource.Properties.GetValueOrDefault("dockerImageName", "");
+        var runtimeStack = resource.Properties.GetValueOrDefault(RuntimeStackPropertyName, DefaultRuntimeStack);
+        var runtimeVersion = resource.Properties.GetValueOrDefault(RuntimeVersionPropertyName, DefaultRuntimeVersion);
+        var alwaysOn = resource.Properties.GetValueOrDefault(AlwaysOnPropertyName, BooleanTrueString) == BooleanTrueString;
+        var httpsOnly = resource.Properties.GetValueOrDefault(HttpsOnlyPropertyName, BooleanTrueString) == BooleanTrueString;
+        var dockerImageName = resource.Properties.GetValueOrDefault(DockerImageNamePropertyName, EmptyParameterValue);
 
         var parameters = new Dictionary<string, object>
         {
-            ["runtimeStack"] = runtimeStack,
-            ["runtimeVersion"] = runtimeVersion,
-            ["alwaysOn"] = alwaysOn,
-            ["httpsOnly"] = httpsOnly,
-            ["deploymentMode"] = deploymentMode,
-            ["customDomains"] = new List<object>(),
+            [RuntimeStackPropertyName] = runtimeStack,
+            [RuntimeVersionPropertyName] = runtimeVersion,
+            [AlwaysOnPropertyName] = alwaysOn,
+            [HttpsOnlyPropertyName] = httpsOnly,
+            [DeploymentModePropertyName] = deploymentMode,
+            [CustomDomainsParameterName] = new List<object>(),
         };
 
         if (isContainer)
         {
-            parameters["dockerImageName"] = dockerImageName;
-            parameters["dockerImageTag"] = "latest";
-            parameters["acrLoginServer"] = "";
+            parameters[DockerImageNamePropertyName] = dockerImageName;
+            parameters[DockerImageTagPropertyName] = DefaultDockerImageTag;
+            parameters[AcrLoginServerPropertyName] = EmptyParameterValue;
 
             if (!useAdminCredentials)
             {
-                parameters["acrUseManagedIdentityCreds"] = true;
-                parameters["acrUserManagedIdentityId"] = "";
+                parameters[AcrUseManagedIdentityCredsPropertyName] = true;
+                parameters[AcrUserManagedIdentityIdPropertyName] = EmptyParameterValue;
             }
         }
 
@@ -243,9 +266,9 @@ public sealed class WebAppTypeBicepGenerator
 
         return new GeneratedTypeModule
         {
-            ModuleName = "webApp",
+            ModuleName = WebAppModuleName,
             ModuleFileName = moduleFileName,
-            ModuleFolderName = "WebApp",
+            ModuleFolderName = WebAppModuleFolderName,
             ModuleBicepContent = isContainer
                 ? useAdminCredentials
                     ? WebAppContainerAdminCredentialsModuleTemplate
@@ -260,24 +283,24 @@ public sealed class WebAppTypeBicepGenerator
 
     private static string GetAcrAuthMode(IReadOnlyDictionary<string, string> properties)
     {
-        var acrAuthMode = properties.GetValueOrDefault("acrAuthMode", string.Empty);
+        var acrAuthMode = properties.GetValueOrDefault(AcrAuthModePropertyName, string.Empty);
         return string.IsNullOrWhiteSpace(acrAuthMode)
             ? ManagedIdentityAcrAuthMode
             : acrAuthMode;
     }
 
-    private const string WebAppTypesTemplate = """
+    private static readonly string WebAppTypesTemplate = $$"""
         @export()
         @description('Runtime stack for the Web App')
-        type RuntimeStack = 'DOTNETCORE' | 'NODE' | 'PYTHON' | 'JAVA' | 'PHP'
+        type {{RuntimeStackTypeName}} = '{{DefaultRuntimeStack}}' | 'NODE' | 'PYTHON' | 'JAVA' | 'PHP'
 
         @export()
         @description('Deployment mode for the Web App')
-        type DeploymentMode = 'Code' | 'Container'
+        type {{DeploymentModeTypeName}} = '{{CodeDeploymentMode}}' | '{{ContainerDeploymentMode}}'
         """;
 
-    private const string WebAppCodeModuleTemplate = """
-        import { RuntimeStack } from './types.bicep'
+    private static readonly string WebAppCodeModuleTemplate = $$"""
+        import { {{RuntimeStackTypeName}} } from './types.bicep'
 
         @description('Azure region for the Web App')
         param location string
@@ -289,65 +312,65 @@ public sealed class WebAppTypeBicepGenerator
         param appServicePlanId string
 
         @description('Runtime stack of the Web App')
-        param runtimeStack RuntimeStack = 'DOTNETCORE'
+                param {{RuntimeStackPropertyName}} {{RuntimeStackTypeName}} = '{{DefaultRuntimeStack}}'
 
         @description('Runtime version (e.g. 8.0, 18)')
-        param runtimeVersion string
+                param {{RuntimeVersionPropertyName}} string
 
         @description('Whether the app is always on')
-        param alwaysOn bool
+                param {{AlwaysOnPropertyName}} bool
 
         @description('Whether HTTPS only is enforced')
-        param httpsOnly bool
+                param {{HttpsOnlyPropertyName}} bool
 
         @description('Deployment mode')
-        param deploymentMode string = 'Code'
+                param {{DeploymentModePropertyName}} string = '{{CodeDeploymentMode}}'
 
         @description('Custom domain bindings for this Web App')
-        param customDomains array = []
+                param {{CustomDomainsParameterName}} array = []
 
-        var linuxFxVersion = '${toUpper(runtimeStack)}|${runtimeVersion}'
+                var linuxFxVersion = '${toUpper({{RuntimeStackPropertyName}})}|${{{RuntimeVersionPropertyName}}}'
 
-        resource webApp 'Microsoft.Web/sites@2023-12-01' = {
+                resource {{WebAppModuleName}} '{{WebAppArmType}}' = {
           name: name
           location: location
           properties: {
             serverFarmId: appServicePlanId
-            httpsOnly: httpsOnly
+                        {{HttpsOnlyPropertyName}}: {{HttpsOnlyPropertyName}}
             siteConfig: {
               linuxFxVersion: linuxFxVersion
-              alwaysOn: alwaysOn
+                            {{AlwaysOnPropertyName}}: {{AlwaysOnPropertyName}}
               ftpsState: 'Disabled'
               minTlsVersion: '1.2'
             }
           }
         }
 
-        resource hostNameBindings 'Microsoft.Web/sites/hostNameBindings@2023-12-01' = [for domain in customDomains: {
-          parent: webApp
+                resource hostNameBindings '{{HostNameBindingsArmType}}' = [for domain in {{CustomDomainsParameterName}}: {
+                    parent: {{WebAppModuleName}}
           name: domain.domainName
           properties: {
-            siteName: webApp.name
+                        siteName: {{WebAppModuleName}}.name
             hostNameType: 'Verified'
             sslState: domain.bindingType == 'SniEnabled' ? 'SniEnabled' : 'Disabled'
           }
         }]
 
         @description('The resource ID of the Web App')
-        output id string = webApp.id
+                output id string = {{WebAppModuleName}}.id
 
         @description('The default host name of the Web App')
-        output defaultHostName string = webApp.properties.defaultHostName
+                output defaultHostName string = {{WebAppModuleName}}.properties.defaultHostName
 
         @description('The principal ID of the system-assigned managed identity')
-        output principalId string = webApp.identity.principalId
+                output principalId string = {{WebAppModuleName}}.identity.principalId
 
         @description('The custom domain verification ID')
-        output customDomainVerificationId string = webApp.properties.customDomainVerificationId
-        """;
+                output customDomainVerificationId string = {{WebAppModuleName}}.properties.customDomainVerificationId
+                """;
 
-    private const string WebAppContainerManagedIdentityModuleTemplate = """
-        import { RuntimeStack } from './types.bicep'
+        private static readonly string WebAppContainerManagedIdentityModuleTemplate = $$"""
+                import { {{RuntimeStackTypeName}} } from './types.bicep'
 
         @description('Azure region for the Web App')
         param location string
@@ -359,83 +382,83 @@ public sealed class WebAppTypeBicepGenerator
         param appServicePlanId string
 
         @description('Runtime stack of the Web App')
-        param runtimeStack RuntimeStack = 'DOTNETCORE'
+                param {{RuntimeStackPropertyName}} {{RuntimeStackTypeName}} = '{{DefaultRuntimeStack}}'
 
         @description('Runtime version (e.g. 8.0, 18)')
-        param runtimeVersion string
+                param {{RuntimeVersionPropertyName}} string
 
         @description('Whether the app is always on')
-        param alwaysOn bool
+                param {{AlwaysOnPropertyName}} bool
 
         @description('Whether HTTPS only is enforced')
-        param httpsOnly bool
+                param {{HttpsOnlyPropertyName}} bool
 
         @description('Deployment mode')
-        param deploymentMode string = 'Container'
+                param {{DeploymentModePropertyName}} string = '{{ContainerDeploymentMode}}'
 
         @description('Docker image name (e.g. myapp/api)')
-        param dockerImageName string
+                param {{DockerImageNamePropertyName}} string
 
         @description('Docker image tag (e.g. latest, v1.2.3)')
-        param dockerImageTag string = 'latest'
+                param {{DockerImageTagPropertyName}} string = '{{DefaultDockerImageTag}}'
 
         @description('ACR login server (e.g. myregistry.azurecr.io)')
-        param acrLoginServer string
+                param {{AcrLoginServerPropertyName}} string
 
         @description('Whether to use managed identity credentials for ACR')
-        param acrUseManagedIdentityCreds bool = true
+                param {{AcrUseManagedIdentityCredsPropertyName}} bool = true
 
         @description('Client ID of the user-assigned managed identity for ACR pull')
-        param acrUserManagedIdentityId string = ''
+                param {{AcrUserManagedIdentityIdPropertyName}} string = '{{EmptyParameterValue}}'
 
         @description('Custom domain bindings for this Web App')
-        param customDomains array = []
+                param {{CustomDomainsParameterName}} array = []
 
-        var dockerImage = '${acrLoginServer}/${dockerImageName}:${dockerImageTag}'
+                var dockerImage = '${{{AcrLoginServerPropertyName}}}/${{{DockerImageNamePropertyName}}}:${{{DockerImageTagPropertyName}}}'
 
-        resource webApp 'Microsoft.Web/sites@2023-12-01' = {
+                resource {{WebAppModuleName}} '{{WebAppArmType}}' = {
           name: name
           location: location
-          kind: 'app,linux,container'
+                    kind: '{{ContainerKind}}'
           properties: {
             serverFarmId: appServicePlanId
-            httpsOnly: httpsOnly
+                        {{HttpsOnlyPropertyName}}: {{HttpsOnlyPropertyName}}
             siteConfig: {
               linuxFxVersion: 'DOCKER|${dockerImage}'
-              alwaysOn: alwaysOn
+                            {{AlwaysOnPropertyName}}: {{AlwaysOnPropertyName}}
               ftpsState: 'Disabled'
               minTlsVersion: '1.2'
-              acrUseManagedIdentityCreds: acrUseManagedIdentityCreds
-              acrUserManagedIdentityID: !empty(acrUserManagedIdentityId) ? acrUserManagedIdentityId : null
+                            {{AcrUseManagedIdentityCredsPropertyName}}: {{AcrUseManagedIdentityCredsPropertyName}}
+                            acrUserManagedIdentityID: !empty({{AcrUserManagedIdentityIdPropertyName}}) ? {{AcrUserManagedIdentityIdPropertyName}} : null
             }
           }
         }
 
-        resource hostNameBindings 'Microsoft.Web/sites/hostNameBindings@2023-12-01' = [for domain in customDomains: {
-          parent: webApp
+                resource hostNameBindings '{{HostNameBindingsArmType}}' = [for domain in {{CustomDomainsParameterName}}: {
+                    parent: {{WebAppModuleName}}
           name: domain.domainName
           properties: {
-            siteName: webApp.name
+                        siteName: {{WebAppModuleName}}.name
             hostNameType: 'Verified'
             sslState: domain.bindingType == 'SniEnabled' ? 'SniEnabled' : 'Disabled'
           }
         }]
 
         @description('The resource ID of the Web App')
-        output id string = webApp.id
+                output id string = {{WebAppModuleName}}.id
 
         @description('The default host name of the Web App')
-        output defaultHostName string = webApp.properties.defaultHostName
+                output defaultHostName string = {{WebAppModuleName}}.properties.defaultHostName
 
         @description('The principal ID of the system-assigned managed identity')
-        output principalId string = webApp.identity.principalId
+                output principalId string = {{WebAppModuleName}}.identity.principalId
 
         @description('The custom domain verification ID')
-        output customDomainVerificationId string = webApp.properties.customDomainVerificationId
-        """;
+                output customDomainVerificationId string = {{WebAppModuleName}}.properties.customDomainVerificationId
+                """;
 
-    private const string WebAppContainerAdminCredentialsModuleTemplate = """
-        import { RuntimeStack } from './types.bicep'
+        private static readonly string WebAppContainerAdminCredentialsModuleTemplate = $$"""
+                import { {{RuntimeStackTypeName}} } from './types.bicep'
 
         @description('Azure region for the Web App')
         param location string
@@ -447,63 +470,63 @@ public sealed class WebAppTypeBicepGenerator
         param appServicePlanId string
 
         @description('Runtime stack of the Web App')
-        param runtimeStack RuntimeStack = 'DOTNETCORE'
+                param {{RuntimeStackPropertyName}} {{RuntimeStackTypeName}} = '{{DefaultRuntimeStack}}'
 
         @description('Runtime version (e.g. 8.0, 18)')
-        param runtimeVersion string
+                param {{RuntimeVersionPropertyName}} string
 
         @description('Whether the app is always on')
-        param alwaysOn bool
+                param {{AlwaysOnPropertyName}} bool
 
         @description('Whether HTTPS only is enforced')
-        param httpsOnly bool
+                param {{HttpsOnlyPropertyName}} bool
 
         @description('Deployment mode')
-        param deploymentMode string = 'Container'
+                param {{DeploymentModePropertyName}} string = '{{ContainerDeploymentMode}}'
 
         @description('Docker image name (e.g. myapp/api)')
-        param dockerImageName string
+                param {{DockerImageNamePropertyName}} string
 
         @description('Docker image tag (e.g. latest, v1.2.3)')
-        param dockerImageTag string = 'latest'
+                param {{DockerImageTagPropertyName}} string = '{{DefaultDockerImageTag}}'
 
         @description('ACR login server (e.g. myregistry.azurecr.io)')
-        param acrLoginServer string
+                param {{AcrLoginServerPropertyName}} string
 
         @secure()
         @description('Admin password for the Container Registry')
         param acrPassword string
 
         @description('Custom domain bindings for this Web App')
-        param customDomains array = []
+                param {{CustomDomainsParameterName}} array = []
 
-        var dockerImage = '${acrLoginServer}/${dockerImageName}:${dockerImageTag}'
-        var acrUsername = split(acrLoginServer, '.')[0]
+                var dockerImage = '${{{AcrLoginServerPropertyName}}}/${{{DockerImageNamePropertyName}}}:${{{DockerImageTagPropertyName}}}'
+                var acrUsername = split({{AcrLoginServerPropertyName}}, '.')[0]
 
-        resource webApp 'Microsoft.Web/sites@2023-12-01' = {
+                resource {{WebAppModuleName}} '{{WebAppArmType}}' = {
           name: name
           location: location
-          kind: 'app,linux,container'
+                    kind: '{{ContainerKind}}'
           properties: {
             serverFarmId: appServicePlanId
-            httpsOnly: httpsOnly
+                        {{HttpsOnlyPropertyName}}: {{HttpsOnlyPropertyName}}
             siteConfig: {
               linuxFxVersion: 'DOCKER|${dockerImage}'
-              alwaysOn: alwaysOn
+                            {{AlwaysOnPropertyName}}: {{AlwaysOnPropertyName}}
               ftpsState: 'Disabled'
               minTlsVersion: '1.2'
-              acrUseManagedIdentityCreds: false
+                            {{AcrUseManagedIdentityCredsPropertyName}}: false
               appSettings: [
                 {
-                  name: 'DOCKER_REGISTRY_SERVER_URL'
-                  value: 'https://${acrLoginServer}'
+                                    name: '{{DockerRegistryServerUrlSettingName}}'
+                                    value: 'https://${{{AcrLoginServerPropertyName}}}'
                 }
                 {
-                  name: 'DOCKER_REGISTRY_SERVER_USERNAME'
+                                    name: '{{DockerRegistryServerUsernameSettingName}}'
                   value: acrUsername
                 }
                 {
-                  name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
+                                    name: '{{DockerRegistryServerPasswordSettingName}}'
                   value: acrPassword
                 }
               ]
@@ -511,26 +534,26 @@ public sealed class WebAppTypeBicepGenerator
           }
         }
 
-        resource hostNameBindings 'Microsoft.Web/sites/hostNameBindings@2023-12-01' = [for domain in customDomains: {
-          parent: webApp
+                resource hostNameBindings '{{HostNameBindingsArmType}}' = [for domain in {{CustomDomainsParameterName}}: {
+                    parent: {{WebAppModuleName}}
           name: domain.domainName
           properties: {
-            siteName: webApp.name
+                        siteName: {{WebAppModuleName}}.name
             hostNameType: 'Verified'
             sslState: domain.bindingType == 'SniEnabled' ? 'SniEnabled' : 'Disabled'
           }
         }]
 
         @description('The resource ID of the Web App')
-        output id string = webApp.id
+                output id string = {{WebAppModuleName}}.id
 
         @description('The default host name of the Web App')
-        output defaultHostName string = webApp.properties.defaultHostName
+                output defaultHostName string = {{WebAppModuleName}}.properties.defaultHostName
 
         @description('The principal ID of the system-assigned managed identity')
-        output principalId string = webApp.identity.principalId
+                output principalId string = {{WebAppModuleName}}.identity.principalId
 
         @description('The custom domain verification ID')
-        output customDomainVerificationId string = webApp.properties.customDomainVerificationId
-        """;
+                output customDomainVerificationId string = {{WebAppModuleName}}.properties.customDomainVerificationId
+                """;
 }

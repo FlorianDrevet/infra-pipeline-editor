@@ -17,7 +17,7 @@ import { AppSettingService } from '../../../shared/services/app-setting.service'
 import { OutputDefinitionResponse } from '../../../shared/interfaces/app-setting.interface';
 import { ProjectPipelineVariableGroupResponse } from '../../../shared/interfaces/project.interface';
 import { AppConfigurationKeyService } from '../services/app-configuration-key.service';
-import { AppConfigurationKeyResponse, AddAppConfigurationKeyRequest } from '../models/app-configuration-key.interface';
+import { AddAppConfigurationKeyRequest } from '../models/app-configuration-key.interface';
 import { RESOURCE_TYPE_ICONS } from '../../config-detail/enums/resource-type.enum';
 
 export interface AddAppConfigKeyDialogData {
@@ -25,6 +25,14 @@ export interface AddAppConfigKeyDialogData {
   siblingResources: AzureResourceResponse[];
   environments: { name: string }[];
   projectId: string;
+}
+
+function toConfigKeyNameSegment(value: string): string {
+  return value.toUpperCase().replaceAll(/[^A-Z0-9]/g, '_');
+}
+
+function toConfigSecretNameSegment(value: string): string {
+  return value.toLowerCase().replaceAll(/[^a-z0-9]/g, '-');
 }
 
 @Component({
@@ -143,15 +151,15 @@ export class AddAppConfigKeyDialogComponent {
       const kv = this.selectedKeyVault();
       const secret = this.sensitiveSecretName();
       if (!kv || !secret) return '';
-      const prefix = kv.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
-      const suffix = secret.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+      const prefix = toConfigKeyNameSegment(kv.name);
+      const suffix = toConfigKeyNameSegment(secret);
       return `${prefix}__${suffix}`;
     }
     const source = this.selectedSource();
     const output = this.selectedOutput();
     if (!source || !output) return '';
-    const prefix = source.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
-    const suffix = output.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+    const prefix = toConfigKeyNameSegment(source.name);
+    const suffix = toConfigKeyNameSegment(output.name);
     return `${prefix}__${suffix}`;
   });
 
@@ -159,39 +167,16 @@ export class AddAppConfigKeyDialogComponent {
     const key = this.keyName().trim();
     if (!key || this.isSubmitting()) return false;
 
-    if (this.mode() === 'static') {
-      const src = this.staticValueSource();
-      if (src === 'variableGroup') {
-        const hasVg = this.isCreatingNewGroup()
-          ? this.newGroupName().trim().length > 0
-          : !!this.selectedVariableGroupId();
-        return hasVg && this.pipelineVariableName().trim().length > 0;
-      }
-      if (src === 'environments') {
-        const vals = this.environmentValues();
-        return Object.values(vals).some(v => v.trim().length > 0);
-      }
-      return false;
+    switch (this.mode()) {
+      case 'static':
+        return this.canSubmitStaticMode();
+      case 'secret':
+        return this.canSubmitSecretMode();
+      case 'output':
+        return this.canSubmitOutputMode();
+      default:
+        return false;
     }
-
-    if (this.mode() === 'secret') {
-      const hasKv = !!this.selectedKeyVault() && !!this.secretName().trim();
-      if (!hasKv) return false;
-      const src = this.secretValueSource();
-      if (src === 'variableGroup') {
-        const hasVg = this.isCreatingNewGroup()
-          ? this.newGroupName().trim().length > 0
-          : !!this.selectedVariableGroupId();
-        return hasVg && this.pipelineVariableName().trim().length > 0;
-      }
-      return src === 'directInKeyVault';
-    }
-
-    if (this.mode() === 'output') {
-      return !!this.selectedSource() && !!this.selectedOutput();
-    }
-
-    return false;
   });
 
   protected readonly canProceedFromSensitiveStep = computed(() => {
@@ -280,28 +265,7 @@ export class AddAppConfigKeyDialogComponent {
   }
 
   protected async assignRole(): Promise<void> {
-    const kv = this.selectedKeyVault();
-    const roleDefId = this.kvMissingRoleDefinitionId();
-    if (!kv || !roleDefId) return;
-
-    this.sensitiveRoleAssigning.set(true);
-    this.sensitiveRoleError.set(false);
-
-    try {
-      await this.roleAssignmentService.add(this.data.appConfigurationId, {
-        targetResourceId: kv.id,
-        roleDefinitionId: roleDefId,
-        managedIdentityType: 'SystemAssigned',
-      });
-      this.sensitiveRoleAssigned.set(true);
-      this.kvHasAccess.set(true);
-      this.kvMissingRoleName.set(null);
-      this.kvMissingRoleDefinitionId.set(null);
-    } catch {
-      this.sensitiveRoleError.set(true);
-    } finally {
-      this.sensitiveRoleAssigning.set(false);
-    }
+    return this.assignSelectedKeyVaultRole();
   }
 
   // ─── Output mode — Step navigation ───
@@ -370,28 +334,7 @@ export class AddAppConfigKeyDialogComponent {
   }
 
   protected async assignSensitiveRole(): Promise<void> {
-    const kv = this.selectedKeyVault();
-    const roleDefId = this.kvMissingRoleDefinitionId();
-    if (!kv || !roleDefId) return;
-
-    this.sensitiveRoleAssigning.set(true);
-    this.sensitiveRoleError.set(false);
-
-    try {
-      await this.roleAssignmentService.add(this.data.appConfigurationId, {
-        targetResourceId: kv.id,
-        roleDefinitionId: roleDefId,
-        managedIdentityType: 'SystemAssigned',
-      });
-      this.sensitiveRoleAssigned.set(true);
-      this.kvHasAccess.set(true);
-      this.kvMissingRoleName.set(null);
-      this.kvMissingRoleDefinitionId.set(null);
-    } catch {
-      this.sensitiveRoleError.set(true);
-    } finally {
-      this.sensitiveRoleAssigning.set(false);
-    }
+    await this.assignSelectedKeyVaultRole();
   }
 
   protected goBack(): void {
@@ -446,67 +389,19 @@ export class AddAppConfigKeyDialogComponent {
     this.errorKey.set('');
 
     try {
-      // If creating a new variable group, create it first
-      let variableGroupId = this.selectedVariableGroupId();
-      if (this.isViaVariableGroup() && this.isCreatingNewGroup()) {
-        const newGroupName = this.newGroupName().trim();
-        if (newGroupName && this.data.projectId) {
-          const newGroup = await this.projectService.addPipelineVariableGroup(this.data.projectId, { groupName: newGroupName });
-          variableGroupId = newGroup.id;
-        }
-      }
-
-      const request: AddAppConfigurationKeyRequest = { key };
-
-      // Add label if provided
-      const labelValue = this.label().trim();
-      if (labelValue) {
-        request.label = labelValue;
-      }
-
-      if (this.mode() === 'output') {
-        request.sourceResourceId = this.selectedSource()!.id;
-        request.sourceOutputName = this.selectedOutput()!.name;
-        if (this.sensitiveChoice() === 'keyvault') {
-          request.keyVaultResourceId = this.selectedKeyVault()!.id;
-          request.secretName = this.sensitiveSecretName().trim();
-          request.exportToKeyVault = true;
-        }
-      } else if (this.mode() === 'secret') {
-        request.keyVaultResourceId = this.selectedKeyVault()!.id;
-        request.secretName = this.secretName().trim();
-        request.secretValueAssignment = this.secretAssignmentMode() ?? undefined;
-
-        if (this.secretValueSource() === 'variableGroup') {
-          request.variableGroupId = variableGroupId ?? undefined;
-          request.pipelineVariableName = this.pipelineVariableName().trim();
-        }
-      } else {
-        // static mode
-        if (this.staticValueSource() === 'variableGroup') {
-          request.variableGroupId = variableGroupId ?? undefined;
-          request.pipelineVariableName = this.pipelineVariableName().trim();
-        } else {
-          request.environmentValues = this.environmentValues();
-        }
-      }
-
+      const variableGroupId = await this.resolveVariableGroupId();
+      const request = this.buildRequest(key, variableGroupId);
       const result = await this.configKeyService.add(this.data.appConfigurationId, request);
       this.dialogRef.close(result);
     } catch (err: unknown) {
-      const axios = await import('axios');
-      if (axios.isAxiosError(err) && err.response?.status === 409) {
-        this.errorKey.set('RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.ERROR_DUPLICATE');
-      } else {
-        this.errorKey.set('RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.ERROR');
-      }
+      await this.setSubmitError(err);
     } finally {
       this.isSubmitting.set(false);
     }
   }
 
   protected onCancel(): void {
-    this.dialogRef.close(undefined);
+    this.dialogRef.close();
   }
 
   private readonly isViaVariableGroup = computed(() => {
@@ -515,12 +410,185 @@ export class AddAppConfigKeyDialogComponent {
     return false;
   });
 
+  private canSubmitStaticMode(): boolean {
+    if (this.staticValueSource() === 'variableGroup') {
+      return this.hasVariableGroupTarget() && this.hasPipelineVariableName();
+    }
+
+    if (this.staticValueSource() === 'environments') {
+      return this.hasEnvironmentValues();
+    }
+
+    return false;
+  }
+
+  private canSubmitSecretMode(): boolean {
+    if (!this.hasSecretTarget()) {
+      return false;
+    }
+
+    if (this.secretValueSource() === 'variableGroup') {
+      return this.hasVariableGroupTarget() && this.hasPipelineVariableName();
+    }
+
+    return this.secretValueSource() === 'directInKeyVault';
+  }
+
+  private canSubmitOutputMode(): boolean {
+    return this.selectedSource() !== null && this.selectedOutput() !== null;
+  }
+
+  private hasVariableGroupTarget(): boolean {
+    if (this.isCreatingNewGroup()) {
+      return this.newGroupName().trim().length > 0;
+    }
+
+    return this.selectedVariableGroupId() !== null;
+  }
+
+  private hasPipelineVariableName(): boolean {
+    return this.pipelineVariableName().trim().length > 0;
+  }
+
+  private hasEnvironmentValues(): boolean {
+    return Object.values(this.environmentValues()).some(value => value.trim().length > 0);
+  }
+
+  private hasSecretTarget(): boolean {
+    return this.selectedKeyVault() !== null && this.secretName().trim().length > 0;
+  }
+
+  private async assignSelectedKeyVaultRole(): Promise<void> {
+    const kv = this.selectedKeyVault();
+    const roleDefId = this.kvMissingRoleDefinitionId();
+    if (!kv || !roleDefId) return;
+
+    this.sensitiveRoleAssigning.set(true);
+    this.sensitiveRoleError.set(false);
+
+    try {
+      await this.roleAssignmentService.add(this.data.appConfigurationId, {
+        targetResourceId: kv.id,
+        roleDefinitionId: roleDefId,
+        managedIdentityType: 'SystemAssigned',
+      });
+      this.sensitiveRoleAssigned.set(true);
+      this.kvHasAccess.set(true);
+      this.kvMissingRoleName.set(null);
+      this.kvMissingRoleDefinitionId.set(null);
+    } catch {
+      this.sensitiveRoleError.set(true);
+    } finally {
+      this.sensitiveRoleAssigning.set(false);
+    }
+  }
+
+  private async resolveVariableGroupId(): Promise<string | null> {
+    const currentVariableGroupId = this.selectedVariableGroupId();
+    if (!this.isViaVariableGroup() || !this.isCreatingNewGroup()) {
+      return currentVariableGroupId;
+    }
+
+    const newGroupName = this.newGroupName().trim();
+    if (!newGroupName || !this.data.projectId) {
+      return currentVariableGroupId;
+    }
+
+    const newGroup = await this.projectService.addPipelineVariableGroup(this.data.projectId, { groupName: newGroupName });
+    return newGroup.id;
+  }
+
+  private buildRequest(key: string, variableGroupId: string | null): AddAppConfigurationKeyRequest {
+    const request: AddAppConfigurationKeyRequest = { key };
+    const labelValue = this.label().trim();
+
+    if (labelValue) {
+      request.label = labelValue;
+    }
+
+    switch (this.mode()) {
+      case 'output':
+        this.applyOutputRequest(request);
+        break;
+      case 'secret':
+        this.applySecretRequest(request, variableGroupId);
+        break;
+      case 'static':
+        this.applyStaticRequest(request, variableGroupId);
+        break;
+    }
+
+    return request;
+  }
+
+  private applyOutputRequest(request: AddAppConfigurationKeyRequest): void {
+    const selectedSource = this.selectedSource();
+    const selectedOutput = this.selectedOutput();
+    if (!selectedSource || !selectedOutput) {
+      return;
+    }
+
+    request.sourceResourceId = selectedSource.id;
+    request.sourceOutputName = selectedOutput.name;
+
+    if (this.sensitiveChoice() !== 'keyvault') {
+      return;
+    }
+
+    const selectedKeyVault = this.selectedKeyVault();
+    if (!selectedKeyVault) {
+      return;
+    }
+
+    request.keyVaultResourceId = selectedKeyVault.id;
+    request.secretName = this.sensitiveSecretName().trim();
+    request.exportToKeyVault = true;
+  }
+
+  private applySecretRequest(request: AddAppConfigurationKeyRequest, variableGroupId: string | null): void {
+    const selectedKeyVault = this.selectedKeyVault();
+    if (!selectedKeyVault) {
+      return;
+    }
+
+    request.keyVaultResourceId = selectedKeyVault.id;
+    request.secretName = this.secretName().trim();
+    request.secretValueAssignment = this.secretAssignmentMode() ?? undefined;
+
+    if (this.secretValueSource() !== 'variableGroup') {
+      return;
+    }
+
+    request.variableGroupId = variableGroupId ?? undefined;
+    request.pipelineVariableName = this.pipelineVariableName().trim();
+  }
+
+  private applyStaticRequest(request: AddAppConfigurationKeyRequest, variableGroupId: string | null): void {
+    if (this.staticValueSource() === 'variableGroup') {
+      request.variableGroupId = variableGroupId ?? undefined;
+      request.pipelineVariableName = this.pipelineVariableName().trim();
+      return;
+    }
+
+    request.environmentValues = this.environmentValues();
+  }
+
+  private async setSubmitError(err: unknown): Promise<void> {
+    const axios = await import('axios');
+    if (axios.isAxiosError(err) && err.response?.status === 409) {
+      this.errorKey.set('RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.ERROR_DUPLICATE');
+      return;
+    }
+
+    this.errorKey.set('RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.ERROR');
+  }
+
   private generateSecretName(): string {
     const source = this.selectedSource();
     const output = this.selectedOutput();
     if (!source || !output) return '';
-    const prefix = source.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    const suffix = output.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const prefix = toConfigSecretNameSegment(source.name);
+    const suffix = toConfigSecretNameSegment(output.name);
     return `${prefix}-${suffix}`;
   }
 }

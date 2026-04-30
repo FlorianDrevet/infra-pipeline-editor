@@ -27,6 +27,50 @@ export interface MultiRepoPushDialogData {
 
 type DialogState = 'form' | 'pushing' | 'success' | 'partial' | 'error';
 
+interface MultiRepoPushModeContent {
+  titleIcon: string;
+  titleKey: string;
+  subtitleKey: string;
+  pushActionKey: string;
+  pushingKey: string;
+  successTitleKey: string;
+  errorTitleKey: string;
+  errorDescKey: string;
+}
+
+const MULTI_REPO_PUSH_MODE_CONTENT: Record<MultiRepoPushMode, MultiRepoPushModeContent> = {
+  both: {
+    titleIcon: 'cloud_upload',
+    titleKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.TITLE',
+    subtitleKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUBTITLE',
+    pushActionKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.CTA_PUSH_BOTH',
+    pushingKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING',
+    successTitleKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUCCESS_TITLE',
+    errorTitleKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_TITLE',
+    errorDescKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_DESC',
+  },
+  infra: {
+    titleIcon: 'dns',
+    titleKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.TITLE_INFRA',
+    subtitleKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUBTITLE_INFRA',
+    pushActionKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.CTA_PUSH_INFRA',
+    pushingKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING_INFRA',
+    successTitleKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUCCESS_TITLE_INFRA',
+    errorTitleKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_TITLE_INFRA',
+    errorDescKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_DESC_INFRA',
+  },
+  code: {
+    titleIcon: 'code',
+    titleKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.TITLE_CODE',
+    subtitleKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUBTITLE_CODE',
+    pushActionKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.CTA_PUSH_CODE',
+    pushingKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING_CODE',
+    successTitleKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUCCESS_TITLE_CODE',
+    errorTitleKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_TITLE_CODE',
+    errorDescKey: 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_DESC_CODE',
+  },
+};
+
 /**
  * Dual-repo push dialog for SplitInfraCode projects.
  * Backend always returns 200; per-repo results may be partial.
@@ -82,49 +126,18 @@ export class MultiRepoPushDialogComponent {
   });
 
   protected readonly mode = computed<MultiRepoPushMode>(() => this.data.mode ?? 'both');
+  protected readonly modeContent = computed(() => MULTI_REPO_PUSH_MODE_CONTENT[this.mode()]);
   protected readonly isBothMode = computed(() => this.mode() === 'both');
   protected readonly showsInfraCard = computed(() => this.mode() !== 'code');
   protected readonly showsCodeCard = computed(() => this.mode() !== 'infra');
-  protected readonly titleIcon = computed(() => this.mode() === 'infra'
-    ? 'dns'
-    : this.mode() === 'code'
-      ? 'code'
-      : 'cloud_upload');
-  protected readonly titleKey = computed(() => this.mode() === 'infra'
-    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.TITLE_INFRA'
-    : this.mode() === 'code'
-      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.TITLE_CODE'
-      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.TITLE');
-  protected readonly subtitleKey = computed(() => this.mode() === 'infra'
-    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUBTITLE_INFRA'
-    : this.mode() === 'code'
-      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUBTITLE_CODE'
-      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUBTITLE');
-  protected readonly pushActionKey = computed(() => this.mode() === 'infra'
-    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.CTA_PUSH_INFRA'
-    : this.mode() === 'code'
-      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.CTA_PUSH_CODE'
-      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.CTA_PUSH_BOTH');
-  protected readonly pushingKey = computed(() => this.mode() === 'infra'
-    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING_INFRA'
-    : this.mode() === 'code'
-      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING_CODE'
-      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING');
-  protected readonly successTitleKey = computed(() => this.mode() === 'infra'
-    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUCCESS_TITLE_INFRA'
-    : this.mode() === 'code'
-      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUCCESS_TITLE_CODE'
-      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUCCESS_TITLE');
-  protected readonly errorTitleKey = computed(() => this.mode() === 'infra'
-    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_TITLE_INFRA'
-    : this.mode() === 'code'
-      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_TITLE_CODE'
-      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_TITLE');
-  protected readonly errorDescKey = computed(() => this.mode() === 'infra'
-    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_DESC_INFRA'
-    : this.mode() === 'code'
-      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_DESC_CODE'
-      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_DESC');
+  protected readonly titleIcon = computed(() => this.modeContent().titleIcon);
+  protected readonly titleKey = computed(() => this.modeContent().titleKey);
+  protected readonly subtitleKey = computed(() => this.modeContent().subtitleKey);
+  protected readonly pushActionKey = computed(() => this.modeContent().pushActionKey);
+  protected readonly pushingKey = computed(() => this.modeContent().pushingKey);
+  protected readonly successTitleKey = computed(() => this.modeContent().successTitleKey);
+  protected readonly errorTitleKey = computed(() => this.modeContent().errorTitleKey);
+  protected readonly errorDescKey = computed(() => this.modeContent().errorDescKey);
 
   protected readonly canPush = computed(() => {
     const isPushing = this.state() === 'pushing';

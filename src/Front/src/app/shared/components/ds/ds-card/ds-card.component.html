@@ -1,4 +1,10 @@
-<div [class]="classes()" (click)="onClick($event)">
+<div
+  [class]="classes()"
+  [attr.role]="interactive() ? 'button' : null"
+  [attr.tabindex]="interactive() ? '0' : null"
+  (click)="onClick($event)"
+  (keydown.enter)="onKeydown($event)"
+  (keydown.space)="onKeydown($event)">
   <div class="ds-card__header">
     <ng-content select="[ds-card-header]"></ng-content>
   </div>

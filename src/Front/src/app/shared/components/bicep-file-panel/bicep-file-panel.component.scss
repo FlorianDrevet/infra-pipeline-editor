@@ -1,3 +1,5 @@
+@use "scss/main" as *;
+
 // ─── Terminal Window Chrome ────────────────────────────────────────────────────
 
 .bicep-terminal {
@@ -28,7 +30,7 @@
 .bicep-terminal__bar-title {
   margin-left: auto;
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: $ifs-on-dark-subtle;
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 }
 
@@ -153,7 +155,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 0.75rem 0.2rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: $ifs-on-dark-subtle;
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 0.78rem;
   font-weight: 600;
@@ -167,7 +169,7 @@
 
   &:hover {
     background: rgba(139, 233, 253, 0.06);
-    color: rgba(255, 255, 255, 0.65);
+    color: $ifs-on-dark-muted;
   }
 }
 
@@ -175,7 +177,7 @@
   font-size: 1rem;
   width: 1rem;
   height: 1rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: $ifs-on-dark-subtle;
   transition: transform 0.2s ease;
   flex-shrink: 0;
 
@@ -245,7 +247,7 @@
   border-radius: 50%;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.4);
+  color: $ifs-on-dark-subtle;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 
@@ -253,7 +255,7 @@
 
   &:hover {
     background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.8);
+    color: $ifs-on-dark-muted;
   }
 }
 

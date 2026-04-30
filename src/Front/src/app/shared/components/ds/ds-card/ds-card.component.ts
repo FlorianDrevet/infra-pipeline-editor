@@ -20,22 +20,34 @@ export class DsCardComponent {
 
   public readonly cardClick = output<MouseEvent>();
 
-  protected readonly classes = computed(() =>
-    [
+  protected readonly classes = computed(() => {
+    const accent = this.accent();
+    const accentClass = accent === 'none' ? '' : `ds-card--accent-${accent}`;
+
+    return [
       'ds-card',
       `ds-card--${this.variant()}`,
       `ds-card--padding-${this.padding()}`,
-      this.accent() !== 'none' ? `ds-card--accent-${this.accent()}` : '',
+      accentClass,
       this.interactive() ? 'interactive' : '',
     ]
       .filter(Boolean)
-      .join(' '),
-  );
+      .join(' ');
+  });
 
   protected onClick(event: MouseEvent): void {
     if (!this.interactive()) {
       return;
     }
     this.cardClick.emit(event);
+  }
+
+  protected onKeydown(event: Event): void {
+    if (!this.interactive()) {
+      return;
+    }
+
+    event.preventDefault();
+    (event.currentTarget as HTMLElement | null)?.click();
   }
 }
