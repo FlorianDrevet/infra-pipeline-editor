@@ -1837,7 +1837,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected createNewUai(): void {
     const res = this.resource();
     if (!res) return;
-    const resourceGroupId = (res as { resourceGroupId?: string })?.resourceGroupId ?? '';
+    const resourceGroupId = res.resourceGroupId ?? '';
     const location = res.location ?? 'EastUS2';
 
     const dialogRef = this.dialog.open(CreateUaiDialogComponent, {
@@ -2084,7 +2084,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       sourceResourceId: this.resourceId,
       currentResourceName: this.resource()?.name ?? '',
       siblingResources: this.allResources(),
-      resourceGroupId: (this.resource() as { resourceGroupId?: string })?.resourceGroupId ?? '',
+      resourceGroupId: this.resource()?.resourceGroupId ?? '',
       configLocation: this.resource()?.location ?? 'EastUS2',
     };
 
@@ -2422,7 +2422,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected createNewUaiForKvEntry(kvId: string): void {
     const res = this.resource();
     if (!res) return;
-    const resourceGroupId = (res as { resourceGroupId?: string })?.resourceGroupId ?? '';
+    const resourceGroupId = res.resourceGroupId ?? '';
     const location = res.location ?? 'EastUS2';
 
     const dialogRef = this.dialog.open(CreateUaiDialogComponent, {
@@ -2620,7 +2620,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected createNewUaiForConfigKeyKvEntry(kvId: string): void {
     const res = this.resource();
     if (!res) return;
-    const resourceGroupId = (res as { resourceGroupId?: string })?.resourceGroupId ?? '';
+    const resourceGroupId = res.resourceGroupId ?? '';
     const location = res.location ?? 'EastUS2';
 
     const dialogRef = this.dialog.open(CreateUaiDialogComponent, {

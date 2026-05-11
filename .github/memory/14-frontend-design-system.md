@@ -32,6 +32,7 @@
 
 - Primary CTAs across `home`, `projects`, `project-detail`, `config-detail`, `resource-edit`, and shared dialogs were largely migrated to `app-ds-button`.
 - About 216 former `<mat-form-field>` usages were migrated to DS form controls across 25+ files, including `add-resource-dialog` and `resource-edit`.
+- `projects` toolbar and card affordances now stay on DS primitives: search uses `app-ds-text-field`, favorites uses `app-ds-button`, sorting uses `app-ds-select`, and project meta/favorite affordances use `app-ds-chip` plus `app-ds-icon-button`. The project card layout keeps members/environment chips in a dedicated bottom footer block even when a project has no description. [2026-05-11]
 - Remaining raw Material inputs are intentional for:
   - `matAutocomplete` flows in `push-to-git-dialog` and `add-project-member-dialog`
   - naming-template dialogs that require `ElementRef` cursor manipulation

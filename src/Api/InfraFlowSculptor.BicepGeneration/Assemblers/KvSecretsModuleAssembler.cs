@@ -37,7 +37,7 @@ internal static class KvSecretsModuleAssembler
         sb.AppendLine("}]");
         sb.AppendLine();
         sb.AppendLine("@description('Dictionary of secret URIs keyed by secret name')");
-        sb.AppendLine("output secretUris object = toObject(kvSecrets, kv => last(split(kv.name, '/')), kv => kv.properties.secretUri)");
+        sb.AppendLine("output secretUris object = toObject(secrets, secret => secret.name, secret => '${keyVault.properties.vaultUri}secrets/${secret.name}')");
         return sb.ToString();
     }
 }

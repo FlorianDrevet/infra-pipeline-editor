@@ -4,5 +4,7 @@ const hierarchicalEntryCollator = new Intl.Collator('en', {
 });
 
 export function sortHierarchicalEntries(entries: readonly string[]): string[] {
-  return [...entries].sort((left, right) => hierarchicalEntryCollator.compare(left, right));
+  return [...entries].sort((left, right) =>
+    hierarchicalEntryCollator.compare(left, right),
+  );
 }

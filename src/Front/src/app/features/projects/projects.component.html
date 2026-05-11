@@ -12,32 +12,29 @@
 
   <div class="toolbar">
     <div class="toolbar__search">
-      <mat-icon class="toolbar__search-icon">search</mat-icon>
-      <input
-        type="text"
-        class="toolbar__search-input"
-        [value]="searchQuery()"
-        (input)="onSearchInput($event)"
-        [placeholder]="'PROJECTS.SEARCH.PLACEHOLDER' | translate" />
+      <app-ds-text-field
+        [placeholder]="'PROJECTS.SEARCH.PLACEHOLDER' | translate"
+        prefixIcon="search"
+        [clearable]="true"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchQueryChange($event)" />
     </div>
 
     <div class="toolbar__filters">
-      <button
-        type="button"
-        class="btn btn--filter"
-        [class.btn--filter-active]="filterFavoritesOnly()"
-        (click)="toggleFavoritesFilter()">
-        <mat-icon>{{ filterFavoritesOnly() ? 'star' : 'star_border' }}</mat-icon>
+      <app-ds-button
+        variant="secondary"
+        [icon]="filterFavoritesOnly() ? 'star' : 'star_border'"
+        [attr.aria-pressed]="filterFavoritesOnly()"
+        (clicked)="toggleFavoritesFilter()">
         {{ 'PROJECTS.FILTERS.FAVORITES_ONLY' | translate }}
-      </button>
+      </app-ds-button>
 
-      <label class="toolbar__sort">
-        <select (change)="onSortChange($event)">
-          <option value="name">{{ 'PROJECTS.SORT.BY_NAME' | translate }}</option>
-          <option value="members">{{ 'PROJECTS.SORT.BY_MEMBERS' | translate }}</option>
-          <option value="favorites">{{ 'PROJECTS.SORT.BY_FAVORITES' | translate }}</option>
-        </select>
-      </label>
+      <div class="toolbar__sort">
+        <app-ds-select
+          [options]="sortOptions"
+          [ngModel]="sortBy()"
+          (ngModelChange)="onSortByChange($event)" />
+      </div>
     </div>
   </div>
 
@@ -77,33 +74,39 @@
     } @else {
       <div class="project-grid">
         @for (project of filteredProjects(); track project.id) {
-          <a class="project-card" [routerLink]="['/projects', project.id]">
-            <div class="project-card__top">
-              <div class="project-card__info">
-                <h3>{{ project.name }}</h3>
-                @if (project.description) {
-                  <p class="project-card__desc">{{ project.description }}</p>
-                }
+          <div
+            class="project-card"
+            [class.project-card--without-description]="!project.description"
+            role="link"
+            tabindex="0"
+            (click)="openProject(project.id)"
+            (keydown)="onProjectKeydown($event, project.id)">
+            <div class="project-card__body">
+              <div class="project-card__top">
+                <div class="project-card__info">
+                  <h3>{{ project.name }}</h3>
+                  @if (project.description) {
+                    <p class="project-card__desc">{{ project.description }}</p>
+                  }
+                </div>
+                <app-ds-icon-button
+                  size="sm"
+                  [variant]="favoriteButtonVariant(project.id)"
+                  [icon]="favoriteButtonIcon(project.id)"
+                  [ariaLabel]="'PROJECTS.ACTIONS.TOGGLE_FAVORITE' | translate"
+                  [tooltip]="'PROJECTS.ACTIONS.TOGGLE_FAVORITE' | translate"
+                  (clicked)="toggleFavorite($event, project.id)" />
               </div>
-              <button
-                type="button"
-                class="project-card__fav"
-                (click)="toggleFavorite($event, project.id)"
-                [attr.aria-label]="'PROJECTS.ACTIONS.TOGGLE_FAVORITE' | translate">
-                <mat-icon>{{ isFavorite(project.id) ? 'star' : 'star_border' }}</mat-icon>
-              </button>
             </div>
             <div class="project-card__meta">
-              <span class="project-card__chip">
-                <mat-icon>group</mat-icon>
+              <app-ds-chip size="sm" variant="primary" icon="group">
                 {{ 'PROJECTS.CARD.MEMBERS' | translate: { count: project.members.length } }}
-              </span>
-              <span class="project-card__chip">
-                <mat-icon>settings</mat-icon>
+              </app-ds-chip>
+              <app-ds-chip size="sm" variant="cyan" icon="settings">
                 {{ 'PROJECTS.CARD.ENVIRONMENTS' | translate: { count: project.environmentDefinitions.length } }}
-              </span>
+              </app-ds-chip>
             </div>
-          </a>
+          </div>
         }
       </div>
     }

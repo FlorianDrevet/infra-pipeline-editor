@@ -15,8 +15,6 @@ public class StorageAccountConfiguration : IEntityTypeConfiguration<StorageAccou
         builder.HasBaseType<AzureResource>()
             .ToTable("StorageAccounts");
 
-        builder.Ignore(s => s.AllCorsRules);
-
         builder.Property(s => s.Kind)
             .IsRequired()
             .HasConversion(new EnumValueConverter<StorageAccountKind, StorageAccountKind.Kind>());
