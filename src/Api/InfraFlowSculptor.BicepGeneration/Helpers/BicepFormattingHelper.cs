@@ -53,6 +53,15 @@ internal static class BicepFormattingHelper
             ? key
             : $"'{EscapeBicepString(key)}'";
 
+    /// <summary>
+    /// Formats an object-property access segment for Bicep expressions.
+    /// Uses dot notation for identifier-safe property names and bracket notation otherwise.
+    /// </summary>
+    internal static string FormatBicepPropertyAccess(string propertyName) =>
+        ObjectKeyPattern.IsMatch(propertyName)
+            ? $".{propertyName}"
+            : $"['{EscapeBicepString(propertyName)}']";
+
     internal static string InferBicepType(object value)
     {
         return value switch

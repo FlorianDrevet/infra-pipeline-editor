@@ -29,6 +29,31 @@ interface MultiRepoPushDialogComponentTestApi {
   onPush(): Promise<void>;
 }
 
+function createPushResponse(): MultiRepoPushResponse {
+  return {
+    results: [
+      {
+        alias: 'infra-repo',
+        success: true,
+        branchUrl: 'https://example.test/infra',
+        commitSha: '12345678',
+        fileCount: 1,
+        errorCode: null,
+        errorDescription: null,
+      },
+      {
+        alias: 'code-repo',
+        success: true,
+        branchUrl: 'https://example.test/code',
+        commitSha: '87654321',
+        fileCount: 1,
+        errorCode: null,
+        errorDescription: null,
+      },
+    ],
+  };
+}
+
 describe('MultiRepoPushDialogComponent', () => {
   let fixture: ComponentFixture<MultiRepoPushDialogComponent>;
   let component: MultiRepoPushDialogComponent;
@@ -109,29 +134,4 @@ describe('MultiRepoPushDialogComponent', () => {
 
     expect(projectServiceSpy.pushProjectArtifactsToMultiRepo).not.toHaveBeenCalled();
   });
-
-  function createPushResponse(): MultiRepoPushResponse {
-    return {
-      results: [
-        {
-          alias: 'infra-repo',
-          success: true,
-          branchUrl: 'https://example.test/infra',
-          commitSha: '12345678',
-          fileCount: 1,
-          errorCode: null,
-          errorDescription: null,
-        },
-        {
-          alias: 'code-repo',
-          success: true,
-          branchUrl: 'https://example.test/code',
-          commitSha: '87654321',
-          fileCount: 1,
-          errorCode: null,
-          errorDescription: null,
-        },
-      ],
-    };
-  }
 });

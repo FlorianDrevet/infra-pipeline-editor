@@ -38,7 +38,7 @@ internal static class ConstantsBicepAssembler
 
             foreach (var role in roles)
             {
-                sb.AppendLine($"    '{role.RoleDefinitionName}': {{");
+                sb.AppendLine($"    {BicepFormattingHelper.FormatBicepObjectKey(role.RoleDefinitionName)}: {{");
                 sb.AppendLine($"      id: '{role.RoleDefinitionId}'");
                 sb.AppendLine($"      description: '{BicepFormattingHelper.EscapeBicepString(role.RoleDefinitionDescription)}'");
                 sb.AppendLine("    }");

@@ -117,12 +117,12 @@ export class MultiRepoPushDialogComponent {
 
   protected readonly infraForm = new FormGroup({
     branch: new FormControl<string>(localStorage.getItem(this.infraBranchKey) ?? 'main', { nonNullable: true, validators: [Validators.required] }),
-    commit: new FormControl<string>('', { nonNullable: true }),
+    commit: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
   });
 
   protected readonly codeForm = new FormGroup({
     branch: new FormControl<string>(localStorage.getItem(this.codeBranchKey) ?? 'main', { nonNullable: true, validators: [Validators.required] }),
-    commit: new FormControl<string>('', { nonNullable: true }),
+    commit: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
   });
 
   protected readonly mode = computed<MultiRepoPushMode>(() => this.data.mode ?? 'both');

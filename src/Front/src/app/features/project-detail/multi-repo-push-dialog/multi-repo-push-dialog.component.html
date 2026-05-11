@@ -112,6 +112,9 @@
                 <app-ds-textarea
                   formControlName="commit"
                   [label]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_LABEL' | translate"
+                  [required]="true"
+                  [hint]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_HINT' | translate"
+                  [error]="infraForm.controls.commit.touched && infraForm.controls.commit.hasError('required') ? ('PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_REQUIRED_ERROR' | translate) : undefined"
                   [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_PLACEHOLDER' | translate"
                   [rows]="2" />
               </form>
@@ -202,6 +205,9 @@
                 <app-ds-textarea
                   formControlName="commit"
                   [label]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_LABEL' | translate"
+                  [required]="true"
+                  [hint]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_HINT' | translate"
+                  [error]="codeForm.controls.commit.touched && codeForm.controls.commit.hasError('required') ? ('PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_REQUIRED_ERROR' | translate) : undefined"
                   [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_PLACEHOLDER' | translate"
                   [rows]="2" />
               </form>

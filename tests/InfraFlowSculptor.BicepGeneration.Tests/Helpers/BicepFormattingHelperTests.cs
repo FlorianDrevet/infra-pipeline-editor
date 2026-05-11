@@ -32,6 +32,31 @@ public sealed class BicepFormattingHelperTests
         result.Should().Be(expected);
     }
 
+    [Theory]
+    [InlineData("storageAccount", ".storageAccount")]
+    [InlineData("_sharedType", "._sharedType")]
+    public void Given_ValidBicepPropertyName_When_FormattingPropertyAccess_Then_ReturnsDotNotation(string propertyName, string expected)
+    {
+        // Act
+        var result = BicepFormattingHelper.FormatBicepPropertyAccess(propertyName);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("jwt-secret", "['jwt-secret']")]
+    [InlineData("startup command", "['startup command']")]
+    [InlineData("o'clock", "['o\\'clock']")]
+    public void Given_InvalidBicepPropertyName_When_FormattingPropertyAccess_Then_ReturnsBracketNotation(string propertyName, string expected)
+    {
+        // Act
+        var result = BicepFormattingHelper.FormatBicepPropertyAccess(propertyName);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
     [Fact]
     public void Given_ObjectWithJsonPropertyNames_When_Serializing_Then_UsesAnnotatedNamesAndSkipsNulls()
     {

@@ -65,13 +65,9 @@ internal static class MainBicepAssembler
         }
 
         // Module-level type imports (for structured parameter types)
-        var importedModuleTypeNames = BuildImportedModuleTypeNames(modules);
-        var moduleTypeImports = modules
-            .Where(m => m.ParameterTypeOverrides.Count > 0)
-            .SelectMany(module => module.ParameterTypeOverrides.Values
-                .Distinct(StringComparer.Ordinal)
-                .Select(typeName => (module.ModuleFolderName, TypeName: typeName)))
-            .Distinct()
+        var usedModuleTypeImports = GetUsedModuleTypeImports(modules);
+        var importedModuleTypeNames = BuildImportedModuleTypeNames(usedModuleTypeImports);
+        var moduleTypeImports = usedModuleTypeImports
             .GroupBy(x => x.ModuleFolderName)
             .ToList();
         foreach (var group in moduleTypeImports)
@@ -143,16 +139,21 @@ internal static class MainBicepAssembler
 
         return new MainBicepEmissionResult(sb.ToString(), tracker.Build());
 
-        static IReadOnlyDictionary<string, string> BuildImportedModuleTypeNames(IReadOnlyCollection<GeneratedTypeModule> generatedModules)
+        static IReadOnlyList<(string ModuleFolderName, string TypeName)> GetUsedModuleTypeImports(
+            IReadOnlyCollection<GeneratedTypeModule> generatedModules)
         {
-            var moduleTypeImports = generatedModules
-                .Where(m => m.ParameterTypeOverrides.Count > 0)
-                .SelectMany(module => module.ParameterTypeOverrides.Values
-                    .Distinct(StringComparer.Ordinal)
-                    .Select(typeName => (module.ModuleFolderName, TypeName: typeName)))
+            return generatedModules
+                .Where(module => module.ParameterTypeOverrides.Count > 0)
+                .SelectMany(module => module.ParameterTypeOverrides
+                    .Where(parameterTypeOverride => module.Parameters.ContainsKey(parameterTypeOverride.Key))
+                    .Select(parameterTypeOverride => (module.ModuleFolderName, TypeName: parameterTypeOverride.Value)))
                 .Distinct()
                 .ToList();
+        }
 
+        static IReadOnlyDictionary<string, string> BuildImportedModuleTypeNames(
+            IReadOnlyList<(string ModuleFolderName, string TypeName)> moduleTypeImports)
+        {
             var collidingTypeNames = moduleTypeImports
                 .GroupBy(x => x.TypeName, StringComparer.Ordinal)
                 .Where(group => group.Select(x => x.ModuleFolderName).Distinct(StringComparer.OrdinalIgnoreCase).Count() > 1)
@@ -563,7 +564,8 @@ internal static class MainBicepAssembler
 
         foreach (var role in group.Roles)
         {
-            sb.AppendLine($"      RbacRoles.{role.ServiceCategory}['{role.RoleDefinitionName}']");
+            var rolePropertyAccess = BicepFormattingHelper.FormatBicepPropertyAccess(role.RoleDefinitionName);
+            sb.AppendLine($"      RbacRoles.{role.ServiceCategory}{rolePropertyAccess}");
         }
 
         sb.AppendLine("    ]");
@@ -801,8 +803,9 @@ internal static class MainBicepAssembler
 
         var kvIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.KeyVaultResourceName);
         var kvSecretsModuleSymbol = $"{kvIdentifier}KvSecretsModule";
+        var secretPropertyAccess = BicepFormattingHelper.FormatBicepPropertyAccess(setting.SecretName);
         tracker.RegisterUsage(kvSecretsModuleSymbol, "secretUris");
-        sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvSecretsModuleSymbol}.outputs.secretUris.{BicepFormattingHelper.EscapeBicepString(setting.SecretName)}}})'");
+        sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvSecretsModuleSymbol}.outputs.secretUris{secretPropertyAccess}}})'");
         return true;
     }
 
@@ -823,8 +826,9 @@ internal static class MainBicepAssembler
         {
             var kvIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.KeyVaultResourceName);
             var kvSecretsModuleSymbol = $"{kvIdentifier}KvSecretsModule";
+            var secretPropertyAccess = BicepFormattingHelper.FormatBicepPropertyAccess(setting.SecretName);
             tracker.RegisterUsage(kvSecretsModuleSymbol, "secretUris");
-            sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvSecretsModuleSymbol}.outputs.secretUris.{BicepFormattingHelper.EscapeBicepString(setting.SecretName)}}})'");
+            sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvSecretsModuleSymbol}.outputs.secretUris{secretPropertyAccess}}})'");
             return true;
         }
 
