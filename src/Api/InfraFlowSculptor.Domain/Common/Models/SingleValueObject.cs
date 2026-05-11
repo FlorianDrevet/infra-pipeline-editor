@@ -27,4 +27,11 @@ public abstract class SingleValueObject<T> : ValueObject
 
     /// <summary>Implicit conversion to the underlying primitive type.</summary>
     public static implicit operator T(SingleValueObject<T> valueObject) => valueObject.Value;
+
+    /// <summary>
+    /// Returns the string representation of the underlying value.
+    /// Returns <see cref="string.Empty"/> when the value is <see langword="null"/>.
+    /// Audit DDD-012 (2026-05-12).
+    /// </summary>
+    public override string ToString() => Value?.ToString() ?? string.Empty;
 }
