@@ -7,6 +7,7 @@ public sealed class AzureRoleDefinitionCatalogTests
 {
     private const string KeyVaultResourceType = "KeyVault";
     private const string WebAppResourceType = "WebApp";
+    private const string ContainerRegistryResourceType = "ContainerRegistry";
     private const string UnknownResourceType = "Unknown";
 
     [Fact]
@@ -40,6 +41,22 @@ public sealed class AzureRoleDefinitionCatalogTests
         roles.Should().Contain(role =>
             role.Id == "acdd72a7-3385-48ef-bd42-f606fba81ae7"
             && role.Name == "Reader");
+    }
+
+    [Fact]
+    public void Given_ContainerRegistryResourceType_When_GetForResourceType_Then_ReturnsOfficialAcrPullRoleDefinitionId()
+    {
+        // Act
+        var roles = AzureRoleDefinitionCatalog.GetForResourceType(ContainerRegistryResourceType);
+
+        // Assert
+        AzureRoleDefinitionCatalog.AcrPull.Should().Be("7f951dda-4ed3-4680-a7ca-43fe172d538d");
+        roles.Should().Contain(role =>
+            role.Id == AzureRoleDefinitionCatalog.AcrPull
+            && role.Name == "AcrPull");
+        roles.Should().Contain(role =>
+            role.Id == "8311e382-0749-4cb8-b61a-304f252e45ec"
+            && role.Name == "AcrPush");
     }
 
     [Fact]

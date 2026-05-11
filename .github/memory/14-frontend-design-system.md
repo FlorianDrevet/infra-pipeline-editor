@@ -23,6 +23,7 @@
 - `DsSelectComponent` panel must explicitly use `width: 100%` and `min-width: 100%` so the rendered dropdown matches the trigger width instead of collapsing to its intrinsic menu width. [2026-05-11]
 - `DsToggleComponent` exposes `ariaLabel` for icon-only or label-less usages and is reused by `ToggleSectionCardComponent`.
 - `DsPanelActionButtonComponent` targets compact panel-header actions with `tone` (`neutral | accent | danger`), `surface` (`light | dark`), optional `pressed`/`ariaExpanded`, and a premium glassy soft-square visual. It currently powers the generation-panel collapse/close cluster in `config-detail` and `project-detail`.
+- `project-detail` SplitInfraCode generation now deliberately overrides that default glassy feel: the outer tabs and `SplitGenerationSwitcherComponent` use a restrained slate/ink surface, smaller quieter counters, thin underlines, and command-bar style CTA rows so the screen reads as enterprise product UI rather than neon/glass hero chrome. [2026-05-11]
 
 ## Global Material Override
 
@@ -34,6 +35,7 @@
 - Primary CTAs across `home`, `projects`, `project-detail`, `config-detail`, `resource-edit`, and shared dialogs were largely migrated to `app-ds-button`.
 - About 216 former `<mat-form-field>` usages were migrated to DS form controls across 25+ files, including `add-resource-dialog` and `resource-edit`.
 - `projects` toolbar and card affordances now stay on DS primitives: search uses `app-ds-text-field`, favorites uses `app-ds-button`, sorting uses `app-ds-select`, and project meta/favorite affordances use `app-ds-chip` plus `app-ds-icon-button`. The project card layout keeps members/environment chips in a dedicated bottom footer block even when a project has no description. [2026-05-11]
+- `project-detail` top tabs plus the SplitInfraCode generation shell were visually rebalanced toward a thinner enterprise language: less glow, softer header chrome, quieter accent colors, and flatter CTA grouping around generation/push actions. [2026-05-11]
 - Remaining raw Material inputs are intentional for:
   - `matAutocomplete` flows in `push-to-git-dialog` and `add-project-member-dialog`
   - naming-template dialogs that require `ElementRef` cursor manipulation

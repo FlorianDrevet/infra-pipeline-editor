@@ -296,7 +296,7 @@ public sealed class MainBicepAssemblerOutputTrackingTests
             ManagedIdentityType = "UserAssigned",
             UserAssignedIdentityName = "myUai",
             UserAssignedIdentityResourceId = Guid.NewGuid(),
-            RoleDefinitionId = "7f951dda-4ed3-4680-a7ca-43fe172d538e",
+            RoleDefinitionId = "7f951dda-4ed3-4680-a7ca-43fe172d538d",
             RoleDefinitionName = "AcrPull",
             RoleDefinitionDescription = "Allows pull of images from an Azure Container Registry.",
             ServiceCategory = "containerregistry",

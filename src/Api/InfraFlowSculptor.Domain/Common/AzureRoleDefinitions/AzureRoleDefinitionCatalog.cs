@@ -28,7 +28,7 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     /// <summary>Well-known role definition ID for "AcrPull".</summary>
-    public const string AcrPull = "7f951dda-4ed3-4680-a7ca-43fe172d538e";
+    public const string AcrPull = "7f951dda-4ed3-4680-a7ca-43fe172d538d";
 
     private const string WebsiteContributorRoleDefinitionId = "de139f84-1756-47ae-9be6-808fbbe84772";
     private const string WebsiteContributorRoleName = "Website Contributor";
@@ -420,12 +420,12 @@ public static class AzureRoleDefinitionCatalog
     /// <summary>Azure RBAC role definitions for Container Registry.</summary>
     private static readonly IReadOnlyList<AzureRoleDefinition> ContainerRegistryRoles =
     [
-        new("7f951dda-4ed3-4680-a7ca-43fe172d538d",
+        new("8311e382-0749-4cb8-b61a-304f252e45ec",
             "AcrPush",
             "Allows push and pull of images to an Azure Container Registry.",
             ContainerRegistryDocsUrl),
 
-        new("7f951dda-4ed3-4680-a7ca-43fe172d538e",
+        new(AcrPull,
             "AcrPull",
             "Allows pull of images from an Azure Container Registry.",
             ContainerRegistryDocsUrl),

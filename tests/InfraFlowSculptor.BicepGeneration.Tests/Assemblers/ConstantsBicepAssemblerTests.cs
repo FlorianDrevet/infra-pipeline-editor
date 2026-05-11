@@ -15,7 +15,7 @@ public sealed class ConstantsBicepAssemblerTests
         {
             new RoleAssignmentDefinition
             {
-                RoleDefinitionId = "7f951dda-4ed3-4680-a7ca-43fe172d538e",
+                RoleDefinitionId = "7f951dda-4ed3-4680-a7ca-43fe172d538d",
                 RoleDefinitionName = "AcrPull",
                 RoleDefinitionDescription = "Allows pull of images from an Azure Container Registry.",
                 ServiceCategory = "containerregistry",

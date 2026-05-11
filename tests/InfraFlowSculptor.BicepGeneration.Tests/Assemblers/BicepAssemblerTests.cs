@@ -25,7 +25,7 @@ public sealed class BicepAssemblerTests
             ManagedIdentityType = "UserAssigned",
             UserAssignedIdentityName = "frontend",
             UserAssignedIdentityResourceId = Guid.NewGuid(),
-            RoleDefinitionId = "7f951dda-4ed3-4680-a7ca-43fe172d538e",
+            RoleDefinitionId = "7f951dda-4ed3-4680-a7ca-43fe172d538d",
             RoleDefinitionName = "AcrPull",
             RoleDefinitionDescription = "Pull images from the registry.",
             ServiceCategory = "containerregistry",
@@ -69,5 +69,7 @@ public sealed class BicepAssemblerTests
         result.ModuleFiles.Should().NotContainKey("modules/KeyVault/containerregistry.roleassignments.module.bicep");
         result.MainBicep.Should().Contain("./modules/ContainerRegistry/containerregistry.roleassignments.module.bicep");
         result.MainBicep.Should().NotContain("./modules/KeyVault/containerregistry.roleassignments.module.bicep");
+        result.MainBicep.Should().Contain("module containerAppIfsFrontendcontainerRegistryIfsRoles");
+        result.MainBicep.Should().NotContain("unknown");
     }
 }
