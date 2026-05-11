@@ -14,9 +14,9 @@ using InfraFlowSculptor.Api.Errors;
 
 namespace InfraFlowSculptor.Api.Controllers;
 
-public static class KeyVaultControllerController
+public static class KeyVaultController
 {
-    public static IApplicationBuilder UseKeyVaultControllerController(this IApplicationBuilder builder)
+    public static IApplicationBuilder UseKeyVaultController(this IApplicationBuilder builder)
     {
         return builder.UseEndpoints(endpoints =>
         {
