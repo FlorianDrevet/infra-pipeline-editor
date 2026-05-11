@@ -268,7 +268,6 @@ public class AzureResource : AggregateRoot<AzureResourceId>
         return setting;
     }
 
-    /// <summary>Removes an app setting by its identifier.</summary>
     /// <summary>Removes an app setting by its identifier. No-op if not found.</summary>
     public void RemoveAppSetting(AppSettingId appSettingId)
     {
