@@ -82,14 +82,14 @@
     </mat-dialog-content>
 
     <mat-dialog-actions align="end" class="import-dialog__actions">
-      <app-ds-button variant="ghost" (click)="cancel()">
+      <app-ds-button variant="ghost" (clicked)="cancel()">
         {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.CANCEL' | translate }}
       </app-ds-button>
       <app-ds-button
         variant="primary"
         icon="play_arrow"
         [disabled]="!jsonInput().trim()"
-        (click)="parseAndProceed()"
+        (clicked)="parseAndProceed()"
       >
         {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.PARSE' | translate }}
       </app-ds-button>
@@ -249,14 +249,14 @@
     </mat-dialog-content>
 
     <mat-dialog-actions align="end" class="import-dialog__actions">
-      <app-ds-button variant="ghost" icon="arrow_back" (click)="backToUpload()">
+      <app-ds-button variant="ghost" icon="arrow_back" (clicked)="backToUpload()">
         {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.BACK' | translate }}
       </app-ds-button>
       <app-ds-button
         variant="primary"
         icon="download_done"
         [disabled]="!canImport()"
-        (click)="startImport()"
+        (clicked)="startImport()"
       >
         {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.IMPORT' | translate: { count: selectedCount() } }}
       </app-ds-button>
@@ -343,7 +343,7 @@
       <app-ds-button
         variant="primary"
         [disabled]="!importFinished()"
-        (click)="close()"
+        (clicked)="close()"
       >
         {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.DONE' | translate }}
       </app-ds-button>

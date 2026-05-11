@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 
 import { MatIconModule } from '@angular/material/icon';
 
-import { DsIconButtonSize, DsIconButtonType, DsIconButtonVariant } from './ds-icon-button.types';
+import { DsIconButtonInputVariant, DsIconButtonSize, DsIconButtonType } from './ds-icon-button.types';
 
 /**
  * Design system square icon button. V2 variants: `neutral`, `accent`, `danger`.
@@ -21,7 +21,7 @@ import { DsIconButtonSize, DsIconButtonType, DsIconButtonVariant } from './ds-ic
 })
 export class DsIconButtonComponent {
   public readonly icon = input.required<string>();
-  public readonly variant = input<DsIconButtonVariant>('neutral');
+  public readonly variant = input<DsIconButtonInputVariant>('neutral');
   public readonly size = input<DsIconButtonSize>('md');
   public readonly disabled = input<boolean>(false);
   public readonly loading = input<boolean>(false);
@@ -34,7 +34,9 @@ export class DsIconButtonComponent {
   protected readonly isDisabled = computed(() => this.disabled() || this.loading());
 
   protected readonly resolvedVariant = computed<'neutral' | 'accent' | 'danger' | 'subtle'>(() => {
-    switch (this.variant()) {
+    const variant = this.variant();
+
+    switch (variant) {
       case 'ghost':
         return 'neutral';
       case 'primary':
@@ -42,7 +44,7 @@ export class DsIconButtonComponent {
       case 'subtle':
         return 'subtle';
       default:
-        return this.variant() as 'neutral' | 'accent' | 'danger';
+        return variant;
     }
   });
 

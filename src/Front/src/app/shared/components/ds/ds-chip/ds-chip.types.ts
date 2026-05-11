@@ -17,5 +17,17 @@ export type DsChipVariant =
   | 'error'
   | 'cyan';
 
+/** Input variants accepted by {@link DsChipComponent}. */
+export type DsChipInputVariant =
+  | 'neutral'
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'accent'
+  | 'info'
+  | 'primary'
+  | 'error'
+  | 'cyan';
+
 /** Available sizes for {@link DsChipComponent}. */
 export type DsChipSize = 'sm' | 'md';

@@ -74,31 +74,14 @@ export class DsTableComponent<T> {
 
   protected getCellValue(row: T, column: DsTableColumn<T>): string {
     const raw = (row as unknown as Record<string, unknown>)[column.key];
-    if (raw === null || raw === undefined) {
-      return '';
-    }
-    return String(raw);
+    return this.stringifyCellValue(raw);
   }
 
   protected getColumnSortDirection(column: DsTableColumn<T>): DsTableSortDirection {
-    if (!this.sortState || this.sortState.key !== column.key) {
+    if (this.sortState?.key !== column.key) {
       return null;
     }
     return this.sortState.direction;
-  }
-
-  protected getAriaSort(column: DsTableColumn<T>): 'ascending' | 'descending' | 'none' | null {
-    if (!column.sortable) {
-      return null;
-    }
-    const direction = this.getColumnSortDirection(column);
-    if (direction === 'asc') {
-      return 'ascending';
-    }
-    if (direction === 'desc') {
-      return 'descending';
-    }
-    return 'none';
   }
 
   protected onHeaderClick(column: DsTableColumn<T>): void {
@@ -122,6 +105,43 @@ export class DsTableComponent<T> {
       return;
     }
     this.rowClick.emit(row);
+  }
+
+  protected onRowKeyDown(event: KeyboardEvent, row: T): void {
+    if (!this.isInteractive || (event.key !== 'Enter' && event.key !== ' ')) {
+      return;
+    }
+
+    event.preventDefault();
+    this.rowClick.emit(row);
+  }
+
+  private stringifyCellValue(raw: unknown): string {
+    if (raw === null || raw === undefined) {
+      return '';
+    }
+
+    if (typeof raw === 'string') {
+      return raw;
+    }
+
+    if (typeof raw === 'number' || typeof raw === 'boolean' || typeof raw === 'bigint') {
+      return String(raw);
+    }
+
+    if (raw instanceof Date) {
+      return raw.toISOString();
+    }
+
+    if (Array.isArray(raw)) {
+      return raw.map((item) => this.stringifyCellValue(item)).join(', ');
+    }
+
+    try {
+      return JSON.stringify(raw);
+    } catch {
+      return Object.prototype.toString.call(raw);
+    }
   }
 
   protected trackColumn = (_: number, column: DsTableColumn<T>): string => column.key;

@@ -1,6 +1,5 @@
-<ul
+<div
   class="ds-tree-view"
-  role="tree"
   [attr.aria-label]="ariaLabel || null"
 >
   @for (node of nodes; track trackNode($index, node)) {
@@ -14,4 +13,4 @@
       (nodeKey)="onKey($event)"
     ></app-ds-tree-node>
   }
-</ul>
+</div>

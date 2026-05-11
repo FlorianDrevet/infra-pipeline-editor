@@ -1,10 +1,5 @@
-<li
+<div
   class="ds-tree-node"
-  role="treeitem"
-  [attr.aria-level]="depth + 1"
-  [attr.aria-expanded]="hasChildren ? expanded : null"
-  [attr.aria-selected]="isSelected"
-  [attr.aria-disabled]="node.disabled || null"
 >
   <div
     class="ds-tree-node__row"
@@ -13,6 +8,7 @@
       'ds-tree-node__row--disabled': node.disabled
     }"
     [style.padding-left.px]="indentPx"
+    [attr.aria-disabled]="node.disabled || null"
     [attr.tabindex]="node.disabled ? -1 : (isSelected ? 0 : -1)"
     (click)="onRowClick()"
     (keydown)="onKeyDown($event)"
@@ -48,7 +44,7 @@
   </div>
 
   @if (hasChildren && expanded) {
-    <ul class="ds-tree-node__children" role="group">
+    <div class="ds-tree-node__children">
       @for (child of node.children; track trackChild($index, child)) {
         <app-ds-tree-node
           [node]="child"
@@ -60,6 +56,6 @@
           (nodeKey)="onChildKey($event)"
         ></app-ds-tree-node>
       }
-    </ul>
+    </div>
   }
-</li>
+</div>

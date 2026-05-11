@@ -15,6 +15,15 @@ export type DsIconButtonVariant =
   | 'primary'
   | 'subtle';
 
+/** Input variants accepted by {@link DsIconButtonComponent}. */
+export type DsIconButtonInputVariant =
+  | 'neutral'
+  | 'accent'
+  | 'danger'
+  | 'ghost'
+  | 'primary'
+  | 'subtle';
+
 /** Available sizes for {@link DsIconButtonComponent}. */
 export type DsIconButtonSize = 'sm' | 'md' | 'lg';
 

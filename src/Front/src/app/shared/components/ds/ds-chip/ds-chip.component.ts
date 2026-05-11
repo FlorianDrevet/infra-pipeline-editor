@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 
 import { MatIconModule } from '@angular/material/icon';
 
-import { DsChipSize, DsChipVariant } from './ds-chip.types';
+import { DsChipInputVariant, DsChipSize } from './ds-chip.types';
 
 /**
  * Design system chip / badge / tag. Variants for status communication, optional removable icon.
@@ -19,7 +19,7 @@ import { DsChipSize, DsChipVariant } from './ds-chip.types';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DsChipComponent {
-  public readonly variant = input<DsChipVariant>('neutral');
+  public readonly variant = input<DsChipInputVariant>('neutral');
   public readonly size = input<DsChipSize>('md');
   public readonly icon = input<string | undefined>(undefined);
   public readonly removable = input<boolean>(false);
@@ -27,7 +27,9 @@ export class DsChipComponent {
   public readonly removed = output<void>();
 
   protected readonly resolvedVariant = computed<'neutral' | 'success' | 'warning' | 'danger' | 'accent' | 'info'>(() => {
-    switch (this.variant()) {
+    const variant = this.variant();
+
+    switch (variant) {
       case 'primary':
         return 'info';
       case 'error':
@@ -35,7 +37,7 @@ export class DsChipComponent {
       case 'cyan':
         return 'accent';
       default:
-        return this.variant() as 'neutral' | 'success' | 'warning' | 'danger' | 'accent' | 'info';
+        return variant;
     }
   });
 

@@ -211,33 +211,27 @@ export class ImportAppSettingsDialogComponent {
 
   // ─── File handling ─────────────────────────────────────────────────────────
 
-  protected onFileSelected(event: Event): void {
+    protected async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) return;
-    this.fileName.set(file.name);
-    this.importMode.set(resolveImportAppSettingsModeForFileName(file.name, this.importMode()));
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.jsonInput.set(reader.result as string);
-      this.parseError.set('');
-    };
-    reader.readAsText(file);
+      if (!file) {
+        return;
+      }
+
+      this.prepareImportedFile(file);
+      await this.readImportedFile(file);
   }
 
-  protected onDrop(event: DragEvent): void {
+    protected async onDrop(event: DragEvent): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
     const file = event.dataTransfer?.files[0];
-    if (!file) return;
-    this.fileName.set(file.name);
-    this.importMode.set(resolveImportAppSettingsModeForFileName(file.name, this.importMode()));
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.jsonInput.set(reader.result as string);
-      this.parseError.set('');
-    };
-    reader.readAsText(file);
+      if (!file) {
+        return;
+      }
+
+      this.prepareImportedFile(file);
+      await this.readImportedFile(file);
   }
 
   protected onDragOver(event: DragEvent): void {
@@ -245,8 +239,8 @@ export class ImportAppSettingsDialogComponent {
     event.stopPropagation();
   }
 
-  protected onImportModeChange(mode: string): void {
-    this.importMode.set(mode as ImportAppSettingsMode);
+    protected onImportModeChange(mode: ImportAppSettingsMode): void {
+      this.importMode.set(mode);
     this.parseError.set('');
   }
 
@@ -278,12 +272,12 @@ export class ImportAppSettingsDialogComponent {
       key,
       rawValue: value,
       selected: !existingNames.has(key.toUpperCase()),
-      sourceType: 'static' as ImportSourceType,
+      sourceType: 'static',
       sourceResourceId: null,
       sourceOutputName: null,
       variableGroupId: null,
       pipelineVariableName: key,
-      status: existingNames.has(key.toUpperCase()) ? 'duplicate' as const : 'pending' as const,
+      status: existingNames.has(key.toUpperCase()) ? 'duplicate' : 'pending',
       errorMessage: '',
     }));
 
@@ -359,18 +353,27 @@ export class ImportAppSettingsDialogComponent {
     );
   }
 
-  protected onSourceTypeChange(index: number, sourceType: string): void {
-    const typedSource = sourceType as ImportSourceType;
+  protected onSourceTypeChange(index: number, sourceType: ImportSourceType): void {
     this.entries.update(list =>
       list.map((e, i) => i === index ? {
         ...e,
-        sourceType: typedSource,
+        sourceType,
         sourceResourceId: null,
         sourceOutputName: null,
         variableGroupId: null,
-        selected: typedSource !== 'skip' ? e.selected : false,
+        selected: sourceType === 'skip' ? false : e.selected,
       } : e)
     );
+  }
+
+  private prepareImportedFile(file: File): void {
+    this.fileName.set(file.name);
+    this.importMode.set(resolveImportAppSettingsModeForFileName(file.name, this.importMode()));
+  }
+
+  private async readImportedFile(file: File): Promise<void> {
+    this.jsonInput.set(await file.text());
+    this.parseError.set('');
   }
 
   protected async onSourceResourceChange(index: number, resourceId: string): Promise<void> {

@@ -13,6 +13,14 @@ export type DsCardVariant =
   | 'elevated'
   | 'glass';
 
+/** Input variants accepted by {@link DsCardComponent}. */
+export type DsCardInputVariant =
+  | 'default'
+  | 'interactive'
+  | 'outlined'
+  | 'elevated'
+  | 'glass';
+
 /** Padding tokens accepted by {@link DsCardComponent}. */
 export type DsCardPadding = 'none' | 'sm' | 'md' | 'lg';
 
@@ -24,3 +32,6 @@ export type DsCardPadding = 'none' | 'sm' | 'md' | 'lg';
  * dedicated wrapper when a status accent is required.
  */
 export type DsCardAccent = 'none' | 'primary' | 'success' | 'warning' | 'error';
+
+/** Accent values still accepted by {@link DsCardComponent}. */
+export type DsCardInputAccent = 'none' | 'primary' | 'success' | 'warning' | 'error';

@@ -288,9 +288,9 @@ function normalizeToken(value: string | null | undefined): string {
 }
 
 function normalizeFileName(fileName: string): string {
-  const normalized = fileName.replace(/\\/g, '/').trim().toLowerCase();
+  const normalized = fileName.replaceAll('\\', '/').trim().toLowerCase();
   const segments = normalized.split('/');
-  return segments[segments.length - 1] ?? '';
+  return segments.at(-1) ?? '';
 }
 
 function findFirstUnescapedDelimiter(value: string, delimiters: readonly string[]): number {
@@ -322,17 +322,17 @@ function stripQuotes(rawValue: string): string {
   }
 
   const first = rawValue[0];
-  const last = rawValue[rawValue.length - 1];
+  const last = rawValue.at(-1) ?? '';
 
   if ((first === '"' && last === '"') || (first === '\'' && last === '\'')) {
     const innerValue = rawValue.slice(1, -1);
     return first === '"'
       ? innerValue
-        .replace(/\\n/g, '\n')
-        .replace(/\\r/g, '\r')
-        .replace(/\\t/g, '\t')
-        .replace(/\\"/g, '"')
-        .replace(/\\\\/g, '\\')
+        .replaceAll('\\n', '\n')
+        .replaceAll('\\r', '\r')
+        .replaceAll('\\t', '\t')
+        .replaceAll('\\"', '"')
+        .replaceAll('\\\\', '\\')
       : innerValue;
   }
 
@@ -344,10 +344,10 @@ function joinLineContinuations(lines: readonly string[]): string[] {
   let current = '';
 
   for (const line of lines) {
-    if (!current) {
-      current = line;
-    } else {
+    if (current) {
       current += line;
+    } else {
+      current = line;
     }
 
     if (hasContinuation(line)) {
@@ -401,12 +401,12 @@ function findPropertySeparatorIndex(value: string): number {
 
 function unescapeJavaProperties(value: string): string {
   return value
-    .replace(/\\n/g, '\n')
-    .replace(/\\r/g, '\r')
-    .replace(/\\t/g, '\t')
-    .replace(/\\f/g, '\f')
-    .replace(/\\:/g, ':')
-    .replace(/\\=/g, '=')
-    .replace(/\\ /g, ' ')
-    .replace(/\\\\/g, '\\');
+  .replaceAll('\\n', '\n')
+  .replaceAll('\\r', '\r')
+  .replaceAll('\\t', '\t')
+  .replaceAll('\\f', '\f')
+  .replaceAll('\\:', ':')
+  .replaceAll('\\=', '=')
+  .replaceAll('\\ ', ' ')
+  .replaceAll('\\\\', '\\');
 }

@@ -4,7 +4,7 @@ import { DsTreeNodeComponent } from './ds-tree-node.component';
 import { DsTreeNode, DsTreeToggleEvent } from './ds-tree-view.types';
 
 /**
- * Design system tree view (V3). Renders a recursive `role="tree"` driven by
+ * Design system tree view (V3). Renders a recursive tree driven by
  * an immutable `nodes` input. Expansion and selection are externally owned —
  * the parent passes in the live `expandedIds` set and `selectedId`, and
  * receives `nodeClick`, `nodeToggle` events to mutate them.
@@ -14,8 +14,6 @@ import { DsTreeNode, DsTreeToggleEvent } from './ds-tree-view.types';
  * - ArrowRight expands a collapsed node, or jumps to first child if expanded.
  * - ArrowLeft collapses an expanded node, or jumps to parent if collapsed.
  * - Enter / Space activate the focused node.
- *
- * @typeParam T Optional node payload, surfaced through the events.
  */
 @Component({
   selector: 'app-ds-tree-view',
@@ -25,22 +23,22 @@ import { DsTreeNode, DsTreeToggleEvent } from './ds-tree-view.types';
   styleUrl: './ds-tree-view.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DsTreeViewComponent<T = unknown> {
-  @Input({ required: true }) public nodes!: readonly DsTreeNode<T>[];
+export class DsTreeViewComponent {
+  @Input({ required: true }) public nodes!: readonly DsTreeNode<unknown>[];
   @Input() public expandedIds: ReadonlySet<string> = new Set<string>();
   @Input() public selectedId: string | null = null;
   @Input() public ariaLabel?: string;
 
-  @Output() public readonly nodeClick = new EventEmitter<DsTreeNode<T>>();
-  @Output() public readonly nodeToggle = new EventEmitter<DsTreeToggleEvent<T>>();
+  @Output() public readonly nodeClick = new EventEmitter<DsTreeNode<unknown>>();
+  @Output() public readonly nodeToggle = new EventEmitter<DsTreeToggleEvent<unknown>>();
 
   protected onActivate(node: DsTreeNode<unknown>): void {
-    this.nodeClick.emit(node as DsTreeNode<T>);
+    this.nodeClick.emit(node);
   }
 
   protected onToggle(node: DsTreeNode<unknown>): void {
     const expanded = !this.expandedIds.has(node.id);
-    this.nodeToggle.emit({ node: node as DsTreeNode<T>, expanded });
+    this.nodeToggle.emit({ node, expanded });
   }
 
   protected onKey(payload: { node: DsTreeNode<unknown>; event: KeyboardEvent }): void {
@@ -49,27 +47,23 @@ export class DsTreeViewComponent<T = unknown> {
 
     if (key === 'Enter' || key === ' ') {
       event.preventDefault();
-      this.nodeClick.emit(node as DsTreeNode<T>);
+      this.nodeClick.emit(node);
       return;
     }
 
     if (key === 'ArrowRight') {
-      const hasChildren = !!node.children && node.children.length > 0;
+      const hasChildren = (node.children?.length ?? 0) > 0;
       if (hasChildren && !this.expandedIds.has(node.id)) {
         event.preventDefault();
-        this.nodeToggle.emit({ node: node as DsTreeNode<T>, expanded: true });
+        this.nodeToggle.emit({ node, expanded: true });
       }
-      return;
-    }
-
-    if (key === 'ArrowLeft') {
+    } else if (key === 'ArrowLeft') {
       if (this.expandedIds.has(node.id)) {
         event.preventDefault();
-        this.nodeToggle.emit({ node: node as DsTreeNode<T>, expanded: false });
+        this.nodeToggle.emit({ node, expanded: false });
       }
-      return;
     }
   }
 
-  protected trackNode = (_: number, node: DsTreeNode<T>): string => node.id;
+  protected trackNode = (_: number, node: DsTreeNode<unknown>): string => node.id;
 }

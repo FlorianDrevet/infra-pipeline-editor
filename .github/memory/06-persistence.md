@@ -74,6 +74,12 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 - `GetByContainedResourceIdAsync` — finds a parent entity (e.g. ResourceGroup) by a child resource's ID. Renamed from the ambiguous `GetByResourceIdAsync`.
 - Convention: use `ByContainedXxx` prefix when the lookup navigates from child to parent.
 
+## App Settings Eager-Loading Pitfall [2026-05-11]
+
+- `AzureResourceBaseRepository.GetByIdWithRoleAssignmentsAndAppSettingsAsync(...)` must eager-load `AppSettings -> EnvironmentValues`, not just `AppSettings`.
+- `ListAppSettingsQueryHandler` maps static app-setting values from `AppSetting.EnvironmentValues`; if the repository skips that `ThenInclude`, the UI still sees the setting names after reload but loses the per-environment values.
+- The regression is covered by `tests/InfraFlowSculptor.Infrastructure.Tests/Persistence/Repositories/AzureResourceBaseRepositoryTests.cs`, which persists a static app setting, reloads it through the repository in a fresh context, and asserts the environment values are still present.
+
 ## Layout-Driven Repository Configuration [2026-04-23]
 
 - `ProjectDbContext` now exposes both `ProjectRepositories` and `InfraConfigRepositories`.

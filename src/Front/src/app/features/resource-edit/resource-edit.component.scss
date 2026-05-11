@@ -2001,9 +2001,6 @@
   @extend %re-warn-card;
 }
 
-.acr-identity-card { margin-top: var(--ifs-space-8); }
-.kv-access-card    { margin-bottom: var(--ifs-space-8); }
-
 .acr-identity-card,
 .kv-access-card {
   &__header {
@@ -2083,6 +2080,8 @@
 }
 
 .acr-identity-card {
+  margin-top: var(--ifs-space-8);
+
   &__create-link {
     display: inline-flex;
     align-items: center;
@@ -2129,6 +2128,8 @@
 }
 
 .kv-access-card {
+  margin-bottom: var(--ifs-space-8);
+
   &__uai-chip {
     display: inline-flex;
     align-items: center;

@@ -60,10 +60,10 @@ export class AppComponent {
         },
       }));
 
-      annotationElement.addEventListener('annotation:create', this.onAnnotationCreate as EventListener);
+      annotationElement.addEventListener('annotation:create', this.onAnnotationCreate);
 
       this.destroyRef.onDestroy(() => {
-        annotationElement.removeEventListener('annotation:create', this.onAnnotationCreate as EventListener);
+        annotationElement.removeEventListener('annotation:create', this.onAnnotationCreate);
       });
     });
   }
@@ -72,7 +72,7 @@ export class AppComponent {
     this.annotationRef()?.nativeElement.activate();
   }
 
-  private readonly onAnnotationCreate = (_event: Event): void => {
+  private readonly onAnnotationCreate: EventListener = (_event: Event): void => {
     // Annotation create event consumed by ds-annotation listener; no-op here.
   };
 }

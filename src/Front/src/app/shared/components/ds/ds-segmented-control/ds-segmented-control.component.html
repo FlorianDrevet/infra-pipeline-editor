@@ -1,6 +1,5 @@
 <div
   class="ds-seg ds-seg--{{ size() }}"
-  role="radiogroup"
   [attr.aria-label]="ariaLabel() ?? null"
   [attr.aria-disabled]="disabledByForm() ? true : null"
 >
@@ -11,8 +10,7 @@
       class="ds-seg__option"
       [class.ds-seg__option--selected]="isSelected(option)"
       [class.ds-seg__option--disabled]="isDisabled(option)"
-      role="radio"
-      [attr.aria-checked]="isSelected(option)"
+      [attr.aria-pressed]="isSelected(option)"
       [attr.aria-disabled]="isDisabled(option) ? true : null"
       [attr.tabindex]="isSelected(option) ? 0 : -1"
       [disabled]="isDisabled(option)"

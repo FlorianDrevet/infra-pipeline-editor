@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
-import { DsCardAccent, DsCardPadding, DsCardVariant } from './ds-card.types';
+import { DsCardInputAccent, DsCardInputVariant, DsCardPadding } from './ds-card.types';
 
 /**
  * Design system card. V2 supports `default`, `interactive` and `outlined`
@@ -16,14 +16,14 @@ import { DsCardAccent, DsCardPadding, DsCardVariant } from './ds-card.types';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DsCardComponent {
-  public readonly variant = input<DsCardVariant>('outlined');
+  public readonly variant = input<DsCardInputVariant>('outlined');
   public readonly padding = input<DsCardPadding>('md');
   public readonly interactive = input<boolean>(false);
   /**
    * @deprecated Border-left coloured accents are removed in V2. The input is
    * still accepted to preserve the public API but has no visual effect.
    */
-  public readonly accent = input<DsCardAccent>('none');
+  public readonly accent = input<DsCardInputAccent>('none');
 
   public readonly cardClick = output<MouseEvent>();
 

@@ -42,6 +42,7 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
         return await context.AzureResources
             .Include(r => r.RoleAssignments)
             .Include(r => r.AppSettings)
+                .ThenInclude(s => s.EnvironmentValues)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
