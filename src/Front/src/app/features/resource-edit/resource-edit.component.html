@@ -2170,12 +2170,16 @@
               <p>{{ 'RESOURCE_EDIT.APP_SETTINGS.DESCRIPTION' | translate }}</p>
             </div>
 
-            <!-- Add button -->
+            <!-- Add / Import buttons -->
             @if (canWrite()) {
               <div class="ra-actions">
                 <button class="ra-add-btn" (click)="openAddAppSettingDialog()">
                   <mat-icon>add</mat-icon>
                   {{ 'RESOURCE_EDIT.APP_SETTINGS.ADD' | translate }}
+                </button>
+                <button class="ra-add-btn ra-add-btn--secondary" (click)="openImportAppSettingsDialog()">
+                  <mat-icon>upload_file</mat-icon>
+                  {{ 'RESOURCE_EDIT.APP_SETTINGS.IMPORT' | translate }}
                 </button>
               </div>
             }

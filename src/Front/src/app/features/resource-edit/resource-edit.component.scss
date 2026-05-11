@@ -906,6 +906,7 @@
 .ra-add-btn {
   @extend %re-btn;
 
+  &--secondary { @extend %re-btn-ghost; }
   &--uai,
   &--switch,
   &--unassign { @extend %re-btn-ghost; }

@@ -68,6 +68,7 @@ import { FUNCTION_APP_RUNTIME_STACK_OPTIONS } from '../config-detail/enums/funct
 import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service-plan-sku.enum';
 import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData, AddRoleAssignmentDialogResult } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
 import { AddAppSettingDialogComponent, AddAppSettingDialogData } from './add-app-setting-dialog/add-app-setting-dialog.component';
+import { ImportAppSettingsDialogComponent, ImportAppSettingsDialogData } from './import-app-settings-dialog/import-app-settings-dialog.component';
 import { EditStaticAppSettingDialogComponent, EditStaticAppSettingDialogData } from './edit-static-app-setting-dialog/edit-static-app-setting-dialog.component';
 import { AppSettingService } from '../../shared/services/app-setting.service';
 import { SecureParameterMappingService } from '../../shared/services/secure-parameter-mapping.service';
@@ -89,6 +90,7 @@ import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOpt
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
 
 const ADD_APP_SETTING_DIALOG_PANEL_CLASS = 'ifs-add-app-setting-dialog';
+const IMPORT_APP_SETTINGS_DIALOG_PANEL_CLASS = 'ifs-import-app-settings-dialog';
 
 /** Key Vault missing role entry for the KV access warning banner */
 interface KvMissingRoleEntry {
@@ -2494,6 +2496,28 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe((result?: AppSettingResponse) => {
       if (result) {
         this.appSettings.update(list => [...list, result]);
+      }
+    });
+  }
+
+  protected openImportAppSettingsDialog(): void {
+    const dialogRef = this.dialog.open(ImportAppSettingsDialogComponent, {
+      data: {
+        resourceId: this.resourceId,
+        currentResourceName: this.resource()?.name ?? '',
+        siblingResources: this.allResources(),
+        environments: this.environments().map(e => ({ name: e.name })),
+        projectId: this.config()?.projectId ?? '',
+        existingSettingNames: this.appSettings().map(s => s.name),
+      } satisfies ImportAppSettingsDialogData,
+      width: '780px',
+      maxHeight: '85vh',
+      panelClass: IMPORT_APP_SETTINGS_DIALOG_PANEL_CLASS,
+    });
+
+    dialogRef.afterClosed().subscribe((result?: AppSettingResponse[]) => {
+      if (result?.length) {
+        this.appSettings.update(list => [...list, ...result]);
       }
     });
   }
