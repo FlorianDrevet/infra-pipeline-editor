@@ -42,7 +42,7 @@ export function buildAzureDevOpsNodes(
   configFileUris: Record<string, Record<string, string>>,
 ): BicepTreeNode[] {
   const nodes: BicepTreeNode[] = [];
-  const commonEntries = Object.keys(commonFileUris);
+  const commonEntries = sortHierarchicalEntries(Object.keys(commonFileUris));
   const configEntries = Object.entries(configFileUris);
 
   if (commonEntries.length === 0 && configEntries.length === 0) {
@@ -61,7 +61,7 @@ export function buildAzureDevOpsNodes(
   }
 
   for (const [configName, files] of configEntries) {
-    for (const filePath of Object.keys(files)) {
+    for (const filePath of sortHierarchicalEntries(Object.keys(files))) {
       const backendPath = normalizeAzureDevOpsConfigPath(configName, filePath);
       const relativePath = stripPrefix(backendPath, AZURE_DEVOPS_PREFIX);
       if (!relativePath) {
@@ -102,7 +102,7 @@ function appendCommonBicepNodes(
   const topLevelEntries = commonEntries.filter((relativePath) => !relativePath.startsWith(COMMON_MODULES_PREFIX));
   const moduleEntries = commonEntries.filter((relativePath) => relativePath.startsWith(COMMON_MODULES_PREFIX));
 
-  for (const relativePath of topLevelEntries) {
+  for (const relativePath of sortHierarchicalEntries(topLevelEntries)) {
     appendHierarchicalFileNode(
       nodes,
       COMMON_ROOT_KEY,
@@ -112,7 +112,7 @@ function appendCommonBicepNodes(
     );
   }
 
-  for (const relativePath of moduleEntries) {
+  for (const relativePath of sortHierarchicalEntries(moduleEntries)) {
     appendHierarchicalFileNode(
       nodes,
       COMMON_ROOT_KEY,
@@ -130,7 +130,7 @@ function appendConfigBicepNodes(
   for (const [configName, files] of Object.entries(configFileUris)) {
     ensureFolderNode(nodes, configName, `${configName}/`, 0);
 
-    for (const fileName of Object.keys(files)) {
+    for (const fileName of sortHierarchicalEntries(Object.keys(files))) {
       const backendPath = fileName.startsWith(`${configName}/`)
         ? fileName
         : `${configName}/${fileName}`;
@@ -219,6 +219,10 @@ function stripPrefix(path: string, prefix: string): string {
   return path.startsWith(prefix)
     ? path.slice(prefix.length)
     : path;
+}
+
+function sortHierarchicalEntries(entries: readonly string[]): string[] {
+  return [...entries].sort((left, right) => left.localeCompare(right));
 }
 
 function normalizeAzureDevOpsConfigPath(configName: string, filePath: string): string {

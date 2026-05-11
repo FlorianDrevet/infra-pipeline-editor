@@ -3,6 +3,7 @@ using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
+using static InfraFlowSculptor.BicepGeneration.Generators.Constants.BicepGeneratorSharedConstants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -13,6 +14,25 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
+    private const string ModuleName = "logAnalyticsWorkspace";
+    private const string ModuleFolderName = "LogAnalyticsWorkspace";
+    private const string ModuleFileName = "logAnalyticsWorkspace";
+    private const string SkuNameTypeName = "SkuName";
+    private const string SkuParameterName = "sku";
+    private const string RetentionInDaysParameterName = "retentionInDays";
+    private const string DailyQuotaGbParameterName = "dailyQuotaGb";
+    private const string ResourceSymbol = "logAnalyticsWorkspace";
+    private const string LogAnalyticsWorkspaceArmType = "Microsoft.OperationalInsights/workspaces@2023-09-01";
+    private const string DefaultSkuName = "PerGB2018";
+    private const int DefaultRetentionInDays = 30;
+    private const int DefaultDailyQuotaGb = -1;
+    private const string WorkspaceCappingPropertyName = "workspaceCapping";
+    private const string LogAnalyticsWorkspaceIdOutputName = "logAnalyticsWorkspaceId";
+    private const string CustomerIdOutputName = "customerId";
+    private const string ResourceIdExpression = ResourceSymbol + ".id";
+    private const string CustomerIdExpression = ResourceSymbol + ".properties.customerId";
+    private const string SkuNameUnion = "'Free' | 'Standalone' | 'PerNode' | 'PerGB2018' | 'Premium' | 'Standard' | 'CapacityReservation' | 'LACluster'";
+
     /// <inheritdoc />
     public string ResourceType
         => AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace;
@@ -24,32 +44,32 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         return new BicepModuleBuilder()
-            .Module("logAnalyticsWorkspace", "LogAnalyticsWorkspace", AzureResourceTypes.LogAnalyticsWorkspace)
-            .Import("./types.bicep", "SkuName")
-            .Param("location", BicepType.String, description: "Azure region for the Log Analytics workspace")
-            .Param("name", BicepType.String, description: "Name of the Log Analytics workspace")
-            .Param("sku", BicepType.Custom("SkuName"), description: "SKU of the Log Analytics workspace",
-                defaultValue: new BicepStringLiteral("PerGB2018"))
-            .Param("retentionInDays", BicepType.Int, description: "Number of days to retain data",
-                defaultValue: new BicepIntLiteral(30))
-            .Param("dailyQuotaGb", BicepType.Int, description: "Daily ingestion quota in GB (-1 for unlimited)",
-                defaultValue: new BicepIntLiteral(-1))
-            .Resource("logAnalyticsWorkspace", "Microsoft.OperationalInsights/workspaces@2023-09-01")
-            .Property("name", new BicepReference("name"))
-            .Property("location", new BicepReference("location"))
-            .Property("properties", props => props
-                .Property("sku", sku => sku
-                    .Property("name", new BicepReference("sku")))
-                .Property("retentionInDays", new BicepReference("retentionInDays"))
-                .Property("workspaceCapping", capping => capping
-                    .Property("dailyQuotaGb", new BicepReference("dailyQuotaGb"))))
-            .Output("logAnalyticsWorkspaceId", BicepType.String,
-                new BicepRawExpression("logAnalyticsWorkspace.id"))
-            .Output("customerId", BicepType.String,
-                new BicepRawExpression("logAnalyticsWorkspace.properties.customerId"),
+            .Module(ModuleName, ModuleFolderName, AzureResourceTypes.LogAnalyticsWorkspace)
+            .Import(TypesImportPath, SkuNameTypeName)
+            .Param(LocationParameterName, BicepType.String, description: "Azure region for the Log Analytics workspace")
+            .Param(NameParameterName, BicepType.String, description: "Name of the Log Analytics workspace")
+            .Param(SkuParameterName, BicepType.Custom(SkuNameTypeName), description: "SKU of the Log Analytics workspace",
+                defaultValue: new BicepStringLiteral(DefaultSkuName))
+            .Param(RetentionInDaysParameterName, BicepType.Int, description: "Number of days to retain data",
+                defaultValue: new BicepIntLiteral(DefaultRetentionInDays))
+            .Param(DailyQuotaGbParameterName, BicepType.Int, description: "Daily ingestion quota in GB (-1 for unlimited)",
+                defaultValue: new BicepIntLiteral(DefaultDailyQuotaGb))
+            .Resource(ResourceSymbol, LogAnalyticsWorkspaceArmType)
+            .Property(NamePropertyName, new BicepReference(NameParameterName))
+            .Property(LocationPropertyName, new BicepReference(LocationParameterName))
+            .Property(PropertiesPropertyName, props => props
+                .Property(SkuParameterName, sku => sku
+                    .Property(NamePropertyName, new BicepReference(SkuParameterName)))
+                .Property(RetentionInDaysParameterName, new BicepReference(RetentionInDaysParameterName))
+                .Property(WorkspaceCappingPropertyName, capping => capping
+                    .Property(DailyQuotaGbParameterName, new BicepReference(DailyQuotaGbParameterName))))
+            .Output(LogAnalyticsWorkspaceIdOutputName, BicepType.String,
+                new BicepRawExpression(ResourceIdExpression))
+            .Output(CustomerIdOutputName, BicepType.String,
+                new BicepRawExpression(CustomerIdExpression),
                 description: "The customer ID (workspace ID) of the Log Analytics workspace")
-            .ExportedType("SkuName",
-                new BicepRawExpression("'Free' | 'Standalone' | 'PerNode' | 'PerGB2018' | 'Premium' | 'Standard' | 'CapacityReservation' | 'LACluster'"),
+            .ExportedType(SkuNameTypeName,
+                new BicepRawExpression(SkuNameUnion),
                 description: "SKU name for the Log Analytics workspace")
             .Build();
     }
@@ -59,9 +79,9 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
     {
         return new GeneratedTypeModule
         {
-            ModuleName = "logAnalyticsWorkspace",
-            ModuleFileName = "logAnalyticsWorkspace",
-            ModuleFolderName = "LogAnalyticsWorkspace",
+            ModuleName = ModuleName,
+            ModuleFileName = ModuleFileName,
+            ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = LogAnalyticsWorkspaceModuleTemplate,
             ModuleTypesBicepContent = LogAnalyticsWorkspaceTypesTemplate,
             ResourceTypeName = ResourceTypeName,

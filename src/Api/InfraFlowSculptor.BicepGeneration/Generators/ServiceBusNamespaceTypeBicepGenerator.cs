@@ -2,6 +2,7 @@ using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
+using static InfraFlowSculptor.BicepGeneration.Generators.Constants.BicepGeneratorSharedConstants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -11,6 +12,29 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class ServiceBusNamespaceTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
+    private const string ModuleName = "serviceBusNamespace";
+    private const string ModuleFolderName = "ServiceBusNamespace";
+    private const string ModuleFileName = "serviceBusNamespace";
+    private const string SkuNameTypeName = "SkuName";
+    private const string TlsVersionTypeName = "TlsVersion";
+    private const string SkuParameterName = "sku";
+    private const string CapacityParameterName = "capacity";
+    private const string ZoneRedundantParameterName = "zoneRedundant";
+    private const string DisableLocalAuthParameterName = "disableLocalAuth";
+    private const string MinimumTlsVersionParameterName = "minimumTlsVersion";
+    private const string ResourceSymbol = "serviceBusNamespace";
+    private const string ServiceBusNamespaceArmType = "Microsoft.ServiceBus/namespaces@2022-10-01-preview";
+    private const string DefaultSkuName = "Standard";
+    private const string DefaultMinimumTlsVersion = "1.2";
+    private const string PremiumSkuValue = "Premium";
+    private const string TierPropertyName = "tier";
+    private const string DefaultConnectionStringOutputName = "defaultConnectionString";
+    private const string PremiumCapacityConditionExpression = SkuParameterName + " == '" + PremiumSkuValue + "'";
+    private const string ResourceIdExpression = ResourceSymbol + ".id";
+    private const string DefaultConnectionStringExpression = "listKeys('${" + ResourceSymbol + ".id}/AuthorizationRules/RootManageSharedAccessKey', " + ResourceSymbol + ".apiVersion).primaryConnectionString";
+    private const string SkuNameUnion = "'Basic' | 'Standard' | 'Premium'";
+    private const string TlsVersionUnion = "'1.0' | '1.1' | '1.2'";
+
     /// <inheritdoc />
     public string ResourceType
         => AzureResourceTypes.ArmTypes.ServiceBusNamespace;
@@ -22,44 +46,44 @@ public sealed class ServiceBusNamespaceTypeBicepGenerator
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         return new BicepModuleBuilder()
-            .Module("serviceBusNamespace", "ServiceBusNamespace", ResourceTypeName)
-            .Import("./types.bicep", "SkuName", "TlsVersion")
-            .Param("location", BicepType.String, "Azure region for the Service Bus Namespace")
-            .Param("name", BicepType.String, "Name of the Service Bus Namespace")
-            .Param("sku", BicepType.Custom("SkuName"), "SKU name for the Service Bus Namespace",
-                defaultValue: new BicepStringLiteral("Standard"))
-            .Param("capacity", BicepType.Int, "Messaging units capacity (Premium tier only, 1-16)",
+            .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import(TypesImportPath, SkuNameTypeName, TlsVersionTypeName)
+            .Param(LocationParameterName, BicepType.String, "Azure region for the Service Bus Namespace")
+            .Param(NameParameterName, BicepType.String, "Name of the Service Bus Namespace")
+            .Param(SkuParameterName, BicepType.Custom(SkuNameTypeName), "SKU name for the Service Bus Namespace",
+                defaultValue: new BicepStringLiteral(DefaultSkuName))
+            .Param(CapacityParameterName, BicepType.Int, "Messaging units capacity (Premium tier only, 1-16)",
                 defaultValue: new BicepIntLiteral(1))
-            .Param("zoneRedundant", BicepType.Bool, "Whether zone redundancy is enabled (Premium tier only)",
+            .Param(ZoneRedundantParameterName, BicepType.Bool, "Whether zone redundancy is enabled (Premium tier only)",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("disableLocalAuth", BicepType.Bool, "Whether local (SAS key) authentication is disabled",
+            .Param(DisableLocalAuthParameterName, BicepType.Bool, "Whether local (SAS key) authentication is disabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("minimumTlsVersion", BicepType.Custom("TlsVersion"), "Minimum TLS version",
-                defaultValue: new BicepStringLiteral("1.2"))
-            .Resource("serviceBusNamespace", "Microsoft.ServiceBus/namespaces@2022-10-01-preview")
-            .Property("name", new BicepReference("name"))
-            .Property("location", new BicepReference("location"))
-            .Property("sku", sku => sku
-                .Property("name", new BicepReference("sku"))
-                .Property("tier", new BicepReference("sku"))
-                .Property("capacity", new BicepConditionalExpression(
-                    new BicepRawExpression("sku == 'Premium'"),
-                    new BicepReference("capacity"),
+            .Param(MinimumTlsVersionParameterName, BicepType.Custom(TlsVersionTypeName), "Minimum TLS version",
+                defaultValue: new BicepStringLiteral(DefaultMinimumTlsVersion))
+            .Resource(ResourceSymbol, ServiceBusNamespaceArmType)
+            .Property(NamePropertyName, new BicepReference(NameParameterName))
+            .Property(LocationPropertyName, new BicepReference(LocationParameterName))
+            .Property(SkuParameterName, sku => sku
+                .Property(NamePropertyName, new BicepReference(SkuParameterName))
+                .Property(TierPropertyName, new BicepReference(SkuParameterName))
+                .Property(CapacityParameterName, new BicepConditionalExpression(
+                    new BicepRawExpression(PremiumCapacityConditionExpression),
+                    new BicepReference(CapacityParameterName),
                     new BicepIntLiteral(0))))
-            .Property("properties", props => props
-                .Property("zoneRedundant", new BicepReference("zoneRedundant"))
-                .Property("disableLocalAuth", new BicepReference("disableLocalAuth"))
-                .Property("minimumTlsVersion", new BicepReference("minimumTlsVersion")))
-            .Output("id", BicepType.String, new BicepRawExpression("serviceBusNamespace.id"),
+            .Property(PropertiesPropertyName, props => props
+                .Property(ZoneRedundantParameterName, new BicepReference(ZoneRedundantParameterName))
+                .Property(DisableLocalAuthParameterName, new BicepReference(DisableLocalAuthParameterName))
+                .Property(MinimumTlsVersionParameterName, new BicepReference(MinimumTlsVersionParameterName)))
+            .Output(IdOutputName, BicepType.String, new BicepRawExpression(ResourceIdExpression),
                 description: "The resource ID of the Service Bus Namespace")
-            .Output("defaultConnectionString", BicepType.String,
-                new BicepRawExpression("listKeys('${serviceBusNamespace.id}/AuthorizationRules/RootManageSharedAccessKey', serviceBusNamespace.apiVersion).primaryConnectionString"),
+            .Output(DefaultConnectionStringOutputName, BicepType.String,
+                new BicepRawExpression(DefaultConnectionStringExpression),
                 description: "The default primary connection string")
-            .ExportedType("SkuName",
-                new BicepRawExpression("'Basic' | 'Standard' | 'Premium'"),
+            .ExportedType(SkuNameTypeName,
+                new BicepRawExpression(SkuNameUnion),
                 description: "SKU name for the Service Bus Namespace")
-            .ExportedType("TlsVersion",
-                new BicepRawExpression("'1.0' | '1.1' | '1.2'"),
+            .ExportedType(TlsVersionTypeName,
+                new BicepRawExpression(TlsVersionUnion),
                 description: "Minimum TLS version for the Service Bus Namespace")
             .Build();
     }
@@ -69,9 +93,9 @@ public sealed class ServiceBusNamespaceTypeBicepGenerator
     {
         return new GeneratedTypeModule
         {
-            ModuleName = "serviceBusNamespace",
-            ModuleFileName = "serviceBusNamespace",
-            ModuleFolderName = "ServiceBusNamespace",
+            ModuleName = ModuleName,
+            ModuleFileName = ModuleFileName,
+            ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = ServiceBusModuleTemplate,
             ModuleTypesBicepContent = ServiceBusTypesTemplate,
             ResourceTypeName = ResourceTypeName,

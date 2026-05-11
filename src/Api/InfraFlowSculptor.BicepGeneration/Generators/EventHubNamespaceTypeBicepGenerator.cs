@@ -2,6 +2,7 @@ using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
+using static InfraFlowSculptor.BicepGeneration.Generators.Constants.BicepGeneratorSharedConstants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -11,6 +12,32 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class EventHubNamespaceTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
+    private const string ModuleName = "eventHubNamespace";
+    private const string ModuleFolderName = "EventHubNamespace";
+    private const string ModuleFileName = "eventHubNamespace";
+    private const string SkuNameTypeName = "SkuName";
+    private const string TlsVersionTypeName = "TlsVersion";
+    private const string SkuParameterName = "sku";
+    private const string CapacityParameterName = "capacity";
+    private const string ZoneRedundantParameterName = "zoneRedundant";
+    private const string DisableLocalAuthParameterName = "disableLocalAuth";
+    private const string MinimumTlsVersionParameterName = "minimumTlsVersion";
+    private const string AutoInflateEnabledParameterName = "autoInflateEnabled";
+    private const string MaxThroughputUnitsParameterName = "maxThroughputUnits";
+    private const string ResourceSymbol = "eventHubNamespace";
+    private const string EventHubNamespaceArmType = "Microsoft.EventHub/namespaces@2024-01-01";
+    private const string DefaultSkuName = "Standard";
+    private const string DefaultMinimumTlsVersion = "1.2";
+    private const string TierPropertyName = "tier";
+    private const string DisableLocalAuthenticationPropertyName = "disableLocalAuthentication";
+    private const string IsAutoInflateEnabledPropertyName = "isAutoInflateEnabled";
+    private const string MaximumThroughputUnitsPropertyName = "maximumThroughputUnits";
+    private const string NameOutputName = "nameOutput";
+    private const string ResourceIdExpression = ResourceSymbol + ".id";
+    private const string ResourceNameExpression = ResourceSymbol + ".name";
+    private const string SkuNameUnion = "'Basic' | 'Standard' | 'Premium'";
+    private const string TlsVersionUnion = "'1.0' | '1.1' | '1.2'";
+
     /// <inheritdoc />
     public string ResourceType
         => AzureResourceTypes.ArmTypes.EventHubNamespace;
@@ -22,49 +49,49 @@ public sealed class EventHubNamespaceTypeBicepGenerator
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         return new BicepModuleBuilder()
-            .Module("eventHubNamespace", "EventHubNamespace", ResourceTypeName)
-            .Import("./types.bicep", "SkuName", "TlsVersion")
-            .Param("location", BicepType.String, "Azure region for the Event Hub Namespace")
-            .Param("name", BicepType.String, "Name of the Event Hub Namespace")
-            .Param("sku", BicepType.Custom("SkuName"), "SKU name for the Event Hub Namespace",
-                defaultValue: new BicepStringLiteral("Standard"))
-            .Param("capacity", BicepType.Int, "Throughput or processing units capacity",
+            .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import(TypesImportPath, SkuNameTypeName, TlsVersionTypeName)
+            .Param(LocationParameterName, BicepType.String, "Azure region for the Event Hub Namespace")
+            .Param(NameParameterName, BicepType.String, "Name of the Event Hub Namespace")
+            .Param(SkuParameterName, BicepType.Custom(SkuNameTypeName), "SKU name for the Event Hub Namespace",
+                defaultValue: new BicepStringLiteral(DefaultSkuName))
+            .Param(CapacityParameterName, BicepType.Int, "Throughput or processing units capacity",
                 defaultValue: new BicepIntLiteral(1))
-            .Param("zoneRedundant", BicepType.Bool, "Whether zone redundancy is enabled",
+            .Param(ZoneRedundantParameterName, BicepType.Bool, "Whether zone redundancy is enabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("disableLocalAuth", BicepType.Bool, "Whether local (SAS key) authentication is disabled",
+            .Param(DisableLocalAuthParameterName, BicepType.Bool, "Whether local (SAS key) authentication is disabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("minimumTlsVersion", BicepType.Custom("TlsVersion"), "Minimum TLS version",
-                defaultValue: new BicepStringLiteral("1.2"))
-            .Param("autoInflateEnabled", BicepType.Bool, "Whether auto-inflate is enabled",
+            .Param(MinimumTlsVersionParameterName, BicepType.Custom(TlsVersionTypeName), "Minimum TLS version",
+                defaultValue: new BicepStringLiteral(DefaultMinimumTlsVersion))
+            .Param(AutoInflateEnabledParameterName, BicepType.Bool, "Whether auto-inflate is enabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("maxThroughputUnits", BicepType.Int, "Maximum throughput units when auto-inflate is enabled (0-40)",
+            .Param(MaxThroughputUnitsParameterName, BicepType.Int, "Maximum throughput units when auto-inflate is enabled (0-40)",
                 defaultValue: new BicepIntLiteral(0))
-            .Resource("eventHubNamespace", "Microsoft.EventHub/namespaces@2024-01-01")
-            .Property("name", new BicepReference("name"))
-            .Property("location", new BicepReference("location"))
-            .Property("sku", sku => sku
-                .Property("name", new BicepReference("sku"))
-                .Property("tier", new BicepReference("sku"))
-                .Property("capacity", new BicepReference("capacity")))
-            .Property("properties", props => props
-                .Property("zoneRedundant", new BicepReference("zoneRedundant"))
-                .Property("disableLocalAuthentication", new BicepReference("disableLocalAuth"))
-                .Property("minimumTlsVersion", new BicepReference("minimumTlsVersion"))
-                .Property("isAutoInflateEnabled", new BicepReference("autoInflateEnabled"))
-                .Property("maximumThroughputUnits", new BicepConditionalExpression(
-                    new BicepReference("autoInflateEnabled"),
-                    new BicepReference("maxThroughputUnits"),
+            .Resource(ResourceSymbol, EventHubNamespaceArmType)
+            .Property(NamePropertyName, new BicepReference(NameParameterName))
+            .Property(LocationPropertyName, new BicepReference(LocationParameterName))
+            .Property(SkuParameterName, sku => sku
+                .Property(NamePropertyName, new BicepReference(SkuParameterName))
+                .Property(TierPropertyName, new BicepReference(SkuParameterName))
+                .Property(CapacityParameterName, new BicepReference(CapacityParameterName)))
+            .Property(PropertiesPropertyName, props => props
+                .Property(ZoneRedundantParameterName, new BicepReference(ZoneRedundantParameterName))
+                .Property(DisableLocalAuthenticationPropertyName, new BicepReference(DisableLocalAuthParameterName))
+                .Property(MinimumTlsVersionParameterName, new BicepReference(MinimumTlsVersionParameterName))
+                .Property(IsAutoInflateEnabledPropertyName, new BicepReference(AutoInflateEnabledParameterName))
+                .Property(MaximumThroughputUnitsPropertyName, new BicepConditionalExpression(
+                    new BicepReference(AutoInflateEnabledParameterName),
+                    new BicepReference(MaxThroughputUnitsParameterName),
                     new BicepIntLiteral(0))))
-            .Output("id", BicepType.String, new BicepRawExpression("eventHubNamespace.id"),
+            .Output(IdOutputName, BicepType.String, new BicepRawExpression(ResourceIdExpression),
                 description: "The resource ID of the Event Hub Namespace")
-            .Output("nameOutput", BicepType.String, new BicepRawExpression("eventHubNamespace.name"),
+            .Output(NameOutputName, BicepType.String, new BicepRawExpression(ResourceNameExpression),
                 description: "The name of the Event Hub Namespace")
-            .ExportedType("SkuName",
-                new BicepRawExpression("'Basic' | 'Standard' | 'Premium'"),
+            .ExportedType(SkuNameTypeName,
+                new BicepRawExpression(SkuNameUnion),
                 description: "SKU name for the Event Hub Namespace")
-            .ExportedType("TlsVersion",
-                new BicepRawExpression("'1.0' | '1.1' | '1.2'"),
+            .ExportedType(TlsVersionTypeName,
+                new BicepRawExpression(TlsVersionUnion),
                 description: "Minimum TLS version for the Event Hub Namespace")
             .Build();
     }
@@ -74,9 +101,9 @@ public sealed class EventHubNamespaceTypeBicepGenerator
     {
         return new GeneratedTypeModule
         {
-            ModuleName = "eventHubNamespace",
-            ModuleFileName = "eventHubNamespace",
-            ModuleFolderName = "EventHubNamespace",
+            ModuleName = ModuleName,
+            ModuleFileName = ModuleFileName,
+            ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = EventHubModuleTemplate,
             ModuleTypesBicepContent = EventHubTypesTemplate,
             ResourceTypeName = ResourceTypeName,

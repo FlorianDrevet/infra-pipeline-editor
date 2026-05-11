@@ -80,16 +80,13 @@ internal static class BicepFormattingHelper
 
     internal static string SerializeObject(object obj)
     {
-        var props = obj.GetType().GetProperties();
-
         var sb = new StringBuilder();
         sb.AppendLine("{");
 
-        foreach (var p in props)
+        foreach (var (propertyName, propValue) in BicepObjectPropertyHelper.EnumerateSerializedProperties(obj))
         {
-            var propValue = p.GetValue(obj);
             if (propValue is not null)
-                sb.AppendLine($"  {p.Name}: {SerializeToBicep(propValue)}");
+                sb.AppendLine($"  {propertyName}: {SerializeToBicep(propValue)}");
         }
 
         sb.Append('}');

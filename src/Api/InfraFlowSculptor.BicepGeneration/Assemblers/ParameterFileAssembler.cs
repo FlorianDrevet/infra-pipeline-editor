@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using InfraFlowSculptor.BicepGeneration.Generators.ParameterModels;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.StorageAccount;
@@ -95,11 +96,11 @@ internal static class ParameterFileAssembler
             if (envCustomDomains.Count > 0 && mergedParams.ContainsKey("customDomains"))
             {
                 mergedParams["customDomains"] = envCustomDomains
-                    .Select(cd => (object)new Dictionary<string, object>
+                    .Select(cd => (object)BicepParameterModelConverter.ToDictionary(new CustomDomainParameter
                     {
-                        ["domainName"] = cd.DomainName,
-                        ["bindingType"] = cd.BindingType
-                    })
+                        DomainName = cd.DomainName,
+                        BindingType = cd.BindingType,
+                    }))
                     .ToList<object>();
             }
 
@@ -222,20 +223,17 @@ internal static class ParameterFileAssembler
         }
         else
         {
-            var props = source.GetType().GetProperties(
-                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-            foreach (var prop in props)
+            foreach (var (propertyName, propertyValue) in BicepObjectPropertyHelper.EnumerateSerializedProperties(source))
             {
-                var val = prop.GetValue(source);
-                if (prop.Name.Equals(head, StringComparison.OrdinalIgnoreCase))
+                if (propertyName.Equals(head, StringComparison.OrdinalIgnoreCase))
                 {
-                    dict[prop.Name] = tail is not null
-                        ? MergePropertyIntoObject(val!, tail, newValue)
-                        : (val is not null ? CoerceToOriginalType(newValue, val) : newValue);
+                    dict[propertyName] = tail is not null
+                        ? MergePropertyIntoObject(propertyValue!, tail, newValue)
+                        : (propertyValue is not null ? CoerceToOriginalType(newValue, propertyValue) : newValue);
                 }
                 else
                 {
-                    dict[prop.Name] = val!;
+                    dict[propertyName] = propertyValue!;
                 }
             }
         }

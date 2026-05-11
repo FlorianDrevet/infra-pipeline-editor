@@ -1,7 +1,11 @@
+using InfraFlowSculptor.BicepGeneration.Generators.ParameterModels;
+using InfraFlowSculptor.BicepGeneration.Generators.ParameterModels.ContainerApp;
+using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
+using static InfraFlowSculptor.BicepGeneration.Generators.Constants.BicepGeneratorSharedConstants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -30,11 +34,119 @@ public sealed class ContainerAppTypeBicepGenerator
     private const string ScalingConfigTypeName = "ScalingConfig";
     private const string IngressConfigTypeName = "IngressConfig";
     private const string HealthProbeConfigTypeName = "HealthProbeConfig";
+    private const string TransportMethodTypeName = "TransportMethod";
+    private const string ProbeConfigTypeName = "ProbeConfig";
+    private const string AcrAuthModePropertyName = "acrAuthMode";
+    private const string ContainerRegistryIdPropertyName = "containerRegistryId";
+    private const string DockerImageNamePropertyName = "dockerImageName";
+    private const string ContainerAppEnvironmentIdParameterName = "containerAppEnvironmentId";
+    private const string AcrLoginServerParameterName = "acrLoginServer";
+    private const string AcrPasswordParameterName = "acrPassword";
+    private const string AcrManagedIdentityClientIdParameterName = "acrManagedIdentityClientId";
+    private const string CustomDomainsParameterName = "customDomains";
+    private const string CustomDomainBindingsVariableName = "customDomainBindings";
+    private const string AcrUsernameVariableName = "acrUsername";
+    private const string AcrPasswordSecretNameVariableName = "acrPasswordSecretName";
+    private const string ContainerAppArmType = "Microsoft.App/containerApps@2024-03-01";
+    private const string DefaultContainerImage = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest";
+    private const string DefaultContainerCpuCores = "0.25";
+    private const string DefaultContainerMemoryGi = "0.5Gi";
+    private const string DefaultTransportMethod = "auto";
+    private const string EmptyParameterValue = "";
+    private const string SystemManagedIdentityValue = "system";
+    private const string AcrPasswordSecretNameValue = "acr-password";
+    private const string CustomDomainBindingsExpression = "[for domain in customDomains: {\n  name: domain.domainName\n  bindingType: domain.bindingType\n}]";
+    private const string AcrUsernameExpression = "split(acrLoginServer, '.')[0]";
+    private const string ManagedIdentityClientIdConditionExpression = "!empty(acrManagedIdentityClientId)";
+    private const string CustomDomainsConditionExpression = "!empty(customDomains)";
+    private const string TransportMethodUnion = "'auto' | 'http' | 'http2' | 'tcp'";
+    private const string CpuCoresPropertyName = "cpuCores";
+    private const string MemoryGiPropertyName = "memoryGi";
+    private const string MinReplicasPropertyName = "minReplicas";
+    private const string MaxReplicasPropertyName = "maxReplicas";
+    private const string EnabledPropertyName = "enabled";
+    private const string TargetPortPropertyName = "targetPort";
+    private const string ExternalPropertyName = "external";
+    private const string TransportMethodPropertyName = "transportMethod";
+    private const string IngressEnabledMappingKey = "ingressEnabled";
+    private const string IngressTargetPortMappingKey = "ingressTargetPort";
+    private const string IngressExternalMappingKey = "ingressExternal";
+    private const string ReadinessProbePathMappingKey = "readinessProbePath";
+    private const string ReadinessProbePortMappingKey = "readinessProbePort";
+    private const string LivenessProbePathMappingKey = "livenessProbePath";
+    private const string LivenessProbePortMappingKey = "livenessProbePort";
+    private const string StartupProbePathMappingKey = "startupProbePath";
+    private const string StartupProbePortMappingKey = "startupProbePort";
+    private const string ReadinessPathSelector = "readiness.path";
+    private const string ReadinessPortSelector = "readiness.port";
+    private const string LivenessPathSelector = "liveness.path";
+    private const string LivenessPortSelector = "liveness.port";
+    private const string StartupPathSelector = "startup.path";
+    private const string StartupPortSelector = "startup.port";
+    private const string ValuePropertyName = "value";
+    private const string SecretsPropertyName = "secrets";
+    private const string RegistriesPropertyName = "registries";
+    private const string ServerPropertyName = "server";
+    private const string UsernamePropertyName = "username";
+    private const string PasswordSecretRefPropertyName = "passwordSecretRef";
+    private const string IdentityPropertyName = "identity";
+    private const string IngressPropertyName = "ingress";
+    private const string TransportPropertyName = "transport";
+    private const string ContainersPropertyName = "containers";
+    private const string ImagePropertyName = "image";
+    private const string ResourcesPropertyName = "resources";
+    private const string CpuPropertyName = "cpu";
+    private const string MemoryPropertyName = "memory";
+    private const string ProbesPropertyName = "probes";
+    private const string ScalePropertyName = "scale";
+    private const string ManagedEnvironmentIdPropertyName = "managedEnvironmentId";
+    private const string ConfigurationPropertyName = "configuration";
+    private const string TemplatePropertyName = "template";
+    private const string NullExpression = "null";
+    private const string ContainerRuntimeImageSelector = ContainerRuntimeParameterName + ".image";
+    private const string ContainerRuntimeCpuJsonExpression = "json(" + ContainerRuntimeParameterName + "." + CpuCoresPropertyName + ")";
+    private const string ContainerRuntimeMemorySelector = ContainerRuntimeParameterName + "." + MemoryGiPropertyName;
+    private const string IngressEnabledSelector = IngressParameterName + "." + EnabledPropertyName;
+    private const string IngressExternalSelector = IngressParameterName + "." + ExternalPropertyName;
+    private const string IngressTargetPortSelector = IngressParameterName + "." + TargetPortPropertyName;
+    private const string IngressTransportMethodSelector = IngressParameterName + "." + TransportMethodPropertyName;
+    private const string ScalingMinReplicasSelector = ScalingParameterName + "." + MinReplicasPropertyName;
+    private const string ScalingMaxReplicasSelector = ScalingParameterName + "." + MaxReplicasPropertyName;
+    private const string FqdnOutputName = "fqdn";
+    private const string LatestRevisionFqdnOutputName = "latestRevisionFqdn";
+    private const string ContainerAppIdExpression = ResourceSymbol + ".id";
+    private const string FqdnExpression = ResourceSymbol + ".properties.configuration.ingress != null ? " + ResourceSymbol + ".properties.configuration.ingress.fqdn : ''";
+    private const string LatestRevisionFqdnExpression = ResourceSymbol + ".properties.latestRevisionFqdn";
+    private const string ProbesUnionExpression = """
+        union(
+          !empty(healthProbes.readiness.path) && healthProbes.readiness.port > 0 ? [{
+            type: 'Readiness'
+            httpGet: {
+              path: healthProbes.readiness.path
+              port: healthProbes.readiness.port
+            }
+          }] : [],
+          !empty(healthProbes.liveness.path) && healthProbes.liveness.port > 0 ? [{
+            type: 'Liveness'
+            httpGet: {
+              path: healthProbes.liveness.path
+              port: healthProbes.liveness.port
+            }
+          }] : [],
+          !empty(healthProbes.startup.path) && healthProbes.startup.port > 0 ? [{
+            type: 'Startup'
+            httpGet: {
+              path: healthProbes.startup.path
+              port: healthProbes.startup.port
+            }
+          }] : []
+        )
+        """;
 
     /// <inheritdoc />
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
-        var containerRegistryId = resource.Properties.GetValueOrDefault("containerRegistryId", "");
+      var containerRegistryId = resource.Properties.GetValueOrDefault(ContainerRegistryIdPropertyName, EmptyParameterValue);
         var hasAcr = !string.IsNullOrEmpty(containerRegistryId);
         var acrAuthMode = GetAcrAuthMode(resource.Properties);
         var useAdminCredentials = hasAcr
@@ -42,14 +154,14 @@ public sealed class ContainerAppTypeBicepGenerator
 
         var builder = new BicepModuleBuilder()
             .Module(ModuleName, ModuleFolderName, ResourceTypeName)
-            .Import("./types.bicep",
+          .Import(TypesImportPath,
                 ContainerRuntimeConfigTypeName,
                 ScalingConfigTypeName,
                 IngressConfigTypeName,
                 HealthProbeConfigTypeName)
-            .Param("location", BicepType.String, "Azure region for the Container App")
-            .Param("name", BicepType.String, "Name of the Container App")
-            .Param("containerAppEnvironmentId", BicepType.String, "Resource ID of the Container App Environment")
+            .Param(LocationParameterName, BicepType.String, "Azure region for the Container App")
+            .Param(NameParameterName, BicepType.String, "Name of the Container App")
+            .Param(ContainerAppEnvironmentIdParameterName, BicepType.String, "Resource ID of the Container App Environment")
             .Param(ContainerRuntimeParameterName, BicepType.Custom(ContainerRuntimeConfigTypeName), "Container runtime configuration")
             .Param(ScalingParameterName, BicepType.Custom(ScalingConfigTypeName), "Scaling configuration")
             .Param(IngressParameterName, BicepType.Custom(IngressConfigTypeName), "Ingress configuration")
@@ -57,32 +169,31 @@ public sealed class ContainerAppTypeBicepGenerator
 
         if (hasAcr)
         {
-            builder.Param("acrLoginServer", BicepType.String, "ACR login server (e.g. myregistry.azurecr.io)");
+            builder.Param(AcrLoginServerParameterName, BicepType.String, "ACR login server (e.g. myregistry.azurecr.io)");
 
             if (useAdminCredentials)
             {
-                builder.Param("acrPassword", BicepType.String,
+              builder.Param(AcrPasswordParameterName, BicepType.String,
                     "Admin password for the Container Registry", secure: true);
             }
             else
             {
-                builder.Param("acrManagedIdentityClientId", BicepType.String,
+              builder.Param(AcrManagedIdentityClientIdParameterName, BicepType.String,
                     "Client ID of the managed identity for ACR pull",
-                    defaultValue: new BicepStringLiteral(""));
+                defaultValue: new BicepStringLiteral(EmptyParameterValue));
             }
         }
 
-        builder.Param("customDomains", BicepType.Array, "Custom domain bindings for this Container App",
+          builder.Param(CustomDomainsParameterName, BicepType.Array, "Custom domain bindings for this Container App",
             defaultValue: new BicepArrayExpression([]));
 
         // ── Variables ──
-        builder.Var("customDomainBindings", new BicepRawExpression(
-            "[for domain in customDomains: {\n  name: domain.domainName\n  bindingType: domain.bindingType\n}]"));
+          builder.Var(CustomDomainBindingsVariableName, new BicepRawExpression(CustomDomainBindingsExpression));
 
         if (hasAcr && useAdminCredentials)
         {
-            builder.Var("acrUsername", new BicepRawExpression("split(acrLoginServer, '.')[0]"));
-            builder.Var("acrPasswordSecretName", new BicepStringLiteral("acr-password"));
+            builder.Var(AcrUsernameVariableName, new BicepRawExpression(AcrUsernameExpression));
+            builder.Var(AcrPasswordSecretNameVariableName, new BicepStringLiteral(AcrPasswordSecretNameValue));
         }
 
         // ── Module file name (variant) ──
@@ -94,94 +205,93 @@ public sealed class ContainerAppTypeBicepGenerator
         }
 
         // ── Resource ──
-        builder.Resource(ResourceSymbol, "Microsoft.App/containerApps@2024-03-01")
-            .Property("name", new BicepReference("name"))
-            .Property("location", new BicepReference("location"));
+        builder.Resource(ResourceSymbol, ContainerAppArmType)
+          .Property(NamePropertyName, new BicepReference(NameParameterName))
+          .Property(LocationPropertyName, new BicepReference(LocationParameterName));
 
         // configuration sub-object (variant-dependent)
         var configProps = new List<BicepPropertyAssignment>();
 
         if (hasAcr && useAdminCredentials)
         {
-            configProps.Add(new BicepPropertyAssignment("secrets", new BicepArrayExpression([
+          configProps.Add(new BicepPropertyAssignment(SecretsPropertyName, new BicepArrayExpression([
                 new BicepObjectExpression([
-                    new BicepPropertyAssignment("name", new BicepReference("acrPasswordSecretName")),
-                    new BicepPropertyAssignment("value", new BicepReference("acrPassword")),
+            new BicepPropertyAssignment(NamePropertyName, new BicepReference(AcrPasswordSecretNameVariableName)),
+            new BicepPropertyAssignment(ValuePropertyName, new BicepReference(AcrPasswordParameterName)),
                 ]),
             ])));
-            configProps.Add(new BicepPropertyAssignment("registries", new BicepArrayExpression([
+          configProps.Add(new BicepPropertyAssignment(RegistriesPropertyName, new BicepArrayExpression([
                 new BicepObjectExpression([
-                    new BicepPropertyAssignment("server", new BicepReference("acrLoginServer")),
-                    new BicepPropertyAssignment("username", new BicepReference("acrUsername")),
-                    new BicepPropertyAssignment("passwordSecretRef", new BicepReference("acrPasswordSecretName")),
+            new BicepPropertyAssignment(ServerPropertyName, new BicepReference(AcrLoginServerParameterName)),
+            new BicepPropertyAssignment(UsernamePropertyName, new BicepReference(AcrUsernameVariableName)),
+            new BicepPropertyAssignment(PasswordSecretRefPropertyName, new BicepReference(AcrPasswordSecretNameVariableName)),
                 ]),
             ])));
         }
         else if (hasAcr)
         {
-            configProps.Add(new BicepPropertyAssignment("registries", new BicepArrayExpression([
+          configProps.Add(new BicepPropertyAssignment(RegistriesPropertyName, new BicepArrayExpression([
                 new BicepObjectExpression([
-                    new BicepPropertyAssignment("server", new BicepReference("acrLoginServer")),
-                    new BicepPropertyAssignment("identity", new BicepConditionalExpression(
-                        new BicepRawExpression("!empty(acrManagedIdentityClientId)"),
-                        new BicepReference("acrManagedIdentityClientId"),
-                        new BicepStringLiteral("system"))),
+            new BicepPropertyAssignment(ServerPropertyName, new BicepReference(AcrLoginServerParameterName)),
+              new BicepPropertyAssignment(IdentityPropertyName, new BicepConditionalExpression(
+                  new BicepRawExpression(ManagedIdentityClientIdConditionExpression),
+                  new BicepReference(AcrManagedIdentityClientIdParameterName),
+                  new BicepStringLiteral(SystemManagedIdentityValue))),
                 ]),
             ])));
         }
 
-        configProps.Add(new BicepPropertyAssignment("ingress", new BicepConditionalExpression(
-            new BicepReference($"{IngressParameterName}.enabled"),
+        configProps.Add(new BicepPropertyAssignment(IngressPropertyName, new BicepConditionalExpression(
+          new BicepReference(IngressEnabledSelector),
             new BicepObjectExpression([
-                new BicepPropertyAssignment("external", new BicepReference($"{IngressParameterName}.external")),
-                new BicepPropertyAssignment("targetPort", new BicepReference($"{IngressParameterName}.targetPort")),
-                new BicepPropertyAssignment("transport", new BicepReference($"{IngressParameterName}.transportMethod")),
-                new BicepPropertyAssignment("customDomains", new BicepConditionalExpression(
-                    new BicepRawExpression("!empty(customDomains)"),
-                    new BicepReference("customDomainBindings"),
-                    new BicepRawExpression("null"))),
+            new BicepPropertyAssignment(ExternalPropertyName, new BicepReference(IngressExternalSelector)),
+            new BicepPropertyAssignment(TargetPortPropertyName, new BicepReference(IngressTargetPortSelector)),
+            new BicepPropertyAssignment(TransportPropertyName, new BicepReference(IngressTransportMethodSelector)),
+            new BicepPropertyAssignment(CustomDomainsParameterName, new BicepConditionalExpression(
+                new BicepRawExpression(CustomDomainsConditionExpression),
+                new BicepReference(CustomDomainBindingsVariableName),
+              new BicepRawExpression(NullExpression))),
             ]),
-            new BicepRawExpression("null"))));
+          new BicepRawExpression(NullExpression))));
 
         // template sub-object
         var templateObject = new BicepObjectExpression([
-            new BicepPropertyAssignment("containers", new BicepArrayExpression([
+          new BicepPropertyAssignment(ContainersPropertyName, new BicepArrayExpression([
                 new BicepObjectExpression([
-                    new BicepPropertyAssignment("name", new BicepReference("name")),
-                    new BicepPropertyAssignment("image", new BicepReference($"{ContainerRuntimeParameterName}.image")),
-                    new BicepPropertyAssignment("resources", new BicepObjectExpression([
-                        new BicepPropertyAssignment("cpu", new BicepRawExpression($"json({ContainerRuntimeParameterName}.cpuCores)")),
-                        new BicepPropertyAssignment("memory", new BicepReference($"{ContainerRuntimeParameterName}.memoryGi")),
+              new BicepPropertyAssignment(NamePropertyName, new BicepReference(NameParameterName)),
+              new BicepPropertyAssignment(ImagePropertyName, new BicepReference(ContainerRuntimeImageSelector)),
+              new BicepPropertyAssignment(ResourcesPropertyName, new BicepObjectExpression([
+                new BicepPropertyAssignment(CpuPropertyName, new BicepRawExpression(ContainerRuntimeCpuJsonExpression)),
+                new BicepPropertyAssignment(MemoryPropertyName, new BicepReference(ContainerRuntimeMemorySelector)),
                     ])),
-                    new BicepPropertyAssignment("probes", new BicepRawExpression(BuildProbesUnion())),
+              new BicepPropertyAssignment(ProbesPropertyName, new BicepRawExpression(BuildProbesUnion())),
                 ]),
             ])),
-            new BicepPropertyAssignment("scale", new BicepObjectExpression([
-                new BicepPropertyAssignment("minReplicas", new BicepReference($"{ScalingParameterName}.minReplicas")),
-                new BicepPropertyAssignment("maxReplicas", new BicepReference($"{ScalingParameterName}.maxReplicas")),
+          new BicepPropertyAssignment(ScalePropertyName, new BicepObjectExpression([
+            new BicepPropertyAssignment(MinReplicasPropertyName, new BicepReference(ScalingMinReplicasSelector)),
+            new BicepPropertyAssignment(MaxReplicasPropertyName, new BicepReference(ScalingMaxReplicasSelector)),
             ])),
         ]);
 
-        builder.Property("properties", props => props
-            .Property("managedEnvironmentId", new BicepReference("containerAppEnvironmentId"))
-            .Property("configuration", new BicepObjectExpression(configProps))
-            .Property("template", templateObject));
+        builder.Property(PropertiesPropertyName, props => props
+          .Property(ManagedEnvironmentIdPropertyName, new BicepReference(ContainerAppEnvironmentIdParameterName))
+          .Property(ConfigurationPropertyName, new BicepObjectExpression(configProps))
+          .Property(TemplatePropertyName, templateObject));
 
         // ── Outputs ──
         builder
-            .Output("id", BicepType.String, new BicepRawExpression($"{ResourceSymbol}.id"),
+          .Output(IdOutputName, BicepType.String, new BicepRawExpression(ContainerAppIdExpression),
                 description: "The resource ID of the Container App")
-            .Output("fqdn", BicepType.String, new BicepRawExpression(
-                $"{ResourceSymbol}.properties.configuration.ingress != null ? {ResourceSymbol}.properties.configuration.ingress.fqdn : ''"),
+          .Output(FqdnOutputName, BicepType.String, new BicepRawExpression(FqdnExpression),
                 description: "The FQDN of the Container App")
-            .Output("latestRevisionFqdn", BicepType.String,
-                new BicepRawExpression($"{ResourceSymbol}.properties.latestRevisionFqdn"),
+          .Output(LatestRevisionFqdnOutputName, BicepType.String,
+            new BicepRawExpression(LatestRevisionFqdnExpression),
                 description: "The latest revision FQDN of the Container App");
 
         // ── Exported types ──
         builder
-            .ExportedType("TransportMethod",
-                new BicepRawExpression("'auto' | 'http' | 'http2' | 'tcp'"),
+            .ExportedType(TransportMethodTypeName,
+              new BicepRawExpression(TransportMethodUnion),
                 description: "Ingress transport method for the Container App")
             .ExportedType(ContainerRuntimeConfigTypeName, new BicepRawExpression(
                 "{\n  @description('Container image to deploy')\n  image: string\n  @description('CPU cores allocated to the container')\n  cpuCores: string\n  @description('Memory allocated to the container (e.g. 0.5Gi)')\n  memoryGi: string\n}"),
@@ -190,13 +300,13 @@ public sealed class ContainerAppTypeBicepGenerator
                 "{\n  @description('Minimum number of replicas')\n  minReplicas: int\n  @description('Maximum number of replicas')\n  maxReplicas: int\n}"),
                 description: "Scaling configuration for the Container App")
             .ExportedType(IngressConfigTypeName, new BicepRawExpression(
-                "{\n  @description('Whether ingress is enabled')\n  enabled: bool\n  @description('Target port for ingress traffic')\n  targetPort: int\n  @description('Whether ingress is externally accessible')\n  external: bool\n  @description('Transport method for ingress')\n  transportMethod: TransportMethod\n}"),
+              $"{{\n  @description('Whether ingress is enabled')\n  enabled: bool\n  @description('Target port for ingress traffic')\n  targetPort: int\n  @description('Whether ingress is externally accessible')\n  external: bool\n  @description('Transport method for ingress')\n  transportMethod: {TransportMethodTypeName}\n}}"),
                 description: "Ingress configuration for the Container App")
-            .ExportedType("ProbeConfig", new BicepRawExpression(
+            .ExportedType(ProbeConfigTypeName, new BicepRawExpression(
                 "{\n  @description('HTTP path for the probe (empty to disable)')\n  path: string\n  @description('Port for the probe (0 to disable)')\n  port: int\n}"),
                 description: "Configuration for a single HTTP health probe")
             .ExportedType(HealthProbeConfigTypeName, new BicepRawExpression(
-                "{\n  @description('Readiness probe configuration')\n  readiness: ProbeConfig\n  @description('Liveness probe configuration')\n  liveness: ProbeConfig\n  @description('Startup probe configuration')\n  startup: ProbeConfig\n}"),
+              $"{{\n  @description('Readiness probe configuration')\n  readiness: {ProbeConfigTypeName}\n  @description('Liveness probe configuration')\n  liveness: {ProbeConfigTypeName}\n  @description('Startup probe configuration')\n  startup: {ProbeConfigTypeName}\n}}"),
                 description: "Health probe configuration for the Container App");
 
         return builder.Build();
@@ -204,31 +314,7 @@ public sealed class ContainerAppTypeBicepGenerator
 
     private static string BuildProbesUnion()
     {
-        return """
-            union(
-              !empty(healthProbes.readiness.path) && healthProbes.readiness.port > 0 ? [{
-                type: 'Readiness'
-                httpGet: {
-                  path: healthProbes.readiness.path
-                  port: healthProbes.readiness.port
-                }
-              }] : [],
-              !empty(healthProbes.liveness.path) && healthProbes.liveness.port > 0 ? [{
-                type: 'Liveness'
-                httpGet: {
-                  path: healthProbes.liveness.path
-                  port: healthProbes.liveness.port
-                }
-              }] : [],
-              !empty(healthProbes.startup.path) && healthProbes.startup.port > 0 ? [{
-                type: 'Startup'
-                httpGet: {
-                  path: healthProbes.startup.path
-                  port: healthProbes.startup.port
-                }
-              }] : []
-            )
-            """;
+        return ProbesUnionExpression;
     }
 
     /// <inheritdoc />
@@ -241,43 +327,58 @@ public sealed class ContainerAppTypeBicepGenerator
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
-        var containerRegistryId = resource.Properties.GetValueOrDefault("containerRegistryId", "");
+      var containerRegistryId = resource.Properties.GetValueOrDefault(ContainerRegistryIdPropertyName, EmptyParameterValue);
         var hasAcr = !string.IsNullOrEmpty(containerRegistryId);
         var acrAuthMode = GetAcrAuthMode(resource.Properties);
         var useAdminCredentials = hasAcr
             && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
         var hasCustomDomains = resource.CustomDomains.Count > 0;
 
-        var dockerImageName = resource.Properties.GetValueOrDefault("dockerImageName", "");
+      var dockerImageName = resource.Properties.GetValueOrDefault(DockerImageNamePropertyName, EmptyParameterValue);
         var containerImage = !string.IsNullOrEmpty(dockerImageName)
             ? dockerImageName
-            : "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest";
+        : DefaultContainerImage;
 
-        var parameters = new Dictionary<string, object>
+        var parameters = new ContainerAppParameters
         {
-            [ContainerRuntimeParameterName] = new { image = containerImage, cpuCores = "0.25", memoryGi = "0.5Gi" },
-            [ScalingParameterName] = new { minReplicas = 0, maxReplicas = 1 },
-            [IngressParameterName] = new { enabled = true, targetPort = 80, external = true, transportMethod = "auto" },
-            [HealthProbesParameterName] = new
+          ContainerRuntime = new ContainerRuntimeParameters
             {
-                readiness = new { path = "", port = 0 },
-                liveness = new { path = "", port = 0 },
-                startup = new { path = "", port = 0 }
-            }
+            Image = containerImage,
+            CpuCores = DefaultContainerCpuCores,
+            MemoryGi = DefaultContainerMemoryGi,
+          },
+          Scaling = new ScalingParameters
+          {
+            MinReplicas = 0,
+            MaxReplicas = 1,
+          },
+          Ingress = new IngressParameters
+          {
+            Enabled = true,
+            TargetPort = 80,
+            External = true,
+            TransportMethod = DefaultTransportMethod,
+          },
+          HealthProbes = new HealthProbesParameters
+          {
+            Readiness = new HealthProbeParameters { Path = string.Empty, Port = 0 },
+            Liveness = new HealthProbeParameters { Path = string.Empty, Port = 0 },
+            Startup = new HealthProbeParameters { Path = string.Empty, Port = 0 },
+          },
         };
 
         if (hasAcr)
         {
-            parameters["acrLoginServer"] = "";
+          parameters = parameters with { AcrLoginServer = EmptyParameterValue };
           if (!useAdminCredentials)
           {
-            parameters["acrManagedIdentityClientId"] = "";
+          parameters = parameters with { AcrManagedIdentityClientId = EmptyParameterValue };
           }
         }
 
         if (hasCustomDomains)
         {
-            parameters["customDomains"] = new List<object>();
+          parameters = parameters with { CustomDomains = [] };
         }
 
         var moduleFileName = hasAcr
@@ -298,8 +399,8 @@ public sealed class ContainerAppTypeBicepGenerator
                 : ContainerAppModuleTemplate,
             ModuleTypesBicepContent = ContainerAppTypesTemplate,
             ResourceTypeName = ResourceTypeName,
-            Parameters = parameters,
-            SecureParameters = useAdminCredentials ? ["acrPassword"] : [],
+            Parameters = BicepParameterModelConverter.ToDictionary(parameters),
+            SecureParameters = useAdminCredentials ? [AcrPasswordParameterName] : [],
             ParameterTypeOverrides = new Dictionary<string, string>
             {
                 [ContainerRuntimeParameterName] = ContainerRuntimeConfigTypeName,
@@ -309,27 +410,27 @@ public sealed class ContainerAppTypeBicepGenerator
             },
             ParameterGroupMappings = new Dictionary<string, (string, string)>
             {
-                ["cpuCores"] = (ContainerRuntimeParameterName, "cpuCores"),
-                ["memoryGi"] = (ContainerRuntimeParameterName, "memoryGi"),
-                ["minReplicas"] = (ScalingParameterName, "minReplicas"),
-                ["maxReplicas"] = (ScalingParameterName, "maxReplicas"),
-                ["ingressEnabled"] = (IngressParameterName, "enabled"),
-                ["ingressTargetPort"] = (IngressParameterName, "targetPort"),
-                ["ingressExternal"] = (IngressParameterName, "external"),
-                ["transportMethod"] = (IngressParameterName, "transportMethod"),
-                ["readinessProbePath"] = (HealthProbesParameterName, "readiness.path"),
-                ["readinessProbePort"] = (HealthProbesParameterName, "readiness.port"),
-                ["livenessProbePath"] = (HealthProbesParameterName, "liveness.path"),
-                ["livenessProbePort"] = (HealthProbesParameterName, "liveness.port"),
-                ["startupProbePath"] = (HealthProbesParameterName, "startup.path"),
-                ["startupProbePort"] = (HealthProbesParameterName, "startup.port"),
+              [CpuCoresPropertyName] = (ContainerRuntimeParameterName, CpuCoresPropertyName),
+              [MemoryGiPropertyName] = (ContainerRuntimeParameterName, MemoryGiPropertyName),
+              [MinReplicasPropertyName] = (ScalingParameterName, MinReplicasPropertyName),
+              [MaxReplicasPropertyName] = (ScalingParameterName, MaxReplicasPropertyName),
+              [IngressEnabledMappingKey] = (IngressParameterName, EnabledPropertyName),
+              [IngressTargetPortMappingKey] = (IngressParameterName, TargetPortPropertyName),
+              [IngressExternalMappingKey] = (IngressParameterName, ExternalPropertyName),
+              [TransportMethodPropertyName] = (IngressParameterName, TransportMethodPropertyName),
+              [ReadinessProbePathMappingKey] = (HealthProbesParameterName, ReadinessPathSelector),
+              [ReadinessProbePortMappingKey] = (HealthProbesParameterName, ReadinessPortSelector),
+              [LivenessProbePathMappingKey] = (HealthProbesParameterName, LivenessPathSelector),
+              [LivenessProbePortMappingKey] = (HealthProbesParameterName, LivenessPortSelector),
+              [StartupProbePathMappingKey] = (HealthProbesParameterName, StartupPathSelector),
+              [StartupProbePortMappingKey] = (HealthProbesParameterName, StartupPortSelector),
             }
         };
     }
 
     private static string GetAcrAuthMode(IReadOnlyDictionary<string, string> properties)
     {
-        var acrAuthMode = properties.GetValueOrDefault("acrAuthMode", string.Empty);
+      var acrAuthMode = properties.GetValueOrDefault(AcrAuthModePropertyName, string.Empty);
         return string.IsNullOrWhiteSpace(acrAuthMode)
             ? ManagedIdentityAcrAuthMode
             : acrAuthMode;

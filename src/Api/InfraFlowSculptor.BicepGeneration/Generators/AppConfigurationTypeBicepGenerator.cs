@@ -1,7 +1,10 @@
+using InfraFlowSculptor.BicepGeneration.Generators.ParameterModels;
+using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
+using static InfraFlowSculptor.BicepGeneration.Generators.Constants.BicepGeneratorSharedConstants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -11,6 +14,26 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class AppConfigurationTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
+    private const string ModuleName = "appConfiguration";
+    private const string ModuleFolderName = "AppConfiguration";
+    private const string SkuNameTypeName = "SkuName";
+    private const string PublicNetworkAccessTypeName = "PublicNetworkAccess";
+    private const string SkuParameterName = "sku";
+    private const string SoftDeleteRetentionInDaysParameterName = "softDeleteRetentionInDays";
+    private const string EnablePurgeProtectionParameterName = "enablePurgeProtection";
+    private const string DisableLocalAuthParameterName = "disableLocalAuth";
+    private const string PublicNetworkAccessParameterName = "publicNetworkAccess";
+    private const string ResourceSymbol = "appConfig";
+    private const string AppConfigurationArmType = "Microsoft.AppConfiguration/configurationStores@2023-03-01";
+    private const string DefaultSkuName = "standard";
+    private const int DefaultSoftDeleteRetentionInDays = 7;
+    private const string PublicNetworkAccessEnabledValue = "Enabled";
+    private const string SkuNameUnion = "'free' | 'standard'";
+    private const string PublicNetworkAccessUnion = "'Enabled' | 'Disabled'";
+    private const string EndpointOutputName = "endpoint";
+    private const string ResourceIdExpression = ResourceSymbol + ".id";
+    private const string EndpointExpression = ResourceSymbol + ".properties.endpoint";
+
     /// <inheritdoc />
     public string ResourceType
         => AzureResourceTypes.ArmTypes.AppConfiguration;
@@ -22,39 +45,39 @@ public sealed class AppConfigurationTypeBicepGenerator
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         return new BicepModuleBuilder()
-            .Module("appConfiguration", "AppConfiguration", ResourceTypeName)
-            .Import("./types.bicep", "SkuName", "PublicNetworkAccess")
-            .Param("location", BicepType.String, "Azure region for the App Configuration store")
-            .Param("name", BicepType.String, "Name of the App Configuration store")
-            .Param("sku", BicepType.Custom("SkuName"), "SKU of the App Configuration store",
-                defaultValue: new BicepStringLiteral("standard"))
-            .Param("softDeleteRetentionInDays", BicepType.Int, "Number of days to retain soft-deleted items",
-                defaultValue: new BicepIntLiteral(7))
-            .Param("enablePurgeProtection", BicepType.Bool, "Whether purge protection is enabled",
+            .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import(TypesImportPath, SkuNameTypeName, PublicNetworkAccessTypeName)
+            .Param(LocationParameterName, BicepType.String, "Azure region for the App Configuration store")
+            .Param(NameParameterName, BicepType.String, "Name of the App Configuration store")
+            .Param(SkuParameterName, BicepType.Custom(SkuNameTypeName), "SKU of the App Configuration store",
+                defaultValue: new BicepStringLiteral(DefaultSkuName))
+            .Param(SoftDeleteRetentionInDaysParameterName, BicepType.Int, "Number of days to retain soft-deleted items",
+                defaultValue: new BicepIntLiteral(DefaultSoftDeleteRetentionInDays))
+            .Param(EnablePurgeProtectionParameterName, BicepType.Bool, "Whether purge protection is enabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("disableLocalAuth", BicepType.Bool, "Whether local authentication is disabled",
+            .Param(DisableLocalAuthParameterName, BicepType.Bool, "Whether local authentication is disabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("publicNetworkAccess", BicepType.Custom("PublicNetworkAccess"), "Public network access setting",
-                defaultValue: new BicepStringLiteral("Enabled"))
-            .Resource("appConfig", "Microsoft.AppConfiguration/configurationStores@2023-03-01")
-            .Property("name", new BicepReference("name"))
-            .Property("location", new BicepReference("location"))
-            .Property("sku", sku => sku
-                .Property("name", new BicepReference("sku")))
-            .Property("properties", props => props
-                .Property("softDeleteRetentionInDays", new BicepReference("softDeleteRetentionInDays"))
-                .Property("enablePurgeProtection", new BicepReference("enablePurgeProtection"))
-                .Property("disableLocalAuth", new BicepReference("disableLocalAuth"))
-                .Property("publicNetworkAccess", new BicepReference("publicNetworkAccess")))
-            .Output("id", BicepType.String, new BicepRawExpression("appConfig.id"),
+            .Param(PublicNetworkAccessParameterName, BicepType.Custom(PublicNetworkAccessTypeName), "Public network access setting",
+                defaultValue: new BicepStringLiteral(PublicNetworkAccessEnabledValue))
+            .Resource(ResourceSymbol, AppConfigurationArmType)
+            .Property(NamePropertyName, new BicepReference(NameParameterName))
+            .Property(LocationPropertyName, new BicepReference(LocationParameterName))
+            .Property(SkuParameterName, sku => sku
+                .Property(NamePropertyName, new BicepReference(SkuParameterName)))
+            .Property(PropertiesPropertyName, props => props
+                .Property(SoftDeleteRetentionInDaysParameterName, new BicepReference(SoftDeleteRetentionInDaysParameterName))
+                .Property(EnablePurgeProtectionParameterName, new BicepReference(EnablePurgeProtectionParameterName))
+                .Property(DisableLocalAuthParameterName, new BicepReference(DisableLocalAuthParameterName))
+                .Property(PublicNetworkAccessParameterName, new BicepReference(PublicNetworkAccessParameterName)))
+            .Output(IdOutputName, BicepType.String, new BicepRawExpression(ResourceIdExpression),
                 description: "The resource ID of the App Configuration store")
-            .Output("endpoint", BicepType.String, new BicepRawExpression("appConfig.properties.endpoint"),
+            .Output(EndpointOutputName, BicepType.String, new BicepRawExpression(EndpointExpression),
                 description: "The endpoint of the App Configuration store")
-            .ExportedType("SkuName",
-                new BicepRawExpression("'free' | 'standard'"),
+            .ExportedType(SkuNameTypeName,
+                new BicepRawExpression(SkuNameUnion),
                 description: "SKU name for the App Configuration store")
-            .ExportedType("PublicNetworkAccess",
-                new BicepRawExpression("'Enabled' | 'Disabled'"),
+            .ExportedType(PublicNetworkAccessTypeName,
+                new BicepRawExpression(PublicNetworkAccessUnion),
                 description: "Public network access setting")
             .Build();
     }
@@ -64,16 +87,16 @@ public sealed class AppConfigurationTypeBicepGenerator
     {
         return new GeneratedTypeModule
         {
-            ModuleName = "appConfiguration",
-            ModuleFileName = "appConfiguration",
-            ModuleFolderName = "AppConfiguration",
+            ModuleName = ModuleName,
+            ModuleFileName = ModuleName,
+            ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = AppConfigurationModuleTemplate,
             ModuleTypesBicepContent = AppConfigurationTypesTemplate,
             ResourceTypeName = ResourceTypeName,
-            Parameters = new Dictionary<string, object>
+            Parameters = BicepParameterModelConverter.ToDictionary(new AppConfigurationParameters
             {
-                ["sku"] = resource.Sku.ToLower(),
-            }
+                Sku = resource.Sku.ToLower(),
+            })
         };
     }
 

@@ -26,8 +26,10 @@ Legacy 920-line `BicepGenerationEngine` → thin facade (~85 LOC) + `BicepGenera
 - `AzureResourceTypes.ComputeArmTypes` replaces magic ARM strings.
 
 ### Tests
-`tests/InfraFlowSculptor.BicepGeneration.Tests/`: 842+ tests (xUnit + FluentAssertions + NSubstitute). Covers TextManipulation, Pipeline stages, IR emitter/builder/transformers, and all 18 migrated generators. Convention: `Given_When_Then`, AAA, `_sut`.
+`tests/InfraFlowSculptor.BicepGeneration.Tests/` is the active xUnit project for TextManipulation, pipeline-stage, IR emitter/builder/transformer, and generator coverage across the Bicep slice. Convention: `Given_When_Then`, AAA, `_sut`.
 - **Sonar generator cleanup [2026-04-28]:** `ContainerAppTypeBicepGenerator`, `RedisCacheTypeBicepGenerator`, and `WebAppTypeBicepGenerator` now use targeted semantic constants for repeated module/type/parameter identifiers to reduce S1192 noise without turning the Bicep DSL into generic constant wrappers. Focused generator tests lock the touched identifiers/variant names.
+- **Latest generator cleanup [2026-05-11]:** the typed legacy parameter-model migration was revalidated together with a full constant sweep across all 18 `*TypeBicepGenerator` implementations. The strict rule is now: in generator builder code, inline semantic Bicep literals are forbidden for module names, ARM types, import/type names, parameter names, resource symbols, property/output names, union literals, and repeated raw expressions. Keep generator-specific literals local, and use `Generators/Constants/BicepGeneratorSharedConstants.cs` only for literals with the same stable meaning across multiple generators.
+- **Role-assignment placement regression [2026-05-11]:** `BicepAssemblerTests` now locks the Container Registry RBAC module path to `modules/ContainerRegistry/containerregistry.roleassignments.module.bicep` so ACR role-assignment modules cannot silently drift into another resource folder during project-level generation.
 
 ### Constraints
 - **Never** call `BicepOutputPruner` from a stage — pruning is engine-owned (mono-repo cross-config).
@@ -87,6 +89,12 @@ Thin orchestrator (~180 LOC) + 14 specialized classes: 7 assemblers (`Types`, `F
 All typed per-env parameters **must** be in the generator's `Parameters` dictionary — missing entries cause silent `.bicepparam` omissions.
 
 ## Generator-Specific Patterns
+
+- **Typed legacy parameter models [2026-05-11]:** fixed-schema `Generate(...)` parameter payloads should no longer be authored inline as `Dictionary<string, object>` in generator code. The legacy path now uses typed records under `Generators/ParameterModels/` plus `BicepParameterModelConverter` (System.Text.Json with `JsonPropertyName` + null omission) to adapt back to `GeneratedTypeModule.Parameters`. `BicepFormattingHelper` and `ParameterFileAssembler` honor `JsonPropertyName` when serializing or merging typed objects so environment overrides preserve the external Bicep field names.
+
+- **Generator identifier constants [2026-05-11]:** when a generator repeats Bicep parameter names, variable names, resource symbols, property/output names, union literals, or raw expressions across `GenerateSpec(...)` and `Generate(...)`, extract them as constants. This applies strictly even to common builder keys such as `name`, `location`, `kind`, `properties`, and `linuxFxVersion` when they appear in generator code. Default to file-local `private const`; promote only the high-frequency literals with an identical cross-generator contract to `Generators/Constants/BicepGeneratorSharedConstants.cs`.
+
+- **Shared generator constants [2026-05-11]:** `Generators/Constants/BicepGeneratorSharedConstants.cs` is the only shared constants point for concrete generators today. It currently centralizes `TypesImportPath`, `NameParameterName`, `LocationParameterName`, `NamePropertyName`, `LocationPropertyName`, `PropertiesPropertyName`, `KindPropertyName`, `IdOutputName`, `BooleanTrueString`, and `BooleanFalseString`. Do not expand it with generator-specific values such as module names, ARM types, output expressions, or exported unions.
 
 - **ContainerApp health probes [2026-04-22]:** 6 per-env fields (readiness/liveness/startup path+port). Bicep uses `union()` for conditional probe array. HTTP only, path must start `/`, port 1-65535.
 - **ContainerApp param grouping [2026-04-22]:** 16 flat params → 4 exported types (`ContainerRuntimeConfig`, `ScalingConfig`, `IngressConfig`, `HealthProbeConfig`). `ParameterGroupMappings` + `ParameterTypeOverrides` on `GeneratedTypeModule`. ACR params stay flat (conditional).
