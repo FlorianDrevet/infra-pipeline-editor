@@ -80,6 +80,7 @@ import {
   GeneratedArtifactArchiveSourceSpec,
   resolveGeneratedArtifactEntryPath,
 } from './project-generated-artifact-paths';
+import { shouldDeferMonoRepoBatchReveal } from './project-generation-visibility.helper';
 import { buildAzureDevOpsNodes, buildProjectBicepNodes } from './project-detail-tree.helpers';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
@@ -180,6 +181,7 @@ export class ProjectDetailComponent implements OnInit {
 
   // ─── Diagnostics Validation ───
   protected readonly validatingDiagnostics = signal(false);
+  protected readonly projectGenerateAllBatchActive = signal(false);
 
   // ─── Project Bicep Generation (mono-repo) ───
   protected readonly projectBicepLoading = signal(false);
@@ -938,12 +940,23 @@ export class ProjectDetailComponent implements OnInit {
 
   // ─── Unified Generate All (mono-repo) ───
 
+  protected readonly anyProjectGenerationLoading = computed(
+    () => this.projectBicepLoading() || this.projectPipelineLoading() || this.projectBootstrapLoading(),
+  );
+
   protected readonly projectGenerateAllLoading = computed(
-    () => this.validatingDiagnostics() || this.projectBicepLoading() || this.projectPipelineLoading() || this.projectBootstrapLoading(),
+    () => this.validatingDiagnostics() || this.anyProjectGenerationLoading(),
+  );
+
+  protected readonly deferMonoRepoBatchReveal = computed(
+    () => shouldDeferMonoRepoBatchReveal({
+      isGenerateAllBatchActive: this.projectGenerateAllBatchActive(),
+      isAnyGenerationLoading: this.anyProjectGenerationLoading(),
+    }),
   );
 
   protected readonly projectGenerationPanelOpen = computed(
-    () => this.projectBicepPanelOpen() || this.projectPipelinePanelOpen() || this.projectBootstrapPanelOpen() || this.projectBicepLoading() || this.projectPipelineLoading() || this.projectBootstrapLoading(),
+    () => this.projectBicepPanelOpen() || this.projectPipelinePanelOpen() || this.projectBootstrapPanelOpen() || this.anyProjectGenerationLoading(),
   );
 
   protected async generateAll(): Promise<void> {
@@ -958,12 +971,16 @@ export class ProjectDetailComponent implements OnInit {
       this.validatingDiagnostics.set(false);
     }
 
-    // Launch all generations in parallel
-    await Promise.all([
-      this.doGenerateProjectBicep(),
-      this.doGenerateProjectPipeline(),
-      this.doGenerateProjectBootstrap(),
-    ]);
+    this.projectGenerateAllBatchActive.set(true);
+    try {
+      await Promise.all([
+        this.doGenerateProjectBicep(),
+        this.doGenerateProjectPipeline(),
+        this.doGenerateProjectBootstrap(),
+      ]);
+    } finally {
+      this.projectGenerateAllBatchActive.set(false);
+    }
   }
 
   protected toggleProjectGenerationPanelCollapsed(): void {

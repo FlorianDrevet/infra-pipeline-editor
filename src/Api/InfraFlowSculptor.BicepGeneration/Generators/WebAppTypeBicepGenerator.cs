@@ -96,7 +96,6 @@ public sealed class WebAppTypeBicepGenerator
     public string ResourceTypeName => AzureResourceTypes.WebApp;
 
     /// <inheritdoc />
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         var deploymentMode = resource.Properties.GetValueOrDefault(DeploymentModePropertyName, CodeDeploymentMode);
@@ -119,53 +118,12 @@ public sealed class WebAppTypeBicepGenerator
             .Param(DeploymentModePropertyName, BicepType.String, "Deployment mode",
                 defaultValue: new BicepStringLiteral(isContainer ? ContainerDeploymentMode : CodeDeploymentMode));
 
-        // Container-specific params
-        if (isContainer)
-        {
-            builder
-                .Param(DockerImageNamePropertyName, BicepType.String, "Docker image name (e.g. myapp/api)")
-                .Param(DockerImageTagPropertyName, BicepType.String, "Docker image tag (e.g. latest, v1.2.3)",
-                    defaultValue: new BicepStringLiteral(DefaultDockerImageTag))
-                .Param(AcrLoginServerPropertyName, BicepType.String, "ACR login server (e.g. myregistry.azurecr.io)");
-
-            if (useAdminCredentials)
-            {
-                builder.Param(AcrPasswordParameterName, BicepType.String,
-                    "Admin password for the Container Registry", secure: true);
-            }
-            else
-            {
-                builder
-                    .Param(AcrUseManagedIdentityCredsPropertyName, BicepType.Bool,
-                        "Whether to use managed identity credentials for ACR",
-                        defaultValue: new BicepBoolLiteral(true))
-                    .Param(AcrUserManagedIdentityIdPropertyName, BicepType.String,
-                        "Client ID of the user-assigned managed identity for ACR pull",
-                        defaultValue: new BicepStringLiteral(EmptyParameterValue));
-            }
-        }
+        AddContainerParameters(builder, isContainer, useAdminCredentials);
 
         builder.Param(CustomDomainsParameterName, BicepType.Array, "Custom domain bindings for this Web App",
             defaultValue: new BicepArrayExpression([]));
 
-        // Variables
-        if (isContainer)
-        {
-            builder.Var(DockerImageVariableName, new BicepRawExpression(DockerImageExpression));
-            if (useAdminCredentials)
-            {
-                builder.Var(AcrUsernameVariableName, new BicepRawExpression(AcrUsernameExpression));
-            }
-
-            // Module file name for container variants
-            builder.ModuleFileName(useAdminCredentials
-                ? AdminCredentialsModuleFileName
-                : ManagedIdentityModuleFileName);
-        }
-        else
-        {
-            builder.Var(LinuxFxVersionVariableName, new BicepRawExpression(LinuxFxVersionExpression));
-        }
+        AddVariables(builder, isContainer, useAdminCredentials);
 
         // Primary resource
         builder.Resource(WebAppModuleName, WebAppArmType)
@@ -177,8 +135,71 @@ public sealed class WebAppTypeBicepGenerator
             builder.Property(KindPropertyName, new BicepStringLiteral(ContainerKind));
         }
 
-        // Build siteConfig properties
-        var siteConfigProps = new List<BicepPropertyAssignment>
+        builder.Property(PropertiesPropertyName, props => props
+            .Property(ServerFarmIdPropertyName, new BicepReference(AppServicePlanIdParameterName))
+            .Property(HttpsOnlyPropertyName, new BicepReference(HttpsOnlyPropertyName))
+            .Property(SiteConfigPropertyName, new BicepObjectExpression(
+                BuildSiteConfigProperties(isContainer, useAdminCredentials))));
+
+        AddHostNameBindings(builder);
+        AddOutputs(builder);
+        AddExportedTypes(builder);
+
+        return builder.Build();
+    }
+
+    private static void AddContainerParameters(BicepModuleBuilder builder, bool isContainer, bool useAdminCredentials)
+    {
+        if (!isContainer)
+        {
+            return;
+        }
+
+        builder
+            .Param(DockerImageNamePropertyName, BicepType.String, "Docker image name (e.g. myapp/api)")
+            .Param(DockerImageTagPropertyName, BicepType.String, "Docker image tag (e.g. latest, v1.2.3)",
+                defaultValue: new BicepStringLiteral(DefaultDockerImageTag))
+            .Param(AcrLoginServerPropertyName, BicepType.String, "ACR login server (e.g. myregistry.azurecr.io)");
+
+        if (useAdminCredentials)
+        {
+            builder.Param(AcrPasswordParameterName, BicepType.String,
+                "Admin password for the Container Registry", secure: true);
+        }
+        else
+        {
+            builder
+                .Param(AcrUseManagedIdentityCredsPropertyName, BicepType.Bool,
+                    "Whether to use managed identity credentials for ACR",
+                    defaultValue: new BicepBoolLiteral(true))
+                .Param(AcrUserManagedIdentityIdPropertyName, BicepType.String,
+                    "Client ID of the user-assigned managed identity for ACR pull",
+                    defaultValue: new BicepStringLiteral(EmptyParameterValue));
+        }
+    }
+
+    private static void AddVariables(BicepModuleBuilder builder, bool isContainer, bool useAdminCredentials)
+    {
+        if (!isContainer)
+        {
+            builder.Var(LinuxFxVersionVariableName, new BicepRawExpression(LinuxFxVersionExpression));
+            return;
+        }
+
+        builder.Var(DockerImageVariableName, new BicepRawExpression(DockerImageExpression));
+        if (useAdminCredentials)
+        {
+            builder.Var(AcrUsernameVariableName, new BicepRawExpression(AcrUsernameExpression));
+        }
+
+        builder.ModuleFileName(useAdminCredentials
+            ? AdminCredentialsModuleFileName
+            : ManagedIdentityModuleFileName);
+    }
+
+    private static List<BicepPropertyAssignment> BuildSiteConfigProperties(bool isContainer, bool useAdminCredentials)
+    {
+        var props = new List<BicepPropertyAssignment>
         {
             new(LinuxFxVersionPropertyName, isContainer
                 ? new BicepRawExpression(ContainerLinuxFxVersionExpression)
@@ -190,9 +211,9 @@ public sealed class WebAppTypeBicepGenerator
 
         if (isContainer && !useAdminCredentials)
         {
-            siteConfigProps.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsPropertyName,
+            props.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsPropertyName,
                 new BicepReference(AcrUseManagedIdentityCredsPropertyName)));
-            siteConfigProps.Add(new BicepPropertyAssignment(AcrUserManagedIdentityIdSiteConfigPropertyName,
+            props.Add(new BicepPropertyAssignment(AcrUserManagedIdentityIdSiteConfigPropertyName,
                 new BicepConditionalExpression(
                     new BicepRawExpression($"!empty({AcrUserManagedIdentityIdPropertyName})"),
                     new BicepReference(AcrUserManagedIdentityIdPropertyName),
@@ -200,9 +221,9 @@ public sealed class WebAppTypeBicepGenerator
         }
         else if (isContainer && useAdminCredentials)
         {
-            siteConfigProps.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsPropertyName,
+            props.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsPropertyName,
                 new BicepBoolLiteral(false)));
-            siteConfigProps.Add(new BicepPropertyAssignment(AppSettingsPropertyName,
+            props.Add(new BicepPropertyAssignment(AppSettingsPropertyName,
                 new BicepArrayExpression([
                     new BicepObjectExpression([
                         new BicepPropertyAssignment(NamePropertyName, new BicepStringLiteral(DockerRegistryServerUrlSettingName)),
@@ -219,12 +240,11 @@ public sealed class WebAppTypeBicepGenerator
                 ])));
         }
 
-        builder.Property(PropertiesPropertyName, props => props
-            .Property(ServerFarmIdPropertyName, new BicepReference(AppServicePlanIdParameterName))
-            .Property(HttpsOnlyPropertyName, new BicepReference(HttpsOnlyPropertyName))
-            .Property(SiteConfigPropertyName, new BicepObjectExpression(siteConfigProps)));
+        return props;
+    }
 
-        // hostNameBindings for-loop child resource
+    private static void AddHostNameBindings(BicepModuleBuilder builder)
+    {
         builder.AdditionalResource(HostNameBindingsResourceName, HostNameBindingsArmType,
             forLoop: new BicepForLoop(DomainLoopVariableName, new BicepReference(CustomDomainsParameterName)),
             parentSymbol: WebAppModuleName,
@@ -237,8 +257,10 @@ public sealed class WebAppTypeBicepGenerator
                         new BicepRawExpression(DomainBindingTypeSniEnabledExpression),
                         new BicepStringLiteral(SniEnabledBindingTypeValue),
                         new BicepStringLiteral(DisabledStateValue)))));
+    }
 
-        // Outputs
+    private static void AddOutputs(BicepModuleBuilder builder)
+    {
         builder
             .Output(IdOutputName, BicepType.String, new BicepRawExpression(WebAppIdExpression),
                 description: "The resource ID of the Web App")
@@ -251,8 +273,10 @@ public sealed class WebAppTypeBicepGenerator
             .Output(CustomDomainVerificationIdOutputName, BicepType.String,
                 new BicepRawExpression(WebAppCustomDomainVerificationIdExpression),
                 description: "The custom domain verification ID");
+    }
 
-        // Exported types
+    private static void AddExportedTypes(BicepModuleBuilder builder)
+    {
         builder
             .ExportedType(RuntimeStackTypeName,
                 new BicepRawExpression(RuntimeStackUnionExpression),
@@ -260,8 +284,6 @@ public sealed class WebAppTypeBicepGenerator
             .ExportedType(DeploymentModeTypeName,
                 new BicepRawExpression(DeploymentModeUnionExpression),
                 description: "Deployment mode for the Web App");
-
-        return builder.Build();
     }
 
     public GeneratedTypeModule Generate(ResourceDefinition resource)
