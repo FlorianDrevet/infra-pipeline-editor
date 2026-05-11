@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
@@ -30,28 +31,21 @@ public sealed class AddInfraConfigRepositoryCommandHandler(
         if (config is null) return Errors.InfrastructureConfig.NotFoundError(command.ConfigId);
         if (config.ProjectId != command.ProjectId) return Errors.InfrastructureConfig.NotFoundError(command.ConfigId);
 
-        if (!Enum.TryParse<GitProviderTypeEnum>(command.ProviderType, ignoreCase: true, out var providerTypeEnum))
-            return Errors.GitRepository.InvalidProviderType(command.ProviderType);
+        var providerTypeResult = EnumValueObjectParser.Parse<GitProviderTypeEnum, GitProviderType>(
+            command.ProviderType,
+            static parsed => new GitProviderType(parsed),
+            Errors.GitRepository.InvalidProviderType);
+        if (providerTypeResult.IsError) return providerTypeResult.Errors;
 
         var aliasResult = RepositoryAlias.Create(command.Alias);
         if (aliasResult.IsError) return aliasResult.Errors;
 
-        var flags = RepositoryContentKindsEnum.None;
-        foreach (var raw in command.ContentKinds)
-        {
-            if (!Enum.TryParse<RepositoryContentKindsEnum>(raw, ignoreCase: true, out var parsed)
-                || parsed == RepositoryContentKindsEnum.None)
-            {
-                return Errors.ProjectRepository.NoContentKind();
-            }
-            flags |= parsed;
-        }
-        var contentKinds = RepositoryContentKinds.Create(flags);
+        var contentKinds = RepositoryContentKindsParser.Parse(command.ContentKinds);
         if (contentKinds.IsError) return contentKinds.Errors;
 
         var added = config.AddRepository(
             aliasResult.Value,
-            new GitProviderType(providerTypeEnum),
+            providerTypeResult.Value,
             command.RepositoryUrl,
             command.DefaultBranch,
             contentKinds.Value);

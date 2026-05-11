@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
@@ -27,9 +28,14 @@ public sealed class AddProjectRepositoryCommandHandler(
         GitProviderType? providerType = null;
         if (!string.IsNullOrWhiteSpace(command.ProviderType))
         {
-            if (!Enum.TryParse<GitProviderTypeEnum>(command.ProviderType, ignoreCase: true, out var providerTypeEnum))
-                return Errors.GitRepository.InvalidProviderType(command.ProviderType);
-            providerType = new GitProviderType(providerTypeEnum);
+            var providerTypeResult = EnumValueObjectParser.Parse<GitProviderTypeEnum, GitProviderType>(
+                command.ProviderType,
+                static parsed => new GitProviderType(parsed),
+                Errors.GitRepository.InvalidProviderType);
+            if (providerTypeResult.IsError)
+                return providerTypeResult.Errors;
+
+            providerType = providerTypeResult.Value;
         }
 
         var aliasResult = RepositoryAlias.Create(command.Alias);
@@ -56,18 +62,6 @@ public sealed class AddProjectRepositoryCommandHandler(
 
     private static ErrorOr<RepositoryContentKinds> ParseContentKinds(IReadOnlyList<string> kinds)
     {
-        var flags = RepositoryContentKindsEnum.None;
-        foreach (var raw in kinds)
-        {
-            if (!Enum.TryParse<RepositoryContentKindsEnum>(raw, ignoreCase: true, out var parsed)
-                || parsed == RepositoryContentKindsEnum.None)
-            {
-                return Errors.ProjectRepository.NoContentKind();
-            }
-
-            flags |= parsed;
-        }
-
-        return RepositoryContentKinds.Create(flags);
+        return RepositoryContentKindsParser.Parse(kinds);
     }
 }

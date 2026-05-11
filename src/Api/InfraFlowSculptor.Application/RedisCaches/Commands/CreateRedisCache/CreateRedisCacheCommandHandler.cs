@@ -1,4 +1,5 @@
 ﻿using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.RedisCaches.Common;
@@ -18,10 +19,6 @@ public class CreateRedisCacheCommandHandler(
     IMapper mapper)
     : ICommandHandler<CreateRedisCacheCommand, RedisCacheResult>
 {
-    private const string InvalidMinimumTlsVersionCode = "RedisCache.InvalidMinimumTlsVersion";
-    private const string InvalidSkuCode = "RedisCache.InvalidSku";
-    private const string InvalidMaxMemoryPolicyCode = "RedisCache.InvalidMaxMemoryPolicy";
-
     public async Task<ErrorOr<RedisCacheResult>> Handle(CreateRedisCacheCommand request, CancellationToken cancellationToken)
     {
         var accessResult = await EnsureWriteAccessAsync(request.ResourceGroupId, cancellationToken);
@@ -70,17 +67,10 @@ public class CreateRedisCacheCommandHandler(
 
     private static ErrorOr<TlsVersion?> ParseMinimumTlsVersion(string? minimumTlsVersion)
     {
-        if (minimumTlsVersion is null)
-            return (TlsVersion?)null;
-
-        if (!Enum.TryParse<TlsVersion.Version>(minimumTlsVersion, ignoreCase: true, out var parsedTlsVersion))
-        {
-            return Error.Validation(
-                code: InvalidMinimumTlsVersionCode,
-                description: $"The minimum TLS version '{minimumTlsVersion}' is not valid.");
-        }
-
-        return new TlsVersion(parsedTlsVersion);
+        return EnumValueObjectParser.ParseOrNull<TlsVersion.Version, TlsVersion>(
+            minimumTlsVersion,
+            static parsed => new TlsVersion(parsed),
+            Errors.RedisCache.InvalidMinimumTlsVersion);
     }
 
     private static ErrorOr<List<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>?> ParseEnvironmentSettings(
@@ -118,27 +108,17 @@ public class CreateRedisCacheCommandHandler(
 
     private static ErrorOr<RedisCacheSku?> ParseSku(string? sku)
     {
-        if (sku is null)
-            return (RedisCacheSku?)null;
-
-        if (!Enum.TryParse<RedisCacheSku.Sku>(sku, ignoreCase: true, out var parsedSku))
-            return Error.Validation(code: InvalidSkuCode, description: $"The SKU '{sku}' is not valid.");
-
-        return new RedisCacheSku(parsedSku);
+        return EnumValueObjectParser.ParseOrNull<RedisCacheSku.Sku, RedisCacheSku>(
+            sku,
+            static parsed => new RedisCacheSku(parsed),
+            Errors.RedisCache.InvalidSku);
     }
 
     private static ErrorOr<MaxMemoryPolicy?> ParseMaxMemoryPolicy(string? maxMemoryPolicy)
     {
-        if (maxMemoryPolicy is null)
-            return (MaxMemoryPolicy?)null;
-
-        if (!Enum.TryParse<MaxMemoryPolicy.Policy>(maxMemoryPolicy, ignoreCase: true, out var parsedPolicy))
-        {
-            return Error.Validation(
-                code: InvalidMaxMemoryPolicyCode,
-                description: $"The max memory policy '{maxMemoryPolicy}' is not valid.");
-        }
-
-        return new MaxMemoryPolicy(parsedPolicy);
+        return EnumValueObjectParser.ParseOrNull<MaxMemoryPolicy.Policy, MaxMemoryPolicy>(
+            maxMemoryPolicy,
+            static parsed => new MaxMemoryPolicy(parsed),
+            Errors.RedisCache.InvalidMaxMemoryPolicy);
     }
 }

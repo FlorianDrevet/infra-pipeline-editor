@@ -61,6 +61,13 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 - `CreateProjectWithSetupCommandHandler` is the reference shape for an application command that creates an aggregate, applies project defaults, parses enum-backed inputs, projects child collections, and persists once.
 - Keep `Handle` linear and orchestration-only: create the aggregate, apply the layout preset, add environments, add repositories, then persist. Push enum/value-object parsing and per-item projection into private helpers once dedicated handler tests protect the slice.
 
+## Enum-Backed Input Parsing [2026-05-11]
+
+- `Application/Common/Helpers/EnumValueObjectParser.cs` is the shared helper for the narrow handler pattern `string -> Enum.TryParse(ignoreCase: true) -> EnumValueObject -> ErrorOr`.
+- Use `Parse<TEnum, TValueObject>(...)` for required enum-backed inputs and `ParseOrNull<TEnum, TValueObject>(...)` only when `null` is the sole "missing" value. If a feature treats whitespace as "unset" (for example optional repository provider/layout inputs), keep that wrapper logic local in the handler and call `Parse(...)` only after the whitespace guard.
+- `Application/Common/Helpers/RepositoryContentKindsParser.cs` centralizes the repeated handler-side parsing of `RepositoryContentKinds` flags from `IReadOnlyList<string>`.
+- Do not route FluentValidation rules, import fallbacks, fuzzy enum normalization, or post-parse business checks through these helpers. Those cases stay explicit at the validator/import/domain-service boundary.
+
 ## Resource Creation Handlers [2026-05-11]
 
 - `CreateRedisCacheCommandHandler` is the reference shape for a resource-creation handler that first validates parent resource-group existence and write access, then parses optional enum-backed inputs, then creates and persists the aggregate.

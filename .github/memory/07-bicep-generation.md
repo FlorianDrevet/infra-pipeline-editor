@@ -73,6 +73,7 @@ Legacy 920-line `BicepGenerationEngine` → thin facade (~85 LOC) + `BicepGenera
 
 ## BicepAssembler [2026-04-04]
 Thin orchestrator (~180 LOC) + 14 specialized classes: 7 assemblers (`Types`, `Functions`, `Constants`, `MainBicep`, `ParameterFile`, `KvSecrets`, `RoleAssignment`), 4 helpers (`Formatting`, `ResourceTypeMetadata`, `ModuleHeader`, `Naming`), `StorageAccountCompanionHelper`, 2 model types. `MainBicepAssembler.Generate` returns `MainBicepEmissionResult` with `OutputUsageTracker`.
+- **Key Vault secret-name guard [2026-05-11]:** app-setting / App Configuration Key Vault secret names must follow Azure's `1..127` alphanumeric-or-hyphen rule. Names like `JWT_SECRET` are invalid because `_` is forbidden. `AddAppSettingCommandValidator` and `AddAppConfigurationKeyCommandValidator` now reject them on write, and `MainBicepAssembler.Generate` throws before emitting a broken `kvSecrets.module.bicep` for legacy snapshots that still contain an invalid secret name.
 
 ## Output Files
 - `types.bicep`, `functions.bicep`, `main.bicep`, `constants.bicep` (RBAC only)

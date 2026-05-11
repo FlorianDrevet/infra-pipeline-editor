@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
@@ -26,9 +27,14 @@ public sealed class SetInfraConfigLayoutModeCommandHandler(
         ConfigLayoutMode? layout = null;
         if (!string.IsNullOrWhiteSpace(command.Mode))
         {
-            if (!Enum.TryParse<ConfigLayoutModeEnum>(command.Mode, ignoreCase: true, out var parsed))
-                return Error.Validation("InfraConfigRepository.InvalidLayoutMode", $"Invalid layout mode '{command.Mode}'. Valid values: AllInOne, SplitInfraCode.");
-            layout = new ConfigLayoutMode(parsed);
+            var layoutModeResult = EnumValueObjectParser.Parse<ConfigLayoutModeEnum, ConfigLayoutMode>(
+                command.Mode,
+                static parsed => new ConfigLayoutMode(parsed),
+                Errors.InfrastructureConfig.InvalidLayoutMode);
+            if (layoutModeResult.IsError)
+                return layoutModeResult.Errors;
+
+            layout = layoutModeResult.Value;
         }
 
         config.SetLayoutMode(layout);

@@ -1,4 +1,5 @@
 ﻿using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Projects.Common;
@@ -27,8 +28,6 @@ public sealed class CreateProjectWithSetupCommandHandler(
 {
     /// <summary>Default naming template applied to every new project.</summary>
     private const string DefaultTemplate = "{name}-{resourceAbbr}{suffix}";
-    private const string InvalidLayoutPresetCode = "LayoutPreset.Invalid";
-    private const string InvalidLocationCode = "Location.Invalid";
 
     /// <summary>Per-resource-type naming template overrides applied on project creation.</summary>
     private static readonly Dictionary<string, string> DefaultResourceTemplates = new()
@@ -77,10 +76,14 @@ public sealed class CreateProjectWithSetupCommandHandler(
 
     private static ErrorOr<Success> ApplyLayoutPreset(Project project, string layoutPreset)
     {
-        if (!Enum.TryParse<LayoutPresetEnum>(layoutPreset, ignoreCase: true, out var layoutEnum))
-            return Error.Validation(InvalidLayoutPresetCode, $"Invalid layout preset '{layoutPreset}'.");
+        var layoutPresetResult = EnumValueObjectParser.Parse<LayoutPresetEnum, LayoutPreset>(
+            layoutPreset,
+            static parsed => new LayoutPreset(parsed),
+            Errors.Project.InvalidLayoutPreset);
+        if (layoutPresetResult.IsError)
+            return layoutPresetResult.Errors;
 
-        return project.SetLayoutPreset(new LayoutPreset(layoutEnum));
+        return project.SetLayoutPreset(layoutPresetResult.Value);
     }
 
     private static ErrorOr<Success> AddEnvironments(Project project, IReadOnlyList<EnvironmentSetupItem> environments)
@@ -99,15 +102,19 @@ public sealed class CreateProjectWithSetupCommandHandler(
 
     private static ErrorOr<EnvironmentDefinitionData> CreateEnvironmentData(EnvironmentSetupItem environmentItem)
     {
-        if (!Enum.TryParse<Location.LocationEnum>(environmentItem.Location, ignoreCase: true, out var locationEnum))
-            return Error.Validation(InvalidLocationCode, $"Invalid location '{environmentItem.Location}'.");
+        var locationResult = EnumValueObjectParser.Parse<Location.LocationEnum, Location>(
+            environmentItem.Location,
+            static parsed => new Location(parsed),
+            Errors.Location.InvalidLocation);
+        if (locationResult.IsError)
+            return locationResult.Errors;
 
         return new EnvironmentDefinitionData(
             new Name(environmentItem.Name),
             new ShortName(environmentItem.ShortName),
             new Prefix(environmentItem.Prefix ?? string.Empty),
             new Suffix(environmentItem.Suffix ?? string.Empty),
-            new Location(locationEnum),
+            locationResult.Value,
             new SubscriptionId(environmentItem.SubscriptionId),
             new Order(environmentItem.Order),
             new RequiresApproval(environmentItem.RequiresApproval),
@@ -160,27 +167,19 @@ public sealed class CreateProjectWithSetupCommandHandler(
         if (string.IsNullOrWhiteSpace(providerTypeValue))
             return Result.Success;
 
-        if (!Enum.TryParse<GitProviderTypeEnum>(providerTypeValue, ignoreCase: true, out var providerEnum))
-            return Errors.GitRepository.InvalidProviderType(providerTypeValue);
+        var providerTypeResult = EnumValueObjectParser.Parse<GitProviderTypeEnum, GitProviderType>(
+            providerTypeValue,
+            static parsed => new GitProviderType(parsed),
+            Errors.GitRepository.InvalidProviderType);
+        if (providerTypeResult.IsError)
+            return providerTypeResult.Errors;
 
-        providerType = new GitProviderType(providerEnum);
+        providerType = providerTypeResult.Value;
         return Result.Success;
     }
 
     private static ErrorOr<RepositoryContentKinds> ParseContentKinds(IReadOnlyList<string> kinds)
     {
-        var flags = RepositoryContentKindsEnum.None;
-        foreach (var raw in kinds)
-        {
-            if (!Enum.TryParse<RepositoryContentKindsEnum>(raw, ignoreCase: true, out var parsed)
-                || parsed == RepositoryContentKindsEnum.None)
-            {
-                return Errors.ProjectRepository.NoContentKind();
-            }
-
-            flags |= parsed;
-        }
-
-        return RepositoryContentKinds.Create(flags);
+        return RepositoryContentKindsParser.Parse(kinds);
     }
 }

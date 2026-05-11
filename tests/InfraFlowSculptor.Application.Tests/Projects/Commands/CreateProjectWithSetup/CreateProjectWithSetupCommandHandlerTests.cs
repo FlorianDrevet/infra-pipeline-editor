@@ -26,8 +26,6 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
     private const string ResourceGroupTemplate = "{resourceAbbr}-{name}{suffix}";
     private const string StorageAccountResourceType = "StorageAccount";
     private const string StorageAccountTemplate = "{name}{resourceAbbr}{envShort}";
-    private const string LayoutPresetErrorCode = "LayoutPreset.Invalid";
-    private const string LocationErrorCode = "Location.Invalid";
 
     private readonly IProjectRepository _repository;
     private readonly ICurrentUser _currentUser;
@@ -75,7 +73,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
             && repository.ProviderType == GitHubProvider
             && repository.DefaultBranch == MainBranch
             && repository.IsConfigured);
-        result.Value.Repositories![0].ContentKinds.Should().BeEquivalentTo(["Infrastructure", "ApplicationCode"]);
+        result.Value.Repositories![0].ContentKinds.Should().BeEquivalentTo("Infrastructure", "ApplicationCode");
 
         await _repository.Received(1).AddAsync(Arg.Is<Project>(project =>
             project.Name.Value == ProjectName
@@ -100,7 +98,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be(LayoutPresetErrorCode);
+        result.FirstError.Code.Should().Be(Errors.Project.InvalidLayoutPreset(UnsupportedValue).Code);
         await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
     }
 
@@ -124,7 +122,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be(LocationErrorCode);
+        result.FirstError.Code.Should().Be(Errors.Location.InvalidLocation(UnsupportedValue).Code);
         await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
     }
 
