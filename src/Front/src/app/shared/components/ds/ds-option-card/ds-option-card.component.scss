@@ -1,4 +1,4 @@
-@use "scss/main" as *;
+@use 'scss/main' as *;
 
 :host {
   display: block;
@@ -7,81 +7,80 @@
 .ds-option-card {
   display: flex;
   align-items: flex-start;
-  gap: 0.875rem;
+  gap: var(--ifs-space-12);
   width: 100%;
-  padding: 1rem 1.125rem;
-  border-radius: $ifs-radius-xl;
-  border: 1.5px solid $ifs-ink-100;
-  background: $ifs-gradient-card-soft;
+  padding: var(--ifs-space-16);
+  border-radius: var(--ifs-radius-md);
+  border: 1px solid var(--ifs-border-subtle);
+  background: var(--ifs-surface-1);
+  color: var(--ifs-text-primary);
   cursor: pointer;
   text-align: left;
   transition:
-    border-color $ifs-duration-fast $ifs-ease-out,
-    box-shadow $ifs-duration-fast $ifs-ease-out,
-    transform $ifs-duration-fast $ifs-ease-out,
-    background $ifs-duration-fast $ifs-ease-out;
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    color var(--ifs-duration-fast) var(--ifs-ease-standard);
 
-  &:hover:not(:disabled) {
-    border-color: rgba($ifs-brand-blue, 0.28);
-    box-shadow: $ifs-shadow-md;
-    transform: translateY(-1px);
+  &:hover:not(:disabled):not(.ds-option-card--selected) {
+    border-color: var(--ifs-border-strong);
+    background: var(--ifs-surface-2);
   }
 
   &:focus-visible {
-    outline: 2px solid $ifs-brand-blue;
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: var(--ifs-focus-ring);
   }
 
   &--selected {
-    border-color: $ifs-brand-blue;
+    border-color: var(--ifs-accent-500);
     border-width: 2px;
-    padding: calc(1rem - 0.5px) calc(1.125rem - 0.5px);
-    background: linear-gradient(180deg, rgba(238, 248, 255, 0.97), $ifs-surface-0);
-    box-shadow: 0 8px 20px rgba($ifs-brand-blue, 0.14);
+    padding: calc(var(--ifs-space-16) - 1px);
+    background: rgba(58, 163, 201, 0.06);
   }
 
   &:disabled {
     opacity: 0.5;
-    cursor: default;
+    cursor: not-allowed;
   }
 
   &__icon-wrap {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: $ifs-radius-lg;
-    background: linear-gradient(135deg, rgba($ifs-brand-blue, 0.12), rgba($ifs-brand-cyan, 0.18));
+    width: 32px;
+    height: 32px;
+    border-radius: var(--ifs-radius-sm);
+    background: var(--ifs-surface-3);
+    color: var(--ifs-accent-500);
     flex-shrink: 0;
   }
 
   &__icon {
-    width: 22px;
-    height: 22px;
-    font-size: 22px;
-    line-height: 22px;
-    color: $ifs-brand-blue;
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    line-height: 18px;
+    color: var(--ifs-accent-500);
   }
 
   &__body {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    gap: var(--ifs-space-4);
     flex: 1 1 auto;
     min-width: 0;
   }
 
   &__title {
-    font-weight: 600;
-    font-size: 0.95rem;
+    font-weight: 500;
+    font-size: 14px;
     line-height: 1.35;
-    color: $ifs-ink-900;
+    color: var(--ifs-text-primary);
   }
 
   &__desc {
-    font-size: 0.84rem;
-    color: $ifs-ink-500;
+    font-size: 13px;
+    color: var(--ifs-text-secondary);
     line-height: 1.5;
   }
 }

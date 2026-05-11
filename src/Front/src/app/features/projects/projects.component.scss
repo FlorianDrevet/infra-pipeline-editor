@@ -137,13 +137,13 @@
   background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.24);
   box-shadow: 0 8px 22px rgba(16, 52, 86, 0.06);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
   cursor: pointer;
   outline: none;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 32px rgba(16, 52, 86, 0.12);
+    background: var(--ifs-surface-2);
+    box-shadow: var(--ifs-shadow-md);
   }
 
   &:focus-within {

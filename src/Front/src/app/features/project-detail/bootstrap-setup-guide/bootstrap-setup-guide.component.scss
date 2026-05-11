@@ -7,10 +7,10 @@
 .bootstrap-guide-card {
   margin: 1rem 0;
   padding: 1.25rem 1.5rem 1.5rem;
-  border-radius: 1rem;
-  background: linear-gradient(160deg, rgba(10, 42, 78, 0.92) 0%, rgba(5, 28, 56, 0.94) 100%);
-  border: 1px solid rgba(0, 188, 212, 0.22);
-  box-shadow: 0 16px 36px rgba(3, 18, 37, 0.18);
+  border-radius: var(--ifs-radius-lg);
+  background: var(--ifs-surface-2);
+  border: 1px solid var(--ifs-border-subtle);
+  box-shadow: var(--ifs-shadow-md);
 
   &__title {
     margin: 0 0 0.5rem;
@@ -114,14 +114,14 @@
   box-shadow: 0 8px 16px rgba(0, 188, 212, 0.22);
 
   &--permission {
-    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-    box-shadow: 0 8px 16px rgba(245, 158, 11, 0.22);
+    background: var(--ifs-warning);
+    box-shadow: var(--ifs-shadow-sm);
     color: #1a1a2e;
   }
 
   &--success {
-    background: linear-gradient(135deg, #0ea5e9 0%, #34d399 100%);
-    box-shadow: 0 8px 16px rgba(52, 211, 153, 0.18);
+    background: var(--ifs-success);
+    box-shadow: var(--ifs-shadow-sm);
   }
 }
 

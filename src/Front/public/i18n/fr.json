@@ -6,6 +6,7 @@
   "NAV": {
     "BRAND_ARIA": "Ouvrir la page d'accueil InfraFlowSculptor",
     "BRAND_SUBTITLE": "Espace de travail infrastructure Azure",
+    "TOPBAR_ARIA": "Barre supérieure de l'application",
     "HOME": "Accueil",
     "PROJECTS": "Projets",
     "LANGUAGE_SELECTOR_ARIA": "Selection de la langue",
@@ -14,14 +15,31 @@
     "USER_DEFAULT_EMAIL": "Connecte avec Microsoft Entra ID",
     "LOGGING_OUT": "Deconnexion...",
     "LOGOUT": "Se deconnecter",
-    "SETTINGS": "Paramètres"
+    "SETTINGS": "Paramètres",
+    "BREADCRUMB": {
+      "PROJECTS": "Projets"
+    }
+  },
+  "SIDEBAR": {
+    "BRAND_ARIA": "Ouvrir la page d'accueil InfraFlowSculptor",
+    "NAV_ARIA": "Navigation principale",
+    "COLLAPSE_ARIA": "Réduire la navigation",
+    "EXPAND_ARIA": "Étendre la navigation",
+    "HOME": "Accueil",
+    "PROJECTS": "Projets",
+    "SETTINGS": "Paramètres",
+    "DOCS": "Docs"
   },
   "FOOTER": {
     "BRAND_DESCRIPTION": "Infrastructure as Data, Bicep as Code. Espace securise pour les equipes plateforme Azure.",
     "HOME": "Accueil",
     "SECURITY": "Securise avec Microsoft Entra ID",
     "WORKFLOW": "Workflow Azure premium",
-    "LEGAL": "Concu pour les equipes de gouvernance et delivery cloud"
+    "LEGAL": "Concu pour les equipes de gouvernance et delivery cloud",
+    "STATUS_BAR_ARIA": "Barre d'état de l'application",
+    "VERSION_ARIA": "Version de l'application",
+    "ENV_ARIA": "Nom de l'environnement",
+    "DOCS": "Docs"
   },
   "ANNOTATION": {
     "ACTIVATE": "Activer l'annotation",

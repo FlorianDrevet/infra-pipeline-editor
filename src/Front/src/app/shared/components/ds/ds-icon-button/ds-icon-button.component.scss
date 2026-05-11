@@ -1,4 +1,8 @@
-@use "scss/main" as *;
+// ============================================================================
+// app-ds-icon-button — V2 (UI Refresh 2026-05, dark-only)
+// Spec: docs/design/ui-refresh-2026-05.md §5.1
+// Square 28/32/40 (sm/md/lg), radius-sm. No translateY, no gradient.
+// ============================================================================
 
 :host {
   display: inline-flex;
@@ -7,12 +11,20 @@
 .ds-icon-btn {
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  border: none;
+  border-radius: var(--ifs-radius-sm);
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: all $ifs-duration-fast $ifs-ease-out;
   padding: 0;
-  @include ifs-focus-visible;
+  background: transparent;
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard);
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ifs-focus-ring);
+  }
 
   &:disabled {
     cursor: not-allowed;
@@ -20,84 +32,86 @@
   }
 
   mat-icon {
-    font-size: 1.1rem;
-    width: 1.1rem;
-    height: 1.1rem;
+    font-size: var(--ifs-icon-md);
+    width: var(--ifs-icon-md);
+    height: var(--ifs-icon-md);
   }
 
+  // --- Sizes ---
   &--sm {
-    width: 1.85rem;
-    height: 1.85rem;
+    width: 28px;
+    height: 28px;
 
     mat-icon {
-      font-size: 1rem;
-      width: 1rem;
-      height: 1rem;
+      font-size: var(--ifs-icon-sm);
+      width: var(--ifs-icon-sm);
+      height: var(--ifs-icon-sm);
     }
   }
 
   &--md {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 32px;
+    height: 32px;
   }
 
   &--lg {
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 40px;
+    height: 40px;
 
     mat-icon {
-      font-size: 1.3rem;
-      width: 1.3rem;
-      height: 1.3rem;
+      font-size: var(--ifs-icon-lg);
+      width: var(--ifs-icon-lg);
+      height: var(--ifs-icon-lg);
     }
   }
 
-  &--ghost {
-    background: transparent;
-    color: $ifs-ink-500;
+  // --- Variants ---
+  &--neutral {
+    color: var(--ifs-text-secondary);
 
     &:hover:not(:disabled) {
-      background: $ifs-info-soft;
-      color: $ifs-brand-blue;
+      background: var(--ifs-surface-2);
+      color: var(--ifs-text-primary);
+    }
+
+    &:active:not(:disabled) {
+      background: var(--ifs-surface-3);
     }
   }
 
   &--subtle {
-    background: $ifs-info-soft;
-    color: $ifs-brand-blue;
+    background: var(--ifs-surface-2);
+    color: var(--ifs-text-primary);
 
     &:hover:not(:disabled) {
-      background: rgba(21, 101, 192, 0.15);
+      background: var(--ifs-surface-3);
     }
   }
 
-  &--primary {
-    background: $ifs-gradient-cta;
-    color: #fff;
-    box-shadow: $ifs-shadow-cta;
+  &--accent {
+    color: var(--ifs-accent-500);
 
     &:hover:not(:disabled) {
-      box-shadow: $ifs-shadow-cta-hover;
-      transform: translateY(-1px);
+      background: var(--ifs-info-bg);
     }
   }
 
   &--danger {
-    background: transparent;
-    color: $ifs-error-strong;
+    color: var(--ifs-danger);
 
     &:hover:not(:disabled) {
-      background: $ifs-error-soft;
+      background: var(--ifs-danger-bg);
     }
   }
 }
 
 .ds-icon-btn__spinner {
-  width: 1rem;
-  height: 1rem;
+  width: 14px;
+  height: 14px;
   border: 2px solid currentColor;
   border-top-color: transparent;
   border-radius: 50%;
   animation: ifs-spin 0.7s linear infinite;
   opacity: 0.7;
 }
+

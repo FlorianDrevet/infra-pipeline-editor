@@ -1,18 +1,20 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthenticationService } from '../../../shared/services/authentication.service';
 import { AppLanguage, LanguageService } from '../../../shared/services/language.service';
 import { MicrosoftGraphProfilePhotoService } from '../../../shared/services/microsoft-graph-profile-photo.service';
 import { MsalAuthService } from '../../../shared/services/msal-auth.service';
+import { PageContextService } from '../../../shared/services/page-context.service';
+import { DsIconButtonComponent } from '../../../shared/components/ds/ds-icon-button/ds-icon-button.component';
 
 const BlobUrlPrefix = 'blob:';
 
 @Component({
   selector: 'app-navigation',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, MatIconModule, TranslateModule],
+  imports: [MatIconModule, TranslateModule, RouterLink, DsIconButtonComponent],
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss',
 })
@@ -22,6 +24,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   private readonly microsoftGraphProfilePhotoService = inject(MicrosoftGraphProfilePhotoService);
   private readonly msalAuthService = inject(MsalAuthService);
   private readonly router = inject(Router);
+  private readonly pageContextService = inject(PageContextService);
 
   protected readonly isLoggingOut = signal(false);
   protected readonly userName = signal('');
@@ -30,6 +33,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   protected readonly userPhotoUrl = signal<string | null>(null);
   protected readonly currentLanguage = this.languageService.currentLanguage;
   protected readonly availableLanguages = this.languageService.availableLanguages;
+  protected readonly breadcrumb = this.pageContextService.breadcrumb;
 
   public ngOnInit(): void {
     void this.initializeUserProfile();

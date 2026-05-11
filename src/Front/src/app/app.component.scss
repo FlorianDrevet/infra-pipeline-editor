@@ -3,59 +3,102 @@
   min-height: 100vh;
 }
 
+// Default sidebar width (overridden at runtime by SidebarStateService).
+:root,
+:host {
+  --ifs-sidebar-width: 240px;
+}
+
 .app-shell {
+  display: grid;
+  grid-template-columns: var(--ifs-sidebar-width) 1fr;
+  grid-template-rows: 48px 1fr 28px;
+  grid-template-areas:
+    "sidebar topbar"
+    "sidebar main"
+    "sidebar footer";
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  background: var(--ifs-bg);
+  color: var(--ifs-text-primary);
+  transition: grid-template-columns var(--ifs-duration-base) var(--ifs-ease-standard);
 }
 
-.app-main {
-  flex: 1;
-  background:
-    radial-gradient(circle at top left, rgba(0, 172, 193, 0.2), transparent 28%),
-    radial-gradient(circle at top right, rgba(21, 101, 192, 0.16), transparent 24%),
-    linear-gradient(180deg, #f4f9ff 0%, #eef5ff 100%);
+.app-shell--login {
+  display: block;
+  grid-template-columns: none;
+  grid-template-rows: none;
+  grid-template-areas: none;
 }
 
-.app-main--login {
+.app-shell__sidebar {
+  grid-area: sidebar;
+}
+
+.app-shell__topbar {
+  grid-area: topbar;
+  position: sticky;
+  top: 0;
+  z-index: var(--ifs-z-sticky);
+}
+
+.app-shell__main {
+  grid-area: main;
+  background: var(--ifs-bg);
+  overflow: auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.app-shell__main--login {
   background: transparent;
+  min-height: 100vh;
 }
 
+.app-shell__footer {
+  grid-area: footer;
+}
+
+// Floating annotation entry point — V2: neutral surface, sm shadow, no
+// gradient/blur. Uses accent-500 only for the label text and focus ring.
 .annotation-trigger {
   position: fixed;
-  right: 1rem;
-  bottom: 1rem;
-  z-index: 1200;
+  right: var(--ifs-space-16);
+  bottom: calc(28px + var(--ifs-space-12));
+  z-index: var(--ifs-z-popover);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 9999px;
-  background: linear-gradient(135deg, #0288d1, #00bcd4);
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  box-shadow: 0 10px 24px rgba(2, 136, 209, 0.35);
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--ifs-border-strong);
+  border-radius: var(--ifs-radius-pill);
+  background: var(--ifs-surface-2);
+  color: var(--ifs-accent-500);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  box-shadow: var(--ifs-shadow-sm);
   cursor: pointer;
-  transition: transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
 }
 
 .annotation-trigger:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 28px rgba(2, 136, 209, 0.45);
+  background-color: var(--ifs-surface-3);
+  border-color: var(--ifs-accent-500);
+  box-shadow: var(--ifs-shadow-md);
 }
 
 .annotation-trigger:focus-visible {
-  outline: 2px solid rgba(0, 188, 212, 0.85);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--ifs-focus-ring);
 }
 
 @media (max-width: 768px) {
   .annotation-trigger {
-    right: 0.75rem;
-    bottom: 0.75rem;
+    right: var(--ifs-space-12);
+    bottom: calc(28px + var(--ifs-space-8));
   }
 }

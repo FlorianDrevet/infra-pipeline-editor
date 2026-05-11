@@ -1,0 +1,61 @@
+// ============================================================================
+// app-ds-skeleton — V2 (UI Refresh 2026-05, dark-only)
+// Spec: docs/design/ui-refresh-2026-05.md §6 wave 6
+// V2 whitelisted: skeleton shimmer is functional, not decorative.
+// ============================================================================
+
+:host {
+  display: block;
+}
+
+.ds-skeleton {
+  display: flex;
+  flex-direction: column;
+}
+
+.ds-skeleton--circle {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ds-skeleton__item {
+  display: block;
+  // V2 whitelisted: skeleton shimmer is functional, not decorative.
+  background: linear-gradient(
+    90deg,
+    var(--ifs-surface-2) 0%,
+    var(--ifs-surface-3) 50%,
+    var(--ifs-surface-2) 100%
+  );
+  background-size: 200% 100%;
+  animation: ifs-skeleton-shimmer 1.4s linear infinite;
+}
+
+.ds-skeleton--box .ds-skeleton__item {
+  border-radius: var(--ifs-radius-sm);
+}
+
+.ds-skeleton--line .ds-skeleton__item {
+  border-radius: var(--ifs-radius-pill);
+}
+
+.ds-skeleton--circle .ds-skeleton__item {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+@keyframes ifs-skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-skeleton__item {
+    animation: none;
+  }
+}

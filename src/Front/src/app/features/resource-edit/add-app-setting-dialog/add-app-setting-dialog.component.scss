@@ -1,4 +1,4 @@
-@use "scss/main" as *;
+﻿@use "scss/main" as *;
 
 ::ng-deep .ifs-add-app-setting-dialog .mat-mdc-dialog-surface {
   display: flex;
@@ -35,7 +35,7 @@
   background: #f8fbff;
   color: #617892;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
 
   mat-icon {
     font-size: 1rem;
@@ -44,13 +44,13 @@
   }
 
   &:hover {
-    border-color: rgba(21, 101, 192, 0.3);
-    background: rgba(21, 101, 192, 0.04);
+    border-color: var(--ifs-accent-500);
+    background: var(--ifs-surface-3);
   }
 
   &--active {
     border-color: #1565c0;
-    background: rgba(21, 101, 192, 0.08);
+    background: var(--ifs-info-bg);
     color: #1565c0;
   }
 }
@@ -148,7 +148,7 @@
   }
 }
 
-// ─── Target / Source list ───
+// â”€â”€â”€ Target / Source list â”€â”€â”€
 
 .target-list {
   display: flex;
@@ -167,19 +167,19 @@
   border: 1.5px solid rgba(146, 191, 235, 0.22);
   background: $ifs-gradient-card-soft;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
   text-align: left;
   width: 100%;
 
   &:hover {
-    border-color: rgba(21, 101, 192, 0.35);
-    background: rgba(21, 101, 192, 0.04);
-    box-shadow: 0 4px 16px rgba(21, 101, 192, 0.08);
+    border-color: var(--ifs-accent-500);
+    background: var(--ifs-surface-3);
+    box-shadow: var(--ifs-shadow-md);
   }
 
   &--selected {
     border-color: #1565c0;
-    background: rgba(21, 101, 192, 0.06);
+    background: var(--ifs-info-bg);
   }
 
   &__icon {
@@ -224,7 +224,7 @@
   }
 }
 
-// ─── Output list ───
+// â”€â”€â”€ Output list â”€â”€â”€
 
 .output-list {
   display: flex;
@@ -271,19 +271,19 @@
   border: 1.5px solid rgba(146, 191, 235, 0.22);
   background: $ifs-gradient-card-soft;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
   text-align: left;
   width: 100%;
 
   &:hover {
-    border-color: rgba(21, 101, 192, 0.35);
-    background: rgba(21, 101, 192, 0.04);
-    box-shadow: 0 4px 16px rgba(21, 101, 192, 0.08);
+    border-color: var(--ifs-accent-500);
+    background: var(--ifs-surface-3);
+    box-shadow: var(--ifs-shadow-md);
   }
 
   &--selected {
     border-color: #1565c0;
-    background: rgba(21, 101, 192, 0.06);
+    background: var(--ifs-info-bg);
   }
 
   &--sensitive {
@@ -360,7 +360,7 @@
   }
 }
 
-// ─── Sensitive choice cards ───
+// â”€â”€â”€ Sensitive choice cards â”€â”€â”€
 
 .sensitive-choice {
   display: flex;
@@ -378,7 +378,7 @@
   border: 1.5px solid rgba(146, 191, 235, 0.22);
   background: $ifs-gradient-card-soft;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
   text-align: left;
   width: 100%;
 
@@ -453,16 +453,16 @@
   }
 
   &--direct-kv {
-    border-color: rgba(21, 101, 192, 0.18);
+    border-color: var(--ifs-accent-500);
 
     .sensitive-choice-card__header mat-icon {
       color: #1565c0;
     }
 
     &:hover {
-      border-color: rgba(21, 101, 192, 0.4);
-      background: rgba(21, 101, 192, 0.03);
-      box-shadow: 0 4px 16px rgba(21, 101, 192, 0.08);
+      border-color: var(--ifs-accent-500);
+      background: var(--ifs-surface-3);
+      box-shadow: var(--ifs-shadow-md);
     }
   }
 
@@ -479,12 +479,12 @@
 
     &.sensitive-choice-card--direct-kv {
       border-color: #1565c0;
-      background: rgba(21, 101, 192, 0.06);
+      background: var(--ifs-info-bg);
     }
   }
 }
 
-// ─── Sensitive KV config ───
+// â”€â”€â”€ Sensitive KV config â”€â”€â”€
 
 .sensitive-kv-config {
   margin-top: 0.75rem;
@@ -517,7 +517,7 @@
   }
 }
 
-// ─── Sensitive direct config ───
+// â”€â”€â”€ Sensitive direct config â”€â”€â”€
 
 .sensitive-direct-config {
   margin-top: 0.75rem;
@@ -582,7 +582,7 @@
   font-weight: 600;
 }
 
-// ─── Selected source summary ───
+// â”€â”€â”€ Selected source summary â”€â”€â”€
 
 .selected-source-summary {
   display: flex;
@@ -590,8 +590,8 @@
   gap: 0.5rem;
   padding: 0.6rem 0.85rem;
   border-radius: 0.75rem;
-  background: rgba(21, 101, 192, 0.05);
-  border: 1px solid rgba(21, 101, 192, 0.12);
+  background: var(--ifs-info-bg);
+  border: 1px solid var(--ifs-border-subtle);
   margin-bottom: 1rem;
   font-size: 0.85rem;
   font-weight: 600;
@@ -613,7 +613,7 @@
   }
 }
 
-// ─── Selection summary (step 3) ───
+// â”€â”€â”€ Selection summary (step 3) â”€â”€â”€
 
 .selection-summary {
   display: flex;
@@ -622,8 +622,8 @@
   margin-bottom: 1.25rem;
   padding: 0.75rem 0.85rem;
   border-radius: 0.75rem;
-  background: rgba(21, 101, 192, 0.04);
-  border: 1px solid rgba(21, 101, 192, 0.1);
+  background: var(--ifs-surface-3);
+  border: 1px solid var(--ifs-border-subtle);
 
   &__item {
     display: flex;
@@ -655,7 +655,7 @@
   }
 }
 
-// ─── Config section ───
+// â”€â”€â”€ Config section â”€â”€â”€
 
 .config-section {
   margin-bottom: 0.75rem;
@@ -670,7 +670,7 @@
   margin-right: 0.5rem;
 }
 
-// ─── Static step title ───
+// â”€â”€â”€ Static step title â”€â”€â”€
 
 .static-step-title {
   margin: 0.75rem 0 0.65rem;
@@ -690,14 +690,14 @@
   }
 }
 
-// ─── Secret toggle section ───
+// â”€â”€â”€ Secret toggle section â”€â”€â”€
 
 .secret-toggle-section {
   margin-bottom: 1rem;
   padding: 0.75rem 0.85rem;
   border-radius: 0.75rem;
-  background: rgba(21, 101, 192, 0.03);
-  border: 1px solid rgba(21, 101, 192, 0.1);
+  background: var(--ifs-surface-3);
+  border: 1px solid var(--ifs-border-subtle);
 }
 
 .secret-kv-section {
@@ -710,8 +710,8 @@
   margin-top: 0.5rem;
   padding: 0.75rem 0.85rem;
   border-radius: 0.75rem;
-  background: rgba(21, 101, 192, 0.03);
-  border: 1px solid rgba(21, 101, 192, 0.1);
+  background: var(--ifs-surface-3);
+  border: 1px solid var(--ifs-border-subtle);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -724,7 +724,7 @@
   color: #103454;
 }
 
-// ─── Key vault access warning / success ───
+// â”€â”€â”€ Key vault access warning / success â”€â”€â”€
 
 .kv-access-warning {
   display: flex;

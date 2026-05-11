@@ -1,45 +1,25 @@
 @use "tokens" as *;
 
-// --- Gradient shorthands ---
-@mixin ifs-gradient-brand { background: $ifs-gradient-brand; }
-@mixin ifs-gradient-cta { background: $ifs-gradient-cta; }
-@mixin ifs-gradient-app-bg { background: $ifs-gradient-app-bg; }
+// ============================================================================
+// InfraFlowSculptor — Mixins V2 (UI Refresh 2026-05)
+// V1 glass / hover-lift / colored gradients are removed conceptually but
+// retained as flat compat stubs so existing consumers keep building until
+// wave 2+ migrates them.
+// ============================================================================
 
-// --- Glassmorphism (frosted card / nav / footer) ---
-@mixin ifs-glass($opacity: 0.88, $blur: 14px, $tint: rgba(255, 255, 255, 1)) {
-  background: rgba(255, 255, 255, $opacity);
-  backdrop-filter: blur($blur);
-  -webkit-backdrop-filter: blur($blur);
-}
-
-// --- Card surface (default) ---
-@mixin ifs-card-surface($radius: $ifs-radius-xl, $shadow: $ifs-shadow-xs) {
-  background: $ifs-surface-0;
-  border: 1px solid $ifs-border-soft;
+// --- Card surface (V2: flat, neutral border, sm shadow) ---
+@mixin ifs-card-surface($radius: $ifs-radius-md, $shadow: $ifs-shadow-sm) {
+  background: $ifs-surface-1;
+  border: 1px solid $ifs-border-subtle;
   border-radius: $radius;
   box-shadow: $shadow;
   transition:
-    box-shadow $ifs-duration-base $ifs-ease-out,
-    border-color $ifs-duration-base $ifs-ease-out,
-    transform $ifs-duration-base $ifs-ease-out;
+    background-color $ifs-duration-base $ifs-ease-standard,
+    border-color $ifs-duration-base $ifs-ease-standard,
+    box-shadow $ifs-duration-base $ifs-ease-standard;
 }
 
-// --- Hover lift ---
-@mixin ifs-hover-lift {
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: $ifs-shadow-cta-hover;
-  }
-}
-
-// --- Form grid layout ---
-@mixin ifs-form-grid($min: 14rem, $row-gap: 0.75rem, $col-gap: 1.25rem) {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax($min, 1fr));
-  gap: $row-gap $col-gap;
-}
-
-// --- Focus visible ---
+// --- Focus visible (V2: a11y ring 2px accent + offset bg) ---
 @mixin ifs-focus-visible {
   &:focus-visible {
     outline: none;
@@ -47,16 +27,53 @@
   }
 }
 
-// --- Truncate ---
+// --- Form grid layout (kept) ---
+@mixin ifs-form-grid($min: 14rem, $row-gap: 12px, $col-gap: 16px) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax($min, 1fr));
+  gap: $row-gap $col-gap;
+}
+
+// --- Truncate (kept) ---
 @mixin ifs-truncate {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-// --- Scrollbar (subtle) ---
+// --- Subtle scrollbar (kept, retoned for dark) ---
 @mixin ifs-scrollbar-soft {
   &::-webkit-scrollbar { width: 8px; height: 8px; }
-  &::-webkit-scrollbar-thumb { background: $ifs-ink-300; border-radius: $ifs-radius-pill; }
+  &::-webkit-scrollbar-thumb {
+    background: $ifs-border-strong;
+    border-radius: $ifs-radius-pill;
+  }
   &::-webkit-scrollbar-track { background: transparent; }
 }
+
+// ----------------------------------------------------------------------------
+// DEPRECATED — Compat stubs (REMOVE IN WAVE 6)
+// V1 mixins kept as no-op-ish flat fallbacks so legacy consumers keep building.
+// ----------------------------------------------------------------------------
+
+// V1 glassmorphism → flat surface-2, no blur. (DEPRECATED)
+@mixin ifs-glass($opacity: 1, $blur: 0, $tint: transparent) {
+  background: $ifs-surface-2;
+  border: 1px solid $ifs-border-subtle;
+}
+
+// V1 hover-lift translateY → background-color hover only. (DEPRECATED)
+@mixin ifs-hover-lift {
+  &:hover {
+    background-color: $ifs-surface-2;
+  }
+}
+
+// V1 brand gradient → flat surface-2. (DEPRECATED)
+@mixin ifs-gradient-brand { background: $ifs-surface-2; }
+
+// V1 CTA gradient → V2 single CTA gradient (only legitimate gradient). (DEPRECATED)
+@mixin ifs-gradient-cta { background: var(--ifs-gradient-cta); }
+
+// V1 app-bg radial → flat dark bg. (DEPRECATED)
+@mixin ifs-gradient-app-bg { background: $ifs-bg; }

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
@@ -80,6 +80,7 @@ import { RoleAssignmentImpactDialogComponent, RoleAssignmentImpactDialogData } f
 import { CreateUaiDialogComponent } from './create-uai-dialog/create-uai-dialog.component';
 import { CustomDomainService } from '../../shared/services/custom-domain.service';
 import { CustomDomainResponse, AddCustomDomainRequest } from '../../shared/interfaces/custom-domain.interface';
+import { PageContextService } from '../../shared/services/page-context.service';
 import { AddCustomDomainDialogComponent, AddCustomDomainDialogData } from './add-custom-domain-dialog/add-custom-domain-dialog.component';
 import { CompactSelectComponent } from '../../shared/components/compact-select/compact-select.component';
 import { DeploymentConfigComponent } from '../../shared/components/deployment-config/deployment-config.component';
@@ -376,6 +377,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly customDomainService = inject(CustomDomainService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
+  private readonly pageContextService = inject(PageContextService);
 
   // ─── Route params ───
   protected configId = '';
@@ -929,6 +931,30 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       ? tabIndex === 0
       : tabIndex === 0 || tabIndex === 1 || (this.isStorageAccount() && tabIndex === 3) || (this.supportsAppPipeline() && tabIndex === 4);
     return this.formsDirty() && isOnSaveableTab && this.canWrite();
+  });
+
+  // ─── Breadcrumb (top-bar) ───
+  // Wave 5: Projects > ProjectName > ConfigName > ResourceType : ResourceName.
+  private readonly breadcrumbEffect = effect(() => {
+    const project = this.project();
+    const config = this.config();
+    const resource = this.resource();
+    const projectsLabel = this.translate.instant('NAV.BREADCRUMB.PROJECTS') as string;
+    const segments: { label: string; routerLink?: string }[] = [
+      { label: projectsLabel, routerLink: '/' },
+    ];
+    if (project) {
+      segments.push({ label: project.name, routerLink: `/projects/${project.id}` });
+    }
+    if (config) {
+      segments.push({ label: config.name, routerLink: `/config/${config.id}` });
+    }
+    if (resource) {
+      const typeLabel = this.resourceType || '';
+      const last = typeLabel ? `${typeLabel} : ${resource.name}` : resource.name;
+      segments.push({ label: last });
+    }
+    this.pageContextService.setBreadcrumb(segments);
   });
 
   async ngOnInit(): Promise<void> {
@@ -1853,6 +1879,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.formSubscriptions.forEach(s => s.unsubscribe());
+    this.pageContextService.clear();
   }
 
   protected openDeleteDialog(): void {

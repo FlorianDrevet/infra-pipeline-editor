@@ -1,8 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
+import { DsCardAccent, DsCardPadding, DsCardVariant } from './ds-card.types';
 
 /**
- * Design system card. Supports elevated/outlined/glass variants, accent borders and projection slots.
+ * Design system card. V2 supports `default`, `interactive` and `outlined`
+ * variants on a flat surface. Legacy `elevated` and `glass` are accepted but
+ * silently rendered as `default` for backward compatibility.
  */
 @Component({
   selector: 'app-ds-card',
@@ -13,41 +16,58 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DsCardComponent {
-  public readonly variant = input<'elevated' | 'outlined' | 'glass'>('outlined');
-  public readonly padding = input<'sm' | 'md' | 'lg' | 'none'>('md');
+  public readonly variant = input<DsCardVariant>('outlined');
+  public readonly padding = input<DsCardPadding>('md');
   public readonly interactive = input<boolean>(false);
-  public readonly accent = input<'none' | 'primary' | 'success' | 'warning' | 'error'>('none');
+  /**
+   * @deprecated Border-left coloured accents are removed in V2. The input is
+   * still accepted to preserve the public API but has no visual effect.
+   */
+  public readonly accent = input<DsCardAccent>('none');
 
   public readonly cardClick = output<MouseEvent>();
 
-  protected readonly classes = computed(() => {
-    const accent = this.accent();
-    const accentClass = accent === 'none' ? '' : `ds-card--accent-${accent}`;
+  protected readonly resolvedVariant = computed<'default' | 'interactive' | 'outlined'>(() => {
+    const v = this.variant();
+    if (v === 'outlined') {
+      return 'outlined';
+    }
+    if (v === 'interactive') {
+      return 'interactive';
+    }
+    // default | elevated (deprecated) | glass (deprecated)
+    return 'default';
+  });
 
+  protected readonly classes = computed(() => {
+    const interactive = this.interactive() || this.resolvedVariant() === 'interactive';
     return [
       'ds-card',
-      `ds-card--${this.variant()}`,
+      `ds-card--${this.resolvedVariant()}`,
       `ds-card--padding-${this.padding()}`,
-      accentClass,
-      this.interactive() ? 'interactive' : '',
+      interactive ? 'interactive' : '',
     ]
       .filter(Boolean)
       .join(' ');
   });
 
   protected onClick(event: MouseEvent): void {
-    if (!this.interactive()) {
+    if (!this.isClickable()) {
       return;
     }
     this.cardClick.emit(event);
   }
 
   protected onKeydown(event: Event): void {
-    if (!this.interactive()) {
+    if (!this.isClickable()) {
       return;
     }
 
     event.preventDefault();
     (event.currentTarget as HTMLElement | null)?.click();
+  }
+
+  protected isClickable(): boolean {
+    return this.interactive() || this.resolvedVariant() === 'interactive';
   }
 }

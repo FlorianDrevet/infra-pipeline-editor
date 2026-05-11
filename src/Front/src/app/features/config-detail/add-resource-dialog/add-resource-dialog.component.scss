@@ -1,4 +1,4 @@
-@use "scss/main" as *;
+﻿@use "scss/main" as *;
 
 :host {
   display: block;
@@ -77,14 +77,14 @@
   padding: 1.4rem 1rem;
   border-radius: 1.2rem;
   border: 1px solid rgba(146, 191, 235, 0.24);
-  background: linear-gradient(180deg, #fff, #f6fbff);
+  background: var(--ifs-surface-1);
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 
   &:hover {
-    border-color: rgba(21, 101, 192, 0.35);
-    background: rgba(21, 101, 192, 0.04);
-    box-shadow: 0 4px 16px rgba(21, 101, 192, 0.1);
+    border-color: var(--ifs-accent-500);
+    background: var(--ifs-surface-3);
+    box-shadow: var(--ifs-shadow-md);
   }
 }
 
@@ -211,7 +211,7 @@ mat-slide-toggle {
   padding-top: 0.75rem;
 }
 
-// ── Plan Picker (WebApp flow) ──
+// â”€â”€ Plan Picker (WebApp flow) â”€â”€
 .plan-loading {
   display: flex;
   justify-content: center;
@@ -232,26 +232,26 @@ mat-slide-toggle {
   padding: 0.85rem 1rem;
   border-radius: 0.75rem;
   border: 1px solid rgba(146, 191, 235, 0.24);
-  background: linear-gradient(180deg, #fff, #f8fbff);
+  background: var(--ifs-surface-1);
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
   text-align: left;
   width: 100%;
 
   &:hover {
-    border-color: rgba(21, 101, 192, 0.35);
-    background: rgba(21, 101, 192, 0.04);
-    box-shadow: 0 2px 12px rgba(21, 101, 192, 0.1);
+    border-color: var(--ifs-accent-500);
+    background: var(--ifs-surface-3);
+    box-shadow: var(--ifs-shadow-md);
   }
 
   &--create {
     border-style: dashed;
-    border-color: rgba(21, 101, 192, 0.3);
-    background: rgba(21, 101, 192, 0.02);
+    border-color: var(--ifs-accent-500);
+    background: var(--ifs-surface-3);
 
     &:hover {
-      background: rgba(21, 101, 192, 0.06);
-      border-color: rgba(21, 101, 192, 0.5);
+      background: var(--ifs-info-bg);
+      border-color: var(--ifs-accent-500);
     }
   }
 }
@@ -297,7 +297,7 @@ mat-slide-toggle {
   flex-shrink: 0;
 }
 
-// ── Cross-config separator ──
+// â”€â”€ Cross-config separator â”€â”€
 .cross-config-separator {
   display: flex;
   align-items: center;
@@ -319,15 +319,15 @@ mat-slide-toggle {
   border-left: 3px solid #7c4dff;
 }
 
-// ── Plan Indicator (selected plan in common step) ──
+// â”€â”€ Plan Indicator (selected plan in common step) â”€â”€
 .plan-indicator {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   padding: 0.6rem 0.8rem;
   border-radius: 0.6rem;
-  background: rgba(21, 101, 192, 0.06);
-  border: 1px solid rgba(21, 101, 192, 0.15);
+  background: var(--ifs-info-bg);
+  border: 1px solid var(--ifs-border-subtle);
   margin-bottom: 0.5rem;
 }
 
@@ -372,11 +372,11 @@ mat-slide-toggle {
   flex-shrink: 0;
 
   &:hover {
-    background: rgba(21, 101, 192, 0.08);
+    background: var(--ifs-info-bg);
   }
 }
 
-// ── Name Availability ──
+// â”€â”€ Name Availability â”€â”€
 .name-availability-inline {
   display: flex;
   align-items: center;
@@ -512,7 +512,7 @@ mat-slide-toggle {
   }
 }
 
-// ── Health Probes Section ──
+// â”€â”€ Health Probes Section â”€â”€
 .health-probes-section {
   margin-top: 1.25rem;
   padding-top: 1rem;

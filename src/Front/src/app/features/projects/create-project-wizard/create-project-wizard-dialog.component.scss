@@ -1,4 +1,4 @@
-.wizard {
+﻿.wizard {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -77,7 +77,7 @@
   .mat-horizontal-stepper-header-container {
     padding: 0.4rem 1rem;
     border-bottom: 1px solid var(--border-color, #e5e7eb);
-    background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(255, 255, 255, 0.98));
+    background: var(--ifs-surface-1);
     flex-shrink: 0;
     --mat-stepper-header-hover-state-layer-shape: 1rem;
     --mat-stepper-header-focus-state-layer-shape: 1rem;

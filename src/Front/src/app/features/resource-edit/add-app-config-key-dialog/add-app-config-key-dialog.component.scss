@@ -1,4 +1,4 @@
-@use "scss/main" as *;
+﻿@use "scss/main" as *;
 
 .as-dialog {
   min-width: 28rem;
@@ -23,7 +23,7 @@
   background: #f8fbff;
   color: #617892;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
 
   mat-icon {
     font-size: 1rem;
@@ -32,13 +32,13 @@
   }
 
   &:hover {
-    border-color: rgba(21, 101, 192, 0.3);
-    background: rgba(21, 101, 192, 0.04);
+    border-color: var(--ifs-accent-500);
+    background: var(--ifs-surface-3);
   }
 
   &--active {
     border-color: #1565c0;
-    background: rgba(21, 101, 192, 0.08);
+    background: var(--ifs-info-bg);
     color: #1565c0;
   }
 }
@@ -106,16 +106,16 @@
   cursor: pointer;
   text-align: left;
   width: 100%;
-  transition: all 0.18s ease;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
 
   &:hover {
-    border-color: rgba(21, 101, 192, 0.3);
-    background: rgba(21, 101, 192, 0.04);
+    border-color: var(--ifs-accent-500);
+    background: var(--ifs-surface-3);
   }
 
   &--selected {
     border-color: #1565c0;
-    background: rgba(21, 101, 192, 0.07);
+    background: var(--ifs-info-bg);
   }
 
   &__header {
@@ -154,7 +154,7 @@
   border-radius: 999px;
   font-size: 0.7rem;
   font-weight: 600;
-  background: rgba(21, 101, 192, 0.1);
+  background: var(--ifs-info-bg);
   color: #1565c0;
 
   mat-icon {
@@ -227,16 +227,16 @@
   cursor: pointer;
   text-align: left;
   width: 100%;
-  transition: all 0.15s ease;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
 
   &:hover {
-    border-color: rgba(21, 101, 192, 0.3);
-    background: rgba(21, 101, 192, 0.03);
+    border-color: var(--ifs-accent-500);
+    background: var(--ifs-surface-3);
   }
 
   &--selected {
     border-color: #1565c0;
-    background: rgba(21, 101, 192, 0.06);
+    background: var(--ifs-info-bg);
   }
 
   &__icon {
@@ -399,7 +399,7 @@
   margin-right: 0.35rem;
 }
 
-// ─── Output list ───
+// â”€â”€â”€ Output list â”€â”€â”€
 
 .output-list {
   display: flex;
@@ -446,19 +446,19 @@
   border: 1.5px solid rgba(146, 191, 235, 0.22);
   background: $ifs-gradient-card-soft;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
   text-align: left;
   width: 100%;
 
   &:hover {
-    border-color: rgba(21, 101, 192, 0.35);
-    background: rgba(21, 101, 192, 0.04);
-    box-shadow: 0 4px 16px rgba(21, 101, 192, 0.08);
+    border-color: var(--ifs-accent-500);
+    background: var(--ifs-surface-3);
+    box-shadow: var(--ifs-shadow-md);
   }
 
   &--selected {
     border-color: #1565c0;
-    background: rgba(21, 101, 192, 0.06);
+    background: var(--ifs-info-bg);
   }
 
   &--sensitive {
@@ -508,7 +508,7 @@
   }
 }
 
-// ─── Sensitive choice cards (output mode step 3) ───
+// â”€â”€â”€ Sensitive choice cards (output mode step 3) â”€â”€â”€
 
 .sensitive-choice-card {
   &--direct {
@@ -549,7 +549,7 @@
   }
 }
 
-// ─── Sensitive KV config ───
+// â”€â”€â”€ Sensitive KV config â”€â”€â”€
 
 .sensitive-kv-config {
   margin-top: 0.75rem;
@@ -557,7 +557,7 @@
   border-top: 1px solid rgba(146, 191, 235, 0.15);
 }
 
-// ─── Sensitive direct zone ───
+// â”€â”€â”€ Sensitive direct zone â”€â”€â”€
 
 .sensitive-direct-zone {
   margin-top: 0.75rem;
@@ -594,7 +594,7 @@
   color: #103454;
 }
 
-// ─── Selected source summary ───
+// â”€â”€â”€ Selected source summary â”€â”€â”€
 
 .selected-source-summary {
   display: flex;
@@ -602,8 +602,8 @@
   gap: 0.5rem;
   padding: 0.6rem 0.85rem;
   border-radius: 0.75rem;
-  background: rgba(21, 101, 192, 0.05);
-  border: 1px solid rgba(21, 101, 192, 0.12);
+  background: var(--ifs-info-bg);
+  border: 1px solid var(--ifs-border-subtle);
   margin-bottom: 1rem;
   font-size: 0.85rem;
   font-weight: 600;
@@ -625,7 +625,7 @@
   }
 }
 
-// ─── Selection summary (step 4) ───
+// â”€â”€â”€ Selection summary (step 4) â”€â”€â”€
 
 .selection-summary {
   display: flex;
@@ -639,7 +639,7 @@
     gap: 0.5rem;
     padding: 0.45rem 0.75rem;
     border-radius: 0.5rem;
-    background: rgba(21, 101, 192, 0.04);
+    background: var(--ifs-surface-3);
     font-size: 0.82rem;
     font-weight: 600;
     color: #103454;
@@ -652,7 +652,7 @@
     }
 
     &--output {
-      background: rgba(21, 101, 192, 0.06);
+      background: var(--ifs-info-bg);
     }
   }
 

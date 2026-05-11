@@ -1,7 +1,7 @@
 <div
   [class]="classes()"
-  [attr.role]="interactive() ? 'button' : null"
-  [attr.tabindex]="interactive() ? '0' : null"
+  [attr.role]="isClickable() ? 'button' : null"
+  [attr.tabindex]="isClickable() ? '0' : null"
   (click)="onClick($event)"
   (keydown.enter)="onKeydown($event)"
   (keydown.space)="onKeydown($event)">

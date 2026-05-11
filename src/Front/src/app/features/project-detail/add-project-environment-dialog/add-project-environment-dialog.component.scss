@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: block;
 }
 
@@ -30,7 +30,7 @@ mat-dialog-content {
   min-width: 0;
 }
 
-// ─── Order + Timeline Section ────
+// â”€â”€â”€ Order + Timeline Section â”€â”€â”€â”€
 
 .order-section {
   display: flex;
@@ -77,7 +77,7 @@ mat-dialog-content {
     border-radius: 50%;
     background: rgba(146, 191, 235, 0.4);
     border: 2px solid rgba(146, 191, 235, 0.5);
-    transition: all 0.2s;
+    transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
   }
 
   &__label {
@@ -161,7 +161,7 @@ mat-dialog-content {
   font-size: 0.82rem;
 }
 
-// ─── Tags Section ────
+// â”€â”€â”€ Tags Section â”€â”€â”€â”€
 
 .tags-section {
   display: flex;

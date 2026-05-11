@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+- 2026-05-11 — `@angular-front` livre **UI Refresh vague 6 (polish, finale)** : 5 nouvelles primitives DS (`ds-empty-state`, `ds-skeleton`, `ds-tooltip` directive+overlay CDK, `ds-banner`, `ds-status-dot`) exportées via `ds/index.ts` ; purge anti-patterns sur `split-generation-switcher` (11→0), `home` (5→0), `projects` (1→0), `bootstrap-setup-guide` (3→0), `bicep-file-panel` (5→0), `deployment-config` (4→0), `toggle-section-card` (2→0), `compact-select` (1→0), `dockerfile-picker` (1→0). Build vert (initial 953.40 kB inchangé). Dette : specs Karma des 5 primitives, axe-core CI, refonte ds-panel-action-button (22 hits)/ds-date-picker (4 hits), suppression compat layer SCSS legacy.
+- 2026-05-11 — `@angular-front` livre **UI Refresh vague 5** : resource-edit refondu token-based (54 kB CSS, 270+ classes préservées), 9 dialogs purgés des anti-patterns, ds-option-card refondu, breadcrumb signal-driven via PageContextService.
+- 2026-05-11 — `@angular-front` livre **UI Refresh vague 4** : pages denses project-detail/config-detail refondues, `ds-table` + `ds-tree-view` créés, `PageContextService` (breadcrumb signal-driven) wiré dans la top-bar.
+- 2026-05-11 — `@architect` produit `docs/design/ui-refresh-2026-05.md` : direction artistique enterprise (palette désaturée + accent unique, Inter, suppression gradient/glass globaux, dark default) + plan en 6 vagues mergeables. Aucun code touché. 3 points bloquants en attente de validation utilisateur.
+
 > Entries older than 60 days are pruned during dream consolidation.
 
 | Date | Author | Change |

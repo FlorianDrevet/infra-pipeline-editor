@@ -1,4 +1,4 @@
-.storage-dialog {
+﻿.storage-dialog {
   min-width: 400px;
 
   &__title {
@@ -60,14 +60,14 @@
   padding: 1.25rem 0.75rem;
   border-radius: 1rem;
   border: 1.5px solid rgba(146, 191, 235, 0.25);
-  background: linear-gradient(180deg, #fff, #f8fbff);
+  background: var(--ifs-surface-1);
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
 
   &:hover {
-    border-color: rgba(21, 101, 192, 0.4);
-    background: linear-gradient(180deg, #f0f7ff, #e8f4fd);
-    box-shadow: 0 4px 16px rgba(21, 101, 192, 0.1);
+    border-color: var(--ifs-accent-500);
+    background: var(--ifs-surface-1);
+    box-shadow: var(--ifs-shadow-md);
   }
 
   &__icon {

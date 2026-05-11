@@ -110,11 +110,11 @@
   cursor: pointer;
   text-decoration: none;
   color: inherit;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 36px rgba(16, 52, 86, 0.12);
+    background: var(--ifs-surface-2);
+    box-shadow: var(--ifs-shadow-md);
   }
 
   mat-icon {
@@ -141,11 +141,11 @@
 }
 
 .action-card--create {
-  border: none;
-  background: linear-gradient(135deg, #ffffff 0%, #e8f4fd 100%);
+  border: 1px solid var(--ifs-border-subtle);
+  background: var(--ifs-surface-2);
 
   mat-icon {
-    color: #0d2f66;
+    color: var(--ifs-accent-500);
   }
 }
 
@@ -292,12 +292,12 @@
   border: 1px solid rgba(146, 191, 235, 0.18);
   text-decoration: none;
   color: inherit;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
   cursor: pointer;
 
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(16, 52, 86, 0.08);
+    background: var(--ifs-surface-2);
+    box-shadow: var(--ifs-shadow-sm);
   }
 
   &__icon-wrap {
@@ -411,12 +411,12 @@
   background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.22);
   box-shadow: 0 6px 18px rgba(16, 52, 86, 0.05);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
   cursor: pointer;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(16, 52, 86, 0.1);
+    background: var(--ifs-surface-2);
+    box-shadow: var(--ifs-shadow-md);
   }
 
   &__top {
@@ -536,7 +536,6 @@
 .submit-button:focus-visible:not(:disabled),
 .ghost-button:hover:not(:disabled),
 .ghost-button:focus-visible:not(:disabled) {
-  transform: translateY(-1px);
   outline: none;
 }
 

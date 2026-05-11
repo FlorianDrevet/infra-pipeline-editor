@@ -1,4 +1,4 @@
-.cd-dialog-form {
+﻿.cd-dialog-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -18,7 +18,7 @@
   &__radio-label {
     font-size: 0.875rem;
     font-weight: 500;
-    color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+    color: var(--text-secondary, var(--ifs-text-secondary));
   }
 }
 

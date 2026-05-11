@@ -1,3 +1,9 @@
+// ============================================================================
+// InfraFlowSculptor — Global styles V2 (UI Refresh 2026-05, dark-only)
+// Material 21 theme + DS V2 token overrides for Material components.
+// Source of truth for tokens: src/Front/src/scss/_tokens.scss
+// ============================================================================
+
 // Custom Theming for Angular Material
 // For more information: https://material.angular.io/guide/theming
 @use '@angular/material' as mat;
@@ -5,16 +11,16 @@
 // Plus imports for other components in your app.
 @use "scss/main" as *;
 
-// Include the common styles for Angular Material. We include this here so that you only
-// have to load a single css file for Angular Material in your app.
+// Include the common styles for Angular Material. We include this here so that
+// you only have to load a single css file for Angular Material in your app.
 // Be sure that you only ever include this mixin once!
 @include mat.elevation-classes();
 @include mat.app-background();
 
-// Define the theme object.
+// Define the theme object (dark-only — UI Refresh 2026-05).
 $custom-theme: mat.define-theme((
   color: (
-    theme-type: light,
+    theme-type: dark,
     primary: mat.$azure-palette,
     tertiary: mat.$blue-palette,
   ),
@@ -24,31 +30,26 @@ $custom-theme: mat.define-theme((
 ));
 
 // Include theme styles for core and each component used in your app.
-// Alternatively, you can import and @include the theme mixins for each component
-// that you are using.
 :root {
   @include mat.all-component-themes($custom-theme);
 }
 
-// Comment out the line below if you want to use the pre-defined typography utility classes.
-// For more information: https://material.angular.io/guide/typography#using-typography-styles-in-your-application.
-// @include mat.typography-hierarchy($vcustom-theme);
-
-/* You can add global styles to this file, and also import other style files */
-/* Fix Angular Material MDC notched-outline right border on floating labels */
+// Fix Angular Material MDC notched-outline right border on floating labels.
 .mdc-notched-outline__notch {
   border-right: none;
 }
 
 @tailwind base;
 @layer base {
-  html,body {
+  html, body {
     overflow-x: initial !important;
-    min-height: 100vh !important; /*possible to remove the height of the footer*/
+    min-height: 100vh !important;
     height: 100% !important;
   }
   body {
-    @apply m-0 p-0 flex flex-col
+    @apply m-0 p-0 flex flex-col;
+    background: var(--ifs-bg);
+    color: var(--ifs-text-primary);
   }
 }
 
@@ -61,125 +62,125 @@ $custom-theme: mat.define-theme((
 
 // --- Form Field outline ---
 .mat-mdc-form-field {
-  --mat-form-field-outlined-outline-color: #{$ifs-border-strong};
-  --mat-form-field-outlined-hover-outline-color: #{$ifs-brand-blue};
-  --mat-form-field-outlined-focus-outline-color: #{$ifs-brand-blue};
-  --mat-form-field-outlined-label-text-color: #{$ifs-ink-500};
-  --mat-form-field-outlined-focus-label-text-color: #{$ifs-brand-blue};
-  --mat-form-field-outlined-input-text-color: #{$ifs-ink-700};
-  --mat-form-field-outlined-caret-color: #{$ifs-brand-blue};
-  --mat-form-field-outlined-container-shape: 12px;
-  --mat-form-field-outlined-error-outline-color: #{$ifs-error-strong};
-  --mat-form-field-outlined-error-focus-outline-color: #{$ifs-error-strong};
-  --mat-form-field-outlined-error-label-text-color: #{$ifs-error-strong};
-  --mat-form-field-outlined-error-hover-outline-color: #{$ifs-error-strong};
+  --mat-form-field-outlined-outline-color: var(--ifs-border-strong);
+  --mat-form-field-outlined-hover-outline-color: var(--ifs-accent-500);
+  --mat-form-field-outlined-focus-outline-color: var(--ifs-accent-500);
+  --mat-form-field-outlined-label-text-color: var(--ifs-text-secondary);
+  --mat-form-field-outlined-focus-label-text-color: var(--ifs-text-secondary);
+  --mat-form-field-outlined-input-text-color: var(--ifs-text-primary);
+  --mat-form-field-outlined-caret-color: var(--ifs-accent-500);
+  --mat-form-field-outlined-container-shape: 8px;
+  --mat-form-field-outlined-error-outline-color: var(--ifs-danger);
+  --mat-form-field-outlined-error-focus-outline-color: var(--ifs-danger);
+  --mat-form-field-outlined-error-label-text-color: var(--ifs-danger);
+  --mat-form-field-outlined-error-hover-outline-color: var(--ifs-danger);
 
   .mat-mdc-form-field-icon-suffix mat-icon,
   .mat-mdc-form-field-icon-prefix mat-icon {
-    color: $ifs-brand-blue;
+    color: var(--ifs-text-secondary);
   }
 
   .mat-mdc-form-field-error {
-    color: $ifs-error-strong;
+    color: var(--ifs-danger);
     font-weight: 500;
   }
 
   .mat-mdc-form-field-hint {
-    color: $ifs-ink-500;
+    color: var(--ifs-text-muted);
   }
 }
 
 // --- Select panel ---
 .mat-mdc-select-panel {
-  border-radius: $ifs-radius-md !important;
-  box-shadow: $ifs-shadow-lg !important;
-  border: 1px solid $ifs-border-medium;
+  border-radius: var(--ifs-radius-md) !important;
+  box-shadow: var(--ifs-shadow-md) !important;
+  background: var(--ifs-surface-2) !important;
+  border: 1px solid var(--ifs-border-subtle);
 }
 
 .mat-mdc-option {
-  --mat-option-selected-state-label-text-color: #{$ifs-brand-blue};
-  --mat-option-selected-state-layer-color: #{$ifs-info-soft};
-  --mat-option-hover-state-layer-color: #{$ifs-info-soft};
-  --mat-option-focus-state-layer-color: #{$ifs-info-soft};
+  --mat-option-selected-state-label-text-color: var(--ifs-text-primary);
+  --mat-option-selected-state-layer-color: var(--ifs-surface-3);
+  --mat-option-hover-state-layer-color: var(--ifs-surface-3);
+  --mat-option-focus-state-layer-color: var(--ifs-surface-3);
 
   &.mdc-list-item--selected {
-    background: linear-gradient(135deg, rgba(21, 101, 192, 0.1), rgba(2, 136, 209, 0.06)) !important;
+    background: var(--ifs-surface-3) !important;
 
     .mdc-list-item__primary-text {
-      color: $ifs-brand-blue !important;
+      color: var(--ifs-text-primary) !important;
       font-weight: 600;
     }
   }
 }
 
 .mat-mdc-select-value {
-  color: $ifs-ink-700;
+  color: var(--ifs-text-primary);
 }
 
 // --- Checkbox ---
 .mat-mdc-checkbox {
-  --mat-checkbox-selected-icon-color: #{$ifs-brand-blue};
-  --mat-checkbox-selected-hover-icon-color: #{$ifs-brand-blue};
-  --mat-checkbox-selected-focus-icon-color: #{$ifs-brand-blue};
-  --mat-checkbox-selected-pressed-icon-color: #{$ifs-brand-blue};
-  --mat-checkbox-selected-checkmark-color: #ffffff;
-  --mat-checkbox-selected-hover-state-layer-color: #{$ifs-brand-blue};
-  --mat-checkbox-selected-focus-state-layer-color: #{$ifs-brand-blue};
-  --mat-checkbox-selected-pressed-state-layer-color: #{$ifs-brand-blue};
-  --mat-checkbox-unselected-icon-color: #{$ifs-border-strong};
-  --mat-checkbox-unselected-hover-icon-color: #{$ifs-brand-blue};
+  --mat-checkbox-selected-icon-color: var(--ifs-accent-500);
+  --mat-checkbox-selected-hover-icon-color: var(--ifs-accent-500);
+  --mat-checkbox-selected-focus-icon-color: var(--ifs-accent-500);
+  --mat-checkbox-selected-pressed-icon-color: var(--ifs-accent-600);
+  --mat-checkbox-selected-checkmark-color: var(--ifs-text-on-brand);
+  --mat-checkbox-selected-hover-state-layer-color: var(--ifs-accent-500);
+  --mat-checkbox-selected-focus-state-layer-color: var(--ifs-accent-500);
+  --mat-checkbox-selected-pressed-state-layer-color: var(--ifs-accent-600);
+  --mat-checkbox-unselected-icon-color: var(--ifs-border-strong);
+  --mat-checkbox-unselected-hover-icon-color: var(--ifs-accent-500);
 }
 
 // --- Slide toggle ---
 .mat-mdc-slide-toggle {
-  --mat-slide-toggle-selected-track-color: #{$ifs-brand-blue};
-  --mat-slide-toggle-selected-hover-track-color: #{$ifs-brand-blue};
-  --mat-slide-toggle-selected-focus-track-color: #{$ifs-brand-blue};
-  --mat-slide-toggle-selected-pressed-track-color: #{$ifs-brand-blue};
-  --mat-slide-toggle-selected-handle-color: #ffffff;
-  --mat-slide-toggle-selected-hover-handle-color: #ffffff;
-  --mat-slide-toggle-selected-focus-handle-color: #ffffff;
-  --mat-slide-toggle-selected-pressed-handle-color: #ffffff;
-  --mat-slide-toggle-selected-icon-color: #{$ifs-brand-blue};
+  --mat-slide-toggle-selected-track-color: var(--ifs-accent-500);
+  --mat-slide-toggle-selected-hover-track-color: var(--ifs-accent-500);
+  --mat-slide-toggle-selected-focus-track-color: var(--ifs-accent-500);
+  --mat-slide-toggle-selected-pressed-track-color: var(--ifs-accent-600);
+  --mat-slide-toggle-selected-handle-color: var(--ifs-text-on-brand);
+  --mat-slide-toggle-selected-hover-handle-color: var(--ifs-text-on-brand);
+  --mat-slide-toggle-selected-focus-handle-color: var(--ifs-text-on-brand);
+  --mat-slide-toggle-selected-pressed-handle-color: var(--ifs-text-on-brand);
+  --mat-slide-toggle-selected-icon-color: var(--ifs-accent-500);
 }
 
-// --- Tabs ---
+// --- Tabs (slate text + accent indicator) ---
 .mat-mdc-tab-group,
 .mat-mdc-tab-nav-bar {
-  --mat-tab-active-indicator-color: #{$ifs-brand-cyan};
-  --mat-tab-active-label-text-color: #{$ifs-brand-blue};
-  --mat-tab-active-focus-label-text-color: #{$ifs-brand-blue};
-  --mat-tab-active-hover-label-text-color: #{$ifs-brand-blue};
-  --mat-tab-inactive-label-text-color: #{$ifs-ink-500};
-  --mat-tab-active-ripple-color: #{$ifs-brand-blue};
-  --mat-tab-inactive-ripple-color: #{$ifs-brand-blue};
+  --mat-tab-active-indicator-color: var(--ifs-accent-500);
+  --mat-tab-active-label-text-color: var(--ifs-text-primary);
+  --mat-tab-active-focus-label-text-color: var(--ifs-text-primary);
+  --mat-tab-active-hover-label-text-color: var(--ifs-text-primary);
+  --mat-tab-inactive-label-text-color: var(--ifs-text-secondary);
+  --mat-tab-active-ripple-color: var(--ifs-accent-500);
+  --mat-tab-inactive-ripple-color: var(--ifs-accent-500);
 }
 
 .mat-mdc-tab .mdc-tab__text-label {
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
 }
 
-// --- Buttons (raised primary -> brand gradient) ---
+// --- Buttons (raised primary -> single CTA gradient, no transform on hover) ---
 .mat-mdc-raised-button.mat-primary,
 .mat-mdc-raised-button[color="primary"] {
   --mat-button-protected-container-color: transparent;
-  background: $ifs-gradient-cta !important;
-  color: #fff !important;
-  box-shadow: $ifs-shadow-cta !important;
-  border-radius: $ifs-radius-md !important;
+  background: var(--ifs-gradient-cta) !important;
+  color: var(--ifs-text-on-brand) !important;
+  box-shadow: var(--ifs-shadow-sm) !important;
+  border-radius: var(--ifs-radius-md) !important;
   transition:
-    box-shadow $ifs-duration-fast $ifs-ease-out,
-    transform $ifs-duration-fast $ifs-ease-out !important;
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard),
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard) !important;
 
   &:hover:not(:disabled) {
-    box-shadow: $ifs-shadow-cta-hover !important;
-    transform: translateY(-1px);
+    box-shadow: var(--ifs-shadow-md) !important;
   }
 
   &:disabled {
-    background: $ifs-ink-200 !important;
-    color: $ifs-ink-400 !important;
+    background: var(--ifs-surface-3) !important;
+    color: var(--ifs-text-disabled) !important;
     box-shadow: none !important;
   }
 
@@ -194,77 +195,85 @@ $custom-theme: mat.define-theme((
 .mat-mdc-button,
 .mat-mdc-outlined-button,
 .mat-mdc-stroked-button {
-  border-radius: $ifs-radius-md !important;
+  border-radius: var(--ifs-radius-md) !important;
   font-weight: 600 !important;
-  letter-spacing: 0.01em !important;
+  letter-spacing: 0 !important;
 }
 
 .mat-mdc-outlined-button.mat-primary,
 .mat-mdc-stroked-button.mat-primary {
-  --mat-button-outlined-outline-color: #{$ifs-info-border};
-  --mat-button-outlined-label-text-color: #{$ifs-brand-blue};
+  --mat-button-outlined-outline-color: var(--ifs-border-strong);
+  --mat-button-outlined-label-text-color: var(--ifs-text-primary);
 
   &:hover:not(:disabled) {
-    background: $ifs-info-soft !important;
+    background: var(--ifs-surface-2) !important;
   }
 }
 
 .mat-mdc-button.mat-primary {
-  --mat-button-text-label-text-color: #{$ifs-brand-blue};
+  --mat-button-text-label-text-color: var(--ifs-accent-500);
 }
 
-// --- Dialog surface ---
+// --- Dialog surface (V2: surface-2 + lg shadow + neutral border, no glass) ---
 .mat-mdc-dialog-surface {
-  border-radius: $ifs-radius-2xl !important;
-  box-shadow: $ifs-shadow-xl !important;
-  border: 1px solid $ifs-border-soft;
+  border-radius: var(--ifs-radius-lg) !important;
+  box-shadow: var(--ifs-shadow-lg) !important;
+  background: var(--ifs-surface-2) !important;
+  border: 1px solid var(--ifs-border-subtle);
 }
 
 .mat-mdc-dialog-title {
-  color: $ifs-ink-900 !important;
-  font-weight: 700 !important;
+  color: var(--ifs-text-primary) !important;
+  font-weight: 600 !important;
 }
 
-// --- Snack bar ---
+// --- Snack bar (V2: surface-2 flat) ---
 .mat-mdc-snack-bar-container {
-  --mat-snackbar-container-shape: #{$ifs-radius-lg};
+  --mat-snackbar-container-shape: var(--ifs-radius-md);
+  --mat-snackbar-container-color: var(--ifs-surface-2);
+  --mat-snackbar-supporting-text-color: var(--ifs-text-primary);
 
   .mdc-snackbar__surface {
-    box-shadow: $ifs-shadow-lg !important;
+    background: var(--ifs-surface-2) !important;
+    box-shadow: var(--ifs-shadow-md) !important;
+    border: 1px solid var(--ifs-border-subtle);
   }
 }
 
 // --- Progress spinner ---
 .mat-mdc-progress-spinner {
-  --mat-progress-spinner-active-indicator-color: #{$ifs-brand-blue};
+  --mat-progress-spinner-active-indicator-color: var(--ifs-accent-500);
 }
 
 // --- Menu ---
 .mat-mdc-menu-panel {
-  border-radius: $ifs-radius-md !important;
-  box-shadow: $ifs-shadow-lg !important;
-  border: 1px solid $ifs-border-medium;
+  border-radius: var(--ifs-radius-md) !important;
+  box-shadow: var(--ifs-shadow-md) !important;
+  background: var(--ifs-surface-2) !important;
+  border: 1px solid var(--ifs-border-subtle);
 }
 
-// --- Tooltip ---
+// --- Tooltip (slate surface, neutral) ---
 .mat-mdc-tooltip {
-  --mat-tooltip-container-color: #{$ifs-ink-900};
-  --mat-tooltip-supporting-text-color: #ffffff;
-  --mat-tooltip-container-shape: #{$ifs-radius-sm};
+  --mat-tooltip-container-color: var(--ifs-surface-3);
+  --mat-tooltip-supporting-text-color: var(--ifs-text-primary);
+  --mat-tooltip-container-shape: var(--ifs-radius-sm);
   font-weight: 500 !important;
 }
 
 // --- Expansion panel ---
 .mat-expansion-panel {
-  border-radius: $ifs-radius-md !important;
-  box-shadow: $ifs-shadow-xs !important;
+  border-radius: var(--ifs-radius-md) !important;
+  box-shadow: var(--ifs-shadow-sm) !important;
+  background: var(--ifs-surface-1) !important;
 
   &:not(.mat-expanded):hover {
-    background: $ifs-info-soft;
+    background: var(--ifs-surface-2) !important;
   }
 }
 
-// --- Selection focus ---
+// --- Text selection ---
 ::selection {
-  background: rgba(2, 136, 209, 0.25);
+  background: rgba(58, 163, 201, 0.30);
+  color: var(--ifs-text-on-brand);
 }

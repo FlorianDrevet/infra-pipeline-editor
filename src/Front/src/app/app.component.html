@@ -1,12 +1,15 @@
-<div class="app-shell">
+<div class="app-shell" [class.app-shell--login]="isLoginPage()">
   @if (!isLoginPage()) {
-    <app-navigation></app-navigation>
-  }
-  <main class="app-main" [class.app-main--login]="isLoginPage()">
-    <router-outlet></router-outlet>
-  </main>
-  @if (!isLoginPage()) {
-    <app-footer></app-footer>
+    <app-sidebar class="app-shell__sidebar"></app-sidebar>
+    <app-navigation class="app-shell__topbar"></app-navigation>
+    <main class="app-shell__main">
+      <router-outlet></router-outlet>
+    </main>
+    <app-footer class="app-shell__footer"></app-footer>
+  } @else {
+    <main class="app-shell__main app-shell__main--login">
+      <router-outlet></router-outlet>
+    </main>
   }
 
   @if (isAnnotationEnabled) {

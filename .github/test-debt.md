@@ -45,6 +45,9 @@
 | 25 | `InfraFlowSculptor.Application` | `AddProjectRepositoryCommandHandler`, `UpdateProjectRepositoryCommandHandler`, `SetProjectLayoutPresetCommandHandler`, `AddInfraConfigRepositoryCommandHandler`, `UpdateInfraConfigRepositoryCommandHandler` | The enum-parsing refactor now routes provider/layout/content-kind parsing through shared helpers and is covered by helper tests plus `CreateProjectWithSetup`/solution-level regression runs, but these handlers still lack direct focused unit tests for their own invalid-provider, invalid-layout, and content-kind branches. | P2 | 2026-05-11 | 2026-05-11 | dev |
 | 26 | `Front (Angular)` | `resource-edit.component.ts` UAI creation / role-assignment dialog flows | Local Sonar cleanup removed redundant `resourceGroupId` structural assertions from the main `resource-edit` component, but this component still has no focused spec harness for the UAI creation and add-role-assignment dialog data wiring. Validation for this slice currently relies on the existing project-detail helper spec plus `npm run typecheck` and `npm run build`. | P2 | 2026-05-11 | | |
 | 27 | `Front (Angular)` | `MsalAuthService` silent Graph token path + `MicrosoftGraphProfilePhotoService` Graph fetch branches | The navigation header now has focused coverage for avatar rendering with and without a Microsoft photo, but the shared service slice added here still lacks dedicated specs for silent-only Graph token acquisition, popup suppression, 404/204 photo fallback, and non-OK Graph responses. Validation currently relies on the navigation spec plus `npm run typecheck` and `npm run build`. | P2 | 2026-05-11 | | |
+| 28 | `Front (Angular)` | UI Refresh vague 1 — Token & fondations visual non-regression | Wave 1 (tokens, typography, mixins, tailwind, Material override, Inter self-host) ships pure SCSS/config changes with no unit test coverage applicable. Snapshots Playwright des 7 routes clés (login, home, projects, project-detail vide, project-detail rempli, config-detail, resource-edit) à produire dans la vague 6 pour valider la non-régression visuelle cumulative des 6 vagues. | P2 | 2026-05-11 | | |
+| 29 | `Front (Angular)` | UI Refresh vague 2 — DS primitives critiques (button/card/text-field/textarea/select/chip/alert/icon-button/toggle/checkbox/radio-group) | Vague 2 refonds 11 primitives DS sans nouveaux specs Karma (TDD délibérément différé pour exécution accélérée). Tests existants (DsCard, DsSelect) restent verts mais sans extension de couverture. À compléter en parallèle ou en vague 6 : couvrir variants × sizes × états (hover/focus/disabled/loading/error/checked/indeterminate), CVA pour CSS controls (toggle/checkbox/radio/text-field/textarea/select), mappings de variants dépréciés (card glass/elevated, chip primary/error/cyan, icon-button ghost/primary/subtle, alert error). Validation actuelle limitée à `npm run typecheck` + `npm run build`. | P2 | 2026-05-11 | | |
+| 30 | `Front (Angular)` | UI Refresh vague 3 — Layout & navigation (sidebar / topbar / footer / page-header / section-header / ds-tabs / ds-segmented-control) | Vague 3 livre le shell enterprise (sidebar permanente collapsable, top-bar 48px, footer status-bar 28px) et 2 nouvelles primitives (`ds-tabs`, `ds-segmented-control`) sans nouveaux specs Karma (TDD différé pour exécution accélérée). Specs à écrire en vague 6 : `SidebarStateService` (lecture/écriture localStorage `ifs.sidebar.collapsed`, sync `--ifs-sidebar-width` sur `documentElement`), `SidebarComponent` (route active highlight, focus-visible, tooltip mode collapsed, toggle), `NavigationComponent` (assertions visuelles no-gradient/no-blur, language switch, logout icon-button), `FooterComponent` (rendu version + envName + lien docs), `DsTabsComponent` (clavier ←/→/Home/End, `aria-selected`, `tabindex` rotatif, badge/icon slots, disabled), `DsSegmentedControlComponent` (CVA write/read, clavier ←/→, `role=radiogroup`/`aria-checked`, `setDisabledState`), `DsPageHeaderComponent` + `DsSectionHeaderComponent` (slots, divider, title/subtitle/icon). La spec `NavigationComponent` existante reste verte (classes `user-card__*` préservées). | P2 | 2026-05-11 | | |
 
 ---
 
@@ -64,3 +67,27 @@ When modifying code and discovering the target zone has no tests:
 ### Querying debt
 - Filter by `Priorité` column to find highest-priority gaps.
 - Filter by empty `Résolu le` to find open debt.
+
+## Front/UI Refresh Vague 4 (2026-05-11)
+
+- **P3** � Specs Karma � �crire pour ds-table (sort cycle null?asc?desc?null, density compact/cozy/comfortable, empty state, rowClick behavior, sort indicator aria-sort).
+- **P3** � Specs Karma � �crire pour ds-tree-view (expand/collapse keyboard ?/?, selection indicator, role=tree/treeitem, aria-level, aria-expanded, aria-selected, recursive node rendering).
+- **P3** � Spec Karma � �crire pour PageContextService (setBreadcrumb / clear, signal readonly).
+- **P3** � Tests composants project-detail/config-detail � actualiser si classes CSS changent (refonte SCSS vague 4 � structure HTML inchang�e, pas de breakage attendu mais � v�rifier).
+- **� traiter en vague 6.**
+
+## Front/UI Refresh Vague 5 (2026-05-11)
+
+- **P2** — Specs Karma à actualiser pour `resource-edit.component` (refonte SCSS complète token-based, 278 classes préservées, HTML/logique inchangés). Aucun test fonctionnel existant pour ce composant — couvrir au moins le wiring breadcrumb via `PageContextService` (setBreadcrumb appelé avec segments calculés depuis project/config/resource, clear sur ngOnDestroy).
+- **P3** — Snapshots Playwright avant/après dialogs refondus (add-app-setting, add-app-config-key, add-role-assignment, add-resource, add-storage-service, multi-repo-push, add-project-environment, create-project-wizard, add-custom-domain) pour valider non-régression visuelle de la purge anti-patterns.
+- **P3** — Spec Karma à écrire pour `ds-option-card` refondu (selected/disabled/hover states, cardSelect output, role=radio aria).
+- **À traiter en vague 6.**
+
+
+## Front/UI Refresh Vague 6 (2026-05-11)
+
+- **P2** — Specs Karma à écrire pour les 5 nouvelles primitives DS : `ds-empty-state` (slots icon/title/description/[actions]), `ds-skeleton` (variants box/line/circle, count/gap/animation, `prefers-reduced-motion`), `ds-tooltip` (delay show, hide on blur, hide on Esc, position top/bottom/left/right, aria-describedby wiring), `ds-banner` (variants info/success/warning/danger, dismiss output, role=alert pour danger), `ds-status-dot` (variants success/warning/danger/info/idle, sizes sm/md, pulse animation, ariaLabel role=status).
+- **P3** — Audit a11y axe-core à ajouter en CI (run sur toutes les routes principales, target Lighthouse a11y >= 95).
+- **P3** — UI Refresh — Suppression du compat layer SCSS legacy dans `_tokens.scss` (alias DEPRECATED `-gradient-brand`, `-shadow-cta`, `-radius-xl`, `-space-1..16`, mixin `ifs-glass`, mixin `ifs-hover-lift`, etc.) à effectuer dans une vague dédiée après audit grep complet du codebase pour vérifier qu'aucun consommateur ne subsiste.
+- **P3** — Anti-patterns résiduels hors scope vague 6 : `ds-panel-action-button.scss` (22 hits — DS primitive avec multi-variants gradient à refondre dans une vague dédiée préservant l'API publique), `ds-date-picker.scss` (4 hits — idem), `ds-button.scss` (1 hit gradient CTA whitelisté).
+- **À traiter en vague de polish ultérieure.**

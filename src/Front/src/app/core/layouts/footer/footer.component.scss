@@ -1,71 +1,55 @@
-@use "scss/main" as *;
-
 :host {
-	display: block;
+  display: block;
+  height: 28px;
 }
 
-.shell-footer {
-	border-top: 1px solid rgba(20, 87, 151, 0.12);
-	background: $ifs-gradient-glass-footer;
-	backdrop-filter: blur(14px);
+.status-bar {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 var(--ifs-space-16);
+  gap: var(--ifs-space-12);
+  background: var(--ifs-surface-1);
+  border-top: 1px solid var(--ifs-border-subtle);
+  font-size: 12px;
+  line-height: 1;
+  color: var(--ifs-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
-.shell-footer__content {
-	width: min(1200px, calc(100% - 2rem));
-	margin: 0 auto;
-	padding: 1.4rem 0 1.8rem;
-	display: grid;
-	grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
-	gap: 1rem;
-	align-items: center;
+.status-bar__item {
+  white-space: nowrap;
 }
 
-.shell-footer__brand,
-.shell-footer__meta,
-.shell-footer__legal {
-	display: flex;
-	flex-direction: column;
-	gap: 0.3rem;
+.status-bar__item--version {
+  color: var(--ifs-text-secondary);
+  font-weight: 500;
 }
 
-.shell-footer__brand {
-	strong {
-		color: $ifs-ink-900;
-		font-size: 1rem;
-		font-weight: 700;
-	}
-
-	p {
-		margin: 0;
-		max-width: 28rem;
-		color: $ifs-ink-500;
-		font-size: 0.88rem;
-		line-height: 1.55;
-	}
+.status-bar__sep {
+  color: var(--ifs-border-strong);
+  user-select: none;
 }
 
-.shell-footer__meta,
-.shell-footer__legal {
-	color: $ifs-ink-500;
-	font-size: 0.82rem;
+.status-bar__spacer {
+  flex: 1;
 }
 
-.shell-footer__meta a {
-	color: $ifs-brand-blue;
-	font-weight: 600;
-	text-decoration: none;
-
-	&:hover,
-	&:focus-visible {
-		text-decoration: underline;
-		outline: none;
-	}
+.status-bar__link {
+  color: var(--ifs-text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: var(--ifs-radius-sm);
+  padding: 0 var(--ifs-space-4);
+  transition: color var(--ifs-duration-fast) var(--ifs-ease-standard);
 }
 
-@media (max-width: 900px) {
-	.shell-footer__content {
-		grid-template-columns: 1fr;
-		width: min(100%, calc(100% - 1.25rem));
-		padding: 1.25rem 0 1.5rem;
-	}
+.status-bar__link:hover {
+  color: var(--ifs-text-primary);
+}
+
+.status-bar__link:focus-visible {
+  outline: none;
+  box-shadow: var(--ifs-focus-ring);
+  color: var(--ifs-text-primary);
 }

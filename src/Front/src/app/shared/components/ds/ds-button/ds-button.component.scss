@@ -1,4 +1,10 @@
-@use "scss/main" as *;
+// ============================================================================
+// app-ds-button — V2 (UI Refresh 2026-05, dark-only)
+// Spec: docs/design/ui-refresh-2026-05.md §5.1
+// Primary is the only button allowed to use --ifs-gradient-cta.
+// No translateY hover, no `transition: all`, transitions limited to
+// background-color / border-color / box-shadow.
+// ============================================================================
 
 :host {
   display: inline-flex;
@@ -13,25 +19,28 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  font-weight: 600;
+  gap: 8px;
+  font-weight: 500;
   font-family: inherit;
   border: 1px solid transparent;
-  border-radius: $ifs-radius-md;
+  border-radius: var(--ifs-radius-md);
   cursor: pointer;
   user-select: none;
+  white-space: nowrap;
   transition:
-    background $ifs-duration-base $ifs-ease-out,
-    color $ifs-duration-base $ifs-ease-out,
-    box-shadow $ifs-duration-base $ifs-ease-out,
-    border-color $ifs-duration-base $ifs-ease-out,
-    transform $ifs-duration-base $ifs-ease-out;
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard),
+    color var(--ifs-duration-fast) var(--ifs-ease-standard);
 
-  @include ifs-focus-visible;
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ifs-focus-ring);
+  }
 
   &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
   }
 
   &.full-width {
@@ -40,112 +49,117 @@
   }
 
   &__icon {
-    font-size: 1.1rem;
-    width: 1.1rem;
-    height: 1.1rem;
-    line-height: 1.1rem;
+    font-size: var(--ifs-icon-sm);
+    width: var(--ifs-icon-sm);
+    height: var(--ifs-icon-sm);
+    line-height: var(--ifs-icon-sm);
   }
 
   &__spinner {
-    width: 1rem;
-    height: 1rem;
+    width: 14px;
+    height: 14px;
     border: 2px solid currentColor;
     border-top-color: transparent;
     border-radius: 50%;
     animation: ifs-spin 0.7s linear infinite;
   }
 
+  // --- Sizes ---
+  &--sm {
+    height: 28px;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  &--md {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 14px;
+  }
+
+  &--lg {
+    height: 36px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
+
   // --- Variants ---
+  // Primary: only legitimate gradient outside login.
   &--primary {
-    background: linear-gradient(180deg, rgba($ifs-brand-blue, 0.98) 0%, rgba($ifs-brand-blue-deep, 0.98) 100%);
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.16);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.12),
-      0 4px 14px rgba($ifs-brand-dark-blue, 0.18);
+    background: var(--ifs-gradient-cta);
+    color: var(--ifs-text-on-brand);
+    border-color: var(--ifs-brand-700);
+    box-shadow: var(--ifs-shadow-sm);
 
     &:not(:disabled):hover {
-      background: linear-gradient(180deg, rgba($ifs-brand-blue, 1) 0%, rgba($ifs-brand-blue-deep, 1) 100%);
-      border-color: rgba(255, 255, 255, 0.2);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.14),
-        0 6px 16px rgba($ifs-brand-dark-blue, 0.22);
+      background: var(--ifs-brand-600);
+      box-shadow: var(--ifs-shadow-md);
     }
 
     &:not(:disabled):active {
-      background: linear-gradient(180deg, rgba($ifs-brand-blue-deep, 0.98) 0%, rgba($ifs-brand-dark-blue, 0.98) 100%);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 3px 10px rgba($ifs-brand-dark-blue, 0.18);
+      background: var(--ifs-brand-700);
+      box-shadow: var(--ifs-shadow-sm);
     }
   }
 
   &--secondary {
-    background: $ifs-surface-0;
-    color: $ifs-brand-blue;
-    border-color: $ifs-info-border;
+    background: transparent;
+    color: var(--ifs-text-primary);
+    border-color: var(--ifs-border-strong);
 
     &:not(:disabled):hover {
-      background: $ifs-info-soft;
+      background: var(--ifs-surface-2);
+    }
+
+    &:not(:disabled):active {
+      background: var(--ifs-surface-3);
     }
   }
 
   &--ghost {
     background: transparent;
-    color: $ifs-brand-blue;
+    color: var(--ifs-text-secondary);
+    border-color: transparent;
 
     &:not(:disabled):hover {
-      background: $ifs-info-soft;
+      background: var(--ifs-surface-2);
+      color: var(--ifs-text-primary);
+    }
+
+    &:not(:disabled):active {
+      background: var(--ifs-surface-3);
     }
   }
 
   &--danger {
-    background: $ifs-error-soft;
-    color: $ifs-error-strong;
-    border-color: $ifs-error-border;
+    background: transparent;
+    color: var(--ifs-danger);
+    border-color: var(--ifs-danger);
 
     &:not(:disabled):hover {
-      background: rgba(244, 67, 54, 0.18);
+      background: var(--ifs-danger-bg);
     }
   }
 
+  &--subtle {
+    background: var(--ifs-surface-2);
+    color: var(--ifs-text-primary);
+    border-color: transparent;
+
+    &:not(:disabled):hover {
+      background: var(--ifs-surface-3);
+    }
+  }
+
+  // Compat: success kept for legacy call-sites; solid neutral semantic.
   &--success {
-    background: linear-gradient(180deg, rgba($ifs-success, 0.98) 0%, rgba(36, 99, 40, 0.98) 100%);
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.14);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      0 4px 14px rgba(27, 94, 32, 0.16);
+    background: var(--ifs-success);
+    color: var(--ifs-text-on-brand);
+    border-color: var(--ifs-success);
+    box-shadow: var(--ifs-shadow-sm);
 
     &:not(:disabled):hover {
-      background: linear-gradient(180deg, rgba($ifs-success, 1) 0%, rgba(36, 99, 40, 1) 100%);
-      border-color: rgba(255, 255, 255, 0.18);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.12),
-        0 6px 16px rgba(27, 94, 32, 0.2);
+      box-shadow: var(--ifs-shadow-md);
     }
-
-    &:not(:disabled):active {
-      background: linear-gradient(180deg, rgba(36, 99, 40, 0.98) 0%, rgba(22, 70, 28, 0.98) 100%);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 3px 10px rgba(27, 94, 32, 0.16);
-    }
-  }
-
-  // --- Sizes ---
-  &--sm {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.825rem;
-  }
-
-  &--md {
-    padding: 0.6rem 1.1rem;
-    font-size: 0.9rem;
-  }
-
-  &--lg {
-    padding: 0.8rem 1.4rem;
-    font-size: 1rem;
   }
 }

@@ -1,0 +1,62 @@
+// ============================================================================
+// app-ds-empty-state — V2 (UI Refresh 2026-05, dark-only)
+// Spec: docs/design/ui-refresh-2026-05.md §6 wave 6
+// Centered, neutral, no border, no shadow.
+// ============================================================================
+
+:host {
+  display: block;
+}
+
+.ds-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ifs-space-12);
+  padding: var(--ifs-space-32) var(--ifs-space-24);
+  min-height: 200px;
+  text-align: center;
+}
+
+.ds-empty-state__icon-wrap {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--ifs-radius-pill);
+  background: var(--ifs-surface-2);
+}
+
+.ds-empty-state__icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: var(--ifs-text-muted);
+}
+
+.ds-empty-state__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ifs-text-primary);
+  margin: 0;
+}
+
+.ds-empty-state__description {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ifs-text-secondary);
+  max-width: 360px;
+  margin: 0;
+}
+
+.ds-empty-state__actions {
+  display: flex;
+  flex-direction: row;
+  gap: var(--ifs-space-8);
+  margin-top: var(--ifs-space-8);
+
+  &:empty {
+    display: none;
+  }
+}

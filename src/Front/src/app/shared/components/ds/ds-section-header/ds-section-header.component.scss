@@ -1,50 +1,66 @@
-@use "scss/main" as *;
-
 :host {
   display: block;
 }
 
 .ds-section-header {
   display: flex;
+  align-items: baseline;
+  gap: var(--ifs-space-12);
+  padding-bottom: var(--ifs-space-8);
+  margin-bottom: var(--ifs-space-12);
+}
+
+.ds-section-header--divider {
+  border-bottom: 1px solid var(--ifs-border-subtle);
+}
+
+.ds-section-header__icon {
+  align-self: center;
+  flex-shrink: 0;
+  width: var(--ifs-icon-md);
+  height: var(--ifs-icon-md);
+  font-size: var(--ifs-icon-md);
+  line-height: var(--ifs-icon-md);
+  color: var(--ifs-text-secondary);
+}
+
+.ds-section-header__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.ds-section-header__title {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--ifs-text-primary);
+}
+
+.ds-section-header__title--lvl1 {
+  font-size: 18px;
+}
+
+.ds-section-header__title--lvl3 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: none;
+  color: var(--ifs-text-secondary);
+}
+
+.ds-section-header__subtitle {
+  margin: var(--ifs-space-4) 0 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ifs-text-secondary);
+}
+
+.ds-section-header__action {
+  display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: var(--ifs-space-8);
 
-  &__icon {
-    color: $ifs-brand-blue;
-    font-size: 1.4rem;
-    width: 1.4rem;
-    height: 1.4rem;
-    flex-shrink: 0;
-  }
-
-  &__text {
-    flex: 1;
-    min-width: 0;
-  }
-
-  &__title {
-    @include ifs-text($ifs-text-xl);
-    color: $ifs-ink-900;
-    margin: 0;
-
-    &--lvl1 { font-size: 2rem; }
-    &--lvl3 { font-size: 1.05rem; }
-  }
-
-  &__subtitle {
-    @include ifs-text($ifs-text-sm);
-    color: $ifs-ink-500;
-    margin: 0.15rem 0 0 0;
-  }
-
-  &__action {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-
-    &:empty {
-      display: none;
-    }
+  &:empty {
+    display: none;
   }
 }

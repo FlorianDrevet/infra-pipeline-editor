@@ -1,43 +1,61 @@
 @use "sass:map";
 @use "tokens" as *;
 
-// --- Font family ---
-$ifs-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+// ============================================================================
+// InfraFlowSculptor — Typography V2 (UI Refresh 2026-05)
+// Inter Variable (self-hosted via @fontsource-variable/inter), 6-level scale,
+// tabular numerals + stylistic sets enabled globally on body.
+// ============================================================================
+
+// --- Font families ---
+$ifs-font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system,
+  BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 $ifs-font-mono: 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
 
-// --- Font scale (size, line-height, weight) ---
-$ifs-text-xs:   (size: 0.75rem,  line: 1.4, weight: 500);
-$ifs-text-sm:   (size: 0.875rem, line: 1.5, weight: 400);
-$ifs-text-base: (size: 1rem,     line: 1.6, weight: 400);
-$ifs-text-md:   (size: 1.0625rem, line: 1.55, weight: 500);
-$ifs-text-lg:   (size: 1.125rem, line: 1.5, weight: 600);
-$ifs-text-xl:   (size: 1.25rem,  line: 1.4, weight: 700);
-$ifs-text-2xl:  (size: 1.5rem,   line: 1.3, weight: 700);
-$ifs-text-3xl:  (size: 1.875rem, line: 1.25, weight: 700);
-$ifs-text-4xl:  (size: 2.25rem,  line: 1.2, weight: 700);
+// --- Font scale (size, line-height, weight, tracking) — 6 levels + caption ---
+$ifs-text-caption: (size: 12px, line: 16px, weight: 500, tracking: 0);
+$ifs-text-body-sm: (size: 13px, line: 18px, weight: 400, tracking: 0);
+$ifs-text-body:    (size: 14px, line: 20px, weight: 400, tracking: 0);
+$ifs-text-h4:      (size: 15px, line: 22px, weight: 600, tracking: 0);
+$ifs-text-h3:      (size: 18px, line: 24px, weight: 600, tracking: 0);
+$ifs-text-h2:      (size: 22px, line: 28px, weight: 600, tracking: -0.01em);
+$ifs-text-h1:      (size: 28px, line: 34px, weight: 600, tracking: -0.01em);
 
 // --- Helper mixin ---
 @mixin ifs-text($scale) {
   font-size: map.get($scale, size);
   line-height: map.get($scale, line);
   font-weight: map.get($scale, weight);
+  letter-spacing: map.get($scale, tracking);
 }
 
 // --- Heading utility classes ---
-.ifs-h1 { @include ifs-text($ifs-text-4xl); color: $ifs-ink-900; margin: 0; }
-.ifs-h2 { @include ifs-text($ifs-text-3xl); color: $ifs-ink-900; margin: 0; }
-.ifs-h3 { @include ifs-text($ifs-text-2xl); color: $ifs-ink-900; margin: 0; }
-.ifs-h4 { @include ifs-text($ifs-text-xl);  color: $ifs-ink-900; margin: 0; }
-.ifs-body { @include ifs-text($ifs-text-base); color: $ifs-ink-700; }
-.ifs-body-sm { @include ifs-text($ifs-text-sm); color: $ifs-ink-500; }
-.ifs-caption { @include ifs-text($ifs-text-xs); color: $ifs-ink-500; }
-// Declaration des polices custom si necessaire.
+.ifs-h1 { @include ifs-text($ifs-text-h1); color: $ifs-text-primary; margin: 0; }
+.ifs-h2 { @include ifs-text($ifs-text-h2); color: $ifs-text-primary; margin: 0; }
+.ifs-h3 { @include ifs-text($ifs-text-h3); color: $ifs-text-primary; margin: 0; }
+.ifs-h4 { @include ifs-text($ifs-text-h4); color: $ifs-text-primary; margin: 0; }
+.ifs-body    { @include ifs-text($ifs-text-body);    color: $ifs-text-primary; }
+.ifs-body-sm { @include ifs-text($ifs-text-body-sm); color: $ifs-text-secondary; }
+.ifs-caption { @include ifs-text($ifs-text-caption); color: $ifs-text-muted; }
 
-/* Example
-@font-face {
-  font-family: 'TypoName';
-  src: url('./../assets/typography/AlexBrush-Regular/AlexBrush-Regular.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
+// --- Global body font setup (Inter features: cv11, ss01, tabular nums) ---
+body {
+  font-family: $ifs-font-sans;
+  font-feature-settings: 'cv11', 'ss01', 'tnum';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
-*/
+
+// --- DEPRECATED legacy typography aliases (REMOVE IN WAVE 6) ---
+// Maps the previous 9-level scale onto the new 6-level scale to avoid mass
+// refactor of features still calling @include ifs-text($ifs-text-xs) etc.
+$ifs-text-xs:   $ifs-text-caption;  // DEPRECATED
+$ifs-text-sm:   $ifs-text-body-sm;  // DEPRECATED
+$ifs-text-base: $ifs-text-body;     // DEPRECATED
+$ifs-text-md:   $ifs-text-h4;       // DEPRECATED
+$ifs-text-lg:   $ifs-text-h4;       // DEPRECATED
+$ifs-text-xl:   $ifs-text-h3;       // DEPRECATED
+$ifs-text-2xl:  $ifs-text-h2;       // DEPRECATED
+$ifs-text-3xl:  $ifs-text-h1;       // DEPRECATED
+$ifs-text-4xl:  $ifs-text-h1;       // DEPRECATED

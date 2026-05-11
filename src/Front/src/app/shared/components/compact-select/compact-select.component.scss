@@ -31,7 +31,7 @@
     font-weight: 500;
     line-height: 1;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
     outline: none;
     white-space: nowrap;
     max-width: 16rem;

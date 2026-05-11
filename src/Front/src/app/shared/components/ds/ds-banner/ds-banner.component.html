@@ -1,0 +1,26 @@
+@if (visible()) {
+  <div class="ds-banner ds-banner--{{ variant() }}" [attr.role]="role()">
+    <span class="ds-banner__indicator" aria-hidden="true"></span>
+    <mat-icon class="ds-banner__icon">{{ resolvedIcon() }}</mat-icon>
+    <div class="ds-banner__content">
+      @if (title()) {
+        <div class="ds-banner__title">{{ title() }}</div>
+      }
+      @if (description()) {
+        <div class="ds-banner__description">{{ description() }}</div>
+      }
+    </div>
+    <div class="ds-banner__actions">
+      <ng-content select="[actions]"></ng-content>
+    </div>
+    @if (dismissible()) {
+      <app-ds-icon-button
+        icon="close"
+        size="sm"
+        variant="neutral"
+        ariaLabel="Dismiss"
+        (clicked)="onDismiss()"
+      />
+    }
+  </div>
+}

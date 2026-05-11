@@ -1,4 +1,8 @@
-@use "scss/main" as *;
+// ============================================================================
+// app-ds-toggle — V2 (UI Refresh 2026-05, dark-only)
+// Spec: docs/design/ui-refresh-2026-05.md §5.1
+// Pill 32×18, knob 14, accent-500 when on.
+// ============================================================================
 
 :host {
   display: inline-block;
@@ -7,13 +11,13 @@
 .ds-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 12px;
   cursor: pointer;
   user-select: none;
 
   &--disabled {
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
   }
 
   &--label-before {
@@ -24,25 +28,25 @@
 .ds-toggle__text {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 2px;
 }
 
 .ds-toggle__label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: $ifs-ink-700;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ifs-text-primary);
 }
 
 .ds-toggle__description {
-  font-size: 0.78rem;
-  color: $ifs-ink-500;
-  line-height: 1.35;
+  font-size: 12px;
+  color: var(--ifs-text-secondary);
+  line-height: 16px;
 }
 
 .ds-toggle__switch {
   position: relative;
-  width: 2.6rem;
-  height: 1.5rem;
+  width: 32px;
+  height: 18px;
   flex-shrink: 0;
 }
 
@@ -55,36 +59,40 @@
   cursor: inherit;
 
   &:focus-visible + .ds-toggle__track {
-    box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.4);
+    box-shadow: var(--ifs-focus-ring);
   }
 }
 
 .ds-toggle__track {
   position: absolute;
   inset: 0;
-  background: $ifs-ink-200;
-  border-radius: $ifs-radius-pill;
-  transition: background $ifs-duration-base $ifs-ease-out, box-shadow $ifs-duration-base $ifs-ease-out;
+  background: var(--ifs-surface-3);
+  border: 1px solid var(--ifs-border-strong);
+  border-radius: var(--ifs-radius-pill);
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
 }
 
 .ds-toggle--checked .ds-toggle__track {
-  background: $ifs-gradient-cta;
-  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.35);
+  background: var(--ifs-accent-500);
+  border-color: var(--ifs-accent-500);
 }
 
 .ds-toggle__thumb {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 1.1rem;
-  height: 1.1rem;
-  background: #fff;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
   border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(13, 47, 102, 0.25);
-  transition: transform $ifs-duration-base $ifs-ease-out;
+  transition: transform var(--ifs-duration-fast) var(--ifs-ease-standard);
   pointer-events: none;
 }
 
 .ds-toggle--checked .ds-toggle__thumb {
-  transform: translateX(1.1rem);
+  transform: translateX(14px);
 }
+

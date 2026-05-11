@@ -15,24 +15,22 @@
   display: inline-flex;
 
   ::ng-deep .ds-panel-action-button {
-    --ds-panel-action-focus-ring: rgba(126, 152, 182, 0.18);
-    --ds-panel-action-accent-bg: linear-gradient(180deg, rgba(27, 38, 52, 0.98), rgba(20, 29, 41, 0.96));
-    --ds-panel-action-accent-border: rgba(148, 163, 184, 0.18);
-    --ds-panel-action-accent-color: rgba(223, 232, 243, 0.88);
-    --ds-panel-action-accent-shadow: 0 6px 14px rgba(2, 6, 23, 0.2);
-    --ds-panel-action-accent-hover-bg: linear-gradient(180deg, rgba(33, 46, 62, 1), rgba(24, 34, 48, 0.98));
-    --ds-panel-action-accent-hover-border: rgba(148, 163, 184, 0.26);
-    --ds-panel-action-accent-hover-color: #f3f7fc;
-    --ds-panel-action-accent-hover-shadow: 0 10px 18px rgba(2, 6, 23, 0.26);
-    --ds-panel-action-accent-pressed-bg: linear-gradient(180deg, rgba(35, 49, 67, 0.98), rgba(27, 39, 54, 0.98));
-    --ds-panel-action-accent-pressed-border: rgba(148, 163, 184, 0.28);
-    --ds-panel-action-accent-pressed-color: #ffffff;
-    --ds-panel-action-accent-pressed-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 6px 14px rgba(2, 6, 23, 0.24);
+    --ds-panel-action-focus-ring: rgba(58, 163, 201, 0.18);
+    --ds-panel-action-accent-bg: var(--ifs-surface-2);
+    --ds-panel-action-accent-border: var(--ifs-border-subtle);
+    --ds-panel-action-accent-color: var(--ifs-text-secondary);
+    --ds-panel-action-accent-shadow: var(--ifs-shadow-sm);
+    --ds-panel-action-accent-hover-bg: var(--ifs-surface-3);
+    --ds-panel-action-accent-hover-border: var(--ifs-border-strong);
+    --ds-panel-action-accent-hover-color: var(--ifs-text-primary);
+    --ds-panel-action-accent-hover-shadow: var(--ifs-shadow-sm);
+    --ds-panel-action-accent-pressed-bg: var(--ifs-surface-3);
+    --ds-panel-action-accent-pressed-border: var(--ifs-border-strong);
+    --ds-panel-action-accent-pressed-color: var(--ifs-text-primary);
+    --ds-panel-action-accent-pressed-shadow: var(--ifs-shadow-sm);
     width: 2.2rem;
     height: 2.2rem;
-    border-radius: 0.72rem;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    border-radius: var(--ifs-radius-md);
     transform: none;
 
     &::before {
@@ -52,10 +50,10 @@
   --split-switcher-border: rgba(148, 163, 184, 0.16);
   --split-switcher-infra-accent: #7e99bd;
   --split-switcher-code-accent: #6f9da1;
-  border-radius: 1.45rem;
-  background: linear-gradient(180deg, rgba(17, 24, 36, 0.98), rgba(11, 18, 29, 0.96));
+  border-radius: var(--ifs-radius-lg);
+  background: var(--ifs-surface-1);
   border: 1px solid var(--split-switcher-border);
-  box-shadow: 0 20px 40px rgba(2, 6, 23, 0.24);
+  box-shadow: var(--ifs-shadow-md);
   overflow: hidden;
 
   // Angular Material CSS vars for outer Infra/Code tabs
@@ -73,7 +71,7 @@
 
   ::ng-deep > .mat-mdc-tab-header {
     border-bottom: 1px solid var(--split-switcher-border);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+    background: var(--ifs-surface-2);
     padding: 0 4.2rem 0 0.5rem;
   }
 
@@ -93,7 +91,7 @@
   }
 
   ::ng-deep > .mat-mdc-tab-header .mdc-tab--active {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01));
+    background: var(--ifs-surface-3);
   }
 
   ::ng-deep > .mat-mdc-tab-header .mdc-tab-indicator__content--underline {
@@ -167,15 +165,14 @@
   gap: 0.95rem;
   padding: 0.9rem 1rem;
   border-bottom: 1px solid var(--split-switcher-border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.012));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  background: var(--ifs-surface-2);
 
   app-ds-button {
     flex: none;
   }
 
   &--code {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.01));
+    background: var(--ifs-surface-2);
   }
 
   @media (max-width: 720px) {
@@ -346,10 +343,9 @@
   flex-direction: column;
   gap: 0.8rem;
   padding: 1rem 1.1rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(111, 157, 161, 0.18);
-  background: linear-gradient(180deg, rgba(20, 29, 42, 0.92), rgba(15, 22, 34, 0.9));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  border-radius: var(--ifs-radius-lg);
+  border: 1px solid var(--ifs-border-subtle);
+  background: var(--ifs-surface-2);
 }
 
 .split-switcher__bootstrap-guide-header {

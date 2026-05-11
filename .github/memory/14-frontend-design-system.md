@@ -1,5 +1,33 @@
 # Frontend Design System
 
+## UI Refresh 2026-05 — Vagues complètes [2026-05-11]
+
+- **Vague 6 (polish, livrée 2026-05-11)** : 5 nouvelles primitives DS créées et exportées via `ds/index.ts` :
+  - `app-ds-empty-state` — slot icon/title/description + `[actions]` slot, container neutre 64×64 icon wrap, no border/shadow.
+  - `app-ds-skeleton` — variants `box`/`line`/`circle`, shimmer linear-gradient *whitelisté* (commentaire `// V2 whitelisted: skeleton shimmer is functional, not decorative`), `prefers-reduced-motion` honored, props width/height/count/gap, `role=status` `aria-busy=true`.
+  - `app-ds-tooltip` — directive `[appDsTooltip]` + composant overlay via CDK Overlay, delay configurable (default 350ms), positions top/bottom/left/right, hide on blur/Esc, `aria-describedby` câblé sur le trigger, `prefers-reduced-motion` honored.
+  - `app-ds-banner` — full-width strip, indicator 3px à gauche selon variant info/success/warning/danger, optional `[actions]` slot, dismissible via `app-ds-icon-button`, role=alert sur danger sinon role=status.
+  - `app-ds-status-dot` — variants success/warning/danger/info/idle, sizes sm (8px) / md (10px), pulse animation opacity 1↔0.45 sur 2s, ariaLabel optionnel pour usage standalone.
+- **Purge anti-patterns vague 6** : `split-generation-switcher.component.scss` (11→0 hits, gradients/box-shadows brand purgés, panel-action CSS vars remappés sur tokens neutres, mat-tab header sur surface-2), `home.component.scss` (5→0 hits, action-card/mini-card/overview-card hover lifts remplacés par shadow-md neutre + surface-2 hover, gradient action-card--create remplacé par surface-2), `projects.component.scss` (1→0 hits, project-card hover sans translateY), `bootstrap-setup-guide.component.scss` (3→0 hits, container sur surface-2, step-number permission/success en couleur semantic flat), `bicep-file-panel.component.scss` (5→0 hits, workspace/viewer flat surface-1/2 + accent-500 actif), `deployment-config.component.scss` (4→0 hits, deployment-content sur surface-2, `transition: all` remplacés par énumérations token-based), `toggle-section-card.component.scss` (2→0 hits, gradient blanc remplacé par surface-1, keyframe sans translateY), `compact-select.component.scss` (1→0), `dockerfile-picker.component.scss` (1→0).
+- **Out-of-scope vague 6 — dette suivie** : `ds-panel-action-button.scss` (22 hits — DS primitive multi-variants gradient, refonte préservant l'API publique reportée), `ds-date-picker.scss` (4 hits — idem), suppression du compat layer SCSS legacy dans `_tokens.scss` (alias `$ifs-gradient-brand`, `$ifs-shadow-cta`, `$ifs-radius-xl`, `$ifs-space-1..16`, mixins `ifs-glass`/`ifs-hover-lift`).
+- **Build vague 6** : typecheck OK, `ng build` OK (initial bundle 953.40 kB inchangé, resource-edit chunk 520 kB inchangé). Aucune nouvelle référence à `linear-gradient`/`backdrop-filter`/`translateY(-`/`transition: all` introduite (sauf shimmer skeleton whitelisté).
+
+## Récap waves UI Refresh 2026-05
+
+- Vague 1 — tokens dark-only, Inter Variable self-host, _typography/tailwind/styles.scss alignés, suppression gradient app.
+- Vague 2 — primitives DS V2 : button, card, text-field, textarea, select, chip, alert, icon-button, toggle, checkbox, radio-group.
+- Vague 3 — shell V3 : sidebar permanente 240/56, top-bar 48px, footer status-bar 28px ; ds-tabs + ds-segmented-control.
+- Vague 4 — pages denses project-detail/config-detail refondues, ds-table + ds-tree-view + PageContextService (breadcrumb signal-driven).
+- Vague 5 — resource-edit refondu (54 kB CSS, 270+ classes préservées, HTML inchangé), 9 dialogs purgés, ds-option-card refondu.
+- Vague 6 — polish : 5 primitives finales + purge ciblée des composants feature/shared restants.
+
+## Enterprise UI Refresh — Direction artistique [2026-05-11]
+
+- Direction artistique + plan de refonte phasé en 6 vagues mergeables : `docs/design/ui-refresh-2026-05.md` (audit, manifeste, palette/typo/spacing/radius/shadows cible, inventaire DS, anti-patterns, annexe `_tokens.scss` prêt à coller).
+- Décisions structurantes prises par `@architect` : (1) suppression du gradient global de fond + glass/blur applicatif (gradients limités à login + bouton primary) ; (2) palette pivot — 1 famille bleu désaturée `#4f74b3` brand-500 + 1 accent cyan unique `#3aa3c9` pour actions critiques et focus, dark mode par défaut, light opt-in via `[data-theme="light"]` ; (3) typo pivot — Inter 6 niveaux 12/13/14/15/18/22/28 px, poids max 600, tabular numerals.
+- Vagues : (1) tokens & fondations, (2) primitives DS critiques, (3) layout/nav/sidebar enterprise + ds-tabs/ds-segmented-control, (4) pages denses project-detail/config-detail + ds-table/ds-tree-view, (5) resource-edit & dialogs denses, (6) polish + ds-empty-state/ds-skeleton/ds-tooltip/ds-banner/ds-status-dot + a11y final.
+- Points en attente de validation utilisateur avant vague 1 : Inter CDN puis self-host vs self-host immédiat ; sidebar permanente vs nav top renforcée ; double thème dark/light vs dark only.
+
 ## Platform Baseline [2026-04-24]
 
 - Angular frontend is on **v21** with standalone components and zoneless `provideZonelessChangeDetection`.

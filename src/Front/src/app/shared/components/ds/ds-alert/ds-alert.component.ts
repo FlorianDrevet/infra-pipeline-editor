@@ -2,17 +2,20 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 
 import { MatIconModule } from '@angular/material/icon';
 
-type AlertSeverity = 'info' | 'success' | 'warning' | 'error';
+import { DsAlertSeverity } from './ds-alert.types';
 
-const DEFAULT_ICONS: Record<AlertSeverity, string> = {
+type ResolvedSeverity = 'info' | 'success' | 'warning' | 'danger';
+
+const DEFAULT_ICONS: Record<ResolvedSeverity, string> = {
   info: 'info',
   success: 'check_circle',
   warning: 'warning',
-  error: 'error',
+  danger: 'error',
 };
 
 /**
- * Design system inline alert. Supports four severities, optional title, dismissible action.
+ * Design system inline alert. Supports four severities, optional title,
+ * dismissible action. Legacy `error` severity is mapped to `danger`.
  */
 @Component({
   selector: 'app-ds-alert',
@@ -23,7 +26,7 @@ const DEFAULT_ICONS: Record<AlertSeverity, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DsAlertComponent {
-  public readonly severity = input<AlertSeverity>('info');
+  public readonly severity = input<DsAlertSeverity>('info');
   public readonly title = input<string | undefined>(undefined);
   public readonly dismissible = input<boolean>(false);
   public readonly icon = input<string | undefined>(undefined);
@@ -31,7 +34,10 @@ export class DsAlertComponent {
   public readonly dismissed = output<void>();
 
   protected readonly visible = signal(true);
-  protected readonly resolvedIcon = computed(() => this.icon() ?? DEFAULT_ICONS[this.severity()]);
+  protected readonly resolvedSeverity = computed<ResolvedSeverity>(() =>
+    this.severity() === 'error' ? 'danger' : (this.severity() as ResolvedSeverity),
+  );
+  protected readonly resolvedIcon = computed(() => this.icon() ?? DEFAULT_ICONS[this.resolvedSeverity()]);
 
   protected onDismiss(): void {
     this.visible.set(false);

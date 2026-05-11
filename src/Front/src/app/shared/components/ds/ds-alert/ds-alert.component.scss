@@ -1,4 +1,8 @@
-@use "scss/main" as *;
+// ============================================================================
+// app-ds-alert — V2 (UI Refresh 2026-05, dark-only)
+// Spec: docs/design/ui-refresh-2026-05.md §5.1
+// Surface = semantic-bg, border = semantic at low opacity, no shadow.
+// ============================================================================
 
 :host {
   display: block;
@@ -6,42 +10,46 @@
 
 .ds-alert {
   display: flex;
-  gap: 0.75rem;
+  gap: 12px;
   align-items: flex-start;
-  padding: 0.85rem 1.15rem;
-  border-radius: $ifs-radius-lg;
+  padding: 12px 16px;
+  border-radius: var(--ifs-radius-md);
   border: 1px solid;
-  animation: ifs-slide-in-down $ifs-duration-base $ifs-ease-out;
 
   &--info {
-    background: $ifs-info-soft;
-    border-color: $ifs-info-border;
-    color: $ifs-brand-blue;
+    background: var(--ifs-info-bg);
+    border-color: rgba(58, 163, 201, 0.4);
+
+    .ds-alert__icon { color: var(--ifs-info); }
   }
 
   &--success {
-    background: $ifs-success-soft;
-    border-color: $ifs-success-border;
-    color: $ifs-success;
+    background: var(--ifs-success-bg);
+    border-color: rgba(63, 166, 107, 0.4);
+
+    .ds-alert__icon { color: var(--ifs-success); }
   }
 
   &--warning {
-    background: $ifs-warning-soft;
-    border-color: $ifs-warning-border;
-    color: $ifs-warning-strong;
+    background: var(--ifs-warning-bg);
+    border-color: rgba(214, 162, 58, 0.4);
+
+    .ds-alert__icon { color: var(--ifs-warning); }
   }
 
-  &--error {
-    background: $ifs-error-soft;
-    border-color: $ifs-error-border;
-    color: $ifs-error-strong;
+  &--danger {
+    background: var(--ifs-danger-bg);
+    border-color: rgba(210, 74, 74, 0.4);
+
+    .ds-alert__icon { color: var(--ifs-danger); }
   }
 
   &__icon {
-    font-size: 1.25rem;
-    width: 1.25rem;
-    height: 1.25rem;
+    font-size: var(--ifs-icon-sm);
+    width: var(--ifs-icon-sm);
+    height: var(--ifs-icon-sm);
     flex-shrink: 0;
+    margin-top: 2px;
   }
 
   &__content {
@@ -50,36 +58,49 @@
   }
 
   &__title {
-    font-weight: 600;
-    margin-bottom: 0.2rem;
+    font-weight: 500;
+    margin-bottom: 2px;
+    color: var(--ifs-text-primary);
+    font-size: 14px;
+    line-height: 20px;
   }
 
   &__body {
-    font-size: 0.9rem;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--ifs-text-secondary);
   }
 
   &__close {
     background: transparent;
     border: none;
     cursor: pointer;
-    color: inherit;
-    opacity: 0.7;
-    padding: 0.2rem;
-    border-radius: $ifs-radius-sm;
+    color: var(--ifs-text-muted);
+    padding: 2px;
+    border-radius: var(--ifs-radius-sm);
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    transition:
+      background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+      color var(--ifs-duration-fast) var(--ifs-ease-standard);
 
     mat-icon {
-      font-size: 1.1rem;
-      width: 1.1rem;
-      height: 1.1rem;
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
     }
 
     &:hover {
-      opacity: 1;
-      background: rgba(0, 0, 0, 0.05);
+      color: var(--ifs-text-primary);
+      background: var(--ifs-surface-3);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--ifs-focus-ring);
     }
   }
 }
+

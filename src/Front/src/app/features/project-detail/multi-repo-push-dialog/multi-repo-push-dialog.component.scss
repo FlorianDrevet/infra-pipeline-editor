@@ -1,4 +1,4 @@
-@use "scss/main" as *;
+﻿@use "scss/main" as *;
 
 :host {
   display: block;
@@ -198,8 +198,6 @@
 }
 
 .mr-card__overlay {
-  @include ifs-glass(0.82, 12px);
-
   position: absolute;
   inset: 0;
   display: flex;

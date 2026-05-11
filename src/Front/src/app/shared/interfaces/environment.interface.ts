@@ -11,5 +11,9 @@ export interface EnvironmentInterface {
   api_url: string;
   /** Enable OpenTelemetry traces export to Aspire Dashboard via /otlp proxy. */
   otlpEnabled?: boolean;
+  /** Optional human-readable environment name displayed in the status bar (e.g. "production", "preview"). */
+  name?: string;
+  /** Optional application version displayed in the status bar (build-time injection). */
+  version?: string;
   msalConfig: MsalConfigInterface;
 }

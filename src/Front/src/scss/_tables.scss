@@ -1,35 +1,45 @@
 @use "tokens" as *;
 
-/// Reusable data table mixin — flex-based rows with DS tokens.
+// ============================================================================
+// InfraFlowSculptor — Tables V2 (UI Refresh 2026-05)
+// Aligned with density tokens (--ifs-density-row-md) and neutral surfaces.
+// ============================================================================
+
+/// Reusable data table mixin — flex-based rows with DS V2 tokens.
 /// Usage: `@include ifs-data-table;` on a wrapper element.
 @mixin ifs-data-table {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid $ifs-border-soft;
+  border-top: 1px solid $ifs-border-subtle;
 
   .ifs-table__header {
     display: flex;
     align-items: center;
-    padding: 0.75rem 1rem;
-    background-color: $ifs-surface-50;
-    border-bottom: 1px solid $ifs-border-soft;
-    font-size: 0.75rem;
+    min-height: var(--ifs-density-row-md);
+    padding: 0 var(--ifs-space-16);
+    background-color: $ifs-surface-3;
+    border-bottom: 1px solid $ifs-border-subtle;
+    font-size: 12px;
+    line-height: 16px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: $ifs-ink-500;
+    letter-spacing: 0.04em;
+    color: $ifs-text-secondary;
   }
 
   .ifs-table__row {
     display: flex;
     align-items: center;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid $ifs-border-soft;
-    font-size: 0.875rem;
-    transition: background-color $ifs-duration-fast $ifs-ease-out;
+    min-height: var(--ifs-density-row-md);
+    padding: 0 var(--ifs-space-16);
+    border-bottom: 1px solid $ifs-border-subtle;
+    font-size: 14px;
+    line-height: 20px;
+    color: $ifs-text-primary;
+    transition: background-color $ifs-duration-fast $ifs-ease-standard;
 
     &:hover {
-      background-color: $ifs-surface-50;
+      background-color: $ifs-surface-2;
     }
 
     &:last-child {
@@ -40,23 +50,23 @@
   .ifs-table__col {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--ifs-space-8);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .ifs-table__muted {
-    color: $ifs-ink-400;
+    color: $ifs-text-muted;
     font-style: italic;
   }
 
   .ifs-table__mono {
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    font-size: 0.8125rem;
-    background-color: $ifs-surface-50;
-    padding: 0.125rem 0.5rem;
+    font-size: 13px;
+    background-color: $ifs-surface-2;
+    padding: 2px var(--ifs-space-8);
     border-radius: $ifs-radius-sm;
-    color: $ifs-ink-500;
+    color: $ifs-text-secondary;
   }
 }

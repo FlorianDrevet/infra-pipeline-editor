@@ -1,86 +1,77 @@
-<nav class="shell-nav">
-  <div class="shell-nav__content">
-    <a class="brand" routerLink="/" [attr.aria-label]="'NAV.BRAND_ARIA' | translate">
-      <span class="brand__icon" aria-hidden="true">
-        <mat-icon>cloud_circle</mat-icon>
-      </span>
-      <span class="brand__copy">
-        <strong>InfraFlowSculptor</strong>
-        <span>{{ 'NAV.BRAND_SUBTITLE' | translate }}</span>
-      </span>
-    </a>
+<nav class="topbar" role="navigation" [attr.aria-label]="'NAV.TOPBAR_ARIA' | translate">
+  <div class="topbar__context">
+    <ng-content select="[topBarLeft]"></ng-content>
 
-    <div class="shell-nav__actions">
-      <a
-        class="nav-link"
-        routerLink="/"
-        routerLinkActive="nav-link--active"
-        [routerLinkActiveOptions]="{ exact: true }">
-        {{ 'NAV.HOME' | translate }}
-      </a>
-
-      <a
-        class="nav-link"
-        routerLink="/projects"
-        routerLinkActive="nav-link--active"
-        [routerLinkActiveOptions]="{ exact: true }">
-        {{ 'NAV.PROJECTS' | translate }}
-      </a>
-
-      <a
-        class="nav-link"
-        routerLink="/settings"
-        routerLinkActive="nav-link--active"
-        [routerLinkActiveOptions]="{ exact: true }">
-        <mat-icon class="nav-link__icon">settings</mat-icon>
-        {{ 'NAV.SETTINGS' | translate }}
-      </a>
-
-      <div class="language-switch" role="group" [attr.aria-label]="'NAV.LANGUAGE_SELECTOR_ARIA' | translate">
-        @for (language of availableLanguages; track language.code) {
-          <button
-            type="button"
-            class="language-switch__button"
-            [class.language-switch__button--active]="currentLanguage() === language.code"
-            (click)="changeLanguage(language.code)">
-            {{ language.labelKey | translate }}
-          </button>
+    @if (breadcrumb().length > 0) {
+      <ol class="topbar__breadcrumb" aria-label="breadcrumb">
+        @for (crumb of breadcrumb(); track $index; let last = $last) {
+          <li
+            class="topbar__breadcrumb-item"
+            [class.topbar__breadcrumb-item--current]="last"
+            [attr.aria-current]="last ? 'page' : null"
+          >
+            @if (crumb.routerLink && !last) {
+              <a class="topbar__breadcrumb-link" [routerLink]="crumb.routerLink">{{ crumb.label }}</a>
+            } @else {
+              <span class="topbar__breadcrumb-text">{{ crumb.label }}</span>
+            }
+            @if (!last) {
+              <mat-icon class="topbar__breadcrumb-separator" aria-hidden="true">chevron_right</mat-icon>
+            }
+          </li>
         }
-      </div>
-
-      <div class="user-card" [attr.aria-label]="'NAV.USER_CARD_ARIA' | translate">
-        <span class="user-card__avatar">
-          @if (userPhotoUrl()) {
-            <img
-              class="user-card__avatar-image"
-              [src]="userPhotoUrl() ?? ''"
-              [alt]="userName() || ('NAV.USER_DEFAULT_NAME' | translate)" />
-          } @else {
-            {{ userInitials() }}
-          }
-        </span>
-        <span class="user-card__details">
-          @if (userName()) {
-            <strong>{{ userName() }}</strong>
-          } @else {
-            <strong>{{ 'NAV.USER_DEFAULT_NAME' | translate }}</strong>
-          }
-          @if (userEmail()) {
-            <span>{{ userEmail() }}</span>
-          } @else {
-            <span>{{ 'NAV.USER_DEFAULT_EMAIL' | translate }}</span>
-          }
-        </span>
-      </div>
-
-      <button type="button" class="logout-button" [disabled]="isLoggingOut()" (click)="logout()">
-        @if (isLoggingOut()) {
-          {{ 'NAV.LOGGING_OUT' | translate }}
-        } @else {
-          {{ 'NAV.LOGOUT' | translate }}
-        }
-      </button>
-    </div>
+      </ol>
+    }
   </div>
+
+  <div class="topbar__spacer"></div>
+
+  <div class="language-switch" role="group" [attr.aria-label]="'NAV.LANGUAGE_SELECTOR_ARIA' | translate">
+    @for (language of availableLanguages; track language.code) {
+      <button
+        type="button"
+        class="language-switch__button"
+        [class.language-switch__button--active]="currentLanguage() === language.code"
+        (click)="changeLanguage(language.code)">
+        {{ language.labelKey | translate }}
+      </button>
+    }
+  </div>
+
+  <div class="user-card" [attr.aria-label]="'NAV.USER_CARD_ARIA' | translate">
+    <span class="user-card__avatar">
+      @if (userPhotoUrl()) {
+        <img
+          class="user-card__avatar-image"
+          [src]="userPhotoUrl() ?? ''"
+          [alt]="userName() || ('NAV.USER_DEFAULT_NAME' | translate)" />
+      } @else {
+        {{ userInitials() }}
+      }
+    </span>
+    <span class="user-card__details">
+      @if (userName()) {
+        <strong>{{ userName() }}</strong>
+      } @else {
+        <strong>{{ 'NAV.USER_DEFAULT_NAME' | translate }}</strong>
+      }
+      @if (userEmail()) {
+        <span>{{ userEmail() }}</span>
+      } @else {
+        <span>{{ 'NAV.USER_DEFAULT_EMAIL' | translate }}</span>
+      }
+    </span>
+  </div>
+
+  <app-ds-icon-button
+    class="topbar__logout"
+    size="sm"
+    variant="neutral"
+    icon="logout"
+    [ariaLabel]="(isLoggingOut() ? 'NAV.LOGGING_OUT' : 'NAV.LOGOUT') | translate"
+    [tooltip]="'NAV.LOGOUT' | translate"
+    [disabled]="isLoggingOut()"
+    (clicked)="logout()"
+  ></app-ds-icon-button>
 </nav>
 

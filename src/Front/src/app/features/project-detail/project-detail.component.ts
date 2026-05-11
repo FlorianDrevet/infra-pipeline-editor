@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -31,6 +31,7 @@ import {
   DsTextFieldComponent,
 } from '../../shared/components/ds';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
+import { PageContextService } from '../../shared/services/page-context.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import {
   EditAbbreviationDialogComponent,
@@ -131,7 +132,7 @@ interface CombinedProjectArchiveExtractionState {
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',
 })
-export class ProjectDetailComponent implements OnInit {
+export class ProjectDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly projectService = inject(ProjectService);
@@ -142,8 +143,24 @@ export class ProjectDetailComponent implements OnInit {
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly translate = inject(TranslateService);
+  private readonly pageContextService = inject(PageContextService);
 
   protected readonly project = signal<ProjectResponse | null>(null);
+  private readonly breadcrumbEffect = effect(() => {
+    const project = this.project();
+    const projectsLabel = this.translate.instant('NAV.BREADCRUMB.PROJECTS') as string;
+    const segments = project
+      ? [
+          { label: projectsLabel, routerLink: '/' },
+          { label: project.name },
+        ]
+      : [{ label: projectsLabel, routerLink: '/' }];
+    this.pageContextService.setBreadcrumb(segments);
+  });
+
+  public ngOnDestroy(): void {
+    this.pageContextService.clear();
+  }
   protected readonly configs = signal<InfrastructureConfigResponse[]>([]);
   protected readonly availableUsers = signal<UserResponse[]>([]);
   protected readonly isLoading = signal(false);

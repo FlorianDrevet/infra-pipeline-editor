@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -64,6 +64,7 @@ import { GeneratePipelineResponse } from '../../shared/interfaces/pipeline-gener
 import { saveAs } from 'file-saver';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
+import { PageContextService } from '../../shared/services/page-context.service';
 import {
   ProjectPipelineVariableGroupResponse,
   ProjectResponse,
@@ -154,7 +155,7 @@ type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | un
   templateUrl: './config-detail.component.html',
   styleUrl: './config-detail.component.scss',
 })
-export class ConfigDetailComponent implements OnInit {
+export class ConfigDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -183,6 +184,7 @@ export class ConfigDetailComponent implements OnInit {
   private readonly authService = inject(AuthenticationService);
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
+  private readonly pageContextService = inject(PageContextService);
 
   protected readonly config = signal<InfrastructureConfigResponse | null>(null);
   protected readonly project = signal<ProjectResponse | null>(null);
@@ -580,6 +582,22 @@ export class ConfigDetailComponent implements OnInit {
 
   private readonly translate = inject(TranslateService);
   private readonly previewNoneLabel = this.translate.instant('CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_NONE');
+
+  private readonly breadcrumbEffect = effect(() => {
+    const project = this.project();
+    const config = this.config();
+    const projectsLabel = this.translate.instant('NAV.BREADCRUMB.PROJECTS') as string;
+    const segments: { label: string; routerLink?: string }[] = [
+      { label: projectsLabel, routerLink: '/' },
+    ];
+    if (project) {
+      segments.push({ label: project.name, routerLink: `/projects/${project.id}` });
+    }
+    if (config) {
+      segments.push({ label: config.name });
+    }
+    this.pageContextService.setBreadcrumb(segments);
+  });
   protected readonly previewEnvDsOptions = computed<DsSelectOption[]>(() => [
     { value: null, label: this.previewNoneLabel },
     ...this.sortedEnvironments().map((env) => ({ value: env.id, label: env.name })),
@@ -635,6 +653,10 @@ export class ConfigDetailComponent implements OnInit {
 
   ngOnInit(): void {
     void this.initializeComponent();
+  }
+
+  public ngOnDestroy(): void {
+    this.pageContextService.clear();
   }
 
   private async initializeComponent(): Promise<void> {

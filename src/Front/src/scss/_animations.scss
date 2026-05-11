@@ -1,5 +1,30 @@
-@keyframes ifs-fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes ifs-slide-in-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes ifs-slide-in-down { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes ifs-spin { to { transform: rotate(360deg); } }
-@keyframes ifs-pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+// ============================================================================
+// InfraFlowSculptor — Animations V2 (UI Refresh 2026-05)
+// Reusable keyframes only. Durations are set at usage time using the canonical
+// tokens: --ifs-duration-fast (120ms) / -base (180ms) / -slow (240ms).
+// Easings: --ifs-ease-standard / --ifs-ease-emphasized. No bounce.
+// ============================================================================
+
+@keyframes ifs-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes ifs-slide-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ifs-slide-in-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ifs-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ifs-pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.7; }
+}

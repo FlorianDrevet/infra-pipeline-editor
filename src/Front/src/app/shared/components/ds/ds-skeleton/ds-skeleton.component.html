@@ -1,0 +1,18 @@
+<div
+  class="ds-skeleton"
+  [class.ds-skeleton--box]="variant() === 'box'"
+  [class.ds-skeleton--line]="variant() === 'line'"
+  [class.ds-skeleton--circle]="variant() === 'circle'"
+  [style.gap]="gap()"
+  role="status"
+  aria-busy="true"
+  aria-label="Loading"
+>
+  @for (_ of items(); track $index) {
+    <span
+      class="ds-skeleton__item"
+      [style.width]="itemStyle().width"
+      [style.height]="itemStyle().height"
+    ></span>
+  }
+</div>

@@ -6,6 +6,7 @@
   "NAV": {
     "BRAND_ARIA": "Open InfraFlowSculptor home page",
     "BRAND_SUBTITLE": "Azure infrastructure workspace",
+    "TOPBAR_ARIA": "Application top bar",
     "HOME": "Home",
     "PROJECTS": "Projects",
     "LANGUAGE_SELECTOR_ARIA": "Language selector",
@@ -14,14 +15,31 @@
     "USER_DEFAULT_EMAIL": "Connected with Microsoft Entra ID",
     "LOGGING_OUT": "Signing out...",
     "LOGOUT": "Sign out",
-    "SETTINGS": "Settings"
+    "SETTINGS": "Settings",
+    "BREADCRUMB": {
+      "PROJECTS": "Projects"
+    }
+  },
+  "SIDEBAR": {
+    "BRAND_ARIA": "Open InfraFlowSculptor home page",
+    "NAV_ARIA": "Main navigation",
+    "COLLAPSE_ARIA": "Collapse navigation",
+    "EXPAND_ARIA": "Expand navigation",
+    "HOME": "Home",
+    "PROJECTS": "Projects",
+    "SETTINGS": "Settings",
+    "DOCS": "Docs"
   },
   "FOOTER": {
     "BRAND_DESCRIPTION": "Infrastructure as Data, Bicep as Code. Secure workspace for Azure platform teams.",
     "HOME": "Home",
     "SECURITY": "Microsoft Entra ID secured",
     "WORKFLOW": "Premium Azure workflow",
-    "LEGAL": "Built for cloud governance and delivery teams"
+    "LEGAL": "Built for cloud governance and delivery teams",
+    "STATUS_BAR_ARIA": "Application status bar",
+    "VERSION_ARIA": "Application version",
+    "ENV_ARIA": "Environment name",
+    "DOCS": "Docs"
   },
   "ANNOTATION": {
     "ACTIVATE": "Enable annotation",
