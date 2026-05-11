@@ -1,15 +1,19 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { DsButtonComponent, DsTextFieldComponent, DsTextareaComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextareaComponent } from '../../../shared/components/ds';
 import { MatCardModule } from '@angular/material/card';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { startWith } from 'rxjs';
 import { ProjectService } from '../../../shared/services/project.service';
 import {
   MultiRepoPushMode,
@@ -75,9 +79,9 @@ const MULTI_REPO_PUSH_MODE_CONTENT: Record<MultiRepoPushMode, MultiRepoPushModeC
  * Dual-repo push dialog for SplitInfraCode projects.
  * Backend always returns 200; per-repo results may be partial.
  *
- * v1 limitation: branch list is not fetched per repo (each project repo can have its own
- * branches, but listBranches() is project-scoped). The branch input is a free-text field
- * prefilled from localStorage. Users can type any valid branch name.
+ * Branch suggestions are loaded with the project-scoped branch endpoint and reused for both
+ * repo cards. Each repo may have a different remote state, but the API currently exposes a
+ * single branch list at project scope.
  */
 @Component({
   selector: 'app-multi-repo-push-dialog',
@@ -87,20 +91,21 @@ const MULTI_REPO_PUSH_MODE_CONTENT: Record<MultiRepoPushMode, MultiRepoPushModeC
     MatButtonModule,
     MatCardModule,
     MatDialogModule,
+    MatFormFieldModule,
     MatIconModule,
+    MatInputModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
     ReactiveFormsModule,
     TranslateModule,
     DsButtonComponent,
-    DsTextFieldComponent,
     DsTextareaComponent,
   ],
   templateUrl: './multi-repo-push-dialog.component.html',
   styleUrl: './multi-repo-push-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MultiRepoPushDialogComponent {
+export class MultiRepoPushDialogComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<MultiRepoPushDialogComponent>);
   protected readonly data: MultiRepoPushDialogData = inject(MAT_DIALOG_DATA);
   private readonly projectService = inject(ProjectService);
@@ -111,6 +116,10 @@ export class MultiRepoPushDialogComponent {
   protected readonly infraResult = signal<RepoPushResult | null>(null);
   protected readonly codeResult = signal<RepoPushResult | null>(null);
   protected readonly errorKey = signal('');
+  protected readonly allBranches = signal<string[]>([]);
+  protected readonly filteredInfraBranches = signal<string[]>([]);
+  protected readonly filteredCodeBranches = signal<string[]>([]);
+  protected readonly branchesLoading = signal(true);
 
   private readonly infraBranchKey = `ifs-push-branch-multi-${this.data.projectId}-${this.data.infraAlias}`;
   private readonly codeBranchKey = `ifs-push-branch-multi-${this.data.projectId}-${this.data.codeAlias}`;
@@ -124,6 +133,14 @@ export class MultiRepoPushDialogComponent {
     branch: new FormControl<string>(localStorage.getItem(this.codeBranchKey) ?? 'main', { nonNullable: true, validators: [Validators.required] }),
     commit: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
   });
+  private readonly infraFormStatus = toSignal(
+    this.infraForm.statusChanges.pipe(startWith(this.infraForm.status)),
+    { initialValue: this.infraForm.status },
+  );
+  private readonly codeFormStatus = toSignal(
+    this.codeForm.statusChanges.pipe(startWith(this.codeForm.status)),
+    { initialValue: this.codeForm.status },
+  );
 
   protected readonly mode = computed<MultiRepoPushMode>(() => this.data.mode ?? 'both');
   protected readonly modeContent = computed(() => MULTI_REPO_PUSH_MODE_CONTENT[this.mode()]);
@@ -141,10 +158,30 @@ export class MultiRepoPushDialogComponent {
 
   protected readonly canPush = computed(() => {
     const isPushing = this.state() === 'pushing';
+    const infraFormStatus = this.infraFormStatus();
+    const codeFormStatus = this.codeFormStatus();
+
     return !isPushing
-      && (!this.showsInfraCard() || this.infraForm.valid)
-      && (!this.showsCodeCard() || this.codeForm.valid);
+      && (!this.showsInfraCard() || infraFormStatus === 'VALID')
+      && (!this.showsCodeCard() || codeFormStatus === 'VALID');
   });
+
+  public constructor() {
+    this.infraForm.controls.branch.valueChanges
+      .pipe(startWith(this.infraForm.controls.branch.value), takeUntilDestroyed())
+      .subscribe(value => {
+        this.filterInfraBranches(value ?? '');
+      });
+    this.codeForm.controls.branch.valueChanges
+      .pipe(startWith(this.codeForm.controls.branch.value), takeUntilDestroyed())
+      .subscribe(value => {
+        this.filterCodeBranches(value ?? '');
+      });
+  }
+
+  public ngOnInit(): void {
+    void this.loadBranches();
+  }
 
   protected async onPush(): Promise<void> {
     if (this.state() === 'pushing') return;
@@ -215,6 +252,14 @@ export class MultiRepoPushDialogComponent {
     this.dialogRef.close();
   }
 
+  protected showAllInfraBranches(): void {
+    this.filterInfraBranches('');
+  }
+
+  protected showAllCodeBranches(): void {
+    this.filterCodeBranches('');
+  }
+
   protected async copyCommitSha(sha: string | null): Promise<void> {
     if (!sha) return;
     try {
@@ -227,5 +272,39 @@ export class MultiRepoPushDialogComponent {
     } catch {
       // Silent: clipboard may be unavailable in non-secure contexts.
     }
+  }
+
+  private async loadBranches(): Promise<void> {
+    this.branchesLoading.set(true);
+    try {
+      const branches = await this.projectService.listBranches(this.data.projectId);
+      const branchNames = branches.map(branch => branch.name);
+      this.allBranches.set(branchNames);
+      this.filterInfraBranches(this.infraForm.controls.branch.value);
+      this.filterCodeBranches(this.codeForm.controls.branch.value);
+    } catch {
+      this.allBranches.set([]);
+      this.filteredInfraBranches.set([]);
+      this.filteredCodeBranches.set([]);
+    } finally {
+      this.branchesLoading.set(false);
+    }
+  }
+
+  private filterInfraBranches(search: string): void {
+    this.filteredInfraBranches.set(this.filterBranches(search));
+  }
+
+  private filterCodeBranches(search: string): void {
+    this.filteredCodeBranches.set(this.filterBranches(search));
+  }
+
+  private filterBranches(search: string): string[] {
+    const normalizedSearch = search.trim().toLowerCase();
+    if (normalizedSearch === '') {
+      return this.allBranches();
+    }
+
+    return this.allBranches().filter(branch => branch.toLowerCase().includes(normalizedSearch));
   }
 }

@@ -5,6 +5,7 @@ import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { DsTextareaComponent } from '../../../shared/components/ds';
+import { GitBranchResponse } from '../../../shared/interfaces/project.interface';
 import { MultiRepoPushResponse } from '../../../shared/interfaces/multi-repo-push.interface';
 import { ProjectService } from '../../../shared/services/project.service';
 import {
@@ -25,8 +26,18 @@ interface MultiRepoPushDialogComponentTestApi {
       commit: { hasError(errorCode: string): boolean; markAsTouched(): void; setValue(value: string): void };
     };
   };
+  filteredInfraBranches: () => string[];
+  filteredCodeBranches: () => string[];
   canPush: () => boolean;
   onPush(): Promise<void>;
+}
+
+function createBranchResponses(): GitBranchResponse[] {
+  return [
+    { name: 'main', isProtected: true },
+    { name: 'release/1.0', isProtected: false },
+    { name: 'feature/demo', isProtected: false },
+  ];
 }
 
 function createPushResponse(): MultiRepoPushResponse {
@@ -61,7 +72,8 @@ describe('MultiRepoPushDialogComponent', () => {
   let projectServiceSpy: jasmine.SpyObj<ProjectService>;
 
   beforeEach(async () => {
-    projectServiceSpy = jasmine.createSpyObj<ProjectService>('ProjectService', ['pushProjectArtifactsToMultiRepo']);
+    projectServiceSpy = jasmine.createSpyObj<ProjectService>('ProjectService', ['pushProjectArtifactsToMultiRepo', 'listBranches']);
+    projectServiceSpy.listBranches.and.resolveTo(createBranchResponses());
     projectServiceSpy.pushProjectArtifactsToMultiRepo.and.resolveTo(createPushResponse());
 
     await TestBed.configureTestingModule({
@@ -95,6 +107,8 @@ describe('MultiRepoPushDialogComponent', () => {
     component = fixture.componentInstance;
     componentTestApi = component as unknown as MultiRepoPushDialogComponentTestApi;
     fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
   });
 
   afterEach(() => {
@@ -106,6 +120,14 @@ describe('MultiRepoPushDialogComponent', () => {
     expect(componentTestApi.infraForm.controls.commit.hasError('required')).toBeTrue();
     expect(componentTestApi.codeForm.controls.commit.hasError('required')).toBeTrue();
     expect(componentTestApi.canPush()).toBeFalse();
+  });
+
+  it('enables push once both commit messages are provided', () => {
+    componentTestApi.infraForm.controls.commit.setValue('chore: update infra artifacts');
+    componentTestApi.codeForm.controls.commit.setValue('chore: update app artifacts');
+    fixture.detectChanges();
+
+    expect(componentTestApi.canPush()).toBeTrue();
   });
 
   it('passes required, hint, and error bindings to both commit textareas', () => {
@@ -133,5 +155,18 @@ describe('MultiRepoPushDialogComponent', () => {
     await componentTestApi.onPush();
 
     expect(projectServiceSpy.pushProjectArtifactsToMultiRepo).not.toHaveBeenCalled();
+  });
+
+  it('loads and filters existing branches for both repo branch fields', async () => {
+    expect(projectServiceSpy.listBranches).toHaveBeenCalledWith('project-42');
+    expect(componentTestApi.filteredInfraBranches()).toEqual(['main']);
+    expect(componentTestApi.filteredCodeBranches()).toEqual(['main']);
+
+    componentTestApi.infraForm.controls.branch.setValue('release');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(componentTestApi.filteredInfraBranches()).toEqual(['release/1.0']);
+    expect(componentTestApi.filteredCodeBranches()).toEqual(['main']);
   });
 });

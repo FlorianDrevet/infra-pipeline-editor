@@ -222,6 +222,18 @@
   min-width: 0;
 }
 
+.mr-branch-field {
+  width: 100%;
+}
+
+.mr-branch-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: $ifs-space-2;
+  font-size: 0.88rem;
+  color: $ifs-ink-500;
+}
+
 .mr-card__result {
   display: flex;
   flex-direction: column;
