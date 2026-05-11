@@ -220,7 +220,7 @@ internal static class ParameterFileAssembler
         var tail = dotIndex >= 0 ? propertyPath[(dotIndex + 1)..] : null;
 
         IEnumerable<(string PropertyName, object? Value)> entries = source is IDictionary<string, object> existingDict
-            ? existingDict.Select(kv => (PropertyName: kv.Key, Value: (object?)kv.Value))
+            ? EnumerateDictionaryEntries(existingDict)
             : BicepObjectPropertyHelper.EnumerateSerializedProperties(source);
 
         var dict = new Dictionary<string, object>();
@@ -232,6 +232,15 @@ internal static class ParameterFileAssembler
         }
 
         return dict;
+    }
+
+    private static IEnumerable<(string PropertyName, object? Value)> EnumerateDictionaryEntries(
+        IDictionary<string, object> dictionary)
+    {
+        foreach (var (key, value) in dictionary)
+        {
+            yield return (key, value);
+        }
     }
 
     private static object MergeMatchedProperty(object? currentValue, string? tail, string newValue)

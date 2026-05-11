@@ -20,6 +20,12 @@ public sealed class CreateProjectWithSetupCommandValidator
     private static readonly string[] AllowedProviderTypes =
         [ProviderTypeGitHub, ProviderTypeAzureDevOps];
 
+    private static readonly string AllowedLayoutsMessage =
+        $"LayoutPreset must be '{LayoutAllInOne}', '{LayoutSplitInfraCode}' or '{LayoutMultiRepo}'.";
+
+    private static readonly string AllowedProviderTypesMessage =
+        $"ProviderType must be '{ProviderTypeGitHub}' or '{ProviderTypeAzureDevOps}'.";
+
     public CreateProjectWithSetupCommandValidator()
     {
         ConfigureCoreFields();
@@ -41,7 +47,7 @@ public sealed class CreateProjectWithSetupCommandValidator
         RuleFor(x => x.LayoutPreset)
             .NotEmpty().WithMessage("Layout preset is required.")
             .Must(v => AllowedLayouts.Contains(v))
-            .WithMessage("LayoutPreset must be 'AllInOne', 'SplitInfraCode' or 'MultiRepo'.");
+            .WithMessage(AllowedLayoutsMessage);
     }
 
     private void ConfigureEnvironments()
@@ -95,7 +101,7 @@ public sealed class CreateProjectWithSetupCommandValidator
                 .WithMessage("At least one content kind is required per repository.");
             repo.RuleFor(r => r.ProviderType)
                 .Must(v => v is null || AllowedProviderTypes.Contains(v))
-                .WithMessage("ProviderType must be 'GitHub' or 'AzureDevOps'.");
+                .WithMessage(AllowedProviderTypesMessage);
             repo.RuleFor(r => r).Custom((r, ctx) =>
             {
                 if (HasIncompleteConnectionDetails(r.RepositoryUrl, r.DefaultBranch, r.ProviderType))

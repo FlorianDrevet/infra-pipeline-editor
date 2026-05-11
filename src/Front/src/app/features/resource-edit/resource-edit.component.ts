@@ -87,6 +87,8 @@ import { ToggleSectionCardComponent } from '../../shared/components/toggle-secti
 import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
 
+const ADD_APP_SETTING_DIALOG_PANEL_CLASS = 'ifs-add-app-setting-dialog';
+
 /** Key Vault missing role entry for the KV access warning banner */
 interface KvMissingRoleEntry {
   keyVaultResourceId: string;
@@ -2456,6 +2458,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       } satisfies AddAppSettingDialogData,
       width: '520px',
       maxHeight: '85vh',
+      panelClass: ADD_APP_SETTING_DIALOG_PANEL_CLASS,
     });
 
     dialogRef.afterClosed().subscribe((result?: AppSettingResponse) => {

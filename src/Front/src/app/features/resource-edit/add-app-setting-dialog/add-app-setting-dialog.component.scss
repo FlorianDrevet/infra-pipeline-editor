@@ -1,12 +1,24 @@
 @use "scss/main" as *;
 
+::ng-deep .ifs-add-app-setting-dialog .mat-mdc-dialog-surface {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .as-dialog {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
   min-width: 28rem;
   max-width: 36rem;
+  overflow: hidden;
 }
 
 .as-dialog__mode-bar {
   display: flex;
+  flex-shrink: 0;
   gap: 0.5rem;
   padding: 1rem 1.5rem 0;
 }
@@ -46,6 +58,7 @@
 .as-dialog__title {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 0.5rem;
   margin: 0;
   font-size: 1.1rem;
@@ -61,7 +74,13 @@
 }
 
 .as-dialog__content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-top: 0.5rem !important;
+
+  @include ifs-scrollbar-soft;
 }
 
 .as-dialog__subtitle {
@@ -72,6 +91,7 @@
 }
 
 .as-dialog__actions {
+  flex-shrink: 0;
   padding: 0.75rem 1.25rem 1rem !important;
   gap: 0.5rem;
 }
