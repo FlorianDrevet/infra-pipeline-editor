@@ -30,6 +30,7 @@ internal static class MainBicepAssembler
     {
         var sb = new StringBuilder();
         var tracker = new OutputUsageTracker();
+        ValidateKeyVaultSecretNames(appSettings);
         var localResourceGroupSymbols = resourceGroups
             .Select(rg => BicepIdentifierHelper.ToBicepIdentifier(rg.Name))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -739,6 +740,26 @@ internal static class MainBicepAssembler
             sb.AppendLine("      }");
         }
         sb.AppendLine("    ]");
+    }
+
+    private static void ValidateKeyVaultSecretNames(IReadOnlyList<AppSettingDefinition> appSettings)
+    {
+        foreach (var setting in appSettings.Where(RequiresKeyVaultSecretValidation))
+        {
+            if (KeyVaultSecretNameRules.IsValid(setting.SecretName!))
+            {
+                continue;
+            }
+
+            throw new InvalidOperationException(
+                $"Key Vault secret name '{setting.SecretName}' for resource '{setting.TargetResourceName}' is invalid. {KeyVaultSecretNameRules.ValidationMessage}");
+        }
+    }
+
+    private static bool RequiresKeyVaultSecretValidation(AppSettingDefinition setting)
+    {
+        return setting.SecretName is not null
+            && (setting.IsKeyVaultReference || setting.IsSensitiveOutputExportedToKeyVault);
     }
 
     private static void AppendAppSettingValueLine(

@@ -4,6 +4,7 @@ import {
   BicepFolderNode,
   BicepTreeNode,
 } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
+import { sortHierarchicalEntries } from './project-detail-tree-ordering.helper';
 
 const COMMON_ROOT_KEY = 'Common';
 const COMMON_PREFIX = 'Common/';
@@ -219,10 +220,6 @@ function stripPrefix(path: string, prefix: string): string {
   return path.startsWith(prefix)
     ? path.slice(prefix.length)
     : path;
-}
-
-function sortHierarchicalEntries(entries: readonly string[]): string[] {
-  return [...entries].sort((left, right) => left.localeCompare(right));
 }
 
 function normalizeAzureDevOpsConfigPath(configName: string, filePath: string): string {

@@ -26,6 +26,7 @@ import {
   BicepTreeNode,
 } from '../../../shared/components/bicep-file-panel/bicep-file-panel.component';
 import { toBootstrapRepoRelativePath } from '../project-generated-artifact-paths';
+import { sortHierarchicalEntries } from '../project-detail-tree-ordering.helper';
 
 /**
  * Two-level switcher rendered when project.layoutPreset === 'SplitInfraCode'.
@@ -389,10 +390,6 @@ function toPipelineBackendPath(configName: string, filePath: string): string {
   }
 
   return `${configName}/${filePath}`;
-}
-
-function sortHierarchicalEntries(entries: readonly string[]): string[] {
-  return [...entries].sort((left, right) => left.localeCompare(right));
 }
 
 function buildBootstrapNodes(

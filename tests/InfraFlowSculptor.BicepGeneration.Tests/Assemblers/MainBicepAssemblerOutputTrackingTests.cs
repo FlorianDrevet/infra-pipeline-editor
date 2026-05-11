@@ -218,6 +218,52 @@ public sealed class MainBicepAssemblerOutputTrackingTests
     }
 
     [Fact]
+    public void Given_InvalidKeyVaultSecretName_When_Generate_Then_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var kv = NewModule(
+            moduleName: "keyVaultMyKv",
+            logicalName: "myKv",
+            resourceTypeName: AzureResourceTypes.KeyVault,
+            folder: KeyVaultFolder,
+            file: KeyVaultFile,
+            resourceGroup: "rg-app");
+
+        var web = NewModule(
+            moduleName: "webAppMyApp",
+            logicalName: "myApp",
+            resourceTypeName: AzureResourceTypes.WebApp,
+            folder: WebAppFolder,
+            file: WebAppFile,
+            resourceGroup: "rg-app");
+
+        var setting = new AppSettingDefinition
+        {
+            Name = "JwtSettings__Secret",
+            TargetResourceName = "myApp",
+            IsKeyVaultReference = true,
+            KeyVaultResourceName = "myKv",
+            SecretName = "JWT_SECRET",
+            SecretValueAssignment = "ViaBicepparam",
+        };
+
+        var rg = NewResourceGroup("rg-app");
+
+        // Act
+        Action act = () => MainBicepAssembler.Generate(
+            modules: [kv, web],
+            resourceGroups: [rg],
+            namingContext: new NamingContext(),
+            roleAssignments: [],
+            appSettings: [setting],
+            existingResourceReferences: []);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*JWT_SECRET*letters, digits, and hyphens*");
+    }
+
+    [Fact]
     public void Generate_TracksAppSettingOutputReference()
     {
         // Arrange — webApp pulls an output from another module ("storageMyStorage.outputs.connectionString")

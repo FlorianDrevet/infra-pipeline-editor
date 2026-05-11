@@ -1,4 +1,5 @@
 using FluentValidation;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.Application.AppConfigurations.Commands.AddAppConfigurationKey;
 
@@ -43,8 +44,8 @@ public sealed class AddAppConfigurationKeyCommandValidator : AbstractValidator<A
             .When(x => x.SourceOutputName is not null);
 
         RuleFor(x => x.SecretName)
-            .MaximumLength(256)
-            .WithMessage("Secret name must not exceed 256 characters.")
+            .Must(secretName => secretName is not null && KeyVaultSecretNameRules.IsValid(secretName))
+            .WithMessage(KeyVaultSecretNameRules.ValidationMessage)
             .When(x => x.SecretName is not null);
 
         RuleFor(x => x.SecretValueAssignment)
