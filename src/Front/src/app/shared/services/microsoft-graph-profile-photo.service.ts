@@ -15,7 +15,11 @@ const HttpStatusNotFound = 404;
 export class MicrosoftGraphProfilePhotoService {
   private readonly msalAuthService = inject(MsalAuthService);
 
-  public async getCurrentUserPhotoUrl(): Promise<string | null> {
+  /**
+   * Returns the raw Microsoft Graph profile photo payload so callers can own
+   * object URL creation and revocation.
+   */
+  public async getCurrentUserPhotoBlob(): Promise<Blob | null> {
     const accessToken = await this.msalAuthService.getAccessTokenForScopesSilently([...MicrosoftGraphPhotoScopes]);
     if (!accessToken) {
       return null;
@@ -42,7 +46,7 @@ export class MicrosoftGraphProfilePhotoService {
         return null;
       }
 
-      return globalThis.URL.createObjectURL(photoBlob);
+      return photoBlob;
     } catch (error) {
       console.warn('MicrosoftGraphProfilePhotoService: profile photo request failed', error);
       return null;

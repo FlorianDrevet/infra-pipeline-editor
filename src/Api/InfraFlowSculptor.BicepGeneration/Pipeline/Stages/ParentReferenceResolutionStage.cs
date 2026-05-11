@@ -19,6 +19,12 @@ namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 /// </remarks>
 public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
 {
+    private const string AppServicePlanIdPropertyName = "appServicePlanId";
+    private const string ContainerAppEnvironmentIdPropertyName = "containerAppEnvironmentId";
+    private const string LogAnalyticsWorkspaceIdPropertyName = "logAnalyticsWorkspaceId";
+    private const string SqlServerIdPropertyName = "sqlServerId";
+    private const string SqlServerNameReferenceKey = "sqlServerName";
+
     /// <inheritdoc />
     public int Order => 800;
 
@@ -34,10 +40,10 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
             var parentModuleNameRefs = new Dictionary<string, (string Name, string ResourceTypeName)>();
             var existingResourceIdRefs = new Dictionary<string, string>();
 
-            TryResolveIdReference(resource, resourceIdToInfo, "appServicePlanId", parentModuleIdRefs);
-            TryResolveIdReference(resource, resourceIdToInfo, "containerAppEnvironmentId", parentModuleIdRefs);
+            TryResolveIdReference(resource, resourceIdToInfo, AppServicePlanIdPropertyName, parentModuleIdRefs);
+            TryResolveIdReference(resource, resourceIdToInfo, ContainerAppEnvironmentIdPropertyName, parentModuleIdRefs);
             ResolveLogAnalyticsWorkspaceReference(resource, context, parentModuleIdRefs, existingResourceIdRefs);
-            TryResolveNameReference(resource, resourceIdToInfo, "sqlServerId", "sqlServerName", parentModuleNameRefs);
+            TryResolveNameReference(resource, resourceIdToInfo, SqlServerIdPropertyName, SqlServerNameReferenceKey, parentModuleNameRefs);
 
             item.Module = item.Module with
             {
@@ -85,13 +91,11 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
         IDictionary<string, (string Name, string ResourceTypeName)> parentModuleIdRefs,
         IDictionary<string, string> existingResourceIdRefs)
     {
-        const string Property = "logAnalyticsWorkspaceId";
-
-        if (resource.Properties.TryGetValue(Property, out var lawIdStr)
+        if (resource.Properties.TryGetValue(LogAnalyticsWorkspaceIdPropertyName, out var lawIdStr)
             && Guid.TryParse(lawIdStr, out var lawGuid)
             && context.ResourceIdToInfo.TryGetValue(lawGuid, out var lawInfo))
         {
-            parentModuleIdRefs[Property] = lawInfo;
+            parentModuleIdRefs[LogAnalyticsWorkspaceIdPropertyName] = lawInfo;
             return;
         }
 
@@ -101,14 +105,14 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
             return;
         }
 
-        if (parentModuleIdRefs.ContainsKey(Property))
+        if (parentModuleIdRefs.ContainsKey(LogAnalyticsWorkspaceIdPropertyName))
             return;
 
         var fallbackLaw = context.Request.Resources.FirstOrDefault(r =>
             r.Type.Equals(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace, StringComparison.OrdinalIgnoreCase));
         if (fallbackLaw is not null)
         {
-            parentModuleIdRefs[Property] = (fallbackLaw.Name, AzureResourceTypes.LogAnalyticsWorkspace);
+            parentModuleIdRefs[LogAnalyticsWorkspaceIdPropertyName] = (fallbackLaw.Name, AzureResourceTypes.LogAnalyticsWorkspace);
             return;
         }
 
@@ -116,7 +120,7 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
             r.ResourceType.Equals(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace, StringComparison.OrdinalIgnoreCase));
         if (existingLaw is not null)
         {
-            existingResourceIdRefs[Property] = existingLaw.ResourceName;
+            existingResourceIdRefs[LogAnalyticsWorkspaceIdPropertyName] = existingLaw.ResourceName;
         }
     }
 }

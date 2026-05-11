@@ -15,6 +15,8 @@ describe('NavigationComponent', () => {
   let fixture: ComponentFixture<NavigationComponent>;
   let msalAuthServiceSpy: jasmine.SpyObj<MsalAuthService>;
   let graphProfilePhotoServiceSpy: jasmine.SpyObj<MicrosoftGraphProfilePhotoService>;
+  let createObjectUrlSpy: jasmine.Spy<(blob: Blob) => string>;
+  let revokeObjectUrlSpy: jasmine.Spy<(url: string) => void>;
 
   const selectedLanguage = signal<AppLanguage>('fr');
   const languageOptions: readonly LanguageOption[] = [
@@ -38,8 +40,10 @@ describe('NavigationComponent', () => {
     msalAuthServiceSpy = jasmine.createSpyObj<MsalAuthService>('MsalAuthService', ['getActiveAccount', 'logout']);
     graphProfilePhotoServiceSpy = jasmine.createSpyObj<MicrosoftGraphProfilePhotoService>(
       'MicrosoftGraphProfilePhotoService',
-      ['getCurrentUserPhotoUrl']
+      ['getCurrentUserPhotoBlob']
     );
+    createObjectUrlSpy = spyOn(globalThis.URL, 'createObjectURL').and.returnValue('blob:graph-photo');
+    revokeObjectUrlSpy = spyOn(globalThis.URL, 'revokeObjectURL');
 
     await TestBed.configureTestingModule({
       imports: [NavigationComponent, TranslateModule.forRoot()],
@@ -67,7 +71,7 @@ describe('NavigationComponent', () => {
 
   it('Given_ProfilePhotoUrl_When_ComponentInitializes_Then_RendersMicrosoftPhoto', async () => {
     msalAuthServiceSpy.getActiveAccount.and.resolveTo(createAccountInfo());
-    graphProfilePhotoServiceSpy.getCurrentUserPhotoUrl.and.resolveTo('blob:graph-photo');
+    graphProfilePhotoServiceSpy.getCurrentUserPhotoBlob.and.resolveTo(new Blob(['graph-photo']));
 
     fixture = TestBed.createComponent(NavigationComponent);
     fixture.detectChanges();
@@ -77,13 +81,14 @@ describe('NavigationComponent', () => {
     const avatar = fixture.debugElement.query(By.css('.user-card__avatar')).nativeElement as HTMLElement;
     const avatarImage = avatar.querySelector<HTMLImageElement>('img.user-card__avatar-image');
 
+    expect(createObjectUrlSpy).toHaveBeenCalled();
     expect(avatarImage?.getAttribute('src')).toBe('blob:graph-photo');
     expect(avatar.textContent?.trim()).toBe('');
   });
 
   it('Given_NoProfilePhoto_When_ComponentInitializes_Then_KeepsInitialsFallback', async () => {
     msalAuthServiceSpy.getActiveAccount.and.resolveTo(createAccountInfo());
-    graphProfilePhotoServiceSpy.getCurrentUserPhotoUrl.and.resolveTo(null);
+    graphProfilePhotoServiceSpy.getCurrentUserPhotoBlob.and.resolveTo(null);
 
     fixture = TestBed.createComponent(NavigationComponent);
     fixture.detectChanges();
@@ -98,6 +103,19 @@ describe('NavigationComponent', () => {
     expect(avatar.textContent?.trim()).toBe('JD');
     expect(userName.textContent?.trim()).toBe('John Doe');
     expect(userEmail.textContent?.trim()).toBe('john.doe@contoso.com');
+  });
+
+  it('Given_ProfilePhotoBlob_When_ComponentDestroys_Then_RevokesObjectUrl', async () => {
+    msalAuthServiceSpy.getActiveAccount.and.resolveTo(createAccountInfo());
+    graphProfilePhotoServiceSpy.getCurrentUserPhotoBlob.and.resolveTo(new Blob(['graph-photo']));
+
+    fixture = TestBed.createComponent(NavigationComponent);
+    fixture.detectChanges();
+    await waitForAsyncInitialization();
+
+    fixture.destroy();
+
+    expect(revokeObjectUrlSpy).toHaveBeenCalledWith('blob:graph-photo');
   });
 });
 

@@ -77,13 +77,13 @@ export class NavigationComponent implements OnInit, OnDestroy {
   }
 
   private async loadUserProfilePhoto(): Promise<void> {
-    const userPhotoUrl = await this.microsoftGraphProfilePhotoService.getCurrentUserPhotoUrl();
-    if (!userPhotoUrl) {
+    const userPhotoBlob = await this.microsoftGraphProfilePhotoService.getCurrentUserPhotoBlob();
+    if (!userPhotoBlob) {
       this.clearUserPhotoUrl();
       return;
     }
 
-    this.replaceUserPhotoUrl(userPhotoUrl);
+    this.replaceUserPhotoBlob(userPhotoBlob);
   }
 
   private buildInitials(displayName: string, email: string): string {
@@ -103,6 +103,11 @@ export class NavigationComponent implements OnInit, OnDestroy {
   private clearUserPhotoUrl(): void {
     this.revokeUserPhotoUrl();
     this.userPhotoUrl.set(null);
+  }
+
+  private replaceUserPhotoBlob(userPhotoBlob: Blob): void {
+    const userPhotoUrl = globalThis.URL.createObjectURL(userPhotoBlob);
+    this.replaceUserPhotoUrl(userPhotoUrl);
   }
 
   private replaceUserPhotoUrl(userPhotoUrl: string): void {

@@ -133,40 +133,40 @@
   border: 1px solid transparent;
   font-size: 0.68rem;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(223, 232, 243, 0.82);
+  background: rgba(47, 59, 76, 0.94);
+  color: rgba(241, 246, 252, 0.96);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
 
   &--params {
-    background: rgba(120, 164, 214, 0.12);
-    border-color: rgba(120, 164, 214, 0.22);
-    color: #c2d8f4;
+    background: rgba(53, 82, 117, 0.96);
+    border-color: rgba(138, 182, 234, 0.42);
+    color: #f3f8ff;
   }
 
   &--types {
-    background: rgba(166, 149, 209, 0.14);
-    border-color: rgba(166, 149, 209, 0.24);
-    color: #d4c4ef;
+    background: rgba(79, 64, 116, 0.96);
+    border-color: rgba(191, 174, 235, 0.42);
+    color: #faf5ff;
   }
 
   &--functions {
-    background: rgba(214, 172, 118, 0.14);
-    border-color: rgba(214, 172, 118, 0.22);
-    color: #e7cfab;
+    background: rgba(111, 79, 39, 0.96);
+    border-color: rgba(234, 193, 136, 0.42);
+    color: #fff7ea;
   }
 
   &--constants {
-    background: rgba(196, 132, 132, 0.14);
-    border-color: rgba(196, 132, 132, 0.22);
-    color: #e3b7b7;
+    background: rgba(119, 62, 62, 0.96);
+    border-color: rgba(224, 158, 158, 0.42);
+    color: #fff1f1;
   }
 
   &--module {
-    background: rgba(108, 164, 176, 0.14);
-    border-color: rgba(108, 164, 176, 0.22);
-    color: #c0e0e5;
+    background: rgba(42, 85, 92, 0.96);
+    border-color: rgba(134, 193, 207, 0.42);
+    color: #f2fcfd;
   }
 }
 
@@ -254,9 +254,9 @@
   height: 2rem;
   padding: 0.45rem;
   border-radius: 0.65rem;
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(205, 219, 236, 0.86);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(35, 48, 66, 0.98);
+  color: #ffffff;
   font-size: 1rem;
   flex-shrink: 0;
 }
@@ -364,10 +364,10 @@
   margin: 0;
   padding: 0.75rem 0.9rem;
   border-radius: 0.85rem;
-  border: 1px solid rgba(244, 67, 54, 0.2);
-  background: rgba(244, 67, 54, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.32);
+  background: rgba(123, 33, 33, 0.94);
   font-size: 0.82rem;
-  color: #f2b7b2;
+  color: #fff4f1;
 }
 
 // ─── Animations ────────────────────────────────────────────────────────────────
