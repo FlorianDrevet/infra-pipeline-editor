@@ -18,7 +18,6 @@ public static class BicepAssembler
     /// <summary>
     /// Assembles the complete Bicep output from generated modules and deployment context.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public static GenerationResult Assemble(
         IReadOnlyCollection<GeneratedTypeModule> modules,
         IReadOnlyList<ResourceGroupDefinition> resourceGroups,
@@ -43,45 +42,79 @@ public static class BicepAssembler
         var environmentParameterFiles = ParameterFileAssembler.GenerateEnvironmentParameterFiles(
             normalizedModules, environments, resources, appSettings);
 
+        var moduleFiles = BuildModuleFiles(normalizedModules);
+        AddRoleAssignmentModuleFiles(moduleFiles, roleAssignments);
+        AddKeyVaultSecretsModuleIfNeeded(moduleFiles, appSettings);
+
+        return new GenerationResult
+        {
+            MainBicep = mainEmission.Content,
+            TypesBicep = typesBicep,
+            FunctionsBicep = functionsBicep,
+            RoleAssignments = roleAssignments,
+            ConstantsBicep = constantsBicep,
+            EnvironmentParameterFiles = environmentParameterFiles,
+            ModuleFiles = moduleFiles,
+            UsedOutputsByModulePath = mainEmission.UsedOutputsByModulePath,
+        };
+    }
+
+    private static Dictionary<string, string> BuildModuleFiles(IReadOnlyCollection<GeneratedTypeModule> normalizedModules)
+    {
         var moduleFiles = new Dictionary<string, string>();
 
         foreach (var module in normalizedModules.DistinctBy(m => $"{m.ModuleFolderName}/{m.ModuleFileName}", StringComparer.OrdinalIgnoreCase))
         {
-            var folder = module.ModuleFolderName;
-            var bicepContentWithHeader = ModuleHeaderHelper.AddModuleHeader(
-                module.ResourceTypeName,
-                module.ModuleFileName,
-                module.ModuleBicepContent);
-
-            moduleFiles[$"modules/{folder}/{module.ModuleFileName}"] = bicepContentWithHeader;
-
-            if (!string.IsNullOrEmpty(module.ModuleTypesBicepContent))
-            {
-                var typesPath = $"modules/{folder}/types.bicep";
-                moduleFiles[typesPath] = moduleFiles.TryGetValue(typesPath, out var existingTypes)
-                    ? ModuleHeaderHelper.MergeTypesContent(existingTypes, module.ModuleTypesBicepContent)
-                    : module.ModuleTypesBicepContent;
-            }
-
-            foreach (var companion in module.CompanionModules)
-            {
-                var companionPath = $"modules/{companion.FolderName}/{companion.FileName}";
-                moduleFiles[companionPath] = ModuleHeaderHelper.AddModuleHeader(
-                    module.ResourceTypeName,
-                    companion.FileName,
-                    companion.BicepContent);
-
-                if (!string.IsNullOrWhiteSpace(companion.TypesBicepContent))
-                {
-                    var typesPath = $"modules/{companion.FolderName}/types.bicep";
-                    moduleFiles[typesPath] = moduleFiles.TryGetValue(typesPath, out var existingTypes)
-                        ? ModuleHeaderHelper.MergeTypesContent(existingTypes, companion.TypesBicepContent)
-                        : companion.TypesBicepContent;
-                }
-            }
+            AddPrimaryModuleFiles(moduleFiles, module);
+            AddCompanionModuleFiles(moduleFiles, module);
         }
 
-        // Generate role assignment modules only for target resource types that have assignments
+        return moduleFiles;
+    }
+
+    private static void AddPrimaryModuleFiles(IDictionary<string, string> moduleFiles, GeneratedTypeModule module)
+    {
+        var folder = module.ModuleFolderName;
+        var bicepContentWithHeader = ModuleHeaderHelper.AddModuleHeader(
+            module.ResourceTypeName,
+            module.ModuleFileName,
+            module.ModuleBicepContent);
+
+        moduleFiles[$"modules/{folder}/{module.ModuleFileName}"] = bicepContentWithHeader;
+
+        if (!string.IsNullOrEmpty(module.ModuleTypesBicepContent))
+        {
+            var typesPath = $"modules/{folder}/types.bicep";
+            moduleFiles[typesPath] = moduleFiles.TryGetValue(typesPath, out var existingTypes)
+                ? ModuleHeaderHelper.MergeTypesContent(existingTypes, module.ModuleTypesBicepContent)
+                : module.ModuleTypesBicepContent;
+        }
+    }
+
+    private static void AddCompanionModuleFiles(IDictionary<string, string> moduleFiles, GeneratedTypeModule module)
+    {
+        foreach (var companion in module.CompanionModules)
+        {
+            var companionPath = $"modules/{companion.FolderName}/{companion.FileName}";
+            moduleFiles[companionPath] = ModuleHeaderHelper.AddModuleHeader(
+                module.ResourceTypeName,
+                companion.FileName,
+                companion.BicepContent);
+
+            if (!string.IsNullOrWhiteSpace(companion.TypesBicepContent))
+            {
+                var typesPath = $"modules/{companion.FolderName}/types.bicep";
+                moduleFiles[typesPath] = moduleFiles.TryGetValue(typesPath, out var existingTypes)
+                    ? ModuleHeaderHelper.MergeTypesContent(existingTypes, companion.TypesBicepContent)
+                    : companion.TypesBicepContent;
+            }
+        }
+    }
+
+    private static void AddRoleAssignmentModuleFiles(
+        IDictionary<string, string> moduleFiles,
+        IReadOnlyList<RoleAssignmentDefinition> roleAssignments)
+    {
         var targetResourceTypes = roleAssignments
             .Select(ra => ra.TargetResourceTypeName)
             .Distinct()
@@ -96,8 +129,12 @@ public static class BicepAssembler
             var fileName = RoleAssignmentModuleTemplates.GetModuleFileName(typeName);
             moduleFiles[$"modules/{folder}/{fileName}"] = RoleAssignmentModuleTemplates.GenerateModule(typeName);
         }
+    }
 
-        // Generate Key Vault secrets batch module if sensitive outputs are exported to KV or ViaBicepparam secrets exist
+    private static void AddKeyVaultSecretsModuleIfNeeded(
+        IDictionary<string, string> moduleFiles,
+        IReadOnlyList<AppSettingDefinition> appSettings)
+    {
         var hasSensitiveExports = appSettings.Any(s => s.IsSensitiveOutputExportedToKeyVault);
         var hasViaBicepparamSecrets = appSettings.Any(s =>
             s.IsKeyVaultReference && !s.IsSensitiveOutputExportedToKeyVault
@@ -106,18 +143,6 @@ public static class BicepAssembler
         {
             moduleFiles["modules/KeyVault/kvSecrets.module.bicep"] = KvSecretsModuleAssembler.Generate();
         }
-
-        return new GenerationResult
-        {
-            MainBicep = mainEmission.Content,
-            TypesBicep = typesBicep,
-            FunctionsBicep = functionsBicep,
-            RoleAssignments = roleAssignments,
-            ConstantsBicep = constantsBicep,
-            EnvironmentParameterFiles = environmentParameterFiles,
-            ModuleFiles = moduleFiles,
-            UsedOutputsByModulePath = mainEmission.UsedOutputsByModulePath,
-        };
     }
 
     /// <summary>

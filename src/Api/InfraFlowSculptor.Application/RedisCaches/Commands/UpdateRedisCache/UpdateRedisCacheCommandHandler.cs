@@ -16,7 +16,6 @@ public class UpdateRedisCacheCommandHandler(
     IMapper mapper)
     : ICommandHandler<UpdateRedisCacheCommand, RedisCacheResult>
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public async Task<ErrorOr<RedisCacheResult>> Handle(UpdateRedisCacheCommand request, CancellationToken cancellationToken)
     {
         var redisCache = await redisCacheRepository.GetByIdAsync(request.Id, cancellationToken);
@@ -28,56 +27,71 @@ public class UpdateRedisCacheCommandHandler(
             return Errors.RedisCache.NotFoundError(request.Id);
 
         var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
-
         if (authResult.IsError)
             return authResult.Errors;
 
-        TlsVersion? tlsVersion = null;
-        if (request.MinimumTlsVersion is not null)
-        {
-            if (!Enum.TryParse<TlsVersion.Version>(request.MinimumTlsVersion, ignoreCase: true, out var parsedTls))
-                return Error.Validation(code: "RedisCache.InvalidMinimumTlsVersion", description: $"The minimum TLS version '{request.MinimumTlsVersion}' is not valid.");
-            tlsVersion = new TlsVersion(parsedTls);
-        }
+        var tlsParse = ParseTlsVersion(request.MinimumTlsVersion);
+        if (tlsParse.IsError) return tlsParse.Errors;
 
         redisCache.Update(
             request.Name,
             request.Location,
             request.RedisVersion,
             request.EnableNonSslPort,
-            tlsVersion,
+            tlsParse.Value,
             request.DisableAccessKeyAuthentication,
             request.EnableAadAuth);
 
         if (request.EnvironmentSettings is not null)
         {
-            var parsedSettings = new List<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>();
-            foreach (var ec in request.EnvironmentSettings)
-            {
-                RedisCacheSku? sku = null;
-                if (ec.Sku is not null)
-                {
-                    if (!Enum.TryParse<RedisCacheSku.Sku>(ec.Sku, ignoreCase: true, out var parsedSku))
-                        return Error.Validation(code: "RedisCache.InvalidSku", description: $"The SKU '{ec.Sku}' is not valid.");
-                    sku = new RedisCacheSku(parsedSku);
-                }
-
-                MaxMemoryPolicy? maxMemoryPolicy = null;
-                if (ec.MaxMemoryPolicy is not null)
-                {
-                    if (!Enum.TryParse<MaxMemoryPolicy.Policy>(ec.MaxMemoryPolicy, ignoreCase: true, out var parsedPolicy))
-                        return Error.Validation(code: "RedisCache.InvalidMaxMemoryPolicy", description: $"The max memory policy '{ec.MaxMemoryPolicy}' is not valid.");
-                    maxMemoryPolicy = new MaxMemoryPolicy(parsedPolicy);
-                }
-
-                parsedSettings.Add((ec.EnvironmentName, sku, ec.Capacity, maxMemoryPolicy));
-            }
-
-            redisCache.SetAllEnvironmentSettings(parsedSettings);
+            var parsed = ParseEnvironmentSettings(request.EnvironmentSettings);
+            if (parsed.IsError) return parsed.Errors;
+            redisCache.SetAllEnvironmentSettings(parsed.Value);
         }
 
         var updatedRedisCache = await redisCacheRepository.UpdateAsync(redisCache);
-
         return mapper.Map<RedisCacheResult>(updatedRedisCache);
+    }
+
+    private static ErrorOr<TlsVersion?> ParseTlsVersion(string? raw)
+    {
+        if (raw is null) return (TlsVersion?)null;
+        if (!Enum.TryParse<TlsVersion.Version>(raw, ignoreCase: true, out var parsed))
+            return Error.Validation(code: "RedisCache.InvalidMinimumTlsVersion", description: $"The minimum TLS version '{raw}' is not valid.");
+        return (TlsVersion?)new TlsVersion(parsed);
+    }
+
+    private static ErrorOr<List<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>> ParseEnvironmentSettings(
+        IEnumerable<RedisCacheEnvironmentConfigData> environmentSettings)
+    {
+        var parsedSettings = new List<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>();
+        foreach (var ec in environmentSettings)
+        {
+            var skuParse = ParseSku(ec.Sku);
+            if (skuParse.IsError) return skuParse.Errors;
+
+            var policyParse = ParseMaxMemoryPolicy(ec.MaxMemoryPolicy);
+            if (policyParse.IsError) return policyParse.Errors;
+
+            parsedSettings.Add((ec.EnvironmentName, skuParse.Value, ec.Capacity, policyParse.Value));
+        }
+
+        return parsedSettings;
+    }
+
+    private static ErrorOr<RedisCacheSku?> ParseSku(string? raw)
+    {
+        if (raw is null) return (RedisCacheSku?)null;
+        if (!Enum.TryParse<RedisCacheSku.Sku>(raw, ignoreCase: true, out var parsed))
+            return Error.Validation(code: "RedisCache.InvalidSku", description: $"The SKU '{raw}' is not valid.");
+        return (RedisCacheSku?)new RedisCacheSku(parsed);
+    }
+
+    private static ErrorOr<MaxMemoryPolicy?> ParseMaxMemoryPolicy(string? raw)
+    {
+        if (raw is null) return (MaxMemoryPolicy?)null;
+        if (!Enum.TryParse<MaxMemoryPolicy.Policy>(raw, ignoreCase: true, out var parsed))
+            return Error.Validation(code: "RedisCache.InvalidMaxMemoryPolicy", description: $"The max memory policy '{raw}' is not valid.");
+        return (MaxMemoryPolicy?)new MaxMemoryPolicy(parsed);
     }
 }

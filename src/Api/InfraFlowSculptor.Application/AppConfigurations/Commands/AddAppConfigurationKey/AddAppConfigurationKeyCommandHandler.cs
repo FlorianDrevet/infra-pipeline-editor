@@ -22,7 +22,6 @@ public sealed class AddAppConfigurationKeyCommandHandler(
     : ICommandHandler<AddAppConfigurationKeyCommand, AppConfigurationKeyResult>
 {
     /// <inheritdoc />
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public async Task<ErrorOr<AppConfigurationKeyResult>> Handle(
         AddAppConfigurationKeyCommand request,
         CancellationToken cancellationToken)
@@ -49,167 +48,218 @@ public sealed class AddAppConfigurationKeyCommandHandler(
                 string.Equals(k.Key, request.Key, StringComparison.OrdinalIgnoreCase)))
             return Errors.AppConfigurationKey.DuplicateKeyError(request.Key);
 
-        // Variable group + Key Vault reference
-        if (request.VariableGroupId is not null && request.PipelineVariableName is not null
-            && request.KeyVaultResourceId is not null && request.SecretName is not null)
-        {
-            var infraConfig = authResult.Value;
-            var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
-                infraConfig.ProjectId, cancellationToken);
+        return await DispatchAsync(request, appConfig, authResult.Value, cancellationToken);
+    }
 
-            var variableGroupId = new ProjectPipelineVariableGroupId(request.VariableGroupId.Value);
-            var variableGroup = project?.PipelineVariableGroups
-                .FirstOrDefault(g => g.Id == variableGroupId);
+    private Task<ErrorOr<AppConfigurationKeyResult>> DispatchAsync(
+        AddAppConfigurationKeyCommand request,
+        AppConfiguration appConfig,
+        Domain.InfrastructureConfigAggregate.InfrastructureConfig infraConfig,
+        CancellationToken cancellationToken)
+    {
+        if (IsVariableGroupKeyVaultReference(request))
+            return AddVariableGroupKeyVaultReferenceAsync(request, appConfig, infraConfig, cancellationToken);
 
-            if (variableGroup is null)
-                return Errors.Project.VariableGroupNotFoundError(variableGroupId);
+        if (IsVariableGroupReference(request))
+            return AddVariableGroupReferenceAsync(request, appConfig, infraConfig, cancellationToken);
 
-            var keyVaultResource = await azureResourceRepository.GetByIdAsync(
-                request.KeyVaultResourceId, cancellationToken);
+        if (IsExportToKeyVault(request))
+            return AddSensitiveOutputKeyVaultReferenceAsync(request, appConfig, cancellationToken);
 
-            if (keyVaultResource is null || keyVaultResource is not KeyVault)
-                return Errors.AppConfigurationKey.KeyVaultNotFound(request.KeyVaultResourceId);
+        if (IsKeyVaultReference(request))
+            return AddKeyVaultReferenceAsync(request, appConfig, cancellationToken);
 
-            var configKey = appConfig.AddViaVariableGroupKeyVaultReferenceConfigurationKey(
-                request.Key,
-                request.Label,
-                variableGroupId,
-                request.PipelineVariableName,
-                request.KeyVaultResourceId,
-                request.SecretName,
-                request.SecretValueAssignment ?? SecretValueAssignment.DirectInKeyVault);
+        if (IsOutputReference(request))
+            return AddOutputReferenceAsync(request, appConfig, cancellationToken);
 
-            await appConfigurationRepository.UpdateAsync(appConfig);
+        return AddStaticAsync(request, appConfig);
+    }
 
-            var hasAccess = await CheckKeyVaultAccessAsync(
-                request.AppConfigurationId, request.KeyVaultResourceId, cancellationToken);
+    private static bool IsVariableGroupKeyVaultReference(AddAppConfigurationKeyCommand r) =>
+        r.VariableGroupId is not null && r.PipelineVariableName is not null
+        && r.KeyVaultResourceId is not null && r.SecretName is not null;
 
-            return ToResult(configKey, hasAccess, variableGroup.GroupName);
-        }
+    private static bool IsVariableGroupReference(AddAppConfigurationKeyCommand r) =>
+        r.VariableGroupId is not null && r.PipelineVariableName is not null;
 
-        // Variable group reference
-        if (request.VariableGroupId is not null && request.PipelineVariableName is not null)
-        {
-            var infraConfig = authResult.Value;
-            var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
-                infraConfig.ProjectId, cancellationToken);
+    private static bool IsExportToKeyVault(AddAppConfigurationKeyCommand r) =>
+        r.ExportToKeyVault
+        && r.SourceResourceId is not null && r.SourceOutputName is not null
+        && r.KeyVaultResourceId is not null && r.SecretName is not null;
 
-            var variableGroupId = new ProjectPipelineVariableGroupId(request.VariableGroupId.Value);
-            var variableGroup = project?.PipelineVariableGroups
-                .FirstOrDefault(g => g.Id == variableGroupId);
+    private static bool IsKeyVaultReference(AddAppConfigurationKeyCommand r) =>
+        r.KeyVaultResourceId is not null && r.SecretName is not null;
 
-            if (variableGroup is null)
-                return Errors.Project.VariableGroupNotFoundError(variableGroupId);
+    private static bool IsOutputReference(AddAppConfigurationKeyCommand r) =>
+        r.SourceResourceId is not null && r.SourceOutputName is not null;
 
-            var configKey = appConfig.AddViaVariableGroupConfigurationKey(
-                request.Key,
-                request.Label,
-                variableGroupId,
-                request.PipelineVariableName);
+    private async Task<ErrorOr<AppConfigurationKeyResult>> AddVariableGroupKeyVaultReferenceAsync(
+        AddAppConfigurationKeyCommand request,
+        AppConfiguration appConfig,
+        Domain.InfrastructureConfigAggregate.InfrastructureConfig infraConfig,
+        CancellationToken cancellationToken)
+    {
+        var variableGroupLookup = await ResolveVariableGroupAsync(infraConfig, request.VariableGroupId!.Value, cancellationToken);
+        if (variableGroupLookup.IsError) return variableGroupLookup.Errors;
 
-            await appConfigurationRepository.UpdateAsync(appConfig);
+        var keyVaultLookup = await EnsureKeyVaultExistsAsync(request.KeyVaultResourceId!, cancellationToken);
+        if (keyVaultLookup.IsError) return keyVaultLookup.Errors;
 
-            return ToResult(configKey, null, variableGroup.GroupName);
-        }
+        var configKey = appConfig.AddViaVariableGroupKeyVaultReferenceConfigurationKey(
+            request.Key,
+            request.Label,
+            variableGroupLookup.Value.Id,
+            request.PipelineVariableName!,
+            request.KeyVaultResourceId!,
+            request.SecretName!,
+            request.SecretValueAssignment ?? SecretValueAssignment.DirectInKeyVault);
 
-        // Export sensitive output to Key Vault: validate source output + KV, then create combined reference
-        if (request.ExportToKeyVault
-            && request.SourceResourceId is not null && request.SourceOutputName is not null
-            && request.KeyVaultResourceId is not null && request.SecretName is not null)
-        {
-            var sourceResource = await azureResourceRepository.GetByIdAsync(
-                request.SourceResourceId, cancellationToken);
+        await appConfigurationRepository.UpdateAsync(appConfig);
 
-            if (sourceResource is null)
-                return Errors.AppConfigurationKey.SourceResourceNotFound(request.SourceResourceId);
+        var hasAccess = await CheckKeyVaultAccessAsync(request.AppConfigurationId, request.KeyVaultResourceId!, cancellationToken);
+        return ToResult(configKey, hasAccess, variableGroupLookup.Value.GroupName);
+    }
 
-            var sourceType = sourceResource.GetType().Name;
-            var outputDef = ResourceOutputCatalog.FindOutput(sourceType, request.SourceOutputName);
+    private async Task<ErrorOr<AppConfigurationKeyResult>> AddVariableGroupReferenceAsync(
+        AddAppConfigurationKeyCommand request,
+        AppConfiguration appConfig,
+        Domain.InfrastructureConfigAggregate.InfrastructureConfig infraConfig,
+        CancellationToken cancellationToken)
+    {
+        var variableGroupLookup = await ResolveVariableGroupAsync(infraConfig, request.VariableGroupId!.Value, cancellationToken);
+        if (variableGroupLookup.IsError) return variableGroupLookup.Errors;
 
-            if (outputDef is null)
-                return Errors.AppConfigurationKey.InvalidOutput(request.SourceOutputName, sourceType);
+        var configKey = appConfig.AddViaVariableGroupConfigurationKey(
+            request.Key,
+            request.Label,
+            variableGroupLookup.Value.Id,
+            request.PipelineVariableName!);
 
-            var keyVaultResource = await azureResourceRepository.GetByIdAsync(
-                request.KeyVaultResourceId, cancellationToken);
+        await appConfigurationRepository.UpdateAsync(appConfig);
+        return ToResult(configKey, null, variableGroupLookup.Value.GroupName);
+    }
 
-            if (keyVaultResource is null || keyVaultResource is not KeyVault)
-                return Errors.AppConfigurationKey.KeyVaultNotFound(request.KeyVaultResourceId);
+    private async Task<ErrorOr<AppConfigurationKeyResult>> AddSensitiveOutputKeyVaultReferenceAsync(
+        AddAppConfigurationKeyCommand request,
+        AppConfiguration appConfig,
+        CancellationToken cancellationToken)
+    {
+        var outputLookup = await EnsureValidOutputAsync(request.SourceResourceId!, request.SourceOutputName!, cancellationToken);
+        if (outputLookup.IsError) return outputLookup.Errors;
 
-            var configKey = appConfig.AddSensitiveOutputKeyVaultReferenceConfigurationKey(
-                request.Key,
-                request.Label,
-                request.SourceResourceId,
-                request.SourceOutputName,
-                request.KeyVaultResourceId,
-                request.SecretName);
+        var keyVaultLookup = await EnsureKeyVaultExistsAsync(request.KeyVaultResourceId!, cancellationToken);
+        if (keyVaultLookup.IsError) return keyVaultLookup.Errors;
 
-            await appConfigurationRepository.UpdateAsync(appConfig);
+        var configKey = appConfig.AddSensitiveOutputKeyVaultReferenceConfigurationKey(
+            request.Key,
+            request.Label,
+            request.SourceResourceId!,
+            request.SourceOutputName!,
+            request.KeyVaultResourceId!,
+            request.SecretName!);
 
-            var hasAccess = await CheckKeyVaultAccessAsync(
-                request.AppConfigurationId, request.KeyVaultResourceId, cancellationToken);
+        await appConfigurationRepository.UpdateAsync(appConfig);
 
-            return ToResult(configKey, hasAccess);
-        }
+        var hasAccess = await CheckKeyVaultAccessAsync(request.AppConfigurationId, request.KeyVaultResourceId!, cancellationToken);
+        return ToResult(configKey, hasAccess);
+    }
 
-        // Key Vault reference
-        if (request.KeyVaultResourceId is not null && request.SecretName is not null)
-        {
-            var keyVaultResource = await azureResourceRepository.GetByIdAsync(
-                request.KeyVaultResourceId, cancellationToken);
+    private async Task<ErrorOr<AppConfigurationKeyResult>> AddKeyVaultReferenceAsync(
+        AddAppConfigurationKeyCommand request,
+        AppConfiguration appConfig,
+        CancellationToken cancellationToken)
+    {
+        var keyVaultLookup = await EnsureKeyVaultExistsAsync(request.KeyVaultResourceId!, cancellationToken);
+        if (keyVaultLookup.IsError) return keyVaultLookup.Errors;
 
-            if (keyVaultResource is null || keyVaultResource is not KeyVault)
-                return Errors.AppConfigurationKey.KeyVaultNotFound(request.KeyVaultResourceId);
+        var configKey = appConfig.AddKeyVaultReferenceConfigurationKey(
+            request.Key,
+            request.Label,
+            request.KeyVaultResourceId!,
+            request.SecretName!,
+            request.SecretValueAssignment ?? SecretValueAssignment.DirectInKeyVault);
 
-            var configKey = appConfig.AddKeyVaultReferenceConfigurationKey(
-                request.Key,
-                request.Label,
-                request.KeyVaultResourceId,
-                request.SecretName,
-                request.SecretValueAssignment ?? SecretValueAssignment.DirectInKeyVault);
+        await appConfigurationRepository.UpdateAsync(appConfig);
 
-            await appConfigurationRepository.UpdateAsync(appConfig);
+        var hasAccess = await CheckKeyVaultAccessAsync(request.AppConfigurationId, request.KeyVaultResourceId!, cancellationToken);
+        return ToResult(configKey, hasAccess);
+    }
 
-            var hasAccess = await CheckKeyVaultAccessAsync(
-                request.AppConfigurationId, request.KeyVaultResourceId, cancellationToken);
+    private async Task<ErrorOr<AppConfigurationKeyResult>> AddOutputReferenceAsync(
+        AddAppConfigurationKeyCommand request,
+        AppConfiguration appConfig,
+        CancellationToken cancellationToken)
+    {
+        var outputLookup = await EnsureValidOutputAsync(request.SourceResourceId!, request.SourceOutputName!, cancellationToken);
+        if (outputLookup.IsError) return outputLookup.Errors;
 
-            return ToResult(configKey, hasAccess);
-        }
+        var configKey = appConfig.AddOutputReferenceConfigurationKey(
+            request.Key,
+            request.Label,
+            request.SourceResourceId!,
+            request.SourceOutputName!);
 
-        // Output reference: validate the source resource and output
-        if (request.SourceResourceId is not null && request.SourceOutputName is not null)
-        {
-            var sourceResource = await azureResourceRepository.GetByIdAsync(
-                request.SourceResourceId, cancellationToken);
+        await appConfigurationRepository.UpdateAsync(appConfig);
+        return ToResult(configKey, null);
+    }
 
-            if (sourceResource is null)
-                return Errors.AppConfigurationKey.SourceResourceNotFound(request.SourceResourceId);
-
-            var sourceType = sourceResource.GetType().Name;
-            var outputDef = ResourceOutputCatalog.FindOutput(sourceType, request.SourceOutputName);
-
-            if (outputDef is null)
-                return Errors.AppConfigurationKey.InvalidOutput(request.SourceOutputName, sourceType);
-
-            var configKey = appConfig.AddOutputReferenceConfigurationKey(
-                request.Key,
-                request.Label,
-                request.SourceResourceId,
-                request.SourceOutputName);
-
-            await appConfigurationRepository.UpdateAsync(appConfig);
-
-            return ToResult(configKey, null);
-        }
-
-        // Static value
-        var staticKey = appConfig.AddStaticConfigurationKey(
+    private async Task<ErrorOr<AppConfigurationKeyResult>> AddStaticAsync(
+        AddAppConfigurationKeyCommand request,
+        AppConfiguration appConfig)
+    {
+        var configKey = appConfig.AddStaticConfigurationKey(
             request.Key,
             request.Label,
             request.EnvironmentValues ?? new Dictionary<string, string>());
 
         await appConfigurationRepository.UpdateAsync(appConfig);
+        return ToResult(configKey, null);
+    }
 
-        return ToResult(staticKey, null);
+    private async Task<ErrorOr<Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup>> ResolveVariableGroupAsync(
+        Domain.InfrastructureConfigAggregate.InfrastructureConfig infraConfig,
+        Guid variableGroupIdValue,
+        CancellationToken cancellationToken)
+    {
+        var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
+            infraConfig.ProjectId, cancellationToken);
+
+        var variableGroupId = new ProjectPipelineVariableGroupId(variableGroupIdValue);
+        var variableGroup = project?.PipelineVariableGroups
+            .FirstOrDefault(g => g.Id == variableGroupId);
+
+        if (variableGroup is null)
+            return Errors.Project.VariableGroupNotFoundError(variableGroupId);
+
+        return variableGroup;
+    }
+
+    private async Task<ErrorOr<Domain.Common.BaseModels.AzureResource>> EnsureKeyVaultExistsAsync(
+        AzureResourceId keyVaultResourceId,
+        CancellationToken cancellationToken)
+    {
+        var keyVaultResource = await azureResourceRepository.GetByIdAsync(keyVaultResourceId, cancellationToken);
+        if (keyVaultResource is not KeyVault)
+            return Errors.AppConfigurationKey.KeyVaultNotFound(keyVaultResourceId);
+        return keyVaultResource;
+    }
+
+    private async Task<ErrorOr<bool>> EnsureValidOutputAsync(
+        AzureResourceId sourceResourceId,
+        string sourceOutputName,
+        CancellationToken cancellationToken)
+    {
+        var sourceResource = await azureResourceRepository.GetByIdAsync(sourceResourceId, cancellationToken);
+        if (sourceResource is null)
+            return Errors.AppConfigurationKey.SourceResourceNotFound(sourceResourceId);
+
+        var sourceType = sourceResource.GetType().Name;
+        var outputDef = ResourceOutputCatalog.FindOutput(sourceType, sourceOutputName);
+
+        if (outputDef is null)
+            return Errors.AppConfigurationKey.InvalidOutput(sourceOutputName, sourceType);
+
+        return true;
     }
 
     private async Task<bool> CheckKeyVaultAccessAsync(

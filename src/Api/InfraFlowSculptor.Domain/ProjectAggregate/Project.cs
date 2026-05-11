@@ -404,7 +404,6 @@ public sealed class Project : AggregateRoot<ProjectId>
         return Result.Success;
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     private ErrorOr<Success> EnsureRepositoryAllowedByLayout(
         RepositoryContentKinds candidateKinds,
         int expectedCountAfterAdd,
@@ -414,41 +413,65 @@ public sealed class Project : AggregateRoot<ProjectId>
             ? _repositories
             : _repositories.Where(r => r.Id != ignoredId).ToList();
 
-        switch (LayoutPreset.Value)
+        return LayoutPreset.Value switch
         {
-            case LayoutPresetEnum.MultiRepo:
-                return Domain.Common.Errors.Errors.Project.RepositoryNotAllowedByLayout(
-                    LayoutPresetEnum.MultiRepo,
-                    "in MultiRepo mode the project owns no repository; declare them on each InfrastructureConfig instead.");
+            LayoutPresetEnum.MultiRepo => MultiRepoNotAllowed(),
+            LayoutPresetEnum.AllInOne => ValidateAllInOne(candidateKinds, expectedCountAfterAdd),
+            LayoutPresetEnum.SplitInfraCode => ValidateSplitInfraCode(candidateKinds, expectedCountAfterAdd, others),
+            _ => Result.Success,
+        };
+    }
 
-            case LayoutPresetEnum.AllInOne:
-                if (expectedCountAfterAdd > 1)
-                    return Domain.Common.Errors.Errors.Project.AllInOneRequiresExactlyOneRepository();
-                if (!candidateKinds.Has(RepositoryContentKindsEnum.Infrastructure)
-                    || !candidateKinds.Has(RepositoryContentKindsEnum.ApplicationCode))
-                    return Domain.Common.Errors.Errors.Project.AllInOneRequiresExactlyOneRepository();
-                return Result.Success;
+    private static ErrorOr<Success> MultiRepoNotAllowed() =>
+        Domain.Common.Errors.Errors.Project.RepositoryNotAllowedByLayout(
+            LayoutPresetEnum.MultiRepo,
+            "in MultiRepo mode the project owns no repository; declare them on each InfrastructureConfig instead.");
 
-            case LayoutPresetEnum.SplitInfraCode:
-                if (expectedCountAfterAdd > 2)
-                    return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
-                var isInfraOnly = candidateKinds.Has(RepositoryContentKindsEnum.Infrastructure)
-                                  && !candidateKinds.Has(RepositoryContentKindsEnum.ApplicationCode);
-                var isAppOnly = candidateKinds.Has(RepositoryContentKindsEnum.ApplicationCode)
-                                && !candidateKinds.Has(RepositoryContentKindsEnum.Infrastructure);
-                if (!isInfraOnly && !isAppOnly)
-                    return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
-                // Forbid duplicates of the same role across the project.
-                var conflict = others.Any(r =>
-                    (isInfraOnly && r.ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure))
-                    || (isAppOnly && r.ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode)));
-                if (conflict)
-                    return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
-                return Result.Success;
-        }
+    private static ErrorOr<Success> ValidateAllInOne(
+        RepositoryContentKinds candidateKinds,
+        int expectedCountAfterAdd)
+    {
+        if (expectedCountAfterAdd > 1)
+            return Domain.Common.Errors.Errors.Project.AllInOneRequiresExactlyOneRepository();
+
+        if (!candidateKinds.Has(RepositoryContentKindsEnum.Infrastructure)
+            || !candidateKinds.Has(RepositoryContentKindsEnum.ApplicationCode))
+            return Domain.Common.Errors.Errors.Project.AllInOneRequiresExactlyOneRepository();
 
         return Result.Success;
     }
+
+    private static ErrorOr<Success> ValidateSplitInfraCode(
+        RepositoryContentKinds candidateKinds,
+        int expectedCountAfterAdd,
+        IEnumerable<Entities.ProjectRepository> others)
+    {
+        if (expectedCountAfterAdd > 2)
+            return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
+
+        var role = ClassifyRole(candidateKinds);
+        if (role is null)
+            return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
+
+        var conflict = others.Any(r => RoleConflicts(role.Value, r.ContentKinds));
+        if (conflict)
+            return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
+
+        return Result.Success;
+    }
+
+    private static RepositoryContentKindsEnum? ClassifyRole(RepositoryContentKinds candidateKinds)
+    {
+        var hasInfra = candidateKinds.Has(RepositoryContentKindsEnum.Infrastructure);
+        var hasApp = candidateKinds.Has(RepositoryContentKindsEnum.ApplicationCode);
+
+        if (hasInfra && !hasApp) return RepositoryContentKindsEnum.Infrastructure;
+        if (hasApp && !hasInfra) return RepositoryContentKindsEnum.ApplicationCode;
+        return null;
+    }
+
+    private static bool RoleConflicts(RepositoryContentKindsEnum role, RepositoryContentKinds otherKinds) =>
+        otherKinds.Has(role);
 
     private static bool IsValidAllInOne(IReadOnlyCollection<ProjectRepository> repos)
         => repos.Count == 1

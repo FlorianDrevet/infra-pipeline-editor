@@ -1,6 +1,7 @@
 ﻿using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.ResourceGroups.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using MediatR;
@@ -20,7 +21,6 @@ public sealed class ListIncomingCrossConfigReferencesQueryHandler(
     : IQueryHandler<ListIncomingCrossConfigReferencesQuery, List<IncomingCrossConfigReferenceResult>>
 {
     /// <inheritdoc />
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public async Task<ErrorOr<List<IncomingCrossConfigReferenceResult>>> Handle(
         ListIncomingCrossConfigReferencesQuery query,
         CancellationToken cancellationToken)
@@ -32,15 +32,22 @@ public sealed class ListIncomingCrossConfigReferencesQueryHandler(
 
         var config = authResult.Value;
 
-        // Load all sibling configs in the same project (lightweight, no Includes)
-        var siblingConfigs = await infraConfigRepository.GetByProjectIdAsync(config.ProjectId, cancellationToken);
+        var incomingRefs = await CollectIncomingReferencesAsync(config, cancellationToken);
+        if (incomingRefs.Count == 0)
+            return new List<IncomingCrossConfigReferenceResult>();
 
-        // Collect all incoming cross-config references targeting this config
-        var incomingRefs = new List<(
-            InfrastructureConfigId SiblingId,
-            string SiblingName,
-            Guid ReferenceId,
-            AzureResourceId TargetResourceId)>();
+        var targetMetadata = await LoadTargetMetadataAsync(incomingRefs, cancellationToken);
+        var childToParent = await BuildChildToParentMappingAsync(incomingRefs, cancellationToken);
+
+        return BuildResults(incomingRefs, targetMetadata, childToParent);
+    }
+
+    private async Task<List<IncomingReferenceRecord>> CollectIncomingReferencesAsync(
+        Domain.InfrastructureConfigAggregate.InfrastructureConfig config,
+        CancellationToken cancellationToken)
+    {
+        var siblingConfigs = await infraConfigRepository.GetByProjectIdAsync(config.ProjectId, cancellationToken);
+        var incomingRefs = new List<IncomingReferenceRecord>();
 
         foreach (var sibling in siblingConfigs)
         {
@@ -49,71 +56,90 @@ public sealed class ListIncomingCrossConfigReferencesQueryHandler(
             var siblingWithRefs = await infraConfigRepository.GetByIdWithMembersAsync(sibling.Id, cancellationToken);
             if (siblingWithRefs is null) continue;
 
-            var matchingRefs = siblingWithRefs.CrossConfigReferences
-                .Where(r => r.TargetConfigId == config.Id)
-                .ToList();
-
-            foreach (var r in matchingRefs)
+            foreach (var r in siblingWithRefs.CrossConfigReferences.Where(r => r.TargetConfigId == config.Id))
             {
-                incomingRefs.Add((sibling.Id, siblingWithRefs.Name.Value, r.Id.Value, r.TargetResourceId));
+                incomingRefs.Add(new IncomingReferenceRecord(
+                    sibling.Id,
+                    siblingWithRefs.Name.Value,
+                    r.Id.Value,
+                    r.TargetResourceId));
             }
         }
 
-        if (incomingRefs.Count == 0)
-            return new List<IncomingCrossConfigReferenceResult>();
+        return incomingRefs;
+    }
 
-        // Batch-resolve all target resource metadata (name, type, RG name)
+    private async Task<Dictionary<Guid, ResourceMetadata>> LoadTargetMetadataAsync(
+        List<IncomingReferenceRecord> incomingRefs,
+        CancellationToken cancellationToken)
+    {
         var targetResourceIds = incomingRefs
             .Select(r => r.TargetResourceId)
             .Distinct()
             .ToList();
         var targetMetadataList = await resourceGroupRepository.GetResourceMetadataBatchAsync(
             targetResourceIds, cancellationToken);
-        var targetMetadata = targetMetadataList.ToDictionary(m => m.ResourceId);
+        return targetMetadataList.ToDictionary(m => m.ResourceId);
+    }
 
-        // Load parent-child mappings for all sibling configs' resource groups
-        // to find child resources whose parent FK matches a target resource
+    private async Task<Dictionary<Guid, ChildToParentRecord>> BuildChildToParentMappingAsync(
+        List<IncomingReferenceRecord> incomingRefs,
+        CancellationToken cancellationToken)
+    {
         var siblingConfigIds = incomingRefs
             .Select(r => r.SiblingId)
             .Distinct()
             .ToList();
 
-        // For each sibling, load its RGs (lightweight) and collect childâ†’parent mappings
-        var allChildToParent = new Dictionary<Guid, (Guid ParentId, Guid SiblingConfigId, string SiblingConfigName, string ChildName, string ChildType, string ChildRgName)>();
+        var allChildToParent = new Dictionary<Guid, ChildToParentRecord>();
 
         foreach (var siblingId in siblingConfigIds)
         {
             var siblingName = incomingRefs.First(r => r.SiblingId == siblingId).SiblingName;
-            var rgs = await resourceGroupRepository.GetLightweightByInfraConfigIdAsync(siblingId, cancellationToken);
+            await AppendSiblingMappingAsync(siblingId, siblingName, allChildToParent, cancellationToken);
+        }
 
-            foreach (var rg in rgs)
+        return allChildToParent;
+    }
+
+    private async Task AppendSiblingMappingAsync(
+        InfrastructureConfigId siblingId,
+        string siblingName,
+        Dictionary<Guid, ChildToParentRecord> allChildToParent,
+        CancellationToken cancellationToken)
+    {
+        var rgs = await resourceGroupRepository.GetLightweightByInfraConfigIdAsync(siblingId, cancellationToken);
+
+        foreach (var rg in rgs)
+        {
+            var parentMapping = await resourceGroupRepository.GetChildToParentMappingAsync(rg.Id, cancellationToken);
+            if (parentMapping.Count == 0) continue;
+
+            var childIds = parentMapping.Keys.Select(id => new AzureResourceId(id)).ToList();
+            var childMetadataList = await resourceGroupRepository.GetResourceMetadataBatchAsync(
+                childIds, cancellationToken);
+
+            foreach (var childMeta in childMetadataList)
             {
-                var parentMapping = await resourceGroupRepository.GetChildToParentMappingAsync(rg.Id, cancellationToken);
-
-                if (parentMapping.Count == 0) continue;
-
-                // Batch-resolve child resource metadata
-                var childIds = parentMapping.Keys.Select(id => new AzureResourceId(id)).ToList();
-                var childMetadataList = await resourceGroupRepository.GetResourceMetadataBatchAsync(
-                    childIds, cancellationToken);
-
-                foreach (var childMeta in childMetadataList)
+                if (parentMapping.TryGetValue(childMeta.ResourceId, out var parentId))
                 {
-                    if (parentMapping.TryGetValue(childMeta.ResourceId, out var parentId))
-                    {
-                        allChildToParent[childMeta.ResourceId] = (
-                            parentId,
-                            siblingId.Value,
-                            siblingName,
-                            childMeta.ResourceName,
-                            childMeta.ResourceType,
-                            childMeta.ResourceGroupName);
-                    }
+                    allChildToParent[childMeta.ResourceId] = new ChildToParentRecord(
+                        parentId,
+                        siblingId.Value,
+                        siblingName,
+                        childMeta.ResourceName,
+                        childMeta.ResourceType,
+                        childMeta.ResourceGroupName);
                 }
             }
         }
+    }
 
-        // Build results by matching incoming refs' target resources to childâ†’parent mappings
+    private static List<IncomingCrossConfigReferenceResult> BuildResults(
+        List<IncomingReferenceRecord> incomingRefs,
+        Dictionary<Guid, ResourceMetadata> targetMetadata,
+        Dictionary<Guid, ChildToParentRecord> childToParent)
+    {
         var results = new List<IncomingCrossConfigReferenceResult>();
 
         foreach (var incoming in incomingRefs)
@@ -121,7 +147,7 @@ public sealed class ListIncomingCrossConfigReferencesQueryHandler(
             if (!targetMetadata.TryGetValue(incoming.TargetResourceId.Value, out var target))
                 continue;
 
-            foreach (var (childId, mapping) in allChildToParent)
+            foreach (var (childId, mapping) in childToParent)
             {
                 if (mapping.ParentId != incoming.TargetResourceId.Value) continue;
                 if (mapping.SiblingConfigId != incoming.SiblingId.Value) continue;
@@ -142,4 +168,18 @@ public sealed class ListIncomingCrossConfigReferencesQueryHandler(
 
         return results;
     }
+
+    private readonly record struct IncomingReferenceRecord(
+        InfrastructureConfigId SiblingId,
+        string SiblingName,
+        Guid ReferenceId,
+        AzureResourceId TargetResourceId);
+
+    private readonly record struct ChildToParentRecord(
+        Guid ParentId,
+        Guid SiblingConfigId,
+        string SiblingConfigName,
+        string ChildName,
+        string ChildType,
+        string ChildRgName);
 }

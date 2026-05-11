@@ -311,8 +311,8 @@ public sealed class StorageAccountTests
         sut.SetCorsRules(blobRules);
 
         // Assert
-        sut.CorsRules.Should().ContainSingle();
-        sut.TableCorsRules.Should().ContainSingle();
+        sut.GetBlobCorsRules().Should().ContainSingle();
+        sut.GetTableCorsRules().Should().ContainSingle();
         sut.AllCorsRules.Should().HaveCount(2);
     }
 

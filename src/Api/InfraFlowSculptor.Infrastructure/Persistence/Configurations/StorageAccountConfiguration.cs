@@ -15,8 +15,7 @@ public class StorageAccountConfiguration : IEntityTypeConfiguration<StorageAccou
         builder.HasBaseType<AzureResource>()
             .ToTable("StorageAccounts");
 
-        builder.Ignore(s => s.CorsRules);
-        builder.Ignore(s => s.TableCorsRules);
+        builder.Ignore(s => s.AllCorsRules);
 
         builder.Property(s => s.Kind)
             .IsRequired()

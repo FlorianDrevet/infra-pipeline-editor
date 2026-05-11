@@ -3,6 +3,8 @@ using ErrorOr;
 using InfraFlowSculptor.Application.AppSettings.Common;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
+using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using MediatR;
@@ -18,7 +20,6 @@ public sealed class ListAppSettingsQueryHandler(
     : IQueryHandler<ListAppSettingsQuery, IReadOnlyList<AppSettingResult>>
 {
     /// <inheritdoc />
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public async Task<ErrorOr<IReadOnlyList<AppSettingResult>>> Handle(
         ListAppSettingsQuery request,
         CancellationToken cancellationToken)
@@ -29,64 +30,86 @@ public sealed class ListAppSettingsQueryHandler(
         if (resource is null)
             return Errors.AppSetting.SourceResourceNotFound(request.ResourceId);
 
-        // Resolve VG group names if any app setting references a variable group
+        var vgNameLookup = await ResolveVariableGroupNamesAsync(resource, cancellationToken);
+        var kvIdsWithAccess = BuildKeyVaultAccessSet(resource);
+
+        return resource.AppSettings
+            .Select(s => MapAppSetting(s, kvIdsWithAccess, vgNameLookup))
+            .ToList();
+    }
+
+    private async Task<Dictionary<ProjectPipelineVariableGroupId, string>> ResolveVariableGroupNamesAsync(
+        AzureResource resource,
+        CancellationToken cancellationToken)
+    {
         var vgIds = resource.AppSettings
             .Where(s => s.VariableGroupId is not null)
             .Select(s => s.VariableGroupId!)
             .Distinct()
             .ToList();
 
-        Dictionary<ProjectPipelineVariableGroupId, string> vgNameLookup = [];
+        if (vgIds.Count == 0)
+            return [];
 
-        if (vgIds.Count > 0)
-        {
-            var resourceGroup = await resourceGroupRepository.GetByIdAsync(
-                resource.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdAsync(
+            resource.ResourceGroupId, cancellationToken);
 
-            if (resourceGroup is not null)
-            {
-                var authResult = await accessService.VerifyReadAccessAsync(
-                    resourceGroup.InfraConfigId, cancellationToken);
+        if (resourceGroup is null)
+            return [];
 
-                if (!authResult.IsError)
-                {
-                    var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
-                        authResult.Value.ProjectId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(
+            resourceGroup.InfraConfigId, cancellationToken);
 
-                    if (project is not null)
-                    {
-                        vgNameLookup = project.PipelineVariableGroups
-                            .Where(g => vgIds.Contains(g.Id))
-                            .ToDictionary(g => g.Id, g => g.GroupName);
-                    }
-                }
-            }
-        }
+        if (authResult.IsError)
+            return [];
 
-        // Build a set of KV resource IDs that have at least one secrets-access role assignment
-        var kvIdsWithAccess = resource.RoleAssignments
+        var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
+            authResult.Value.ProjectId, cancellationToken);
+
+        if (project is null)
+            return [];
+
+        return project.PipelineVariableGroups
+            .Where(g => vgIds.Contains(g.Id))
+            .ToDictionary(g => g.Id, g => g.GroupName);
+    }
+
+    private static HashSet<AzureResourceId> BuildKeyVaultAccessSet(AzureResource resource)
+    {
+        return resource.RoleAssignments
             .Where(ra => AzureRoleDefinitionCatalog.KeyVaultSecretsAccessRoles.Contains(ra.RoleDefinitionId))
             .Select(ra => ra.TargetResourceId)
             .ToHashSet();
+    }
 
-        return resource.AppSettings
-            .Select(s => new AppSettingResult(
-                s.Id, s.ResourceId, s.Name,
-                s.EnvironmentValues.Count > 0
-                    ? s.EnvironmentValues.ToDictionary(ev => ev.EnvironmentName, ev => ev.Value)
-                    : null,
-                s.SourceResourceId,
-                s.SourceOutputName, s.IsOutputReference,
-                s.KeyVaultResourceId, s.SecretName,
-                s.IsKeyVaultReference,
-                s.IsKeyVaultReference && s.KeyVaultResourceId is not null
-                    ? kvIdsWithAccess.Contains(s.KeyVaultResourceId)
-                    : null,
-                s.SecretValueAssignment,
-                s.VariableGroupId?.Value,
-                s.PipelineVariableName,
-                s.VariableGroupId is not null && vgNameLookup.TryGetValue(s.VariableGroupId, out var vgName) ? vgName : null,
-                s.IsViaVariableGroup))
-            .ToList();
+    private static AppSettingResult MapAppSetting(
+        Domain.Common.BaseModels.Entites.AppSetting s,
+        HashSet<AzureResourceId> kvIdsWithAccess,
+        Dictionary<ProjectPipelineVariableGroupId, string> vgNameLookup)
+    {
+        bool? hasKeyVaultAccess = s.IsKeyVaultReference && s.KeyVaultResourceId is not null
+            ? kvIdsWithAccess.Contains(s.KeyVaultResourceId)
+            : null;
+
+        string? variableGroupName = s.VariableGroupId is not null
+            && vgNameLookup.TryGetValue(s.VariableGroupId, out var vgName)
+                ? vgName
+                : null;
+
+        return new AppSettingResult(
+            s.Id, s.ResourceId, s.Name,
+            s.EnvironmentValues.Count > 0
+                ? s.EnvironmentValues.ToDictionary(ev => ev.EnvironmentName, ev => ev.Value)
+                : null,
+            s.SourceResourceId,
+            s.SourceOutputName, s.IsOutputReference,
+            s.KeyVaultResourceId, s.SecretName,
+            s.IsKeyVaultReference,
+            hasKeyVaultAccess,
+            s.SecretValueAssignment,
+            s.VariableGroupId?.Value,
+            s.PipelineVariableName,
+            variableGroupName,
+            s.IsViaVariableGroup);
     }
 }

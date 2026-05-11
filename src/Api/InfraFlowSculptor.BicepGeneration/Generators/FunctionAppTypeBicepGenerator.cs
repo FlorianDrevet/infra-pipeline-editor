@@ -99,7 +99,6 @@ public sealed class FunctionAppTypeBicepGenerator
     public string ResourceTypeName => AzureResourceTypes.FunctionApp;
 
     /// <inheritdoc />
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
       var deploymentMode = resource.Properties.GetValueOrDefault(DeploymentModeParameterName, CodeDeploymentMode);
@@ -121,115 +120,15 @@ public sealed class FunctionAppTypeBicepGenerator
         .Param(DeploymentModeParameterName, BicepType.String, "Deployment mode",
           defaultValue: new BicepStringLiteral(isContainer ? ContainerDeploymentMode : CodeDeploymentMode));
 
-        // Container-specific params
-        if (isContainer)
-        {
-            builder
-              .Param(DockerImageNameParameterName, BicepType.String, "Docker image name (e.g. myapp/functions)")
-              .Param(DockerImageTagParameterName, BicepType.String, "Docker image tag (e.g. latest, v1.2.3)",
-                defaultValue: new BicepStringLiteral(DefaultDockerImageTag))
-              .Param(AcrLoginServerParameterName, BicepType.String, "ACR login server (e.g. myregistry.azurecr.io)");
-
-            if (useAdminCredentials)
-            {
-              builder.Param(AcrPasswordParameterName, BicepType.String,
-                    "Admin password for the Container Registry", secure: true);
-            }
-            else
-            {
-                builder
-                .Param(AcrUseManagedIdentityCredsParameterName, BicepType.Bool,
-                        "Whether to use managed identity credentials for ACR",
-                        defaultValue: new BicepBoolLiteral(true))
-                .Param(AcrUserManagedIdentityIdParameterName, BicepType.String,
-                        "Client ID of the user-assigned managed identity for ACR pull",
-                  defaultValue: new BicepStringLiteral(EmptyParameterValue));
-            }
-        }
+        AddContainerParameters(builder, isContainer, useAdminCredentials);
 
           builder.Param(CustomDomainsParameterName, BicepType.Array, "Custom domain bindings for this Function App",
             defaultValue: new BicepArrayExpression([]));
 
-        // Variables â€” workerRuntime is always present
-          var workerRuntimeExpr = new BicepRawExpression(WorkerRuntimeExpression);
+        AddVariables(builder, isContainer, useAdminCredentials);
 
-        if (isContainer)
-        {
-            builder.Var(DockerImageVariableName, new BicepRawExpression(DockerImageExpression));
-            builder.Var(WorkerRuntimeVariableName, workerRuntimeExpr);
-            if (useAdminCredentials)
-            {
-              builder.Var(AcrUsernameVariableName, new BicepRawExpression(AcrUsernameExpression));
-            }
-
-            builder.ModuleFileName(useAdminCredentials
-              ? AdminCredentialsModuleFileName
-              : ManagedIdentityModuleFileName);
-        }
-        else
-        {
-            builder.Var(LinuxFxVersionVariableName, new BicepRawExpression(LinuxFxVersionExpression));
-            builder.Var(WorkerRuntimeVariableName, workerRuntimeExpr);
-        }
-
-        // Functions app settings (present in all variants)
-        var functionsAppSettings = new List<BicepExpression>
-        {
-            new BicepObjectExpression([
-          new BicepPropertyAssignment(NamePropertyName, new BicepStringLiteral(FunctionsWorkerRuntimeSettingName)),
-          new BicepPropertyAssignment(ValuePropertyName, new BicepReference(WorkerRuntimeVariableName)),
-            ]),
-            new BicepObjectExpression([
-          new BicepPropertyAssignment(NamePropertyName, new BicepStringLiteral(FunctionsExtensionVersionSettingName)),
-          new BicepPropertyAssignment(ValuePropertyName, new BicepStringLiteral(FunctionsExtensionVersionValue)),
-            ]),
-        };
-
-        // Container Admin: add Docker registry settings
-        if (isContainer && useAdminCredentials)
-        {
-            functionsAppSettings.Add(new BicepObjectExpression([
-          new BicepPropertyAssignment(NamePropertyName, new BicepStringLiteral(DockerRegistryServerUrlSettingName)),
-          new BicepPropertyAssignment(ValuePropertyName, new BicepRawExpression(AcrLoginServerUrlExpression)),
-            ]));
-            functionsAppSettings.Add(new BicepObjectExpression([
-          new BicepPropertyAssignment(NamePropertyName, new BicepStringLiteral(DockerRegistryServerUsernameSettingName)),
-          new BicepPropertyAssignment(ValuePropertyName, new BicepReference(AcrUsernameVariableName)),
-            ]));
-            functionsAppSettings.Add(new BicepObjectExpression([
-          new BicepPropertyAssignment(NamePropertyName, new BicepStringLiteral(DockerRegistryServerPasswordSettingName)),
-          new BicepPropertyAssignment(ValuePropertyName, new BicepReference(AcrPasswordParameterName)),
-            ]));
-        }
-
-        // Build siteConfig properties
-        var siteConfigProps = new List<BicepPropertyAssignment>
-        {
-            new(LinuxFxVersionPropertyName, isContainer
-            ? new BicepRawExpression(DockerLinuxFxVersionExpression)
-            : new BicepReference(LinuxFxVersionVariableName)),
-          new(FtpsStatePropertyName, new BicepStringLiteral(DisabledStateValue)),
-          new(MinTlsVersionPropertyName, new BicepStringLiteral(MinimumTlsVersionValue)),
-        };
-
-        if (isContainer && !useAdminCredentials)
-        {
-          siteConfigProps.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsParameterName,
-            new BicepReference(AcrUseManagedIdentityCredsParameterName)));
-          siteConfigProps.Add(new BicepPropertyAssignment(AcrUserManagedIdentityIdSiteConfigPropertyName,
-                new BicepConditionalExpression(
-              new BicepRawExpression(AcrUserManagedIdentityIdNotEmptyExpression),
-              new BicepReference(AcrUserManagedIdentityIdParameterName),
-                    new BicepRawExpression(NullExpression))));
-        }
-        else if (isContainer && useAdminCredentials)
-        {
-          siteConfigProps.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsParameterName,
-                new BicepBoolLiteral(false)));
-        }
-
-        siteConfigProps.Add(new BicepPropertyAssignment(AppSettingsPropertyName,
-            new BicepArrayExpression(functionsAppSettings)));
+        var functionsAppSettings = BuildFunctionsAppSettings(isContainer, useAdminCredentials);
+        var siteConfigProps = BuildSiteConfigProperties(isContainer, useAdminCredentials, functionsAppSettings);
 
         // Primary resource
         builder.Resource(FunctionAppResourceSymbol, FunctionAppArmType)
@@ -241,47 +140,174 @@ public sealed class FunctionAppTypeBicepGenerator
             .Property(HttpsOnlyParameterName, new BicepReference(HttpsOnlyParameterName))
             .Property(SiteConfigPropertyName, new BicepObjectExpression(siteConfigProps)));
 
-        // hostNameBindings for-loop child resource
+        AddHostNameBindings(builder);
+        AddOutputs(builder);
+        AddExportedTypes(builder);
+
+        return builder.Build();
+    }
+
+    private static void AddContainerParameters(BicepModuleBuilder builder, bool isContainer, bool useAdminCredentials)
+    {
+        if (!isContainer)
+            return;
+
+        builder
+          .Param(DockerImageNameParameterName, BicepType.String, "Docker image name (e.g. myapp/functions)")
+          .Param(DockerImageTagParameterName, BicepType.String, "Docker image tag (e.g. latest, v1.2.3)",
+            defaultValue: new BicepStringLiteral(DefaultDockerImageTag))
+          .Param(AcrLoginServerParameterName, BicepType.String, "ACR login server (e.g. myregistry.azurecr.io)");
+
+        if (useAdminCredentials)
+        {
+            builder.Param(AcrPasswordParameterName, BicepType.String,
+                "Admin password for the Container Registry", secure: true);
+            return;
+        }
+
+        builder
+            .Param(AcrUseManagedIdentityCredsParameterName, BicepType.Bool,
+                "Whether to use managed identity credentials for ACR",
+                defaultValue: new BicepBoolLiteral(true))
+            .Param(AcrUserManagedIdentityIdParameterName, BicepType.String,
+                "Client ID of the user-assigned managed identity for ACR pull",
+                defaultValue: new BicepStringLiteral(EmptyParameterValue));
+    }
+
+    private static void AddVariables(BicepModuleBuilder builder, bool isContainer, bool useAdminCredentials)
+    {
+        var workerRuntimeExpr = new BicepRawExpression(WorkerRuntimeExpression);
+
+        if (!isContainer)
+        {
+            builder.Var(LinuxFxVersionVariableName, new BicepRawExpression(LinuxFxVersionExpression));
+            builder.Var(WorkerRuntimeVariableName, workerRuntimeExpr);
+            return;
+        }
+
+        builder.Var(DockerImageVariableName, new BicepRawExpression(DockerImageExpression));
+        builder.Var(WorkerRuntimeVariableName, workerRuntimeExpr);
+        if (useAdminCredentials)
+        {
+            builder.Var(AcrUsernameVariableName, new BicepRawExpression(AcrUsernameExpression));
+        }
+
+        builder.ModuleFileName(useAdminCredentials
+            ? AdminCredentialsModuleFileName
+            : ManagedIdentityModuleFileName);
+    }
+
+    private static List<BicepExpression> BuildFunctionsAppSettings(bool isContainer, bool useAdminCredentials)
+    {
+        var functionsAppSettings = new List<BicepExpression>
+        {
+            new BicepObjectExpression([
+                new BicepPropertyAssignment(NamePropertyName, new BicepStringLiteral(FunctionsWorkerRuntimeSettingName)),
+                new BicepPropertyAssignment(ValuePropertyName, new BicepReference(WorkerRuntimeVariableName)),
+            ]),
+            new BicepObjectExpression([
+                new BicepPropertyAssignment(NamePropertyName, new BicepStringLiteral(FunctionsExtensionVersionSettingName)),
+                new BicepPropertyAssignment(ValuePropertyName, new BicepStringLiteral(FunctionsExtensionVersionValue)),
+            ]),
+        };
+
+        if (!isContainer || !useAdminCredentials)
+            return functionsAppSettings;
+
+        functionsAppSettings.Add(new BicepObjectExpression([
+            new BicepPropertyAssignment(NamePropertyName, new BicepStringLiteral(DockerRegistryServerUrlSettingName)),
+            new BicepPropertyAssignment(ValuePropertyName, new BicepRawExpression(AcrLoginServerUrlExpression)),
+        ]));
+        functionsAppSettings.Add(new BicepObjectExpression([
+            new BicepPropertyAssignment(NamePropertyName, new BicepStringLiteral(DockerRegistryServerUsernameSettingName)),
+            new BicepPropertyAssignment(ValuePropertyName, new BicepReference(AcrUsernameVariableName)),
+        ]));
+        functionsAppSettings.Add(new BicepObjectExpression([
+            new BicepPropertyAssignment(NamePropertyName, new BicepStringLiteral(DockerRegistryServerPasswordSettingName)),
+            new BicepPropertyAssignment(ValuePropertyName, new BicepReference(AcrPasswordParameterName)),
+        ]));
+        return functionsAppSettings;
+    }
+
+    private static List<BicepPropertyAssignment> BuildSiteConfigProperties(
+        bool isContainer,
+        bool useAdminCredentials,
+        List<BicepExpression> functionsAppSettings)
+    {
+        var siteConfigProps = new List<BicepPropertyAssignment>
+        {
+            new(LinuxFxVersionPropertyName, isContainer
+                ? new BicepRawExpression(DockerLinuxFxVersionExpression)
+                : new BicepReference(LinuxFxVersionVariableName)),
+            new(FtpsStatePropertyName, new BicepStringLiteral(DisabledStateValue)),
+            new(MinTlsVersionPropertyName, new BicepStringLiteral(MinimumTlsVersionValue)),
+        };
+
+        if (isContainer && !useAdminCredentials)
+        {
+            siteConfigProps.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsParameterName,
+                new BicepReference(AcrUseManagedIdentityCredsParameterName)));
+            siteConfigProps.Add(new BicepPropertyAssignment(AcrUserManagedIdentityIdSiteConfigPropertyName,
+                new BicepConditionalExpression(
+                    new BicepRawExpression(AcrUserManagedIdentityIdNotEmptyExpression),
+                    new BicepReference(AcrUserManagedIdentityIdParameterName),
+                    new BicepRawExpression(NullExpression))));
+        }
+        else if (isContainer && useAdminCredentials)
+        {
+            siteConfigProps.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsParameterName,
+                new BicepBoolLiteral(false)));
+        }
+
+        siteConfigProps.Add(new BicepPropertyAssignment(AppSettingsPropertyName,
+            new BicepArrayExpression(functionsAppSettings)));
+        return siteConfigProps;
+    }
+
+    private static void AddHostNameBindings(BicepModuleBuilder builder)
+    {
         builder.AdditionalResource(HostNameBindingsResourceName, HostNameBindingsArmType,
-          forLoop: new BicepForLoop(DomainLoopVariableName, new BicepReference(CustomDomainsParameterName)),
-          parentSymbol: FunctionAppResourceSymbol,
+            forLoop: new BicepForLoop(DomainLoopVariableName, new BicepReference(CustomDomainsParameterName)),
+            parentSymbol: FunctionAppResourceSymbol,
             bodyBuilder: body => body
                 .Property(NamePropertyName, new BicepRawExpression(DomainNameExpression))
                 .Property(PropertiesPropertyName, p => p
-              .Property(SiteNamePropertyName, new BicepRawExpression(FunctionAppNameExpression))
-              .Property(HostNameTypePropertyName, new BicepStringLiteral(HostNameTypeVerifiedValue))
-              .Property(SslStatePropertyName, new BicepConditionalExpression(
-                new BicepRawExpression(DomainBindingTypeSniEnabledExpression),
-                new BicepStringLiteral(SniEnabledBindingTypeValue),
-                new BicepStringLiteral(DisabledStateValue)))));
+                    .Property(SiteNamePropertyName, new BicepRawExpression(FunctionAppNameExpression))
+                    .Property(HostNameTypePropertyName, new BicepStringLiteral(HostNameTypeVerifiedValue))
+                    .Property(SslStatePropertyName, new BicepConditionalExpression(
+                        new BicepRawExpression(DomainBindingTypeSniEnabledExpression),
+                        new BicepStringLiteral(SniEnabledBindingTypeValue),
+                        new BicepStringLiteral(DisabledStateValue)))));
+    }
 
-        // Outputs
+    private static void AddOutputs(BicepModuleBuilder builder)
+    {
         builder
-          .Output(IdOutputName, BicepType.String, new BicepRawExpression(FunctionAppIdExpression),
+            .Output(IdOutputName, BicepType.String, new BicepRawExpression(FunctionAppIdExpression),
                 description: "The resource ID of the Function App")
-          .Output(DefaultHostNameOutputName, BicepType.String,
-          new BicepRawExpression(DefaultHostNameExpression),
+            .Output(DefaultHostNameOutputName, BicepType.String,
+                new BicepRawExpression(DefaultHostNameExpression),
                 description: "The default host name of the Function App")
-          .Output(PrincipalIdOutputName, BicepType.String,
-          new BicepRawExpression(PrincipalIdExpression),
+            .Output(PrincipalIdOutputName, BicepType.String,
+                new BicepRawExpression(PrincipalIdExpression),
                 description: "The principal ID of the system-assigned managed identity")
-          .Output(CustomDomainVerificationIdOutputName, BicepType.String,
-          new BicepRawExpression(CustomDomainVerificationIdExpression),
+            .Output(CustomDomainVerificationIdOutputName, BicepType.String,
+                new BicepRawExpression(CustomDomainVerificationIdExpression),
                 description: "The custom domain verification ID");
+    }
 
-        // Exported types
+    private static void AddExportedTypes(BicepModuleBuilder builder)
+    {
         builder
-          .ExportedType(RuntimeStackTypeName,
-            new BicepRawExpression(RuntimeStackUnion),
+            .ExportedType(RuntimeStackTypeName,
+                new BicepRawExpression(RuntimeStackUnion),
                 description: "Runtime stack for the Function App")
-          .ExportedType(WorkerRuntimeTypeName,
-            new BicepRawExpression(WorkerRuntimeUnion),
+            .ExportedType(WorkerRuntimeTypeName,
+                new BicepRawExpression(WorkerRuntimeUnion),
                 description: "Functions worker runtime identifier")
-          .ExportedType(DeploymentModeTypeName,
-            new BicepRawExpression(DeploymentModeUnion),
+            .ExportedType(DeploymentModeTypeName,
+                new BicepRawExpression(DeploymentModeUnion),
                 description: "Deployment mode for the Function App");
-
-        return builder.Build();
     }
 
     private static string GetAcrAuthMode(IReadOnlyDictionary<string, string> properties)

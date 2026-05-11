@@ -313,7 +313,6 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         return Result.Deleted;
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     private ErrorOr<Success> EnsureRepositoryAllowedByLayout(
         ProjectAggregate.ValueObjects.RepositoryContentKinds candidate,
         int expectedCountAfterAdd,
@@ -323,33 +322,56 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
             ? _repositories
             : _repositories.Where(r => r.Id != ignoredId).ToList();
 
-        switch (LayoutMode!.Value)
+        return LayoutMode!.Value switch
         {
-            case ValueObjects.ConfigLayoutModeEnum.AllInOne:
-                if (expectedCountAfterAdd > 1)
-                    return Domain.Common.Errors.Errors.InfraConfigRepository.AllInOneRequiresOneRepository();
-                if (!candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.Infrastructure)
-                    || !candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.ApplicationCode))
-                    return Domain.Common.Errors.Errors.InfraConfigRepository.AllInOneRequiresOneRepository();
-                return Result.Success;
+            ValueObjects.ConfigLayoutModeEnum.AllInOne => ValidateAllInOne(candidate, expectedCountAfterAdd),
+            ValueObjects.ConfigLayoutModeEnum.SplitInfraCode => ValidateSplitInfraCode(candidate, expectedCountAfterAdd, others),
+            _ => Result.Success,
+        };
+    }
 
-            case ValueObjects.ConfigLayoutModeEnum.SplitInfraCode:
-                if (expectedCountAfterAdd > 2)
-                    return Domain.Common.Errors.Errors.InfraConfigRepository.SplitInfraCodeRequiresInfraAndApp();
-                var isInfraOnly = candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.Infrastructure)
-                                  && !candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.ApplicationCode);
-                var isAppOnly = candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.ApplicationCode)
-                                && !candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.Infrastructure);
-                if (!isInfraOnly && !isAppOnly)
-                    return Domain.Common.Errors.Errors.InfraConfigRepository.SplitInfraCodeRequiresInfraAndApp();
-                var conflict = others.Any(r =>
-                    (isInfraOnly && r.ContentKinds.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.Infrastructure))
-                    || (isAppOnly && r.ContentKinds.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.ApplicationCode)));
-                if (conflict)
-                    return Domain.Common.Errors.Errors.InfraConfigRepository.SplitInfraCodeRequiresInfraAndApp();
-                return Result.Success;
-        }
+    private static ErrorOr<Success> ValidateAllInOne(
+        ProjectAggregate.ValueObjects.RepositoryContentKinds candidate,
+        int expectedCountAfterAdd)
+    {
+        if (expectedCountAfterAdd > 1)
+            return Domain.Common.Errors.Errors.InfraConfigRepository.AllInOneRequiresOneRepository();
+
+        if (!candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.Infrastructure)
+            || !candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.ApplicationCode))
+            return Domain.Common.Errors.Errors.InfraConfigRepository.AllInOneRequiresOneRepository();
+
         return Result.Success;
+    }
+
+    private static ErrorOr<Success> ValidateSplitInfraCode(
+        ProjectAggregate.ValueObjects.RepositoryContentKinds candidate,
+        int expectedCountAfterAdd,
+        IEnumerable<Entities.InfraConfigRepository> others)
+    {
+        if (expectedCountAfterAdd > 2)
+            return Domain.Common.Errors.Errors.InfraConfigRepository.SplitInfraCodeRequiresInfraAndApp();
+
+        var role = ClassifyRole(candidate);
+        if (role is null)
+            return Domain.Common.Errors.Errors.InfraConfigRepository.SplitInfraCodeRequiresInfraAndApp();
+
+        var conflict = others.Any(r => r.ContentKinds.Has(role.Value));
+        if (conflict)
+            return Domain.Common.Errors.Errors.InfraConfigRepository.SplitInfraCodeRequiresInfraAndApp();
+
+        return Result.Success;
+    }
+
+    private static ProjectAggregate.ValueObjects.RepositoryContentKindsEnum? ClassifyRole(
+        ProjectAggregate.ValueObjects.RepositoryContentKinds candidate)
+    {
+        var hasInfra = candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.Infrastructure);
+        var hasApp = candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.ApplicationCode);
+
+        if (hasInfra && !hasApp) return ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.Infrastructure;
+        if (hasApp && !hasInfra) return ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.ApplicationCode;
+        return null;
     }
 
 }

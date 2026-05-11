@@ -59,3 +59,4 @@ result.Match(
 - Value objects → primitives: `.MapWith(src => src.Value)`
 - **Nullable null checks:** use `x != null` directly — never `(object?)x`, never `is not null` (CS8122 in expression trees)
 - Lightweight resource-group mappings must explicitly carry `IsExisting` on `AzureResourceResult -> AzureResourceResponse`; if omitted, Angular list badges and generation preflight diagnostics misclassify existing resources as missing environment configuration.
+- When a feature mapping config starts accumulating many `NewConfig` registrations or repeated nullable list projections, split `Register(TypeAdapterConfig)` into focused private registration methods and reusable collection-projection helpers rather than leaving one monolithic `Register` method behind a Sonar suppression.

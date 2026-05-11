@@ -9,6 +9,7 @@ using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
+using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 using MapsterMapper;
 using NSubstitute;
 using DomainInfrastructureConfig = InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig;
@@ -20,6 +21,10 @@ namespace InfraFlowSculptor.Application.Tests.RedisCaches.Commands.CreateRedisCa
 public sealed class CreateRedisCacheCommandHandlerTests
 {
     private const string RedisCacheName = "redis-shared";
+    private const string DevelopmentEnvironment = "dev";
+    private const string ProductionEnvironment = "prod";
+    private const string PremiumSku = "Premium";
+    private const string AllKeysLruPolicy = "AllKeysLru";
 
     private readonly IRedisCacheRepository _redisCacheRepository;
     private readonly IResourceGroupRepository _resourceGroupRepository;
@@ -107,6 +112,97 @@ public sealed class CreateRedisCacheCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Validation);
+        await _redisCacheRepository.DidNotReceive().AddAsync(Arg.Any<RedisCache>());
+    }
+
+    [Fact]
+    public async Task Given_EnvironmentSettings_When_Handle_Then_PersistsParsedOverridesAsync()
+    {
+        // Arrange
+        _resourceGroupRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_resourceGroup);
+        _accessService.VerifyWriteAccessAsync(_config.Id, Arg.Any<CancellationToken>())
+            .Returns(_config);
+        var command = _command with
+        {
+            MinimumTlsVersion = "Tls12",
+            EnvironmentSettings =
+            [
+                new RedisCacheEnvironmentConfigData(DevelopmentEnvironment, PremiumSku, 3, AllKeysLruPolicy),
+                new RedisCacheEnvironmentConfigData(ProductionEnvironment, null, null, null),
+            ],
+        };
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        await _redisCacheRepository.Received(1).AddAsync(Arg.Is<RedisCache>(redisCache =>
+            redisCache.MinimumTlsVersion != null
+            && redisCache.MinimumTlsVersion.Value == TlsVersion.Version.Tls12
+            && redisCache.EnvironmentSettings.Count == 2
+            && redisCache.EnvironmentSettings.Any(setting =>
+                setting.EnvironmentName == DevelopmentEnvironment
+                && setting.Sku != null
+                && setting.Sku.Value == RedisCacheSku.Sku.Premium
+                && setting.Capacity == 3
+                && setting.MaxMemoryPolicy != null
+                && setting.MaxMemoryPolicy.Value == MaxMemoryPolicy.Policy.AllKeysLru)
+            && redisCache.EnvironmentSettings.Any(setting =>
+                setting.EnvironmentName == ProductionEnvironment
+                && setting.Sku == null
+                && setting.Capacity == null
+                && setting.MaxMemoryPolicy == null)));
+    }
+
+    [Fact]
+    public async Task Given_InvalidEnvironmentSku_When_Handle_Then_ReturnsValidationErrorAsync()
+    {
+        // Arrange
+        _resourceGroupRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_resourceGroup);
+        _accessService.VerifyWriteAccessAsync(_config.Id, Arg.Any<CancellationToken>())
+            .Returns(_config);
+        var command = _command with
+        {
+            EnvironmentSettings =
+            [
+                new RedisCacheEnvironmentConfigData(DevelopmentEnvironment, "UnsupportedSku", 1, null),
+            ],
+        };
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("RedisCache.InvalidSku");
+        await _redisCacheRepository.DidNotReceive().AddAsync(Arg.Any<RedisCache>());
+    }
+
+    [Fact]
+    public async Task Given_InvalidEnvironmentMaxMemoryPolicy_When_Handle_Then_ReturnsValidationErrorAsync()
+    {
+        // Arrange
+        _resourceGroupRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_resourceGroup);
+        _accessService.VerifyWriteAccessAsync(_config.Id, Arg.Any<CancellationToken>())
+            .Returns(_config);
+        var command = _command with
+        {
+            EnvironmentSettings =
+            [
+                new RedisCacheEnvironmentConfigData(DevelopmentEnvironment, PremiumSku, 1, "UnsupportedPolicy"),
+            ],
+        };
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("RedisCache.InvalidMaxMemoryPolicy");
         await _redisCacheRepository.DidNotReceive().AddAsync(Arg.Any<RedisCache>());
     }
 }

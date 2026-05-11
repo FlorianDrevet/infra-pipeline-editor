@@ -3,10 +3,12 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using Location = InfraFlowSculptor.Domain.Common.ValueObjects.Location;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
@@ -25,6 +27,8 @@ public sealed class CreateProjectWithSetupCommandHandler(
 {
     /// <summary>Default naming template applied to every new project.</summary>
     private const string DefaultTemplate = "{name}-{resourceAbbr}{suffix}";
+    private const string InvalidLayoutPresetCode = "LayoutPreset.Invalid";
+    private const string InvalidLocationCode = "Location.Invalid";
 
     /// <summary>Per-resource-type naming template overrides applied on project creation.</summary>
     private static readonly Dictionary<string, string> DefaultResourceTemplates = new()
@@ -34,80 +38,133 @@ public sealed class CreateProjectWithSetupCommandHandler(
     };
 
     /// <inheritdoc />
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public async Task<ErrorOr<ProjectResult>> Handle(
         CreateProjectWithSetupCommand command, CancellationToken cancellationToken)
     {
-        var nameVo = new Name(command.Name);
         var userId = await currentUser.GetUserIdAsync(cancellationToken);
+        var project = CreateProject(command, userId);
 
-        var project = Project.Create(nameVo, command.Description, userId);
-
-        // Naming defaults.
-        project.SetDefaultNamingTemplate(new NamingTemplate(DefaultTemplate));
-        foreach (var (resourceType, template) in DefaultResourceTemplates)
-            project.SetResourceNamingTemplate(resourceType, new NamingTemplate(template));
-
-        // Layout preset (default in ctor is MultiRepo; switch only if different).
-        if (!Enum.TryParse<LayoutPresetEnum>(command.LayoutPreset, ignoreCase: true, out var layoutEnum))
-            return Error.Validation("LayoutPreset.Invalid", $"Invalid layout preset '{command.LayoutPreset}'.");
-
-        var layoutResult = project.SetLayoutPreset(new LayoutPreset(layoutEnum));
+        var layoutResult = ApplyLayoutPreset(project, command.LayoutPreset);
         if (layoutResult.IsError)
             return layoutResult.Errors;
 
-        // Environments.
-        foreach (var envItem in command.Environments)
-        {
-            if (!Enum.TryParse<Location.LocationEnum>(envItem.Location, ignoreCase: true, out var locationEnum))
-                return Error.Validation("Location.Invalid", $"Invalid location '{envItem.Location}'.");
+        var environmentResult = AddEnvironments(project, command.Environments);
+        if (environmentResult.IsError)
+            return environmentResult.Errors;
 
-            var data = new EnvironmentDefinitionData(
-                new Name(envItem.Name),
-                new ShortName(envItem.ShortName),
-                new Prefix(envItem.Prefix ?? string.Empty),
-                new Suffix(envItem.Suffix ?? string.Empty),
-                new Location(locationEnum),
-                new SubscriptionId(envItem.SubscriptionId),
-                new Order(envItem.Order),
-                new RequiresApproval(envItem.RequiresApproval),
-                AzureResourceManagerConnection: null,
-                Tags: []);
-
-            project.AddEnvironment(data);
-        }
-
-        // Repositories (optional, layout-dependent).
-        foreach (var repoItem in command.Repositories)
-        {
-            GitProviderType? providerType = null;
-            if (!string.IsNullOrWhiteSpace(repoItem.ProviderType))
-            {
-                if (!Enum.TryParse<GitProviderTypeEnum>(repoItem.ProviderType, ignoreCase: true, out var providerEnum))
-                    return Errors.GitRepository.InvalidProviderType(repoItem.ProviderType);
-                providerType = new GitProviderType(providerEnum);
-            }
-
-            var aliasResult = RepositoryAlias.Create(repoItem.Alias);
-            if (aliasResult.IsError)
-                return aliasResult.Errors;
-
-            var contentKindsResult = ParseContentKinds(repoItem.ContentKinds);
-            if (contentKindsResult.IsError)
-                return contentKindsResult.Errors;
-
-            var addResult = project.AddRepository(
-                aliasResult.Value,
-                providerType,
-                repoItem.RepositoryUrl,
-                repoItem.DefaultBranch,
-                contentKindsResult.Value);
-            if (addResult.IsError)
-                return addResult.Errors;
-        }
+        var repositoryResult = AddRepositories(project, command.Repositories);
+        if (repositoryResult.IsError)
+            return repositoryResult.Errors;
 
         var saved = await repository.AddAsync(project);
         return ProjectResultMapper.ToProjectResult(saved);
+    }
+
+    private static Project CreateProject(CreateProjectWithSetupCommand command, UserId userId)
+    {
+        var project = Project.Create(new Name(command.Name), command.Description, userId);
+        ApplyDefaultNamingTemplates(project);
+        return project;
+    }
+
+    private static void ApplyDefaultNamingTemplates(Project project)
+    {
+        project.SetDefaultNamingTemplate(new NamingTemplate(DefaultTemplate));
+
+        foreach (var (resourceType, template) in DefaultResourceTemplates)
+            project.SetResourceNamingTemplate(resourceType, new NamingTemplate(template));
+    }
+
+    private static ErrorOr<Success> ApplyLayoutPreset(Project project, string layoutPreset)
+    {
+        if (!Enum.TryParse<LayoutPresetEnum>(layoutPreset, ignoreCase: true, out var layoutEnum))
+            return Error.Validation(InvalidLayoutPresetCode, $"Invalid layout preset '{layoutPreset}'.");
+
+        return project.SetLayoutPreset(new LayoutPreset(layoutEnum));
+    }
+
+    private static ErrorOr<Success> AddEnvironments(Project project, IReadOnlyList<EnvironmentSetupItem> environments)
+    {
+        foreach (var environmentItem in environments)
+        {
+            var environmentDataResult = CreateEnvironmentData(environmentItem);
+            if (environmentDataResult.IsError)
+                return environmentDataResult.Errors;
+
+            project.AddEnvironment(environmentDataResult.Value);
+        }
+
+        return Result.Success;
+    }
+
+    private static ErrorOr<EnvironmentDefinitionData> CreateEnvironmentData(EnvironmentSetupItem environmentItem)
+    {
+        if (!Enum.TryParse<Location.LocationEnum>(environmentItem.Location, ignoreCase: true, out var locationEnum))
+            return Error.Validation(InvalidLocationCode, $"Invalid location '{environmentItem.Location}'.");
+
+        return new EnvironmentDefinitionData(
+            new Name(environmentItem.Name),
+            new ShortName(environmentItem.ShortName),
+            new Prefix(environmentItem.Prefix ?? string.Empty),
+            new Suffix(environmentItem.Suffix ?? string.Empty),
+            new Location(locationEnum),
+            new SubscriptionId(environmentItem.SubscriptionId),
+            new Order(environmentItem.Order),
+            new RequiresApproval(environmentItem.RequiresApproval),
+            AzureResourceManagerConnection: null,
+            Tags: []);
+    }
+
+    private static ErrorOr<Success> AddRepositories(Project project, IReadOnlyList<RepositorySetupItem> repositories)
+    {
+        foreach (var repositoryItem in repositories)
+        {
+            var addRepositoryResult = AddRepository(project, repositoryItem);
+            if (addRepositoryResult.IsError)
+                return addRepositoryResult.Errors;
+        }
+
+        return Result.Success;
+    }
+
+    private static ErrorOr<Success> AddRepository(Project project, RepositorySetupItem repositoryItem)
+    {
+        var providerTypeResult = TryParseProviderType(repositoryItem.ProviderType, out var providerType);
+        if (providerTypeResult.IsError)
+            return providerTypeResult.Errors;
+
+        var aliasResult = RepositoryAlias.Create(repositoryItem.Alias);
+        if (aliasResult.IsError)
+            return aliasResult.Errors;
+
+        var contentKindsResult = ParseContentKinds(repositoryItem.ContentKinds);
+        if (contentKindsResult.IsError)
+            return contentKindsResult.Errors;
+
+        var addResult = project.AddRepository(
+            aliasResult.Value,
+            providerType,
+            repositoryItem.RepositoryUrl,
+            repositoryItem.DefaultBranch,
+            contentKindsResult.Value);
+        if (addResult.IsError)
+            return addResult.Errors;
+
+        return Result.Success;
+    }
+
+    private static ErrorOr<Success> TryParseProviderType(string? providerTypeValue, out GitProviderType? providerType)
+    {
+        providerType = null;
+
+        if (string.IsNullOrWhiteSpace(providerTypeValue))
+            return Result.Success;
+
+        if (!Enum.TryParse<GitProviderTypeEnum>(providerTypeValue, ignoreCase: true, out var providerEnum))
+            return Errors.GitRepository.InvalidProviderType(providerTypeValue);
+
+        providerType = new GitProviderType(providerEnum);
+        return Result.Success;
     }
 
     private static ErrorOr<RepositoryContentKinds> ParseContentKinds(IReadOnlyList<string> kinds)
