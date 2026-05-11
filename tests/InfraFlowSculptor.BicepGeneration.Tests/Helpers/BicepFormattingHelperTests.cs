@@ -59,6 +59,28 @@ public sealed class BicepFormattingHelperTests
         result.Should().NotContain("optionalSetting");
     }
 
+    [Fact]
+    public void Given_InvalidAnnotatedAndDictionaryKeys_When_Serializing_Then_FormatsBicepObjectKeys()
+    {
+        // Arrange
+        var value = new InvalidKeyAnnotatedParameterObject
+        {
+            RuntimeStack = "DOTNETCORE",
+            EnvironmentVariables = new Dictionary<string, object>
+            {
+                ["startup command"] = "run",
+            },
+        };
+
+        // Act
+        var result = BicepFormattingHelper.SerializeToBicep(value);
+
+        // Assert
+        result.Should().Contain("'runtime-stack': 'DOTNETCORE'");
+        result.Should().Contain("'environment-variables': {");
+        result.Should().Contain("'startup command': 'run'");
+    }
+
     private sealed class AnnotatedParameterObject
     {
         [JsonPropertyName("runtimeStack")]
@@ -75,5 +97,14 @@ public sealed class BicepFormattingHelperTests
     {
         [JsonPropertyName("targetPort")]
         public int TargetPort { get; init; }
+    }
+
+    private sealed class InvalidKeyAnnotatedParameterObject
+    {
+        [JsonPropertyName("runtime-stack")]
+        public string RuntimeStack { get; init; } = string.Empty;
+
+        [JsonPropertyName("environment-variables")]
+        public Dictionary<string, object> EnvironmentVariables { get; init; } = [];
     }
 }

@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 
@@ -6,15 +7,18 @@ namespace InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup
 public sealed class CreateProjectWithSetupCommandValidator
     : AbstractValidator<CreateProjectWithSetupCommand>
 {
-    private const string LayoutAllInOne = "AllInOne";
-    private const string LayoutSplitInfraCode = "SplitInfraCode";
-    private const string LayoutMultiRepo = "MultiRepo";
+    private const string LayoutAllInOne = nameof(LayoutPresetEnum.AllInOne);
+    private const string LayoutSplitInfraCode = nameof(LayoutPresetEnum.SplitInfraCode);
+    private const string LayoutMultiRepo = nameof(LayoutPresetEnum.MultiRepo);
+
+    private const string ProviderTypeGitHub = nameof(GitProviderTypeEnum.GitHub);
+    private const string ProviderTypeAzureDevOps = nameof(GitProviderTypeEnum.AzureDevOps);
 
     private static readonly string[] AllowedLayouts =
         [LayoutAllInOne, LayoutSplitInfraCode, LayoutMultiRepo];
 
     private static readonly string[] AllowedProviderTypes =
-        ["GitHub", "AzureDevOps"];
+        [ProviderTypeGitHub, ProviderTypeAzureDevOps];
 
     public CreateProjectWithSetupCommandValidator()
     {

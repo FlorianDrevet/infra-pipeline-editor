@@ -26,4 +26,16 @@ describe('project detail tree ordering helper', () => {
     expect(entries).toEqual(['b', 'a']);
     expect(sortedEntries).not.toBe(entries);
   });
+
+  it('sorts numeric path segments deterministically', () => {
+    const entries = ['modules/file10.bicep', 'modules/file2.bicep', 'modules/file1.bicep'];
+
+    const sortedEntries = sortHierarchicalEntries(entries);
+
+    expect(sortedEntries).toEqual([
+      'modules/file1.bicep',
+      'modules/file2.bicep',
+      'modules/file10.bicep',
+    ]);
+  });
 });

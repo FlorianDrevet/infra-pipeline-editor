@@ -86,7 +86,7 @@ internal static class BicepFormattingHelper
         foreach (var (propertyName, propValue) in BicepObjectPropertyHelper.EnumerateSerializedProperties(obj))
         {
             if (propValue is not null)
-                sb.AppendLine($"  {propertyName}: {SerializeToBicep(propValue)}");
+                sb.AppendLine($"  {FormatBicepObjectKey(propertyName)}: {SerializeToBicep(propValue)}");
         }
 
         sb.Append('}');
@@ -101,7 +101,7 @@ internal static class BicepFormattingHelper
         foreach (var (key, value) in dict)
         {
             if (value is not null)
-                sb.AppendLine($"  {key}: {SerializeToBicep(value)}");
+                sb.AppendLine($"  {FormatBicepObjectKey(key)}: {SerializeToBicep(value)}");
         }
 
         sb.Append('}');
