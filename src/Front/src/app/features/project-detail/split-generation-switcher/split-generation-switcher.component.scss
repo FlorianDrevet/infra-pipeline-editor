@@ -139,15 +139,15 @@
   letter-spacing: 0.05em;
 
   &--infra {
-    border-color: rgba(126, 153, 189, 0.28);
-    background: rgba(126, 153, 189, 0.12);
-    color: #d7e3f3;
+    border-color: rgba(152, 184, 226, 0.42);
+    background: rgba(55, 78, 110, 0.94);
+    color: #f5f8fd;
   }
 
   &--code {
-    border-color: rgba(111, 157, 161, 0.28);
-    background: rgba(111, 157, 161, 0.12);
-    color: #d7e7e8;
+    border-color: rgba(132, 190, 193, 0.42);
+    background: rgba(43, 83, 86, 0.94);
+    color: #f4fbfb;
   }
 
   &--empty {

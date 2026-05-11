@@ -5,9 +5,11 @@ namespace InfraFlowSculptor.Contracts.RoleAssignments.Responses;
 /// <param name="Name">Display name of the role (e.g. "Key Vault Secrets Officer").</param>
 /// <param name="Description">Short description of the permissions granted by the role.</param>
 /// <param name="DocumentationUrl">Link to the official Azure documentation page for this role.</param>
+/// <param name="RequiresUserAssignedIdentity">Indicates whether the role can only be granted through a user-assigned identity.</param>
 public record AzureRoleDefinitionResponse(
     string Id,
     string Name,
     string Description,
-    string DocumentationUrl
+    string DocumentationUrl,
+    bool RequiresUserAssignedIdentity
 );

@@ -202,14 +202,14 @@
             class="identity-radio-group"
             [value]="selectedIdentityType()"
             (change)="onIdentityTypeChange($event.value)">
-            <mat-radio-button value="SystemAssigned" [disabled]="isAcrPullSelected()">
+            <mat-radio-button value="SystemAssigned" [disabled]="selectedRoleRequiresUserAssignedIdentity()">
               {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SYSTEM_ASSIGNED' | translate }}
             </mat-radio-button>
             <mat-radio-button value="UserAssigned">
               {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.USER_ASSIGNED' | translate }}
             </mat-radio-button>
           </mat-radio-group>
-          @if (isAcrPullSelected()) {
+          @if (selectedRoleRequiresUserAssignedIdentity()) {
             <p class="config-section__hint">
               <mat-icon>info_outline</mat-icon>
               {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ACR_PULL_USER_ASSIGNED_ONLY' | translate }}

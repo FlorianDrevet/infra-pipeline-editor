@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -16,6 +16,7 @@ import {
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { FavoritesService } from '../../shared/services/favorites.service';
+import { LanguageService } from '../../shared/services/language.service';
 import { CreateProjectWizardDialogComponent } from './create-project-wizard/create-project-wizard-dialog.component';
 
 const PROJECT_SORT_VALUES = {
@@ -32,6 +33,7 @@ type ProjectSortKey = (typeof PROJECT_SORT_VALUES)[keyof typeof PROJECT_SORT_VAL
   imports: [
     TranslateModule,
     FormsModule,
+    RouterLink,
     MatDialogModule,
     MatIconModule,
     DsButtonComponent,
@@ -48,8 +50,8 @@ export class ProjectsComponent implements OnInit {
   private readonly projectService = inject(ProjectService);
   private readonly favoritesService = inject(FavoritesService);
   private readonly dialog = inject(MatDialog);
-  private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
 
   protected readonly projects = signal<ProjectResponse[]>([]);
   protected readonly isLoading = signal(false);
@@ -57,20 +59,24 @@ export class ProjectsComponent implements OnInit {
   protected readonly searchQuery = signal('');
   protected readonly sortBy = signal<ProjectSortKey>(PROJECT_SORT_VALUES.name);
   protected readonly filterFavoritesOnly = signal(false);
-  protected readonly sortOptions: DsSelectOption[] = [
-    {
-      value: PROJECT_SORT_VALUES.name,
-      label: this.translate.instant('PROJECTS.SORT.BY_NAME'),
-    },
-    {
-      value: PROJECT_SORT_VALUES.members,
-      label: this.translate.instant('PROJECTS.SORT.BY_MEMBERS'),
-    },
-    {
-      value: PROJECT_SORT_VALUES.favorites,
-      label: this.translate.instant('PROJECTS.SORT.BY_FAVORITES'),
-    },
-  ];
+  protected readonly sortOptions = computed<DsSelectOption[]>(() => {
+    this.languageService.currentLanguage();
+
+    return [
+      {
+        value: PROJECT_SORT_VALUES.name,
+        label: this.translate.instant('PROJECTS.SORT.BY_NAME'),
+      },
+      {
+        value: PROJECT_SORT_VALUES.members,
+        label: this.translate.instant('PROJECTS.SORT.BY_MEMBERS'),
+      },
+      {
+        value: PROJECT_SORT_VALUES.favorites,
+        label: this.translate.instant('PROJECTS.SORT.BY_FAVORITES'),
+      },
+    ];
+  });
 
   protected readonly filteredProjects = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
@@ -107,8 +113,8 @@ export class ProjectsComponent implements OnInit {
 
   protected readonly projectCount = computed(() => this.projects().length);
 
-  public async ngOnInit(): Promise<void> {
-    await this.loadProjects();
+  public ngOnInit(): void {
+    this.loadProjects();
   }
 
   protected isFavorite(projectId: string): boolean {
@@ -141,19 +147,6 @@ export class ProjectsComponent implements OnInit {
 
   protected toggleFavoritesFilter(): void {
     this.filterFavoritesOnly.update((v) => !v);
-  }
-
-  protected openProject(projectId: string): void {
-    void this.router.navigate(['/projects', projectId]);
-  }
-
-  protected onProjectKeydown(event: KeyboardEvent, projectId: string): void {
-    if (event.key !== 'Enter' && event.key !== ' ') {
-      return;
-    }
-
-    event.preventDefault();
-    this.openProject(projectId);
   }
 
   protected openCreateDialog(): void {

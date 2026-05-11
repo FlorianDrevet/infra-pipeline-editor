@@ -7,6 +7,9 @@ namespace InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup
 public sealed class CreateProjectWithSetupCommandValidator
     : AbstractValidator<CreateProjectWithSetupCommand>
 {
+    private const string RepositoriesPropertyName = nameof(CreateProjectWithSetupCommand.Repositories);
+    private const string RepositoryConnectionDetailsPropertyName = nameof(RepositorySetupItem.ProviderType);
+
     private const string LayoutAllInOne = nameof(LayoutPresetEnum.AllInOne);
     private const string LayoutSplitInfraCode = nameof(LayoutPresetEnum.SplitInfraCode);
     private const string LayoutMultiRepo = nameof(LayoutPresetEnum.MultiRepo);
@@ -73,7 +76,7 @@ public sealed class CreateProjectWithSetupCommandValidator
             var repos = cmd.Repositories ?? [];
             var error = ValidateLayoutRepositories(cmd.LayoutPreset, repos.Count);
             if (error is not null)
-                ctx.AddFailure("Repositories", error);
+                ctx.AddFailure(RepositoriesPropertyName, error);
         });
     }
 
@@ -106,7 +109,7 @@ public sealed class CreateProjectWithSetupCommandValidator
             {
                 if (HasIncompleteConnectionDetails(r.RepositoryUrl, r.DefaultBranch, r.ProviderType))
                 {
-                    ctx.AddFailure("ConnectionDetails",
+                    ctx.AddFailure(RepositoryConnectionDetailsPropertyName,
                         "ProviderType, RepositoryUrl and DefaultBranch must be either all provided or all empty.");
                 }
             });

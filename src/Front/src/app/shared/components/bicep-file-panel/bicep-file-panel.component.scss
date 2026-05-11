@@ -1,71 +1,71 @@
 @use "scss/main" as *;
 
-// ─── Terminal Window Chrome ────────────────────────────────────────────────────
-
-.bicep-terminal {
-  border-radius: 0.85rem;
+.bicep-workspace {
+  border-radius: 1rem;
   overflow: hidden;
-  background: #0d1117;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(180deg, rgba(15, 21, 32, 0.98), rgba(11, 16, 26, 0.96));
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 18px 36px rgba(2, 6, 23, 0.16);
 }
 
-.bicep-terminal__bar {
+.bicep-workspace__bar {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.55rem 0.85rem;
-  background: rgba(255, 255, 255, 0.04);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
 }
 
-.bicep-terminal__dot {
-  width: 0.6rem;
-  height: 0.6rem;
-  border-radius: 50%;
-  &--red    { background: #ff5f56; }
-  &--yellow { background: #ffbd2e; }
-  &--green  { background: #27c93f; }
+.bicep-workspace__bar-copy {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
-.bicep-terminal__bar-title {
-  margin-left: auto;
-  font-size: 0.72rem;
-  color: $ifs-on-dark-subtle;
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+.bicep-workspace__bar-icon {
+  width: 2rem;
+  height: 2rem;
+  padding: 0.45rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: $ifs-on-dark-muted;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
-.bicep-terminal__body {
-  padding: 1rem 1.1rem;
+.bicep-workspace__bar-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.14rem;
+  min-width: 0;
 }
 
-.bicep-terminal__line {
-  margin: 0 0 0.35rem;
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-  font-size: 0.82rem;
-  line-height: 1.6;
-  color: rgba(139, 233, 253, 0.85);
+.bicep-workspace__bar-title {
+  @include ifs-truncate;
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: $ifs-on-dark-strong;
 }
 
-.bicep-terminal__prompt {
-  color: #ff79c6;
-  margin-right: 0.5rem;
-  font-weight: 700;
+.bicep-workspace__bar-subtitle {
+  @include ifs-truncate;
+  font-size: 0.76rem;
+  line-height: 1.3;
+  color: rgba(207, 220, 236, 0.74);
 }
 
-.bicep-terminal__cursor {
-  display: inline-block;
-  width: 0.55rem;
-  height: 1em;
-  background: #50fa7b;
-  vertical-align: text-bottom;
-  margin-left: 0.15rem;
-  animation: cursorBlink 1s step-end infinite;
+.bicep-workspace__body {
+  padding: 0.8rem 0.75rem 0.95rem;
 }
 
 // ─── File Tree ─────────────────────────────────────────────────────────────────
 
 .bicep-tree {
-  margin-top: 0.6rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -76,25 +76,36 @@
   align-items: center;
   gap: 0.55rem;
   padding: 0.5rem 0.75rem;
-  border-radius: 0.6rem;
-  transition: background 0.15s;
+  border-radius: 0.78rem;
+  border: 1px solid transparent;
+  transition:
+    background $ifs-duration-fast $ifs-ease-out,
+    border-color $ifs-duration-fast $ifs-ease-out,
+    box-shadow $ifs-duration-fast $ifs-ease-out,
+    color $ifs-duration-fast $ifs-ease-out;
   width: 100%;
-  border: none;
   font: inherit;
   cursor: pointer;
   text-align: left;
   background: transparent;
-  color: inherit;
+  color: $ifs-on-dark-strong;
+
+  @include ifs-focus-visible;
 
   &:hover {
     background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(148, 163, 184, 0.12);
   }
 
   &--active {
-    background: rgba(139, 233, 253, 0.08);
-    border-left: 2px solid #8be9fd;
+    background: linear-gradient(180deg, rgba(21, 101, 192, 0.15), rgba(21, 101, 192, 0.09));
+    border-color: rgba(126, 153, 189, 0.36);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 
-    .bicep-tree__name { color: #8be9fd; }
+    .bicep-tree__icon,
+    .bicep-tree__name {
+      color: #f3f7fc;
+    }
   }
 }
 
@@ -102,51 +113,60 @@
   font-size: 1.1rem;
   width: 1.1rem;
   height: 1.1rem;
-  color: #8be9fd;
+  color: rgba(172, 195, 220, 0.78);
   flex-shrink: 0;
 }
 
 .bicep-tree__name {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 0.84rem;
-  color: rgba(255, 255, 255, 0.88);
+  color: $ifs-on-dark-muted;
   font-weight: 500;
+  letter-spacing: 0.01em;
+  flex: 1;
+  min-width: 0;
 }
 
 .bicep-tree__badge {
+  margin-left: auto;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
+  border: 1px solid transparent;
   font-size: 0.68rem;
   font-weight: 700;
-  background: rgba(0, 230, 118, 0.15);
-  color: #69f0ae;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(223, 232, 243, 0.82);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
 
   &--params {
-    background: rgba(139, 233, 253, 0.15);
-    color: #8be9fd;
+    background: rgba(120, 164, 214, 0.12);
+    border-color: rgba(120, 164, 214, 0.22);
+    color: #c2d8f4;
   }
 
   &--types {
-    background: rgba(189, 147, 249, 0.15);
-    color: #bd93f9;
+    background: rgba(166, 149, 209, 0.14);
+    border-color: rgba(166, 149, 209, 0.24);
+    color: #d4c4ef;
   }
 
   &--functions {
-    background: rgba(255, 184, 108, 0.15);
-    color: #ffb86c;
+    background: rgba(214, 172, 118, 0.14);
+    border-color: rgba(214, 172, 118, 0.22);
+    color: #e7cfab;
   }
 
   &--constants {
-    background: rgba(255, 85, 85, 0.15);
-    color: #ff5555;
+    background: rgba(196, 132, 132, 0.14);
+    border-color: rgba(196, 132, 132, 0.22);
+    color: #e3b7b7;
   }
 
   &--module {
-    background: rgba(0, 188, 212, 0.16);
-    color: #7de7f7;
+    background: rgba(108, 164, 176, 0.14);
+    border-color: rgba(108, 164, 176, 0.22);
+    color: #c0e0e5;
   }
 }
 
@@ -156,20 +176,26 @@
   gap: 0.4rem;
   padding: 0.5rem 0.75rem 0.2rem;
   color: $ifs-on-dark-subtle;
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 0.78rem;
   font-weight: 600;
+  letter-spacing: 0.02em;
   background: none;
-  border: none;
+  border: 1px solid transparent;
   width: 100%;
   text-align: left;
   cursor: pointer;
-  border-radius: 0.5rem;
-  transition: background 0.15s, color 0.15s;
+  border-radius: 0.72rem;
+  transition:
+    background $ifs-duration-fast $ifs-ease-out,
+    border-color $ifs-duration-fast $ifs-ease-out,
+    color $ifs-duration-fast $ifs-ease-out;
+
+  @include ifs-focus-visible;
 
   &:hover {
-    background: rgba(139, 233, 253, 0.06);
-    color: $ifs-on-dark-muted;
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(148, 163, 184, 0.12);
+    color: $ifs-on-dark-strong;
   }
 }
 
@@ -177,7 +203,7 @@
   font-size: 1rem;
   width: 1rem;
   height: 1rem;
-  color: $ifs-on-dark-subtle;
+  color: rgba(191, 204, 221, 0.72);
   transition: transform 0.2s ease;
   flex-shrink: 0;
 
@@ -186,112 +212,134 @@
   }
 }
 
-// The folder icon — explicit colour so it is always visible regardless of parent opacity
 .bicep-tree__folder-icon {
   font-size: 1rem;
   width: 1rem;
   height: 1rem;
-  color: #f1fa8c;
+  color: rgba(224, 193, 130, 0.88);
   flex-shrink: 0;
-}
-
-@keyframes bicepFolderSlideIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
 }
 
 // ─── File Content Viewer ───────────────────────────────────────────────────────
 
 .bicep-viewer {
-  border-radius: 0.85rem;
+  border-radius: 1rem;
   overflow: hidden;
-  background: #0d1117;
-  border: 1px solid rgba(139, 233, 253, 0.12);
-  margin-top: 0.75rem;
+  background: linear-gradient(180deg, rgba(13, 19, 29, 0.99), rgba(9, 15, 24, 0.98));
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  margin-top: 0.85rem;
+  box-shadow: 0 18px 34px rgba(2, 6, 23, 0.18);
   animation: bicepViewerSlideIn 0.25s ease-out;
 }
 
 .bicep-viewer__bar {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.55rem 0.85rem;
-  background: rgba(139, 233, 253, 0.05);
-  border-bottom: 1px solid rgba(139, 233, 253, 0.08);
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.78rem 0.95rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
 }
 
-.bicep-viewer__dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  &--red    { background: #ff5f56; }
-  &--yellow { background: #ffbd2e; }
-  &--green  { background: #27c93f; }
+.bicep-viewer__file-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.bicep-viewer__file-icon {
+  width: 2rem;
+  height: 2rem;
+  padding: 0.45rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(205, 219, 236, 0.86);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.bicep-viewer__file-copy {
+  min-width: 0;
 }
 
 .bicep-viewer__bar-title {
-  flex: 1;
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-  font-size: 0.78rem;
+  @include ifs-truncate;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #8be9fd;
-  margin-left: 0.4rem;
+  color: $ifs-on-dark-strong;
+  letter-spacing: 0.01em;
 }
 
 .bicep-viewer__close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(255, 255, 255, 0.02);
   color: $ifs-on-dark-subtle;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background $ifs-duration-fast $ifs-ease-out,
+    border-color $ifs-duration-fast $ifs-ease-out,
+    color $ifs-duration-fast $ifs-ease-out,
+    box-shadow $ifs-duration-fast $ifs-ease-out;
+
+  @include ifs-focus-visible;
 
   mat-icon { font-size: 0.9rem; width: 0.9rem; height: 0.9rem; }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: $ifs-on-dark-muted;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(148, 163, 184, 0.2);
+    color: $ifs-on-dark-strong;
+    box-shadow: 0 8px 18px rgba(2, 6, 23, 0.2);
   }
 }
 
 .bicep-viewer__body {
-  padding: 1rem 1.1rem;
+  padding: 1rem 1.05rem;
   max-height: 28rem;
-  overflow-y: auto;
+  overflow: auto;
 
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb {
-    background: rgba(139, 233, 253, 0.2);
-    border-radius: 3px;
-    &:hover { background: rgba(139, 233, 253, 0.35); }
-  }
+  @include ifs-scrollbar-soft;
 }
 
 .bicep-viewer__loading {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  gap: 0.55rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(255, 255, 255, 0.03);
   font-size: 0.82rem;
-  color: #50fa7b;
+  color: $ifs-on-dark-muted;
+}
+
+.bicep-viewer__loading-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  font-size: 0.95rem;
+  color: rgba(166, 190, 214, 0.86);
+  animation: bicepSpin 0.9s linear infinite;
 }
 
 .bicep-viewer__loading-text {
-  color: rgba(139, 233, 253, 0.85);
+  color: $ifs-on-dark-muted;
 }
 
 .bicep-viewer__code {
   margin: 0;
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-  font-size: 0.8rem;
+  font-size: 0.81rem;
   line-height: 1.7;
-  color: rgba(248, 248, 242, 0.92);
+  color: rgba(244, 248, 252, 0.9);
   white-space: pre;
   tab-size: 2;
 
@@ -300,34 +348,42 @@
     color: inherit;
   }
 
-  // ::ng-deep needed because innerHTML bypasses Angular's encapsulation
   & ::ng-deep {
-    .bh-keyword   { color: #ff79c6; font-weight: 600; }
-    .bh-type      { color: #8be9fd; font-style: italic; }
-    .bh-string    { color: #f1fa8c; }
-    .bh-comment   { color: #6272a4; font-style: italic; }
-    .bh-decorator { color: #50fa7b; }
-    .bh-constant  { color: #bd93f9; }
-    .bh-number    { color: #bd93f9; }
-    .bh-property  { color: #66d9ef; }
+    .bh-keyword   { color: #adc8ff; font-weight: 600; }
+    .bh-type      { color: #89bcc9; font-style: italic; }
+    .bh-string    { color: #d8c490; }
+    .bh-comment   { color: #6f7f97; font-style: italic; }
+    .bh-decorator { color: #86b8a4; }
+    .bh-constant  { color: #c5addc; }
+    .bh-number    { color: #c5addc; }
+    .bh-property  { color: #b5d0e6; }
   }
 }
 
 .bicep-viewer__error {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-  font-size: 0.82rem;
-  color: #ff79c6;
   margin: 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(244, 67, 54, 0.2);
+  background: rgba(244, 67, 54, 0.08);
+  font-size: 0.82rem;
+  color: #f2b7b2;
 }
 
 // ─── Animations ────────────────────────────────────────────────────────────────
 
 @keyframes bicepViewerSlideIn {
-  from { opacity: 0; max-height: 0; }
-  to   { opacity: 1; max-height: 40rem; }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-@keyframes cursorBlink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+@keyframes bicepSpin {
+  to { transform: rotate(360deg); }
 }

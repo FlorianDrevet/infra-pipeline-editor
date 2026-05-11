@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import {
   DsButtonComponent,
@@ -13,6 +13,7 @@ import {
 } from '../../shared/components/ds';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { FavoritesService } from '../../shared/services/favorites.service';
+import { LanguageService } from '../../shared/services/language.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { ProjectsComponent } from './projects.component';
 
@@ -62,6 +63,37 @@ describe('ProjectsComponent', () => {
       ],
     }).compileComponents();
 
+    const translateService = TestBed.inject(TranslateService);
+    const languageService = TestBed.inject(LanguageService);
+
+    translateService.setTranslation(
+      'fr',
+      {
+        PROJECTS: {
+          SORT: {
+            BY_NAME: 'Nom',
+            BY_MEMBERS: 'Membres',
+            BY_FAVORITES: 'Favoris',
+          },
+        },
+      },
+      true
+    );
+    translateService.setTranslation(
+      'en',
+      {
+        PROJECTS: {
+          SORT: {
+            BY_NAME: 'Name',
+            BY_MEMBERS: 'Members',
+            BY_FAVORITES: 'Favorites',
+          },
+        },
+      },
+      true
+    );
+    languageService.setLanguage('fr');
+
     fixture = TestBed.createComponent(ProjectsComponent);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -90,6 +122,31 @@ describe('ProjectsComponent', () => {
     fixture.detectChanges();
 
     expect(readRenderedProjectNames(fixture)).toEqual(['Project Beta', 'Project Alpha']);
+  });
+
+  it('updates sort option labels when the active language changes', () => {
+    const component = fixture.componentInstance as unknown as {
+      sortOptions: () => Array<{ label: string }>;
+    };
+    const languageService = TestBed.inject(LanguageService);
+
+    expect(component.sortOptions().map((option) => option.label)).toEqual(['Nom', 'Membres', 'Favoris']);
+
+    languageService.setLanguage('en');
+    fixture.detectChanges();
+
+    expect(component.sortOptions().map((option) => option.label)).toEqual([
+      'Name',
+      'Members',
+      'Favorites',
+    ]);
+  });
+
+  it('renders project cards with native links instead of link roles', () => {
+    const root = fixture.nativeElement as HTMLElement;
+
+    expect(root.querySelector('[role="link"]')).toBeNull();
+    expect(root.querySelectorAll('.project-card__link').length).toBe(2);
   });
 
   it('renders metadata in a dedicated footer container even without a description', () => {

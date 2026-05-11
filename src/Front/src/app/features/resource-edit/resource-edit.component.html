@@ -1376,7 +1376,7 @@
                               </button>
                               <mat-menu #childIdentityMenu="matMenu" class="ra-identity-menu">
                                 <button mat-menu-item
-                                        [disabled]="ra.roleDefinitionId === acrPullRoleId"
+                                  [disabled]="roleRequiresUserAssignedIdentity(ra.roleDefinitionId)"
                                         (click)="switchToSystemAssigned(ra)">
                                   <mat-icon>fingerprint</mat-icon>
                                   <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_TO_SYSTEM' | translate }}</span>

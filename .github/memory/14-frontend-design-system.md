@@ -22,8 +22,10 @@
 - `DsSelectComponent` uses `cdkConnectedOverlay` so dropdowns escape scrollable/tabbed containers instead of creating nested scrollbars.
 - `DsSelectComponent` panel must explicitly use `width: 100%` and `min-width: 100%` so the rendered dropdown matches the trigger width instead of collapsing to its intrinsic menu width. [2026-05-11]
 - `DsToggleComponent` exposes `ariaLabel` for icon-only or label-less usages and is reused by `ToggleSectionCardComponent`.
+- `DsButtonComponent` keeps a shared enterprise baseline: `primary` and `success` stay slightly layered for hierarchy, but avoid large glow, aggressive hover lift, or flashy hero gradients because the component fans out across dialogs, wizards, and detail screens. [2026-05-11]
 - `DsPanelActionButtonComponent` targets compact panel-header actions with `tone` (`neutral | accent | danger`), `surface` (`light | dark`), optional `pressed`/`ariaExpanded`, and a premium glassy soft-square visual. It currently powers the generation-panel collapse/close cluster in `config-detail` and `project-detail`.
 - `project-detail` SplitInfraCode generation now deliberately overrides that default glassy feel: the outer tabs and `SplitGenerationSwitcherComponent` use a restrained slate/ink surface, smaller quieter counters, thin underlines, and command-bar style CTA rows so the screen reads as enterprise product UI rather than neon/glass hero chrome. [2026-05-11]
+- `BicepFilePanelComponent` now renders generated artifacts as a workspace/editor surface instead of a faux terminal: calm dark chrome, file-oriented headers, restrained badges, and readable code highlighting replace prompt/cursor metaphors and neon terminal accents. [2026-05-11]
 
 ## Global Material Override
 

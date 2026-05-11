@@ -428,7 +428,8 @@ public static class AzureRoleDefinitionCatalog
         new(AcrPull,
             "AcrPull",
             "Allows pull of images from an Azure Container Registry.",
-            ContainerRegistryDocsUrl),
+            ContainerRegistryDocsUrl,
+            RequiresUserAssignedIdentity: true),
 
         CreateContributorRole(ContainerRegistryDocsUrl),
         CreateReaderRole(ContainerRegistryDocsUrl),

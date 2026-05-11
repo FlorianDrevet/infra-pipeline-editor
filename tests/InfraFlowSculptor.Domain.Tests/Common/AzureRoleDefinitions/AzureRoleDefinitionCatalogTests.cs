@@ -53,10 +53,12 @@ public sealed class AzureRoleDefinitionCatalogTests
         AzureRoleDefinitionCatalog.AcrPull.Should().Be("7f951dda-4ed3-4680-a7ca-43fe172d538d");
         roles.Should().Contain(role =>
             role.Id == AzureRoleDefinitionCatalog.AcrPull
-            && role.Name == "AcrPull");
+            && role.Name == "AcrPull"
+            && role.RequiresUserAssignedIdentity);
         roles.Should().Contain(role =>
             role.Id == "8311e382-0749-4cb8-b61a-304f252e45ec"
-            && role.Name == "AcrPush");
+            && role.Name == "AcrPush"
+            && !role.RequiresUserAssignedIdentity);
     }
 
     [Fact]

@@ -31,6 +31,7 @@ result.Match(
 - Response: `record SomethingResponse(string Id, string Name, ...)`
 - Validation attributes: `[GuidValidation]`, `[EnumValidation(typeof(MyEnum))]`, `[RedisVersionValidation]`
 - JSON body GUID pitfall: prefer `string` + `[Required, GuidValidation]` over `Guid` for JSON bodies to avoid deserialization errors before validation
+- `AzureRoleDefinitionResponse` now carries `RequiresUserAssignedIdentity` so Angular role-assignment screens derive AcrPull-like identity constraints from backend metadata instead of hardcoded role-definition GUID checks.
 
 ## Endpoint Conventions [2026-04-16]
 

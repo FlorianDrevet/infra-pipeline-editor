@@ -128,6 +128,7 @@
 }
 
 .project-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -145,8 +146,28 @@
     box-shadow: 0 14px 32px rgba(16, 52, 86, 0.12);
   }
 
-  &:focus-visible {
+  &:focus-within {
     box-shadow: 0 0 0 4px rgba(2, 136, 209, 0.18), 0 14px 32px rgba(16, 52, 86, 0.12);
+  }
+
+  &__link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    text-decoration: none;
+  }
+
+  &__sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   &__body {
@@ -154,6 +175,9 @@
     flex-direction: column;
     flex: 1;
     min-height: 0;
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
   }
 
   &__top {
@@ -192,8 +216,9 @@
     overflow: hidden;
   }
 
-  app-ds-icon-button {
+  &__favorite {
     flex-shrink: 0;
+    pointer-events: auto;
   }
 
   &__meta {
@@ -202,6 +227,9 @@
     padding-top: 0.9rem;
     gap: 0.65rem;
     flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
   }
 
   &--without-description .project-card__body {

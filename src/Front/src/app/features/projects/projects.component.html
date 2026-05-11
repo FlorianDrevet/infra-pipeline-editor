@@ -31,7 +31,7 @@
 
       <div class="toolbar__sort">
         <app-ds-select
-          [options]="sortOptions"
+          [options]="sortOptions()"
           [ngModel]="sortBy()"
           (ngModelChange)="onSortByChange($event)" />
       </div>
@@ -74,13 +74,12 @@
     } @else {
       <div class="project-grid">
         @for (project of filteredProjects(); track project.id) {
-          <div
+          <article
             class="project-card"
-            [class.project-card--without-description]="!project.description"
-            role="link"
-            tabindex="0"
-            (click)="openProject(project.id)"
-            (keydown)="onProjectKeydown($event, project.id)">
+            [class.project-card--without-description]="!project.description">
+            <a class="project-card__link" [routerLink]="['/projects', project.id]">
+              <span class="project-card__sr-only">{{ project.name }}</span>
+            </a>
             <div class="project-card__body">
               <div class="project-card__top">
                 <div class="project-card__info">
@@ -89,13 +88,15 @@
                     <p class="project-card__desc">{{ project.description }}</p>
                   }
                 </div>
-                <app-ds-icon-button
-                  size="sm"
-                  [variant]="favoriteButtonVariant(project.id)"
-                  [icon]="favoriteButtonIcon(project.id)"
-                  [ariaLabel]="'PROJECTS.ACTIONS.TOGGLE_FAVORITE' | translate"
-                  [tooltip]="'PROJECTS.ACTIONS.TOGGLE_FAVORITE' | translate"
-                  (clicked)="toggleFavorite($event, project.id)" />
+                <div class="project-card__favorite">
+                  <app-ds-icon-button
+                    size="sm"
+                    [variant]="favoriteButtonVariant(project.id)"
+                    [icon]="favoriteButtonIcon(project.id)"
+                    [ariaLabel]="'PROJECTS.ACTIONS.TOGGLE_FAVORITE' | translate"
+                    [tooltip]="'PROJECTS.ACTIONS.TOGGLE_FAVORITE' | translate"
+                    (clicked)="toggleFavorite($event, project.id)" />
+                </div>
               </div>
             </div>
             <div class="project-card__meta">
@@ -106,7 +107,7 @@
                 {{ 'PROJECTS.CARD.ENVIRONMENTS' | translate: { count: project.environmentDefinitions.length } }}
               </app-ds-chip>
             </div>
-          </div>
+          </article>
         }
       </div>
     }

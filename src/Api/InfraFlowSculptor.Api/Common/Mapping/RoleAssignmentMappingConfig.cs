@@ -62,7 +62,8 @@ public sealed class RoleAssignmentMappingConfig : IRegister
                 src.Id,
                 src.Name,
                 src.Description,
-                src.DocumentationUrl));
+                src.DocumentationUrl,
+                src.RequiresUserAssignedIdentity));
 
         config.NewConfig<IdentityRoleAssignmentResult, IdentityRoleAssignmentResponse>()
             .MapWith(src => new IdentityRoleAssignmentResponse(
