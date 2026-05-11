@@ -16,9 +16,9 @@
     flex-direction: column;
     gap: 0.5rem;
     padding: 1rem 1.125rem;
-    border: 1px solid $ifs-border-medium;
+    border: 1px solid var(--ifs-border-subtle);
     border-radius: $ifs-radius-md;
-    background: $ifs-surface-50;
+    background: var(--ifs-surface-1);
   }
 
   &__list {
@@ -29,13 +29,13 @@
 
     dt {
       font-weight: 500;
-      color: $ifs-ink-500;
+      color: var(--ifs-text-secondary);
       font-size: 0.8125rem;
     }
 
     dd {
       margin: 0;
-      color: $ifs-ink-900;
+      color: var(--ifs-text-primary);
       font-weight: 500;
     }
   }
@@ -52,7 +52,7 @@
   }
 
   &__layout-icon {
-    color: $ifs-brand-blue;
+    color: var(--ifs-brand-500);
     font-size: 1.25rem;
     width: 1.25rem;
     height: 1.25rem;
@@ -66,11 +66,11 @@
     th, td {
       text-align: left;
       padding: 0.5rem 0.625rem;
-      border-bottom: 1px solid $ifs-border-medium;
+      border-bottom: 1px solid var(--ifs-border-subtle);
     }
 
     th {
-      color: $ifs-ink-500;
+      color: var(--ifs-text-secondary);
       font-weight: 500;
       font-size: 0.75rem;
       text-transform: uppercase;
@@ -78,7 +78,7 @@
     }
 
     td {
-      color: $ifs-ink-900;
+      color: var(--ifs-text-primary);
     }
   }
 
@@ -97,9 +97,9 @@
     justify-content: space-between;
     gap: 0.75rem;
     padding: 0.625rem 0.75rem;
-    border: 1px solid $ifs-border-medium;
+    border: 1px solid var(--ifs-border-subtle);
     border-radius: $ifs-radius-sm;
-    background: $ifs-surface-0;
+    background: var(--ifs-surface-1);
   }
 
   &__repo-main {
@@ -112,7 +112,7 @@
 
   &__repo-alias {
     font-weight: 600;
-    color: $ifs-ink-900;
+    color: var(--ifs-text-primary);
   }
 
   &__repo-kinds {

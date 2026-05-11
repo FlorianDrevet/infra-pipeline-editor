@@ -51,15 +51,15 @@
     height: 2.25rem;
     border-radius: 50%;
     flex-shrink: 0;
-    background: color-mix(in srgb, var(--toggle-card-accent, #1565c0) 12%, white);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--toggle-card-accent, #1565c0) 16%, white);
+    background: color-mix(in srgb, var(--toggle-card-accent, var(--ifs-accent-500)) 12%, white);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--toggle-card-accent, var(--ifs-accent-500)) 16%, white);
   }
 
   &__icon {
     font-size: 1.15rem;
     width: 1.15rem;
     height: 1.15rem;
-    color: var(--toggle-card-accent, #1565c0);
+    color: var(--toggle-card-accent, var(--ifs-accent-500));
   }
 
   &__titles {
@@ -73,13 +73,13 @@
   &__title {
     font-size: 0.95rem;
     font-weight: 700;
-    color: $ifs-ink-900;
+    color: var(--ifs-text-primary);
     line-height: 1.25;
   }
 
   &__subtitle {
     font-size: 0.8rem;
-    color: $ifs-ink-500;
+    color: var(--ifs-text-secondary);
     line-height: 1.45;
   }
 
@@ -93,17 +93,17 @@
 
   &__body {
     padding: 0.95rem 1rem 1rem;
-    border-top: 1px solid rgba(13, 47, 102, 0.08);
+    border-top: 1px solid var(--ifs-border-subtle);
     animation: toggleBodyFadeIn 0.2s ease;
   }
 }
 
 .toggle-card--disabled .toggle-card__title {
-  color: $ifs-ink-700;
+  color: var(--ifs-text-primary);
 }
 
 .toggle-card--disabled .toggle-card__subtitle {
-  color: $ifs-ink-500;
+  color: var(--ifs-text-secondary);
 }
 
 @keyframes toggleBodyFadeIn {

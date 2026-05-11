@@ -1,16 +1,16 @@
-﻿.storage-dialog {
+.storage-dialog {
   min-width: 400px;
 
   &__title {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 700;
-    color: #103454;
+    color: var(--ifs-text-primary);
   }
 
   &__subtitle {
     margin: 0 0 1rem;
-    color: #617892;
+    color: var(--ifs-text-secondary);
     font-size: 0.85rem;
   }
 
@@ -22,7 +22,7 @@
     border-radius: 0.75rem;
     background: rgba(244, 67, 54, 0.07);
     border: 1px solid rgba(244, 67, 54, 0.18);
-    color: #c62828;
+    color: var(--ifs-danger);
     font-size: 0.84rem;
     font-weight: 600;
     margin-bottom: 1rem;
@@ -59,7 +59,7 @@
   gap: 0.65rem;
   padding: 1.25rem 0.75rem;
   border-radius: 1rem;
-  border: 1.5px solid rgba(146, 191, 235, 0.25);
+  border: 1.5px solid var(--ifs-border-subtle);
   background: var(--ifs-surface-1);
   cursor: pointer;
   transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
@@ -74,13 +74,13 @@
     font-size: 2rem;
     width: 2rem;
     height: 2rem;
-    color: #1565c0;
+    color: var(--ifs-accent-500);
   }
 
   &__label {
     font-size: 0.84rem;
     font-weight: 700;
-    color: #103454;
+    color: var(--ifs-text-primary);
     text-align: center;
   }
 }

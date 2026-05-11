@@ -18,20 +18,21 @@
   --ifs-brand-700: #2c4778;
 
   // --- Single accent (cyan, used sparingly: primary CTA, focus, info) ---
-  --ifs-accent-500: #3aa3c9;
-  --ifs-accent-600: #2a8aae;
+  --ifs-accent-400: #56c4e6;
+  --ifs-accent-500: #3ab4d9;
+  --ifs-accent-600: #2a93b8;
 
   // --- Surfaces & text (DARK only) ---
-  --ifs-bg:              #0b0d10;
-  --ifs-surface-1:       #111418;
-  --ifs-surface-2:       #171b21;
-  --ifs-surface-3:       #1d222a;
-  --ifs-border-subtle:   #1f242c;
-  --ifs-border-strong:   #2a313b;
-  --ifs-text-primary:    #e7eaef;
-  --ifs-text-secondary:  #a8b0bc;
-  --ifs-text-muted:      #6f7681;
-  --ifs-text-disabled:   #4a4f58;
+  --ifs-bg:              #0c0e12;
+  --ifs-surface-1:       #13161b;
+  --ifs-surface-2:       #1a1e25;
+  --ifs-surface-3:       #22272f;
+  --ifs-border-subtle:   #2a303a;
+  --ifs-border-strong:   #3a4250;
+  --ifs-text-primary:    #f0f2f5;
+  --ifs-text-secondary:  #b4bcc9;
+  --ifs-text-muted:      #7d8694;
+  --ifs-text-disabled:   #4d5460;
   --ifs-text-on-brand:   #ffffff;
 
   // --- Semantic states (discreet) ---
@@ -46,7 +47,7 @@
 
   // --- Gradients (max 2, role-restricted) ---
   --ifs-gradient-login: linear-gradient(160deg, #0e1a35 0%, #1a2b52 50%, #233e6e 100%);
-  --ifs-gradient-cta:   linear-gradient(180deg, #4f74b3 0%, #3a5a96 100%);
+  --ifs-gradient-cta:   linear-gradient(135deg, #4a7fd7 0%, #3a6bc4 50%, #3160b0 100%);
 
   // --- Radius (3 values + pill) ---
   --ifs-radius-sm:   4px;
@@ -54,10 +55,10 @@
   --ifs-radius-lg:   12px;
   --ifs-radius-pill: 999px;
 
-  // --- Shadows (3 values, neutral, no brand tint) ---
-  --ifs-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 1px rgba(0, 0, 0, 0.04);
-  --ifs-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --ifs-shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.18), 0 4px 8px rgba(0, 0, 0, 0.08);
+  // --- Shadows (3 values, subtle brand tint for depth) ---
+  --ifs-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  --ifs-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.08);
+  --ifs-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.24), 0 4px 12px rgba(0, 0, 0, 0.12);
 
   // --- Spacing (4px grid, px units) ---
   --ifs-space-2:  2px;
@@ -106,12 +107,11 @@
 
 // ----------------------------------------------------------------------------
 // SCSS aliases (single source for SCSS-side consumers — declared ONCE).
-// Any duplicate name in the deprecated compat layer below is intentionally
-// omitted to avoid Sass redeclaration.
 // ----------------------------------------------------------------------------
 $ifs-brand-500: var(--ifs-brand-500);
 $ifs-brand-600: var(--ifs-brand-600);
 $ifs-brand-700: var(--ifs-brand-700);
+$ifs-accent-400: var(--ifs-accent-400);
 $ifs-accent-500: var(--ifs-accent-500);
 $ifs-accent-600: var(--ifs-accent-600);
 
@@ -160,108 +160,4 @@ $ifs-z-modal:   var(--ifs-z-modal);
 $ifs-z-popover: var(--ifs-z-popover);
 $ifs-z-tooltip: var(--ifs-z-tooltip);
 
-// ----------------------------------------------------------------------------
-// DEPRECATED — Compat layer (REMOVE IN WAVE 6)
-// Maps legacy SCSS names used across components to V2 tokens to avoid mass
-// refactor in wave 1. Each entry must be replaced by direct usage of V2 tokens
-// before wave 6 closure.
-// ----------------------------------------------------------------------------
 
-// --- Legacy brand ---
-$ifs-brand-dark-blue:  var(--ifs-brand-700);   // DEPRECATED
-$ifs-brand-blue:       var(--ifs-brand-500);   // DEPRECATED
-$ifs-brand-blue-deep:  var(--ifs-brand-700);   // DEPRECATED
-$ifs-brand-cyan:       var(--ifs-accent-500);  // DEPRECATED
-$ifs-brand-cyan-light: var(--ifs-accent-500);  // DEPRECATED
-$ifs-brand-cyan-deep:  var(--ifs-accent-600);  // DEPRECATED
-$ifs-brand-teal:       var(--ifs-accent-500);  // DEPRECATED
-
-// --- Legacy ink scale (text + borders) ---
-$ifs-ink-900: var(--ifs-text-primary);    // DEPRECATED
-$ifs-ink-800: var(--ifs-text-primary);    // DEPRECATED
-$ifs-ink-700: var(--ifs-text-primary);    // DEPRECATED
-$ifs-ink-500: var(--ifs-text-secondary);  // DEPRECATED
-$ifs-ink-400: var(--ifs-text-muted);      // DEPRECATED
-$ifs-ink-300: var(--ifs-border-strong);   // DEPRECATED
-$ifs-ink-200: var(--ifs-border-subtle);   // DEPRECATED
-$ifs-ink-100: var(--ifs-border-subtle);   // DEPRECATED
-
-// --- Legacy surfaces ---
-$ifs-surface-0:      var(--ifs-surface-1);   // DEPRECATED
-$ifs-surface-50:     var(--ifs-surface-1);   // DEPRECATED
-$ifs-surface-100:    var(--ifs-surface-2);   // DEPRECATED
-$ifs-surface-200:    var(--ifs-surface-2);   // DEPRECATED
-$ifs-surface-300:    var(--ifs-surface-3);   // DEPRECATED
-$ifs-surface-tinted: var(--ifs-surface-2);   // DEPRECATED
-
-// --- Legacy semantic ---
-$ifs-success-soft:   var(--ifs-success-bg);  // DEPRECATED
-$ifs-success-border: var(--ifs-success);     // DEPRECATED
-$ifs-error:          var(--ifs-danger);      // DEPRECATED
-$ifs-error-strong:   var(--ifs-danger);      // DEPRECATED
-$ifs-error-soft:     var(--ifs-danger-bg);   // DEPRECATED
-$ifs-error-border:   var(--ifs-danger);      // DEPRECATED
-$ifs-warning-strong: var(--ifs-warning);     // DEPRECATED
-$ifs-warning-soft:   var(--ifs-warning-bg);  // DEPRECATED
-$ifs-warning-border: var(--ifs-warning);     // DEPRECATED
-$ifs-info-soft:      var(--ifs-info-bg);     // DEPRECATED
-$ifs-info-border:    var(--ifs-info);        // DEPRECATED
-
-// --- Legacy gradients ---
-// Anything other than CTA / login is a wave 2+ migration target. Until then,
-// non-essential gradients fall back to flat surfaces / accent tokens.
-$ifs-gradient-brand:        var(--ifs-gradient-cta);   // DEPRECATED
-$ifs-gradient-brand-soft:   var(--ifs-gradient-cta);   // DEPRECATED
-$ifs-gradient-login:        var(--ifs-gradient-login); // DEPRECATED (rename only)
-$ifs-gradient-nav:          var(--ifs-surface-1);      // DEPRECATED — nav becomes flat
-$ifs-gradient-cta:          var(--ifs-gradient-cta);   // DEPRECATED (rename only)
-$ifs-gradient-card-soft:    var(--ifs-surface-1);      // DEPRECATED — cards are flat
-$ifs-gradient-app-bg:       var(--ifs-bg);             // DEPRECATED — app bg is flat
-$ifs-gradient-glass-footer: var(--ifs-surface-1);      // DEPRECATED — footer is flat
-
-// --- Legacy borders ---
-$ifs-border-soft:   var(--ifs-border-subtle); // DEPRECATED
-$ifs-border-medium: var(--ifs-border-subtle); // DEPRECATED
-// $ifs-border-strong already exposed in alias block.
-
-// --- Legacy radius ---
-$ifs-radius-xl:  var(--ifs-radius-lg);  // DEPRECATED
-$ifs-radius-2xl: var(--ifs-radius-lg);  // DEPRECATED
-$ifs-radius-3xl: var(--ifs-radius-lg);  // DEPRECATED
-
-// --- Legacy shadows ---
-$ifs-shadow-xs:        var(--ifs-shadow-sm);  // DEPRECATED
-$ifs-shadow-xl:        var(--ifs-shadow-lg);  // DEPRECATED
-$ifs-shadow-cta:       var(--ifs-shadow-md);  // DEPRECATED
-$ifs-shadow-cta-hover: var(--ifs-shadow-md);  // DEPRECATED
-$ifs-shadow-hero:      var(--ifs-shadow-lg);  // DEPRECATED
-$ifs-shadow-nav:       var(--ifs-shadow-sm);  // DEPRECATED
-
-// --- Legacy spacing (rem-based names → mapped to closest 4px-grid token) ---
-$ifs-space-0:  0;                        // DEPRECATED
-$ifs-space-1:  var(--ifs-space-4);       // DEPRECATED
-$ifs-space-2:  var(--ifs-space-8);       // DEPRECATED
-$ifs-space-3:  var(--ifs-space-12);      // DEPRECATED
-$ifs-space-4:  var(--ifs-space-16);      // DEPRECATED
-$ifs-space-5:  var(--ifs-space-20);      // DEPRECATED
-$ifs-space-6:  var(--ifs-space-24);      // DEPRECATED
-$ifs-space-8:  var(--ifs-space-32);      // DEPRECATED
-$ifs-space-10: var(--ifs-space-40);      // DEPRECATED
-$ifs-space-12: var(--ifs-space-48);      // DEPRECATED
-$ifs-space-16: var(--ifs-space-64);      // DEPRECATED
-
-// --- Legacy easings ---
-$ifs-ease-out:    var(--ifs-ease-standard);    // DEPRECATED
-$ifs-ease-in-out: var(--ifs-ease-emphasized);  // DEPRECATED
-
-// --- Legacy on-brand / on-dark text tokens ---
-$ifs-on-brand-strong: var(--ifs-text-on-brand);  // DEPRECATED
-$ifs-on-brand-high:   var(--ifs-text-on-brand);  // DEPRECATED
-$ifs-on-brand-muted:  rgba(255, 255, 255, 0.78); // DEPRECATED
-$ifs-on-brand-subtle: rgba(255, 255, 255, 0.7);  // DEPRECATED
-$ifs-on-dark-strong:  var(--ifs-text-primary);   // DEPRECATED
-$ifs-on-dark-muted:   var(--ifs-text-secondary); // DEPRECATED
-$ifs-on-dark-subtle:  var(--ifs-text-muted);     // DEPRECATED
-
-// --- Misc legacy ---
-$ifs-accent-soft-contrast: var(--ifs-accent-500); // DEPRECATED

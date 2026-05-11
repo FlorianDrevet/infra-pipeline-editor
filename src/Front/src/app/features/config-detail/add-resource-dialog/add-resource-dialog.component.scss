@@ -1,4 +1,4 @@
-﻿@use "scss/main" as *;
+@use "scss/main" as *;
 
 :host {
   display: block;
@@ -51,7 +51,7 @@
   font-size: 1.15rem;
   width: 1.15rem;
   height: 1.15rem;
-  color: #546e7a;
+  color: var(--ifs-text-secondary);
 }
 
 .type-category__label {
@@ -59,7 +59,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #546e7a;
+  color: var(--ifs-text-secondary);
 }
 
 .type-picker {
@@ -76,7 +76,7 @@
   gap: 0.6rem;
   padding: 1.4rem 1rem;
   border-radius: 1.2rem;
-  border: 1px solid rgba(146, 191, 235, 0.24);
+  border: 1px solid var(--ifs-border-subtle);
   background: var(--ifs-surface-1);
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
@@ -92,13 +92,13 @@
   font-size: 2rem;
   width: 2rem;
   height: 2rem;
-  color: #1565c0;
+  color: var(--ifs-accent-500);
 }
 
 .type-card__label {
   font-size: 0.84rem;
   font-weight: 700;
-  color: #103454;
+  color: var(--ifs-text-primary);
 }
 
 .form-field {
@@ -110,7 +110,7 @@
 .form-field__label {
   font-size: 0.84rem;
   font-weight: 600;
-  color: #546e7a;
+  color: var(--ifs-text-secondary);
 }
 
 ::ng-deep .deployment-toggle {
@@ -162,7 +162,7 @@ mat-slide-toggle {
   padding: 0.6rem 0.8rem;
   border-radius: 0.6rem;
   background: rgba(217, 45, 32, 0.07);
-  color: #a12d1f;
+  color: var(--ifs-danger);
   font-size: 0.84rem;
   line-height: 1.45;
 }
@@ -172,7 +172,7 @@ mat-slide-toggle {
   padding: 0.6rem 0.8rem;
   border-radius: 0.6rem;
   background: rgba(255, 152, 0, 0.08);
-  color: #b36b00;
+  color: var(--ifs-warning);
   font-size: 0.84rem;
   line-height: 1.45;
 }
@@ -181,7 +181,7 @@ mat-slide-toggle {
   margin: 0 0 0.5rem;
   font-size: 0.84rem;
   font-weight: 600;
-  color: #546e7a;
+  color: var(--ifs-text-secondary);
 }
 
 .env-header {
@@ -211,7 +211,7 @@ mat-slide-toggle {
   padding-top: 0.75rem;
 }
 
-// â”€â”€ Plan Picker (WebApp flow) â”€â”€
+// ── Plan Picker (WebApp flow) ──
 .plan-loading {
   display: flex;
   justify-content: center;
@@ -231,7 +231,7 @@ mat-slide-toggle {
   gap: 0.75rem;
   padding: 0.85rem 1rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(146, 191, 235, 0.24);
+  border: 1px solid var(--ifs-border-subtle);
   background: var(--ifs-surface-1);
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
@@ -260,11 +260,11 @@ mat-slide-toggle {
   font-size: 1.5rem;
   width: 1.5rem;
   height: 1.5rem;
-  color: #1565c0;
+  color: var(--ifs-accent-500);
   flex-shrink: 0;
 
   &--create {
-    color: #0288d1;
+    color: var(--ifs-accent-500);
   }
 }
 
@@ -278,7 +278,7 @@ mat-slide-toggle {
 .plan-card__name {
   font-size: 0.88rem;
   font-weight: 600;
-  color: #103454;
+  color: var(--ifs-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -286,18 +286,18 @@ mat-slide-toggle {
 
 .plan-card__location {
   font-size: 0.76rem;
-  color: #78909c;
+  color: var(--ifs-text-muted);
 }
 
 .plan-card__arrow {
   font-size: 1.1rem;
   width: 1.1rem;
   height: 1.1rem;
-  color: #90a4ae;
+  color: var(--ifs-text-muted);
   flex-shrink: 0;
 }
 
-// â”€â”€ Cross-config separator â”€â”€
+// ── Cross-config separator ──
 .cross-config-separator {
   display: flex;
   align-items: center;
@@ -319,7 +319,7 @@ mat-slide-toggle {
   border-left: 3px solid #7c4dff;
 }
 
-// â”€â”€ Plan Indicator (selected plan in common step) â”€â”€
+// ── Plan Indicator (selected plan in common step) ──
 .plan-indicator {
   display: flex;
   align-items: center;
@@ -335,7 +335,7 @@ mat-slide-toggle {
   font-size: 1.3rem;
   width: 1.3rem;
   height: 1.3rem;
-  color: #1565c0;
+  color: var(--ifs-accent-500);
   flex-shrink: 0;
 }
 
@@ -349,7 +349,7 @@ mat-slide-toggle {
 .plan-indicator__label {
   font-size: 0.7rem;
   font-weight: 500;
-  color: #78909c;
+  color: var(--ifs-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -357,13 +357,13 @@ mat-slide-toggle {
 .plan-indicator__name {
   font-size: 0.88rem;
   font-weight: 600;
-  color: #103454;
+  color: var(--ifs-text-primary);
 }
 
 .plan-indicator__change {
   font-size: 0.76rem;
   font-weight: 600;
-  color: #1565c0;
+  color: var(--ifs-accent-500);
   background: none;
   border: none;
   cursor: pointer;
@@ -376,7 +376,7 @@ mat-slide-toggle {
   }
 }
 
-// â”€â”€ Name Availability â”€â”€
+// ── Name Availability ──
 .name-availability-inline {
   display: flex;
   align-items: center;
@@ -388,9 +388,9 @@ mat-slide-toggle {
   margin-bottom: 0.25rem;
 
   &--checking {
-    background: rgba(13, 101, 192, 0.05);
-    border: 1px solid rgba(13, 101, 192, 0.1);
-    color: #0d65c0;
+    background: rgba(58, 180, 217, 0.08);
+    border: 1px solid rgba(58, 180, 217, 0.15);
+    color: var(--ifs-accent-500);
   }
 }
 
@@ -408,8 +408,8 @@ mat-slide-toggle {
   padding: 0.35rem 0.65rem;
   border-radius: 8px;
   font-size: 0.75rem;
-  background: #fff;
-  border: 1px solid rgba(16, 52, 84, 0.08);
+  background: var(--ifs-surface-2);
+  border: 1px solid var(--ifs-surface-2);
 
   &--available {
     border-color: rgba(46, 125, 50, 0.2);
@@ -431,15 +431,15 @@ mat-slide-toggle {
     width: 1rem;
     height: 1rem;
 
-    .name-availability-env--available & { color: #2e7d32; }
-    .name-availability-env--unavailable & { color: #c62828; }
-    .name-availability-env--invalid & { color: #b8770a; }
+    .name-availability-env--available & { color: var(--ifs-success); }
+    .name-availability-env--unavailable & { color: var(--ifs-danger); }
+    .name-availability-env--invalid & { color: var(--ifs-warning); }
     .name-availability-env--unknown & { color: $ifs-text-secondary; }
   }
 
   &__name {
     font-weight: 600;
-    color: rgba(16, 52, 84, 0.85);
+    color: var(--ifs-text-primary);
   }
 
   &__chip {
@@ -448,18 +448,18 @@ mat-slide-toggle {
     letter-spacing: 0.04em;
     padding: 0.05rem 0.35rem;
     border-radius: 999px;
-    background: rgba(16, 52, 84, 0.08);
+    background: var(--ifs-surface-2);
     color: $ifs-text-secondary;
     font-weight: 600;
   }
 
   &__generated {
-    background: rgba(16, 52, 84, 0.05);
+    background: var(--ifs-surface-2);
     border-radius: 4px;
     padding: 0.05rem 0.35rem;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.72rem;
-    color: rgba(16, 52, 84, 0.85);
+    color: var(--ifs-text-primary);
   }
 
   &__message {
@@ -481,7 +481,7 @@ mat-slide-toggle {
 
   &__text {
     font-size: 0.76rem;
-    color: #92400e;
+    color: var(--ifs-warning);
     flex: 1;
   }
 
@@ -493,7 +493,7 @@ mat-slide-toggle {
     border-radius: 999px;
     border: 1px solid rgba(245, 158, 11, 0.35);
     background: rgba(245, 158, 11, 0.08);
-    color: #b45309;
+    color: var(--ifs-warning);
     font-size: 0.76rem;
     font-weight: 600;
     cursor: pointer;
@@ -512,7 +512,7 @@ mat-slide-toggle {
   }
 }
 
-// â”€â”€ Health Probes Section â”€â”€
+// ── Health Probes Section ──
 .health-probes-section {
   margin-top: 1.25rem;
   padding-top: 1rem;
@@ -530,18 +530,18 @@ mat-slide-toggle {
     font-size: 1.25rem;
     width: 1.25rem;
     height: 1.25rem;
-    color: #1565c0;
+    color: var(--ifs-accent-500);
   }
 
   &__title {
     font-size: 0.92rem;
     font-weight: 700;
-    color: #103454;
+    color: var(--ifs-text-primary);
   }
 
   &__desc {
     font-size: 0.78rem;
-    color: #78909c;
+    color: var(--ifs-text-muted);
     margin: 0 0 0.75rem;
     line-height: 1.4;
   }

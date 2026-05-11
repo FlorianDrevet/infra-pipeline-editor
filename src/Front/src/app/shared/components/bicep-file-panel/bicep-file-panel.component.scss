@@ -32,7 +32,7 @@
   border-radius: 0.65rem;
   border: 1px solid rgba(148, 163, 184, 0.12);
   background: rgba(255, 255, 255, 0.05);
-  color: $ifs-on-dark-muted;
+  color: var(--ifs-text-secondary);
   font-size: 1rem;
   flex-shrink: 0;
 }
@@ -49,7 +49,7 @@
   font-size: 0.84rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  color: $ifs-on-dark-strong;
+  color: var(--ifs-text-primary);
 }
 
 .bicep-workspace__bar-subtitle {
@@ -79,16 +79,16 @@
   border-radius: 0.78rem;
   border: 1px solid transparent;
   transition:
-    background $ifs-duration-fast $ifs-ease-out,
-    border-color $ifs-duration-fast $ifs-ease-out,
-    box-shadow $ifs-duration-fast $ifs-ease-out,
-    color $ifs-duration-fast $ifs-ease-out;
+    background $ifs-duration-fast var(--ifs-ease-standard),
+    border-color $ifs-duration-fast var(--ifs-ease-standard),
+    box-shadow $ifs-duration-fast var(--ifs-ease-standard),
+    color $ifs-duration-fast var(--ifs-ease-standard);
   width: 100%;
   font: inherit;
   cursor: pointer;
   text-align: left;
   background: transparent;
-  color: $ifs-on-dark-strong;
+  color: var(--ifs-text-primary);
 
   @include ifs-focus-visible;
 
@@ -118,7 +118,7 @@
 
 .bicep-tree__name {
   font-size: 0.84rem;
-  color: $ifs-on-dark-muted;
+  color: var(--ifs-text-secondary);
   font-weight: 500;
   letter-spacing: 0.01em;
   flex: 1;
@@ -174,7 +174,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 0.75rem 0.2rem;
-  color: $ifs-on-dark-subtle;
+  color: var(--ifs-text-muted);
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -185,16 +185,16 @@
   cursor: pointer;
   border-radius: 0.72rem;
   transition:
-    background $ifs-duration-fast $ifs-ease-out,
-    border-color $ifs-duration-fast $ifs-ease-out,
-    color $ifs-duration-fast $ifs-ease-out;
+    background $ifs-duration-fast var(--ifs-ease-standard),
+    border-color $ifs-duration-fast var(--ifs-ease-standard),
+    color $ifs-duration-fast var(--ifs-ease-standard);
 
   @include ifs-focus-visible;
 
   &:hover {
     background: rgba(255, 255, 255, 0.03);
     border-color: rgba(148, 163, 184, 0.12);
-    color: $ifs-on-dark-strong;
+    color: var(--ifs-text-primary);
   }
 }
 
@@ -268,7 +268,7 @@
   @include ifs-truncate;
   font-size: 0.8rem;
   font-weight: 600;
-  color: $ifs-on-dark-strong;
+  color: var(--ifs-text-primary);
   letter-spacing: 0.01em;
 }
 
@@ -281,13 +281,13 @@
   border-radius: 0.65rem;
   border: 1px solid rgba(148, 163, 184, 0.12);
   background: rgba(255, 255, 255, 0.02);
-  color: $ifs-on-dark-subtle;
+  color: var(--ifs-text-muted);
   cursor: pointer;
   transition:
-    background $ifs-duration-fast $ifs-ease-out,
-    border-color $ifs-duration-fast $ifs-ease-out,
-    color $ifs-duration-fast $ifs-ease-out,
-    box-shadow $ifs-duration-fast $ifs-ease-out;
+    background $ifs-duration-fast var(--ifs-ease-standard),
+    border-color $ifs-duration-fast var(--ifs-ease-standard),
+    color $ifs-duration-fast var(--ifs-ease-standard),
+    box-shadow $ifs-duration-fast var(--ifs-ease-standard);
 
   @include ifs-focus-visible;
 
@@ -296,7 +296,7 @@
   &:hover {
     background: rgba(255, 255, 255, 0.06);
     border-color: rgba(148, 163, 184, 0.2);
-    color: $ifs-on-dark-strong;
+    color: var(--ifs-text-primary);
     box-shadow: 0 8px 18px rgba(2, 6, 23, 0.2);
   }
 }
@@ -318,7 +318,7 @@
   border: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(255, 255, 255, 0.03);
   font-size: 0.82rem;
-  color: $ifs-on-dark-muted;
+  color: var(--ifs-text-secondary);
 }
 
 .bicep-viewer__loading-icon {
@@ -330,7 +330,7 @@
 }
 
 .bicep-viewer__loading-text {
-  color: $ifs-on-dark-muted;
+  color: var(--ifs-text-secondary);
 }
 
 .bicep-viewer__code {

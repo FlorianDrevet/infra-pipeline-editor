@@ -15,7 +15,7 @@
 
   &__subtitle {
     @include ifs-text($ifs-text-md);
-    color: $ifs-ink-700;
+    color: var(--ifs-text-primary);
     margin: 1.25rem 0 0.75rem;
   }
 }
@@ -31,8 +31,8 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: $ifs-surface-0;
-  border: 1px solid $ifs-border-soft;
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-subtle);
   border-radius: $ifs-radius-md;
   padding: 0.5rem 0.75rem;
 
@@ -43,7 +43,7 @@
     flex-shrink: 0;
 
     &--bordered {
-      border: 1px solid $ifs-ink-200;
+      border: 1px solid var(--ifs-border-subtle);
     }
   }
 
@@ -54,13 +54,13 @@
 
     strong {
       font-size: 0.8rem;
-      color: $ifs-ink-900;
+      color: var(--ifs-text-primary);
     }
 
     code {
       font-family: monospace;
       font-size: 0.75rem;
-      color: $ifs-ink-500;
+      color: var(--ifs-text-secondary);
     }
   }
 }
@@ -72,8 +72,8 @@
 }
 
 .ds-gradient-card {
-  background: $ifs-surface-0;
-  border: 1px solid $ifs-border-soft;
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-subtle);
   border-radius: $ifs-radius-md;
   overflow: hidden;
 
@@ -84,7 +84,7 @@
   &__meta {
     padding: 0.6rem 0.75rem;
     font-size: 0.85rem;
-    color: $ifs-ink-700;
+    color: var(--ifs-text-primary);
   }
 }
 
@@ -96,12 +96,12 @@
 }
 
 .ds-shadow-card {
-  background: $ifs-surface-0;
+  background: var(--ifs-surface-1);
   border-radius: $ifs-radius-lg;
   padding: 1.25rem;
   text-align: center;
   font-size: 0.85rem;
-  color: $ifs-ink-700;
+  color: var(--ifs-text-primary);
 }
 
 .ds-radius-grid {
@@ -116,25 +116,25 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.75rem;
-  background: $ifs-surface-0;
-  border: 1px solid $ifs-border-soft;
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-subtle);
   border-radius: $ifs-radius-md;
 
   &__chip {
     width: 5rem;
     height: 5rem;
-    background: $ifs-gradient-brand-soft;
+    background: var(--ifs-gradient-cta);
   }
 
   strong {
     font-size: 0.85rem;
-    color: $ifs-ink-900;
+    color: var(--ifs-text-primary);
   }
 
   code {
     font-family: monospace;
     font-size: 0.75rem;
-    color: $ifs-ink-500;
+    color: var(--ifs-text-secondary);
   }
 }
 

@@ -50,30 +50,3 @@
   }
   &::-webkit-scrollbar-track { background: transparent; }
 }
-
-// ----------------------------------------------------------------------------
-// DEPRECATED — Compat stubs (REMOVE IN WAVE 6)
-// V1 mixins kept as no-op-ish flat fallbacks so legacy consumers keep building.
-// ----------------------------------------------------------------------------
-
-// V1 glassmorphism → flat surface-2, no blur. (DEPRECATED)
-@mixin ifs-glass($opacity: 1, $blur: 0, $tint: transparent) {
-  background: $ifs-surface-2;
-  border: 1px solid $ifs-border-subtle;
-}
-
-// V1 hover-lift translateY → background-color hover only. (DEPRECATED)
-@mixin ifs-hover-lift {
-  &:hover {
-    background-color: $ifs-surface-2;
-  }
-}
-
-// V1 brand gradient → flat surface-2. (DEPRECATED)
-@mixin ifs-gradient-brand { background: $ifs-surface-2; }
-
-// V1 CTA gradient → V2 single CTA gradient (only legitimate gradient). (DEPRECATED)
-@mixin ifs-gradient-cta { background: var(--ifs-gradient-cta); }
-
-// V1 app-bg radial → flat dark bg. (DEPRECATED)
-@mixin ifs-gradient-app-bg { background: $ifs-bg; }

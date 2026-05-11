@@ -51,13 +51,13 @@
   align-items: center;
   gap: 0.75rem;
   padding: 2.5rem 1.5rem;
-  border-radius: 1.4rem;
-  background: rgba(241, 247, 255, 0.82);
-  border: 1px solid rgba(146, 191, 235, 0.18);
+  border-radius: var(--ifs-radius-lg);
+  background: var(--ifs-surface-2);
+  border: 1px solid var(--ifs-border-subtle);
   text-align: center;
 
   &__icon {
-    color: #8da4ba;
+    color: var(--ifs-text-muted);
     font-size: 2rem;
     width: 2rem;
     height: 2rem;
@@ -70,13 +70,13 @@
   }
 
   strong {
-    color: #103454;
+    color: var(--ifs-text-primary);
     font-size: 1.05rem;
   }
 
   p {
     margin: 0;
-    color: #5b718b;
+    color: var(--ifs-text-secondary);
     line-height: 1.65;
     max-width: 28rem;
   }
@@ -92,11 +92,11 @@
   border-color: rgba(217, 45, 32, 0.16);
 
   .state-card__icon {
-    color: #b42318;
+    color: var(--ifs-danger);
   }
 
   strong {
-    color: #a12d1f;
+    color: var(--ifs-danger);
   }
 }
 
@@ -104,18 +104,18 @@
   width: 0.95rem;
   height: 0.95rem;
   border-radius: 50%;
-  background: #0288d1;
-  box-shadow: 0 0 0 0 rgba(2, 136, 209, 0.36);
+  background: var(--ifs-accent-500);
+  box-shadow: 0 0 0 0 rgba(58, 180, 217, 0.36);
   animation: pulse 1.4s ease-in-out infinite;
 }
 
 @keyframes pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(2, 136, 209, 0.36);
+    box-shadow: 0 0 0 0 rgba(58, 180, 217, 0.36);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(2, 136, 209, 0);
+    box-shadow: 0 0 0 8px rgba(58, 180, 217, 0);
   }
 }
 
@@ -134,9 +134,9 @@
   height: 100%;
   padding: 1.15rem;
   border-radius: 1.2rem;
-  background: $ifs-gradient-card-soft;
-  border: 1px solid rgba(146, 191, 235, 0.24);
-  box-shadow: 0 8px 22px rgba(16, 52, 86, 0.06);
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-subtle);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
   transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
   cursor: pointer;
   outline: none;
@@ -147,7 +147,7 @@
   }
 
   &:focus-within {
-    box-shadow: 0 0 0 4px rgba(2, 136, 209, 0.18), 0 14px 32px rgba(16, 52, 86, 0.12);
+    box-shadow: 0 0 0 4px rgba(58, 180, 217, 0.25), 0 14px 32px rgba(0, 0, 0, 0.2);
   }
 
   &__link {
@@ -198,7 +198,7 @@
       margin: 0;
       font-size: 1.05rem;
       font-weight: 600;
-      color: #0d2b4f;
+      color: var(--ifs-text-primary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -207,7 +207,7 @@
 
   &__desc {
     margin: 0;
-    color: #60758e;
+    color: var(--ifs-text-secondary);
     font-size: 0.84rem;
     line-height: 1.5;
     display: -webkit-box;

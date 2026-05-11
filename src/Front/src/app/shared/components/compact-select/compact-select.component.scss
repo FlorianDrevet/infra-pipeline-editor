@@ -24,9 +24,9 @@
     height: 32px;
     padding: 0 0.6rem 0 0.75rem;
     border-radius: 8px;
-    border: 1px solid rgba(13, 101, 192, 0.2);
-    background: #fff;
-    color: rgba(16, 52, 84, 0.88);
+    border: 1px solid var(--ifs-border-subtle);
+    background: var(--ifs-surface-2);
+    color: var(--ifs-text-primary);
     font-size: 0.8rem;
     font-weight: 500;
     line-height: 1;
@@ -38,18 +38,18 @@
     min-width: 6rem;
 
     &:hover:not(:disabled) {
-      border-color: rgba(13, 101, 192, 0.38);
-      background: rgba(13, 101, 192, 0.03);
+      border-color: var(--ifs-accent-500);
+      background: rgba(58, 180, 217, 0.04);
     }
 
     &:focus-visible {
-      box-shadow: 0 0 0 2px rgba(13, 101, 192, 0.35);
-      border-color: #0d65c0;
+      box-shadow: 0 0 0 2px var(--ifs-accent-500);
+      border-color: var(--ifs-accent-500);
     }
 
     &--open {
-      border-color: #0d65c0;
-      box-shadow: 0 0 0 2px rgba(13, 101, 192, 0.15);
+      border-color: var(--ifs-accent-500);
+      box-shadow: 0 0 0 2px rgba(58, 180, 217, 0.15);
     }
 
     &--disabled {
@@ -67,7 +67,7 @@
     font-size: 0.95rem;
     width: 0.95rem;
     height: 0.95rem;
-    color: #0d65c0;
+    color: var(--ifs-accent-500);
     flex-shrink: 0;
   }
 
@@ -97,9 +97,9 @@
   }
 
   &__panel {
-    background: #fff;
+    background: var(--ifs-surface-2);
     border-radius: 10px;
-    border: 1px solid rgba(13, 101, 192, 0.12);
+    border: 1px solid rgba(58, 180, 217, 0.15);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
     max-height: 200px;
     overflow-y: auto;
@@ -124,7 +124,7 @@
     padding: 0 0.6rem 0 0.75rem;
     border: none;
     background: transparent;
-    color: rgba(16, 52, 84, 0.88);
+    color: var(--ifs-text-primary);
     font-size: 0.8rem;
     font-weight: 450;
     cursor: pointer;
@@ -133,13 +133,13 @@
     text-align: left;
 
     &:hover {
-      background: rgba(13, 101, 192, 0.06);
+      background: rgba(58, 180, 217, 0.08);
     }
 
     &--selected {
-      background: rgba(13, 101, 192, 0.08);
+      background: rgba(58, 180, 217, 0.12);
       font-weight: 550;
-      color: #0d65c0;
+      color: var(--ifs-accent-500);
     }
   }
 
@@ -147,7 +147,7 @@
     font-size: 0.95rem;
     width: 0.95rem;
     height: 0.95rem;
-    color: #0d65c0;
+    color: var(--ifs-accent-500);
     flex-shrink: 0;
   }
 
@@ -162,7 +162,7 @@
     font-size: 0.95rem;
     width: 0.95rem;
     height: 0.95rem;
-    color: #0d65c0;
+    color: var(--ifs-accent-500);
     flex-shrink: 0;
     margin-left: auto;
   }

@@ -35,7 +35,7 @@
 
   &__error {
     margin: 0;
-    color: #c62828;
+    color: var(--ifs-danger);
     font-size: 0.8rem;
   }
 
@@ -49,6 +49,6 @@
 
 .dialog-error {
   margin: 0.5rem 0 0;
-  color: #c62828;
+  color: var(--ifs-danger);
   font-size: 0.85rem;
 }

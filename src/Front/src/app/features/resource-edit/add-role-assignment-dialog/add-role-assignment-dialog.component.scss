@@ -1,4 +1,4 @@
-﻿@use "scss/main" as *;
+@use "scss/main" as *;
 
 .role-dialog {
   min-width: 28rem;
@@ -12,13 +12,13 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #103454;
+  color: var(--ifs-text-primary);
 
   mat-icon {
     font-size: 1.3rem;
     width: 1.3rem;
     height: 1.3rem;
-    color: $ifs-accent-soft-contrast;
+    color: var(--ifs-accent-500);
   }
 }
 
@@ -28,7 +28,7 @@
 
 .role-dialog__subtitle {
   margin: 0 0 1rem;
-  color: #617892;
+  color: var(--ifs-text-secondary);
   font-size: 0.84rem;
   line-height: 1.55;
 }
@@ -38,7 +38,7 @@
   gap: 0.5rem;
 }
 
-// â”€â”€â”€ Target list â”€â”€â”€
+// ─── Target list ───
 
 .target-list {
   display: flex;
@@ -54,8 +54,8 @@
   gap: 0.75rem;
   padding: 0.85rem 1rem;
   border-radius: 1rem;
-  border: 1.5px solid rgba(146, 191, 235, 0.22);
-  background: $ifs-gradient-card-soft;
+  border: 1.5px solid var(--ifs-border-subtle);
+  background: var(--ifs-surface-1);
   cursor: pointer;
   transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
   text-align: left;
@@ -68,7 +68,7 @@
   }
 
   &--selected {
-    border-color: #1565c0;
+    border-color: var(--ifs-accent-500);
     background: var(--ifs-info-bg);
   }
 
@@ -76,7 +76,7 @@
     font-size: 1.35rem;
     width: 1.35rem;
     height: 1.35rem;
-    color: #1565c0;
+    color: var(--ifs-accent-500);
     flex-shrink: 0;
   }
 
@@ -91,7 +91,7 @@
   &__name {
     font-weight: 600;
     font-size: 0.88rem;
-    color: #103454;
+    color: var(--ifs-text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -99,19 +99,19 @@
 
   &__meta {
     font-size: 0.75rem;
-    color: #617892;
+    color: var(--ifs-text-secondary);
   }
 
   &__arrow {
     font-size: 1.15rem;
     width: 1.15rem;
     height: 1.15rem;
-    color: rgba(146, 191, 235, 0.5);
+    color: var(--ifs-accent-500);
     flex-shrink: 0;
   }
 }
 
-// â”€â”€â”€ Selected target summary â”€â”€â”€
+// ─── Selected target summary ───
 
 .selected-target-summary {
   display: flex;
@@ -124,24 +124,24 @@
   margin-bottom: 1.25rem;
   font-size: 0.88rem;
   font-weight: 600;
-  color: #103454;
+  color: var(--ifs-text-primary);
 
   mat-icon {
     font-size: 1.15rem;
     width: 1.15rem;
     height: 1.15rem;
-    color: #1565c0;
+    color: var(--ifs-accent-500);
   }
 
   &__type {
     margin-left: auto;
     font-size: 0.75rem;
     font-weight: 500;
-    color: #617892;
+    color: var(--ifs-text-secondary);
   }
 }
 
-// â”€â”€â”€ Config sections â”€â”€â”€
+// ─── Config sections ───
 
 .config-section {
   margin-bottom: 1.25rem;
@@ -151,7 +151,7 @@
     margin-bottom: 0.5rem;
     font-size: 0.82rem;
     font-weight: 700;
-    color: #103454;
+    color: var(--ifs-text-primary);
     text-transform: uppercase;
     letter-spacing: 0.03em;
   }
@@ -162,7 +162,7 @@
     gap: 0.35rem;
     margin: 0.35rem 0 0;
     font-size: 0.78rem;
-    color: #e65100;
+    color: var(--ifs-warning);
 
     mat-icon {
       font-size: 1rem;
@@ -185,18 +185,18 @@
   width: 100%;
 }
 
-// â”€â”€â”€ Role description â”€â”€â”€
+// ─── Role description ───
 
 .role-description-box {
   margin-top: 0.75rem;
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
-  background: rgba(241, 247, 255, 0.7);
-  border: 1px solid rgba(146, 191, 235, 0.18);
+  background: var(--ifs-surface-2);
+  border: 1px solid var(--ifs-border-subtle);
 
   strong {
     font-size: 0.78rem;
-    color: #103454;
+    color: var(--ifs-text-primary);
     text-transform: uppercase;
     letter-spacing: 0.03em;
   }
@@ -204,7 +204,7 @@
   p {
     margin: 0.35rem 0 0;
     font-size: 0.84rem;
-    color: #37474f;
+    color: var(--ifs-text-primary);
     line-height: 1.55;
   }
 }
@@ -216,7 +216,7 @@
   margin-top: 0.5rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #1565c0;
+  color: var(--ifs-accent-500);
   text-decoration: none;
 
   &:hover {
@@ -230,7 +230,7 @@
   }
 }
 
-// â”€â”€â”€ States â”€â”€â”€
+// ─── States ───
 
 .role-dialog__empty {
   display: flex;
@@ -244,12 +244,12 @@
     font-size: 2.5rem;
     width: 2.5rem;
     height: 2.5rem;
-    color: $ifs-accent-soft-contrast;
+    color: var(--ifs-accent-500);
   }
 
   p {
     margin: 0;
-    color: #617892;
+    color: var(--ifs-text-secondary);
     font-size: 0.88rem;
   }
 }
@@ -259,12 +259,12 @@
   align-items: center;
   gap: 0.65rem;
   padding: 1rem 0;
-  color: #617892;
+  color: var(--ifs-text-secondary);
   font-size: 0.84rem;
 }
 
 .role-dialog__no-roles {
-  color: #617892;
+  color: var(--ifs-text-secondary);
   font-size: 0.84rem;
   font-style: italic;
   padding: 0.5rem 0;
@@ -278,7 +278,7 @@
   border-radius: 0.75rem;
   background: rgba(244, 67, 54, 0.07);
   border: 1px solid rgba(244, 67, 54, 0.18);
-  color: #c62828;
+  color: var(--ifs-danger);
   font-size: 0.84rem;
   font-weight: 600;
   margin-top: 0.75rem;
@@ -300,7 +300,7 @@
   }
 }
 
-// â”€â”€â”€ Identity picker â”€â”€â”€
+// ─── Identity picker ───
 
 .identity-list {
   display: flex;
@@ -317,8 +317,8 @@
   gap: 0.6rem;
   padding: 0.65rem 0.85rem;
   border-radius: 0.75rem;
-  border: 1.5px solid rgba(146, 191, 235, 0.22);
-  background: $ifs-gradient-card-soft;
+  border: 1.5px solid var(--ifs-border-subtle);
+  background: var(--ifs-surface-1);
   cursor: pointer;
   transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
   text-align: left;
@@ -330,7 +330,7 @@
   }
 
   &--selected {
-    border-color: #1565c0;
+    border-color: var(--ifs-accent-500);
     background: var(--ifs-info-bg);
   }
 
@@ -338,7 +338,7 @@
     font-size: 1.15rem;
     width: 1.15rem;
     height: 1.15rem;
-    color: #1565c0;
+    color: var(--ifs-accent-500);
     flex-shrink: 0;
   }
 
@@ -353,7 +353,7 @@
   &__name {
     font-weight: 600;
     font-size: 0.84rem;
-    color: #103454;
+    color: var(--ifs-text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -361,14 +361,14 @@
 
   &__meta {
     font-size: 0.72rem;
-    color: #617892;
+    color: var(--ifs-text-secondary);
   }
 
   &__check {
     font-size: 1.1rem;
     width: 1.1rem;
     height: 1.1rem;
-    color: #1565c0;
+    color: var(--ifs-accent-500);
     flex-shrink: 0;
   }
 }
@@ -382,8 +382,8 @@
   margin-top: 0.65rem;
   padding: 0.85rem;
   border-radius: 0.75rem;
-  background: rgba(241, 247, 255, 0.7);
-  border: 1px solid rgba(146, 191, 235, 0.18);
+  background: var(--ifs-surface-2);
+  border: 1px solid var(--ifs-border-subtle);
 
   &__field {
     width: 100%;
@@ -413,7 +413,7 @@
 
   p {
     margin: 0;
-    color: #617892;
+    color: var(--ifs-text-secondary);
     font-size: 0.84rem;
   }
 }

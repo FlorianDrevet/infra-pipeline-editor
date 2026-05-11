@@ -26,7 +26,7 @@
     max-width: 48rem;
     font-size: 0.88rem;
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.78);
+    color: var(--ifs-surface-2);
   }
 
   &__section-title {
@@ -67,7 +67,7 @@
     border: 1px solid rgba(255, 189, 46, 0.18);
     font-size: 0.82rem;
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.88);
+    color: var(--ifs-surface-2);
   }
 }
 
@@ -110,13 +110,13 @@
   font-size: 0.88rem;
   font-weight: 700;
   color: #ffffff;
-  background: $ifs-gradient-brand-soft;
+  background: var(--ifs-gradient-cta);
   box-shadow: 0 8px 16px rgba(0, 188, 212, 0.22);
 
   &--permission {
     background: var(--ifs-warning);
     box-shadow: var(--ifs-shadow-sm);
-    color: #1a1a2e;
+    color: var(--ifs-text-primary);
   }
 
   &--success {
@@ -129,7 +129,7 @@
   margin: 0;
   font-size: 0.85rem;
   line-height: 1.65;
-  color: rgba(255, 255, 255, 0.84);
+  color: var(--ifs-text-secondary);
   padding-top: 0.15rem;
 }
 

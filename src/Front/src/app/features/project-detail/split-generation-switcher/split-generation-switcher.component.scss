@@ -139,13 +139,13 @@
   &--infra {
     border-color: rgba(152, 184, 226, 0.42);
     background: rgba(55, 78, 110, 0.94);
-    color: #f5f8fd;
+    color: var(--ifs-text-primary);
   }
 
   &--code {
     border-color: rgba(132, 190, 193, 0.42);
     background: rgba(43, 83, 86, 0.94);
-    color: #f4fbfb;
+    color: var(--ifs-text-primary);
   }
 
   &--empty {
@@ -302,7 +302,7 @@
   border-radius: 0.9rem;
   background: rgba(127, 29, 29, 0.18);
   border: 1px solid rgba(248, 113, 113, 0.18);
-  color: #fecaca;
+  color: var(--ifs-danger);
   font-size: 0.88rem;
 
   p { margin: 0; }
@@ -359,7 +359,7 @@
   width: 1.15rem;
   height: 1.15rem;
   font-size: 1.15rem;
-  color: #8ab3b6;
+  color: var(--ifs-text-muted);
 }
 
 .split-switcher__bootstrap-guide-copy {

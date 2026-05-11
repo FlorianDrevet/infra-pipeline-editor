@@ -51,7 +51,7 @@
 }
 
 .mixed-banner {
-  border-left: 4px solid #ff9800;
+  border-left: 4px solid var(--ifs-warning);
   background: rgba(255, 152, 0, 0.06);
 
   &__content {
@@ -61,7 +61,7 @@
   }
 
   &__icon {
-    color: #ef6c00;
+    color: var(--ifs-warning);
     flex-shrink: 0;
   }
 
@@ -101,7 +101,7 @@
   }
 
   &__title-icon {
-    color: #0288d1;
+    color: var(--ifs-accent-500);
   }
 
   &__legacy-chip {
@@ -128,7 +128,7 @@
   }
 
   &__link {
-    color: #0288d1;
+    color: var(--ifs-accent-500);
     text-decoration: none;
 
     &:hover {

@@ -17,7 +17,7 @@
   display: flex;
   flex-direction: column;
   padding: 2.5rem;
-  background: $ifs-gradient-login;
+  background: var(--ifs-gradient-login);
   color: #fff;
   position: relative;
 }

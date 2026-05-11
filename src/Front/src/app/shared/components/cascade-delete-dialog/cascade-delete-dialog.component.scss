@@ -3,14 +3,14 @@
 }
 
 .message {
-  color: #3b4f66;
+  color: var(--ifs-text-primary);
   font-size: 0.92rem;
   line-height: 1.6;
   margin: 0 0 0.75rem;
 }
 
 .dependents-header {
-  color: #5a6e82;
+  color: var(--ifs-text-secondary);
   font-size: 0.85rem;
   font-weight: 500;
   margin: 0 0 0.5rem;
@@ -22,7 +22,7 @@
   padding: 0;
   max-height: 240px;
   overflow-y: auto;
-  border: 1px solid #e0e6ed;
+  border: 1px solid var(--ifs-border-subtle);
   border-radius: 8px;
 }
 
@@ -31,7 +31,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #f0f3f6;
+  border-bottom: 1px solid var(--ifs-border-subtle);
   font-size: 0.88rem;
 
   &:last-child {
@@ -43,12 +43,12 @@
   font-size: 18px;
   width: 18px;
   height: 18px;
-  color: #6b8299;
+  color: var(--ifs-text-muted);
   flex-shrink: 0;
 }
 
 .dep-name {
-  color: #2c3e50;
+  color: var(--ifs-text-primary);
   font-weight: 500;
   flex: 1;
   overflow: hidden;
@@ -57,7 +57,7 @@
 }
 
 .dep-type {
-  color: #8fa3b8;
+  color: var(--ifs-text-muted);
   font-size: 0.78rem;
   flex-shrink: 0;
 }
