@@ -520,10 +520,22 @@
 
   &__header {
     display: flex;
-    flex-direction: column;
-    gap: var(--ifs-space-4);
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ifs-space-12);
     flex: 1;
     min-width: 0;
+
+    h3 {
+      margin: 0;
+      min-width: 0;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 
   &__meta {
@@ -537,6 +549,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--ifs-space-6);
+    flex-shrink: 0;
   }
 
   &__arrow {
