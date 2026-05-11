@@ -106,9 +106,17 @@ public sealed class AzureDevOpsGitProviderService(
                     0);
             }
 
-            return await ExecutePushAsync(
-                client, repoApiBase, org, project, request, pushData,
-                parentSha, targetBranchExists, changes, cancellationToken);
+            var execution = new AzureDevOpsPushExecution(
+                repoApiBase,
+                org,
+                project,
+                request,
+                pushData,
+                parentSha,
+                targetBranchExists,
+                changes);
+
+            return await ExecutePushAsync(client, execution, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -117,7 +125,7 @@ public sealed class AzureDevOpsGitProviderService(
         }
     }
 
-    private async Task<ErrorOr<(string ParentSha, bool TargetBranchExists)>> ResolveBranchesAsync(
+    private static async Task<ErrorOr<(string ParentSha, bool TargetBranchExists)>> ResolveBranchesAsync(
         HttpClient client,
         string repoApiBase,
         MultiScopeGitPushRequest request,
@@ -216,14 +224,7 @@ public sealed class AzureDevOpsGitProviderService(
 
     private async Task<ErrorOr<PushBicepToGitResult>> ExecutePushAsync(
         HttpClient client,
-        string repoApiBase,
-        string org,
-        string project,
-        MultiScopeGitPushRequest request,
-        PreparedAzureDevOpsPush pushData,
-        string parentSha,
-        bool targetBranchExists,
-        List<object> changes,
+        AzureDevOpsPushExecution execution,
         CancellationToken cancellationToken)
     {
         var pushPayload = new
@@ -232,21 +233,21 @@ public sealed class AzureDevOpsGitProviderService(
             {
                 new
                 {
-                    name = $"refs/heads/{request.TargetBranchName}",
-                    oldObjectId = parentSha,
+                    name = $"refs/heads/{execution.Request.TargetBranchName}",
+                    oldObjectId = execution.ParentSha,
                 },
             },
             commits = new[]
             {
                 new
                 {
-                    comment = request.CommitMessage,
-                    changes,
+                    comment = execution.Request.CommitMessage,
+                    changes = execution.Changes,
                 },
             },
         };
 
-        var pushUrl = $"{repoApiBase}/pushes?api-version={ApiVersion}";
+        var pushUrl = $"{execution.RepoApiBase}/pushes?api-version={ApiVersion}";
         var pushResponse = await client.PostAsJsonAsync(pushUrl, pushPayload, cancellationToken);
 
         if (!pushResponse.IsSuccessStatusCode)
@@ -255,11 +256,11 @@ public sealed class AzureDevOpsGitProviderService(
             logger.LogWarning(
                 "Azure DevOps push failed with {StatusCode}. ParentSha: {ParentSha}, target branch existed: {TargetBranchExists}, total changes: {ChangeCount}, files: {FileCount}, cleanup roots: [{CleanupRoots}]. Response: {Body}",
                 pushResponse.StatusCode,
-                parentSha,
-                targetBranchExists,
-                changes.Count,
-                pushData.FilesByPath.Count,
-                string.Join(", ", pushData.CleanupRoots),
+                execution.ParentSha,
+                execution.TargetBranchExists,
+                execution.Changes.Count,
+                execution.PushData.FilesByPath.Count,
+                string.Join(", ", execution.PushData.CleanupRoots),
                 body);
             return Errors.GitRepository.PushFailed($"ADO API returned {pushResponse.StatusCode}: {body}");
         }
@@ -267,12 +268,12 @@ public sealed class AzureDevOpsGitProviderService(
         var pushResult = await pushResponse.Content.ReadFromJsonAsync<AdoPushResult>(cancellationToken: cancellationToken);
         var commitSha = pushResult?.Commits?.FirstOrDefault()?.CommitId ?? "unknown";
 
-        var branchUrl = $"https://dev.azure.com/{org}/{project}/_git/{request.RepositoryName}?version=GB{request.TargetBranchName}";
+        var branchUrl = $"https://dev.azure.com/{execution.Organization}/{execution.Project}/_git/{execution.Request.RepositoryName}?version=GB{execution.Request.TargetBranchName}";
         return new PushBicepToGitResult(
-            request.TargetBranchName,
+            execution.Request.TargetBranchName,
             branchUrl,
             commitSha,
-            pushData.FilesByPath.Count);
+            execution.PushData.FilesByPath.Count);
     }
 
     /// <summary>
@@ -280,7 +281,7 @@ public sealed class AzureDevOpsGitProviderService(
     /// ADO's <c>refs?filter=heads/X</c> is a prefix match and would also return <c>heads/Xfoo</c>;
     /// we therefore filter client-side on <c>refs/heads/{branchName}</c>.
     /// </summary>
-    private async Task<string?> ResolveBranchShaAsync(
+    private static async Task<string?> ResolveBranchShaAsync(
         HttpClient client,
         string repoApiBase,
         string branchName,
@@ -328,20 +329,16 @@ public sealed class AzureDevOpsGitProviderService(
         if (itemsList?.Value is null)
             return Array.Empty<string>();
 
-        var paths = new List<string>();
-        foreach (var item in itemsList.Value)
-        {
-            if (item is { IsFolder: false, Path: not null })
-                paths.Add(item.Path.TrimStart('/'));
-        }
-
-        return paths;
+        return itemsList.Value
+            .Where(item => item is { IsFolder: false, Path: not null })
+            .Select(item => item.Path!.TrimStart('/'))
+            .ToList();
     }
 
     /// <summary>
     /// Checks whether a single file path exists at the exact <paramref name="commitSha"/>.
     /// </summary>
-    private async Task<bool> ItemExistsAtCommitAsync(
+    private static async Task<bool> ItemExistsAtCommitAsync(
         HttpClient client,
         string repoApiBase,
         string filePath,
@@ -466,16 +463,8 @@ public sealed class AzureDevOpsGitProviderService(
             : new PreparedAzureDevOpsPush(filesByPath, cleanupRoots);
     }
 
-    private static bool IsWithinCleanupRoots(string path, IReadOnlySet<string> cleanupRoots)
-    {
-        foreach (var cleanupRoot in cleanupRoots)
-        {
-            if (path.StartsWith($"{cleanupRoot}/", StringComparison.Ordinal))
-                return true;
-        }
-
-        return false;
-    }
+    private static bool IsWithinCleanupRoots(string path, IReadOnlySet<string> cleanupRoots) =>
+        cleanupRoots.Any(cleanupRoot => path.StartsWith($"{cleanupRoot}/", StringComparison.Ordinal));
 
     private static string NormalizeBasePath(string? basePath) =>
         string.IsNullOrWhiteSpace(basePath)
@@ -490,6 +479,16 @@ public sealed class AzureDevOpsGitProviderService(
     private sealed record PreparedAzureDevOpsPush(
         IReadOnlyDictionary<string, string> FilesByPath,
         IReadOnlySet<string> CleanupRoots);
+
+    private sealed record AzureDevOpsPushExecution(
+        string RepoApiBase,
+        string Organization,
+        string Project,
+        MultiScopeGitPushRequest Request,
+        PreparedAzureDevOpsPush PushData,
+        string ParentSha,
+        bool TargetBranchExists,
+        List<object> Changes);
 
     // â”€â”€â”€ ADO API response models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

@@ -219,8 +219,8 @@ internal static class ParameterFileAssembler
         var head = dotIndex >= 0 ? propertyPath[..dotIndex] : propertyPath;
         var tail = dotIndex >= 0 ? propertyPath[(dotIndex + 1)..] : null;
 
-        var entries = source is IDictionary<string, object> existingDict
-            ? existingDict.Select(kv => (kv.Key, (object?)kv.Value))
+        IEnumerable<(string PropertyName, object? Value)> entries = source is IDictionary<string, object> existingDict
+            ? existingDict.Select(kv => (PropertyName: kv.Key, Value: kv.Value))
             : BicepObjectPropertyHelper.EnumerateSerializedProperties(source);
 
         var dict = new Dictionary<string, object>();

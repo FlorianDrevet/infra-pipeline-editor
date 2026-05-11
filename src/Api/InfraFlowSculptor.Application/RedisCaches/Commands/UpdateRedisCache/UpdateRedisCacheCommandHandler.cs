@@ -55,10 +55,15 @@ public class UpdateRedisCacheCommandHandler(
 
     private static ErrorOr<TlsVersion?> ParseTlsVersion(string? raw)
     {
-        if (raw is null) return (TlsVersion?)null;
+        if (raw is null)
+        {
+            TlsVersion? emptyTlsVersion = null;
+            return emptyTlsVersion;
+        }
+
         if (!Enum.TryParse<TlsVersion.Version>(raw, ignoreCase: true, out var parsed))
             return Error.Validation(code: "RedisCache.InvalidMinimumTlsVersion", description: $"The minimum TLS version '{raw}' is not valid.");
-        return (TlsVersion?)new TlsVersion(parsed);
+        return new TlsVersion(parsed);
     }
 
     private static ErrorOr<List<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>> ParseEnvironmentSettings(
@@ -81,17 +86,27 @@ public class UpdateRedisCacheCommandHandler(
 
     private static ErrorOr<RedisCacheSku?> ParseSku(string? raw)
     {
-        if (raw is null) return (RedisCacheSku?)null;
+        if (raw is null)
+        {
+            RedisCacheSku? emptySku = null;
+            return emptySku;
+        }
+
         if (!Enum.TryParse<RedisCacheSku.Sku>(raw, ignoreCase: true, out var parsed))
             return Error.Validation(code: "RedisCache.InvalidSku", description: $"The SKU '{raw}' is not valid.");
-        return (RedisCacheSku?)new RedisCacheSku(parsed);
+        return new RedisCacheSku(parsed);
     }
 
     private static ErrorOr<MaxMemoryPolicy?> ParseMaxMemoryPolicy(string? raw)
     {
-        if (raw is null) return (MaxMemoryPolicy?)null;
+        if (raw is null)
+        {
+            MaxMemoryPolicy? emptyPolicy = null;
+            return emptyPolicy;
+        }
+
         if (!Enum.TryParse<MaxMemoryPolicy.Policy>(raw, ignoreCase: true, out var parsed))
             return Error.Validation(code: "RedisCache.InvalidMaxMemoryPolicy", description: $"The max memory policy '{raw}' is not valid.");
-        return (MaxMemoryPolicy?)new MaxMemoryPolicy(parsed);
+        return new MaxMemoryPolicy(parsed);
     }
 }
