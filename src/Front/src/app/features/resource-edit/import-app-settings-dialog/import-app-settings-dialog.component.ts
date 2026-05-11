@@ -16,6 +16,15 @@ import { AppSettingResponse, OutputDefinitionResponse } from '../../../shared/in
 import { ProjectPipelineVariableGroupResponse } from '../../../shared/interfaces/project.interface';
 import { ProjectService } from '../../../shared/services/project.service';
 import { RESOURCE_TYPE_ICONS } from '../../config-detail/enums/resource-type.enum';
+import {
+  buildImportAppSettingsAcceptAttribute,
+  getImportAppSettingsModeDefinition,
+  listImportAppSettingsModes,
+  parseImportAppSettingsContent,
+  resolveImportAppSettingsMode,
+  resolveImportAppSettingsModeForFileName,
+  type ImportAppSettingsMode,
+} from './import-app-settings-parser';
 
 // ─── Data contract ───────────────────────────────────────────────────────────
 
@@ -26,6 +35,9 @@ export interface ImportAppSettingsDialogData {
   environments: { name: string }[];
   projectId: string;
   existingSettingNames: string[];
+  resourceType: string;
+  deploymentMode: string | null;
+  runtimeStack: string | null;
 }
 
 // ─── Source types ────────────────────────────────────────────────────────────
@@ -36,7 +48,7 @@ type ImportSourceType = 'static' | 'output' | 'variableGroup' | 'skip';
 
 interface ImportEntry {
   key: string;
-  jsonValue: string;
+  rawValue: string;
   selected: boolean;
   sourceType: ImportSourceType;
   /** output mode */
@@ -48,26 +60,6 @@ interface ImportEntry {
   /** import result */
   status: 'pending' | 'importing' | 'success' | 'error' | 'duplicate';
   errorMessage: string;
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function flattenJson(obj: unknown, prefix: string = ''): Record<string, string> {
-  const result: Record<string, string> = {};
-  if (obj === null || obj === undefined) return result;
-  if (typeof obj !== 'object' || Array.isArray(obj)) {
-    result[prefix] = String(obj);
-    return result;
-  }
-  for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
-    const fullKey = prefix ? `${prefix}__${k}` : k;
-    if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
-      Object.assign(result, flattenJson(v, fullKey));
-    } else {
-      result[fullKey] = v === null || v === undefined ? '' : String(v);
-    }
-  }
-  return result;
 }
 
 @Component({
@@ -98,6 +90,11 @@ export class ImportAppSettingsDialogComponent {
   private readonly translate = inject(TranslateService);
 
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
+  private readonly recommendedImportMode = resolveImportAppSettingsMode({
+    resourceType: this.data.resourceType,
+    deploymentMode: this.data.deploymentMode,
+    runtimeStack: this.data.runtimeStack,
+  });
 
   // ─── Step: 'upload' → 'board' → 'importing' ───
   protected readonly step = signal<'upload' | 'board' | 'importing'>('upload');
@@ -106,6 +103,8 @@ export class ImportAppSettingsDialogComponent {
   protected readonly jsonInput = signal('');
   protected readonly parseError = signal('');
   protected readonly fileName = signal('');
+  protected readonly importMode = signal<ImportAppSettingsMode>(this.recommendedImportMode);
+  protected readonly acceptAttribute = buildImportAppSettingsAcceptAttribute();
 
   // ─── Board step ───
   protected readonly entries = signal<ImportEntry[]>([]);
@@ -132,7 +131,34 @@ export class ImportAppSettingsDialogComponent {
     { value: 'skip', label: this.translate.instant('RESOURCE_EDIT.IMPORT_APP_SETTINGS.SOURCE_SKIP') },
   ];
 
+  protected readonly importModeOptions: DsSelectOption[] = listImportAppSettingsModes().map((definition) => ({
+    value: definition.mode,
+    label: this.translate.instant(definition.labelKey),
+  }));
+
   // ─── Computed ───
+
+  protected readonly selectedImportModeDefinition = computed(() =>
+    getImportAppSettingsModeDefinition(this.importMode())
+  );
+
+  protected readonly recommendedImportModeDefinition = getImportAppSettingsModeDefinition(this.recommendedImportMode);
+
+  protected readonly applicationProfileLabel = computed(() => {
+    if (this.data.resourceType === 'ContainerApp' || this.data.deploymentMode === 'Container') {
+      return 'Container';
+    }
+
+    if (this.data.runtimeStack) {
+      return `${this.data.resourceType} / ${this.data.runtimeStack}`;
+    }
+
+    return this.data.resourceType;
+  });
+
+  protected readonly selectedModeExamples = computed(() =>
+    this.selectedImportModeDefinition().exampleFileNames.join(', ')
+  );
 
   protected readonly filteredEntries = computed(() => {
     const filter = this.searchFilter().toLowerCase().trim();
@@ -190,6 +216,7 @@ export class ImportAppSettingsDialogComponent {
     const file = input.files?.[0];
     if (!file) return;
     this.fileName.set(file.name);
+    this.importMode.set(resolveImportAppSettingsModeForFileName(file.name, this.importMode()));
     const reader = new FileReader();
     reader.onload = () => {
       this.jsonInput.set(reader.result as string);
@@ -204,6 +231,7 @@ export class ImportAppSettingsDialogComponent {
     const file = event.dataTransfer?.files[0];
     if (!file) return;
     this.fileName.set(file.name);
+    this.importMode.set(resolveImportAppSettingsModeForFileName(file.name, this.importMode()));
     const reader = new FileReader();
     reader.onload = () => {
       this.jsonInput.set(reader.result as string);
@@ -217,6 +245,11 @@ export class ImportAppSettingsDialogComponent {
     event.stopPropagation();
   }
 
+  protected onImportModeChange(mode: string): void {
+    this.importMode.set(mode as ImportAppSettingsMode);
+    this.parseError.set('');
+  }
+
   // ─── Parse JSON ────────────────────────────────────────────────────────────
 
   protected parseAndProceed(): void {
@@ -226,25 +259,24 @@ export class ImportAppSettingsDialogComponent {
       return;
     }
 
-    let parsed: unknown;
+    let parsedEntries: Array<{ key: string; value: string }>;
     try {
-      parsed = JSON.parse(raw);
-    } catch {
-      this.parseError.set('RESOURCE_EDIT.IMPORT_APP_SETTINGS.ERROR_INVALID_JSON');
+      parsedEntries = parseImportAppSettingsContent(raw, this.importMode());
+    } catch (error) {
+      this.parseError.set(this.resolveParseErrorKey(error));
       return;
     }
 
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-      this.parseError.set('RESOURCE_EDIT.IMPORT_APP_SETTINGS.ERROR_NOT_OBJECT');
+    if (parsedEntries.length === 0) {
+      this.parseError.set('RESOURCE_EDIT.IMPORT_APP_SETTINGS.ERROR_NO_VALUES');
       return;
     }
 
-    const flat = flattenJson(parsed);
     const existingNames = new Set(this.data.existingSettingNames.map(n => n.toUpperCase()));
 
-    const importEntries: ImportEntry[] = Object.entries(flat).map(([key, value]) => ({
+    const importEntries: ImportEntry[] = parsedEntries.map(({ key, value }) => ({
       key,
-      jsonValue: value,
+      rawValue: value,
       selected: !existingNames.has(key.toUpperCase()),
       sourceType: 'static' as ImportSourceType,
       sourceResourceId: null,
@@ -258,6 +290,16 @@ export class ImportAppSettingsDialogComponent {
     this.entries.set(importEntries);
     this.step.set('board');
     this.loadVariableGroups();
+  }
+
+  private resolveParseErrorKey(error: unknown): string {
+    if (error instanceof Error && error.message === 'Root content must be an object.') {
+      return 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.ERROR_NOT_OBJECT';
+    }
+
+    return this.importMode() === 'dotnetJson' || this.importMode() === 'functionAppJson'
+      ? 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.ERROR_INVALID_JSON'
+      : 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.ERROR_INVALID_FORMAT';
   }
 
   // ─── Variable group loading ────────────────────────────────────────────────
@@ -442,7 +484,7 @@ export class ImportAppSettingsDialogComponent {
       default: {
         const envValues: Record<string, string> = {};
         for (const env of envNames) {
-          envValues[env] = entry.jsonValue;
+          envValues[env] = entry.rawValue;
         }
         return {
           name: entry.key,
