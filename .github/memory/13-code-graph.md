@@ -63,11 +63,10 @@ Ce dépôt utilise **deux graphes complémentaires** :
 | AzureResourceTypes.All | 18 entries | In `GenerationCore/AzureResourceTypes.cs` |
 | Commands | ~110 | Files ending `Command.cs` in Application layer |
 | Queries | ~51 | Files ending `Query.cs` in Application layer |
-| Bicep generation tests | 842+ | `tests/InfraFlowSculptor.BicepGeneration.Tests/` |
-| Pipeline generation tests | 91 | `tests/InfraFlowSculptor.PipelineGeneration.Tests/` (44 golden + 47 stage) |
-| MCP tests | 104 | `tests/InfraFlowSculptor.Mcp.Tests/` |
-| Checked-in test projects | 7 | `tests/**/*.csproj` (verified in repo on 2026-04-30) |
-| Total solution tests | ~940 | `dotnet test .\InfraFlowSculptor.slnx` |
+| Bicep generation tests | Active xUnit project | `tests/InfraFlowSculptor.BicepGeneration.Tests/` |
+| Pipeline generation tests | Active xUnit project | `tests/InfraFlowSculptor.PipelineGeneration.Tests/` |
+| MCP tests | Active xUnit project | `tests/InfraFlowSculptor.Mcp.Tests/` |
+| Checked-in test projects | 8 | `tests/**/*.csproj` (verified in repo on 2026-05-11) |
 
 ## Clusters fonctionnels principaux
 

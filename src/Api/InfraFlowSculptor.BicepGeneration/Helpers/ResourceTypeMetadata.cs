@@ -123,6 +123,9 @@ internal static class ResourceTypeMetadata
             AzureResourceTypes.ArmTypes.CosmosDb => "cosmosDb",
             AzureResourceTypes.ArmTypes.SqlServer => "sqlServer",
             AzureResourceTypes.ArmTypes.SqlDatabase => "sqlDatabase",
+            AzureResourceTypes.ArmTypes.ServiceBusNamespace => "serviceBusNamespace",
+            AzureResourceTypes.ArmTypes.ContainerRegistry => "containerRegistry",
+            AzureResourceTypes.ArmTypes.EventHubNamespace => "eventHubNamespace",
             _ => "unknown"
         };
     }

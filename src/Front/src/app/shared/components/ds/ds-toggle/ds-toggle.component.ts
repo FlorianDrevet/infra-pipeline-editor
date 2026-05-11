@@ -7,9 +7,10 @@ import {
 
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { DsBooleanControlBase } from '../ds-boolean-control-base';
+import { DsToggleLabelPosition } from './ds-toggle.types';
 
 /**
- * Design system slide toggle. iOS-style switch with brand gradient when checked.
+ * Design system slide toggle. Pill 32×18, accent background when checked.
  */
 @Component({
   selector: 'app-ds-toggle',
@@ -28,5 +29,6 @@ import { DsBooleanControlBase } from '../ds-boolean-control-base';
 })
 export class DsToggleComponent extends DsBooleanControlBase {
   public readonly ariaLabel = input<string | undefined>(undefined);
-  public readonly labelPosition = input<'before' | 'after'>('after');
+  public readonly labelPosition = input<DsToggleLabelPosition>('after');
 }
+

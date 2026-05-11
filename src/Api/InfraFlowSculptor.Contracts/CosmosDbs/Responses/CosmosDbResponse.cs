@@ -8,6 +8,7 @@ namespace InfraFlowSculptor.Contracts.CosmosDbs.Responses;
 /// <param name="Name">Display name of the Cosmos DB account.</param>
 /// <param name="Location">Azure region where the Cosmos DB account is deployed.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
+/// <param name="IsExisting">Whether the resource references an already-existing Azure resource.</param>
 public record CosmosDbResponse(
     string Id,
     string ResourceGroupId,

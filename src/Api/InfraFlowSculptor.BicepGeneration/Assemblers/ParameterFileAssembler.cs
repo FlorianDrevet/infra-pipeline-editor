@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using InfraFlowSculptor.BicepGeneration.Generators.ParameterModels;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.StorageAccount;
@@ -39,72 +40,89 @@ internal static class ParameterFileAssembler
     /// <summary>
     /// Clones modules and replaces matching parameter values with environment-specific overrides.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     private static IReadOnlyCollection<GeneratedTypeModule> ApplyEnvironmentOverrides(
         IReadOnlyCollection<GeneratedTypeModule> modules,
         string environmentName,
         IReadOnlyList<ResourceDefinition> resources)
     {
-        return modules.Select(module =>
+        return modules.Select(module => ApplyEnvironmentOverridesToModule(module, environmentName, resources)).ToList();
+    }
+
+    private static GeneratedTypeModule ApplyEnvironmentOverridesToModule(
+        GeneratedTypeModule module,
+        string environmentName,
+        IReadOnlyList<ResourceDefinition> resources)
+    {
+        var matchingResource = FindMatchingResource(module, resources);
+        if (matchingResource is null)
+            return module;
+
+        var hasEnvOverrides = matchingResource.EnvironmentConfigs.TryGetValue(environmentName, out var envOverrides)
+            && envOverrides.Count > 0;
+
+        var envCustomDomains = matchingResource.CustomDomains
+            .Where(cd => cd.EnvironmentName.Equals(environmentName, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (!hasEnvOverrides && envCustomDomains.Count == 0)
+            return module;
+
+        var mergedParams = new Dictionary<string, object>(module.Parameters);
+
+        if (hasEnvOverrides)
         {
-            var matchingResource = resources.FirstOrDefault(r =>
-            {
-                var resourceIdentifier = BicepIdentifierHelper.ToBicepIdentifier(r.Name);
-                var expectedModuleName = ResourceTypeMetadata.GetBaseModuleName(r.Type) +
-                    (resourceIdentifier.Length == 0
-                        ? resourceIdentifier
-                        : char.ToUpperInvariant(resourceIdentifier[0]) + resourceIdentifier[1..]);
-                return module.ModuleName == expectedModuleName;
-            });
+            ApplyParameterOverrides(mergedParams, module.ParameterGroupMappings, envOverrides!);
+        }
 
-            if (matchingResource is null)
-                return module;
-
-            var hasEnvOverrides = matchingResource.EnvironmentConfigs.TryGetValue(environmentName, out var envOverrides)
-                && envOverrides.Count > 0;
-
-            var envCustomDomains = matchingResource.CustomDomains
-                .Where(cd => cd.EnvironmentName.Equals(environmentName, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-            if (!hasEnvOverrides && envCustomDomains.Count == 0)
-                return module;
-
-            var mergedParams = new Dictionary<string, object>(module.Parameters);
-
-            if (hasEnvOverrides)
-            {
-                foreach (var (key, value) in envOverrides!)
+        if (envCustomDomains.Count > 0 && mergedParams.ContainsKey("customDomains"))
+        {
+            mergedParams["customDomains"] = envCustomDomains
+                .Select(cd => (object)BicepParameterModelConverter.ToDictionary(new CustomDomainParameter
                 {
-                    // Check if this flat key maps to a property inside a structured parameter group
-                    if (module.ParameterGroupMappings.TryGetValue(key, out var mapping))
-                    {
-                        if (mergedParams.TryGetValue(mapping.GroupKey, out var groupObj))
-                        {
-                            mergedParams[mapping.GroupKey] = MergePropertyIntoObject(
-                                groupObj, mapping.PropertyName, value);
-                        }
-                    }
-                    else if (mergedParams.TryGetValue(key, out var existingValue))
-                    {
-                        mergedParams[key] = CoerceToOriginalType(value, existingValue);
-                    }
+                    DomainName = cd.DomainName,
+                    BindingType = cd.BindingType,
+                }))
+                .ToList<object>();
+        }
+
+        return module with { Parameters = mergedParams };
+    }
+
+    private static ResourceDefinition? FindMatchingResource(
+        GeneratedTypeModule module,
+        IReadOnlyList<ResourceDefinition> resources)
+    {
+        return resources.FirstOrDefault(r =>
+        {
+            var resourceIdentifier = BicepIdentifierHelper.ToBicepIdentifier(r.Name);
+            var expectedModuleName = ResourceTypeMetadata.GetBaseModuleName(r.Type) +
+                (resourceIdentifier.Length == 0
+                    ? resourceIdentifier
+                    : char.ToUpperInvariant(resourceIdentifier[0]) + resourceIdentifier[1..]);
+            return module.ModuleName == expectedModuleName;
+        });
+    }
+
+    private static void ApplyParameterOverrides(
+        Dictionary<string, object> mergedParams,
+        IReadOnlyDictionary<string, (string GroupKey, string PropertyName)> parameterGroupMappings,
+        IReadOnlyDictionary<string, string> envOverrides)
+    {
+        foreach (var (key, value) in envOverrides)
+        {
+            if (parameterGroupMappings.TryGetValue(key, out var mapping))
+            {
+                if (mergedParams.TryGetValue(mapping.GroupKey, out var groupObj))
+                {
+                    mergedParams[mapping.GroupKey] = MergePropertyIntoObject(
+                        groupObj, mapping.PropertyName, value);
                 }
             }
-
-            if (envCustomDomains.Count > 0 && mergedParams.ContainsKey("customDomains"))
+            else if (mergedParams.TryGetValue(key, out var existingValue))
             {
-                mergedParams["customDomains"] = envCustomDomains
-                    .Select(cd => (object)new Dictionary<string, object>
-                    {
-                        ["domainName"] = cd.DomainName,
-                        ["bindingType"] = cd.BindingType
-                    })
-                    .ToList<object>();
+                mergedParams[key] = CoerceToOriginalType(value, existingValue);
             }
-
-            return module with { Parameters = mergedParams };
-        }).ToList();
+        }
     }
 
     /// <summary>
@@ -195,51 +213,45 @@ internal static class ParameterFileAssembler
     /// for nested objects (e.g. <c>"readiness.path"</c> navigates into the <c>readiness</c>
     /// sub-object and replaces its <c>path</c> property).
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     private static object MergePropertyIntoObject(object source, string propertyPath, string newValue)
     {
         var dotIndex = propertyPath.IndexOf('.');
         var head = dotIndex >= 0 ? propertyPath[..dotIndex] : propertyPath;
         var tail = dotIndex >= 0 ? propertyPath[(dotIndex + 1)..] : null;
 
-        var dict = new Dictionary<string, object>();
+        IEnumerable<(string PropertyName, object? Value)> entries = source is IDictionary<string, object> existingDict
+            ? EnumerateDictionaryEntries(existingDict)
+            : BicepObjectPropertyHelper.EnumerateSerializedProperties(source);
 
-        if (source is IDictionary<string, object> existingDict)
+        var dict = new Dictionary<string, object>();
+        foreach (var (propertyName, propertyValue) in entries)
         {
-            foreach (var (k, v) in existingDict)
-            {
-                if (k.Equals(head, StringComparison.OrdinalIgnoreCase))
-                {
-                    dict[k] = tail is not null
-                        ? MergePropertyIntoObject(v, tail, newValue)
-                        : (v is not null ? CoerceToOriginalType(newValue, v) : newValue);
-                }
-                else
-                {
-                    dict[k] = v;
-                }
-            }
-        }
-        else
-        {
-            var props = source.GetType().GetProperties(
-                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-            foreach (var prop in props)
-            {
-                var val = prop.GetValue(source);
-                if (prop.Name.Equals(head, StringComparison.OrdinalIgnoreCase))
-                {
-                    dict[prop.Name] = tail is not null
-                        ? MergePropertyIntoObject(val!, tail, newValue)
-                        : (val is not null ? CoerceToOriginalType(newValue, val) : newValue);
-                }
-                else
-                {
-                    dict[prop.Name] = val!;
-                }
-            }
+            dict[propertyName] = propertyName.Equals(head, StringComparison.OrdinalIgnoreCase)
+                ? MergeMatchedProperty(propertyValue, tail, newValue)
+                : propertyValue!;
         }
 
         return dict;
+    }
+
+    private static IEnumerable<(string PropertyName, object? Value)> EnumerateDictionaryEntries(
+        IDictionary<string, object> dictionary)
+    {
+        foreach (var (key, value) in dictionary)
+        {
+            yield return (key, value);
+        }
+    }
+
+    private static object MergeMatchedProperty(object? currentValue, string? tail, string newValue)
+    {
+        if (tail is not null)
+        {
+            return MergePropertyIntoObject(currentValue!, tail, newValue);
+        }
+
+        return currentValue is not null
+            ? CoerceToOriginalType(newValue, currentValue)
+            : newValue;
     }
 }

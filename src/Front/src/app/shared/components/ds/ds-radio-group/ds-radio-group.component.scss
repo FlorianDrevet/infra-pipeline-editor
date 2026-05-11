@@ -1,64 +1,73 @@
-@use "scss/main" as *;
+// ============================================================================
+// app-ds-radio-group — V2 (UI Refresh 2026-05, dark-only)
+// Spec: docs/design/ui-refresh-2026-05.md §5.1
+// 16px circle, accent dot when checked.
+// ============================================================================
 
 :host {
   display: block;
 }
 
 .ds-radio-group__label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: $ifs-brand-blue;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ifs-text-secondary);
   display: block;
-  margin-bottom: 0.5rem;
-  letter-spacing: 0.01em;
+  margin-bottom: 8px;
 }
 
 .ds-radio-group {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 8px;
 
   &--horizontal {
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 16px;
   }
 }
 
 .ds-radio {
   display: inline-flex;
   align-items: flex-start;
-  gap: 0.6rem;
+  gap: 8px;
   cursor: pointer;
   user-select: none;
 
   &--disabled {
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
   }
 
   &:has(input:focus-visible) .ds-radio__circle {
-    box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.4);
+    box-shadow: var(--ifs-focus-ring);
   }
 }
 
 .ds-radio__circle {
   position: relative;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
-  border: 1.5px solid $ifs-border-strong;
-  background: #fff;
+  border: 1px solid var(--ifs-border-strong);
+  background: var(--ifs-surface-1);
   border-radius: 50%;
   display: grid;
   place-items: center;
-  transition: all $ifs-duration-fast $ifs-ease-out;
-  margin-top: 0.1rem;
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
+  margin-top: 2px;
+}
+
+.ds-radio:hover:not(.ds-radio--disabled):not(.ds-radio--checked) .ds-radio__circle {
+  border-color: var(--ifs-text-muted);
 }
 
 .ds-radio--checked .ds-radio__circle {
-  border-color: $ifs-brand-blue;
-  box-shadow: 0 0 0 1px $ifs-brand-blue, 0 2px 8px rgba(21, 101, 192, 0.25);
+  border-color: var(--ifs-accent-500);
 }
 
 .ds-radio__input {
@@ -70,35 +79,34 @@
 }
 
 .ds-radio__dot {
-  width: 0.6rem;
-  height: 0.6rem;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: $ifs-gradient-cta;
+  background: var(--ifs-accent-500);
   opacity: 0;
-  transform: scale(0.5);
-  transition: all $ifs-duration-fast $ifs-ease-out;
+  transition: opacity var(--ifs-duration-fast) var(--ifs-ease-standard);
   pointer-events: none;
 }
 
 .ds-radio--checked .ds-radio__dot {
   opacity: 1;
-  transform: scale(1);
 }
 
 .ds-radio__text {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 2px;
 }
 
 .ds-radio__option-label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: $ifs-ink-700;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ifs-text-primary);
 }
 
 .ds-radio__text small {
-  font-size: 0.78rem;
-  color: $ifs-ink-500;
-  line-height: 1.35;
+  font-size: 12px;
+  color: var(--ifs-text-secondary);
+  line-height: 16px;
 }
+

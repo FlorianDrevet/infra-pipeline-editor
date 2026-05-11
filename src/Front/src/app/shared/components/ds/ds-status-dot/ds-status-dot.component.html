@@ -1,0 +1,6 @@
+<span
+  class="ds-status-dot ds-status-dot--{{ variant() }} ds-status-dot--{{ size() }}"
+  [class.ds-status-dot--pulse]="pulse()"
+  [attr.role]="ariaLabel() ? 'status' : null"
+  [attr.aria-label]="ariaLabel() ?? null"
+></span>

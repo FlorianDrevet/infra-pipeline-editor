@@ -18,7 +18,7 @@
 .ds-field__label {
   font-size: 0.82rem;
   font-weight: 600;
-  color: $ifs-brand-blue;
+  color: var(--ifs-brand-500);
   letter-spacing: 0.01em;
   display: flex;
   gap: 0.25rem;
@@ -26,7 +26,7 @@
 }
 
 .ds-field__required {
-  color: $ifs-error-strong;
+  color: var(--ifs-danger);
   font-weight: 700;
 }
 
@@ -37,26 +37,26 @@
   gap: 0.5rem;
   padding: 0 0.85rem;
   height: 2.6rem;
-  background: $ifs-surface-0;
-  border: 1.5px solid $ifs-border-strong;
+  background: var(--ifs-surface-1);
+  border: 1.5px solid var(--ifs-border-strong);
   border-radius: $ifs-radius-md;
-  transition: all $ifs-duration-fast $ifs-ease-out;
+  transition: all $ifs-duration-fast var(--ifs-ease-standard);
   width: 100%;
 }
 
 .ds-field--focused .ds-field__control {
-  border-color: $ifs-brand-blue;
-  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15), inset 0 0 0 0.5px $ifs-brand-blue;
-  background: #fff;
+  border-color: var(--ifs-brand-500);
+  box-shadow: 0 0 0 3px rgba(79, 116, 179, 0.15), inset 0 0 0 0.5px var(--ifs-brand-500);
+  background: var(--ifs-surface-2);
 }
 
 .ds-field--invalid .ds-field__control {
-  border-color: $ifs-error-strong;
-  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.12);
+  border-color: var(--ifs-danger);
+  box-shadow: 0 0 0 3px rgba(210, 74, 74, 0.12);
 }
 
 .ds-field--disabled .ds-field__control {
-  background: $ifs-surface-100;
+  background: var(--ifs-surface-2);
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -69,13 +69,13 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  color: $ifs-ink-400;
+  color: var(--ifs-text-muted);
   border-radius: 50%;
   padding: 0;
 
   &:hover {
-    background: $ifs-surface-100;
-    color: $ifs-error-strong;
+    background: var(--ifs-surface-2);
+    color: var(--ifs-danger);
   }
 
   mat-icon {
@@ -91,11 +91,11 @@
 }
 
 .ds-field__message--hint {
-  color: $ifs-ink-500;
+  color: var(--ifs-text-secondary);
 }
 
 .ds-field__message--error {
-  color: $ifs-error-strong;
+  color: var(--ifs-danger);
   font-weight: 500;
 }
 
@@ -115,15 +115,15 @@
   flex: 1;
   @include ifs-truncate;
   font-size: 0.95rem;
-  color: $ifs-ink-700;
+  color: var(--ifs-text-primary);
 
   &--placeholder {
-    color: $ifs-ink-400;
+    color: var(--ifs-text-muted);
   }
 }
 
 .ds-date-picker__calendar-icon {
-  color: $ifs-brand-blue;
+  color: var(--ifs-brand-500);
   font-size: 1.15rem;
   width: 1.15rem;
   height: 1.15rem;
@@ -140,12 +140,12 @@
 
 .ds-date-picker__panel {
   z-index: $ifs-z-popover;
-  background: $ifs-surface-0;
-  border: 1px solid $ifs-border-medium;
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-subtle);
   border-radius: $ifs-radius-lg;
   box-shadow: $ifs-shadow-lg;
   overflow: hidden;
-  animation: ifs-slide-in-down $ifs-duration-fast $ifs-ease-out;
+  animation: ifs-slide-in-down $ifs-duration-fast var(--ifs-ease-standard);
   padding: 0;
   margin: 0;
   max-width: none;
@@ -159,7 +159,7 @@
   flex-direction: column;
   gap: 0.35rem;
   padding: 0.65rem 0.75rem;
-  background: $ifs-gradient-brand;
+  background: var(--ifs-brand-500);
   color: #fff;
 }
 
@@ -199,10 +199,10 @@
   border-radius: $ifs-radius-sm;
   padding: 0.2rem 0.55rem;
   cursor: pointer;
-  transition: background $ifs-duration-fast $ifs-ease-out;
+  transition: background $ifs-duration-fast var(--ifs-ease-standard);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.08);
   }
 
   @include ifs-focus-visible;
@@ -243,14 +243,14 @@
   width: 2rem;
   height: 2rem;
   border: none;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
   color: inherit;
   border-radius: $ifs-radius-sm;
   cursor: pointer;
-  transition: background $ifs-duration-fast $ifs-ease-out;
+  transition: background $ifs-duration-fast var(--ifs-ease-standard);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.12);
   }
 
   &:disabled {
@@ -273,14 +273,14 @@
   width: 2rem;
   height: 2rem;
   border: none;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
   color: inherit;
   border-radius: $ifs-radius-sm;
   cursor: pointer;
-  transition: background $ifs-duration-fast $ifs-ease-out;
+  transition: background $ifs-duration-fast var(--ifs-ease-standard);
 
   &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.12);
   }
 
   &:disabled {
@@ -309,7 +309,7 @@
   text-align: center;
   font-size: 0.72rem;
   font-weight: 600;
-  color: $ifs-ink-500;
+  color: var(--ifs-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -343,49 +343,46 @@
   min-height: 2.5rem;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(13, 101, 192, 0.12);
-  background: rgba(255, 255, 255, 0.78);
-  color: $ifs-ink-700;
+  border: 1px solid rgba(79, 116, 179, 0.12);
+  background: var(--ifs-surface-2);
+  color: var(--ifs-text-primary);
   border-radius: $ifs-radius-md;
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
   transition:
-    transform $ifs-duration-fast $ifs-ease-out,
-    background $ifs-duration-fast $ifs-ease-out,
-    border-color $ifs-duration-fast $ifs-ease-out,
-    box-shadow $ifs-duration-fast $ifs-ease-out,
-    color $ifs-duration-fast $ifs-ease-out;
+    background $ifs-duration-fast var(--ifs-ease-standard),
+    border-color $ifs-duration-fast var(--ifs-ease-standard),
+    box-shadow $ifs-duration-fast var(--ifs-ease-standard),
+    color $ifs-duration-fast var(--ifs-ease-standard);
 
   &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    background: rgba(13, 101, 192, 0.08);
-    border-color: rgba(13, 101, 192, 0.22);
+    background: rgba(79, 116, 179, 0.1);
+    border-color: rgba(79, 116, 179, 0.22);
   }
 
   @include ifs-focus-visible;
 
   &--current:not(&--selected) {
-    border-color: rgba(0, 188, 212, 0.52);
-    color: $ifs-brand-blue;
-    box-shadow: inset 0 0 0 1px rgba(0, 188, 212, 0.28);
+    border-color: rgba(58, 163, 201, 0.52);
+    color: var(--ifs-brand-500);
+    box-shadow: inset 0 0 0 1px rgba(58, 163, 201, 0.28);
   }
 
   &--selected {
-    background: linear-gradient(135deg, rgb(13, 101, 192), rgb(0, 120, 140));
+    background: var(--ifs-accent-500);
     border-color: transparent;
     color: #fff;
-    box-shadow: 0 10px 22px rgba(13, 101, 192, 0.24);
+    box-shadow: var(--ifs-shadow-md);
   }
 
   &--disabled,
   &:disabled {
-    background: rgba(245, 247, 251, 0.92);
+    background: var(--ifs-surface-2);
     border-color: rgba(148, 163, 184, 0.2);
-    color: $ifs-ink-300;
+    color: var(--ifs-border-strong);
     cursor: not-allowed;
     box-shadow: none;
-    transform: none;
   }
 }
 
@@ -396,23 +393,23 @@
 
 .ds-date-picker__year {
   &--current:not(&--selected) {
-    border-color: rgba(0, 188, 212, 0.52);
-    color: $ifs-brand-blue;
-    box-shadow: inset 0 0 0 1px rgba(0, 188, 212, 0.28);
+    border-color: rgba(58, 163, 201, 0.52);
+    color: var(--ifs-brand-500);
+    box-shadow: inset 0 0 0 1px rgba(58, 163, 201, 0.28);
   }
 
   &--selected {
-    background: linear-gradient(135deg, rgb(13, 101, 192), rgb(0, 120, 140));
+    background: var(--ifs-accent-500);
     border-color: transparent;
     color: #fff;
-    box-shadow: 0 10px 22px rgba(13, 101, 192, 0.24);
+    box-shadow: var(--ifs-shadow-md);
   }
 
   &--disabled,
   &:disabled {
-    background: rgba(245, 247, 251, 0.92);
+    background: var(--ifs-surface-2);
     border-color: rgba(148, 163, 184, 0.2);
-    color: $ifs-ink-300;
+    color: var(--ifs-border-strong);
     cursor: not-allowed;
     box-shadow: none;
     transform: none;
@@ -429,40 +426,40 @@
   border-radius: $ifs-radius-sm;
   font-size: 0.85rem;
   font-family: inherit;
-  color: $ifs-ink-700;
+  color: var(--ifs-text-primary);
   cursor: pointer;
   transition:
-    background $ifs-duration-fast $ifs-ease-out,
-    color $ifs-duration-fast $ifs-ease-out,
-    box-shadow $ifs-duration-fast $ifs-ease-out;
+    background $ifs-duration-fast var(--ifs-ease-standard),
+    color $ifs-duration-fast var(--ifs-ease-standard),
+    box-shadow $ifs-duration-fast var(--ifs-ease-standard);
   margin: 0 auto;
 
   &:hover:not(:disabled) {
-    background: $ifs-info-soft;
+    background: var(--ifs-info-bg);
   }
 
   @include ifs-focus-visible;
 
   &--today:not(&--selected) {
-    border: 1.5px dashed $ifs-brand-blue;
-    color: $ifs-brand-blue;
+    border: 1.5px dashed var(--ifs-brand-500);
+    color: var(--ifs-brand-500);
     font-weight: 600;
   }
 
   &--selected {
-    background: $ifs-brand-blue;
+    background: var(--ifs-brand-500);
     color: #fff;
     font-weight: 600;
-    box-shadow: $ifs-shadow-sm;
+    box-shadow: var(--ifs-shadow-sm);
 
     &:hover:not(:disabled) {
-      background: $ifs-brand-dark-blue;
+      background: var(--ifs-brand-700);
     }
   }
 
   &--disabled,
   &:disabled {
-    color: $ifs-ink-300;
+    color: var(--ifs-border-strong);
     cursor: not-allowed;
     opacity: 0.5;
   }

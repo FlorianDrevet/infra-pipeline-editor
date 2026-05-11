@@ -9,6 +9,8 @@ public static partial class Errors
     /// <summary>Domain errors related to the Infrastructure Configuration aggregate.</summary>
     public static class InfrastructureConfig
     {
+        private const string InvalidLayoutModeCode = "InfrastructureConfig.InvalidLayoutMode";
+
         /// <summary>Returned when an infrastructure configuration with the specified identifier does not exist.</summary>
         public static Error NotFoundError(InfrastructureConfigId id) => Error.NotFound(
             code: "InfrastructureConfig.NotFound",
@@ -87,5 +89,10 @@ public static partial class Errors
             code: "InfrastructureConfig.ResourceAbbreviationOverrideNotFound",
             description: $"No abbreviation override exists for resource type '{resourceType}'."
         );
+
+        /// <summary>Returns an error when a configuration layout mode string cannot be parsed into a valid enum value.</summary>
+        public static Error InvalidLayoutMode(string raw) => Error.Validation(
+            code: InvalidLayoutModeCode,
+            description: $"Invalid layout mode '{raw}'. Valid values: AllInOne, SplitInfraCode.");
     }
 }

@@ -31,6 +31,7 @@ result.Match(
 - Response: `record SomethingResponse(string Id, string Name, ...)`
 - Validation attributes: `[GuidValidation]`, `[EnumValidation(typeof(MyEnum))]`, `[RedisVersionValidation]`
 - JSON body GUID pitfall: prefer `string` + `[Required, GuidValidation]` over `Guid` for JSON bodies to avoid deserialization errors before validation
+- `AzureRoleDefinitionResponse` now carries `RequiresUserAssignedIdentity` so Angular role-assignment screens derive AcrPull-like identity constraints from backend metadata instead of hardcoded role-definition GUID checks.
 
 ## Endpoint Conventions [2026-04-16]
 
@@ -59,3 +60,4 @@ result.Match(
 - Value objects → primitives: `.MapWith(src => src.Value)`
 - **Nullable null checks:** use `x != null` directly — never `(object?)x`, never `is not null` (CS8122 in expression trees)
 - Lightweight resource-group mappings must explicitly carry `IsExisting` on `AzureResourceResult -> AzureResourceResponse`; if omitted, Angular list badges and generation preflight diagnostics misclassify existing resources as missing environment configuration.
+- When a feature mapping config starts accumulating many `NewConfig` registrations or repeated nullable list projections, split `Register(TypeAdapterConfig)` into focused private registration methods and reusable collection-projection helpers rather than leaving one monolithic `Register` method behind a Sonar suppression.

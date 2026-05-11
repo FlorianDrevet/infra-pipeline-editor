@@ -1,8 +1,10 @@
 ﻿using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.RedisCaches.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 using MapsterMapper;
@@ -17,51 +19,19 @@ public class CreateRedisCacheCommandHandler(
     IMapper mapper)
     : ICommandHandler<CreateRedisCacheCommand, RedisCacheResult>
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public async Task<ErrorOr<RedisCacheResult>> Handle(CreateRedisCacheCommand request, CancellationToken cancellationToken)
     {
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(request.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.ResourceGroup.NotFound(request.ResourceGroupId);
+        var accessResult = await EnsureWriteAccessAsync(request.ResourceGroupId, cancellationToken);
+        if (accessResult.IsError)
+            return accessResult.Errors;
 
-        var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var tlsVersionResult = ParseMinimumTlsVersion(request.MinimumTlsVersion);
+        if (tlsVersionResult.IsError)
+            return tlsVersionResult.Errors;
 
-        if (authResult.IsError)
-            return authResult.Errors;
-
-        TlsVersion? tlsVersion = null;
-        if (request.MinimumTlsVersion is not null)
-        {
-            if (!Enum.TryParse<TlsVersion.Version>(request.MinimumTlsVersion, ignoreCase: true, out var parsedTls))
-                return Error.Validation(code: "RedisCache.InvalidMinimumTlsVersion", description: $"The minimum TLS version '{request.MinimumTlsVersion}' is not valid.");
-            tlsVersion = new TlsVersion(parsedTls);
-        }
-
-        List<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>? parsedSettings = null;
-        if (request.EnvironmentSettings is not null)
-        {
-            parsedSettings = [];
-            foreach (var ec in request.EnvironmentSettings)
-            {
-                RedisCacheSku? sku = null;
-                if (ec.Sku is not null)
-                {
-                    if (!Enum.TryParse<RedisCacheSku.Sku>(ec.Sku, ignoreCase: true, out var parsedSku))
-                        return Error.Validation(code: "RedisCache.InvalidSku", description: $"The SKU '{ec.Sku}' is not valid.");
-                    sku = new RedisCacheSku(parsedSku);
-                }
-
-                MaxMemoryPolicy? maxMemoryPolicy = null;
-                if (ec.MaxMemoryPolicy is not null)
-                {
-                    if (!Enum.TryParse<MaxMemoryPolicy.Policy>(ec.MaxMemoryPolicy, ignoreCase: true, out var parsedPolicy))
-                        return Error.Validation(code: "RedisCache.InvalidMaxMemoryPolicy", description: $"The max memory policy '{ec.MaxMemoryPolicy}' is not valid.");
-                    maxMemoryPolicy = new MaxMemoryPolicy(parsedPolicy);
-                }
-
-                parsedSettings.Add((ec.EnvironmentName, sku, ec.Capacity, maxMemoryPolicy));
-            }
-        }
+        var environmentSettingsResult = ParseEnvironmentSettings(request.EnvironmentSettings);
+        if (environmentSettingsResult.IsError)
+            return environmentSettingsResult.Errors;
 
         var redisCache = RedisCache.Create(
             request.ResourceGroupId,
@@ -69,14 +39,86 @@ public class CreateRedisCacheCommandHandler(
             request.Location,
             request.RedisVersion,
             request.EnableNonSslPort,
-            tlsVersion,
+            tlsVersionResult.Value,
             request.DisableAccessKeyAuthentication,
             request.EnableAadAuth,
-            parsedSettings,
+            environmentSettingsResult.Value,
             isExisting: request.IsExisting);
 
         var savedRedisCache = await redisCacheRepository.AddAsync(redisCache);
 
         return mapper.Map<RedisCacheResult>(savedRedisCache);
+    }
+
+    private async Task<ErrorOr<Success>> EnsureWriteAccessAsync(
+        Domain.ResourceGroupAggregate.ValueObjects.ResourceGroupId resourceGroupId,
+        CancellationToken cancellationToken)
+    {
+        var resourceGroup = await resourceGroupRepository.GetByIdAsync(resourceGroupId, cancellationToken);
+        if (resourceGroup is null)
+            return Errors.ResourceGroup.NotFound(resourceGroupId);
+
+        var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        if (authResult.IsError)
+            return authResult.Errors;
+
+        return Result.Success;
+    }
+
+    private static ErrorOr<TlsVersion?> ParseMinimumTlsVersion(string? minimumTlsVersion)
+    {
+        return EnumValueObjectParser.ParseOrNull<TlsVersion.Version, TlsVersion>(
+            minimumTlsVersion,
+            static parsed => new TlsVersion(parsed),
+            Errors.RedisCache.InvalidMinimumTlsVersion);
+    }
+
+    private static ErrorOr<List<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>?> ParseEnvironmentSettings(
+        IReadOnlyList<RedisCacheEnvironmentConfigData>? environmentSettings)
+    {
+        if (environmentSettings is null)
+            return (List<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>?)null;
+
+        var parsedSettings = new List<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>(environmentSettings.Count);
+        foreach (var environmentSetting in environmentSettings)
+        {
+            var parsedSettingResult = ParseEnvironmentSetting(environmentSetting);
+            if (parsedSettingResult.IsError)
+                return parsedSettingResult.Errors;
+
+            parsedSettings.Add(parsedSettingResult.Value);
+        }
+
+        return parsedSettings;
+    }
+
+    private static ErrorOr<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)> ParseEnvironmentSetting(
+        RedisCacheEnvironmentConfigData environmentSetting)
+    {
+        var skuResult = ParseSku(environmentSetting.Sku);
+        if (skuResult.IsError)
+            return skuResult.Errors;
+
+        var maxMemoryPolicyResult = ParseMaxMemoryPolicy(environmentSetting.MaxMemoryPolicy);
+        if (maxMemoryPolicyResult.IsError)
+            return maxMemoryPolicyResult.Errors;
+
+        return (environmentSetting.EnvironmentName, skuResult.Value, environmentSetting.Capacity, maxMemoryPolicyResult.Value);
+    }
+
+    private static ErrorOr<RedisCacheSku?> ParseSku(string? sku)
+    {
+        return EnumValueObjectParser.ParseOrNull<RedisCacheSku.Sku, RedisCacheSku>(
+            sku,
+            static parsed => new RedisCacheSku(parsed),
+            Errors.RedisCache.InvalidSku);
+    }
+
+    private static ErrorOr<MaxMemoryPolicy?> ParseMaxMemoryPolicy(string? maxMemoryPolicy)
+    {
+        return EnumValueObjectParser.ParseOrNull<MaxMemoryPolicy.Policy, MaxMemoryPolicy>(
+            maxMemoryPolicy,
+            static parsed => new MaxMemoryPolicy(parsed),
+            Errors.RedisCache.InvalidMaxMemoryPolicy);
     }
 }

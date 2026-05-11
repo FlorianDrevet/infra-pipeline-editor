@@ -56,6 +56,24 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 - `CreateProjectWithSetupCommandValidator` is the canonical example of a project-slice validator that mixes scalar rules with aggregate cross-rules: `LayoutPreset` drives the allowed project-level repository count (`AllInOne` = 1, `SplitInfraCode` = 2, `MultiRepo` = 0), and repository connection details (`ProviderType`, `RepositoryUrl`, `DefaultBranch`) must be provided all together or all omitted.
 - Keep these orchestration-style checks in FluentValidation when they are pure input consistency checks and do not require repository access.
 
+## Orchestration Handlers [2026-05-11]
+
+- `CreateProjectWithSetupCommandHandler` is the reference shape for an application command that creates an aggregate, applies project defaults, parses enum-backed inputs, projects child collections, and persists once.
+- Keep `Handle` linear and orchestration-only: create the aggregate, apply the layout preset, add environments, add repositories, then persist. Push enum/value-object parsing and per-item projection into private helpers once dedicated handler tests protect the slice.
+
+## Enum-Backed Input Parsing [2026-05-11]
+
+- `Application/Common/Helpers/EnumValueObjectParser.cs` is the shared helper for the narrow handler pattern `string -> Enum.TryParse(ignoreCase: true) -> EnumValueObject -> ErrorOr`.
+- Use `Parse<TEnum, TValueObject>(...)` for required enum-backed inputs and `ParseOrNull<TEnum, TValueObject>(...)` only when `null` is the sole "missing" value. If a feature treats whitespace as "unset" (for example optional repository provider/layout inputs), keep that wrapper logic local in the handler and call `Parse(...)` only after the whitespace guard.
+- `Application/Common/Helpers/RepositoryContentKindsParser.cs` centralizes the repeated handler-side parsing of `RepositoryContentKinds` flags from `IReadOnlyList<string>`.
+- When extracting this kind of shared parser, keep at least one direct handler test per handler family for the handler-owned invalid branches (`invalid provider`, `invalid layout`, `invalid content kinds`) instead of relying only on helper tests or broader orchestration tests.
+- Do not route FluentValidation rules, import fallbacks, fuzzy enum normalization, or post-parse business checks through these helpers. Those cases stay explicit at the validator/import/domain-service boundary.
+
+## Resource Creation Handlers [2026-05-11]
+
+- `CreateRedisCacheCommandHandler` is the reference shape for a resource-creation handler that first validates parent resource-group existence and write access, then parses optional enum-backed inputs, then creates and persists the aggregate.
+- For handlers of this kind, keep `Handle` linear: authorize the parent scope, parse optional settings (`TlsVersion`, per-environment `RedisCacheSku`, `MaxMemoryPolicy`) in private helpers, create the aggregate, persist once, then map the result.
+
 ## Project Result Mapping [2026-04-29]
 
 - The `Projects` slice no longer relies on injected `MapsterMapper.IMapper` inside `CreateProjectCommandHandler`, `CreateProjectWithSetupCommandHandler`, `GetProjectQueryHandler`, and `ListMyProjectsQueryHandler`.
@@ -78,6 +96,7 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 - `IInfraConfigAccessService` (injectable): `VerifyReadAccessAsync`, `VerifyWriteAccessAsync`
 - `MemberCommandHelper` for owner-only member management
 - Access check: ResourceGroup has `InfraConfigId` directly; KeyVault/RedisCache have `ResourceGroupId` → load ResourceGroup → use `InfraConfigId`
+- For identity-scoped read queries such as `ListRoleAssignmentsByIdentityQueryHandler`, collapse identity-not-found, parent-resource-group-not-found, and denied-read-access outcomes to the same not-found result to avoid leaking authorization boundaries; keep the handler split into focused helpers for access validation, referenced-resource loading, and projection.
 
 ## Domain Services [2026-04-16]
 

@@ -70,7 +70,6 @@ namespace InfraFlowSculptor.Api.Controllers;
 public static class ProjectController
 {
     /// <summary>Registers the Project endpoints on the application builder.</summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public static IApplicationBuilder UseProjectController(this IApplicationBuilder builder)
     {
         return builder.UseEndpoints(endpoints =>
@@ -78,6 +77,25 @@ public static class ProjectController
             var group = endpoints.MapGroup("/projects")
                 .WithTags("Projects");
 
+            MapCoreCrudEndpoints(group);
+            MapConfigurationListEndpoint(group);
+            MapUserAndMembershipEndpoints(group);
+            MapEnvironmentEndpoints(group);
+            MapNamingAndAbbreviationEndpoints(group);
+            MapTagsDeleteAndRecentEndpoints(group);
+            MapGitOperationEndpoints(group);
+            MapResourceAndAgentPoolEndpoints(group);
+            MapRepositoryAndLayoutEndpoints(group);
+            MapInfraConfigRepositoryEndpoints(group);
+            MapBicepGenerationEndpoints(group);
+            MapPipelineGenerationEndpoints(group);
+            MapBootstrapAndPushArtifactEndpoints(group);
+            MapPipelineVariableGroupEndpoints(group);
+        });
+    }
+
+    private static void MapCoreCrudEndpoints(RouteGroupBuilder group)
+    {
             // â”€â”€ Core CRUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapGet("",
@@ -166,7 +184,10 @@ public static class ProjectController
                 .Produces<ProjectResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
+    }
 
+    private static void MapConfigurationListEndpoint(RouteGroupBuilder group)
+    {
             // â”€â”€ Configurations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapGet("/{id:guid}/configs",
@@ -191,7 +212,10 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+    }
 
+    private static void MapUserAndMembershipEndpoints(RouteGroupBuilder group)
+    {
             // â”€â”€ Users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapGet("/users",
@@ -291,7 +315,10 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+    }
 
+    private static void MapEnvironmentEndpoints(RouteGroupBuilder group)
+    {
             // â”€â”€ Environments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{id:guid}/environments",
@@ -384,7 +411,10 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+    }
 
+    private static void MapNamingAndAbbreviationEndpoints(RouteGroupBuilder group)
+    {
             // â”€â”€ Naming Templates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPut("/{id:guid}/naming/default",
@@ -503,7 +533,10 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+    }
 
+    private static void MapTagsDeleteAndRecentEndpoints(RouteGroupBuilder group)
+    {
             // â”€â”€ Tags â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPut("/{id:guid}/tags",
@@ -573,7 +606,10 @@ public static class ProjectController
                 .WithDescription("Filters a list of recently viewed items, returning only those the current user still has access to with fresh data.")
                 .Produces<IReadOnlyList<RecentItemResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
+    }
 
+    private static void MapGitOperationEndpoints(RouteGroupBuilder group)
+    {
             // â”€â”€ Git Repository Operations (test + list branches) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{projectId:guid}/git-config/test",
@@ -672,7 +708,10 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden)
                 .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
+    }
 
+    private static void MapResourceAndAgentPoolEndpoints(RouteGroupBuilder group)
+    {
             // GET /{id:guid}/resources
             group.MapGet("/{id:guid}/resources",
                     async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
@@ -721,7 +760,10 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+    }
 
+    private static void MapRepositoryAndLayoutEndpoints(RouteGroupBuilder group)
+    {
             // â”€â”€ Repositories (V1 multi-repo topology) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{projectId:guid}/repositories",
@@ -830,7 +872,10 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+    }
 
+    private static void MapInfraConfigRepositoryEndpoints(RouteGroupBuilder group)
+    {
 
             // â”€â”€ InfraConfig Repositories (MultiRepo project layout only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -919,7 +964,10 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+    }
 
+    private static void MapBicepGenerationEndpoints(RouteGroupBuilder group)
+    {
 
             // â”€â”€ Project-level Bicep Generation (mono-repo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -1022,7 +1070,10 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+    }
 
+    private static void MapPipelineGenerationEndpoints(RouteGroupBuilder group)
+    {
             // â”€â”€ Project-level Pipeline Generation (mono-repo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{projectId:guid}/generate-pipeline",
@@ -1128,7 +1179,10 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+    }
 
+    private static void MapBootstrapAndPushArtifactEndpoints(RouteGroupBuilder group)
+    {
             // â”€â”€ Project-level Bootstrap Pipeline (Azure DevOps) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{projectId:guid}/generate-bootstrap-pipeline",
@@ -1303,6 +1357,10 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden)
                 .ProducesProblem(StatusCodes.Status404NotFound);
+    }
+
+    private static void MapPipelineVariableGroupEndpoints(RouteGroupBuilder group)
+    {
 
             // â”€â”€ Pipeline Variable Groups (project-level) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -1375,7 +1433,6 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
-        });
     }
 }
 

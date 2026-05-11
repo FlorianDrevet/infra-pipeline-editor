@@ -1,7 +1,10 @@
+using InfraFlowSculptor.BicepGeneration.Generators.ParameterModels;
+using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
+using static InfraFlowSculptor.BicepGeneration.Generators.Constants.BicepGeneratorSharedConstants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -9,6 +12,25 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class SqlDatabaseTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
+    private const string ModuleName = "sqlDatabase";
+    private const string ModuleFolderName = "SqlDatabase";
+    private const string SkuNameTypeName = "SkuName";
+    private const string SqlServerNameParameterName = "sqlServerName";
+    private const string SkuParameterName = "sku";
+    private const string MaxSizeBytesParameterName = "maxSizeBytes";
+    private const string MaxSizeGbPropertyName = "maxSizeGb";
+    private const string CollationParameterName = "collation";
+    private const string ZoneRedundantParameterName = "zoneRedundant";
+    private const string SqlServerResourceName = "sqlServer";
+    private const string SqlDatabaseResourceName = "sqlDatabase";
+    private const string SqlServerArmType = "Microsoft.Sql/servers@2023-08-01-preview";
+    private const string SqlDatabaseArmType = "Microsoft.Sql/servers/databases@2023-08-01-preview";
+    private const string DefaultSkuName = "Basic";
+    private const string DefaultMaxSizeGb = "2";
+    private const string DefaultCollation = "SQL_Latin1_General_CP1_CI_AS";
+    private const string SkuNameUnion = "'Basic' | 'Standard' | 'Premium' | 'GeneralPurpose' | 'BusinessCritical' | 'Hyperscale'";
+    private const string ResourceIdExpression = SqlDatabaseResourceName + ".id";
+
     /// <inheritdoc />
     public string ResourceType
         => AzureResourceTypes.ArmTypes.SqlDatabase;
@@ -20,31 +42,31 @@ public sealed class SqlDatabaseTypeBicepGenerator
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         return new BicepModuleBuilder()
-            .Module("sqlDatabase", "SqlDatabase", ResourceTypeName)
-            .Import("./types.bicep", "SkuName")
-            .Param("location", BicepType.String, "Azure region for the SQL Database")
-            .Param("name", BicepType.String, "Name of the SQL Database")
-            .Param("sqlServerName", BicepType.String, "Name of the parent SQL Server")
-            .Param("sku", BicepType.Custom("SkuName"), "SKU of the SQL Database",
-                defaultValue: new BicepStringLiteral("Basic"))
-            .Param("maxSizeBytes", BicepType.Int, "Maximum size of the database in bytes")
-            .Param("collation", BicepType.String, "Collation of the database")
-            .Param("zoneRedundant", BicepType.Bool, "Whether the database is zone redundant")
-            .ExistingResource("sqlServer", "Microsoft.Sql/servers@2023-08-01-preview", "sqlServerName")
-            .Resource("sqlDatabase", "Microsoft.Sql/servers/databases@2023-08-01-preview")
-            .Parent("sqlServer")
-            .Property("name", new BicepReference("name"))
-            .Property("location", new BicepReference("location"))
-            .Property("sku", sku => sku
-                .Property("name", new BicepReference("sku")))
-            .Property("properties", props => props
-                .Property("collation", new BicepReference("collation"))
-                .Property("maxSizeBytes", new BicepReference("maxSizeBytes"))
-                .Property("zoneRedundant", new BicepReference("zoneRedundant")))
-            .Output("id", BicepType.String, new BicepRawExpression("sqlDatabase.id"),
+            .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import(TypesImportPath, SkuNameTypeName)
+            .Param(LocationParameterName, BicepType.String, "Azure region for the SQL Database")
+            .Param(NameParameterName, BicepType.String, "Name of the SQL Database")
+            .Param(SqlServerNameParameterName, BicepType.String, "Name of the parent SQL Server")
+            .Param(SkuParameterName, BicepType.Custom(SkuNameTypeName), "SKU of the SQL Database",
+                defaultValue: new BicepStringLiteral(DefaultSkuName))
+            .Param(MaxSizeBytesParameterName, BicepType.Int, "Maximum size of the database in bytes")
+            .Param(CollationParameterName, BicepType.String, "Collation of the database")
+            .Param(ZoneRedundantParameterName, BicepType.Bool, "Whether the database is zone redundant")
+            .ExistingResource(SqlServerResourceName, SqlServerArmType, SqlServerNameParameterName)
+            .Resource(SqlDatabaseResourceName, SqlDatabaseArmType)
+            .Parent(SqlServerResourceName)
+            .Property(NamePropertyName, new BicepReference(NameParameterName))
+            .Property(LocationPropertyName, new BicepReference(LocationParameterName))
+            .Property(SkuParameterName, sku => sku
+                .Property(NamePropertyName, new BicepReference(SkuParameterName)))
+            .Property(PropertiesPropertyName, props => props
+                .Property(CollationParameterName, new BicepReference(CollationParameterName))
+                .Property(MaxSizeBytesParameterName, new BicepReference(MaxSizeBytesParameterName))
+                .Property(ZoneRedundantParameterName, new BicepReference(ZoneRedundantParameterName)))
+            .Output(IdOutputName, BicepType.String, new BicepRawExpression(ResourceIdExpression),
                 description: "The resource ID of the SQL Database")
-            .ExportedType("SkuName",
-                new BicepRawExpression("'Basic' | 'Standard' | 'Premium' | 'GeneralPurpose' | 'BusinessCritical' | 'Hyperscale'"),
+            .ExportedType(SkuNameTypeName,
+                new BicepRawExpression(SkuNameUnion),
                 description: "SKU name for the SQL Database")
             .Build();
     }
@@ -52,24 +74,24 @@ public sealed class SqlDatabaseTypeBicepGenerator
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
-        var sku = resource.Properties.GetValueOrDefault("sku", "Basic");
-        var maxSizeGb = int.TryParse(resource.Properties.GetValueOrDefault("maxSizeGb", "2"), out var sz) ? sz : 2;
+        var sku = resource.Properties.GetValueOrDefault(SkuParameterName, DefaultSkuName);
+        var maxSizeGb = int.TryParse(resource.Properties.GetValueOrDefault(MaxSizeGbPropertyName, DefaultMaxSizeGb), out var sz) ? sz : 2;
 
         return new GeneratedTypeModule
         {
-            ModuleName = "sqlDatabase",
-            ModuleFileName = "sqlDatabase",
-            ModuleFolderName = "SqlDatabase",
+            ModuleName = ModuleName,
+            ModuleFileName = ModuleName,
+            ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = SqlDatabaseModuleTemplate,
             ModuleTypesBicepContent = SqlDatabaseTypesTemplate,
             ResourceTypeName = ResourceTypeName,
-            Parameters = new Dictionary<string, object>
+            Parameters = BicepParameterModelConverter.ToDictionary(new SqlDatabaseParameters
             {
-                ["sku"] = sku,
-                ["maxSizeBytes"] = (long)maxSizeGb * 1024 * 1024 * 1024,
-                ["collation"] = resource.Properties.GetValueOrDefault("collation", "SQL_Latin1_General_CP1_CI_AS"),
-                ["zoneRedundant"] = resource.Properties.GetValueOrDefault("zoneRedundant", "false") == "true",
-            }
+                Sku = sku,
+                MaxSizeBytes = (long)maxSizeGb * 1024 * 1024 * 1024,
+                Collation = resource.Properties.GetValueOrDefault(CollationParameterName, DefaultCollation),
+                ZoneRedundant = resource.Properties.GetValueOrDefault(ZoneRedundantParameterName, BooleanFalseString) == BooleanTrueString,
+            })
         };
     }
 

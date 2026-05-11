@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace InfraFlowSculptor.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class existing : Migration
+    public partial class Existing : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

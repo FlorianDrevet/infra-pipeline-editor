@@ -1,6 +1,6 @@
-<div class="ds-section-header">
+<div class="ds-section-header" [class.ds-section-header--divider]="divider()">
   @if (icon()) {
-    <mat-icon class="ds-section-header__icon">{{ icon() }}</mat-icon>
+    <mat-icon class="ds-section-header__icon" aria-hidden="true">{{ icon() }}</mat-icon>
   }
   <div class="ds-section-header__text">
     @switch (level()) {
@@ -22,3 +22,4 @@
     <ng-content select="[ds-section-action]"></ng-content>
   </div>
 </div>
+

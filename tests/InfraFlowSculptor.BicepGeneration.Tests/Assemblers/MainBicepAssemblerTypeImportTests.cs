@@ -112,6 +112,59 @@ public sealed class MainBicepAssemblerTypeImportTests
         result.Content.Should().Contain("param sqlServerInfraFlowMinimalTlsVersion SqlServerTlsVersion");
     }
 
+    [Fact]
+    public void Given_UnusedCustomParameterTypes_When_Generate_Then_DoesNotImportUnusedModuleTypes()
+    {
+        // Arrange
+        var modules = new[]
+        {
+            NewModule(
+                moduleName: "containerAppEnvironmentIfs",
+                logicalName: "ifs",
+                resourceTypeName: AzureResourceTypes.ContainerAppEnvironment,
+                folder: "ContainerAppEnvironment",
+                file: "containerAppEnvironment.module.bicep",
+                parameters: new Dictionary<string, object>(),
+                parameterTypeOverrides: new Dictionary<string, string>
+                {
+                    ["workloadProfileType"] = "WorkloadProfileType",
+                }),
+            NewModule(
+                moduleName: "applicationInsightsIfs",
+                logicalName: "ifs",
+                resourceTypeName: AzureResourceTypes.ApplicationInsights,
+                folder: "ApplicationInsights",
+                file: "applicationInsights.module.bicep",
+                parameters: new Dictionary<string, object>(),
+                parameterTypeOverrides: new Dictionary<string, string>
+                {
+                    ["ingestionMode"] = "IngestionMode",
+                }),
+        };
+
+        var resourceGroups = new[]
+        {
+            new ResourceGroupDefinition
+            {
+                Name = "ifs",
+                ResourceAbbreviation = "rg",
+            },
+        };
+
+        // Act
+        var result = MainBicepAssembler.Generate(
+            modules,
+            resourceGroups,
+            new NamingContext(),
+            roleAssignments: [],
+            appSettings: [],
+            existingResourceReferences: []);
+
+        // Assert
+        result.Content.Should().NotContain("import { WorkloadProfileType } from './modules/ContainerAppEnvironment/types.bicep'");
+        result.Content.Should().NotContain("import { IngestionMode } from './modules/ApplicationInsights/types.bicep'");
+    }
+
     private static GeneratedTypeModule NewModule(
         string moduleName,
         string logicalName,

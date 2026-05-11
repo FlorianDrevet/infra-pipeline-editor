@@ -2,8 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 
 import { MatIconModule } from '@angular/material/icon';
 
+import { DsIconButtonInputVariant, DsIconButtonSize, DsIconButtonType } from './ds-icon-button.types';
+
 /**
- * Design system circular icon button. Multiple variants and sizes.
+ * Design system square icon button. V2 variants: `neutral`, `accent`, `danger`.
+ *
+ * Legacy variants `ghost`, `primary`, `subtle` are accepted and remapped for
+ * backward compatibility (`ghost`→`neutral`, `primary`→`accent`,
+ * `subtle`→`neutral` filled).
  */
 @Component({
   selector: 'app-ds-icon-button',
@@ -15,17 +21,32 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class DsIconButtonComponent {
   public readonly icon = input.required<string>();
-  public readonly variant = input<'ghost' | 'primary' | 'danger' | 'subtle'>('ghost');
-  public readonly size = input<'sm' | 'md' | 'lg'>('md');
+  public readonly variant = input<DsIconButtonInputVariant>('neutral');
+  public readonly size = input<DsIconButtonSize>('md');
   public readonly disabled = input<boolean>(false);
   public readonly loading = input<boolean>(false);
   public readonly tooltip = input<string | undefined>(undefined);
   public readonly ariaLabel = input.required<string>();
-  public readonly type = input<'button' | 'submit'>('button');
+  public readonly type = input<DsIconButtonType>('button');
 
   public readonly clicked = output<MouseEvent>();
 
   protected readonly isDisabled = computed(() => this.disabled() || this.loading());
+
+  protected readonly resolvedVariant = computed<'neutral' | 'accent' | 'danger' | 'subtle'>(() => {
+    const variant = this.variant();
+
+    switch (variant) {
+      case 'ghost':
+        return 'neutral';
+      case 'primary':
+        return 'accent';
+      case 'subtle':
+        return 'subtle';
+      default:
+        return variant;
+    }
+  });
 
   protected onClick(event: MouseEvent): void {
     if (this.isDisabled()) {
@@ -34,3 +55,4 @@ export class DsIconButtonComponent {
     this.clicked.emit(event);
   }
 }
+

@@ -2,6 +2,7 @@ using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
+using static InfraFlowSculptor.BicepGeneration.Generators.Constants.BicepGeneratorSharedConstants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -11,6 +12,42 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class ContainerAppEnvironmentTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
+    private const string ModuleName = "containerAppEnvironment";
+    private const string ModuleFolderName = "ContainerAppEnvironment";
+    private const string ModuleFileName = "containerAppEnvironment";
+    private const string WorkloadProfileTypeName = "WorkloadProfileType";
+    private const string WorkloadProfileTypeParameterName = "workloadProfileType";
+    private const string InternalLoadBalancerEnabledParameterName = "internalLoadBalancerEnabled";
+    private const string ZoneRedundancyEnabledParameterName = "zoneRedundancyEnabled";
+    private const string LogAnalyticsWorkspaceIdParameterName = "logAnalyticsWorkspaceId";
+    private const string ResourceSymbol = "containerAppEnv";
+    private const string ContainerAppEnvironmentArmType = "Microsoft.App/managedEnvironments@2024-03-01";
+    private const string DiagnosticSettingsResourceName = "diagnosticSettings";
+    private const string DiagnosticSettingsArmType = "Microsoft.Insights/diagnosticSettings@2021-05-01-preview";
+    private const string ZoneRedundantPropertyName = "zoneRedundant";
+    private const string VnetConfigurationPropertyName = "vnetConfiguration";
+    private const string InternalPropertyName = "internal";
+    private const string AppLogsConfigurationPropertyName = "appLogsConfiguration";
+    private const string DestinationPropertyName = "destination";
+    private const string AzureMonitorDestinationValue = "azure-monitor";
+    private const string WorkloadProfilesPropertyName = "workloadProfiles";
+    private const string WorkspaceIdPropertyName = "workspaceId";
+    private const string LogsPropertyName = "logs";
+    private const string CategoryGroupPropertyName = "categoryGroup";
+    private const string AllLogsCategoryGroupValue = "allLogs";
+    private const string EnabledPropertyName = "enabled";
+    private const string DiagnosticSettingsNameValue = "containerAppEnvLogs";
+    private const string LogAnalyticsWorkspaceProvidedExpression = LogAnalyticsWorkspaceIdParameterName + " != ''";
+    private const string NullExpression = "null";
+    private const string EmptyParameterValue = "";
+    private const string DefaultWorkloadProfileType = "Consumption";
+    private const string DefaultDomainOutputName = "defaultDomain";
+    private const string StaticIpOutputName = "staticIp";
+    private const string ResourceIdExpression = ResourceSymbol + ".id";
+    private const string DefaultDomainExpression = ResourceSymbol + ".properties.defaultDomain";
+    private const string StaticIpExpression = ResourceSymbol + ".properties.staticIp";
+    private const string WorkloadProfileTypeUnion = "'Consumption' | 'D4' | 'D8' | 'D16' | 'D32' | 'E4' | 'E8' | 'E16' | 'E32'";
+
     /// <inheritdoc />
     public string ResourceType
         => AzureResourceTypes.ArmTypes.ContainerAppEnvironment;
@@ -22,61 +59,61 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         return new BicepModuleBuilder()
-            .Module("containerAppEnvironment", "ContainerAppEnvironment", ResourceTypeName)
-            .Import("./types.bicep", "WorkloadProfileType")
-            .Param("location", BicepType.String, "Azure region for the Container App Environment")
-            .Param("name", BicepType.String, "Name of the Container App Environment")
-            .Param("workloadProfileType", BicepType.Custom("WorkloadProfileType"), "Workload profile type",
-                defaultValue: new BicepStringLiteral("Consumption"))
-            .Param("internalLoadBalancerEnabled", BicepType.Bool, "Whether the internal load balancer is enabled",
+            .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import(TypesImportPath, WorkloadProfileTypeName)
+            .Param(LocationParameterName, BicepType.String, "Azure region for the Container App Environment")
+            .Param(NameParameterName, BicepType.String, "Name of the Container App Environment")
+            .Param(WorkloadProfileTypeParameterName, BicepType.Custom(WorkloadProfileTypeName), "Workload profile type",
+                defaultValue: new BicepStringLiteral(DefaultWorkloadProfileType))
+            .Param(InternalLoadBalancerEnabledParameterName, BicepType.Bool, "Whether the internal load balancer is enabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("zoneRedundancyEnabled", BicepType.Bool, "Whether zone redundancy is enabled",
+            .Param(ZoneRedundancyEnabledParameterName, BicepType.Bool, "Whether zone redundancy is enabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("logAnalyticsWorkspaceId", BicepType.String,
+            .Param(LogAnalyticsWorkspaceIdParameterName, BicepType.String,
                 "Resource ID of the Log Analytics workspace. When provided, logs are routed to this workspace via Azure Monitor — no shared key required.",
-                defaultValue: new BicepStringLiteral(""))
-            .Resource("containerAppEnv", "Microsoft.App/managedEnvironments@2024-03-01")
-            .Property("name", new BicepReference("name"))
-            .Property("location", new BicepReference("location"))
-            .Property("properties", props => props
-                .Property("zoneRedundant", new BicepReference("zoneRedundancyEnabled"))
-                .Property("vnetConfiguration", vnet => vnet
-                    .Property("internal", new BicepReference("internalLoadBalancerEnabled")))
-                .Property("appLogsConfiguration", new BicepConditionalExpression(
-                    new BicepRawExpression("logAnalyticsWorkspaceId != ''"),
+                defaultValue: new BicepStringLiteral(EmptyParameterValue))
+            .Resource(ResourceSymbol, ContainerAppEnvironmentArmType)
+            .Property(NamePropertyName, new BicepReference(NameParameterName))
+            .Property(LocationPropertyName, new BicepReference(LocationParameterName))
+            .Property(PropertiesPropertyName, props => props
+                .Property(ZoneRedundantPropertyName, new BicepReference(ZoneRedundancyEnabledParameterName))
+                .Property(VnetConfigurationPropertyName, vnet => vnet
+                    .Property(InternalPropertyName, new BicepReference(InternalLoadBalancerEnabledParameterName)))
+                .Property(AppLogsConfigurationPropertyName, new BicepConditionalExpression(
+                    new BicepRawExpression(LogAnalyticsWorkspaceProvidedExpression),
                     new BicepObjectExpression([
-                        new BicepPropertyAssignment("destination", new BicepStringLiteral("azure-monitor")),
+                        new BicepPropertyAssignment(DestinationPropertyName, new BicepStringLiteral(AzureMonitorDestinationValue)),
                     ]),
-                    new BicepRawExpression("null")))
-                .Property("workloadProfiles", new BicepArrayExpression([
+                    new BicepRawExpression(NullExpression)))
+                .Property(WorkloadProfilesPropertyName, new BicepArrayExpression([
                     new BicepObjectExpression([
-                        new BicepPropertyAssignment("name", new BicepReference("workloadProfileType")),
-                        new BicepPropertyAssignment("workloadProfileType", new BicepReference("workloadProfileType")),
+                        new BicepPropertyAssignment(NamePropertyName, new BicepReference(WorkloadProfileTypeParameterName)),
+                        new BicepPropertyAssignment(WorkloadProfileTypeParameterName, new BicepReference(WorkloadProfileTypeParameterName)),
                     ])
                 ])))
-            .AdditionalResource("diagnosticSettings", "Microsoft.Insights/diagnosticSettings@2021-05-01-preview",
-                condition: new BicepRawExpression("logAnalyticsWorkspaceId != ''"),
-                scope: "containerAppEnv",
+            .AdditionalResource(DiagnosticSettingsResourceName, DiagnosticSettingsArmType,
+                condition: new BicepRawExpression(LogAnalyticsWorkspaceProvidedExpression),
+                scope: ResourceSymbol,
                 bodyBuilder: body => body
-                    .Property("name", new BicepStringLiteral("containerAppEnvLogs"))
-                    .Property("properties", p => p
-                        .Property("workspaceId", new BicepReference("logAnalyticsWorkspaceId"))
-                        .Property("logs", new BicepArrayExpression([
+                    .Property(NamePropertyName, new BicepStringLiteral(DiagnosticSettingsNameValue))
+                    .Property(PropertiesPropertyName, p => p
+                        .Property(WorkspaceIdPropertyName, new BicepReference(LogAnalyticsWorkspaceIdParameterName))
+                        .Property(LogsPropertyName, new BicepArrayExpression([
                             new BicepObjectExpression([
-                                new BicepPropertyAssignment("categoryGroup", new BicepStringLiteral("allLogs")),
-                                new BicepPropertyAssignment("enabled", new BicepBoolLiteral(true)),
+                                new BicepPropertyAssignment(CategoryGroupPropertyName, new BicepStringLiteral(AllLogsCategoryGroupValue)),
+                                new BicepPropertyAssignment(EnabledPropertyName, new BicepBoolLiteral(true)),
                             ])
                         ]))))
-            .Output("id", BicepType.String, new BicepRawExpression("containerAppEnv.id"),
+            .Output(IdOutputName, BicepType.String, new BicepRawExpression(ResourceIdExpression),
                 description: "The resource ID of the Container App Environment")
-            .Output("defaultDomain", BicepType.String,
-                new BicepRawExpression("containerAppEnv.properties.defaultDomain"),
+            .Output(DefaultDomainOutputName, BicepType.String,
+                new BicepRawExpression(DefaultDomainExpression),
                 description: "The default domain of the Container App Environment")
-            .Output("staticIp", BicepType.String,
-                new BicepRawExpression("containerAppEnv.properties.staticIp"),
+            .Output(StaticIpOutputName, BicepType.String,
+                new BicepRawExpression(StaticIpExpression),
                 description: "The static IP of the Container App Environment")
-            .ExportedType("WorkloadProfileType",
-                new BicepRawExpression("'Consumption' | 'D4' | 'D8' | 'D16' | 'D32' | 'E4' | 'E8' | 'E16' | 'E32'"),
+            .ExportedType(WorkloadProfileTypeName,
+                new BicepRawExpression(WorkloadProfileTypeUnion),
                 description: "Workload profile type for the Container App Environment")
             .Build();
     }
@@ -86,9 +123,9 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
     {
         return new GeneratedTypeModule
         {
-            ModuleName = "containerAppEnvironment",
-            ModuleFileName = "containerAppEnvironment",
-            ModuleFolderName = "ContainerAppEnvironment",
+            ModuleName = ModuleName,
+            ModuleFileName = ModuleFileName,
+            ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = ContainerAppEnvironmentModuleTemplate,
             ModuleTypesBicepContent = ContainerAppEnvironmentTypesTemplate,
             ResourceTypeName = ResourceTypeName,

@@ -53,6 +53,15 @@ internal static class BicepFormattingHelper
             ? key
             : $"'{EscapeBicepString(key)}'";
 
+    /// <summary>
+    /// Formats an object-property access segment for Bicep expressions.
+    /// Uses dot notation for identifier-safe property names and bracket notation otherwise.
+    /// </summary>
+    internal static string FormatBicepPropertyAccess(string propertyName) =>
+        ObjectKeyPattern.IsMatch(propertyName)
+            ? $".{propertyName}"
+            : $"['{EscapeBicepString(propertyName)}']";
+
     internal static string InferBicepType(object value)
     {
         return value switch
@@ -80,16 +89,13 @@ internal static class BicepFormattingHelper
 
     internal static string SerializeObject(object obj)
     {
-        var props = obj.GetType().GetProperties();
-
         var sb = new StringBuilder();
         sb.AppendLine("{");
 
-        foreach (var p in props)
+        foreach (var (propertyName, propValue) in BicepObjectPropertyHelper.EnumerateSerializedProperties(obj))
         {
-            var propValue = p.GetValue(obj);
             if (propValue is not null)
-                sb.AppendLine($"  {p.Name}: {SerializeToBicep(propValue)}");
+                sb.AppendLine($"  {FormatBicepObjectKey(propertyName)}: {SerializeToBicep(propValue)}");
         }
 
         sb.Append('}');
@@ -104,7 +110,7 @@ internal static class BicepFormattingHelper
         foreach (var (key, value) in dict)
         {
             if (value is not null)
-                sb.AppendLine($"  {key}: {SerializeToBicep(value)}");
+                sb.AppendLine($"  {FormatBicepObjectKey(key)}: {SerializeToBicep(value)}");
         }
 
         sb.Append('}');

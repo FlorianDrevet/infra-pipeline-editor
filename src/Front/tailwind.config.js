@@ -1,49 +1,92 @@
 /** @type {import('tailwindcss').Config} */
+// UI Refresh 2026-05 — Tailwind mirror of DS V2 tokens (dark-only).
+// Source of truth: src/Front/src/scss/_tokens.scss + docs/design/ui-refresh-2026-05.md
+// All colors are exposed as Tailwind utilities backed by CSS custom properties
+// so theme overrides remain centralized in _tokens.scss.
 module.exports = {
   content: ["./src/**/*.{html,ts}"],
   theme: {
     extend: {
       colors: {
-        'ifs-dark-blue': '#0d2f66',
-        'ifs-blue': '#1565c0',
-        'ifs-blue-deep': '#1a3a8a',
-        'ifs-cyan': '#0288d1',
-        'ifs-cyan-light': '#00bcd4',
-        'ifs-cyan-deep': '#00acc1',
-        'ifs-teal': '#009fbd',
-        'ifs-ink': {
-          900: '#0d2b4f', 800: '#103454', 700: '#1a1a2e',
-          500: '#60758e', 400: '#8da4ba', 300: '#b6c3d4',
-          200: '#d1d5db', 100: '#e5e7eb',
+        // Brand (single desaturated blue family)
+        'ifs-brand': {
+          50:  'var(--ifs-brand-50)',
+          100: 'var(--ifs-brand-100)',
+          200: 'var(--ifs-brand-200)',
+          400: 'var(--ifs-brand-400)',
+          500: 'var(--ifs-brand-500)',
+          600: 'var(--ifs-brand-600)',
+          700: 'var(--ifs-brand-700)',
         },
-        'ifs-surface': {
-          0: '#ffffff', 50: '#f9fafb', 100: '#f4f9ff',
-          200: '#eef5ff', 300: '#e8f4fd', tinted: '#f1f7ff',
+        // Single accent (cyan)
+        'ifs-accent': {
+          500: 'var(--ifs-accent-500)',
+          600: 'var(--ifs-accent-600)',
         },
-        'ifs-success': '#2e7d32',
-        'ifs-error': '#c62828',
-        'ifs-warning': '#b45309',
+        // Surfaces
+        'ifs-bg':        'var(--ifs-bg)',
+        'ifs-surface-1': 'var(--ifs-surface-1)',
+        'ifs-surface-2': 'var(--ifs-surface-2)',
+        'ifs-surface-3': 'var(--ifs-surface-3)',
+        // Borders
+        'ifs-border-subtle': 'var(--ifs-border-subtle)',
+        'ifs-border-strong': 'var(--ifs-border-strong)',
+        // Text
+        'ifs-text': {
+          primary:   'var(--ifs-text-primary)',
+          secondary: 'var(--ifs-text-secondary)',
+          muted:     'var(--ifs-text-muted)',
+          disabled:  'var(--ifs-text-disabled)',
+          'on-brand': 'var(--ifs-text-on-brand)',
+        },
+        // Semantic
+        'ifs-success': 'var(--ifs-success)',
+        'ifs-warning': 'var(--ifs-warning)',
+        'ifs-danger':  'var(--ifs-danger)',
+        'ifs-info':    'var(--ifs-info)',
       },
       borderRadius: {
-        'ifs-sm': '0.375rem', 'ifs-md': '0.75rem', 'ifs-lg': '1rem',
-        'ifs-xl': '1.3rem', 'ifs-2xl': '1.4rem', 'ifs-3xl': '1.6rem',
+        'ifs-sm':   'var(--ifs-radius-sm)',
+        'ifs-md':   'var(--ifs-radius-md)',
+        'ifs-lg':   'var(--ifs-radius-lg)',
+        'ifs-pill': 'var(--ifs-radius-pill)',
       },
       boxShadow: {
-        'ifs-xs': '0 2px 8px rgba(13, 47, 102, 0.08)',
-        'ifs-sm': '0 4px 12px rgba(13, 47, 102, 0.1)',
-        'ifs-md': '0 4px 16px rgba(21, 101, 192, 0.08)',
-        'ifs-lg': '0 10px 28px rgba(16, 52, 86, 0.06)',
-        'ifs-xl': '0 16px 40px rgba(16, 52, 86, 0.06)',
-        'ifs-cta': '0 8px 24px rgba(13, 47, 102, 0.22)',
-        'ifs-cta-hover': '0 12px 32px rgba(13, 47, 102, 0.3)',
+        'ifs-sm': 'var(--ifs-shadow-sm)',
+        'ifs-md': 'var(--ifs-shadow-md)',
+        'ifs-lg': 'var(--ifs-shadow-lg)',
       },
-      backgroundImage: {
-        'ifs-brand': 'linear-gradient(145deg, #0d2f66 0%, #1565c0 40%, #009fbd 100%)',
-        'ifs-cta': 'linear-gradient(145deg, #0d2f66 0%, #1565c0 100%)',
-        'ifs-cyan': 'linear-gradient(135deg, #0288d1, #00bcd4)',
+      spacing: {
+        'ifs-2':  'var(--ifs-space-2)',
+        'ifs-4':  'var(--ifs-space-4)',
+        'ifs-6':  'var(--ifs-space-6)',
+        'ifs-8':  'var(--ifs-space-8)',
+        'ifs-12': 'var(--ifs-space-12)',
+        'ifs-16': 'var(--ifs-space-16)',
+        'ifs-20': 'var(--ifs-space-20)',
+        'ifs-24': 'var(--ifs-space-24)',
+        'ifs-32': 'var(--ifs-space-32)',
+        'ifs-40': 'var(--ifs-space-40)',
+        'ifs-48': 'var(--ifs-space-48)',
+        'ifs-64': 'var(--ifs-space-64)',
+      },
+      fontFamily: {
+        sans: [
+          'Inter Variable', 'Inter', 'ui-sans-serif', 'system-ui',
+          '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif',
+        ],
+        mono: ['JetBrains Mono', 'Fira Code', 'Menlo', 'Consolas', 'monospace'],
+      },
+      transitionDuration: {
+        'ifs-fast': '120ms',
+        'ifs-base': '180ms',
+        'ifs-slow': '240ms',
+      },
+      transitionTimingFunction: {
+        'ifs-standard':   'cubic-bezier(0.2, 0, 0, 1)',
+        'ifs-emphasized': 'cubic-bezier(0.3, 0, 0, 1)',
       },
     },
   },
   plugins: [],
 };
-

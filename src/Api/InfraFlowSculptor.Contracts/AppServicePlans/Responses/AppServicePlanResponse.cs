@@ -9,6 +9,7 @@ namespace InfraFlowSculptor.Contracts.AppServicePlans.Responses;
 /// <param name="Location">Azure region where the App Service Plan is deployed.</param>
 /// <param name="OsType">Operating system type (Windows or Linux).</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
+/// <param name="IsExisting">Whether the resource references an already-existing Azure resource.</param>
 public record AppServicePlanResponse(
     string Id,
     string ResourceGroupId,

@@ -1376,7 +1376,7 @@
                               </button>
                               <mat-menu #childIdentityMenu="matMenu" class="ra-identity-menu">
                                 <button mat-menu-item
-                                        [disabled]="ra.roleDefinitionId === acrPullRoleId"
+                                  [disabled]="roleRequiresUserAssignedIdentity(ra.roleDefinitionId)"
                                         (click)="switchToSystemAssigned(ra)">
                                   <mat-icon>fingerprint</mat-icon>
                                   <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_TO_SYSTEM' | translate }}</span>
@@ -2170,12 +2170,16 @@
               <p>{{ 'RESOURCE_EDIT.APP_SETTINGS.DESCRIPTION' | translate }}</p>
             </div>
 
-            <!-- Add button -->
+            <!-- Add / Import buttons -->
             @if (canWrite()) {
               <div class="ra-actions">
                 <button class="ra-add-btn" (click)="openAddAppSettingDialog()">
                   <mat-icon>add</mat-icon>
                   {{ 'RESOURCE_EDIT.APP_SETTINGS.ADD' | translate }}
+                </button>
+                <button class="ra-add-btn ra-add-btn--secondary" (click)="openImportAppSettingsDialog()">
+                  <mat-icon>upload_file</mat-icon>
+                  {{ 'RESOURCE_EDIT.APP_SETTINGS.IMPORT' | translate }}
                 </button>
               </div>
             }

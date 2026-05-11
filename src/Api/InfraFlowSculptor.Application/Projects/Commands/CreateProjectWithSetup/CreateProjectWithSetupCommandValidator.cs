@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 
@@ -6,11 +7,37 @@ namespace InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup
 public sealed class CreateProjectWithSetupCommandValidator
     : AbstractValidator<CreateProjectWithSetupCommand>
 {
-    private static readonly string[] AllowedLayouts =
-        ["AllInOne", "SplitInfraCode", "MultiRepo"];
+    private const string RepositoriesPropertyName = nameof(CreateProjectWithSetupCommand.Repositories);
+    private const string RepositoryConnectionDetailsPropertyName = nameof(RepositorySetupItem.ProviderType);
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
+    private const string LayoutAllInOne = nameof(LayoutPresetEnum.AllInOne);
+    private const string LayoutSplitInfraCode = nameof(LayoutPresetEnum.SplitInfraCode);
+    private const string LayoutMultiRepo = nameof(LayoutPresetEnum.MultiRepo);
+
+    private const string ProviderTypeGitHub = nameof(GitProviderTypeEnum.GitHub);
+    private const string ProviderTypeAzureDevOps = nameof(GitProviderTypeEnum.AzureDevOps);
+
+    private static readonly string[] AllowedLayouts =
+        [LayoutAllInOne, LayoutSplitInfraCode, LayoutMultiRepo];
+
+    private static readonly string[] AllowedProviderTypes =
+        [ProviderTypeGitHub, ProviderTypeAzureDevOps];
+
+    private static readonly string AllowedLayoutsMessage =
+        $"LayoutPreset must be '{LayoutAllInOne}', '{LayoutSplitInfraCode}' or '{LayoutMultiRepo}'.";
+
+    private static readonly string AllowedProviderTypesMessage =
+        $"ProviderType must be '{ProviderTypeGitHub}' or '{ProviderTypeAzureDevOps}'.";
+
     public CreateProjectWithSetupCommandValidator()
+    {
+        ConfigureCoreFields();
+        ConfigureEnvironments();
+        ConfigureLayoutRepositoriesRule();
+        ConfigureRepositoryRules();
+    }
+
+    private void ConfigureCoreFields()
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Project name is required.")
@@ -23,8 +50,11 @@ public sealed class CreateProjectWithSetupCommandValidator
         RuleFor(x => x.LayoutPreset)
             .NotEmpty().WithMessage("Layout preset is required.")
             .Must(v => AllowedLayouts.Contains(v))
-            .WithMessage("LayoutPreset must be 'AllInOne', 'SplitInfraCode' or 'MultiRepo'.");
+            .WithMessage(AllowedLayoutsMessage);
+    }
 
+    private void ConfigureEnvironments()
+    {
         RuleFor(x => x.Environments)
             .NotNull()
             .Must(e => e is { Count: > 0 })
@@ -37,33 +67,32 @@ public sealed class CreateProjectWithSetupCommandValidator
             env.RuleFor(e => e.Location).NotEmpty();
             env.RuleFor(e => e.Order).GreaterThanOrEqualTo(0);
         });
+    }
 
-        // Layout / repositories cross-rule.
+    private void ConfigureLayoutRepositoriesRule()
+    {
         RuleFor(x => x).Custom((cmd, ctx) =>
         {
             var repos = cmd.Repositories ?? [];
-            switch (cmd.LayoutPreset)
-            {
-                case "MultiRepo":
-                    if (repos.Count > 0)
-                        ctx.AddFailure("Repositories",
-                            "MultiRepo layout must not declare project-level repositories.");
-                    break;
-
-                case "AllInOne":
-                    if (repos.Count != 1)
-                        ctx.AddFailure("Repositories",
-                            "AllInOne layout requires exactly one repository.");
-                    break;
-
-                case "SplitInfraCode":
-                    if (repos.Count != 2)
-                        ctx.AddFailure("Repositories",
-                            "SplitInfraCode layout requires exactly two repositories (Infrastructure + ApplicationCode).");
-                    break;
-            }
+            var error = ValidateLayoutRepositories(cmd.LayoutPreset, repos.Count);
+            if (error is not null)
+                ctx.AddFailure(RepositoriesPropertyName, error);
         });
+    }
 
+    private static string? ValidateLayoutRepositories(string layoutPreset, int repoCount) => layoutPreset switch
+    {
+        LayoutMultiRepo when repoCount > 0 =>
+            "MultiRepo layout must not declare project-level repositories.",
+        LayoutAllInOne when repoCount != 1 =>
+            "AllInOne layout requires exactly one repository.",
+        LayoutSplitInfraCode when repoCount != 2 =>
+            "SplitInfraCode layout requires exactly two repositories (Infrastructure + ApplicationCode).",
+        _ => null,
+    };
+
+    private void ConfigureRepositoryRules()
+    {
         RuleForEach(x => x.Repositories).ChildRules(repo =>
         {
             repo.RuleFor(r => r.Alias)
@@ -74,21 +103,26 @@ public sealed class CreateProjectWithSetupCommandValidator
                 .NotNull().Must(c => c is { Count: > 0 })
                 .WithMessage("At least one content kind is required per repository.");
             repo.RuleFor(r => r.ProviderType)
-                .Must(v => v is null or "GitHub" or "AzureDevOps")
-                .WithMessage("ProviderType must be 'GitHub' or 'AzureDevOps'.");
+                .Must(v => v is null || AllowedProviderTypes.Contains(v))
+                .WithMessage(AllowedProviderTypesMessage);
             repo.RuleFor(r => r).Custom((r, ctx) =>
             {
-                var hasUrl = !string.IsNullOrWhiteSpace(r.RepositoryUrl);
-                var hasBranch = !string.IsNullOrWhiteSpace(r.DefaultBranch);
-                var hasProvider = !string.IsNullOrWhiteSpace(r.ProviderType);
-                var anySet = hasUrl || hasBranch || hasProvider;
-                var allSet = hasUrl && hasBranch && hasProvider;
-                if (anySet && !allSet)
+                if (HasIncompleteConnectionDetails(r.RepositoryUrl, r.DefaultBranch, r.ProviderType))
                 {
-                    ctx.AddFailure("ConnectionDetails",
+                    ctx.AddFailure(RepositoryConnectionDetailsPropertyName,
                         "ProviderType, RepositoryUrl and DefaultBranch must be either all provided or all empty.");
                 }
             });
         });
+    }
+
+    private static bool HasIncompleteConnectionDetails(string? repositoryUrl, string? defaultBranch, string? providerType)
+    {
+        var hasUrl = !string.IsNullOrWhiteSpace(repositoryUrl);
+        var hasBranch = !string.IsNullOrWhiteSpace(defaultBranch);
+        var hasProvider = !string.IsNullOrWhiteSpace(providerType);
+        var anySet = hasUrl || hasBranch || hasProvider;
+        var allSet = hasUrl && hasBranch && hasProvider;
+        return anySet && !allSet;
     }
 }

@@ -1,6 +1,6 @@
 <button
   [type]="type()"
-  class="ds-icon-btn ds-icon-btn--{{ variant() }} ds-icon-btn--{{ size() }}"
+  class="ds-icon-btn ds-icon-btn--{{ resolvedVariant() }} ds-icon-btn--{{ size() }}"
   [disabled]="isDisabled()"
   (click)="onClick($event)"
   [attr.aria-label]="ariaLabel()"

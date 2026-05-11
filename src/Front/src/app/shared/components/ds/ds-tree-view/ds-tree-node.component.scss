@@ -1,0 +1,124 @@
+@use 'sass:math';
+
+:host {
+  display: block;
+}
+
+.ds-tree-node {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+.ds-tree-node__row {
+  display: flex;
+  align-items: center;
+  gap: var(--ifs-space-6);
+  height: var(--ifs-density-row-md);
+  padding-right: var(--ifs-space-8);
+  border-radius: var(--ifs-radius-sm);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  color: var(--ifs-text-primary);
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    color var(--ifs-duration-fast) var(--ifs-ease-standard);
+
+  &:hover {
+    background: var(--ifs-surface-2);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ifs-focus-ring);
+  }
+}
+
+.ds-tree-node__row--selected {
+  background: var(--ifs-surface-2);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--ifs-accent-500);
+  }
+}
+
+.ds-tree-node__row--disabled {
+  cursor: not-allowed;
+  color: var(--ifs-text-disabled);
+
+  &:hover {
+    background: transparent;
+  }
+}
+
+.ds-tree-node__chevron {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--ifs-text-muted);
+  cursor: pointer;
+  padding: 0;
+  border-radius: var(--ifs-radius-sm);
+
+  &:hover {
+    color: var(--ifs-text-secondary);
+  }
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    transition: transform var(--ifs-duration-fast) var(--ifs-ease-standard);
+  }
+}
+
+.ds-tree-node__chevron--expanded mat-icon {
+  transform: rotate(90deg);
+}
+
+.ds-tree-node__chevron--placeholder {
+  cursor: default;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.ds-tree-node__icon {
+  flex: 0 0 16px;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--ifs-text-secondary);
+}
+
+.ds-tree-node__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ds-tree-node__badge {
+  flex: 0 0 auto;
+}
+
+.ds-tree-node__children {
+  display: block;
+  margin: 0;
+  padding: 0;
+}

@@ -3,6 +3,7 @@ using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
+using static InfraFlowSculptor.BicepGeneration.Generators.Constants.BicepGeneratorSharedConstants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -12,6 +13,18 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 /// </summary>
 public sealed class UserAssignedIdentityTypeBicepGenerator : IResourceTypeBicepSpecGenerator
 {
+    private const string ModuleName = "userAssignedIdentity";
+    private const string ModuleFolderName = "UserAssignedIdentity";
+    private const string ModuleFileName = "userAssignedIdentity";
+    private const string ResourceSymbol = "identity";
+    private const string UserAssignedIdentityArmType = "Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31";
+    private const string ResourceIdOutputName = "resourceId";
+    private const string PrincipalIdOutputName = "principalId";
+    private const string ClientIdOutputName = "clientId";
+    private const string ResourceIdExpression = ResourceSymbol + ".id";
+    private const string PrincipalIdExpression = ResourceSymbol + ".properties.principalId";
+    private const string ClientIdExpression = ResourceSymbol + ".properties.clientId";
+
     /// <inheritdoc />
     public string ResourceType => AzureResourceTypes.ArmTypes.UserAssignedIdentity;
 
@@ -22,15 +35,15 @@ public sealed class UserAssignedIdentityTypeBicepGenerator : IResourceTypeBicepS
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         return new BicepModuleBuilder()
-            .Module("userAssignedIdentity", "UserAssignedIdentity", AzureResourceTypes.UserAssignedIdentity)
-            .Param("location", BicepType.String, description: "Azure region for the User Assigned Identity")
-            .Param("name", BicepType.String, description: "Name of the User Assigned Identity")
-            .Resource("identity", "Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31")
-            .Property("name", new BicepReference("name"))
-            .Property("location", new BicepReference("location"))
-            .Output("resourceId", BicepType.String, new BicepRawExpression("identity.id"))
-            .Output("principalId", BicepType.String, new BicepRawExpression("identity.properties.principalId"))
-            .Output("clientId", BicepType.String, new BicepRawExpression("identity.properties.clientId"))
+            .Module(ModuleName, ModuleFolderName, AzureResourceTypes.UserAssignedIdentity)
+            .Param(LocationParameterName, BicepType.String, description: "Azure region for the User Assigned Identity")
+            .Param(NameParameterName, BicepType.String, description: "Name of the User Assigned Identity")
+            .Resource(ResourceSymbol, UserAssignedIdentityArmType)
+            .Property(NamePropertyName, new BicepReference(NameParameterName))
+            .Property(LocationPropertyName, new BicepReference(LocationParameterName))
+            .Output(ResourceIdOutputName, BicepType.String, new BicepRawExpression(ResourceIdExpression))
+            .Output(PrincipalIdOutputName, BicepType.String, new BicepRawExpression(PrincipalIdExpression))
+            .Output(ClientIdOutputName, BicepType.String, new BicepRawExpression(ClientIdExpression))
             .Build();
     }
 
@@ -39,9 +52,9 @@ public sealed class UserAssignedIdentityTypeBicepGenerator : IResourceTypeBicepS
     {
         return new GeneratedTypeModule
         {
-            ModuleName = "userAssignedIdentity",
-            ModuleFileName = "userAssignedIdentity",
-            ModuleFolderName = "UserAssignedIdentity",
+            ModuleName = ModuleName,
+            ModuleFileName = ModuleFileName,
+            ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = UserAssignedIdentityModuleTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>()

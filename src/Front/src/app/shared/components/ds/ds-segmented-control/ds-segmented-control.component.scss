@@ -1,0 +1,71 @@
+:host {
+  display: inline-block;
+}
+
+.ds-seg {
+  display: inline-flex;
+  align-items: stretch;
+  padding: 2px;
+  background: var(--ifs-surface-2);
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
+}
+
+.ds-seg--md {
+  height: 32px;
+}
+
+.ds-seg--sm {
+  height: 28px;
+}
+
+.ds-seg__option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ifs-space-6);
+  padding: 0 var(--ifs-space-12);
+  border: none;
+  background: transparent;
+  color: var(--ifs-text-secondary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: calc(var(--ifs-radius-md) - 2px);
+  transition:
+    color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
+}
+
+.ds-seg__option:hover:not(.ds-seg__option--disabled):not(.ds-seg__option--selected) {
+  color: var(--ifs-text-primary);
+}
+
+.ds-seg__option:focus-visible {
+  outline: none;
+  box-shadow: var(--ifs-focus-ring);
+}
+
+.ds-seg__option--selected {
+  background: var(--ifs-surface-1);
+  color: var(--ifs-text-primary);
+  box-shadow: var(--ifs-shadow-sm);
+}
+
+.ds-seg__option--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ds-seg__icon {
+  flex-shrink: 0;
+  width: var(--ifs-icon-sm);
+  height: var(--ifs-icon-sm);
+  font-size: var(--ifs-icon-sm);
+  line-height: var(--ifs-icon-sm);
+}
+
+.ds-seg__label {
+  white-space: nowrap;
+}

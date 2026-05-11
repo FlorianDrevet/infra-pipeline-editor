@@ -1,32 +1,49 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthenticationService } from '../../../shared/services/authentication.service';
 import { AppLanguage, LanguageService } from '../../../shared/services/language.service';
+import { MicrosoftGraphProfilePhotoService } from '../../../shared/services/microsoft-graph-profile-photo.service';
 import { MsalAuthService } from '../../../shared/services/msal-auth.service';
+import { PageContextService } from '../../../shared/services/page-context.service';
+import { DsIconButtonComponent } from '../../../shared/components/ds/ds-icon-button/ds-icon-button.component';
+
+const BlobUrlPrefix = 'blob:';
 
 @Component({
   selector: 'app-navigation',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, MatIconModule, TranslateModule],
+  imports: [MatIconModule, TranslateModule, RouterLink, DsIconButtonComponent],
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss',
 })
-export class NavigationComponent implements OnInit {
+export class NavigationComponent implements OnInit, OnDestroy {
   private readonly authenticationService = inject(AuthenticationService);
   private readonly languageService = inject(LanguageService);
+  private readonly microsoftGraphProfilePhotoService = inject(MicrosoftGraphProfilePhotoService);
   private readonly msalAuthService = inject(MsalAuthService);
   private readonly router = inject(Router);
+  private readonly pageContextService = inject(PageContextService);
 
   protected readonly isLoggingOut = signal(false);
   protected readonly userName = signal('');
   protected readonly userEmail = signal('');
   protected readonly userInitials = signal('IF');
+  protected readonly userPhotoUrl = signal<string | null>(null);
   protected readonly currentLanguage = this.languageService.currentLanguage;
   protected readonly availableLanguages = this.languageService.availableLanguages;
+  protected readonly breadcrumb = this.pageContextService.breadcrumb;
 
-  public async ngOnInit(): Promise<void> {
+  public ngOnInit(): void {
+    void this.initializeUserProfile();
+  }
+
+  public ngOnDestroy(): void {
+    this.revokeUserPhotoUrl();
+  }
+
+  private async initializeUserProfile(): Promise<void> {
     const account =
       this.authenticationService.getMsalAccount ??
       (await this.msalAuthService.getActiveAccount());
@@ -41,6 +58,7 @@ export class NavigationComponent implements OnInit {
     this.userName.set(displayName);
     this.userEmail.set(email);
     this.userInitials.set(this.buildInitials(displayName, email));
+    await this.loadUserProfilePhoto();
   }
 
   protected async logout(): Promise<void> {
@@ -62,6 +80,16 @@ export class NavigationComponent implements OnInit {
     this.languageService.setLanguage(language);
   }
 
+  private async loadUserProfilePhoto(): Promise<void> {
+    const userPhotoBlob = await this.microsoftGraphProfilePhotoService.getCurrentUserPhotoBlob();
+    if (!userPhotoBlob) {
+      this.clearUserPhotoUrl();
+      return;
+    }
+
+    this.replaceUserPhotoBlob(userPhotoBlob);
+  }
+
   private buildInitials(displayName: string, email: string): string {
     const nameParts = displayName
       .split(' ')
@@ -74,5 +102,27 @@ export class NavigationComponent implements OnInit {
     }
 
     return email.slice(0, 2).toUpperCase() || 'IF';
+  }
+
+  private clearUserPhotoUrl(): void {
+    this.revokeUserPhotoUrl();
+    this.userPhotoUrl.set(null);
+  }
+
+  private replaceUserPhotoBlob(userPhotoBlob: Blob): void {
+    const userPhotoUrl = globalThis.URL.createObjectURL(userPhotoBlob);
+    this.replaceUserPhotoUrl(userPhotoUrl);
+  }
+
+  private replaceUserPhotoUrl(userPhotoUrl: string): void {
+    this.revokeUserPhotoUrl();
+    this.userPhotoUrl.set(userPhotoUrl);
+  }
+
+  private revokeUserPhotoUrl(): void {
+    const currentUserPhotoUrl = this.userPhotoUrl();
+    if (currentUserPhotoUrl?.startsWith(BlobUrlPrefix)) {
+      globalThis.URL.revokeObjectURL(currentUserPhotoUrl);
+    }
   }
 }

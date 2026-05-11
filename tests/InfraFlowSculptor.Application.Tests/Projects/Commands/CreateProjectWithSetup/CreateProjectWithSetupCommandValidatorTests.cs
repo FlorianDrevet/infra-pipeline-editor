@@ -10,7 +10,7 @@ public sealed class CreateProjectWithSetupCommandValidatorTests
     private const string RepositoriesProperty = nameof(CreateProjectWithSetupCommand.Repositories);
     private const string AliasProperty = nameof(RepositorySetupItem.Alias);
     private const string ContentKindsProperty = nameof(RepositorySetupItem.ContentKinds);
-    private const string ConnectionDetailsProperty = "ConnectionDetails";
+    private const string RepositoryConnectionDetailsProperty = nameof(RepositorySetupItem.ProviderType);
 
     private readonly CreateProjectWithSetupCommandValidator _sut = new();
 
@@ -179,7 +179,7 @@ public sealed class CreateProjectWithSetupCommandValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName.Contains(ConnectionDetailsProperty, StringComparison.Ordinal));
+        result.Errors.Should().Contain(e => e.PropertyName.Contains(RepositoryConnectionDetailsProperty, StringComparison.Ordinal));
     }
 
     private static CreateProjectWithSetupCommand CreateAllInOneCommand() => new(

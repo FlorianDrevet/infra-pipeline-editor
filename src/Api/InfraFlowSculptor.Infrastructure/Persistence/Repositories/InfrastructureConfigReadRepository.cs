@@ -10,6 +10,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using InfraFlowSculptor.Domain.KeyVaultAggregate.Entities;
@@ -78,7 +79,6 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         return results;
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public async Task<InfrastructureConfigReadModel?> GetByIdWithResourcesAsync(
         Guid id,
         CancellationToken cancellationToken = default)
@@ -255,99 +255,15 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .Distinct()
             .ToList();
 
-        var externalTargets = new Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)>();
-        if (externalTargetIds.Count > 0)
-        {
-            var externalRgs = await dbContext.Set<Domain.ResourceGroupAggregate.ResourceGroup>()
-                .Include(rg => rg.Resources)
-                .Where(rg => rg.Resources.Any(r => externalTargetIds.Contains(r.Id)))
-                .AsNoTracking()
-                .ToListAsync(cancellationToken);
+        var externalTargets = await LoadExternalTargetsAsync(externalTargetIds, cancellationToken);
 
-            foreach (var rg in externalRgs)
-            {
-                foreach (var r in rg.Resources.Where(r => externalTargetIds.Contains(r.Id)))
-                {
-                    externalTargets[r.Id] = (r, rg);
-                }
-            }
-        }
+        var roleAssignmentReadModels = BuildRoleAssignmentReadModels(roleAssignments, allResources, externalTargets);
 
-        var roleAssignmentReadModels = roleAssignments
-            .Select(ra =>
-            {
-                if (!allResources.TryGetValue(ra.SourceResourceId, out var source))
-                    return null;
-
-                // Target resource might be in a different config, check both local and external
-                var hasTarget = allResources.TryGetValue(ra.TargetResourceId, out var target)
-                    || externalTargets.TryGetValue(ra.TargetResourceId, out target);
-
-                string? uaiName = null;
-                string? uaiRgName = null;
-                if (ra.UserAssignedIdentityId is not null &&
-                    allResources.TryGetValue(ra.UserAssignedIdentityId, out var uai))
-                {
-                    uaiName = uai.Resource.Name.Value;
-                    uaiRgName = uai.ResourceGroup.Name.Value;
-                }
-
-                return new RoleAssignmentReadModel(
-                    SourceResourceId: ra.SourceResourceId.Value,
-                    SourceResourceName: source.Resource.Name.Value,
-                    SourceResourceType: GetResourceTypeString(source.Resource),
-                    SourceResourceGroupName: source.ResourceGroup.Name.Value,
-                    TargetResourceId: ra.TargetResourceId.Value,
-                    TargetResourceName: hasTarget ? target.Resource.Name.Value : string.Empty,
-                    TargetResourceType: hasTarget ? GetResourceTypeString(target.Resource) : string.Empty,
-                    TargetResourceGroupName: hasTarget ? target.ResourceGroup.Name.Value : string.Empty,
-                    ManagedIdentityType: ra.ManagedIdentityType.Value.ToString(),
-                    RoleDefinitionId: ra.RoleDefinitionId,
-                    UserAssignedIdentityResourceId: ra.UserAssignedIdentityId?.Value,
-                    UserAssignedIdentityName: uaiName,
-                    UserAssignedIdentityResourceGroupName: uaiRgName);
-            })
-            .OfType<RoleAssignmentReadModel>()
-            .ToList();
-
-        var resourceGroups = config.ResourceGroups.Select(rg =>
-        {
-            var resources = rg.Resources
-                .Select(r =>
-                {
-                    var readModel = MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageQueues, storageTables, storageCorsRules, lifecycleRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings, crSettings, ehSettings);
-                    if (readModel is null) return null;
-
-                    // Resolve the assigned UAI name from the resource's FK
-                    string? assignedUaiName = null;
-                    if (r.AssignedUserAssignedIdentityId is not null
-                        && allResources.TryGetValue(r.AssignedUserAssignedIdentityId, out var uaiEntry))
-                    {
-                        assignedUaiName = uaiEntry.Resource.Name.Value;
-                    }
-
-                    // Map custom domains for this resource
-                    var resourceCustomDomains = customDomains
-                        .Where(cd => cd.ResourceId == r.Id)
-                        .Select(cd => new CustomDomainReadModel(cd.EnvironmentName, cd.DomainName, cd.BindingType))
-                        .ToList();
-
-                    return readModel with
-                    {
-                        AssignedUserAssignedIdentityName = assignedUaiName,
-                        IsExisting = r.IsExisting,
-                        CustomDomains = resourceCustomDomains
-                    };
-                })
-                .OfType<AzureResourceReadModel>()
-                .ToList();
-
-            return new ResourceGroupReadModel(
-                rg.Id.Value,
-                rg.Name.Value,
-                MapLocation(rg.Location),
-                resources);
-        }).ToList();
+        var resourceGroups = BuildResourceGroupReadModels(
+            config.ResourceGroups,
+            allResources,
+            customDomains,
+            r => MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageQueues, storageTables, storageCorsRules, lifecycleRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings, crSettings, ehSettings));
 
         // â”€â”€ Load parent project for environments and naming context â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var project = await dbContext.Projects
@@ -372,53 +288,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
 
         var varGroupLookup = projectVarGroups.ToDictionary(g => g.Id, g => g.GroupName);
 
-        var appSettingReadModels = appSettings
-            .Select(s =>
-            {
-                if (!allResources.TryGetValue(s.ResourceId, out var owner))
-                    return null;
-
-                string? sourceResourceName = null;
-                string? sourceResourceType = null;
-                if (s.SourceResourceId is not null &&
-                    allResources.TryGetValue(s.SourceResourceId, out var sourceRes))
-                {
-                    sourceResourceName = sourceRes.Resource.Name.Value;
-                    sourceResourceType = GetResourceTypeString(sourceRes.Resource);
-                }
-
-                string? keyVaultResourceName = null;
-                if (s.KeyVaultResourceId is not null &&
-                    allResources.TryGetValue(s.KeyVaultResourceId, out var kvRes))
-                {
-                    keyVaultResourceName = kvRes.Resource.Name.Value;
-                }
-
-                return new AppSettingReadModel(
-                    ResourceId: s.ResourceId.Value,
-                    ResourceName: owner.Resource.Name.Value,
-                    ResourceType: GetResourceTypeString(owner.Resource),
-                    Name: s.Name,
-                    EnvironmentValues: s.EnvironmentValues.Count > 0
-                        ? s.EnvironmentValues.ToDictionary(ev => ev.EnvironmentName, ev => ev.Value)
-                        : null,
-                    SourceResourceId: s.SourceResourceId?.Value,
-                    SourceResourceName: sourceResourceName,
-                    SourceResourceType: sourceResourceType,
-                    SourceOutputName: s.SourceOutputName,
-                    IsOutputReference: s.IsOutputReference,
-                    KeyVaultResourceId: s.KeyVaultResourceId?.Value,
-                    KeyVaultResourceName: keyVaultResourceName,
-                    SecretName: s.SecretName,
-                    IsKeyVaultReference: s.IsKeyVaultReference,
-                    SecretValueAssignment: s.SecretValueAssignment?.ToString(),
-                    VariableGroupId: s.VariableGroupId?.Value,
-                    PipelineVariableName: s.PipelineVariableName,
-                    VariableGroupName: s.VariableGroupId is not null && varGroupLookup.TryGetValue(s.VariableGroupId, out var vgName) ? vgName : null,
-                    IsViaVariableGroup: s.IsViaVariableGroup);
-            })
-            .OfType<AppSettingReadModel>()
-            .ToList();
+        var appSettingReadModels = BuildAppSettingReadModels(appSettings, allResources, varGroupLookup);
 
         // â”€â”€ Load cross-config resource references â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var crossConfigReferences = await dbContext.CrossConfigResourceReferences
@@ -426,76 +296,17 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        var crossConfigRefReadModels = new List<CrossConfigReferenceReadModel>();
-        foreach (var ccRef in crossConfigReferences)
-        {
-            var targetConfig = await dbContext.InfrastructureConfigs
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == ccRef.TargetConfigId, cancellationToken);
-
-            var targetRg = await dbContext.Set<Domain.ResourceGroupAggregate.ResourceGroup>()
-                .Include(rg => rg.Resources)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(rg => rg.Resources.Any(r => r.Id == ccRef.TargetResourceId), cancellationToken);
-
-            if (targetConfig is null || targetRg is null) continue;
-
-            var targetResource = targetRg.Resources.FirstOrDefault(r => r.Id == ccRef.TargetResourceId);
-            if (targetResource is null) continue;
-
-            var resourceTypeName = GetResourceTypeString(targetResource);
-            var simpleTypeName = GetResourceTypeName(targetResource);
-            var abbreviation = namingContext.ResourceAbbreviations.TryGetValue(simpleTypeName, out var overrideAbbr)
-                ? overrideAbbr
-                : ResourceAbbreviationCatalog.GetAbbreviation(simpleTypeName);
-
-            crossConfigRefReadModels.Add(new CrossConfigReferenceReadModel(
-                ReferenceId: ccRef.Id.Value,
-                TargetConfigId: ccRef.TargetConfigId.Value,
-                TargetConfigName: targetConfig.Name.Value,
-                TargetResourceId: ccRef.TargetResourceId.Value,
-                TargetResourceName: targetResource.Name.Value,
-                TargetResourceType: resourceTypeName,
-                TargetResourceGroupName: targetRg.Name.Value,
-                TargetResourceAbbreviation: abbreviation));
-        }
-
-        // â”€â”€ Enrich role assignments with cross-config info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        var crossConfigResourceIds = crossConfigReferences
-            .Select(r => r.TargetResourceId)
-            .ToHashSet();
+        var crossConfigRefReadModels = await BuildCrossConfigReferenceReadModelsAsync(
+            crossConfigReferences, namingContext, cancellationToken);
 
         var crossConfigRefLookup = crossConfigRefReadModels
             .ToDictionary(r => r.TargetResourceId);
 
-        var enrichedRoleAssignments = roleAssignmentReadModels
-            .Select(ra =>
-            {
-                var isCrossConfig = crossConfigResourceIds.Contains(new AzureResourceId(ra.TargetResourceId));
-                if (isCrossConfig && crossConfigRefLookup.TryGetValue(ra.TargetResourceId, out var ccRef))
-                {
-                    return ra with
-                    {
-                        IsTargetCrossConfig = true,
-                        TargetResourceName = string.IsNullOrEmpty(ra.TargetResourceName) ? ccRef.TargetResourceName : ra.TargetResourceName,
-                        TargetResourceType = string.IsNullOrEmpty(ra.TargetResourceType) ? ccRef.TargetResourceType : ra.TargetResourceType,
-                        TargetResourceGroupName = string.IsNullOrEmpty(ra.TargetResourceGroupName) ? ccRef.TargetResourceGroupName : ra.TargetResourceGroupName,
-                    };
-                }
-                return ra with { IsTargetCrossConfig = isCrossConfig };
-            })
-            .ToList();
+        var enrichedRoleAssignments = EnrichRoleAssignmentsWithCrossConfig(
+            roleAssignmentReadModels, crossConfigReferences, crossConfigRefLookup);
 
-        // â”€â”€ Enrich app settings with cross-config info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-        var enrichedAppSettings = appSettingReadModels
-            .Select(s =>
-            {
-                if (s.SourceResourceId is not null && crossConfigRefLookup.TryGetValue(s.SourceResourceId.Value, out var ccSrc))
-                    return s with { IsSourceCrossConfig = true, SourceResourceGroupName = ccSrc.TargetResourceGroupName };
-                return s;
-            })
-            .ToList();
+        var enrichedAppSettings = EnrichAppSettingsWithCrossConfig(
+            appSettingReadModels, crossConfigRefLookup);
 
         var projectTags = project?.Tags
             .ToDictionary(t => t.Name, t => t.Value)
@@ -504,28 +315,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         var configTags = config.Tags
             .ToDictionary(t => t.Name, t => t.Value);
 
-        var secureParamReadModels = secureParameterMappings
-            .Select(m =>
-            {
-                if (!allResources.TryGetValue(m.ResourceId, out var owner))
-                    return null;
-
-                string? vgName = m.VariableGroupId is not null
-                    && varGroupLookup.TryGetValue(m.VariableGroupId, out var name)
-                        ? name
-                        : null;
-
-                return new SecureParameterMappingReadModel(
-                    Id: m.Id.Value,
-                    ResourceId: m.ResourceId.Value,
-                    ResourceName: owner.Resource.Name.Value,
-                    SecureParameterName: m.SecureParameterName,
-                    VariableGroupId: m.VariableGroupId?.Value,
-                    VariableGroupName: vgName,
-                    PipelineVariableName: m.PipelineVariableName);
-            })
-            .OfType<SecureParameterMappingReadModel>()
-            .ToList();
+        var secureParamReadModels = BuildSecureParameterReadModels(
+            secureParameterMappings, allResources, varGroupLookup);
 
         return new InfrastructureConfigReadModel(
             config.Id.Value,
@@ -921,6 +712,335 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
     private static string MapLocation(Location location)
     {
         return Location.ToAzureRegionKey(location);
+    }
+
+    private static List<RoleAssignmentReadModel> BuildRoleAssignmentReadModels(
+        IReadOnlyCollection<RoleAssignment> roleAssignments,
+        Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)> allResources,
+        Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)> externalTargets)
+    {
+        return roleAssignments
+            .Select(ra => MapRoleAssignment(ra, allResources, externalTargets))
+            .OfType<RoleAssignmentReadModel>()
+            .ToList();
+    }
+
+    private static RoleAssignmentReadModel? MapRoleAssignment(
+        RoleAssignment ra,
+        Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)> allResources,
+        Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)> externalTargets)
+    {
+        if (!allResources.TryGetValue(ra.SourceResourceId, out var source))
+            return null;
+
+        var hasTarget = allResources.TryGetValue(ra.TargetResourceId, out var target)
+            || externalTargets.TryGetValue(ra.TargetResourceId, out target);
+
+        var (uaiName, uaiRgName) = ResolveUserAssignedIdentity(ra.UserAssignedIdentityId, allResources);
+
+        return new RoleAssignmentReadModel(
+            SourceResourceId: ra.SourceResourceId.Value,
+            SourceResourceName: source.Resource.Name.Value,
+            SourceResourceType: GetResourceTypeString(source.Resource),
+            SourceResourceGroupName: source.ResourceGroup.Name.Value,
+            TargetResourceId: ra.TargetResourceId.Value,
+            TargetResourceName: hasTarget ? target.Resource.Name.Value : string.Empty,
+            TargetResourceType: hasTarget ? GetResourceTypeString(target.Resource) : string.Empty,
+            TargetResourceGroupName: hasTarget ? target.ResourceGroup.Name.Value : string.Empty,
+            ManagedIdentityType: ra.ManagedIdentityType.Value.ToString(),
+            RoleDefinitionId: ra.RoleDefinitionId,
+            UserAssignedIdentityResourceId: ra.UserAssignedIdentityId?.Value,
+            UserAssignedIdentityName: uaiName,
+            UserAssignedIdentityResourceGroupName: uaiRgName);
+    }
+
+    private static (string? Name, string? ResourceGroupName) ResolveUserAssignedIdentity(
+        AzureResourceId? userAssignedIdentityId,
+        Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)> allResources)
+    {
+        if (userAssignedIdentityId is null)
+            return (null, null);
+
+        if (!allResources.TryGetValue(userAssignedIdentityId, out var uai))
+            return (null, null);
+
+        return (uai.Resource.Name.Value, uai.ResourceGroup.Name.Value);
+    }
+
+    private static List<AppSettingReadModel> BuildAppSettingReadModels(
+        IReadOnlyCollection<AppSetting> appSettings,
+        Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)> allResources,
+        Dictionary<ProjectPipelineVariableGroupId, string> varGroupLookup)
+    {
+        return appSettings
+            .Select(s => MapAppSetting(s, allResources, varGroupLookup))
+            .OfType<AppSettingReadModel>()
+            .ToList();
+    }
+
+    private static AppSettingReadModel? MapAppSetting(
+        AppSetting s,
+        Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)> allResources,
+        Dictionary<ProjectPipelineVariableGroupId, string> varGroupLookup)
+    {
+        if (!allResources.TryGetValue(s.ResourceId, out var owner))
+            return null;
+
+        var (sourceResourceName, sourceResourceType) = ResolveSourceResourceInfo(s.SourceResourceId, allResources);
+        var keyVaultResourceName = ResolveKeyVaultResourceName(s.KeyVaultResourceId, allResources);
+        var variableGroupName = s.VariableGroupId is not null && varGroupLookup.TryGetValue(s.VariableGroupId, out var vgName)
+            ? vgName
+            : null;
+
+        return new AppSettingReadModel(
+            ResourceId: s.ResourceId.Value,
+            ResourceName: owner.Resource.Name.Value,
+            ResourceType: GetResourceTypeString(owner.Resource),
+            Name: s.Name,
+            EnvironmentValues: s.EnvironmentValues.Count > 0
+                ? s.EnvironmentValues.ToDictionary(ev => ev.EnvironmentName, ev => ev.Value)
+                : null,
+            SourceResourceId: s.SourceResourceId?.Value,
+            SourceResourceName: sourceResourceName,
+            SourceResourceType: sourceResourceType,
+            SourceOutputName: s.SourceOutputName,
+            IsOutputReference: s.IsOutputReference,
+            KeyVaultResourceId: s.KeyVaultResourceId?.Value,
+            KeyVaultResourceName: keyVaultResourceName,
+            SecretName: s.SecretName,
+            IsKeyVaultReference: s.IsKeyVaultReference,
+            SecretValueAssignment: s.SecretValueAssignment?.ToString(),
+            VariableGroupId: s.VariableGroupId?.Value,
+            PipelineVariableName: s.PipelineVariableName,
+            VariableGroupName: variableGroupName,
+            IsViaVariableGroup: s.IsViaVariableGroup);
+    }
+
+    private static (string? Name, string? Type) ResolveSourceResourceInfo(
+        AzureResourceId? sourceResourceId,
+        Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)> allResources)
+    {
+        if (sourceResourceId is null || !allResources.TryGetValue(sourceResourceId, out var sourceRes))
+            return (null, null);
+
+        return (sourceRes.Resource.Name.Value, GetResourceTypeString(sourceRes.Resource));
+    }
+
+    private static string? ResolveKeyVaultResourceName(
+        AzureResourceId? keyVaultResourceId,
+        Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)> allResources)
+    {
+        if (keyVaultResourceId is null || !allResources.TryGetValue(keyVaultResourceId, out var kvRes))
+            return null;
+
+        return kvRes.Resource.Name.Value;
+    }
+
+    private async Task<Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)>> LoadExternalTargetsAsync(
+        List<AzureResourceId> externalTargetIds,
+        CancellationToken cancellationToken)
+    {
+        var externalTargets = new Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)>();
+        if (externalTargetIds.Count == 0)
+            return externalTargets;
+
+        var externalRgs = await dbContext.Set<Domain.ResourceGroupAggregate.ResourceGroup>()
+            .Include(rg => rg.Resources)
+            .Where(rg => rg.Resources.Any(r => externalTargetIds.Contains(r.Id)))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        foreach (var rg in externalRgs)
+        {
+            foreach (var r in rg.Resources.Where(r => externalTargetIds.Contains(r.Id)))
+            {
+                externalTargets[r.Id] = (r, rg);
+            }
+        }
+
+        return externalTargets;
+    }
+
+    private static List<ResourceGroupReadModel> BuildResourceGroupReadModels(
+        IReadOnlyCollection<Domain.ResourceGroupAggregate.ResourceGroup> resourceGroups,
+        Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)> allResources,
+        IReadOnlyList<CustomDomain> customDomains,
+        Func<AzureResource, AzureResourceReadModel?> mapResource)
+    {
+        return resourceGroups.Select(rg =>
+        {
+            var resources = rg.Resources
+                .Select(r => MapResourceWithEnrichments(r, allResources, customDomains, mapResource))
+                .OfType<AzureResourceReadModel>()
+                .ToList();
+
+            return new ResourceGroupReadModel(
+                rg.Id.Value,
+                rg.Name.Value,
+                MapLocation(rg.Location),
+                resources);
+        }).ToList();
+    }
+
+    private static AzureResourceReadModel? MapResourceWithEnrichments(
+        AzureResource r,
+        Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)> allResources,
+        IReadOnlyList<CustomDomain> customDomains,
+        Func<AzureResource, AzureResourceReadModel?> mapResource)
+    {
+        var readModel = mapResource(r);
+        if (readModel is null) return null;
+
+        string? assignedUaiName = null;
+        if (r.AssignedUserAssignedIdentityId is not null
+            && allResources.TryGetValue(r.AssignedUserAssignedIdentityId, out var uaiEntry))
+        {
+            assignedUaiName = uaiEntry.Resource.Name.Value;
+        }
+
+        var resourceCustomDomains = customDomains
+            .Where(cd => cd.ResourceId == r.Id)
+            .Select(cd => new CustomDomainReadModel(cd.EnvironmentName, cd.DomainName, cd.BindingType))
+            .ToList();
+
+        return readModel with
+        {
+            AssignedUserAssignedIdentityName = assignedUaiName,
+            IsExisting = r.IsExisting,
+            CustomDomains = resourceCustomDomains
+        };
+    }
+
+    private async Task<List<CrossConfigReferenceReadModel>> BuildCrossConfigReferenceReadModelsAsync(
+        IReadOnlyCollection<CrossConfigResourceReference> crossConfigReferences,
+        NamingContextReadModel namingContext,
+        CancellationToken cancellationToken)
+    {
+        var result = new List<CrossConfigReferenceReadModel>();
+        foreach (var ccRef in crossConfigReferences)
+        {
+            var readModel = await MapCrossConfigReferenceAsync(ccRef, namingContext, cancellationToken);
+            if (readModel is not null)
+                result.Add(readModel);
+        }
+        return result;
+    }
+
+    private async Task<CrossConfigReferenceReadModel?> MapCrossConfigReferenceAsync(
+        CrossConfigResourceReference ccRef,
+        NamingContextReadModel namingContext,
+        CancellationToken cancellationToken)
+    {
+        var targetConfig = await dbContext.InfrastructureConfigs
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == ccRef.TargetConfigId, cancellationToken);
+
+        var targetRg = await dbContext.Set<Domain.ResourceGroupAggregate.ResourceGroup>()
+            .Include(rg => rg.Resources)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(rg => rg.Resources.Any(r => r.Id == ccRef.TargetResourceId), cancellationToken);
+
+        if (targetConfig is null || targetRg is null) return null;
+
+        var targetResource = targetRg.Resources.FirstOrDefault(r => r.Id == ccRef.TargetResourceId);
+        if (targetResource is null) return null;
+
+        var resourceTypeName = GetResourceTypeString(targetResource);
+        var simpleTypeName = GetResourceTypeName(targetResource);
+        var abbreviation = namingContext.ResourceAbbreviations.TryGetValue(simpleTypeName, out var overrideAbbr)
+            ? overrideAbbr
+            : ResourceAbbreviationCatalog.GetAbbreviation(simpleTypeName);
+
+        return new CrossConfigReferenceReadModel(
+            ReferenceId: ccRef.Id.Value,
+            TargetConfigId: ccRef.TargetConfigId.Value,
+            TargetConfigName: targetConfig.Name.Value,
+            TargetResourceId: ccRef.TargetResourceId.Value,
+            TargetResourceName: targetResource.Name.Value,
+            TargetResourceType: resourceTypeName,
+            TargetResourceGroupName: targetRg.Name.Value,
+            TargetResourceAbbreviation: abbreviation);
+    }
+
+    private static List<RoleAssignmentReadModel> EnrichRoleAssignmentsWithCrossConfig(
+        IReadOnlyCollection<RoleAssignmentReadModel> roleAssignmentReadModels,
+        IReadOnlyCollection<CrossConfigResourceReference> crossConfigReferences,
+        IReadOnlyDictionary<Guid, CrossConfigReferenceReadModel> crossConfigRefLookup)
+    {
+        var crossConfigResourceIds = crossConfigReferences
+            .Select(r => r.TargetResourceId)
+            .ToHashSet();
+
+        return roleAssignmentReadModels
+            .Select(ra => EnrichSingleRoleAssignment(ra, crossConfigResourceIds, crossConfigRefLookup))
+            .ToList();
+    }
+
+    private static RoleAssignmentReadModel EnrichSingleRoleAssignment(
+        RoleAssignmentReadModel ra,
+        HashSet<AzureResourceId> crossConfigResourceIds,
+        IReadOnlyDictionary<Guid, CrossConfigReferenceReadModel> crossConfigRefLookup)
+    {
+        var isCrossConfig = crossConfigResourceIds.Contains(new AzureResourceId(ra.TargetResourceId));
+        if (isCrossConfig && crossConfigRefLookup.TryGetValue(ra.TargetResourceId, out var ccRef))
+        {
+            return ra with
+            {
+                IsTargetCrossConfig = true,
+                TargetResourceName = string.IsNullOrEmpty(ra.TargetResourceName) ? ccRef.TargetResourceName : ra.TargetResourceName,
+                TargetResourceType = string.IsNullOrEmpty(ra.TargetResourceType) ? ccRef.TargetResourceType : ra.TargetResourceType,
+                TargetResourceGroupName = string.IsNullOrEmpty(ra.TargetResourceGroupName) ? ccRef.TargetResourceGroupName : ra.TargetResourceGroupName,
+            };
+        }
+        return ra with { IsTargetCrossConfig = isCrossConfig };
+    }
+
+    private static List<AppSettingReadModel> EnrichAppSettingsWithCrossConfig(
+        IReadOnlyCollection<AppSettingReadModel> appSettingReadModels,
+        IReadOnlyDictionary<Guid, CrossConfigReferenceReadModel> crossConfigRefLookup)
+    {
+        return appSettingReadModels
+            .Select(s =>
+            {
+                if (s.SourceResourceId is not null && crossConfigRefLookup.TryGetValue(s.SourceResourceId.Value, out var ccSrc))
+                    return s with { IsSourceCrossConfig = true, SourceResourceGroupName = ccSrc.TargetResourceGroupName };
+                return s;
+            })
+            .ToList();
+    }
+
+    private static List<SecureParameterMappingReadModel> BuildSecureParameterReadModels(
+        IReadOnlyCollection<SecureParameterMapping> secureParameterMappings,
+        Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)> allResources,
+        Dictionary<ProjectPipelineVariableGroupId, string> varGroupLookup)
+    {
+        return secureParameterMappings
+            .Select(m => MapSecureParameter(m, allResources, varGroupLookup))
+            .OfType<SecureParameterMappingReadModel>()
+            .ToList();
+    }
+
+    private static SecureParameterMappingReadModel? MapSecureParameter(
+        SecureParameterMapping m,
+        Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)> allResources,
+        Dictionary<ProjectPipelineVariableGroupId, string> varGroupLookup)
+    {
+        if (!allResources.TryGetValue(m.ResourceId, out var owner))
+            return null;
+
+        string? vgName = m.VariableGroupId is not null
+            && varGroupLookup.TryGetValue(m.VariableGroupId, out var name)
+                ? name
+                : null;
+
+        return new SecureParameterMappingReadModel(
+            Id: m.Id.Value,
+            ResourceId: m.ResourceId.Value,
+            ResourceName: owner.Resource.Name.Value,
+            SecureParameterName: m.SecureParameterName,
+            VariableGroupId: m.VariableGroupId?.Value,
+            VariableGroupName: vgName,
+            PipelineVariableName: m.PipelineVariableName);
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
@@ -58,7 +58,7 @@ import { NameAvailabilityService } from '../../shared/services/name-availability
 import { EnvironmentNameAvailabilityResponseItem } from '../../shared/interfaces/name-availability.interface';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
-import { RoleAssignmentResponse, AzureRoleDefinitionResponse, IdentityRoleAssignmentResponse, RoleAssignmentImpactResponse, ACR_PULL_ROLE_DEFINITION_ID } from '../../shared/interfaces/role-assignment.interface';
+import { RoleAssignmentResponse, AzureRoleDefinitionResponse, IdentityRoleAssignmentResponse, RoleAssignmentImpactResponse } from '../../shared/interfaces/role-assignment.interface';
 import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
 import { LOCATION_OPTIONS } from '../../shared/enums/location.enum';
@@ -68,6 +68,7 @@ import { FUNCTION_APP_RUNTIME_STACK_OPTIONS } from '../config-detail/enums/funct
 import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service-plan-sku.enum';
 import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData, AddRoleAssignmentDialogResult } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
 import { AddAppSettingDialogComponent, AddAppSettingDialogData } from './add-app-setting-dialog/add-app-setting-dialog.component';
+import { ImportAppSettingsDialogComponent, ImportAppSettingsDialogData } from './import-app-settings-dialog/import-app-settings-dialog.component';
 import { EditStaticAppSettingDialogComponent, EditStaticAppSettingDialogData } from './edit-static-app-setting-dialog/edit-static-app-setting-dialog.component';
 import { AppSettingService } from '../../shared/services/app-setting.service';
 import { SecureParameterMappingService } from '../../shared/services/secure-parameter-mapping.service';
@@ -77,15 +78,19 @@ import { AppConfigurationKeyService } from './services/app-configuration-key.ser
 import { AppConfigurationKeyResponse } from './models/app-configuration-key.interface';
 import { AddAppConfigKeyDialogComponent, AddAppConfigKeyDialogData } from './add-app-config-key-dialog/add-app-config-key-dialog.component';
 import { RoleAssignmentImpactDialogComponent, RoleAssignmentImpactDialogData } from './role-assignment-impact-dialog/role-assignment-impact-dialog.component';
-import { CreateUaiDialogComponent, CreateUaiDialogData } from './create-uai-dialog/create-uai-dialog.component';
+import { CreateUaiDialogComponent } from './create-uai-dialog/create-uai-dialog.component';
 import { CustomDomainService } from '../../shared/services/custom-domain.service';
 import { CustomDomainResponse, AddCustomDomainRequest } from '../../shared/interfaces/custom-domain.interface';
+import { PageContextService } from '../../shared/services/page-context.service';
 import { AddCustomDomainDialogComponent, AddCustomDomainDialogData } from './add-custom-domain-dialog/add-custom-domain-dialog.component';
 import { CompactSelectComponent } from '../../shared/components/compact-select/compact-select.component';
 import { DeploymentConfigComponent } from '../../shared/components/deployment-config/deployment-config.component';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
+
+const ADD_APP_SETTING_DIALOG_PANEL_CLASS = 'ifs-add-app-setting-dialog';
+const IMPORT_APP_SETTINGS_DIALOG_PANEL_CLASS = 'ifs-import-app-settings-dialog';
 
 /** Key Vault missing role entry for the KV access warning banner */
 interface KvMissingRoleEntry {
@@ -374,6 +379,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly customDomainService = inject(CustomDomainService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
+  private readonly pageContextService = inject(PageContextService);
 
   // ─── Route params ───
   protected configId = '';
@@ -452,7 +458,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly corsMaxAgePresets = STORAGE_CORS_MAX_AGE_PRESETS;
 
   // ─── Role Assignments ───
-  protected readonly acrPullRoleId = ACR_PULL_ROLE_DEFINITION_ID;
   protected readonly roleAssignments = signal<RoleAssignmentResponse[]>([]);
   protected readonly roleAssignmentsLoading = signal(false);
   protected readonly roleAssignmentsError = signal('');
@@ -928,6 +933,30 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       ? tabIndex === 0
       : tabIndex === 0 || tabIndex === 1 || (this.isStorageAccount() && tabIndex === 3) || (this.supportsAppPipeline() && tabIndex === 4);
     return this.formsDirty() && isOnSaveableTab && this.canWrite();
+  });
+
+  // ─── Breadcrumb (top-bar) ───
+  // Wave 5: Projects > ProjectName > ConfigName > ResourceType : ResourceName.
+  private readonly breadcrumbEffect = effect(() => {
+    const project = this.project();
+    const config = this.config();
+    const resource = this.resource();
+    const projectsLabel = this.translate.instant('NAV.BREADCRUMB.PROJECTS') as string;
+    const segments: { label: string; routerLink?: string }[] = [
+      { label: projectsLabel, routerLink: '/' },
+    ];
+    if (project) {
+      segments.push({ label: project.name, routerLink: `/projects/${project.id}` });
+    }
+    if (config) {
+      segments.push({ label: config.name, routerLink: `/config/${config.id}` });
+    }
+    if (resource) {
+      const typeLabel = this.resourceType || '';
+      const last = typeLabel ? `${typeLabel} : ${resource.name}` : resource.name;
+      segments.push({ label: last });
+    }
+    this.pageContextService.setBreadcrumb(segments);
   });
 
   async ngOnInit(): Promise<void> {
@@ -1835,11 +1864,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected createNewUai(): void {
     const res = this.resource();
     if (!res) return;
-    const resourceGroupId = (res as { resourceGroupId?: string })?.resourceGroupId ?? '';
+    const resourceGroupId = res.resourceGroupId ?? '';
     const location = res.location ?? 'EastUS2';
 
     const dialogRef = this.dialog.open(CreateUaiDialogComponent, {
-      data: { resourceGroupId, location } as CreateUaiDialogData,
+      data: { resourceGroupId, location },
       width: '420px',
     });
 
@@ -1852,6 +1881,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.formSubscriptions.forEach(s => s.unsubscribe());
+    this.pageContextService.clear();
   }
 
   protected openDeleteDialog(): void {
@@ -2038,6 +2068,10 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     return def?.documentationUrl ?? '';
   }
 
+  protected roleRequiresUserAssignedIdentity(roleDefinitionId: string): boolean {
+    return this.availableRoleDefs().find(d => d.id === roleDefinitionId)?.requiresUserAssignedIdentity ?? false;
+  }
+
   protected resolveIdentityName(identityId: string): string {
     const res = this.allResources().find(r => r.id === identityId);
     if (res) return res.name;
@@ -2082,7 +2116,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       sourceResourceId: this.resourceId,
       currentResourceName: this.resource()?.name ?? '',
       siblingResources: this.allResources(),
-      resourceGroupId: (this.resource() as { resourceGroupId?: string })?.resourceGroupId ?? '',
+      resourceGroupId: this.resource()?.resourceGroupId ?? '',
       configLocation: this.resource()?.location ?? 'EastUS2',
     };
 
@@ -2420,11 +2454,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected createNewUaiForKvEntry(kvId: string): void {
     const res = this.resource();
     if (!res) return;
-    const resourceGroupId = (res as { resourceGroupId?: string })?.resourceGroupId ?? '';
+    const resourceGroupId = res.resourceGroupId ?? '';
     const location = res.location ?? 'EastUS2';
 
     const dialogRef = this.dialog.open(CreateUaiDialogComponent, {
-      data: { resourceGroupId, location } as CreateUaiDialogData,
+      data: { resourceGroupId, location },
       width: '420px',
     });
 
@@ -2456,11 +2490,37 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       } satisfies AddAppSettingDialogData,
       width: '520px',
       maxHeight: '85vh',
+      panelClass: ADD_APP_SETTING_DIALOG_PANEL_CLASS,
     });
 
     dialogRef.afterClosed().subscribe((result?: AppSettingResponse) => {
       if (result) {
         this.appSettings.update(list => [...list, result]);
+      }
+    });
+  }
+
+  protected openImportAppSettingsDialog(): void {
+    const dialogRef = this.dialog.open(ImportAppSettingsDialogComponent, {
+      data: {
+        resourceId: this.resourceId,
+        currentResourceName: this.resource()?.name ?? '',
+        siblingResources: this.allResources(),
+        environments: this.environments().map(e => ({ name: e.name })),
+        projectId: this.config()?.projectId ?? '',
+        existingSettingNames: this.appSettings().map(s => s.name),
+        resourceType: this.resourceType,
+        deploymentMode: (this.generalForm.get('deploymentMode')?.value as string | null | undefined) ?? this.deploymentMode(),
+        runtimeStack: (this.generalForm.get('runtimeStack')?.value as string | null | undefined) ?? null,
+      } satisfies ImportAppSettingsDialogData,
+      width: '780px',
+      maxHeight: '85vh',
+      panelClass: IMPORT_APP_SETTINGS_DIALOG_PANEL_CLASS,
+    });
+
+    dialogRef.afterClosed().subscribe((result?: AppSettingResponse[]) => {
+      if (result?.length) {
+        this.appSettings.update(list => [...list, ...result]);
       }
     });
   }
@@ -2617,11 +2677,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected createNewUaiForConfigKeyKvEntry(kvId: string): void {
     const res = this.resource();
     if (!res) return;
-    const resourceGroupId = (res as { resourceGroupId?: string })?.resourceGroupId ?? '';
+    const resourceGroupId = res.resourceGroupId ?? '';
     const location = res.location ?? 'EastUS2';
 
     const dialogRef = this.dialog.open(CreateUaiDialogComponent, {
-      data: { resourceGroupId, location } as CreateUaiDialogData,
+      data: { resourceGroupId, location },
       width: '420px',
     });
 

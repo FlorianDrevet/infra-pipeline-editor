@@ -1,0 +1,43 @@
+// ============================================================================
+// app-ds-tooltip — V2 (UI Refresh 2026-05, dark-only)
+// Spec: docs/design/ui-refresh-2026-05.md §6 wave 6
+// ============================================================================
+
+:host {
+  display: block;
+  pointer-events: none;
+}
+
+.ds-tooltip {
+  max-width: 240px;
+  padding: 4px 8px;
+  background: var(--ifs-surface-3);
+  color: var(--ifs-text-primary);
+  font-size: 12px;
+  line-height: 1.4;
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-sm);
+  box-shadow: var(--ifs-shadow-md);
+  opacity: 0;
+  animation: ifs-tooltip-in var(--ifs-duration-fast) var(--ifs-ease-standard) forwards;
+}
+
+.ds-tooltip--top    { transform: translateY(4px); }
+.ds-tooltip--bottom { transform: translateY(-4px); }
+.ds-tooltip--left   { transform: translateX(4px); }
+.ds-tooltip--right  { transform: translateX(-4px); }
+
+@keyframes ifs-tooltip-in {
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-tooltip {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

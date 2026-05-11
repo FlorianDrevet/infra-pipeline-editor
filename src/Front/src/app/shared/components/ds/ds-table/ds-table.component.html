@@ -1,0 +1,77 @@
+<div
+  class="ds-table"
+  [attr.aria-label]="ariaLabel || null"
+  [class.ds-table--interactive]="isInteractive"
+  [style.--ds-table-row-height]="rowHeightVar"
+  [style.grid-template-columns]="gridTemplateColumns"
+>
+  <div class="ds-table__header">
+    @for (column of columns; track trackColumn($index, column)) {
+      <div
+        class="ds-table__header-cell"
+        [ngClass]="{
+          'ds-table__cell--align-center': column.align === 'center',
+          'ds-table__cell--align-end': column.align === 'end',
+          'ds-table__header-cell--sortable': column.sortable,
+          'ds-table__header-cell--sorted': !!getColumnSortDirection(column),
+          'ds-table__header-cell--sticky': column.sticky
+        }"
+      >
+        @if (column.sortable) {
+          <button
+            type="button"
+            class="ds-table__sort-button"
+            (click)="onHeaderClick(column)"
+          >
+            <span class="ds-table__header-label">{{ column.header }}</span>
+            <mat-icon
+              class="ds-table__sort-icon"
+              [class.ds-table__sort-icon--active]="!!getColumnSortDirection(column)"
+              [class.ds-table__sort-icon--desc]="getColumnSortDirection(column) === 'desc'"
+              aria-hidden="true"
+            >arrow_upward</mat-icon>
+          </button>
+        } @else {
+          <span class="ds-table__header-label">{{ column.header }}</span>
+        }
+      </div>
+    }
+  </div>
+
+  @if (rows.length === 0) {
+    <div class="ds-table__empty">
+      <div class="ds-table__empty-cell" [style.grid-column]="'1 / -1'">
+        {{ emptyMessage }}
+      </div>
+    </div>
+  } @else {
+    @for (row of rows; track trackRow($index, row)) {
+      <div
+        class="ds-table__row"
+        [attr.tabindex]="isInteractive ? 0 : null"
+        (click)="onRowClick(row)"
+        (keydown)="onRowKeyDown($event, row)"
+      >
+        @for (column of columns; track trackColumn($index, column)) {
+          <div
+            class="ds-table__cell"
+            [ngClass]="[
+              column.cellClass || '',
+              column.align === 'center' ? 'ds-table__cell--align-center' : '',
+              column.align === 'end' ? 'ds-table__cell--align-end' : '',
+              column.mono ? 'ds-table__cell--mono' : ''
+            ]"
+          >
+            @if (cellTemplates[column.key]; as tpl) {
+              <ng-container
+                *ngTemplateOutlet="tpl; context: { $implicit: row, row: row, column: column }"
+              ></ng-container>
+            } @else {
+              {{ getCellValue(row, column) }}
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

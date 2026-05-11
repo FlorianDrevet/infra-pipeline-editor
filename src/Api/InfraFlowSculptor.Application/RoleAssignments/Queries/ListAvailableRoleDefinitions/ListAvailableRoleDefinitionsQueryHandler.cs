@@ -38,7 +38,12 @@ public class ListAvailableRoleDefinitionsQueryHandler(
         var roles = AzureRoleDefinitionCatalog.GetForResourceType(resourceType);
 
         return roles
-            .Select(r => new AzureRoleDefinitionResult(r.Id, r.Name, r.Description, r.DocumentationUrl))
+            .Select(r => new AzureRoleDefinitionResult(
+                r.Id,
+                r.Name,
+                r.Description,
+                r.DocumentationUrl,
+                r.RequiresUserAssignedIdentity))
             .ToList();
     }
 }

@@ -1,4 +1,8 @@
-@use "scss/main" as *;
+// ============================================================================
+// app-ds-textarea — V2 (UI Refresh 2026-05, dark-only)
+// Spec: docs/design/ui-refresh-2026-05.md §5.1
+// Aligned on text-field. Min-height 64px, vertical resize only.
+// ============================================================================
 
 :host {
   display: block;
@@ -8,50 +12,58 @@
 .ds-field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 4px;
   width: 100%;
 }
 
 .ds-field__label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: $ifs-brand-blue;
-  letter-spacing: 0.01em;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ifs-text-secondary);
   display: flex;
-  gap: 0.25rem;
+  gap: 4px;
   align-items: center;
 }
 
 .ds-field__required {
-  color: $ifs-error-strong;
-  font-weight: 700;
+  color: var(--ifs-danger);
+  font-weight: 500;
 }
 
 .ds-field__control {
   position: relative;
   display: flex;
   align-items: flex-start;
-  padding: 0.7rem 0.85rem;
-  background: $ifs-surface-0;
-  border: 1.5px solid $ifs-border-strong;
-  border-radius: $ifs-radius-md;
-  transition: all $ifs-duration-fast $ifs-ease-out;
+  padding: 8px 10px;
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-strong);
+  border-radius: var(--ifs-radius-sm);
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
+}
+
+.ds-field__control:hover:not(:focus-within) {
+  border-color: var(--ifs-text-muted);
 }
 
 .ds-field--focused .ds-field__control {
-  border-color: $ifs-brand-blue;
-  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15), inset 0 0 0 0.5px $ifs-brand-blue;
-  background: #fff;
+  border-color: var(--ifs-accent-500);
+  box-shadow: 0 0 0 3px rgba(58, 163, 201, 0.18);
 }
 
 .ds-field--invalid .ds-field__control {
-  border-color: $ifs-error-strong;
-  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.12);
+  border-color: var(--ifs-danger);
+}
+
+.ds-field--invalid.ds-field--focused .ds-field__control {
+  box-shadow: 0 0 0 3px rgba(210, 74, 74, 0.18);
 }
 
 .ds-field--disabled .ds-field__control {
-  background: $ifs-surface-100;
-  opacity: 0.7;
+  background: var(--ifs-surface-2);
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
@@ -61,16 +73,16 @@
   border: none;
   outline: none;
   background: transparent;
-  font-size: 0.95rem;
-  color: $ifs-ink-700;
+  font-size: 14px;
+  color: var(--ifs-text-primary);
   font-family: inherit;
   resize: vertical;
-  min-height: 4rem;
-  line-height: 1.5;
+  min-height: 64px;
+  line-height: 20px;
   width: 100%;
 
   &::placeholder {
-    color: $ifs-ink-400;
+    color: var(--ifs-text-muted);
   }
 
   &:disabled {
@@ -82,26 +94,26 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .ds-field__message {
-  font-size: 0.78rem;
-  line-height: 1.4;
+  font-size: 12px;
+  line-height: 16px;
 }
 
 .ds-field__message--hint {
-  color: $ifs-ink-500;
+  color: var(--ifs-text-muted);
 }
 
 .ds-field__message--error {
-  color: $ifs-error-strong;
-  font-weight: 500;
+  color: var(--ifs-danger);
 }
 
 .ds-field__counter {
-  font-size: 0.74rem;
-  color: $ifs-ink-400;
+  font-size: 12px;
+  color: var(--ifs-text-muted);
   font-variant-numeric: tabular-nums;
   margin-left: auto;
 }
+

@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Projects.Common;
@@ -33,10 +34,14 @@ public sealed class UpdateProjectMemberRoleCommandHandler(
         if (member is null)
             return Errors.Project.MemberNotFoundError();
 
-        if (!Enum.TryParse<Role.RoleEnum>(command.NewRole, out var roleEnum))
-            return Errors.Project.InvalidRoleError(command.NewRole);
+        var roleResult = EnumValueObjectParser.Parse<Role.RoleEnum, Role>(
+            command.NewRole,
+            static parsed => new Role(parsed),
+            Errors.Project.InvalidRoleError);
+        if (roleResult.IsError)
+            return roleResult.Errors;
 
-        project.ChangeRole(targetUserId, new Role(roleEnum));
+        project.ChangeRole(targetUserId, roleResult.Value);
         var saved = await projectRepository.UpdateAsync(project);
 
         return mapper.Map<ProjectResult>(saved);

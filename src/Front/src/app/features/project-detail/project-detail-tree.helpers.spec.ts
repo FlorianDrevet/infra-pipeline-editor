@@ -18,6 +18,12 @@ function expectFile(nodes: Array<BicepFolderNode | BicepFileNode>, path: string)
   return file!;
 }
 
+function toNodeIdentifier(node: BicepFolderNode | BicepFileNode): string {
+  return node.kind === 'folder'
+    ? node.key
+    : node.path;
+}
+
 describe('project-detail tree helpers', () => {
   it('builds common and config bicep nodes with the expected hierarchy and file types', () => {
     const nodes = buildProjectBicepNodes(
@@ -62,6 +68,29 @@ describe('project-detail tree helpers', () => {
     expect(mainFile.parentFolderKey).toBe('dev');
     expect(paramsFile.type).toBe('params');
     expect(paramsFile.parentFolderKey).toBe('dev/parameters');
+  });
+
+  it('keeps interleaved common module files grouped under their own folders in flat tree order', () => {
+    const nodes = buildProjectBicepNodes(
+      {
+        'Common/modules/ContainerRegistry/containerregistry.roleassignments.module.bicep': 'ignored-container-role-uri',
+        'Common/modules/KeyVault/keyvault.roleassignments.module.bicep': 'ignored-keyvault-role-uri',
+        'Common/modules/ContainerRegistry/types.bicep': 'ignored-container-types-uri',
+        'Common/modules/KeyVault/types.bicep': 'ignored-keyvault-types-uri',
+      },
+      {},
+    );
+
+    expect(nodes.map(toNodeIdentifier)).toEqual([
+      'Common',
+      'Common/modules',
+      'Common/modules/ContainerRegistry',
+      'Common/modules/ContainerRegistry/containerregistry.roleassignments.module.bicep',
+      'Common/modules/ContainerRegistry/types.bicep',
+      'Common/modules/KeyVault',
+      'Common/modules/KeyVault/keyvault.roleassignments.module.bicep',
+      'Common/modules/KeyVault/types.bicep',
+    ]);
   });
 
   it('builds Azure DevOps nodes under the shared root and normalizes config-relative paths', () => {

@@ -1,0 +1,40 @@
+// ============================================================================
+// app-ds-status-dot — V2 (UI Refresh 2026-05, dark-only)
+// Spec: docs/design/ui-refresh-2026-05.md §6 wave 6
+// ============================================================================
+
+:host {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.ds-status-dot {
+  display: inline-block;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ds-status-dot--sm { width: 8px; height: 8px; }
+.ds-status-dot--md { width: 10px; height: 10px; }
+
+.ds-status-dot--success { background-color: var(--ifs-success); }
+.ds-status-dot--warning { background-color: var(--ifs-warning); }
+.ds-status-dot--danger  { background-color: var(--ifs-danger); }
+.ds-status-dot--info    { background-color: var(--ifs-info); }
+.ds-status-dot--idle    { background-color: var(--ifs-text-muted); }
+
+.ds-status-dot--pulse {
+  animation: ifs-status-dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ifs-status-dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-status-dot--pulse {
+    animation: none;
+  }
+}

@@ -1,20 +1,14 @@
-<footer class="shell-footer">
-  <div class="shell-footer__content">
-    <div class="shell-footer__brand">
-      <strong>InfraFlowSculptor</strong>
-      <p>{{ 'FOOTER.BRAND_DESCRIPTION' | translate }}</p>
-    </div>
-
-    <div class="shell-footer__meta">
-      <a routerLink="/">{{ 'FOOTER.HOME' | translate }}</a>
-      <span>{{ 'FOOTER.SECURITY' | translate }}</span>
-      <span>{{ 'FOOTER.WORKFLOW' | translate }}</span>
-    </div>
-
-    <div class="shell-footer__legal">
-      <span>&copy; {{ currentYear }} InfraFlowSculptor</span>
-      <span>{{ 'FOOTER.LEGAL' | translate }}</span>
-    </div>
-  </div>
+<footer class="status-bar" [attr.aria-label]="'FOOTER.STATUS_BAR_ARIA' | translate">
+  <span class="status-bar__item status-bar__item--version" [attr.aria-label]="'FOOTER.VERSION_ARIA' | translate">
+    v{{ version }}
+  </span>
+  <span class="status-bar__sep" aria-hidden="true">·</span>
+  <span class="status-bar__item status-bar__item--env" [attr.aria-label]="'FOOTER.ENV_ARIA' | translate">
+    {{ envName }}
+  </span>
+  <span class="status-bar__spacer"></span>
+  <a class="status-bar__link" [href]="docsUrl" target="_blank" rel="noopener noreferrer">
+    {{ 'FOOTER.DOCS' | translate }}
+  </a>
 </footer>
 

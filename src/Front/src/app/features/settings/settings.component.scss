@@ -24,7 +24,7 @@
 
   &__spinner {
     animation: spin 1.2s linear infinite;
-    color: $ifs-brand-blue;
+    color: var(--ifs-brand-500);
   }
 
   &__empty {
@@ -33,7 +33,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 2.5rem 1rem;
-    color: $ifs-ink-500;
+    color: var(--ifs-text-secondary);
   }
 
   &__empty-icon {
@@ -76,7 +76,7 @@
   font-size: 1.125rem;
   width: 1.125rem;
   height: 1.125rem;
-  color: $ifs-brand-blue;
+  color: var(--ifs-brand-500);
 }
 
 @keyframes spin {

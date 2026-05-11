@@ -1,13 +1,37 @@
+using InfraFlowSculptor.BicepGeneration.Generators.ParameterModels;
+using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
+using static InfraFlowSculptor.BicepGeneration.Generators.Constants.BicepGeneratorSharedConstants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
 public sealed class AppServicePlanTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
+    private const string ModuleName = "appServicePlan";
+    private const string ModuleFolderName = "AppServicePlan";
+    private const string SkuNameTypeName = "SkuName";
+    private const string OsTypeTypeName = "OsType";
+    private const string SkuParameterName = "sku";
+    private const string CapacityParameterName = "capacity";
+    private const string OsTypeParameterName = "osType";
+    private const string IsLinuxVariableName = "isLinux";
+    private const string KindVariableName = "kind";
+    private const string ResourceSymbol = "asp";
+    private const string AppServicePlanArmType = "Microsoft.Web/serverfarms@2023-12-01";
+    private const string DefaultSkuName = "F1";
+    private const string DefaultOsType = "Linux";
+    private const string LinuxKind = "linux";
+    private const string AppKind = "app";
+    private const string IsLinuxExpression = "osType == 'Linux'";
+    private const string SkuNameUnion = "'F1' | 'D1' | 'B1' | 'B2' | 'B3' | 'S1' | 'S2' | 'S3' | 'P1v2' | 'P2v2' | 'P3v2' | 'P1v3' | 'P2v3' | 'P3v3' | 'I1' | 'I2' | 'I3' | 'I1v2' | 'I2v2' | 'I3v2'";
+    private const string OsTypeUnion = "'Linux' | 'Windows'";
+    private const string ReservedPropertyName = "reserved";
+    private const string ResourceIdExpression = ResourceSymbol + ".id";
+
     public string ResourceType
         => AzureResourceTypes.ArmTypes.AppServicePlan;
 
@@ -18,35 +42,35 @@ public sealed class AppServicePlanTypeBicepGenerator
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         return new BicepModuleBuilder()
-            .Module("appServicePlan", "AppServicePlan", ResourceTypeName)
-            .Import("./types.bicep", "SkuName", "OsType")
-            .Param("location", BicepType.String, "Azure region for the App Service Plan")
-            .Param("name", BicepType.String, "Name of the App Service Plan")
-            .Param("sku", BicepType.Custom("SkuName"), "SKU name of the App Service Plan",
-                defaultValue: new BicepStringLiteral("F1"))
-            .Param("capacity", BicepType.Int, "Number of instances allocated to the plan")
-            .Param("osType", BicepType.Custom("OsType"), "Operating system type",
-                defaultValue: new BicepStringLiteral("Linux"))
-            .Var("isLinux", new BicepRawExpression("osType == 'Linux'"))
-            .Var("kind", new BicepConditionalExpression(
-                new BicepReference("isLinux"),
-                new BicepStringLiteral("linux"),
-                new BicepStringLiteral("app")))
-            .Resource("asp", "Microsoft.Web/serverfarms@2023-12-01")
-            .Property("name", new BicepReference("name"))
-            .Property("location", new BicepReference("location"))
-            .Property("kind", new BicepReference("kind"))
-            .Property("sku", sku => sku
-                .Property("name", new BicepReference("sku"))
-                .Property("capacity", new BicepReference("capacity")))
-            .Property("properties", props => props
-                .Property("reserved", new BicepReference("isLinux")))
-            .Output("id", BicepType.String, new BicepRawExpression("asp.id"))
-            .ExportedType("SkuName",
-                new BicepRawExpression("'F1' | 'D1' | 'B1' | 'B2' | 'B3' | 'S1' | 'S2' | 'S3' | 'P1v2' | 'P2v2' | 'P3v2' | 'P1v3' | 'P2v3' | 'P3v3' | 'I1' | 'I2' | 'I3' | 'I1v2' | 'I2v2' | 'I3v2'"),
+            .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import(TypesImportPath, SkuNameTypeName, OsTypeTypeName)
+            .Param(LocationParameterName, BicepType.String, "Azure region for the App Service Plan")
+            .Param(NameParameterName, BicepType.String, "Name of the App Service Plan")
+            .Param(SkuParameterName, BicepType.Custom(SkuNameTypeName), "SKU name of the App Service Plan",
+                defaultValue: new BicepStringLiteral(DefaultSkuName))
+            .Param(CapacityParameterName, BicepType.Int, "Number of instances allocated to the plan")
+            .Param(OsTypeParameterName, BicepType.Custom(OsTypeTypeName), "Operating system type",
+                defaultValue: new BicepStringLiteral(DefaultOsType))
+            .Var(IsLinuxVariableName, new BicepRawExpression(IsLinuxExpression))
+            .Var(KindVariableName, new BicepConditionalExpression(
+                new BicepReference(IsLinuxVariableName),
+                new BicepStringLiteral(LinuxKind),
+                new BicepStringLiteral(AppKind)))
+            .Resource(ResourceSymbol, AppServicePlanArmType)
+            .Property(NamePropertyName, new BicepReference(NameParameterName))
+            .Property(LocationPropertyName, new BicepReference(LocationParameterName))
+            .Property(KindPropertyName, new BicepReference(KindVariableName))
+            .Property(SkuParameterName, sku => sku
+                .Property(NamePropertyName, new BicepReference(SkuParameterName))
+                .Property(CapacityParameterName, new BicepReference(CapacityParameterName)))
+            .Property(PropertiesPropertyName, props => props
+                .Property(ReservedPropertyName, new BicepReference(IsLinuxVariableName)))
+            .Output(IdOutputName, BicepType.String, new BicepRawExpression(ResourceIdExpression))
+            .ExportedType(SkuNameTypeName,
+                new BicepRawExpression(SkuNameUnion),
                 description: "SKU name for the App Service Plan")
-            .ExportedType("OsType",
-                new BicepRawExpression("'Linux' | 'Windows'"),
+            .ExportedType(OsTypeTypeName,
+                new BicepRawExpression(OsTypeUnion),
                 description: "Operating system type for the App Service Plan")
             .Build();
     }
@@ -55,18 +79,18 @@ public sealed class AppServicePlanTypeBicepGenerator
     {
         return new GeneratedTypeModule
         {
-            ModuleName = "appServicePlan",
-            ModuleFileName = "appServicePlan",
-            ModuleFolderName = "AppServicePlan",
+            ModuleName = ModuleName,
+            ModuleFileName = ModuleName,
+            ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = AppServicePlanModuleTemplate,
             ModuleTypesBicepContent = AppServicePlanTypesTemplate,
             ResourceTypeName = ResourceTypeName,
-            Parameters = new Dictionary<string, object>
+            Parameters = BicepParameterModelConverter.ToDictionary(new AppServicePlanParameters
             {
-                ["sku"] = resource.Properties.GetValueOrDefault("sku", "F1"),
-                ["capacity"] = int.TryParse(resource.Properties.GetValueOrDefault("capacity", "1"), out var cap) ? cap : 1,
-                ["osType"] = resource.Properties.GetValueOrDefault("osType", "Linux"),
-            }
+                Sku = resource.Properties.GetValueOrDefault(SkuParameterName, DefaultSkuName),
+                Capacity = int.TryParse(resource.Properties.GetValueOrDefault(CapacityParameterName, "1"), out var cap) ? cap : 1,
+                OsType = resource.Properties.GetValueOrDefault(OsTypeParameterName, DefaultOsType),
+            })
         };
     }
 

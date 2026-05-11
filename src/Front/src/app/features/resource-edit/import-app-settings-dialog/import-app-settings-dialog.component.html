@@ -1,0 +1,352 @@
+<div class="import-dialog">
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- STEP 1 — Upload / Paste JSON                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  @if (step() === 'upload') {
+    <h2 mat-dialog-title class="import-dialog__title">
+      <mat-icon class="import-dialog__title-icon">upload_file</mat-icon>
+      {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.TITLE' | translate }}
+    </h2>
+
+    <mat-dialog-content class="import-dialog__content">
+      <p class="import-dialog__desc">
+        {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.UPLOAD_DESC' | translate }}
+      </p>
+
+      <div class="import-dialog__mode-panel">
+        <app-ds-select
+          class="import-dialog__mode-select"
+          [label]="'RESOURCE_EDIT.IMPORT_APP_SETTINGS.MODE_LABEL' | translate"
+          [options]="importModeOptions"
+          [ngModel]="importMode()"
+          (ngModelChange)="onImportModeChange($event)"
+        ></app-ds-select>
+
+        <div class="import-dialog__mode-hints">
+          <div class="import-dialog__mode-recommendation">
+            <mat-icon>tips_and_updates</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.RECOMMENDED_MODE_FOR' | translate: { profile: applicationProfileLabel() } }}</span>
+            <strong>{{ recommendedImportModeDefinition.labelKey | translate }}</strong>
+          </div>
+
+          <p class="import-dialog__mode-description">
+            {{ selectedImportModeDefinition().descriptionKey | translate: { examples: selectedModeExamples() } }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Drop zone -->
+      <div
+        class="drop-zone"
+        (drop)="onDrop($event)"
+        (dragover)="onDragOver($event)"
+      >
+        <mat-icon class="drop-zone__icon">cloud_upload</mat-icon>
+        <p class="drop-zone__text">{{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.DROP_ZONE' | translate: { examples: selectedModeExamples() } }}</p>
+        <label class="drop-zone__browse">
+          {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.BROWSE' | translate }}
+          <input
+            type="file"
+            [accept]="acceptAttribute"
+            (change)="onFileSelected($event)"
+            hidden
+          />
+        </label>
+        @if (fileName()) {
+          <p class="drop-zone__file-name">
+            <mat-icon>description</mat-icon>
+            {{ fileName() }}
+          </p>
+        }
+      </div>
+
+      <!-- Or paste -->
+      <div class="paste-section">
+        <span class="paste-section__divider">{{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.OR_PASTE' | translate }}</span>
+        <textarea
+          class="paste-section__textarea"
+          [ngModel]="jsonInput()"
+          (ngModelChange)="jsonInput.set($event)"
+          rows="8"
+          [placeholder]="'RESOURCE_EDIT.IMPORT_APP_SETTINGS.PASTE_PLACEHOLDER' | translate"
+        ></textarea>
+      </div>
+
+      <!-- Parse error -->
+      @if (parseError()) {
+        <div class="import-dialog__error" role="alert">
+          <mat-icon>error_outline</mat-icon>
+          {{ parseError() | translate }}
+        </div>
+      }
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="import-dialog__actions">
+      <app-ds-button variant="ghost" (clicked)="cancel()">
+        {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.CANCEL' | translate }}
+      </app-ds-button>
+      <app-ds-button
+        variant="primary"
+        icon="play_arrow"
+        [disabled]="!jsonInput().trim()"
+        (clicked)="parseAndProceed()"
+      >
+        {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.PARSE' | translate }}
+      </app-ds-button>
+    </mat-dialog-actions>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- STEP 2 — Configuration Board                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  @if (step() === 'board') {
+    <h2 mat-dialog-title class="import-dialog__title">
+      <mat-icon class="import-dialog__title-icon">checklist</mat-icon>
+      {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.BOARD_TITLE' | translate }}
+      <span class="import-dialog__count-badge">{{ selectedCount() }} / {{ totalCount() }}</span>
+    </h2>
+
+    <mat-dialog-content class="import-dialog__content import-dialog__content--board">
+      <!-- Toolbar -->
+      <div class="board-toolbar">
+        <app-ds-text-field
+          class="board-toolbar__search"
+          [placeholder]="'RESOURCE_EDIT.IMPORT_APP_SETTINGS.SEARCH' | translate"
+          [ngModel]="searchFilter()"
+          (ngModelChange)="searchFilter.set($event)"
+          prefixIcon="search"
+        ></app-ds-text-field>
+
+        <div class="board-toolbar__actions">
+          <mat-checkbox
+            [checked]="allSelected()"
+            (change)="toggleAll($event.checked)"
+          >
+            {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.SELECT_ALL' | translate }}
+          </mat-checkbox>
+        </div>
+      </div>
+
+      <!-- Board entries -->
+      <div class="board-list">
+        @for (entry of filteredEntries(); track entry.key; let i = $index) {
+          <div
+            class="board-entry"
+            [class.board-entry--selected]="entry.selected"
+            [class.board-entry--duplicate]="entry.status === 'duplicate'"
+            [class.board-entry--skip]="entry.sourceType === 'skip'"
+          >
+            <!-- Row 1: checkbox + key name + source type -->
+            <div class="board-entry__header">
+              <mat-checkbox
+                [checked]="entry.selected"
+                [disabled]="entry.status === 'duplicate'"
+                (change)="toggleEntry(i)"
+                class="board-entry__check"
+              ></mat-checkbox>
+
+              <div class="board-entry__key-col">
+                <input
+                  class="board-entry__key-input"
+                  [value]="entry.key"
+                  (input)="onKeyChange(i, $any($event.target).value)"
+                  [disabled]="entry.status === 'duplicate'"
+                />
+                @if (entry.status === 'duplicate') {
+                  <span class="board-entry__badge board-entry__badge--duplicate">
+                    {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.ALREADY_EXISTS' | translate }}
+                  </span>
+                }
+              </div>
+
+              @if (entry.status !== 'duplicate') {
+                <app-ds-select
+                  class="board-entry__source-select"
+                  [options]="sourceTypeOptions"
+                  [ngModel]="entry.sourceType"
+                  (ngModelChange)="onSourceTypeChange(i, $event)"
+                  
+                ></app-ds-select>
+              }
+            </div>
+
+            <!-- Row 2: source configuration -->
+            @if (entry.selected && entry.status !== 'duplicate') {
+              <div class="board-entry__config">
+                @switch (entry.sourceType) {
+                  @case ('static') {
+                    <div class="board-entry__static-preview">
+                      <mat-icon class="board-entry__config-icon">edit_note</mat-icon>
+                      <span class="board-entry__value-preview" [matTooltip]="entry.rawValue">
+                        {{ entry.rawValue || '(empty)' }}
+                      </span>
+                      <span class="board-entry__env-hint">
+                        {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.STATIC_HINT' | translate: { count: data.environments.length } }}
+                      </span>
+                    </div>
+                  }
+                  @case ('output') {
+                    <div class="board-entry__output-config">
+                      <app-ds-select
+                        class="board-entry__resource-select"
+                        [options]="resourceSelectOptions()"
+                        [ngModel]="entry.sourceResourceId ?? ''"
+                        (ngModelChange)="onSourceResourceChange(i, $event)"
+                        [placeholder]="'RESOURCE_EDIT.IMPORT_APP_SETTINGS.SELECT_RESOURCE' | translate"
+                        
+                      ></app-ds-select>
+                      @if (entry.sourceResourceId) {
+                        <mat-icon class="board-entry__arrow">arrow_forward</mat-icon>
+                        <app-ds-select
+                          class="board-entry__output-select"
+                          [options]="getOutputOptionsForResource(entry.sourceResourceId)"
+                          [ngModel]="entry.sourceOutputName ?? ''"
+                          (ngModelChange)="onSourceOutputChange(i, $event)"
+                          [placeholder]="'RESOURCE_EDIT.IMPORT_APP_SETTINGS.SELECT_OUTPUT' | translate"
+                          
+                        ></app-ds-select>
+                      }
+                    </div>
+                  }
+                  @case ('variableGroup') {
+                    <div class="board-entry__vg-config">
+                      <app-ds-select
+                        class="board-entry__vg-select"
+                        [options]="vgSelectOptions()"
+                        [ngModel]="entry.variableGroupId ?? ''"
+                        (ngModelChange)="onVariableGroupChange(i, $event)"
+                        [placeholder]="'RESOURCE_EDIT.IMPORT_APP_SETTINGS.SELECT_VG' | translate"
+                        
+                      ></app-ds-select>
+                      <app-ds-text-field
+                        class="board-entry__vg-var-name"
+                        [ngModel]="entry.pipelineVariableName"
+                        (ngModelChange)="onPipelineVariableNameChange(i, $event)"
+                        [placeholder]="'RESOURCE_EDIT.IMPORT_APP_SETTINGS.VARIABLE_NAME' | translate"
+                        
+                      ></app-ds-text-field>
+                    </div>
+                  }
+                  @case ('skip') {
+                    <div class="board-entry__skip-hint">
+                      <mat-icon>block</mat-icon>
+                      {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.SKIP_HINT' | translate }}
+                    </div>
+                  }
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (filteredEntries().length === 0) {
+          <div class="board-empty">
+            <mat-icon>search_off</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.NO_MATCH' | translate }}</span>
+          </div>
+        }
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="import-dialog__actions">
+      <app-ds-button variant="ghost" icon="arrow_back" (clicked)="backToUpload()">
+        {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.BACK' | translate }}
+      </app-ds-button>
+      <app-ds-button
+        variant="primary"
+        icon="download_done"
+        [disabled]="!canImport()"
+        (clicked)="startImport()"
+      >
+        {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.IMPORT' | translate: { count: selectedCount() } }}
+      </app-ds-button>
+    </mat-dialog-actions>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- STEP 3 — Import Progress                                              -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  @if (step() === 'importing') {
+    <h2 mat-dialog-title class="import-dialog__title">
+      <mat-icon class="import-dialog__title-icon">sync</mat-icon>
+      {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.IMPORTING_TITLE' | translate }}
+    </h2>
+
+    <mat-dialog-content class="import-dialog__content">
+      <!-- Progress bar -->
+      <div class="import-progress">
+        <mat-progress-bar
+          [mode]="importFinished() ? 'determinate' : 'determinate'"
+          [value]="(importProgress() / importTotal()) * 100"
+        ></mat-progress-bar>
+        <span class="import-progress__text">
+          {{ importProgress() }} / {{ importTotal() }}
+        </span>
+      </div>
+
+      <!-- Result summary -->
+      @if (importFinished()) {
+        <div class="import-summary">
+          @if (successCount() > 0) {
+            <div class="import-summary__item import-summary__item--success">
+              <mat-icon>check_circle</mat-icon>
+              {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.SUCCESS_COUNT' | translate: { count: successCount() } }}
+            </div>
+          }
+          @if (errorCount() > 0) {
+            <div class="import-summary__item import-summary__item--error">
+              <mat-icon>error</mat-icon>
+              {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.ERROR_COUNT' | translate: { count: errorCount() } }}
+            </div>
+          }
+          @if (duplicateCount() > 0) {
+            <div class="import-summary__item import-summary__item--duplicate">
+              <mat-icon>content_copy</mat-icon>
+              {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.DUPLICATE_COUNT' | translate: { count: duplicateCount() } }}
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Per-entry status -->
+      <div class="import-results">
+        @for (entry of entries(); track entry.key) {
+          @if (entry.status !== 'pending' && entry.status !== 'duplicate') {
+            <div
+              class="import-result-row"
+              [class.import-result-row--success]="entry.status === 'success'"
+              [class.import-result-row--error]="entry.status === 'error'"
+              [class.import-result-row--importing]="entry.status === 'importing'"
+            >
+              @switch (entry.status) {
+                @case ('importing') {
+                  <mat-spinner diameter="16"></mat-spinner>
+                }
+                @case ('success') {
+                  <mat-icon class="import-result-row__icon--success">check_circle</mat-icon>
+                }
+                @case ('error') {
+                  <mat-icon class="import-result-row__icon--error">error</mat-icon>
+                }
+              }
+              <span class="import-result-row__key">{{ entry.key }}</span>
+              @if (entry.status === 'error' && entry.errorMessage) {
+                <span class="import-result-row__error">{{ entry.errorMessage }}</span>
+              }
+            </div>
+          }
+        }
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="import-dialog__actions">
+      <app-ds-button
+        variant="primary"
+        [disabled]="!importFinished()"
+        (clicked)="close()"
+      >
+        {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.DONE' | translate }}
+      </app-ds-button>
+    </mat-dialog-actions>
+  }
+</div>

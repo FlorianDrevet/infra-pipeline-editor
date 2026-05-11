@@ -130,7 +130,7 @@
                   </ng-template>
                   <div class="generation-tab-content">
                     <div class="generation-tab-content__toolbar">
-                      @if (projectBicepResult()) {
+                      @if (projectBicepResult() && !deferMonoRepoBatchReveal()) {
                         <button class="bicep-download-btn" (click)="downloadProjectBicepFiles()" [disabled]="projectBicepDownloading()">
                           @if (projectBicepDownloading()) {
                             <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
@@ -142,7 +142,7 @@
                       }
                     </div>
 
-                    @if (projectBicepLoading()) {
+                    @if (projectBicepLoading() || deferMonoRepoBatchReveal()) {
                       <div class="bicep-panel__loading">
                         <div class="bicep-terminal">
                           <div class="bicep-terminal__bar">
@@ -162,7 +162,7 @@
                       </div>
                     }
 
-                    @if (projectBicepErrorKey()) {
+                    @if (projectBicepErrorKey() && !deferMonoRepoBatchReveal()) {
                       <div class="bicep-panel__error-body">
                         <p>{{ projectBicepErrorKey() | translate }}</p>
                         <button class="bicep-retry-btn" (click)="generateProjectBicep()">
@@ -172,7 +172,7 @@
                       </div>
                     }
 
-                    @if (projectBicepNodes().length > 0) {
+                    @if (projectBicepNodes().length > 0 && !deferMonoRepoBatchReveal()) {
                       <app-bicep-file-panel
                         [nodes]="projectBicepNodes()"
                         [barTitle]="'bicep-generator \u2014 ' + ('PROJECT_DETAIL.BICEP.ARTIFACTS' | translate)"
@@ -193,7 +193,7 @@
                   </ng-template>
                   <div class="generation-tab-content">
                     <div class="generation-tab-content__toolbar">
-                      @if (projectPipelineResult()) {
+                      @if (projectPipelineResult() && !deferMonoRepoBatchReveal()) {
                         <button class="bicep-download-btn" (click)="downloadProjectPipelineFiles()" [disabled]="projectPipelineDownloading()">
                           @if (projectPipelineDownloading()) {
                             <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
@@ -205,7 +205,7 @@
                       }
                     </div>
 
-                    @if (projectPipelineLoading()) {
+                    @if (projectPipelineLoading() || deferMonoRepoBatchReveal()) {
                       <div class="bicep-panel__loading">
                         <div class="bicep-terminal">
                           <div class="bicep-terminal__bar">
@@ -225,7 +225,7 @@
                       </div>
                     }
 
-                    @if (projectPipelineErrorKey()) {
+                    @if (projectPipelineErrorKey() && !deferMonoRepoBatchReveal()) {
                       <div class="bicep-panel__error-body">
                         <p>{{ projectPipelineErrorKey() | translate }}</p>
                         <button class="bicep-retry-btn" (click)="generateProjectPipeline()">
@@ -235,7 +235,7 @@
                       </div>
                     }
 
-                    @if (projectPipelineNodes().length > 0) {
+                    @if (projectPipelineNodes().length > 0 && !deferMonoRepoBatchReveal()) {
                       <app-bicep-file-panel
                         [nodes]="projectPipelineNodes()"
                         [barTitle]="'pipeline-generator \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
@@ -256,7 +256,7 @@
                   </ng-template>
                   <div class="generation-tab-content">
                     <div class="generation-tab-content__toolbar">
-                      @if (projectBootstrapResult()) {
+                      @if (projectBootstrapResult() && !deferMonoRepoBatchReveal()) {
                         <button class="bicep-download-btn" (click)="downloadProjectBootstrapFiles()" [disabled]="projectBootstrapDownloading()">
                           @if (projectBootstrapDownloading()) {
                             <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
@@ -269,7 +269,7 @@
                     </div>
 
                     <!-- Generation feedback -->
-                    @if (projectBootstrapLoading()) {
+                    @if (projectBootstrapLoading() || deferMonoRepoBatchReveal()) {
                       <div class="bicep-panel__loading">
                         <div class="bicep-terminal">
                           <div class="bicep-terminal__bar">
@@ -289,7 +289,7 @@
                       </div>
                     }
 
-                    @if (projectBootstrapErrorKey()) {
+                    @if (projectBootstrapErrorKey() && !deferMonoRepoBatchReveal()) {
                       <div class="bicep-panel__error-body">
                         <p>{{ projectBootstrapErrorKey() | translate }}</p>
                         <button class="bicep-retry-btn" (click)="generateProjectBootstrap()">
@@ -299,7 +299,7 @@
                       </div>
                     }
 
-                    @if (projectBootstrapNodes().length > 0) {
+                    @if (projectBootstrapNodes().length > 0 && !deferMonoRepoBatchReveal()) {
                       <app-bicep-file-panel
                         [nodes]="projectBootstrapNodes()"
                         [barTitle]="'bootstrap-generator \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"

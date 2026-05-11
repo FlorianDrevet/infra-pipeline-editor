@@ -6,6 +6,7 @@ using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 using MediatR;
 
@@ -23,75 +24,106 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandler(
     : IQueryHandler<ListRoleAssignmentsByIdentityQuery, List<IdentityRoleAssignmentResult>>
 {
     /// <inheritdoc />
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public async Task<ErrorOr<List<IdentityRoleAssignmentResult>>> Handle(
         ListRoleAssignmentsByIdentityQuery request,
         CancellationToken cancellationToken)
     {
-        // Verify the identity exists
+        var notFoundError = Errors.UserAssignedIdentity.NotFoundError(request.IdentityId);
         var identity = await userAssignedIdentityRepository.GetByIdAsync(request.IdentityId, cancellationToken);
         if (identity is null)
-            return Errors.UserAssignedIdentity.NotFoundError(request.IdentityId);
+            return notFoundError;
 
-        // Verify read access through resource group â†’ infra config
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(identity.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.UserAssignedIdentity.NotFoundError(request.IdentityId);
+        if (!await HasReadAccessToIdentityAsync(identity.ResourceGroupId, cancellationToken))
+            return notFoundError;
 
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
-        if (authResult.IsError)
-            return Errors.UserAssignedIdentity.NotFoundError(request.IdentityId);
-
-        // Query all role assignments that reference this identity
         var roleAssignments = await azureResourceRepository.GetRoleAssignmentsByIdentityIdAsync(
             request.IdentityId, cancellationToken);
 
         if (roleAssignments.Count == 0)
             return new List<IdentityRoleAssignmentResult>();
 
-        // Batch-load all referenced resources (source + target) for name/type resolution
+        var resourceLookup = await LoadReferencedResourcesAsync(roleAssignments, cancellationToken);
+        var allRoleDefinitions = BuildRoleDefinitionLookup();
+
+        return MapRoleAssignments(roleAssignments, resourceLookup, allRoleDefinitions);
+    }
+
+    private async Task<bool> HasReadAccessToIdentityAsync(
+        ResourceGroupId resourceGroupId,
+        CancellationToken cancellationToken)
+    {
+        var resourceGroup = await resourceGroupRepository.GetByIdAsync(resourceGroupId, cancellationToken);
+        if (resourceGroup is null)
+        {
+            return false;
+        }
+
+        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        return !authResult.IsError;
+    }
+
+    private async Task<Dictionary<AzureResourceId, AzureResource>> LoadReferencedResourcesAsync(
+        IReadOnlyCollection<Domain.Common.BaseModels.Entites.RoleAssignment> roleAssignments,
+        CancellationToken cancellationToken)
+    {
         var referencedIds = roleAssignments
-            .SelectMany(r => new[] { r.SourceResourceId, r.TargetResourceId })
+            .SelectMany(roleAssignment => new[] { roleAssignment.SourceResourceId, roleAssignment.TargetResourceId })
             .Distinct()
             .ToList();
 
         var resourceLookup = new Dictionary<AzureResourceId, AzureResource>();
-        foreach (var id in referencedIds)
+        foreach (var referencedId in referencedIds)
         {
-            var resource = await azureResourceRepository.GetByIdAsync(id, cancellationToken);
+            var resource = await azureResourceRepository.GetByIdAsync(referencedId, cancellationToken);
             if (resource is not null)
-                resourceLookup[id] = resource;
+            {
+                resourceLookup[referencedId] = resource;
+            }
         }
 
-        // Build all role definitions into a lookup for name resolution
-        var allRoleDefs = BuildRoleDefinitionLookup();
+        return resourceLookup;
+    }
 
-        var results = roleAssignments.Select(ra =>
-        {
-            var sourceName = resourceLookup.TryGetValue(ra.SourceResourceId, out var src)
-                ? src.Name.Value : ra.SourceResourceId.Value.ToString();
-            var sourceType = src is not null ? GetResourceTypeName(src) : "Unknown";
+    private static List<IdentityRoleAssignmentResult> MapRoleAssignments(
+        IReadOnlyCollection<Domain.Common.BaseModels.Entites.RoleAssignment> roleAssignments,
+        IReadOnlyDictionary<AzureResourceId, AzureResource> resourceLookup,
+        IReadOnlyDictionary<string, string> roleDefinitions)
+    {
+        return roleAssignments
+            .Select(roleAssignment => MapRoleAssignment(roleAssignment, resourceLookup, roleDefinitions))
+            .ToList();
+    }
 
-            var targetName = resourceLookup.TryGetValue(ra.TargetResourceId, out var tgt)
-                ? tgt.Name.Value : ra.TargetResourceId.Value.ToString();
-            var targetType = tgt is not null ? GetResourceTypeName(tgt) : "Unknown";
+    private static IdentityRoleAssignmentResult MapRoleAssignment(
+        Domain.Common.BaseModels.Entites.RoleAssignment roleAssignment,
+        IReadOnlyDictionary<AzureResourceId, AzureResource> resourceLookup,
+        IReadOnlyDictionary<string, string> roleDefinitions)
+    {
+        var sourceDisplay = ResolveResourceDisplay(roleAssignment.SourceResourceId, resourceLookup);
+        var targetDisplay = ResolveResourceDisplay(roleAssignment.TargetResourceId, resourceLookup);
+        var roleName = roleDefinitions.TryGetValue(roleAssignment.RoleDefinitionId, out var resolvedRoleName)
+            ? resolvedRoleName
+            : roleAssignment.RoleDefinitionId;
 
-            var roleName = allRoleDefs.TryGetValue(ra.RoleDefinitionId, out var rd)
-                ? rd : ra.RoleDefinitionId;
+        return new IdentityRoleAssignmentResult(
+            roleAssignment.Id,
+            roleAssignment.SourceResourceId,
+            sourceDisplay.Name,
+            sourceDisplay.Type,
+            roleAssignment.TargetResourceId,
+            targetDisplay.Name,
+            targetDisplay.Type,
+            roleAssignment.RoleDefinitionId,
+            roleName);
+    }
 
-            return new IdentityRoleAssignmentResult(
-                ra.Id,
-                ra.SourceResourceId,
-                sourceName,
-                sourceType,
-                ra.TargetResourceId,
-                targetName,
-                targetType,
-                ra.RoleDefinitionId,
-                roleName);
-        }).ToList();
-
-        return results;
+    private static (string Name, string Type) ResolveResourceDisplay(
+        AzureResourceId resourceId,
+        IReadOnlyDictionary<AzureResourceId, AzureResource> resourceLookup)
+    {
+        return resourceLookup.TryGetValue(resourceId, out var resource)
+            ? (resource.Name.Value, GetResourceTypeName(resource))
+            : (resourceId.Value.ToString(), "Unknown");
     }
 
     /// <summary>Resolves the simple type name from the concrete <see cref="AzureResource"/> derived type.</summary>

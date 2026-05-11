@@ -1,18 +1,48 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslateModule } from '@ngx-translate/core';
-import { DsButtonComponent, DsPageHeaderComponent } from '../../shared/components/ds';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import {
+  DsButtonComponent,
+  DsChipComponent,
+  DsIconButtonComponent,
+  DsPageHeaderComponent,
+  DsSelectComponent,
+  DsSelectOption,
+  DsTextFieldComponent,
+} from '../../shared/components/ds';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { FavoritesService } from '../../shared/services/favorites.service';
+import { LanguageService } from '../../shared/services/language.service';
 import { CreateProjectWizardDialogComponent } from './create-project-wizard/create-project-wizard-dialog.component';
+
+const PROJECT_SORT_VALUES = {
+  name: 'name',
+  members: 'members',
+  favorites: 'favorites',
+} as const;
+
+type ProjectSortKey = (typeof PROJECT_SORT_VALUES)[keyof typeof PROJECT_SORT_VALUES];
 
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [TranslateModule, RouterLink, MatDialogModule, MatIconModule, DsButtonComponent, DsPageHeaderComponent],
+  imports: [
+    TranslateModule,
+    FormsModule,
+    RouterLink,
+    MatDialogModule,
+    MatIconModule,
+    DsButtonComponent,
+    DsChipComponent,
+    DsIconButtonComponent,
+    DsPageHeaderComponent,
+    DsSelectComponent,
+    DsTextFieldComponent,
+  ],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.scss',
 })
@@ -20,13 +50,33 @@ export class ProjectsComponent implements OnInit {
   private readonly projectService = inject(ProjectService);
   private readonly favoritesService = inject(FavoritesService);
   private readonly dialog = inject(MatDialog);
+  private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
 
   protected readonly projects = signal<ProjectResponse[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly loadError = signal('');
   protected readonly searchQuery = signal('');
-  protected readonly sortBy = signal<'name' | 'members' | 'favorites'>('name');
+  protected readonly sortBy = signal<ProjectSortKey>(PROJECT_SORT_VALUES.name);
   protected readonly filterFavoritesOnly = signal(false);
+  protected readonly sortOptions = computed<DsSelectOption[]>(() => {
+    this.languageService.currentLanguage();
+
+    return [
+      {
+        value: PROJECT_SORT_VALUES.name,
+        label: this.translate.instant('PROJECTS.SORT.BY_NAME'),
+      },
+      {
+        value: PROJECT_SORT_VALUES.members,
+        label: this.translate.instant('PROJECTS.SORT.BY_MEMBERS'),
+      },
+      {
+        value: PROJECT_SORT_VALUES.favorites,
+        label: this.translate.instant('PROJECTS.SORT.BY_FAVORITES'),
+      },
+    ];
+  });
 
   protected readonly filteredProjects = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
@@ -63,8 +113,8 @@ export class ProjectsComponent implements OnInit {
 
   protected readonly projectCount = computed(() => this.projects().length);
 
-  public async ngOnInit(): Promise<void> {
-    await this.loadProjects();
+  public ngOnInit(): void {
+    this.loadProjects();
   }
 
   protected isFavorite(projectId: string): boolean {
@@ -77,14 +127,22 @@ export class ProjectsComponent implements OnInit {
     this.favoritesService.toggle(projectId);
   }
 
-  protected onSearchInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.searchQuery.set(input.value);
+  protected favoriteButtonIcon(projectId: string): string {
+    return this.isFavorite(projectId) ? 'star' : 'star_border';
   }
 
-  protected onSortChange(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    this.sortBy.set(select.value as 'name' | 'members' | 'favorites');
+  protected favoriteButtonVariant(projectId: string): 'ghost' | 'subtle' {
+    return this.isFavorite(projectId) ? 'subtle' : 'ghost';
+  }
+
+  protected onSearchQueryChange(value: string): void {
+    this.searchQuery.set(value);
+  }
+
+  protected onSortByChange(value: string | number | null): void {
+    if (isProjectSortKey(value)) {
+      this.sortBy.set(value);
+    }
   }
 
   protected toggleFavoritesFilter(): void {
@@ -124,4 +182,8 @@ export class ProjectsComponent implements OnInit {
       this.isLoading.set(false);
     }
   }
+}
+
+function isProjectSortKey(value: string | number | null): value is ProjectSortKey {
+  return typeof value === 'string' && Object.values(PROJECT_SORT_VALUES).includes(value as ProjectSortKey);
 }

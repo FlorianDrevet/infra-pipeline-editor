@@ -2,6 +2,7 @@ using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
+using static InfraFlowSculptor.BicepGeneration.Generators.Constants.BicepGeneratorSharedConstants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -11,6 +12,35 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class ApplicationInsightsTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
+    private const string ModuleName = "applicationInsights";
+    private const string ModuleFolderName = "ApplicationInsights";
+    private const string ModuleFileName = "applicationInsights";
+    private const string IngestionModeTypeName = "IngestionMode";
+    private const string LogAnalyticsWorkspaceIdParameterName = "logAnalyticsWorkspaceId";
+    private const string SamplingPercentageParameterName = "samplingPercentage";
+    private const string RetentionInDaysParameterName = "retentionInDays";
+    private const string DisableIpMaskingParameterName = "disableIpMasking";
+    private const string DisableLocalAuthParameterName = "disableLocalAuth";
+    private const string IngestionModeParameterName = "ingestionMode";
+    private const string ApplicationInsightsArmType = "Microsoft.Insights/components@2020-02-02";
+    private const string ApplicationTypePropertyName = "Application_Type";
+    private const string WorkspaceResourceIdPropertyName = "WorkspaceResourceId";
+    private const string SamplingPercentagePropertyName = "SamplingPercentage";
+    private const string RetentionInDaysPropertyName = "RetentionInDays";
+    private const string DisableIpMaskingPropertyName = "DisableIpMasking";
+    private const string DisableLocalAuthPropertyName = "DisableLocalAuth";
+    private const string IngestionModePropertyName = "IngestionMode";
+    private const string WebKindValue = "web";
+    private const int DefaultSamplingPercentage = 100;
+    private const int DefaultRetentionInDays = 90;
+    private const string DefaultIngestionMode = "LogAnalytics";
+    private const string InstrumentationKeyOutputName = "instrumentationKey";
+    private const string ConnectionStringOutputName = "connectionString";
+    private const string ApplicationInsightsIdExpression = ModuleName + ".id";
+    private const string InstrumentationKeyExpression = ModuleName + ".properties.InstrumentationKey";
+    private const string ConnectionStringExpression = ModuleName + ".properties.ConnectionString";
+    private const string IngestionModeUnionExpression = "'ApplicationInsights' | 'ApplicationInsightsWithDiagnosticSettings' | 'LogAnalytics'";
+
     /// <inheritdoc />
     public string ResourceType
         => AzureResourceTypes.ArmTypes.ApplicationInsights;
@@ -22,43 +52,43 @@ public sealed class ApplicationInsightsTypeBicepGenerator
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         return new BicepModuleBuilder()
-            .Module("applicationInsights", "ApplicationInsights", ResourceTypeName)
-            .Import("./types.bicep", "IngestionMode")
-            .Param("location", BicepType.String, "Azure region for the Application Insights resource")
-            .Param("name", BicepType.String, "Name of the Application Insights resource")
-            .Param("logAnalyticsWorkspaceId", BicepType.String, "Resource ID of the Log Analytics workspace")
-            .Param("samplingPercentage", BicepType.Int, "Sampling percentage (0-100)",
-                defaultValue: new BicepIntLiteral(100))
-            .Param("retentionInDays", BicepType.Int, "Number of days to retain data",
-                defaultValue: new BicepIntLiteral(90))
-            .Param("disableIpMasking", BicepType.Bool, "Whether IP masking is disabled",
+            .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import(TypesImportPath, IngestionModeTypeName)
+            .Param(LocationParameterName, BicepType.String, "Azure region for the Application Insights resource")
+            .Param(NameParameterName, BicepType.String, "Name of the Application Insights resource")
+            .Param(LogAnalyticsWorkspaceIdParameterName, BicepType.String, "Resource ID of the Log Analytics workspace")
+            .Param(SamplingPercentageParameterName, BicepType.Int, "Sampling percentage (0-100)",
+                defaultValue: new BicepIntLiteral(DefaultSamplingPercentage))
+            .Param(RetentionInDaysParameterName, BicepType.Int, "Number of days to retain data",
+                defaultValue: new BicepIntLiteral(DefaultRetentionInDays))
+            .Param(DisableIpMaskingParameterName, BicepType.Bool, "Whether IP masking is disabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("disableLocalAuth", BicepType.Bool, "Whether local authentication is disabled",
+            .Param(DisableLocalAuthParameterName, BicepType.Bool, "Whether local authentication is disabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("ingestionMode", BicepType.Custom("IngestionMode"), "Ingestion mode for telemetry data",
-                defaultValue: new BicepStringLiteral("LogAnalytics"))
-            .Resource("applicationInsights", "Microsoft.Insights/components@2020-02-02")
-            .Property("name", new BicepReference("name"))
-            .Property("location", new BicepReference("location"))
-            .Property("kind", new BicepStringLiteral("web"))
-            .Property("properties", props => props
-                .Property("Application_Type", new BicepStringLiteral("web"))
-                .Property("WorkspaceResourceId", new BicepReference("logAnalyticsWorkspaceId"))
-                .Property("SamplingPercentage", new BicepReference("samplingPercentage"))
-                .Property("RetentionInDays", new BicepReference("retentionInDays"))
-                .Property("DisableIpMasking", new BicepReference("disableIpMasking"))
-                .Property("DisableLocalAuth", new BicepReference("disableLocalAuth"))
-                .Property("IngestionMode", new BicepReference("ingestionMode")))
-            .Output("id", BicepType.String, new BicepRawExpression("applicationInsights.id"),
+            .Param(IngestionModeParameterName, BicepType.Custom(IngestionModeTypeName), "Ingestion mode for telemetry data",
+                defaultValue: new BicepStringLiteral(DefaultIngestionMode))
+            .Resource(ModuleName, ApplicationInsightsArmType)
+            .Property(NamePropertyName, new BicepReference(NameParameterName))
+            .Property(LocationPropertyName, new BicepReference(LocationParameterName))
+            .Property(KindPropertyName, new BicepStringLiteral(WebKindValue))
+            .Property(PropertiesPropertyName, props => props
+                .Property(ApplicationTypePropertyName, new BicepStringLiteral(WebKindValue))
+                .Property(WorkspaceResourceIdPropertyName, new BicepReference(LogAnalyticsWorkspaceIdParameterName))
+                .Property(SamplingPercentagePropertyName, new BicepReference(SamplingPercentageParameterName))
+                .Property(RetentionInDaysPropertyName, new BicepReference(RetentionInDaysParameterName))
+                .Property(DisableIpMaskingPropertyName, new BicepReference(DisableIpMaskingParameterName))
+                .Property(DisableLocalAuthPropertyName, new BicepReference(DisableLocalAuthParameterName))
+                .Property(IngestionModePropertyName, new BicepReference(IngestionModeParameterName)))
+            .Output(IdOutputName, BicepType.String, new BicepRawExpression(ApplicationInsightsIdExpression),
                 description: "The resource ID of the Application Insights resource")
-            .Output("instrumentationKey", BicepType.String,
-                new BicepRawExpression("applicationInsights.properties.InstrumentationKey"),
+            .Output(InstrumentationKeyOutputName, BicepType.String,
+                new BicepRawExpression(InstrumentationKeyExpression),
                 description: "The instrumentation key of the Application Insights resource")
-            .Output("connectionString", BicepType.String,
-                new BicepRawExpression("applicationInsights.properties.ConnectionString"),
+            .Output(ConnectionStringOutputName, BicepType.String,
+                new BicepRawExpression(ConnectionStringExpression),
                 description: "The connection string of the Application Insights resource")
-            .ExportedType("IngestionMode",
-                new BicepRawExpression("'ApplicationInsights' | 'ApplicationInsightsWithDiagnosticSettings' | 'LogAnalytics'"),
+            .ExportedType(IngestionModeTypeName,
+                new BicepRawExpression(IngestionModeUnionExpression),
                 description: "Ingestion mode for Application Insights")
             .Build();
     }
@@ -68,9 +98,9 @@ public sealed class ApplicationInsightsTypeBicepGenerator
     {
         return new GeneratedTypeModule
         {
-            ModuleName = "applicationInsights",
-            ModuleFileName = "applicationInsights",
-            ModuleFolderName = "ApplicationInsights",
+            ModuleName = ModuleName,
+            ModuleFileName = ModuleFileName,
+            ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = ApplicationInsightsModuleTemplate,
             ModuleTypesBicepContent = ApplicationInsightsTypesTemplate,
             ResourceTypeName = ResourceTypeName,

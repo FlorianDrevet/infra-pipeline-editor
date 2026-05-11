@@ -10,6 +10,7 @@ import {
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { FooterComponent } from './core/layouts/footer/footer.component';
 import { NavigationComponent } from './core/layouts/navigation/navigation.component';
+import { SidebarComponent } from './core/layouts/sidebar/sidebar.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
 import { TranslateModule } from '@ngx-translate/core';
@@ -20,7 +21,7 @@ import { environment } from '../environments/environment';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavigationComponent, FooterComponent, TranslateModule],
+  imports: [RouterOutlet, NavigationComponent, FooterComponent, SidebarComponent, TranslateModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -59,10 +60,10 @@ export class AppComponent {
         },
       }));
 
-      annotationElement.addEventListener('annotation:create', this.onAnnotationCreate as EventListener);
+      annotationElement.addEventListener('annotation:create', this.onAnnotationCreate);
 
       this.destroyRef.onDestroy(() => {
-        annotationElement.removeEventListener('annotation:create', this.onAnnotationCreate as EventListener);
+        annotationElement.removeEventListener('annotation:create', this.onAnnotationCreate);
       });
     });
   }
@@ -71,7 +72,7 @@ export class AppComponent {
     this.annotationRef()?.nativeElement.activate();
   }
 
-  private readonly onAnnotationCreate = (_event: Event): void => {
+  private readonly onAnnotationCreate: EventListener = (_event: Event): void => {
     // Annotation create event consumed by ds-annotation listener; no-op here.
   };
 }

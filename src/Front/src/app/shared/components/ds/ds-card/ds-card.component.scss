@@ -1,47 +1,60 @@
-@use "scss/main" as *;
+// ============================================================================
+// app-ds-card — V2 (UI Refresh 2026-05, dark-only)
+// Spec: docs/design/ui-refresh-2026-05.md §5.1
+// Flat surface, neutral border. No translateY, no border-left accents,
+// no shadow amplification on hover.
+// ============================================================================
 
 :host {
   display: block;
 }
 
 .ds-card {
-  @include ifs-card-surface($ifs-radius-xl, $ifs-shadow-xs);
   display: block;
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
+  box-shadow: var(--ifs-shadow-sm);
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard);
 
-  &--elevated {
-    box-shadow: $ifs-shadow-lg;
-    border-color: $ifs-border-medium;
+  // --- Variants ---
+  &--default { /* base style above */ }
+
+  &--interactive {
+    cursor: pointer;
   }
 
   &--outlined {
-    // default surface
+    box-shadow: none;
   }
 
-  &--glass {
-    background: rgba(255, 255, 255, 0.86);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-  }
-
-  &--accent-primary { border-left: 3px solid $ifs-brand-blue; }
-  &--accent-success { border-left: 3px solid $ifs-success; }
-  &--accent-warning { border-left: 3px solid $ifs-warning; }
-  &--accent-error   { border-left: 3px solid $ifs-error; }
-
+  // --- Padding ---
   &--padding-none { padding: 0; }
-  &--padding-sm   { padding: 0.85rem; }
-  &--padding-md   { padding: 1.25rem; }
-  &--padding-lg   { padding: 1.75rem; }
+  &--padding-sm   { padding: 12px; }
+  &--padding-md   { padding: 16px; }
+  &--padding-lg   { padding: 24px; }
 
+  // --- Interactive (variant or boolean input) ---
   &.interactive {
     cursor: pointer;
-    @include ifs-hover-lift;
+
+    &:hover {
+      border-color: var(--ifs-accent-500);
+      background: var(--ifs-surface-2);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--ifs-focus-ring);
+    }
   }
 
   &__header {
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid $ifs-ink-100;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--ifs-border-subtle);
 
     &:empty {
       display: none;
@@ -58,11 +71,11 @@
   }
 
   &__footer {
-    margin-top: 1rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid $ifs-ink-100;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--ifs-border-subtle);
     display: flex;
-    gap: 0.5rem;
+    gap: 8px;
     justify-content: flex-end;
 
     &:empty {
@@ -73,3 +86,4 @@
     }
   }
 }
+

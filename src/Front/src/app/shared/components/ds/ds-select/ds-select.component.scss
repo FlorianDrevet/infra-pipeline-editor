@@ -1,4 +1,8 @@
-@use "scss/main" as *;
+// ============================================================================
+// app-ds-select — V2 (UI Refresh 2026-05, dark-only)
+// Spec: docs/design/ui-refresh-2026-05.md §5.1
+// Trigger aligned on text-field. Panel surface-2 + shadow-md.
+// ============================================================================
 
 :host {
   display: block;
@@ -9,105 +13,111 @@
 .ds-field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 4px;
   width: 100%;
   position: relative;
 }
 
 .ds-field__label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: $ifs-brand-blue;
-  letter-spacing: 0.01em;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ifs-text-secondary);
   display: flex;
-  gap: 0.25rem;
+  gap: 4px;
   align-items: center;
 }
 
 .ds-field__required {
-  color: $ifs-error-strong;
-  font-weight: 700;
+  color: var(--ifs-danger);
+  font-weight: 500;
 }
 
 .ds-field__control {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0 0.85rem;
-  height: 2.6rem;
-  background: $ifs-surface-0;
-  border: 1.5px solid $ifs-border-strong;
-  border-radius: $ifs-radius-md;
-  transition: all $ifs-duration-fast $ifs-ease-out;
+  gap: 8px;
+  padding: 0 10px;
+  height: 32px;
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-strong);
+  border-radius: var(--ifs-radius-sm);
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
   width: 100%;
 }
 
+.ds-field__control:hover:not(:focus-within) {
+  border-color: var(--ifs-text-muted);
+}
+
 .ds-field--focused .ds-field__control {
-  border-color: $ifs-brand-blue;
-  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15), inset 0 0 0 0.5px $ifs-brand-blue;
-  background: #fff;
+  border-color: var(--ifs-accent-500);
+  box-shadow: 0 0 0 3px rgba(58, 163, 201, 0.18);
 }
 
 .ds-field--invalid .ds-field__control {
-  border-color: $ifs-error-strong;
-  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.12);
+  border-color: var(--ifs-danger);
+}
+
+.ds-field--invalid.ds-field--focused .ds-field__control {
+  box-shadow: 0 0 0 3px rgba(210, 74, 74, 0.18);
 }
 
 .ds-field--disabled .ds-field__control {
-  background: $ifs-surface-100;
-  opacity: 0.7;
+  background: var(--ifs-surface-2);
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 .ds-field__icon {
-  font-size: 1.1rem;
-  width: 1.1rem;
-  height: 1.1rem;
-  color: $ifs-ink-400;
+  font-size: var(--ifs-icon-sm);
+  width: var(--ifs-icon-sm);
+  height: var(--ifs-icon-sm);
+  color: var(--ifs-text-muted);
   flex-shrink: 0;
-}
-
-.ds-field--focused .ds-field__icon {
-  color: $ifs-brand-blue;
 }
 
 .ds-field__clear {
   display: grid;
   place-items: center;
-  width: 1.4rem;
-  height: 1.4rem;
+  width: 18px;
+  height: 18px;
   border: none;
   background: transparent;
   cursor: pointer;
-  color: $ifs-ink-400;
-  border-radius: 50%;
+  color: var(--ifs-text-muted);
+  border-radius: var(--ifs-radius-sm);
   padding: 0;
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    color var(--ifs-duration-fast) var(--ifs-ease-standard);
 
   &:hover {
-    background: $ifs-surface-100;
-    color: $ifs-error-strong;
+    background: var(--ifs-surface-3);
+    color: var(--ifs-text-primary);
   }
 
   mat-icon {
-    font-size: 0.9rem;
-    width: 0.9rem;
-    height: 0.9rem;
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
   }
 }
 
 .ds-field__message {
-  font-size: 0.78rem;
-  line-height: 1.4;
+  font-size: 12px;
+  line-height: 16px;
 }
 
 .ds-field__message--hint {
-  color: $ifs-ink-500;
+  color: var(--ifs-text-muted);
 }
 
 .ds-field__message--error {
-  color: $ifs-error-strong;
-  font-weight: 500;
+  color: var(--ifs-danger);
 }
 
 .ds-select__trigger {
@@ -122,35 +132,42 @@
 
 .ds-select__value {
   flex: 1;
-  @include ifs-truncate;
-  font-size: 0.95rem;
-  color: $ifs-ink-700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  color: var(--ifs-text-primary);
 
   &--placeholder {
-    color: $ifs-ink-400;
+    color: var(--ifs-text-muted);
   }
 }
 
 .ds-select__chevron {
-  color: $ifs-brand-blue;
-  transition: transform $ifs-duration-fast $ifs-ease-out;
+  color: var(--ifs-text-muted);
+  font-size: var(--ifs-icon-sm);
+  width: var(--ifs-icon-sm);
+  height: var(--ifs-icon-sm);
+  transition: transform var(--ifs-duration-fast) var(--ifs-ease-standard);
 
   &--open {
     transform: rotate(180deg);
+    color: var(--ifs-text-secondary);
   }
 }
 
 .ds-select__panel {
-  z-index: $ifs-z-popover;
-  background: $ifs-surface-0;
-  border: 1px solid $ifs-border-medium;
-  border-radius: $ifs-radius-md;
-  box-shadow: $ifs-shadow-lg;
+  z-index: var(--ifs-z-popover);
+  background: var(--ifs-surface-2);
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
+  box-shadow: var(--ifs-shadow-md);
   max-height: 18rem;
-  min-width: 12rem;
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  animation: ifs-slide-in-down $ifs-duration-fast $ifs-ease-out;
   overflow: hidden;
 }
 
@@ -161,15 +178,15 @@
 .ds-select__search {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid $ifs-ink-100;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--ifs-border-subtle);
 
   mat-icon {
-    font-size: 1rem;
-    width: 1rem;
-    height: 1rem;
-    color: $ifs-ink-400;
+    font-size: var(--ifs-icon-sm);
+    width: var(--ifs-icon-sm);
+    height: var(--ifs-icon-sm);
+    color: var(--ifs-text-muted);
   }
 
   input {
@@ -177,52 +194,63 @@
     border: none;
     outline: none;
     background: transparent;
-    font-size: 0.85rem;
-    color: $ifs-ink-700;
+    font-size: 13px;
+    color: var(--ifs-text-primary);
     font-family: inherit;
+
+    &::placeholder {
+      color: var(--ifs-text-muted);
+    }
   }
 }
 
 .ds-select__options {
   overflow-y: auto;
-  padding: 0.35rem;
+  padding: 4px;
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
-  @include ifs-scrollbar-soft;
+  gap: 0;
+
+  &::-webkit-scrollbar { width: 8px; height: 8px; }
+  &::-webkit-scrollbar-thumb {
+    background: var(--ifs-border-strong);
+    border-radius: var(--ifs-radius-pill);
+  }
+  &::-webkit-scrollbar-track { background: transparent; }
 }
 
 .ds-select__option {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.7rem;
+  gap: 8px;
+  padding: 8px 12px;
   border: none;
   background: transparent;
-  border-radius: $ifs-radius-sm;
+  border-radius: var(--ifs-radius-sm);
   cursor: pointer;
   text-align: left;
-  transition: background $ifs-duration-fast;
-  color: $ifs-ink-700;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard);
+  color: var(--ifs-text-primary);
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 14px;
 
   mat-icon:first-child {
-    color: $ifs-brand-blue;
-    font-size: 1.1rem;
-    width: 1.1rem;
-    height: 1.1rem;
+    color: var(--ifs-text-muted);
+    font-size: var(--ifs-icon-sm);
+    width: var(--ifs-icon-sm);
+    height: var(--ifs-icon-sm);
   }
 
-  &:hover:not(:disabled) {
-    background: $ifs-info-soft;
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: var(--ifs-surface-3);
+    outline: none;
   }
 
   &--selected {
-    background: linear-gradient(135deg, rgba(21, 101, 192, 0.1), rgba(2, 136, 209, 0.06));
-    color: $ifs-brand-blue;
-    font-weight: 600;
+    color: var(--ifs-text-primary);
+    background: transparent;
   }
 
   &--disabled,
@@ -237,22 +265,26 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 2px;
 
   small {
-    color: $ifs-ink-500;
-    font-size: 0.75rem;
+    color: var(--ifs-text-muted);
+    font-size: 12px;
   }
 }
 
 .ds-select__check {
-  color: $ifs-brand-blue;
+  color: var(--ifs-accent-500);
+  font-size: var(--ifs-icon-sm);
+  width: var(--ifs-icon-sm);
+  height: var(--ifs-icon-sm);
   margin-left: auto;
 }
 
 .ds-select__empty {
-  padding: 1rem;
+  padding: 16px;
   text-align: center;
-  color: $ifs-ink-400;
-  font-size: 0.85rem;
+  color: var(--ifs-text-muted);
+  font-size: 13px;
 }
+

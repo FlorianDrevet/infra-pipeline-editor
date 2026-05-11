@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
@@ -24,10 +25,14 @@ public sealed class SetProjectLayoutPresetCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        if (!Enum.TryParse<LayoutPresetEnum>(command.Preset, ignoreCase: true, out var parsed))
-            return Errors.Project.InvalidLayoutPreset(command.Preset);
+        var layoutPresetResult = EnumValueObjectParser.Parse<LayoutPresetEnum, LayoutPreset>(
+            command.Preset,
+            static parsed => new LayoutPreset(parsed),
+            Errors.Project.InvalidLayoutPreset);
+        if (layoutPresetResult.IsError)
+            return layoutPresetResult.Errors;
 
-        var setResult = project.SetLayoutPreset(new LayoutPreset(parsed));
+        var setResult = project.SetLayoutPreset(layoutPresetResult.Value);
         if (setResult.IsError)
             return setResult.Errors;
 

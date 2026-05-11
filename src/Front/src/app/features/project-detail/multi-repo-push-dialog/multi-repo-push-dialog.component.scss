@@ -9,8 +9,8 @@
 ::ng-deep .ifs-multi-repo-push-dialog .mat-mdc-dialog-surface {
   padding: 0;
   overflow: hidden;
-  background: $ifs-surface-0;
-  border: 1px solid $ifs-border-soft;
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-subtle);
   box-shadow: $ifs-shadow-lg;
 }
 
@@ -18,15 +18,15 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: $ifs-surface-0;
+  background: var(--ifs-surface-1);
 }
 
 .mr-dialog__content {
   display: flex;
   flex-direction: column;
-  gap: $ifs-space-4;
+  gap: var(--ifs-space-16);
   margin: 0;
-  padding: $ifs-space-5 !important;
+  padding: var(--ifs-space-20) !important;
   overflow-x: hidden;
 
   @include ifs-scrollbar-soft;
@@ -35,12 +35,12 @@
 .mr-dialog__actions {
   display: flex;
   justify-content: flex-end;
-  gap: $ifs-space-3;
+  gap: var(--ifs-space-12);
   flex-wrap: wrap;
   margin: 0;
-  padding: 0 $ifs-space-5 $ifs-space-5 !important;
+  padding: 0 var(--ifs-space-20) var(--ifs-space-20) !important;
   border-top: 0;
-  background: $ifs-surface-0;
+  background: var(--ifs-surface-1);
 }
 
 .mr-dialog__actions > * {
@@ -50,9 +50,9 @@
 .mr-banner {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: $ifs-space-3;
+  gap: var(--ifs-space-12);
   align-items: flex-start;
-  padding: $ifs-space-4 $ifs-space-5;
+  padding: var(--ifs-space-16) var(--ifs-space-20);
   border-radius: $ifs-radius-lg;
   border: 1px solid transparent;
 
@@ -63,7 +63,7 @@
 
   strong {
     display: block;
-    margin-bottom: $ifs-space-1;
+    margin-bottom: var(--ifs-space-4);
     font-size: 0.92rem;
   }
 
@@ -74,28 +74,28 @@
   }
 
   &--success {
-    background: $ifs-success-soft;
-    border-color: $ifs-success-border;
+    background: var(--ifs-success-bg);
+    border-color: var(--ifs-success);
     color: $ifs-success;
   }
 
   &--partial {
-    background: $ifs-warning-soft;
-    border-color: $ifs-warning-border;
-    color: $ifs-warning-strong;
+    background: var(--ifs-warning-bg);
+    border-color: var(--ifs-warning);
+    color: var(--ifs-warning);
   }
 
   &--error {
-    background: $ifs-error-soft;
-    border-color: $ifs-error-border;
-    color: $ifs-error-strong;
+    background: var(--ifs-danger-bg);
+    border-color: var(--ifs-danger);
+    color: var(--ifs-danger);
   }
 }
 
 .mr-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: $ifs-space-4;
+  gap: var(--ifs-space-16);
   align-items: start;
   min-width: 0;
 }
@@ -106,29 +106,29 @@
 }
 
 .mr-card {
-  @include ifs-card-surface($ifs-radius-2xl, $ifs-shadow-lg);
+  @include ifs-card-surface(var(--ifs-radius-lg), $ifs-shadow-lg);
 
   position: relative;
   min-width: 0;
   overflow: hidden;
-  background: #ffffff !important;
-  border: 1px solid $ifs-border-soft !important;
+  background: var(--ifs-surface-2) !important;
+  border: 1px solid var(--ifs-border-subtle) !important;
   box-shadow: $ifs-shadow-md !important;
 
   &--ok {
-    border-color: $ifs-success-border !important;
+    border-color: var(--ifs-success) !important;
   }
 
   &--ko {
-    border-color: $ifs-error-border !important;
+    border-color: var(--ifs-danger) !important;
   }
 }
 
 .mr-card__header {
   display: flex;
   align-items: flex-start;
-  gap: $ifs-space-4;
-  padding: $ifs-space-5 $ifs-space-5 $ifs-space-4;
+  gap: var(--ifs-space-16);
+  padding: var(--ifs-space-20) var(--ifs-space-20) var(--ifs-space-16);
 }
 
 .mr-card__icon-shell {
@@ -138,8 +138,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  background: $ifs-surface-100;
-  color: $ifs-brand-blue;
+  background: var(--ifs-surface-2);
+  color: var(--ifs-brand-500);
 
   mat-icon {
     font-size: 1.2rem;
@@ -149,8 +149,8 @@
 }
 
 .mr-card--code .mr-card__icon-shell {
-  background: rgba($ifs-brand-cyan, 0.08);
-  color: $ifs-brand-cyan-deep;
+  background: rgba(var(--ifs-accent-500), 0.08);
+  color: var(--ifs-accent-600);
 }
 
 .mr-card__header-copy {
@@ -162,13 +162,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $ifs-space-3;
+  gap: var(--ifs-space-12);
   flex-wrap: wrap;
 }
 
 .mr-card__title {
   margin: 0;
-  color: $ifs-ink-900;
+  color: var(--ifs-text-primary);
   font-size: 1rem;
   font-weight: 700;
 }
@@ -180,37 +180,35 @@
   max-width: 100%;
   padding: 0.2rem 0.65rem;
   border-radius: $ifs-radius-pill;
-  background: rgba($ifs-brand-blue, 0.08);
-  color: $ifs-ink-800;
+  background: rgba(var(--ifs-brand-500), 0.08);
+  color: var(--ifs-text-primary);
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   font-size: 0.78rem;
   font-weight: 600;
 }
 
 .mr-card--code .mr-card__alias {
-  background: rgba($ifs-brand-cyan, 0.12);
+  background: rgba(var(--ifs-accent-500), 0.12);
 }
 
 .mr-card__content {
   position: relative;
   min-width: 0;
-  padding: 0 $ifs-space-5 $ifs-space-5;
+  padding: 0 var(--ifs-space-20) var(--ifs-space-20);
 }
 
 .mr-card__overlay {
-  @include ifs-glass(0.82, 12px);
-
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: $ifs-space-2;
+  gap: var(--ifs-space-8);
   z-index: 2;
-  border-radius: $ifs-radius-xl;
-  border: 1px solid $ifs-border-soft;
-  color: $ifs-brand-blue;
+  border-radius: var(--ifs-radius-lg);
+  border: 1px solid var(--ifs-border-subtle);
+  color: var(--ifs-brand-500);
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -218,14 +216,26 @@
 .mr-form {
   display: flex;
   flex-direction: column;
-  gap: $ifs-space-4;
+  gap: var(--ifs-space-16);
   min-width: 0;
+}
+
+.mr-branch-field {
+  width: 100%;
+}
+
+.mr-branch-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ifs-space-8);
+  font-size: 0.88rem;
+  color: var(--ifs-text-secondary);
 }
 
 .mr-card__result {
   display: flex;
   flex-direction: column;
-  gap: $ifs-space-3;
+  gap: var(--ifs-space-12);
   min-width: 0;
 
   &--ok {
@@ -233,14 +243,14 @@
   }
 
   &--ko {
-    color: $ifs-error-strong;
+    color: var(--ifs-danger);
   }
 }
 
 .mr-card__result-title {
   display: flex;
   align-items: center;
-  gap: $ifs-space-2;
+  gap: var(--ifs-space-8);
   margin: 0;
   color: inherit;
   font-size: 0.95rem;
@@ -258,18 +268,18 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: $ifs-space-3;
+  gap: var(--ifs-space-12);
   flex-wrap: wrap;
   min-width: 0;
-  padding: $ifs-space-3 $ifs-space-4;
+  padding: var(--ifs-space-12) var(--ifs-space-16);
   border-radius: $ifs-radius-lg;
-  border: 1px solid $ifs-border-soft;
-  background: $ifs-surface-50;
-  color: $ifs-ink-500;
+  border: 1px solid var(--ifs-border-subtle);
+  background: var(--ifs-surface-1);
+  color: var(--ifs-text-secondary);
   font-size: 0.84rem;
 
   span:first-child {
-    color: $ifs-ink-500;
+    color: var(--ifs-text-secondary);
     font-weight: 600;
   }
 }
@@ -279,20 +289,20 @@
 
   display: inline-flex;
   align-items: center;
-  gap: $ifs-space-2;
+  gap: var(--ifs-space-8);
   min-width: 0;
   max-width: 100%;
   padding: 0.3rem 0.7rem;
-  border: 1px solid $ifs-info-border;
+  border: 1px solid var(--ifs-info);
   border-radius: $ifs-radius-pill;
-  background: rgba($ifs-brand-blue, 0.08);
+  background: rgba(var(--ifs-brand-500), 0.08);
   cursor: pointer;
-  color: $ifs-ink-800;
+  color: var(--ifs-text-primary);
   font-size: 0.8rem;
   font-weight: 600;
 
   &:hover {
-    background: rgba($ifs-brand-blue, 0.14);
+    background: rgba(var(--ifs-brand-500), 0.14);
   }
 
   code {
@@ -308,7 +318,7 @@
     font-size: 0.95rem;
     width: 0.95rem;
     height: 0.95rem;
-    color: $ifs-brand-blue;
+    color: var(--ifs-brand-500);
   }
 }
 
@@ -316,10 +326,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: $ifs-space-2;
+  gap: var(--ifs-space-8);
   min-width: 0;
   max-width: 100%;
-  color: $ifs-brand-blue;
+  color: var(--ifs-brand-500);
   font-size: 0.84rem;
   font-weight: 600;
   text-decoration: none;
@@ -342,18 +352,18 @@
 
 .mr-card__count {
   margin: 0;
-  color: $ifs-ink-500;
+  color: var(--ifs-text-secondary);
   font-size: 0.82rem;
   line-height: 1.5;
 }
 
 .mr-card__error {
   margin: 0;
-  padding: $ifs-space-3 $ifs-space-4;
+  padding: var(--ifs-space-12) var(--ifs-space-16);
   border-radius: $ifs-radius-lg;
-  border: 1px solid $ifs-error-border;
-  background: $ifs-error-soft;
-  color: $ifs-error-strong;
+  border: 1px solid var(--ifs-danger);
+  background: var(--ifs-danger-bg);
+  color: var(--ifs-danger);
   font-size: 0.82rem;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -368,13 +378,13 @@
 
 @media (max-width: 44rem) {
   .mr-dialog__content {
-    padding: $ifs-space-4 !important;
+    padding: var(--ifs-space-16) !important;
   }
 
   .mr-dialog__actions {
     flex-direction: column-reverse;
     align-items: stretch;
-    padding: 0 $ifs-space-4 $ifs-space-4 !important;
+    padding: 0 var(--ifs-space-16) var(--ifs-space-16) !important;
   }
 
   .mr-dialog__actions > * {
@@ -383,15 +393,15 @@
 
   .mr-card__header,
   .mr-card__content {
-    padding-left: $ifs-space-4;
-    padding-right: $ifs-space-4;
+    padding-left: var(--ifs-space-16);
+    padding-right: var(--ifs-space-16);
   }
 
   .mr-card__header {
-    padding-top: $ifs-space-5;
+    padding-top: var(--ifs-space-20);
   }
 
   .mr-card__content {
-    padding-bottom: $ifs-space-4;
+    padding-bottom: var(--ifs-space-16);
   }
 }

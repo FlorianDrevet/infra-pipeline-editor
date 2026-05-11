@@ -1,7 +1,10 @@
+using InfraFlowSculptor.BicepGeneration.Generators.ParameterModels;
+using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
+using static InfraFlowSculptor.BicepGeneration.Generators.Constants.BicepGeneratorSharedConstants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -11,6 +14,29 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class KeyVaultTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
+    private const string ModuleName = "keyVault";
+    private const string ModuleFolderName = "KeyVault";
+    private const string SkuNameTypeName = "SkuName";
+    private const string SkuParameterName = "sku";
+    private const string ResourceSymbol = "kv";
+    private const string KeyVaultArmType = "Microsoft.KeyVault/vaults@2023-07-01";
+    private const string DefaultSkuName = "standard";
+    private const string SkuFamilyValue = "A";
+    private const string TenantIdExpression = "subscription().tenantId";
+    private const string EnableRbacAuthorizationPropertyName = "enableRbacAuthorization";
+    private const string EnabledForDeploymentPropertyName = "enabledForDeployment";
+    private const string EnabledForDiskEncryptionPropertyName = "enabledForDiskEncryption";
+    private const string EnabledForTemplateDeploymentPropertyName = "enabledForTemplateDeployment";
+    private const string EnablePurgeProtectionPropertyName = "enablePurgeProtection";
+    private const string EnableSoftDeletePropertyName = "enableSoftDelete";
+    private const string SkuNameUnion = "'premium' | 'standard'";
+    private const string FamilyPropertyName = "family";
+    private const string TenantIdPropertyName = "tenantId";
+    private const string VaultUriOutputName = "vaultUri";
+    private const string ResourceIdExpression = ResourceSymbol + ".id";
+    private const string ResourceNameExpression = ResourceSymbol + ".name";
+    private const string VaultUriExpression = ResourceSymbol + ".properties.vaultUri";
+
     /// <inheritdoc />
     public string ResourceType
         => AzureResourceTypes.ArmTypes.KeyVault;
@@ -22,47 +48,47 @@ public sealed class KeyVaultTypeBicepGenerator
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         var enableRbac = bool.Parse(
-            resource.Properties.GetValueOrDefault("enableRbacAuthorization", "true")!);
+            resource.Properties.GetValueOrDefault(EnableRbacAuthorizationPropertyName, BooleanTrueString)!);
         var enabledForDeployment = bool.Parse(
-            resource.Properties.GetValueOrDefault("enabledForDeployment", "false")!);
+            resource.Properties.GetValueOrDefault(EnabledForDeploymentPropertyName, BooleanFalseString)!);
         var enabledForDiskEncryption = bool.Parse(
-            resource.Properties.GetValueOrDefault("enabledForDiskEncryption", "false")!);
+            resource.Properties.GetValueOrDefault(EnabledForDiskEncryptionPropertyName, BooleanFalseString)!);
         var enabledForTemplateDeployment = bool.Parse(
-            resource.Properties.GetValueOrDefault("enabledForTemplateDeployment", "false")!);
+            resource.Properties.GetValueOrDefault(EnabledForTemplateDeploymentPropertyName, BooleanFalseString)!);
         var enablePurgeProtection = bool.Parse(
-            resource.Properties.GetValueOrDefault("enablePurgeProtection", "true")!);
+            resource.Properties.GetValueOrDefault(EnablePurgeProtectionPropertyName, BooleanTrueString)!);
         var enableSoftDelete = bool.Parse(
-            resource.Properties.GetValueOrDefault("enableSoftDelete", "true")!);
+            resource.Properties.GetValueOrDefault(EnableSoftDeletePropertyName, BooleanTrueString)!);
 
         return new BicepModuleBuilder()
-            .Module("keyVault", "KeyVault", ResourceTypeName)
-            .Import("./types.bicep", "SkuName")
-            .Param("location", BicepType.String, "Azure region for the Key Vault")
-            .Param("name", BicepType.String, "Name of the Key Vault")
-            .Param("sku", BicepType.Custom("SkuName"), "SKU of the Key Vault",
-                defaultValue: new BicepStringLiteral("standard"))
-            .Resource("kv", "Microsoft.KeyVault/vaults@2023-07-01")
-            .Property("name", new BicepReference("name"))
-            .Property("location", new BicepReference("location"))
-            .Property("properties", props => props
-                .Property("sku", sku => sku
-                    .Property("family", new BicepStringLiteral("A"))
-                    .Property("name", new BicepReference("sku")))
-                .Property("tenantId", new BicepRawExpression("subscription().tenantId"))
-                .Property("enableRbacAuthorization", new BicepBoolLiteral(enableRbac))
-                .Property("enabledForDeployment", new BicepBoolLiteral(enabledForDeployment))
-                .Property("enabledForDiskEncryption", new BicepBoolLiteral(enabledForDiskEncryption))
-                .Property("enabledForTemplateDeployment", new BicepBoolLiteral(enabledForTemplateDeployment))
-                .Property("enablePurgeProtection", new BicepBoolLiteral(enablePurgeProtection))
-                .Property("enableSoftDelete", new BicepBoolLiteral(enableSoftDelete)))
-            .Output("id", BicepType.String, new BicepRawExpression("kv.id"),
+            .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import(TypesImportPath, SkuNameTypeName)
+            .Param(LocationParameterName, BicepType.String, "Azure region for the Key Vault")
+            .Param(NameParameterName, BicepType.String, "Name of the Key Vault")
+            .Param(SkuParameterName, BicepType.Custom(SkuNameTypeName), "SKU of the Key Vault",
+                defaultValue: new BicepStringLiteral(DefaultSkuName))
+            .Resource(ResourceSymbol, KeyVaultArmType)
+            .Property(NamePropertyName, new BicepReference(NameParameterName))
+            .Property(LocationPropertyName, new BicepReference(LocationParameterName))
+            .Property(PropertiesPropertyName, props => props
+                .Property(SkuParameterName, sku => sku
+                    .Property(FamilyPropertyName, new BicepStringLiteral(SkuFamilyValue))
+                    .Property(NamePropertyName, new BicepReference(SkuParameterName)))
+                .Property(TenantIdPropertyName, new BicepRawExpression(TenantIdExpression))
+                .Property(EnableRbacAuthorizationPropertyName, new BicepBoolLiteral(enableRbac))
+                .Property(EnabledForDeploymentPropertyName, new BicepBoolLiteral(enabledForDeployment))
+                .Property(EnabledForDiskEncryptionPropertyName, new BicepBoolLiteral(enabledForDiskEncryption))
+                .Property(EnabledForTemplateDeploymentPropertyName, new BicepBoolLiteral(enabledForTemplateDeployment))
+                .Property(EnablePurgeProtectionPropertyName, new BicepBoolLiteral(enablePurgeProtection))
+                .Property(EnableSoftDeletePropertyName, new BicepBoolLiteral(enableSoftDelete)))
+            .Output(IdOutputName, BicepType.String, new BicepRawExpression(ResourceIdExpression),
                 description: "The resource ID of the Key Vault")
-            .Output("name", BicepType.String, new BicepRawExpression("kv.name"),
+            .Output(NameParameterName, BicepType.String, new BicepRawExpression(ResourceNameExpression),
                 description: "The name of the Key Vault")
-            .Output("vaultUri", BicepType.String, new BicepRawExpression("kv.properties.vaultUri"),
+            .Output(VaultUriOutputName, BicepType.String, new BicepRawExpression(VaultUriExpression),
                 description: "The URI of the Key Vault")
-            .ExportedType("SkuName",
-                new BicepRawExpression("'premium' | 'standard'"),
+            .ExportedType(SkuNameTypeName,
+                new BicepRawExpression(SkuNameUnion),
                 description: "SKU name for the Key Vault")
             .Build();
     }
@@ -70,27 +96,27 @@ public sealed class KeyVaultTypeBicepGenerator
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
-        var enableRbac = resource.Properties.GetValueOrDefault("enableRbacAuthorization", "true");
-        var enabledForDeployment = resource.Properties.GetValueOrDefault("enabledForDeployment", "false");
-        var enabledForDiskEncryption = resource.Properties.GetValueOrDefault("enabledForDiskEncryption", "false");
-        var enabledForTemplateDeployment = resource.Properties.GetValueOrDefault("enabledForTemplateDeployment", "false");
-        var enablePurgeProtection = resource.Properties.GetValueOrDefault("enablePurgeProtection", "true");
-        var enableSoftDelete = resource.Properties.GetValueOrDefault("enableSoftDelete", "true");
+        var enableRbac = resource.Properties.GetValueOrDefault(EnableRbacAuthorizationPropertyName, BooleanTrueString);
+        var enabledForDeployment = resource.Properties.GetValueOrDefault(EnabledForDeploymentPropertyName, BooleanFalseString);
+        var enabledForDiskEncryption = resource.Properties.GetValueOrDefault(EnabledForDiskEncryptionPropertyName, BooleanFalseString);
+        var enabledForTemplateDeployment = resource.Properties.GetValueOrDefault(EnabledForTemplateDeploymentPropertyName, BooleanFalseString);
+        var enablePurgeProtection = resource.Properties.GetValueOrDefault(EnablePurgeProtectionPropertyName, BooleanTrueString);
+        var enableSoftDelete = resource.Properties.GetValueOrDefault(EnableSoftDeletePropertyName, BooleanTrueString);
 
         return new GeneratedTypeModule
         {
-            ModuleName = "keyVault",
-            ModuleFileName = "keyVault",
-            ModuleFolderName = "KeyVault",
+            ModuleName = ModuleName,
+            ModuleFileName = ModuleName,
+            ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = BuildModuleTemplate(
                 enableRbac, enabledForDeployment, enabledForDiskEncryption,
                 enabledForTemplateDeployment, enablePurgeProtection, enableSoftDelete),
             ModuleTypesBicepContent = KeyVaultTypesTemplate,
             ResourceTypeName = ResourceTypeName,
-            Parameters = new Dictionary<string, object>
+            Parameters = BicepParameterModelConverter.ToDictionary(new KeyVaultParameters
             {
-                ["sku"] = resource.Sku.ToLower(),
-            }
+                Sku = resource.Sku.ToLower(),
+            })
         };
     }
 

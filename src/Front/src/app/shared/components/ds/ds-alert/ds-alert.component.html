@@ -1,5 +1,5 @@
 @if (visible()) {
-  <div class="ds-alert ds-alert--{{ severity() }}" role="alert">
+  <div class="ds-alert ds-alert--{{ resolvedSeverity() }}" role="alert">
     <mat-icon class="ds-alert__icon">{{ resolvedIcon() }}</mat-icon>
     <div class="ds-alert__content">
       @if (title()) {

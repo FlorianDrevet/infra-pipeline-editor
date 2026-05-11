@@ -1,5 +1,6 @@
 using FluentAssertions;
 using InfraFlowSculptor.BicepGeneration.Helpers;
+using System.Text.Json.Serialization;
 
 namespace InfraFlowSculptor.BicepGeneration.Tests.Helpers;
 
@@ -29,5 +30,106 @@ public sealed class BicepFormattingHelperTests
 
         // Assert
         result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("storageAccount", ".storageAccount")]
+    [InlineData("_sharedType", "._sharedType")]
+    public void Given_ValidBicepPropertyName_When_FormattingPropertyAccess_Then_ReturnsDotNotation(string propertyName, string expected)
+    {
+        // Act
+        var result = BicepFormattingHelper.FormatBicepPropertyAccess(propertyName);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("jwt-secret", "['jwt-secret']")]
+    [InlineData("startup command", "['startup command']")]
+    [InlineData("o'clock", "['o\\'clock']")]
+    public void Given_InvalidBicepPropertyName_When_FormattingPropertyAccess_Then_ReturnsBracketNotation(string propertyName, string expected)
+    {
+        // Act
+        var result = BicepFormattingHelper.FormatBicepPropertyAccess(propertyName);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Fact]
+    public void Given_ObjectWithJsonPropertyNames_When_Serializing_Then_UsesAnnotatedNamesAndSkipsNulls()
+    {
+        // Arrange
+        var value = new AnnotatedParameterObject
+        {
+            RuntimeStack = "DOTNETCORE",
+            OptionalSetting = null,
+            Nested = new NestedAnnotatedParameterObject
+            {
+                TargetPort = 8080,
+            },
+        };
+
+        // Act
+        var result = BicepFormattingHelper.SerializeToBicep(value);
+
+        // Assert
+        result.Should().Contain("runtimeStack: 'DOTNETCORE'");
+        result.Should().Contain("nested: {");
+        result.Should().Contain("targetPort: 8080");
+        result.Should().NotContain("RuntimeStack");
+        result.Should().NotContain("Nested");
+        result.Should().NotContain("OptionalSetting");
+        result.Should().NotContain("optionalSetting");
+    }
+
+    [Fact]
+    public void Given_InvalidAnnotatedAndDictionaryKeys_When_Serializing_Then_FormatsBicepObjectKeys()
+    {
+        // Arrange
+        var value = new InvalidKeyAnnotatedParameterObject
+        {
+            RuntimeStack = "DOTNETCORE",
+            EnvironmentVariables = new Dictionary<string, object>
+            {
+                ["startup command"] = "run",
+            },
+        };
+
+        // Act
+        var result = BicepFormattingHelper.SerializeToBicep(value);
+
+        // Assert
+        result.Should().Contain("'runtime-stack': 'DOTNETCORE'");
+        result.Should().Contain("'environment-variables': {");
+        result.Should().Contain("'startup command': 'run'");
+    }
+
+    private sealed class AnnotatedParameterObject
+    {
+        [JsonPropertyName("runtimeStack")]
+        public string RuntimeStack { get; init; } = string.Empty;
+
+        [JsonPropertyName("optionalSetting")]
+        public string? OptionalSetting { get; init; }
+
+        [JsonPropertyName("nested")]
+        public NestedAnnotatedParameterObject Nested { get; init; } = new();
+    }
+
+    private sealed class NestedAnnotatedParameterObject
+    {
+        [JsonPropertyName("targetPort")]
+        public int TargetPort { get; init; }
+    }
+
+    private sealed class InvalidKeyAnnotatedParameterObject
+    {
+        [JsonPropertyName("runtime-stack")]
+        public string RuntimeStack { get; init; } = string.Empty;
+
+        [JsonPropertyName("environment-variables")]
+        public Dictionary<string, object> EnvironmentVariables { get; init; } = [];
     }
 }

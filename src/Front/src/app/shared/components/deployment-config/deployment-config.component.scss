@@ -28,10 +28,10 @@
   &__toggle {
     display: inline-flex;
     position: relative;
-    background: rgba(13, 47, 102, 0.06);
-    border-radius: 22px;
+    background: var(--ifs-surface-1);
+    border-radius: var(--ifs-radius-md);
     padding: 3px;
-    border: 1px solid rgba(146, 191, 235, 0.18);
+    border: 1px solid var(--ifs-border-subtle);
   }
 
   &__slider {
@@ -40,9 +40,9 @@
     left: 3px;
     width: calc(50% - 3px);
     height: calc(100% - 6px);
-    background: #ffffff;
-    border-radius: 18px;
-    box-shadow: 0 1px 4px rgba(13, 47, 102, 0.12), 0 0 0 1px rgba(13, 101, 192, 0.08);
+    background: var(--ifs-surface-3);
+    border-radius: 6px;
+    box-shadow: var(--ifs-shadow-sm);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 0;
   }
@@ -64,20 +64,20 @@
     font-family: inherit;
     font-size: 0.85rem;
     font-weight: 500;
-    color: #5a7da0;
-    border-radius: 18px;
+    color: var(--ifs-text-secondary);
+    border-radius: 6px;
     transition: color 0.2s ease, font-weight 0.2s ease;
     white-space: nowrap;
     min-width: 7.5rem;
     justify-content: center;
 
     &:hover:not(:disabled):not(.deployment-mode__segment--active) {
-      color: #3a6a8f;
-      background: rgba(13, 101, 192, 0.04);
+      color: var(--ifs-text-primary);
+      background: rgba(58, 180, 217, 0.06);
     }
 
     &--active {
-      color: #103454;
+      color: var(--ifs-text-primary);
       font-weight: 600;
     }
 
@@ -91,11 +91,11 @@
     font-size: 1.15rem;
     width: 1.15rem;
     height: 1.15rem;
-    color: #8ba4be;
+    color: var(--ifs-text-muted);
     transition: color 0.2s ease;
 
     .deployment-mode__segment--active & {
-      color: #0d65c0;
+      color: var(--ifs-accent-500);
     }
   }
 
@@ -108,9 +108,9 @@
 
 .deployment-content {
   padding: 1.1rem;
-  border-radius: 1rem;
-  background: linear-gradient(145deg, rgba(13, 47, 102, 0.025), rgba(0, 159, 189, 0.03));
-  border: 1px solid rgba(146, 191, 235, 0.15);
+  border-radius: var(--ifs-radius-lg);
+  background: var(--ifs-surface-2);
+  border: 1px solid var(--ifs-border-subtle);
 }
 
 // ─── ACR Auth Mode ────
@@ -151,20 +151,20 @@
     gap: 0.45rem;
     min-height: 36px;
     padding: 0.45rem 0.75rem;
-    border: 1px solid rgba(146, 191, 235, 0.24);
+    border: 1px solid var(--ifs-border-subtle);
     border-radius: 999px;
-    background: #fff;
-    color: #5a7da0;
+    background: var(--ifs-surface-2);
+    color: var(--ifs-text-secondary);
     cursor: pointer;
     font-family: inherit;
     font-size: 0.78rem;
     font-weight: 500;
-    transition: all 0.15s ease;
+    transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
 
     &:hover:not(:disabled) {
-      border-color: rgba(13, 101, 192, 0.28);
-      background: rgba(13, 101, 192, 0.04);
-      color: #103454;
+      border-color: var(--ifs-accent-500);
+      background: rgba(58, 180, 217, 0.06);
+      color: var(--ifs-text-primary);
     }
 
     &:disabled {
@@ -173,10 +173,10 @@
     }
 
     &--active {
-      border-color: rgba(13, 101, 192, 0.35);
-      background: rgba(13, 101, 192, 0.08);
-      color: #103454;
-      box-shadow: 0 1px 4px rgba(13, 101, 192, 0.08);
+      border-color: var(--ifs-accent-500);
+      background: rgba(58, 180, 217, 0.12);
+      color: var(--ifs-text-primary);
+      box-shadow: 0 1px 4px rgba(58, 180, 217, 0.12);
     }
   }
 
@@ -189,8 +189,8 @@
     align-items: center;
     padding: 0.12rem 0.4rem;
     border-radius: 999px;
-    background: rgba(2, 136, 209, 0.1);
-    color: #0d65c0;
+    background: rgba(58, 180, 217, 0.12);
+    color: var(--ifs-accent-500);
     font-size: 0.68rem;
     font-weight: 600;
     line-height: 1;
@@ -216,21 +216,21 @@
   }
 
   &--checking {
-    background: rgba(13, 101, 192, 0.05);
-    border: 1px solid rgba(13, 101, 192, 0.1);
-    color: #0d65c0;
+    background: rgba(58, 180, 217, 0.08);
+    border: 1px solid rgba(58, 180, 217, 0.15);
+    color: var(--ifs-accent-500);
   }
 
   &--ok {
-    background: rgba(46, 125, 50, 0.05);
-    border: 1px solid rgba(46, 125, 50, 0.12);
-    color: #2e7d32;
+    background: rgba(46, 125, 50, 0.08);
+    border: 1px solid rgba(46, 125, 50, 0.2);
+    color: var(--ifs-success);
   }
 
   &--info {
-    background: rgba(13, 101, 192, 0.05);
-    border: 1px solid rgba(13, 101, 192, 0.12);
-    color: #103454;
+    background: rgba(58, 180, 217, 0.08);
+    border: 1px solid rgba(58, 180, 217, 0.15);
+    color: var(--ifs-text-primary);
   }
 }
 
@@ -243,11 +243,11 @@
   padding: 1rem 1.25rem;
   border-radius: 12px;
   margin-top: 0.75rem;
-  transition: all 0.2s ease;
+  transition: background-color var(--ifs-duration-base) var(--ifs-ease-standard), border-color var(--ifs-duration-base) var(--ifs-ease-standard), box-shadow var(--ifs-duration-base) var(--ifs-ease-standard);
 
   &--warn {
-    background: rgba(254, 243, 199, 0.7);
-    border: 1px solid rgba(245, 166, 35, 0.65);
+    background: rgba(245, 166, 35, 0.08);
+    border: 1px solid rgba(245, 166, 35, 0.25);
     box-shadow: 0 1px 6px rgba(245, 166, 35, 0.12);
   }
 
@@ -261,14 +261,14 @@
     font-size: 1.15rem;
     width: 1.15rem;
     height: 1.15rem;
-    color: #e6a117;
+    color: var(--ifs-warning);
     flex-shrink: 0;
   }
 
   &__title {
     font-size: 0.82rem;
     font-weight: 600;
-    color: rgba(16, 52, 84, 0.88);
+    color: var(--ifs-text-primary);
   }
 
   &__message {
@@ -282,7 +282,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-    background: rgba(16, 52, 84, 0.03);
+    background: var(--ifs-surface-1);
     border-radius: 8px;
     padding: 0.65rem 0.75rem;
   }
@@ -311,13 +311,13 @@
     cursor: pointer;
     font-size: 0.78rem;
     font-weight: 500;
-    color: #0d65c0;
+    color: var(--ifs-accent-500);
     padding: 0.25rem 0.4rem;
     border-radius: 6px;
     transition: background 0.12s ease;
 
     &:hover {
-      background: rgba(13, 101, 192, 0.06);
+      background: rgba(58, 180, 217, 0.08);
     }
 
     mat-icon {
@@ -336,16 +336,16 @@
     padding: 0 1rem;
     border: none;
     border-radius: 8px;
-    background: #0d65c0;
+    background: var(--ifs-accent-500);
     color: #fff;
     font-size: 0.8rem;
     font-weight: 550;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
     align-self: flex-start;
 
     &:hover:not(:disabled) {
-      background: #0a4f99;
+      background: var(--ifs-accent-600);
     }
 
     &:disabled {
@@ -400,9 +400,9 @@
   &__why-content {
     margin-top: 0.5rem;
     padding: 0.65rem 0.75rem;
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--ifs-surface-2);
     border-radius: 8px;
-    border: 1px solid rgba(245, 166, 35, 0.2);
+    border: 1px solid var(--ifs-warning-bg);
 
     p {
       font-size: 0.75rem;
@@ -417,7 +417,7 @@
       gap: 0.2rem;
       font-size: 0.73rem;
       font-weight: 500;
-      color: #0d65c0;
+      color: var(--ifs-accent-500);
       text-decoration: none;
 
       &:hover {

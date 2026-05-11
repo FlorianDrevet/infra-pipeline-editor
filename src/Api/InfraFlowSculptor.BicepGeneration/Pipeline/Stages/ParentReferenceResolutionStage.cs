@@ -19,14 +19,18 @@ namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 /// </remarks>
 public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
 {
+    private const string AppServicePlanIdPropertyName = "appServicePlanId";
+    private const string ContainerAppEnvironmentIdPropertyName = "containerAppEnvironmentId";
+    private const string LogAnalyticsWorkspaceIdPropertyName = "logAnalyticsWorkspaceId";
+    private const string SqlServerIdPropertyName = "sqlServerId";
+    private const string SqlServerNameReferenceKey = "sqlServerName";
+
     /// <inheritdoc />
     public int Order => 800;
 
     /// <inheritdoc />
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Tracked under test-debt #22: refactoring deferred until dedicated unit-test coverage protects against behavioural regressions. The method orchestrates a single coherent business operation and would lose readability without proper test guards.")]
     public void Execute(BicepGenerationContext context)
     {
-        var request = context.Request;
         var resourceIdToInfo = context.ResourceIdToInfo;
 
         foreach (var item in context.WorkItems)
@@ -36,52 +40,10 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
             var parentModuleNameRefs = new Dictionary<string, (string Name, string ResourceTypeName)>();
             var existingResourceIdRefs = new Dictionary<string, string>();
 
-            if (resource.Properties.TryGetValue("appServicePlanId", out var aspIdStr)
-                && Guid.TryParse(aspIdStr, out var aspGuid)
-                && resourceIdToInfo.TryGetValue(aspGuid, out var aspInfo))
-            {
-                parentModuleIdRefs["appServicePlanId"] = aspInfo;
-            }
-
-            if (resource.Properties.TryGetValue("containerAppEnvironmentId", out var caeIdStr)
-                && Guid.TryParse(caeIdStr, out var caeGuid)
-                && resourceIdToInfo.TryGetValue(caeGuid, out var caeInfo))
-            {
-                parentModuleIdRefs["containerAppEnvironmentId"] = caeInfo;
-            }
-
-            if (resource.Properties.TryGetValue("logAnalyticsWorkspaceId", out var lawIdStr)
-                && Guid.TryParse(lawIdStr, out var lawGuid)
-                && resourceIdToInfo.TryGetValue(lawGuid, out var lawInfo))
-            {
-                parentModuleIdRefs["logAnalyticsWorkspaceId"] = lawInfo;
-            }
-            else if (resource.Type is AzureResourceTypes.ArmTypes.ApplicationInsights or AzureResourceTypes.ArmTypes.ContainerAppEnvironment
-                && !parentModuleIdRefs.ContainsKey("logAnalyticsWorkspaceId"))
-            {
-                var fallbackLaw = request.Resources.FirstOrDefault(r =>
-                    r.Type.Equals(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace, StringComparison.OrdinalIgnoreCase));
-                if (fallbackLaw is not null)
-                {
-                    parentModuleIdRefs["logAnalyticsWorkspaceId"] = (fallbackLaw.Name, AzureResourceTypes.LogAnalyticsWorkspace);
-                }
-                else
-                {
-                    var existingLaw = request.ExistingResourceReferences.FirstOrDefault(r =>
-                        r.ResourceType.Equals(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace, StringComparison.OrdinalIgnoreCase));
-                    if (existingLaw is not null)
-                    {
-                        existingResourceIdRefs["logAnalyticsWorkspaceId"] = existingLaw.ResourceName;
-                    }
-                }
-            }
-
-            if (resource.Properties.TryGetValue("sqlServerId", out var sqlIdStr)
-                && Guid.TryParse(sqlIdStr, out var sqlGuid)
-                && resourceIdToInfo.TryGetValue(sqlGuid, out var sqlInfo))
-            {
-                parentModuleNameRefs["sqlServerName"] = sqlInfo;
-            }
+            TryResolveIdReference(resource, resourceIdToInfo, AppServicePlanIdPropertyName, parentModuleIdRefs);
+            TryResolveIdReference(resource, resourceIdToInfo, ContainerAppEnvironmentIdPropertyName, parentModuleIdRefs);
+            ResolveLogAnalyticsWorkspaceReference(resource, context, parentModuleIdRefs, existingResourceIdRefs);
+            TryResolveNameReference(resource, resourceIdToInfo, SqlServerIdPropertyName, SqlServerNameReferenceKey, parentModuleNameRefs);
 
             item.Module = item.Module with
             {
@@ -91,6 +53,74 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
                 ParentModuleNameReferences = parentModuleNameRefs,
                 ExistingResourceIdReferences = existingResourceIdRefs,
             };
+        }
+    }
+
+    private static void TryResolveIdReference(
+        ResourceDefinition resource,
+        IReadOnlyDictionary<Guid, (string Name, string ResourceTypeName)> resourceIdToInfo,
+        string propertyName,
+        IDictionary<string, (string Name, string ResourceTypeName)> target)
+    {
+        if (resource.Properties.TryGetValue(propertyName, out var idStr)
+            && Guid.TryParse(idStr, out var guid)
+            && resourceIdToInfo.TryGetValue(guid, out var info))
+        {
+            target[propertyName] = info;
+        }
+    }
+
+    private static void TryResolveNameReference(
+        ResourceDefinition resource,
+        IReadOnlyDictionary<Guid, (string Name, string ResourceTypeName)> resourceIdToInfo,
+        string sourcePropertyName,
+        string targetKey,
+        IDictionary<string, (string Name, string ResourceTypeName)> target)
+    {
+        if (resource.Properties.TryGetValue(sourcePropertyName, out var idStr)
+            && Guid.TryParse(idStr, out var guid)
+            && resourceIdToInfo.TryGetValue(guid, out var info))
+        {
+            target[targetKey] = info;
+        }
+    }
+
+    private static void ResolveLogAnalyticsWorkspaceReference(
+        ResourceDefinition resource,
+        BicepGenerationContext context,
+        IDictionary<string, (string Name, string ResourceTypeName)> parentModuleIdRefs,
+        IDictionary<string, string> existingResourceIdRefs)
+    {
+        if (resource.Properties.TryGetValue(LogAnalyticsWorkspaceIdPropertyName, out var lawIdStr)
+            && Guid.TryParse(lawIdStr, out var lawGuid)
+            && context.ResourceIdToInfo.TryGetValue(lawGuid, out var lawInfo))
+        {
+            parentModuleIdRefs[LogAnalyticsWorkspaceIdPropertyName] = lawInfo;
+            return;
+        }
+
+        if (resource.Type is not AzureResourceTypes.ArmTypes.ApplicationInsights
+            and not AzureResourceTypes.ArmTypes.ContainerAppEnvironment)
+        {
+            return;
+        }
+
+        if (parentModuleIdRefs.ContainsKey(LogAnalyticsWorkspaceIdPropertyName))
+            return;
+
+        var fallbackLaw = context.Request.Resources.FirstOrDefault(r =>
+            r.Type.Equals(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace, StringComparison.OrdinalIgnoreCase));
+        if (fallbackLaw is not null)
+        {
+            parentModuleIdRefs[LogAnalyticsWorkspaceIdPropertyName] = (fallbackLaw.Name, AzureResourceTypes.LogAnalyticsWorkspace);
+            return;
+        }
+
+        var existingLaw = context.Request.ExistingResourceReferences.FirstOrDefault(r =>
+            r.ResourceType.Equals(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace, StringComparison.OrdinalIgnoreCase));
+        if (existingLaw is not null)
+        {
+            existingResourceIdRefs[LogAnalyticsWorkspaceIdPropertyName] = existingLaw.ResourceName;
         }
     }
 }

@@ -2,6 +2,7 @@ using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
+using static InfraFlowSculptor.BicepGeneration.Generators.Constants.BicepGeneratorSharedConstants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -11,6 +12,44 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class CosmosDbTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
+    private const string ModuleName = "cosmosDb";
+    private const string ModuleFolderName = "CosmosDb";
+    private const string ModuleFileName = "cosmosDb";
+    private const string DatabaseKindTypeName = "DatabaseKind";
+    private const string ConsistencyLevelTypeName = "ConsistencyLevel";
+    private const string BackupPolicyTypeName = "BackupPolicyType";
+    private const string KindParameterName = "kind";
+    private const string ConsistencyLevelParameterName = "consistencyLevel";
+    private const string MaxStalenessPrefixParameterName = "maxStalenessPrefix";
+    private const string MaxIntervalInSecondsParameterName = "maxIntervalInSeconds";
+    private const string EnableAutomaticFailoverParameterName = "enableAutomaticFailover";
+    private const string EnableMultipleWriteLocationsParameterName = "enableMultipleWriteLocations";
+    private const string BackupPolicyTypeParameterName = "backupPolicyType";
+    private const string EnableFreeTierParameterName = "enableFreeTier";
+    private const string CapabilitiesParameterName = "capabilities";
+    private const string ResourceSymbol = "cosmosDbAccount";
+    private const string CosmosDbArmType = "Microsoft.DocumentDB/databaseAccounts@2024-05-15";
+    private const string DatabaseAccountOfferTypePropertyName = "databaseAccountOfferType";
+    private const string StandardOfferValue = "Standard";
+    private const string ConsistencyPolicyPropertyName = "consistencyPolicy";
+    private const string DefaultConsistencyLevelPropertyName = "defaultConsistencyLevel";
+    private const string BackupPolicyPropertyName = "backupPolicy";
+    private const string TypePropertyName = "type";
+    private const string LocationsPropertyName = "locations";
+    private const string LocationNamePropertyName = "locationName";
+    private const string FailoverPriorityPropertyName = "failoverPriority";
+    private const string IsZoneRedundantPropertyName = "isZoneRedundant";
+    private const string DocumentEndpointOutputName = "documentEndpoint";
+    private const string ResourceIdExpression = ResourceSymbol + ".id";
+    private const string DocumentEndpointExpression = ResourceSymbol + ".properties.documentEndpoint";
+    private const string ResourceNameExpression = ResourceSymbol + ".name";
+    private const string DefaultDatabaseKind = "GlobalDocumentDB";
+    private const string DefaultConsistencyLevel = "Session";
+    private const string DefaultBackupPolicyType = "Periodic";
+    private const string DatabaseKindUnion = "'GlobalDocumentDB' | 'MongoDB' | 'Parse'";
+    private const string ConsistencyLevelUnion = "'Eventual' | 'Session' | 'BoundedStaleness' | 'Strong' | 'ConsistentPrefix'";
+    private const string BackupPolicyTypeUnion = "'Periodic' | 'Continuous'";
+
     /// <inheritdoc />
     public string ResourceType
         => AzureResourceTypes.ArmTypes.CosmosDb;
@@ -22,66 +61,66 @@ public sealed class CosmosDbTypeBicepGenerator
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         return new BicepModuleBuilder()
-            .Module("cosmosDb", "CosmosDb", ResourceTypeName)
-            .Import("./types.bicep", "DatabaseKind", "ConsistencyLevel", "BackupPolicyType")
-            .Param("location", BicepType.String, "Azure region for the Cosmos DB account")
-            .Param("name", BicepType.String, "Name of the Cosmos DB account")
-            .Param("kind", BicepType.Custom("DatabaseKind"), "Kind of Cosmos DB account (API type)",
-                defaultValue: new BicepStringLiteral("GlobalDocumentDB"))
-            .Param("consistencyLevel", BicepType.Custom("ConsistencyLevel"), "Default consistency level",
-                defaultValue: new BicepStringLiteral("Session"))
-            .Param("maxStalenessPrefix", BicepType.Int, "Maximum staleness prefix for BoundedStaleness consistency",
+            .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import(TypesImportPath, DatabaseKindTypeName, ConsistencyLevelTypeName, BackupPolicyTypeName)
+            .Param(LocationParameterName, BicepType.String, "Azure region for the Cosmos DB account")
+            .Param(NameParameterName, BicepType.String, "Name of the Cosmos DB account")
+            .Param(KindParameterName, BicepType.Custom(DatabaseKindTypeName), "Kind of Cosmos DB account (API type)",
+                defaultValue: new BicepStringLiteral(DefaultDatabaseKind))
+            .Param(ConsistencyLevelParameterName, BicepType.Custom(ConsistencyLevelTypeName), "Default consistency level",
+                defaultValue: new BicepStringLiteral(DefaultConsistencyLevel))
+            .Param(MaxStalenessPrefixParameterName, BicepType.Int, "Maximum staleness prefix for BoundedStaleness consistency",
                 defaultValue: new BicepIntLiteral(100))
-            .Param("maxIntervalInSeconds", BicepType.Int, "Maximum interval in seconds for BoundedStaleness consistency",
+            .Param(MaxIntervalInSecondsParameterName, BicepType.Int, "Maximum interval in seconds for BoundedStaleness consistency",
                 defaultValue: new BicepIntLiteral(5))
-            .Param("enableAutomaticFailover", BicepType.Bool, "Whether automatic failover is enabled",
+            .Param(EnableAutomaticFailoverParameterName, BicepType.Bool, "Whether automatic failover is enabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("enableMultipleWriteLocations", BicepType.Bool, "Whether multiple write locations are enabled",
+            .Param(EnableMultipleWriteLocationsParameterName, BicepType.Bool, "Whether multiple write locations are enabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("backupPolicyType", BicepType.Custom("BackupPolicyType"), "Backup policy type",
-                defaultValue: new BicepStringLiteral("Periodic"))
-            .Param("enableFreeTier", BicepType.Bool, "Whether the free tier is enabled",
+            .Param(BackupPolicyTypeParameterName, BicepType.Custom(BackupPolicyTypeName), "Backup policy type",
+                defaultValue: new BicepStringLiteral(DefaultBackupPolicyType))
+            .Param(EnableFreeTierParameterName, BicepType.Bool, "Whether the free tier is enabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("capabilities", BicepType.Array, "Additional capabilities (e.g. EnableServerless)",
+            .Param(CapabilitiesParameterName, BicepType.Array, "Additional capabilities (e.g. EnableServerless)",
                 defaultValue: new BicepArrayExpression([]))
-            .Resource("cosmosDbAccount", "Microsoft.DocumentDB/databaseAccounts@2024-05-15")
-            .Property("name", new BicepReference("name"))
-            .Property("location", new BicepReference("location"))
-            .Property("kind", new BicepReference("kind"))
-            .Property("properties", props => props
-                .Property("databaseAccountOfferType", "Standard")
-                .Property("consistencyPolicy", cp => cp
-                    .Property("defaultConsistencyLevel", new BicepReference("consistencyLevel"))
-                    .Property("maxStalenessPrefix", new BicepReference("maxStalenessPrefix"))
-                    .Property("maxIntervalInSeconds", new BicepReference("maxIntervalInSeconds")))
-                .Property("enableAutomaticFailover", new BicepReference("enableAutomaticFailover"))
-                .Property("enableMultipleWriteLocations", new BicepReference("enableMultipleWriteLocations"))
-                .Property("backupPolicy", bp => bp
-                    .Property("type", new BicepReference("backupPolicyType")))
-                .Property("enableFreeTier", new BicepReference("enableFreeTier"))
-                .Property("capabilities", new BicepReference("capabilities"))
-                .Property("locations", new BicepArrayExpression([
+            .Resource(ResourceSymbol, CosmosDbArmType)
+            .Property(NamePropertyName, new BicepReference(NameParameterName))
+            .Property(LocationPropertyName, new BicepReference(LocationParameterName))
+            .Property(KindPropertyName, new BicepReference(KindParameterName))
+            .Property(PropertiesPropertyName, props => props
+                .Property(DatabaseAccountOfferTypePropertyName, StandardOfferValue)
+                .Property(ConsistencyPolicyPropertyName, cp => cp
+                    .Property(DefaultConsistencyLevelPropertyName, new BicepReference(ConsistencyLevelParameterName))
+                    .Property(MaxStalenessPrefixParameterName, new BicepReference(MaxStalenessPrefixParameterName))
+                    .Property(MaxIntervalInSecondsParameterName, new BicepReference(MaxIntervalInSecondsParameterName)))
+                .Property(EnableAutomaticFailoverParameterName, new BicepReference(EnableAutomaticFailoverParameterName))
+                .Property(EnableMultipleWriteLocationsParameterName, new BicepReference(EnableMultipleWriteLocationsParameterName))
+                .Property(BackupPolicyPropertyName, bp => bp
+                    .Property(TypePropertyName, new BicepReference(BackupPolicyTypeParameterName)))
+                .Property(EnableFreeTierParameterName, new BicepReference(EnableFreeTierParameterName))
+                .Property(CapabilitiesParameterName, new BicepReference(CapabilitiesParameterName))
+                .Property(LocationsPropertyName, new BicepArrayExpression([
                     new BicepObjectExpression([
-                        new BicepPropertyAssignment("locationName", new BicepReference("location")),
-                        new BicepPropertyAssignment("failoverPriority", new BicepIntLiteral(0)),
-                        new BicepPropertyAssignment("isZoneRedundant", new BicepBoolLiteral(false)),
+                        new BicepPropertyAssignment(LocationNamePropertyName, new BicepReference(LocationParameterName)),
+                        new BicepPropertyAssignment(FailoverPriorityPropertyName, new BicepIntLiteral(0)),
+                        new BicepPropertyAssignment(IsZoneRedundantPropertyName, new BicepBoolLiteral(false)),
                     ])
                 ])))
-            .Output("id", BicepType.String, new BicepRawExpression("cosmosDbAccount.id"),
+            .Output(IdOutputName, BicepType.String, new BicepRawExpression(ResourceIdExpression),
                 description: "The resource ID of the Cosmos DB account")
-            .Output("documentEndpoint", BicepType.String,
-                new BicepRawExpression("cosmosDbAccount.properties.documentEndpoint"),
+            .Output(DocumentEndpointOutputName, BicepType.String,
+                new BicepRawExpression(DocumentEndpointExpression),
                 description: "The document endpoint of the Cosmos DB account")
-            .Output("name", BicepType.String, new BicepRawExpression("cosmosDbAccount.name"),
+            .Output(NameParameterName, BicepType.String, new BicepRawExpression(ResourceNameExpression),
                 description: "The name of the Cosmos DB account")
-            .ExportedType("DatabaseKind",
-                new BicepRawExpression("'GlobalDocumentDB' | 'MongoDB' | 'Parse'"),
+            .ExportedType(DatabaseKindTypeName,
+                new BicepRawExpression(DatabaseKindUnion),
                 description: "Kind of Cosmos DB account (API type)")
-            .ExportedType("ConsistencyLevel",
-                new BicepRawExpression("'Eventual' | 'Session' | 'BoundedStaleness' | 'Strong' | 'ConsistentPrefix'"),
+            .ExportedType(ConsistencyLevelTypeName,
+                new BicepRawExpression(ConsistencyLevelUnion),
                 description: "Default consistency level for the Cosmos DB account")
-            .ExportedType("BackupPolicyType",
-                new BicepRawExpression("'Periodic' | 'Continuous'"),
+            .ExportedType(BackupPolicyTypeName,
+                new BicepRawExpression(BackupPolicyTypeUnion),
                 description: "Backup policy type for the Cosmos DB account")
             .Build();
     }
@@ -91,9 +130,9 @@ public sealed class CosmosDbTypeBicepGenerator
     {
         return new GeneratedTypeModule
         {
-            ModuleName = "cosmosDb",
-            ModuleFileName = "cosmosDb",
-            ModuleFolderName = "CosmosDb",
+            ModuleName = ModuleName,
+            ModuleFileName = ModuleFileName,
+            ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = CosmosDbModuleTemplate,
             ModuleTypesBicepContent = CosmosDbTypesTemplate,
             ResourceTypeName = ResourceTypeName,

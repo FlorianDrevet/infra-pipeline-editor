@@ -41,7 +41,7 @@ mat-dialog-content {
   &__label {
     font-size: 0.82rem;
     font-weight: 600;
-    color: #103454;
+    color: var(--ifs-text-primary);
   }
 }
 
@@ -51,8 +51,8 @@ mat-dialog-content {
   gap: 0;
   padding: 0.6rem 0.9rem;
   border-radius: 1rem;
-  background: rgba(13, 101, 192, 0.04);
-  border: 1px solid rgba(146, 191, 235, 0.2);
+  background: rgba(58, 180, 217, 0.06);
+  border: 1px solid var(--ifs-border-subtle);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -75,15 +75,15 @@ mat-dialog-content {
     width: 0.7rem;
     height: 0.7rem;
     border-radius: 50%;
-    background: rgba(146, 191, 235, 0.4);
-    border: 2px solid rgba(146, 191, 235, 0.5);
-    transition: all 0.2s;
+    background: var(--ifs-border-strong);
+    border: 2px solid var(--ifs-accent-500);
+    transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
   }
 
   &__label {
     font-size: 0.68rem;
     font-weight: 600;
-    color: #617892;
+    color: var(--ifs-text-secondary);
     white-space: nowrap;
     max-width: 5rem;
     overflow: hidden;
@@ -93,13 +93,13 @@ mat-dialog-content {
 
   &--current {
     .timeline-step__dot {
-      background: #0288d1;
-      border-color: #0288d1;
+      background: var(--ifs-accent-500);
+      border-color: var(--ifs-accent-500);
       box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.2);
     }
 
     .timeline-step__label {
-      color: #0288d1;
+      color: var(--ifs-accent-500);
       font-weight: 700;
     }
   }
@@ -108,7 +108,7 @@ mat-dialog-content {
 .timeline-connector {
   width: 1.5rem;
   height: 2px;
-  background: rgba(146, 191, 235, 0.3);
+  background: var(--ifs-border-strong);
   margin-top: -0.85rem;
   flex-shrink: 0;
 
@@ -133,7 +133,7 @@ mat-dialog-content {
   border-radius: 50%;
   border: 1px solid rgba(2, 136, 209, 0.25);
   background: rgba(2, 136, 209, 0.06);
-  color: #0288d1;
+  color: var(--ifs-accent-500);
   cursor: pointer;
 
   mat-icon {
@@ -157,7 +157,7 @@ mat-dialog-content {
   padding: 0.5rem 0.7rem;
   border-radius: 0.5rem;
   background: rgba(217, 45, 32, 0.07);
-  color: #a12d1f;
+  color: var(--ifs-danger);
   font-size: 0.82rem;
 }
 
@@ -171,7 +171,7 @@ mat-dialog-content {
   &__label {
     font-size: 0.82rem;
     font-weight: 600;
-    color: #103454;
+    color: var(--ifs-text-primary);
     margin: 0;
   }
 }

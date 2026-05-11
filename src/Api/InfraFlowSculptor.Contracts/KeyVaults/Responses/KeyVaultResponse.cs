@@ -14,6 +14,7 @@ namespace InfraFlowSculptor.Contracts.KeyVaults.Responses;
 /// <param name="EnablePurgeProtection">Whether purge protection is enabled.</param>
 /// <param name="EnableSoftDelete">Whether soft delete is enabled.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
+/// <param name="IsExisting">Whether the resource references an already-existing Azure resource.</param>
 public record KeyVaultResponse(
     string Id,
     string ResourceGroupId,

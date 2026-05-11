@@ -9,6 +9,8 @@ import {
 
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
+import { DsRadioGroupDirection } from './ds-radio-group.types';
+
 export interface DsRadioOption {
   value: string | number;
   label: string;
@@ -39,7 +41,7 @@ export class DsRadioGroupComponent implements ControlValueAccessor {
   public readonly options = input.required<DsRadioOption[]>();
   public readonly name = input.required<string>();
   public readonly disabled = input<boolean>(false);
-  public readonly direction = input<'horizontal' | 'vertical'>('vertical');
+  public readonly direction = input<DsRadioGroupDirection>('vertical');
 
   protected readonly value = signal<string | number | null>(null);
   private readonly internalDisabled = signal(false);

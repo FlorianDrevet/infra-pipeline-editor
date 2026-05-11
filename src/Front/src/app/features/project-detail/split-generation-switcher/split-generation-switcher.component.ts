@@ -26,6 +26,7 @@ import {
   BicepTreeNode,
 } from '../../../shared/components/bicep-file-panel/bicep-file-panel.component';
 import { toBootstrapRepoRelativePath } from '../project-generated-artifact-paths';
+import { sortHierarchicalEntries } from '../project-detail-tree-ordering.helper';
 
 /**
  * Two-level switcher rendered when project.layoutPreset === 'SplitInfraCode'.
@@ -211,21 +212,31 @@ function buildBicepNodes( // NOSONAR S3776 - tracked under test-debt #22
 ): BicepTreeNode[] {
   const nodes: BicepTreeNode[] = [];
 
-  const commonEntries = Object.keys(commonFileUris ?? {});
+  const commonEntries = Object.keys(commonFileUris ?? {})
+    .map((filePath) => toCommonRelativePath(filePath))
+    .filter((relativePath) => relativePath.length > 0);
+
   if (commonEntries.length > 0) {
     ensureFolderNode(nodes, 'Common', 'Common/', 0, undefined, 'folder_shared');
 
-    for (const filePath of commonEntries) {
-      const relativePath = toCommonRelativePath(filePath);
+    const topLevelEntries = commonEntries.filter((relativePath) => !relativePath.startsWith('modules/'));
+    const moduleEntries = commonEntries.filter((relativePath) => relativePath.startsWith('modules/'));
 
-      if (!relativePath) {
-        continue;
-      }
-
+    for (const relativePath of sortHierarchicalEntries(topLevelEntries)) {
       appendHierarchicalFileNode(
         nodes,
         'Common',
-        filePath,
+        `Common/${relativePath}`,
+        relativePath,
+        resolveCommonBicepFileType,
+      );
+    }
+
+    for (const relativePath of sortHierarchicalEntries(moduleEntries)) {
+      appendHierarchicalFileNode(
+        nodes,
+        'Common',
+        `Common/${relativePath}`,
         relativePath,
         resolveCommonBicepFileType,
       );
@@ -235,7 +246,7 @@ function buildBicepNodes( // NOSONAR S3776 - tracked under test-debt #22
   for (const [configName, files] of Object.entries(configFileUris ?? {})) {
     ensureFolderNode(nodes, configName, `${configName}/`, 0);
 
-    for (const fileName of Object.keys(files)) {
+    for (const fileName of sortHierarchicalEntries(Object.keys(files))) {
       const backendPath = toConfigBackendPath(configName, fileName);
       const relativePath = toConfigRelativePath(configName, backendPath);
 
@@ -262,7 +273,7 @@ function buildPipelineNodes(
 ): BicepTreeNode[] {
   const nodes: BicepTreeNode[] = [];
 
-  const commonEntries = Object.keys(commonFileUris ?? {});
+  const commonEntries = sortHierarchicalEntries(Object.keys(commonFileUris ?? {}));
   const configEntries = Object.entries(configFileUris ?? {});
 
   if (commonEntries.length === 0 && configEntries.length === 0) {
@@ -282,7 +293,7 @@ function buildPipelineNodes(
   }
 
   for (const [configName, files] of configEntries) {
-    for (const filePath of Object.keys(files)) {
+    for (const filePath of sortHierarchicalEntries(Object.keys(files))) {
       const backendPath = toPipelineBackendPath(configName, filePath);
       const relativePath = toAzureDevOpsRelativePath(backendPath);
 

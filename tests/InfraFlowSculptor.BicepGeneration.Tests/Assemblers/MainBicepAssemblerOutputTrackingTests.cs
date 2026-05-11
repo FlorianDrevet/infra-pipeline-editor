@@ -218,6 +218,173 @@ public sealed class MainBicepAssemblerOutputTrackingTests
     }
 
     [Fact]
+    public void Given_HyphenatedKeyVaultSecretName_When_Generate_Then_UsesBracketPropertyAccess()
+    {
+        // Arrange
+        var kv = NewModule(
+            moduleName: "keyVaultMyKv",
+            logicalName: "myKv",
+            resourceTypeName: AzureResourceTypes.KeyVault,
+            folder: KeyVaultFolder,
+            file: KeyVaultFile,
+            resourceGroup: "rg-app");
+
+        var web = NewModule(
+            moduleName: "webAppMyApp",
+            logicalName: "myApp",
+            resourceTypeName: AzureResourceTypes.WebApp,
+            folder: WebAppFolder,
+            file: WebAppFile,
+            resourceGroup: "rg-app");
+
+        var setting = new AppSettingDefinition
+        {
+            Name = "JwtSettings__Secret",
+            TargetResourceName = "myApp",
+            IsKeyVaultReference = true,
+            KeyVaultResourceName = "myKv",
+            SecretName = "jwt-secret",
+            SecretValueAssignment = "ViaBicepparam",
+        };
+
+        var rg = NewResourceGroup("rg-app");
+
+        // Act
+        var result = MainBicepAssembler.Generate(
+            modules: [kv, web],
+            resourceGroups: [rg],
+            namingContext: new NamingContext(),
+            roleAssignments: [],
+            appSettings: [setting],
+            existingResourceReferences: []);
+
+        // Assert
+        result.Content.Should().Contain("outputs.secretUris['jwt-secret']");
+    }
+
+    [Fact]
+    public void Given_MixedRoleNames_When_Generate_Then_UsesPropertyAccessMatchingBicepIdentifierRules()
+    {
+        // Arrange
+        var uai = NewModule(
+            moduleName: "userAssignedIdentityMyUai",
+            logicalName: "myUai",
+            resourceTypeName: "UserAssignedIdentity",
+            folder: UaiFolder,
+            file: UaiFile,
+            resourceGroup: "rg-app");
+
+        var web = NewModule(
+            moduleName: "webAppMyApp",
+            logicalName: "myApp",
+            resourceTypeName: AzureResourceTypes.WebApp,
+            folder: WebAppFolder,
+            file: WebAppFile,
+            resourceGroup: "rg-app");
+
+        var containerRegistryRoleAssignment = new RoleAssignmentDefinition
+        {
+            SourceResourceName = "myApp",
+            SourceResourceType = "Microsoft.Web/sites",
+            SourceResourceTypeName = AzureResourceTypes.WebApp,
+            SourceResourceGroupName = "rg-app",
+            TargetResourceName = "myAcr",
+            TargetResourceType = AzureResourceTypes.ArmTypes.ContainerRegistry,
+            TargetResourceTypeName = AzureResourceTypes.ContainerRegistry,
+            TargetResourceGroupName = "rg-app",
+            TargetResourceAbbreviation = "cr",
+            ManagedIdentityType = "UserAssigned",
+            UserAssignedIdentityName = "myUai",
+            UserAssignedIdentityResourceId = Guid.NewGuid(),
+            RoleDefinitionId = "7f951dda-4ed3-4680-a7ca-43fe172d538d",
+            RoleDefinitionName = "AcrPull",
+            RoleDefinitionDescription = "Allows pull of images from an Azure Container Registry.",
+            ServiceCategory = "containerregistry",
+        };
+
+        var keyVaultRoleAssignment = new RoleAssignmentDefinition
+        {
+            SourceResourceName = "myApp",
+            SourceResourceType = "Microsoft.Web/sites",
+            SourceResourceTypeName = AzureResourceTypes.WebApp,
+            SourceResourceGroupName = "rg-app",
+            TargetResourceName = "myKv",
+            TargetResourceType = AzureResourceTypes.ArmTypes.KeyVault,
+            TargetResourceTypeName = AzureResourceTypes.KeyVault,
+            TargetResourceGroupName = "rg-app",
+            TargetResourceAbbreviation = "kv",
+            ManagedIdentityType = "UserAssigned",
+            UserAssignedIdentityName = "myUai",
+            UserAssignedIdentityResourceId = Guid.NewGuid(),
+            RoleDefinitionId = "4633458b-17de-408a-b874-0445c86b69e6",
+            RoleDefinitionName = "Key Vault Secrets User",
+            RoleDefinitionDescription = "Read secret contents including the secret portion of a certificate with private key.",
+            ServiceCategory = "keyvault",
+        };
+
+        var rg = NewResourceGroup("rg-app");
+
+        // Act
+        var result = MainBicepAssembler.Generate(
+            modules: [uai, web],
+            resourceGroups: [rg],
+            namingContext: new NamingContext(),
+            roleAssignments: [containerRegistryRoleAssignment, keyVaultRoleAssignment],
+            appSettings: [],
+            existingResourceReferences: []);
+
+        // Assert
+        result.Content.Should().Contain("RbacRoles.containerregistry.AcrPull");
+        result.Content.Should().Contain("RbacRoles.keyvault['Key Vault Secrets User']");
+    }
+
+    [Fact]
+    public void Given_InvalidKeyVaultSecretName_When_Generate_Then_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var kv = NewModule(
+            moduleName: "keyVaultMyKv",
+            logicalName: "myKv",
+            resourceTypeName: AzureResourceTypes.KeyVault,
+            folder: KeyVaultFolder,
+            file: KeyVaultFile,
+            resourceGroup: "rg-app");
+
+        var web = NewModule(
+            moduleName: "webAppMyApp",
+            logicalName: "myApp",
+            resourceTypeName: AzureResourceTypes.WebApp,
+            folder: WebAppFolder,
+            file: WebAppFile,
+            resourceGroup: "rg-app");
+
+        var setting = new AppSettingDefinition
+        {
+            Name = "JwtSettings__Secret",
+            TargetResourceName = "myApp",
+            IsKeyVaultReference = true,
+            KeyVaultResourceName = "myKv",
+            SecretName = "JWT_SECRET",
+            SecretValueAssignment = "ViaBicepparam",
+        };
+
+        var rg = NewResourceGroup("rg-app");
+
+        // Act
+        Action act = () => MainBicepAssembler.Generate(
+            modules: [kv, web],
+            resourceGroups: [rg],
+            namingContext: new NamingContext(),
+            roleAssignments: [],
+            appSettings: [setting],
+            existingResourceReferences: []);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*JWT_SECRET*letters, digits, and hyphens*");
+    }
+
+    [Fact]
     public void Generate_TracksAppSettingOutputReference()
     {
         // Arrange — webApp pulls an output from another module ("storageMyStorage.outputs.connectionString")

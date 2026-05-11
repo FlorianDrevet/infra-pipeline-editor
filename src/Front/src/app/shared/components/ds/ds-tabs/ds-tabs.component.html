@@ -1,0 +1,27 @@
+<div class="ds-tabs" role="tablist" [attr.aria-label]="ariaLabel() ?? null">
+  @for (tab of tabs(); track tab.id; let index = $index) {
+    <button
+      #tabButton
+      type="button"
+      class="ds-tabs__tab"
+      [class.ds-tabs__tab--active]="isActive(tab)"
+      [class.ds-tabs__tab--disabled]="tab.disabled"
+      role="tab"
+      [id]="'ds-tab-' + tab.id"
+      [attr.aria-selected]="isActive(tab)"
+      [attr.aria-disabled]="tab.disabled ? true : null"
+      [attr.tabindex]="isActive(tab) ? 0 : -1"
+      [disabled]="tab.disabled"
+      (click)="onSelect(tab)"
+      (keydown)="onKeyDown($event, index)"
+    >
+      @if (tab.icon) {
+        <mat-icon class="ds-tabs__icon" aria-hidden="true">{{ tab.icon }}</mat-icon>
+      }
+      <span class="ds-tabs__label">{{ tab.label }}</span>
+      @if (tab.badge) {
+        <app-ds-chip class="ds-tabs__badge" size="sm" variant="neutral">{{ tab.badge }}</app-ds-chip>
+      }
+    </button>
+  }
+</div>

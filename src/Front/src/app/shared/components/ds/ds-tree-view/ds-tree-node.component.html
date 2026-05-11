@@ -1,0 +1,61 @@
+<div
+  class="ds-tree-node"
+>
+  <div
+    class="ds-tree-node__row"
+    [ngClass]="{
+      'ds-tree-node__row--selected': isSelected,
+      'ds-tree-node__row--disabled': node.disabled
+    }"
+    [style.padding-left.px]="indentPx"
+    [attr.aria-disabled]="node.disabled || null"
+    [attr.tabindex]="node.disabled ? -1 : (isSelected ? 0 : -1)"
+    (click)="onRowClick()"
+    (keydown)="onKeyDown($event)"
+  >
+    @if (hasChildren) {
+      <button
+        type="button"
+        class="ds-tree-node__chevron"
+        [class.ds-tree-node__chevron--expanded]="expanded"
+        [attr.aria-label]="expanded ? 'collapse' : 'expand'"
+        tabindex="-1"
+        (click)="onChevronClick($event)"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    } @else {
+      <span class="ds-tree-node__chevron ds-tree-node__chevron--placeholder" aria-hidden="true">
+        <mat-icon>chevron_right</mat-icon>
+      </span>
+    }
+
+    @if (node.icon) {
+      <mat-icon class="ds-tree-node__icon" aria-hidden="true">{{ node.icon }}</mat-icon>
+    }
+
+    <span class="ds-tree-node__label">{{ node.label }}</span>
+
+    @if (node.badge) {
+      <span class="ds-tree-node__badge">
+        <app-ds-chip size="sm" variant="neutral">{{ node.badge }}</app-ds-chip>
+      </span>
+    }
+  </div>
+
+  @if (hasChildren && expanded) {
+    <div class="ds-tree-node__children">
+      @for (child of node.children; track trackChild($index, child)) {
+        <app-ds-tree-node
+          [node]="child"
+          [depth]="depth + 1"
+          [expandedIds]="expandedIds"
+          [selectedId]="selectedId"
+          (nodeActivate)="onChildActivate($event)"
+          (nodeToggle)="onChildToggle($event)"
+          (nodeKey)="onChildKey($event)"
+        ></app-ds-tree-node>
+      }
+    </div>
+  }
+</div>

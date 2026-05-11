@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -31,6 +31,7 @@ import {
   DsTextFieldComponent,
 } from '../../shared/components/ds';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
+import { PageContextService } from '../../shared/services/page-context.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import {
   EditAbbreviationDialogComponent,
@@ -80,6 +81,7 @@ import {
   GeneratedArtifactArchiveSourceSpec,
   resolveGeneratedArtifactEntryPath,
 } from './project-generated-artifact-paths';
+import { shouldDeferMonoRepoBatchReveal } from './project-generation-visibility.helper';
 import { buildAzureDevOpsNodes, buildProjectBicepNodes } from './project-detail-tree.helpers';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
@@ -130,7 +132,7 @@ interface CombinedProjectArchiveExtractionState {
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',
 })
-export class ProjectDetailComponent implements OnInit {
+export class ProjectDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly projectService = inject(ProjectService);
@@ -141,8 +143,24 @@ export class ProjectDetailComponent implements OnInit {
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly translate = inject(TranslateService);
+  private readonly pageContextService = inject(PageContextService);
 
   protected readonly project = signal<ProjectResponse | null>(null);
+  private readonly breadcrumbEffect = effect(() => {
+    const project = this.project();
+    const projectsLabel = this.translate.instant('NAV.BREADCRUMB.PROJECTS') as string;
+    const segments = project
+      ? [
+          { label: projectsLabel, routerLink: '/' },
+          { label: project.name },
+        ]
+      : [{ label: projectsLabel, routerLink: '/' }];
+    this.pageContextService.setBreadcrumb(segments);
+  });
+
+  public ngOnDestroy(): void {
+    this.pageContextService.clear();
+  }
   protected readonly configs = signal<InfrastructureConfigResponse[]>([]);
   protected readonly availableUsers = signal<UserResponse[]>([]);
   protected readonly isLoading = signal(false);
@@ -180,6 +198,7 @@ export class ProjectDetailComponent implements OnInit {
 
   // ─── Diagnostics Validation ───
   protected readonly validatingDiagnostics = signal(false);
+  protected readonly projectGenerateAllBatchActive = signal(false);
 
   // ─── Project Bicep Generation (mono-repo) ───
   protected readonly projectBicepLoading = signal(false);
@@ -938,12 +957,23 @@ export class ProjectDetailComponent implements OnInit {
 
   // ─── Unified Generate All (mono-repo) ───
 
+  protected readonly anyProjectGenerationLoading = computed(
+    () => this.projectBicepLoading() || this.projectPipelineLoading() || this.projectBootstrapLoading(),
+  );
+
   protected readonly projectGenerateAllLoading = computed(
-    () => this.validatingDiagnostics() || this.projectBicepLoading() || this.projectPipelineLoading() || this.projectBootstrapLoading(),
+    () => this.validatingDiagnostics() || this.anyProjectGenerationLoading(),
+  );
+
+  protected readonly deferMonoRepoBatchReveal = computed(
+    () => shouldDeferMonoRepoBatchReveal({
+      isGenerateAllBatchActive: this.projectGenerateAllBatchActive(),
+      isAnyGenerationLoading: this.anyProjectGenerationLoading(),
+    }),
   );
 
   protected readonly projectGenerationPanelOpen = computed(
-    () => this.projectBicepPanelOpen() || this.projectPipelinePanelOpen() || this.projectBootstrapPanelOpen() || this.projectBicepLoading() || this.projectPipelineLoading() || this.projectBootstrapLoading(),
+    () => this.projectBicepPanelOpen() || this.projectPipelinePanelOpen() || this.projectBootstrapPanelOpen() || this.anyProjectGenerationLoading(),
   );
 
   protected async generateAll(): Promise<void> {
@@ -958,12 +988,16 @@ export class ProjectDetailComponent implements OnInit {
       this.validatingDiagnostics.set(false);
     }
 
-    // Launch all generations in parallel
-    await Promise.all([
-      this.doGenerateProjectBicep(),
-      this.doGenerateProjectPipeline(),
-      this.doGenerateProjectBootstrap(),
-    ]);
+    this.projectGenerateAllBatchActive.set(true);
+    try {
+      await Promise.all([
+        this.doGenerateProjectBicep(),
+        this.doGenerateProjectPipeline(),
+        this.doGenerateProjectBootstrap(),
+      ]);
+    } finally {
+      this.projectGenerateAllBatchActive.set(false);
+    }
   }
 
   protected toggleProjectGenerationPanelCollapsed(): void {

@@ -10,13 +10,13 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #103454;
+  color: var(--ifs-text-primary);
 
   mat-icon {
     font-size: 1.3rem;
     width: 1.3rem;
     height: 1.3rem;
-    color: #1565c0;
+    color: var(--ifs-accent-500);
   }
 }
 
@@ -37,7 +37,7 @@
   border-radius: 0.75rem;
   background: rgba(211, 47, 47, 0.06);
   border: 1px solid rgba(211, 47, 47, 0.15);
-  color: #c62828;
+  color: var(--ifs-danger);
   font-size: 0.82rem;
   margin-top: 0.75rem;
 
@@ -62,13 +62,13 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.82rem;
-  color: #546e7a;
+  color: var(--ifs-text-secondary);
   margin: 0;
 
   &__icon {
     font-size: 1rem;
     width: 1rem;
     height: 1rem;
-    color: #78909c;
+    color: var(--ifs-text-muted);
   }
 }

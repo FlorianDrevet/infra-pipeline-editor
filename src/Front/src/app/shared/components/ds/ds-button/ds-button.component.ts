@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, HostBinding, computed, input, outpu
 
 import { MatIconModule } from '@angular/material/icon';
 
+import { DsButtonIconPosition, DsButtonSize, DsButtonType, DsButtonVariant } from './ds-button.types';
+
 /**
  * Design system button. Variants, sizes, optional icon and loading state.
  */
@@ -14,13 +16,13 @@ import { MatIconModule } from '@angular/material/icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DsButtonComponent {
-  public readonly variant = input<'primary' | 'secondary' | 'ghost' | 'danger' | 'success'>('primary');
-  public readonly size = input<'sm' | 'md' | 'lg'>('md');
+  public readonly variant = input<DsButtonVariant>('primary');
+  public readonly size = input<DsButtonSize>('md');
   public readonly disabled = input<boolean>(false);
   public readonly loading = input<boolean>(false);
   public readonly icon = input<string | undefined>(undefined);
-  public readonly iconPosition = input<'leading' | 'trailing'>('leading');
-  public readonly type = input<'button' | 'submit'>('button');
+  public readonly iconPosition = input<DsButtonIconPosition>('leading');
+  public readonly type = input<DsButtonType>('button');
   public readonly fullWidth = input<boolean>(false);
 
   public readonly clicked = output<MouseEvent>();

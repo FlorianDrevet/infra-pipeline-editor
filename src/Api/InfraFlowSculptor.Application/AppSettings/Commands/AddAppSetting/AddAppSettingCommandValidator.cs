@@ -1,4 +1,5 @@
 using FluentValidation;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.Application.AppSettings.Commands.AddAppSetting;
 
@@ -37,8 +38,8 @@ public sealed class AddAppSettingCommandValidator : AbstractValidator<AddAppSett
             .WithMessage("ExportToKeyVault requires both source output reference and Key Vault reference fields.");
 
         RuleFor(x => x.SecretName)
-            .MaximumLength(256)
-            .WithMessage("Secret name must not exceed 256 characters.")
+            .Must(secretName => secretName is not null && KeyVaultSecretNameRules.IsValid(secretName))
+            .WithMessage(KeyVaultSecretNameRules.ValidationMessage)
             .When(x => x.SecretName is not null);
 
         // SecretValueAssignment must be a valid enum value when provided

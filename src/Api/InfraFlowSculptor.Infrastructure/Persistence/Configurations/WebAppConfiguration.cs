@@ -49,7 +49,7 @@ public class WebAppConfiguration : IEntityTypeConfiguration<WebApp>
                     Enum.Parse<DeploymentMode.DeploymentModeType>(v)));
 
         builder.Property(x => x.ContainerRegistryId)
-            .HasConversion(new IdValueConverter<AzureResourceId>())
+            .HasConversion(new NullableIdValueConverter<AzureResourceId>())
             .IsRequired(false);
 
         builder.Property(x => x.AcrAuthMode)

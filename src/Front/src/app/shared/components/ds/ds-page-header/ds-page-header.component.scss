@@ -1,107 +1,73 @@
-@use "scss/main" as *;
-
 :host {
   display: block;
 }
 
 .ds-page-header {
   display: flex;
+  align-items: flex-start;
+  gap: var(--ifs-space-16);
+  padding: var(--ifs-space-24) 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.ds-page-header__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-8);
+  flex: 1;
+  min-width: 0;
+}
+
+.ds-page-header__breadcrumbs:empty {
+  display: none;
+}
+
+.ds-page-header__main {
+  display: flex;
   align-items: center;
-  gap: 1.5rem;
-  padding: 1.5rem 2rem;
-  border-radius: $ifs-radius-2xl;
-  margin-bottom: 1.5rem;
+  gap: var(--ifs-space-12);
+  min-width: 0;
+}
+
+.ds-page-header__icon {
+  flex-shrink: 0;
+  width: var(--ifs-icon-lg);
+  height: var(--ifs-icon-lg);
+  font-size: var(--ifs-icon-lg);
+  line-height: var(--ifs-icon-lg);
+  color: var(--ifs-text-secondary);
+}
+
+.ds-page-header__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.ds-page-header__title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ifs-text-primary);
+}
+
+.ds-page-header__subtitle {
+  margin: var(--ifs-space-4) 0 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ifs-text-secondary);
+}
+
+.ds-page-header__actions {
+  display: flex;
+  gap: var(--ifs-space-8);
   flex-wrap: wrap;
+  align-items: center;
 
-  &--gradient {
-    background: $ifs-gradient-brand;
-    color: #fff;
-    box-shadow: $ifs-shadow-hero;
-
-    .ds-page-header__badge {
-      background: rgba(255, 255, 255, 0.2);
-
-      mat-icon {
-        color: inherit;
-      }
-    }
-  }
-
-  &--plain {
-    background: $ifs-surface-0;
-    color: $ifs-ink-900;
-    border: 1px solid $ifs-border-soft;
-    box-shadow: $ifs-shadow-xs;
-
-    .ds-page-header__badge {
-      background: $ifs-info-soft;
-
-      mat-icon {
-        color: $ifs-brand-blue;
-      }
-    }
-
-    .ds-page-header__subtitle {
-      color: $ifs-ink-500;
-      opacity: 1;
-    }
-  }
-
-  &__content {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex: 1;
-    min-width: 0;
-  }
-
-  &__badge {
-    width: 3rem;
-    height: 3rem;
-    display: grid;
-    place-items: center;
-    border-radius: $ifs-radius-md;
-    flex-shrink: 0;
-
-    mat-icon {
-      font-size: 1.6rem;
-      width: 1.6rem;
-      height: 1.6rem;
-    }
-  }
-
-  &__text {
-    flex: 1;
-    min-width: 0;
-  }
-
-  &__title {
-    font-size: clamp(1.5rem, 2.2vw, 2rem);
-    font-weight: 700;
-    margin: 0;
-  }
-
-  &__subtitle {
-    font-size: 0.95rem;
-    opacity: 0.9;
-    margin: 0.3rem 0 0 0;
-  }
-
-  &__actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-
-    &:empty {
-      display: none;
-    }
-  }
-
-  @media (max-width: 640px) {
-    padding: 1.25rem;
-
-    &__title {
-      font-size: 1.4rem;
-    }
+  &:empty {
+    display: none;
   }
 }

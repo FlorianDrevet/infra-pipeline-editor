@@ -83,7 +83,7 @@
   }
 
   &__icon {
-    color: #0288d1;
+    color: var(--ifs-accent-500);
   }
 
   &__content {
@@ -106,7 +106,7 @@
   }
 
   &__link {
-    color: #0288d1;
+    color: var(--ifs-accent-500);
     text-decoration: none;
     font-weight: 500;
     overflow: hidden;
@@ -162,7 +162,7 @@
   width: 100%;
 
   &:hover {
-    border-color: #0288d1;
+    border-color: var(--ifs-accent-500);
     background: rgba(2, 136, 209, 0.08);
   }
 
@@ -170,7 +170,7 @@
     font-size: 1.75rem;
     width: 1.75rem;
     height: 1.75rem;
-    color: #0288d1;
+    color: var(--ifs-accent-500);
   }
 
   &__title {
@@ -195,7 +195,7 @@
   border-radius: 0.75rem;
 
   &__icon {
-    color: #0288d1;
+    color: var(--ifs-accent-500);
     flex-shrink: 0;
     margin-top: 0.1rem;
   }
