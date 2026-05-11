@@ -33,6 +33,7 @@
 - `@azure/msal-browser@^5` only; no `@azure/msal-angular`
 - `MsalAuthService` lazy-inits `PublicClientApplication`, uses `loginRedirect()`, and sets the active account explicitly after `handleRedirectPromise()`
 - `MsalAuthService` also exposes `getAccessTokenForScopesSilently(scopes)` for UI-only delegated-scope fetches that must not trigger an interactive prompt during shell render; `NavigationComponent` uses `MicrosoftGraphProfilePhotoService` + Graph `User.Read` on `/me/photo/$value` to hydrate the header avatar and falls back to initials when no token/photo is available
+- `MicrosoftGraphProfilePhotoService` returns the raw photo `Blob` (not a prebuilt `blob:` URL). `NavigationComponent` owns `URL.createObjectURL(...)` / `URL.revokeObjectURL(...)` so the blob URL lifecycle stays explicit at the UI layer.
 - `AxiosService` now routes both backend `401` responses and missing-token preflight failures through a single guarded redirect helper to `/login`; it avoids duplicate redirects and transient component-level error banners
 - API services are `providedIn: 'root'` wrappers over `AxiosService.request$<T>()`
 
