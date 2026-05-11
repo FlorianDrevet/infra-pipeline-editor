@@ -1999,10 +1999,7 @@
 .acr-identity-card,
 .kv-access-card {
   @extend %re-warn-card;
-}
 
-.acr-identity-card,
-.kv-access-card {
   &__header {
     display: flex;
     align-items: center;

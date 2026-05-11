@@ -328,11 +328,11 @@ function stripQuotes(rawValue: string): string {
     const innerValue = rawValue.slice(1, -1);
     return first === '"'
       ? innerValue
-        .replaceAll('\\n', '\n')
-        .replaceAll('\\r', '\r')
-        .replaceAll('\\t', '\t')
-        .replaceAll('\\"', '"')
-        .replaceAll('\\\\', '\\')
+          .replaceAll(String.raw`\n`, '\n')
+          .replaceAll(String.raw`\r`, '\r')
+          .replaceAll(String.raw`\t`, '\t')
+          .replaceAll(String.raw`\"`, '"')
+          .replaceAll(String.raw`\\`, '\\')
       : innerValue;
   }
 
@@ -401,12 +401,12 @@ function findPropertySeparatorIndex(value: string): number {
 
 function unescapeJavaProperties(value: string): string {
   return value
-  .replaceAll('\\n', '\n')
-  .replaceAll('\\r', '\r')
-  .replaceAll('\\t', '\t')
-  .replaceAll('\\f', '\f')
-  .replaceAll('\\:', ':')
-  .replaceAll('\\=', '=')
-  .replaceAll('\\ ', ' ')
-  .replaceAll('\\\\', '\\');
+  .replaceAll(String.raw`\n`, '\n')
+  .replaceAll(String.raw`\r`, '\r')
+  .replaceAll(String.raw`\t`, '\t')
+  .replaceAll(String.raw`\f`, '\f')
+  .replaceAll(String.raw`\:`, ':')
+  .replaceAll(String.raw`\=`, '=')
+  .replaceAll(String.raw`\ `, ' ')
+  .replaceAll(String.raw`\\`, '\\');
 }
