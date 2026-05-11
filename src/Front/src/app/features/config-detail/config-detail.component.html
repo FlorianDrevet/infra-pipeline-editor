@@ -259,10 +259,10 @@
                   <div class="rg-accordion__header">
                     <button
                       type="button"
+                      class="rg-accordion__toggle"
                       [attr.aria-controls]="'rg-body-' + rg.id"
                       [attr.aria-expanded]="expandedRgId() === rg.id"
-                      (click)="toggleRgExpand(rg.id)"
-                      style="display:flex; align-items:center; gap:0.75rem; flex:1 1 auto; min-width:0; padding:0; border:none; background:transparent; color:inherit; font:inherit; text-align:left; cursor:pointer;">
+                      (click)="toggleRgExpand(rg.id)">
                       <mat-icon class="rg-accordion__chevron">expand_more</mat-icon>
                       <div class="rg-accordion__info">
                         <div class="rg-name-row">
