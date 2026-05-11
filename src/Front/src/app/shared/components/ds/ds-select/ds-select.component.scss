@@ -147,7 +147,9 @@
   border-radius: $ifs-radius-md;
   box-shadow: $ifs-shadow-lg;
   max-height: 18rem;
-  min-width: 12rem;
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   animation: ifs-slide-in-down $ifs-duration-fast $ifs-ease-out;

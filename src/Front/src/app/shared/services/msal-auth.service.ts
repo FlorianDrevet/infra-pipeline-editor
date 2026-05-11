@@ -145,16 +145,33 @@ export class MsalAuthService {
   }
 
   public async getAccessTokenForScopes(scopes: string[]): Promise<string | null> {
+    return this.acquireAccessTokenForScopes(scopes, true);
+  }
+
+  public async getAccessTokenForScopesSilently(scopes: string[]): Promise<string | null> {
+    return this.acquireAccessTokenForScopes(scopes, false);
+  }
+
+  private async acquireAccessTokenForScopes(
+    scopes: string[],
+    allowInteractiveFallback: boolean
+  ): Promise<string | null> {
     await this.initialize();
     const account = this.resolveActiveAccount();
     if (!account) {
       return null;
     }
+
     try {
       const request: SilentRequest = { scopes, account };
       const result = await this.msalInstance.acquireTokenSilent(request);
       return result.accessToken || null;
     } catch (err) {
+      if (!allowInteractiveFallback) {
+        console.warn('MsalAuthService: silent token acquisition failed for scopes', scopes, err);
+        return null;
+      }
+
       console.warn('MsalAuthService: silent token acquisition failed for scopes, trying popup', scopes, err);
       try {
         const result = await this.msalInstance.acquireTokenPopup({ scopes, account });

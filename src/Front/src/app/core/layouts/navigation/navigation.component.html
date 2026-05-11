@@ -49,7 +49,16 @@
       </div>
 
       <div class="user-card" [attr.aria-label]="'NAV.USER_CARD_ARIA' | translate">
-        <span class="user-card__avatar">{{ userInitials() }}</span>
+        <span class="user-card__avatar">
+          @if (userPhotoUrl()) {
+            <img
+              class="user-card__avatar-image"
+              [src]="userPhotoUrl() ?? ''"
+              [alt]="userName() || ('NAV.USER_DEFAULT_NAME' | translate)" />
+          } @else {
+            {{ userInitials() }}
+          }
+        </span>
         <span class="user-card__details">
           @if (userName()) {
             <strong>{{ userName() }}</strong>
