@@ -22,7 +22,7 @@ public sealed class ContainerAppConfiguration : IEntityTypeConfiguration<Contain
             .IsRequired();
 
         builder.Property(x => x.ContainerRegistryId)
-            .HasConversion(new IdValueConverter<AzureResourceId>())
+            .HasConversion(new NullableIdValueConverter<AzureResourceId>())
             .IsRequired(false);
 
         builder.Property(x => x.AcrAuthMode)

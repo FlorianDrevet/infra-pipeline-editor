@@ -31,7 +31,7 @@ public sealed class ProjectRepositoryConfiguration : IEntityTypeConfiguration<Pr
             .IsRequired();
 
         builder.Property(x => x.ProviderType)
-            .HasConversion(new EnumValueConverter<GitProviderType, GitProviderTypeEnum>())
+            .HasConversion(new NullableEnumValueConverter<GitProviderType, GitProviderTypeEnum>())
             .IsRequired(false);
 
         builder.Property(x => x.RepositoryUrl)

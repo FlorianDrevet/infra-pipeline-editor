@@ -8,6 +8,7 @@ namespace InfraFlowSculptor.Contracts.AppConfigurations.Responses;
 /// <param name="Name">Display name of the App Configuration.</param>
 /// <param name="Location">Azure region where the App Configuration is deployed.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
+/// <param name="IsExisting">Whether the resource references an already-existing Azure resource.</param>
 public record AppConfigurationResponse(
     string Id,
     string ResourceGroupId,

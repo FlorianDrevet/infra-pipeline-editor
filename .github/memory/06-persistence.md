@@ -32,8 +32,10 @@ builder.Navigation(p => p.Tags).HasField("_tags").UsePropertyAccessMode(Property
 
 ## Converters
 - `IdValueConverter<TId>` — ID value objects ↔ Guid
+- `NullableIdValueConverter<TId>` — optional ID value objects ↔ nullable Guid (use this instead of `IdValueConverter<TId>` on `IsRequired(false)` properties)
 - `SingleValueConverter<TValueObject, TPrimitive>` — single-value objects
 - `EnumValueConverter<TEnumValueObject, TEnum>` — enum value objects as strings
+- `NullableEnumValueConverter<TEnumValueObject, TEnum>` — optional enum value objects ↔ nullable string (use this instead of `EnumValueConverter<...>` on `IsRequired(false)` properties)
 
 ## Repository Pattern
 - Interface in Application layer, implementation in Infrastructure
@@ -76,7 +78,8 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 
 - `ProjectDbContext` now exposes both `ProjectRepositories` and `InfraConfigRepositories`.
 - `ProjectRepositories` and `InfraConfigRepositories` both persist `RepositoryContentKinds` through `RepositoryContentKindsConverter`; valid flags are now only `Infrastructure` and `ApplicationCode`.
-- `InfrastructureConfigs.LayoutMode` is a nullable enum-backed column (`ConfigLayoutMode`) configured with `EnumValueConverter<ConfigLayoutMode, ConfigLayoutModeEnum>()`.
+- `InfrastructureConfigs.LayoutMode` is a nullable enum-backed column (`ConfigLayoutMode`) and must use `NullableEnumValueConverter<ConfigLayoutMode, ConfigLayoutModeEnum>()`; same rule for other optional enum-backed columns such as `ProjectRepositories.ProviderType`.
+- Optional strongly typed ID columns (for example `ContainerRegistryId` / `LogAnalyticsWorkspaceId` references on resource aggregates) must use `NullableIdValueConverter<TId>` rather than `IdValueConverter<TId>` to keep EF Core nullable mappings warning-free.
 - `InfraConfigRepositories` is a dedicated child table with cascade delete and a unique `(InfrastructureConfigId, Alias)` index.
 - `LayoutDrivenRepoConfiguration` removed `Projects.CommonsStrategy` and the inline `InfrastructureConfigs.RepositoryBinding_*` columns, and added `InfrastructureConfigs.LayoutMode` plus `InfraConfigRepositories`.
 - `RemoveLegacyGitRepositoryConfiguration` dropped the old `GitRepositoryConfigurations` table. The presence of that table in historical migrations or designer snapshots is legacy history only, not the current model.

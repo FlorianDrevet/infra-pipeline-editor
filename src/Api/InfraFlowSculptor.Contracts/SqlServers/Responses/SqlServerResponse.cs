@@ -10,6 +10,7 @@ namespace InfraFlowSculptor.Contracts.SqlServers.Responses;
 /// <param name="Version">SQL Server version.</param>
 /// <param name="AdministratorLogin">Administrator login name.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
+/// <param name="IsExisting">Whether the resource references an already-existing Azure resource.</param>
 public record SqlServerResponse(
     string Id,
     string ResourceGroupId,

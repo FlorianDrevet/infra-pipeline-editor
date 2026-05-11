@@ -99,7 +99,7 @@ public sealed class InfrastructureConfigConfiguration
         // LayoutMode (per-config sub-mode for MultiRepo)
         // ========================
         builder.Property(x => x.LayoutMode)
-            .HasConversion(new EnumValueConverter<ConfigLayoutMode, ConfigLayoutModeEnum>())
+            .HasConversion(new NullableEnumValueConverter<ConfigLayoutMode, ConfigLayoutModeEnum>())
             .HasMaxLength(30)
             .IsRequired(false);
 

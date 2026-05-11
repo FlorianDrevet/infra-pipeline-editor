@@ -19,7 +19,7 @@ public sealed class ContainerAppEnvironmentConfiguration : IEntityTypeConfigurat
             .ToTable("ContainerAppEnvironments");
 
         builder.Property(x => x.LogAnalyticsWorkspaceId)
-            .HasConversion(new IdValueConverter<AzureResourceId>())
+            .HasConversion(new NullableIdValueConverter<AzureResourceId>())
             .IsRequired(false);
 
         builder.HasMany(x => x.EnvironmentSettings)

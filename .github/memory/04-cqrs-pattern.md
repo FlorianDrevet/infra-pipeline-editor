@@ -66,6 +66,7 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 - `Application/Common/Helpers/EnumValueObjectParser.cs` is the shared helper for the narrow handler pattern `string -> Enum.TryParse(ignoreCase: true) -> EnumValueObject -> ErrorOr`.
 - Use `Parse<TEnum, TValueObject>(...)` for required enum-backed inputs and `ParseOrNull<TEnum, TValueObject>(...)` only when `null` is the sole "missing" value. If a feature treats whitespace as "unset" (for example optional repository provider/layout inputs), keep that wrapper logic local in the handler and call `Parse(...)` only after the whitespace guard.
 - `Application/Common/Helpers/RepositoryContentKindsParser.cs` centralizes the repeated handler-side parsing of `RepositoryContentKinds` flags from `IReadOnlyList<string>`.
+- When extracting this kind of shared parser, keep at least one direct handler test per handler family for the handler-owned invalid branches (`invalid provider`, `invalid layout`, `invalid content kinds`) instead of relying only on helper tests or broader orchestration tests.
 - Do not route FluentValidation rules, import fallbacks, fuzzy enum normalization, or post-parse business checks through these helpers. Those cases stay explicit at the validator/import/domain-service boundary.
 
 ## Resource Creation Handlers [2026-05-11]

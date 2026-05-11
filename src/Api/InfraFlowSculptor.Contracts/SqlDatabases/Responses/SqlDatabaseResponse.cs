@@ -10,6 +10,7 @@ namespace InfraFlowSculptor.Contracts.SqlDatabases.Responses;
 /// <param name="SqlServerId">Identifier of the hosting SQL Server.</param>
 /// <param name="Collation">Database collation.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
+/// <param name="IsExisting">Whether the resource references an already-existing Azure resource.</param>
 public record SqlDatabaseResponse(
     string Id,
     string ResourceGroupId,

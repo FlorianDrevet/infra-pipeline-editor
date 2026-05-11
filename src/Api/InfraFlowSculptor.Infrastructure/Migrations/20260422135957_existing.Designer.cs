@@ -14,7 +14,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
     [Migration("20260422135957_existing")]
-    partial class existing
+    partial class Existing
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
