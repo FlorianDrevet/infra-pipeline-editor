@@ -381,22 +381,28 @@ public sealed class ContainerAppTypeBicepGenerator
           parameters = parameters with { CustomDomains = [] };
         }
 
-        var moduleFileName = hasAcr
-            ? useAdminCredentials
-                ? AdminCredentialsModuleFileName
-                : ManagedIdentityModuleFileName
-            : ModuleName;
+        var moduleFileName = ModuleName;
+        if (hasAcr)
+        {
+          moduleFileName = useAdminCredentials
+            ? AdminCredentialsModuleFileName
+            : ManagedIdentityModuleFileName;
+        }
+
+        var moduleBicepContent = ContainerAppModuleTemplate;
+        if (hasAcr)
+        {
+          moduleBicepContent = useAdminCredentials
+            ? ContainerAppWithAcrAdminCredentialsModuleTemplate
+            : ContainerAppWithAcrManagedIdentityModuleTemplate;
+        }
 
         return new GeneratedTypeModule
         {
             ModuleName = ModuleName,
             ModuleFileName = moduleFileName,
             ModuleFolderName = ModuleFolderName,
-            ModuleBicepContent = hasAcr
-                ? useAdminCredentials
-                    ? ContainerAppWithAcrAdminCredentialsModuleTemplate
-                    : ContainerAppWithAcrManagedIdentityModuleTemplate
-                : ContainerAppModuleTemplate,
+          ModuleBicepContent = moduleBicepContent,
             ModuleTypesBicepContent = ContainerAppTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = BicepParameterModelConverter.ToDictionary(parameters),

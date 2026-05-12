@@ -55,14 +55,17 @@ public sealed class BicepAssemblerTests
         // Act
         var result = BicepAssembler.Assemble(
             modules: [],
-            resourceGroups: resourceGroups,
-            environments: environments,
-            environmentNames: ["Development"],
-            resources: [],
-            namingContext: new NamingContext(),
-            roleAssignments: [roleAssignment],
-            appSettings: [],
-            existingResourceReferences: []);
+            new GenerationRequest
+            {
+                ResourceGroups = resourceGroups,
+                Environments = environments,
+                EnvironmentNames = ["Development"],
+                Resources = [],
+                NamingContext = new NamingContext(),
+                RoleAssignments = [roleAssignment],
+                AppSettings = [],
+                ExistingResourceReferences = [],
+            });
 
         // Assert
         result.ModuleFiles.Should().ContainKey("modules/ContainerRegistry/containerregistry.roleassignments.module.bicep");
@@ -159,14 +162,17 @@ public sealed class BicepAssemblerTests
         // Act
         var result = BicepAssembler.Assemble(
             modules,
-            resourceGroups,
-            environments,
-            environmentNames: ["dev"],
-            resources,
-            namingContext,
-            roleAssignments: [],
-            appSettings: [],
-            existingResourceReferences);
+            new GenerationRequest
+            {
+                ResourceGroups = resourceGroups,
+                Environments = environments,
+                EnvironmentNames = ["dev"],
+                Resources = resources,
+                NamingContext = namingContext,
+                RoleAssignments = [],
+                AppSettings = [],
+                ExistingResourceReferences = existingResourceReferences,
+            });
 
         // Assert
         result.MainBicep.Should().Contain("acrLoginServer: containerAppIfsApiAcrLoginServer");

@@ -26,8 +26,7 @@ internal static class MainBicepAssembler
         IReadOnlyList<RoleAssignmentDefinition> roleAssignments,
         IReadOnlyList<AppSettingDefinition> appSettings,
         IReadOnlyList<ExistingResourceReference> existingResourceReferences,
-        IReadOnlyDictionary<string, string>? projectTags = null,
-        IReadOnlyDictionary<string, string>? configTags = null)
+        (IReadOnlyDictionary<string, string>? ProjectTags, IReadOnlyDictionary<string, string>? ConfigTags) tagSets = default)
     {
         var sb = new StringBuilder();
         var tracker = new OutputUsageTracker();
@@ -103,7 +102,7 @@ internal static class MainBicepAssembler
         sb.AppendLine();
 
         // â”€â”€ Tags merging (project â†’ config â†’ environment) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        AppendTagsMergingBlock(sb, projectTags, configTags);
+        AppendTagsMergingBlock(sb, tagSets.ProjectTags, tagSets.ConfigTags);
 
         // â”€â”€ Resource group declarations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         AppendResourceGroupDeclarations(sb, resourceGroups, namingContext);
