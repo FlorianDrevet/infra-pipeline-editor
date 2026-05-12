@@ -2,6 +2,8 @@
 
 ## UI Refresh 2026-05 — Vagues complètes [2026-05-11]
 
+- **Blue-presence theme refresh [2026-05-12]** : la base dark globale a été réchauffée vers un bleu plus assumé sans revenir au glassmorphism applicatif. `src/Front/src/scss/_tokens.scss` pousse désormais une famille brand plus vive (`--ifs-brand-500: #4e86f4`), un accent plus lumineux (`--ifs-accent-500: #46b5ff`), des surfaces dark bleutées (`--ifs-bg/#08111d`, `--ifs-surface-1/#0f1928`, `--ifs-surface-2/#142033`, `--ifs-surface-3/#1b2a41`), des gradients login/CTA plus clairs, et un nouveau token `--ifs-app-backdrop` basé sur des halos radiaux bleus + un voile sombre. `src/Front/src/styles.scss` applique ce backdrop globalement sur `body` et `.mat-app-background`, ce qui redonne de la présence colorée au shell, à la navigation et aux écrans de détail sans retouche écran par écran. Validation : `npm run typecheck`, `npm run build`.
+
 - **Vague 6 (polish, livrée 2026-05-11)** : 5 nouvelles primitives DS créées et exportées via `ds/index.ts` :
   - `app-ds-empty-state` — slot icon/title/description + `[actions]` slot, container neutre 64×64 icon wrap, no border/shadow.
   - `app-ds-skeleton` — variants `box`/`line`/`circle`, shimmer linear-gradient *whitelisté* (commentaire `// V2 whitelisted: skeleton shimmer is functional, not decorative`), `prefers-reduced-motion` honored, props width/height/count/gap, rendu décoratif `aria-hidden=true`.
