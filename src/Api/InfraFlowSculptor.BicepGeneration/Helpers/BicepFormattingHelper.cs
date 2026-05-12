@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.RegularExpressions;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Helpers;
 
@@ -21,19 +22,8 @@ internal static class BicepFormattingHelper
     /// or produces no parts.
     /// Example: <c>"my-env"</c> → <c>"myEnv"</c>, <c>"dev"</c> → <c>"dev"</c>.
     /// </summary>
-    internal static string SanitizeBicepKey(string name)
-    {
-        if (string.IsNullOrEmpty(name)) return "unknown";
-        var parts = name.Split(['-', '_', ' '], StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 0) return "unknown";
-        var sb = new StringBuilder(parts[0].ToLowerInvariant());
-        foreach (var part in parts.Skip(1))
-        {
-            if (part.Length > 0)
-                sb.Append(char.ToUpperInvariant(part[0])).Append(part[1..].ToLowerInvariant());
-        }
-        return sb.ToString();
-    }
+    internal static string SanitizeBicepKey(string name) =>
+        BicepIdentifierNormalizer.NormalizeCamelCase(name, "unknown");
 
     internal static string Capitalize(string s) =>
         s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];

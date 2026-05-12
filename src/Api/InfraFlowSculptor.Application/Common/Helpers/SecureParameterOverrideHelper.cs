@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
 using InfraFlowSculptor.BicepGeneration.Generators;
+using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 
 namespace InfraFlowSculptor.Application.Common.Helpers;
@@ -10,6 +11,8 @@ namespace InfraFlowSculptor.Application.Common.Helpers;
 /// </summary>
 public static class SecureParameterOverrideHelper
 {
+    private const string DefaultResourceIdentifier = "resource";
+
     /// <summary>
     /// Derives secure parameter overrides and integrates custom variable group mappings.
     /// Returns the list of auto-derived overrides (for params without custom mappings)
@@ -35,7 +38,7 @@ public static class SecureParameterOverrideHelper
                 continue;
 
             var module = generator.Generate(resource);
-            var resourceIdentifier = ToBicepIdentifier(resource.Name);
+            var resourceIdentifier = BicepIdentifierNormalizer.NormalizeCamelCase(resource.Name, DefaultResourceIdentifier);
             var qualifiedModuleName = $"{module.ModuleName}{Capitalize(resourceIdentifier)}";
 
             foreach (var secureParam in module.SecureParameters)
@@ -95,23 +98,6 @@ public static class SecureParameterOverrideHelper
             GroupName = vgName,
             Mappings = [mapping],
         });
-    }
-
-    /// <summary>
-    /// Replicates <c>BicepIdentifierHelper.ToBicepIdentifier</c> logic (camelCase from hyphens/underscores/spaces).
-    /// </summary>
-    private static string ToBicepIdentifier(string name)
-    {
-        if (string.IsNullOrEmpty(name)) return "resource";
-        var parts = name.Split(['-', '_', ' '], StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 0) return "resource";
-        var sb = new System.Text.StringBuilder(parts[0].ToLowerInvariant());
-        foreach (var part in parts.Skip(1))
-        {
-            if (part.Length > 0)
-                sb.Append(char.ToUpperInvariant(part[0])).Append(part[1..].ToLowerInvariant());
-        }
-        return sb.ToString();
     }
 
     private static string Capitalize(string s) =>
