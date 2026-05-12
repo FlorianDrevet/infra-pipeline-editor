@@ -21,7 +21,7 @@ public class RedisCacheRepository : AzureResourceRepository<RedisCache>, IRedisC
             .FirstOrDefaultAsync(rc => rc.Id == id, cancellationToken);
     }
 
-    public override async Task<RedisCache?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken)
+    public override async Task<RedisCache?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await Context.Set<RedisCache>()
             .AsNoTracking()

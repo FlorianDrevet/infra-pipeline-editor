@@ -54,7 +54,7 @@ internal static class BlobDownloadHelper
             .Select(blobName => string.Join('/', blobName.Split('/').Take(prefixSegmentCount)))
             .Distinct()
             .OrderDescending()
-            .FirstOrDefault();
+            .First();
 
         if (string.IsNullOrWhiteSpace(latestPrefix))
             return notFoundErrorFactory(entityId);
@@ -198,6 +198,34 @@ internal static class BlobDownloadHelper
         return (firstResult, secondResult);
     }
 
+    internal static async Task<ErrorOr<string>> GetLatestBlobContentAsync(
+        IBlobService blobService,
+        string blobPrefix,
+        int prefixSegmentCount,
+        Func<Guid, Error> notFoundErrorFactory,
+        Guid entityId,
+        Func<string, Error> fileNotFoundErrorFactory,
+        string requestedFilePath,
+        IReadOnlyList<string> candidateRelativePaths)
+    {
+        var latestFilesResult = await GetLatestBlobFilesCoreAsync(
+            blobService,
+            blobPrefix,
+            prefixSegmentCount,
+            notFoundErrorFactory,
+            entityId);
+        if (latestFilesResult.IsError)
+            return latestFilesResult.Errors;
+
+        foreach (var candidateRelativePath in candidateRelativePaths)
+        {
+            if (latestFilesResult.Value.TryGetValue(candidateRelativePath, out var content))
+                return content;
+        }
+
+        return fileNotFoundErrorFactory(requestedFilePath);
+    }
+
     private static async Task<ErrorOr<Dictionary<string, string>>> GetLatestBlobFilesCoreAsync(
         IBlobService blobService,
         string blobPrefix,
@@ -214,7 +242,7 @@ internal static class BlobDownloadHelper
             .Select(blobName => string.Join('/', blobName.Split('/').Take(prefixSegmentCount)))
             .Distinct()
             .OrderDescending()
-            .FirstOrDefault();
+            .First();
 
         if (string.IsNullOrWhiteSpace(latestPrefix))
             return notFoundErrorFactory(entityId);

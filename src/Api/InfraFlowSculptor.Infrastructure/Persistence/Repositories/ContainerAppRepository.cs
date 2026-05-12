@@ -24,7 +24,7 @@ public sealed class ContainerAppRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<ContainerApp?> GetByIdReadOnlyAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await Context.Set<ContainerApp>()
             .AsNoTracking()

@@ -24,7 +24,7 @@ public class AppServicePlanRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<AppServicePlan?> GetByIdReadOnlyAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await Context.Set<AppServicePlan>()
             .AsNoTracking()

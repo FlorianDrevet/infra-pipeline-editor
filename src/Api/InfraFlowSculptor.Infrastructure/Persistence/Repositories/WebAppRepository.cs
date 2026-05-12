@@ -25,7 +25,7 @@ public class WebAppRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<WebApp?> GetByIdReadOnlyAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await Context.Set<WebApp>()
             .AsNoTracking()

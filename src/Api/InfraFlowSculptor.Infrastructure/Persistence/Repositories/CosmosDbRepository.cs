@@ -27,7 +27,7 @@ public sealed class CosmosDbRepository : AzureResourceRepository<CosmosDb>, ICos
     }
 
     /// <inheritdoc />
-    public override async Task<CosmosDb?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken)
+    public override async Task<CosmosDb?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await Context.Set<CosmosDb>()
             .AsNoTracking()

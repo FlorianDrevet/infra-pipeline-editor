@@ -24,7 +24,7 @@ public class SqlServerRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<SqlServer?> GetByIdReadOnlyAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await Context.Set<SqlServer>()
             .AsNoTracking()

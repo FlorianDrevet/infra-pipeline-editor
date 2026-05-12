@@ -21,7 +21,7 @@ public class KeyVaultRepository: AzureResourceRepository<KeyVault>, IKeyVaultRep
             .FirstOrDefaultAsync(kv => kv.Id == id, cancellationToken);
     }
 
-    public override async Task<KeyVault?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken)
+    public override async Task<KeyVault?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await Context.Set<KeyVault>()
             .AsNoTracking()

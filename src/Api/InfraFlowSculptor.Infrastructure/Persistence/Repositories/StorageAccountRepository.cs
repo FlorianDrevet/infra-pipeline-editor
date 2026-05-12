@@ -28,7 +28,7 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
-    public override async Task<StorageAccount?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken)
+    public override async Task<StorageAccount?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await Context.Set<StorageAccount>()
             .AsNoTracking()
