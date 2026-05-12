@@ -38,6 +38,7 @@ result.Match(
 
 - All protected endpoints must include `.ProducesProblem(401)` for accurate OpenAPI 401 documentation.
 - ErrorOr extension (`ToErrorResult()`) returns **all** errors in the non-validation branch, not just the first.
+- Route names must live in per-controller constants files under `src/Api/InfraFlowSculptor.Api/Controllers/Constants/` (pattern: `<ControllerBaseName>RouteNames.cs`). Controllers must not inline literals in `.WithName(...)` or `CreatedAtRoute(routeName: ...)`; `ControllerRouteNameConstantsTests` in `tests/InfraFlowSculptor.Api.Tests` enforces this for future controllers.
 
 ## Response DTO Convention (API-002) [2026-04-16]
 

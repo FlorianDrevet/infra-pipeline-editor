@@ -5,6 +5,7 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
@@ -138,6 +139,23 @@ public sealed class ResourceGroupRepositoryTests : IDisposable
         // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(group.Id);
+    }
+
+    [Fact]
+    public async Task Given_StoredGroup_When_GetByIdReadOnlyAsync_Then_ReturnsDetachedGroup_Async()
+    {
+        // Arrange
+        var group = NewGroup(InfrastructureConfigId.CreateUnique());
+        await _context.ResourceGroups.AddAsync(group);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetByIdReadOnlyAsync(group.Id, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(group.Id);
+        _context.Entry(result).State.Should().Be(EntityState.Detached);
     }
 
     [Fact]

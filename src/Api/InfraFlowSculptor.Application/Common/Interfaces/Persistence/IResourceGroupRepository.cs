@@ -8,6 +8,14 @@ namespace InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 
 public interface IResourceGroupRepository: IRepository<Domain.ResourceGroupAggregate.ResourceGroup>
 {
+    /// <summary>
+    /// Retrieves a resource group by identifier without enabling EF Core change tracking.
+    /// Use this lookup for read-only query flows that only need resource-group-level metadata.
+    /// </summary>
+    Task<Domain.ResourceGroupAggregate.ResourceGroup?> GetByIdReadOnlyAsync(
+        ResourceGroupId id,
+        CancellationToken cancellationToken = default);
+
     Task<Domain.ResourceGroupAggregate.ResourceGroup?> GetByIdWithResourcesAsync(ResourceGroupId id, CancellationToken ct = default);
     Task<List<Domain.ResourceGroupAggregate.ResourceGroup>> GetByInfraConfigIdAsync(
         InfrastructureConfigId infraConfigId,

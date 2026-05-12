@@ -16,7 +16,7 @@ public class GetResourceGroupQueryHandler(
 {
     public async Task<ErrorOr<ResourceGroupResult>> Handle(GetResourceGroupQuery query, CancellationToken cancellationToken)
     {
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(query.Id, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (resourceGroup is null)
             return Errors.ResourceGroup.NotFound(query.Id);
 
