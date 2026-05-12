@@ -101,7 +101,6 @@ public static class RateLimitingServiceCollectionExtensions
         var userId = httpContext.User?.Identity?.IsAuthenticated == true
             ? httpContext.User.FindFirst(ClaimConstants.ObjectId)?.Value
                 ?? httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                ?? httpContext.User.Identity?.Name
             : null;
 
         if (!string.IsNullOrWhiteSpace(userId))

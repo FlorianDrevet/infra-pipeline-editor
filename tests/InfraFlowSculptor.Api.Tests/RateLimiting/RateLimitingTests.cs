@@ -32,6 +32,26 @@ public sealed class RateLimitingTests
     private const string ExpensiveWindowSecondsKey = $"{RateLimitingSectionName}:Expensive:WindowSeconds";
     private const string FirstUserId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
     private const string SecondUserId = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+    private static readonly string[] ExpectedExpensiveEndpointNames =
+    [
+        "GenerateBicep",
+        "DownloadBicep",
+        "PushBicepToGit",
+        "GeneratePipeline",
+        "DownloadPipeline",
+        "PushPipelineToGit",
+        "GenerateProjectBicep",
+        "DownloadProjectBicep",
+        "PushProjectBicepToGit",
+        "GenerateProjectPipeline",
+        "DownloadProjectPipeline",
+        "PushProjectPipelineToGit",
+        "GenerateProjectBootstrapPipeline",
+        "DownloadProjectBootstrapPipeline",
+        "PushProjectBootstrapPipelineToGit",
+        "PushProjectGeneratedArtifactsToGit",
+        "PushProjectArtifactsToMultiRepo",
+    ];
 
     [Fact]
     public async Task Given_RequestCountWithinGlobalLimit_When_SendingRequests_Then_AllResponsesAreSuccessfulAsync()
@@ -113,6 +133,21 @@ public sealed class RateLimitingTests
     }
 
     [Fact]
+    public async Task Given_AuthenticatedRequestsWithoutStableClaims_When_SendingRequests_Then_TheyFallBackToIpBucketAsync()
+    {
+        // Arrange
+        await using var host = await RateLimitingTestHost.CreateAsync(CreateSettings(globalPermitLimit: 1, expensivePermitLimit: 1));
+
+        // Act
+        var firstResponse = await host.SendDisplayNameOnlyAuthenticatedRequestAsync("/global", "Alpha");
+        var secondResponse = await host.SendDisplayNameOnlyAuthenticatedRequestAsync("/global", "Beta");
+
+        // Assert
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        secondResponse.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+    }
+
+    [Fact]
     public void Given_HeavyGenerationEndpoints_When_BuildingEndpointMap_Then_AllRequireExpensivePolicy()
     {
         // Arrange
@@ -140,14 +175,14 @@ public sealed class RateLimitingTests
             .ToList();
 
         // Assert
-        AssertEndpointRequiresExpensivePolicy(endpoints, "GenerateBicep");
-        AssertEndpointRequiresExpensivePolicy(endpoints, "DownloadBicep");
-        AssertEndpointRequiresExpensivePolicy(endpoints, "PushBicepToGit");
-        AssertEndpointRequiresExpensivePolicy(endpoints, "GeneratePipeline");
-        AssertEndpointRequiresExpensivePolicy(endpoints, "DownloadPipeline");
-        AssertEndpointRequiresExpensivePolicy(endpoints, "PushPipelineToGit");
-        AssertEndpointRequiresExpensivePolicy(endpoints, "PushProjectGeneratedArtifactsToGit");
-        AssertEndpointRequiresExpensivePolicy(endpoints, "PushProjectArtifactsToMultiRepo");
+        var expensiveEndpointNames = endpoints
+            .Where(endpoint => endpoint.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName == RateLimitingPolicyNames.Expensive)
+            .Select(endpoint => endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName)
+            .Where(endpointName => !string.IsNullOrWhiteSpace(endpointName))
+            .Cast<string>()
+            .ToArray();
+
+        expensiveEndpointNames.Should().BeEquivalentTo(ExpectedExpensiveEndpointNames);
     }
 
     [Theory]
@@ -185,19 +220,6 @@ public sealed class RateLimitingTests
         };
     }
 
-    private static void AssertEndpointRequiresExpensivePolicy(
-        IEnumerable<RouteEndpoint> endpoints,
-        string endpointName)
-    {
-        var endpoint = endpoints.Single(candidate =>
-            candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName == endpointName);
-
-        var rateLimitingMetadata = endpoint.Metadata.GetMetadata<EnableRateLimitingAttribute>();
-
-        rateLimitingMetadata.Should().NotBeNull();
-        rateLimitingMetadata!.PolicyName.Should().Be(RateLimitingPolicyNames.Expensive);
-    }
-
     private sealed class RateLimitingTestHost : IAsyncDisposable
     {
         private readonly WebApplication _application;
@@ -214,6 +236,13 @@ public sealed class RateLimitingTests
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, path);
             request.Headers.Add(TestAuthenticationHandler.UserIdHeaderName, userId);
+            return await Client.SendAsync(request);
+        }
+
+        public async Task<HttpResponseMessage> SendDisplayNameOnlyAuthenticatedRequestAsync(string path, string displayName)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, path);
+            request.Headers.Add(TestAuthenticationHandler.DisplayNameHeaderName, displayName);
             return await Client.SendAsync(request);
         }
 
@@ -266,6 +295,7 @@ public sealed class RateLimitingTests
     {
         public const string SchemeName = "Test";
         public const string UserIdHeaderName = "X-Test-User-Id";
+        public const string DisplayNameHeaderName = "X-Test-Display-Name";
 
         public TestAuthenticationHandler(
             IOptionsMonitor<AuthenticationSchemeOptions> options,
@@ -277,24 +307,41 @@ public sealed class RateLimitingTests
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            if (!Request.Headers.TryGetValue(UserIdHeaderName, out var userIds) || string.IsNullOrWhiteSpace(userIds[0]))
+            if (Request.Headers.TryGetValue(UserIdHeaderName, out var userIds) && !string.IsNullOrWhiteSpace(userIds[0]))
+            {
+                var userId = userIds[0]!;
+                var stableClaims = new[]
+                {
+                    new Claim(ClaimConstants.ObjectId, userId),
+                    new Claim(ClaimTypes.NameIdentifier, userId),
+                    new Claim(ClaimTypes.Name, $"User {userId}"),
+                };
+
+                return Task.FromResult(CreateSuccessResult(stableClaims));
+            }
+
+            if (!Request.Headers.TryGetValue(DisplayNameHeaderName, out var displayNames) || string.IsNullOrWhiteSpace(displayNames[0]))
             {
                 return Task.FromResult(AuthenticateResult.NoResult());
             }
 
-            var userId = userIds[0]!;
-            var claims = new[]
+            var displayName = displayNames[0]!;
+            var displayNameOnlyClaims = new[]
             {
-                new Claim(ClaimConstants.ObjectId, userId),
-                new Claim(ClaimTypes.NameIdentifier, userId),
-                new Claim(ClaimConstants.Name, $"User {userId}"),
+                new Claim(ClaimTypes.Name, displayName),
+                new Claim(ClaimConstants.Name, displayName),
             };
 
+            return Task.FromResult(CreateSuccessResult(displayNameOnlyClaims));
+        }
+
+        private AuthenticateResult CreateSuccessResult(IEnumerable<Claim> claims)
+        {
             var identity = new ClaimsIdentity(claims, Scheme.Name);
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
-            return Task.FromResult(AuthenticateResult.Success(ticket));
+            return AuthenticateResult.Success(ticket);
         }
     }
 }
