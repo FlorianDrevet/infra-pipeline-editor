@@ -1,157 +1,102 @@
-# Authentication & Authorization
+﻿# Authentication & Authorization
 
-- **Provider:** Azure AD (Entra ID) JWT Bearer
-- **Config section:** `"AzureAd"` in appsettings
-- **Fallback policy:** Authenticated users only (`RequireAuthenticatedUser`)
-- **Admin policy:** `"IsAdmin"` policy
-- **Current user:** `ICurrentUser` → `CurrentUser` service
+- **Provider:** Azure AD (Entra ID) JWT Bearer.
+- **Config section:** `AzureAd` in appsettings.
+- **Fallback policy:** authenticated users only (`RequireAuthenticatedUser`).
+- **Admin policy:** `IsAdmin`.
+- **Current user:** `ICurrentUser` → `CurrentUser`.
 
 ## PAT Authentication (MCP) [2026-04-28]
 
-- **Scheme:** `PersonalAccessToken` (custom `AuthenticationHandler`)
-- **Token format:** `ifs_` prefix + 32 random bytes base64url encoded; SHA-256 hash stored in DB
-- **Flow:** MCP HTTP request → `Authorization: Bearer ifs_...` → handler computes hash → DB lookup → validates not revoked/expired → sets `HttpContext.Items["ProvisionedUserId"]` → `ICurrentUser` resolves transparently
-- **API endpoints:** `GET /personal-access-tokens` (list), `POST /personal-access-tokens` (create, returns one-time plaintext), `DELETE /personal-access-tokens/{id}` (revoke)
-- **VS Code:** `.vscode/mcp.json` includes `Authorization: Bearer ${input:ifs_pat}` header with password input
-- **Workspace MCP file:** `.vscode/mcp.json` is now multi-server; InfraFlowSculptor uses the `infraflowsculptor-mcp` HTTP entry inside that file
-- **MCP endpoint config:** defaults come from `McpOptions` (`http://127.0.0.1:5258` + `/mcp`) and can be overridden via `Mcp:ListenUrl`, `MCP__LISTENURL`, and `Mcp:Route`
-- **Registration:** `AddPatAuthentication()` in `DependencyInjection.cs`
-- **Domain:** `PersonalAccessToken` aggregate in `PersonalAccessTokenAggregate/`
-- **Frontend:** Settings page at `/settings` with PAT management (create dialog with one-time token display, list, revoke)
-- **Primary onboarding doc:** `docs/architecture/mcp-integration.md` now documents the real MCP runtime (`/mcp` over HTTP), the PAT flow, and the exact exposed surface (8 tools, 2 resources, 1 prompt)
+- **Scheme:** `PersonalAccessToken` with custom `AuthenticationHandler`.
+- **Token format:** `ifs_` prefix + 32 random bytes base64url encoded; SHA-256 hash stored in DB.
+- **Flow:** HTTP `Authorization: Bearer ifs_...` → hash lookup → revoked/expiry checks → `HttpContext.Items["ProvisionedUserId"]` → transparent `ICurrentUser` resolution.
+- **API endpoints:** `GET /personal-access-tokens`, `POST /personal-access-tokens`, `DELETE /personal-access-tokens/{id}`.
+- **Workspace entrypoint:** `.vscode/mcp.json` uses the HTTP MCP server at `http://127.0.0.1:5258/mcp` with a PAT bearer header.
+- **Defaults:** `McpOptions` resolve to `http://127.0.0.1:5258` + `/mcp`; override via `Mcp:ListenUrl`, `MCP__LISTENURL`, and `Mcp:Route`.
+- **Primary doc:** `docs/architecture/mcp-integration.md`.
 
 ## Build & Run Commands
 
 ```powershell
-# Build full solution
 dotnet build .\InfraFlowSculptor.slnx
-
-# Run full stack (Aspire)
+dotnet test .\InfraFlowSculptor.slnx
+aspire run
 dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj
-
-# Frontend (from src/Front)
-npm install; npm run start; npm run build; npm run typecheck
 ```
 
-- On Windows, `dotnet build .\InfraFlowSculptor.slnx` can fail with `MSB3021` / `MSB3027` if `InfraFlowSculptor.Api.exe`, `InfraFlowSculptor.Mcp.exe`, or `InfraFlowSculptor.AppHost.exe` are already running from the repo `bin\Debug\net10.0` outputs. Stop those processes first to release locked assemblies before rebuilding.
-- Stale VS Code integrated `pwsh` shells can also lock `src\Api\InfraFlowSculptor.GenerationCore\bin\Debug\net10.0\InfraFlowSculptor.GenerationCore.dll` after reflection/debug commands, which can leave `InfraFlowSculptor.BicepGeneration` compiling against stale metadata. Close those locking shells before retrying an isolated `BicepGeneration` build.
+- Frontend from `src/Front`: `npm install; npm run start; npm run build; npm run typecheck`.
+- On Windows, stop running `InfraFlowSculptor.Api`, `InfraFlowSculptor.Mcp`, or `InfraFlowSculptor.AppHost` processes before rebuilding or MSBuild can fail with locked `bin\Debug\net10.0` assemblies.
+- Stale PowerShell shells can also lock `InfraFlowSculptor.GenerationCore.dll` after reflection/debug commands and leave `BicepGeneration` building against stale metadata.
 
 ## Tests
 
-```powershell
-dotnet test .\InfraFlowSculptor.slnx
-dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
-```
-
-- Active .NET test projects currently checked in:
-	- `tests/InfraFlowSculptor.Api.Tests/`
-	- `tests/InfraFlowSculptor.Application.Tests/`
-	- `tests/InfraFlowSculptor.BicepGeneration.Tests/`
-	- `tests/InfraFlowSculptor.Contracts.Tests/`
-	- `tests/InfraFlowSculptor.Domain.Tests/`
-	- `tests/InfraFlowSculptor.GenerationCore.Tests/`
-	- `tests/InfraFlowSculptor.Infrastructure.Tests/`
-	- `tests/InfraFlowSculptor.Mcp.Tests/`
-	- `tests/InfraFlowSculptor.PipelineGeneration.Tests/`
-- All .NET test projects live under `tests/`.
-- Unit test projects follow `<TargetAssembly>.Tests` and reference a single production assembly.
-- `tests/InfraFlowSculptor.GenerationParity.Tests/` is currently an empty placeholder folder with no `.csproj`.
-- `tmp/test-output-mcp/` is currently not covered by root `.gitignore`; generated MCP test/runtime artifacts under that folder can appear in `origin/main...HEAD` branch diffs if produced locally.
+- Active test projects under `tests/`: `Api`, `Application`, `BicepGeneration`, `Contracts`, `Domain`, `GenerationCore`, `Infrastructure`, `Mcp`, and `PipelineGeneration`.
+- `tests/InfraFlowSculptor.GenerationParity.Tests/` is only a placeholder folder; do not put regular unit tests there.
+- `tmp/test-output-mcp/` is not ignored by the root `.gitignore`; generated MCP artefacts there can pollute branch diffs.
 
 ## API Runtime Hardening [2026-04-23]
 
-- `Program.cs` now adds `X-Frame-Options=DENY`, `X-Content-Type-Options=nosniff`, `Referrer-Policy=strict-origin-when-cross-origin`, and a restrictive `Permissions-Policy` before HTTPS redirection.
-- `UseHsts()` is enabled outside Development.
-- `RateLimiting` now binds from the `RateLimiting` configuration section into `ApiRateLimitingOptions`, validates on startup, runs after `UseAuthentication()`, partitions authenticated traffic by stable user claims (`ClaimConstants.ObjectId`, fallback `NameIdentifier`) before falling back to remote IP, applies a global fixed-window limiter, keeps a named `Expensive` policy for config-level and project-level generation/download/push endpoints, and adds `Retry-After` on `429` rejections when the limiter exposes retry metadata.
-- Focused API coverage now lives in `tests/InfraFlowSculptor.Api.Tests/RateLimiting/RateLimitingTests.cs` using `Microsoft.AspNetCore.TestHost`; it covers startup validation, `429` + `Retry-After`, same-IP authenticated partitioning, and controller metadata for the expensive policy. The remaining gap is a full end-to-end harness booting the real `Program.cs` entrypoint.
+- Security headers: `X-Frame-Options=DENY`, `X-Content-Type-Options=nosniff`, `Referrer-Policy=strict-origin-when-cross-origin`, restrictive `Permissions-Policy`, and `UseHsts()` outside Development.
+- Rate limiting binds typed options from `RateLimiting`, applies a global fixed-window limiter, keeps an `Expensive` policy for heavy generation/download/push routes, partitions authenticated traffic by stable user claims before remote IP, and emits `Retry-After` on `429`.
+- Focused coverage lives in `tests/InfraFlowSculptor.Api.Tests/RateLimiting/RateLimitingTests.cs`.
+- `Program.cs` now binds request-body limits through `AddApiRequestLimits(builder.Configuration)`; default max body size is `52_428_800` bytes (50 MB).
 
 ## API Security Perimeter [2026-05-12]
 
-- The API CORS policy is now wired through `AddApiCors(builder.Configuration)` and typed `ApiCorsOptions` bound from the `Cors` section, so `Program.cs` no longer reads `Cors:AllowedOrigins` directly. The resulting allow-list is unchanged: configured origins come from `Cors:AllowedOrigins`, otherwise the API falls back to `http://localhost:4200`; allowed methods remain `GET, POST, PUT, DELETE, PATCH, OPTIONS`; allowed headers remain `Content-Type, Authorization, Accept, X-Requested-With`; credentials stay enabled.
-- The API response-header middleware now also adds `Cross-Origin-Opener-Policy=same-origin`, `Cross-Origin-Resource-Policy=same-site`, and a route-aware `Content-Security-Policy`.
-- The default CSP remains strict for API and OpenAPI JSON responses: `default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`.
-- The Development Scalar UI under `/scalar` now gets a narrower relaxed CSP (`script-src/style-src 'self' 'unsafe-inline'`, same-origin fonts/images/connect) so the embedded API reference UI keeps working without dropping the rest of the security headers.
+- CORS now binds through `AddApiCors(builder.Configuration)` and `ApiCorsOptions`; fallback origin remains `http://localhost:4200` with credentials enabled.
+- Shared response headers now also add `Cross-Origin-Opener-Policy=same-origin`, `Cross-Origin-Resource-Policy=same-site`, and a route-aware CSP.
+- Default CSP stays strict for API and OpenAPI JSON responses; `/scalar` gets the narrower relaxed CSP required for the embedded Development UI.
+- Contract-layer tag limits are centralized in `TagRequestConstraints` (`512` / `256` / `15`) and generated-file endpoints must validate `/{*filePath}` through `SafeRelativePath.TryNormalize(...)`.
 
 ## Handler Authorization Coverage [2026-05-12]
 
-- `GenerateBicepCommandHandler` and `DownloadBicepCommandHandler` were already protected by `IInfraConfigAccessService` in the current codebase when APP-002 was revisited.
-- `GeneratePipelineCommandHandler` now verifies `IInfraConfigAccessService.VerifyWriteAccessAsync(...)` before loading the infra config, generating YAML, or uploading artifacts.
-- `DownloadPipelineCommandHandler` now verifies `IInfraConfigAccessService.VerifyReadAccessAsync(...)` before downloading the latest generated archive.
-- `CreateProjectCommandHandler` and `CreateProjectWithSetupCommandHandler` keep the intended self-service rule (authenticated users create their own project only), but now catch `UnauthorizedAccessException` from `ICurrentUser.GetUserIdAsync()` and return `Error.Unauthorized(...)` instead of leaking a generic `500` when user provisioning/current-user resolution is missing.
-- On the current branch, APP-002 is effectively closed without adding an extra admin gate: the API fallback policy still requires authentication, and the handlers now fail explicitly with `401` when the current user cannot be resolved.
+- Generation/download handlers now enforce the same access services as the rest of the app: `GeneratePipeline` uses `VerifyWriteAccessAsync(...)`, `DownloadPipeline` uses `VerifyReadAccessAsync(...)`, and Bicep handlers were already protected.
+- `CreateProjectCommandHandler` and `CreateProjectWithSetupCommandHandler` keep self-service creation but now translate missing current-user resolution into `Error.Unauthorized(...)` instead of leaking `500`.
+- Current branch status: APP-002 is effectively closed without adding an extra admin-only gate.
 
 ## Package Vulnerability Note [2026-05-12]
 
-- `Directory.Packages.props` now pins `Microsoft.AspNetCore.DataProtection` to `10.0.7`.
-- `InfraFlowSculptor.Infrastructure` carries an explicit `PackageReference` to `Microsoft.AspNetCore.DataProtection`, which forces the patched line over the vulnerable transitive `10.0.0` restore path.
-- `dotnet build .\InfraFlowSculptor.slnx` is now clean of the previous `NU1904` warning for `GHSA-9mv3-2cwr-p262` on this branch.
+- `Directory.Packages.props` pins `Microsoft.AspNetCore.DataProtection` to `10.0.7`.
+- `InfraFlowSculptor.Infrastructure` keeps an explicit `PackageReference` so restore no longer falls back to the vulnerable `10.0.0` transitive path.
 
-## Project Pipeline Mono-Repo Layout [2026-04-24]
+## Project Pipeline Layout
 
-- `GenerateProjectPipelineCommandHandler` now returns repo-relative project pipeline paths under `.azuredevops/...` for both legacy union maps and split infra/app maps: shared templates go to `.azuredevops/Common/...`, per-config infra wrappers to `.azuredevops/{config}/...`, and split app wrappers to `.azuredevops/{config}/apps/{appName}/...`.
-- Blob storage still uses routing buckets (`pipeline/project/{id}/{ts}/{infra|app}/...`), but `GetProjectPipelineFileContentQueryHandler` now resolves both direct repo-relative paths and the split `infra/` / `app/` bucketed blobs, so the project detail UI can load files using the displayed `.azuredevops/...` path.
-- Mono-repo infra wrappers now reference `../Common/pipelines/{ci,pr}.pipeline.yml` and `../Common/jobs/deploy.job.yml`; their path filters include both `{config}/*` and the pipeline tree itself (`.azuredevops/Common/*`, `.azuredevops/{config}/*`) so wrapper/template edits trigger validation builds.
-- Split app wrappers now reference `../../../Common/pipelines/app-*.pipeline.yml` because their generated location is `.azuredevops/{config}/apps/{appName}/...`.
-- Project bootstrap pipeline definitions now target the same YAML layout: `/.azuredevops/{config}/ci.pipeline.yml`, `/.azuredevops/{config}/pr.pipeline.yml`, `/.azuredevops/{config}/release.pipeline.yml`, and `/.azuredevops/{config}/apps/{appName}/{ci,release}.app-pipeline.yml`.
+- Project-level pipeline generation returns repo-relative `.azuredevops/...` paths for both combined and split infra/code outputs.
+- Blob storage still uses `pipeline/project/{id}/{ts}/{infra|app}/...`, but file-content handlers resolve both displayed repo-relative paths and bucketed blob paths.
+- Mono-repo infra wrappers reference `../Common/...`; split app wrappers reference `../../../Common/...`.
+- Bootstrap pipeline definitions follow the same repo layout under `.azuredevops/{config}` and `.azuredevops/{config}/apps/{appName}`.
 
-## App Pipeline Shared Templates
+## App Pipeline Rules
 
-- 19 shared YAML templates under `.azuredevops/{pipelines,jobs,steps}/` using the `extends:` pattern. Generated by `AppPipelineTemplatesGenerator.GenerateAll()`.
-- Per-resource wrappers `apps/{appName}/{ci,release}.app-pipeline.yml` reference the shared templates.
-- **Path rule**: ADO resolves `template:` relative to the **template file**, not the wrapper. `GetEnvironmentVariablesPath` returns paths relative to `.azuredevops/pipelines/`.
-- Upload: standalone puts shared templates after per-config files; mono-repo uploads into `commonFileUris` (root-level).
-- CI/release split: CI builds once + publishes immutable metadata; release consumes CI artifact and deploys per-environment.
-- Container delivery uses immutable tags (build# + short SHA), promotes via `az acr import`. Security scans (Trivy + Syft) when `EnableSecurityScans` enabled.
-- Dead code: `AppPipelineBuilderCommon` retains unused inline YAML methods — safe to clean up.
+- Shared YAML templates live under `.azuredevops/{pipelines,jobs,steps}/`; per-resource wrappers live under `apps/{appName}/...`.
+- Azure DevOps resolves `template:` relative to the template file, not the wrapper; keep helper path generation aligned with `.azuredevops/pipelines/`.
+- CI/release split remains build-once then promote.
+- Container delivery uses immutable tags and optional Trivy/Syft scans.
+- `AppPipelineBuilderCommon` still contains removable dead inline YAML helpers; it is cleanup-only debt.
 
 ## Windows PowerShell & Bootstrap ADO Notes
 
-**Script conventions:**
-- Audit scripts: `Get-Content -Encoding UTF8` for `.sh` source files; keep console messages ASCII-only.
-- Generated pipeline YAML: always `powershell` steps (not `pwsh` or `script`/Bash). Self-hosted Windows agents may lack `pwsh.exe` and `cmd.exe` breaks Bash constructs.
-
-**Bootstrap generation rules:**
-- Auth: `$(System.AccessToken)` exposed to scripts; no PAT in YAML. `az devops configure` must NOT receive `--detect false`.
-- URL encoding: decode `%20` etc. before injecting org/project/repo names into CLI defaults.
-- Pipeline names: ASCII-safe (`-` not Unicode dashes); check existence via `az pipelines list` (not `show`); fail fast on non-zero exit.
-- Pipeline creation on Windows PowerShell 5.1 must temporarily relax `$ErrorActionPreference` around `az pipelines create`, capture `$LASTEXITCODE` explicitly, and pass `--only-show-errors`; otherwise Azure CLI success warnings on `stderr` can surface as `NativeCommandError` and fail the bootstrap step despite a real pipeline creation.
-- Pipeline display names: use `PathSanitizer.Sanitize(configName)` because release YAML resolves CI artifacts via `'{sanitizedConfigName} - CI'`.
-- Pipeline definitions: bootstrap creates infra (CI/PR/Release) + app definitions per compute resource (`{ConfigName} - {ResourceName} - CI/Release`).
-- Bootstrap jobs: split into `Provision Pipeline Definitions`, `Provision Environments`, `Provision Variable Groups`.
-- Generated infra wrapper pipelines (`ci.pipeline.yml`, `pr.pipeline.yml`, `release.pipeline.yml`) must emit an explicit root-level `pool` block in addition to any pool inside shared templates/jobs. During `az pipelines create`, Azure DevOps can validate the wrapper before resolving nested templates and otherwise fall back to the project default hosted queue.
-- Variable groups: seed empty groups with `PLACEHOLDER=bootstrap`, delete placeholder only after real variables exist.
-- Generated infra/app pipeline YAML must resolve variable-group names through `PipelineVariableGroupNameHelper`: reject raw Azure DevOps template expressions in user-provided names, keep `{env}` as the only supported placeholder, and emit `group:` values as YAML single-quoted scalars.
-- Environments: created by `shortName` (lower-cased); release templates must use `shortName` for `environment:` field, `name` only for display labels.
-- ADO folder security: Build Service needs `Create build pipeline` on the folder, Environments `Creator`, and `Use` permission on any agent pool referenced by generated YAML. Pipeline creation validates the target YAML immediately; bootstrap generation now preserves raw `az pipelines create` output so pool denials surface instead of looking like a generic create-permission failure. Manual prerequisites: pipeline `Manage security` and library `Security` for Build Service identity.
-- Mono-repo PR validation: sparse-checkout must include `Common/` alongside the config folder.
-- Variable-group mappings: target the Bicep parameter name (e.g. `ifsApiJwtSecretSecretValue`), not the env var name (`JWT_SECRET`).
-- Key Vault app settings using `SecretValueAssignment = ViaBicepparam` and a `PipelineVariableName` must bootstrap their Azure DevOps variable-group entry as a secret variable. The library variable name is the pipeline variable name (for example `jwt-secret`), not the Key Vault secret name (`JWT_SECRET`). Generating a plain variable with an empty value (`--value ''`) breaks Azure CLI on Windows agents.
-- App pipeline paths: generators return filenames relative to app folder only; `AppPipelineGenerationEngine.GenerateAll()` owns the `apps/{appName}/...` prefix.
+- Generated YAML must use `powershell` steps, not Bash or `pwsh`, because self-hosted Windows agents may not have `pwsh.exe`.
+- Bootstrap auth uses `$(System.AccessToken)`; do not bake PATs into YAML, and do not pass `--detect false` to `az devops configure`.
+- Decode `%20`-style URL segments before feeding org/project/repo names to Azure DevOps CLI defaults.
+- Pipeline creation on Windows PowerShell 5.1 must temporarily relax `$ErrorActionPreference`, capture `$LASTEXITCODE`, and use `--only-show-errors` around `az pipelines create`.
+- Pipeline display names must use `PathSanitizer.Sanitize(configName)`; release YAML resolves CI artifacts from that sanitized name.
+- Variable groups should be created with a temporary `PLACEHOLDER=bootstrap`, then cleaned once real variables exist.
+- Generated variable-group names must go through `PipelineVariableGroupNameHelper`; only `{env}` is a supported placeholder and emitted `group:` values must stay single-quoted.
+- Environment creation uses `shortName` for the technical Azure DevOps environment identifier and `name` only for display.
+- Build Service permissions still need manual setup on pipeline folders, environments, libraries, and any referenced agent pool.
+- App pipeline file paths returned by generators are relative to the app folder only; `AppPipelineGenerationEngine.GenerateAll()` owns the `apps/{appName}/...` prefix.
 
 ## Infrastructure Services
 
-- **ARM RBAC prerequisite**: deployments with ACR role assignments need `Owner` or `User Access Administrator` on target scope (`Contributor` insufficient for `Microsoft.Authorization/roleAssignments/write`).
-- **GitHub Git Provider**: Refit (`IGitHubTreeApi`), registered in `Infrastructure/DependencyInjection.cs`.
-- **Azure DevOps Git**: `AzureDevOpsGitProviderService` covers Git ops only (push, branches). Bootstrap provisions pipeline/VG/envs through generated YAML. Pipeline/Library security is a manual prerequisite. New branch push: `oldObjectId` must use base branch SHA (not all-zero sentinel).
-- **App pipeline path normalization**: `AppPipelineGenerationEngine` collapses redundant `apps/{appName}/{resourceName}/...` to `apps/{appName}/...`.
-- **DNS Name Availability**: `DnsNameAvailabilityChecker` — DNS-based, no Azure auth required.
-- **Diagnostic Rules**: `IDiagnosticRule.EvaluateAsync()` — `AcrPullDiagnosticRule`, `KeyVaultAccessDiagnosticRule`, `NameAvailabilityDiagnosticRule`.
+- ACR role assignments in ARM/Bicep require `Owner` or `User Access Administrator`; `Contributor` is insufficient.
+- GitHub Git provider uses Refit (`IGitHubTreeApi`).
+- Azure DevOps Git support covers Git operations only; pipeline/library security provisioning remains a manual prerequisite around the generated bootstrap YAML.
+- `AppPipelineGenerationEngine` normalizes redundant `apps/{appName}/{resourceName}/...` paths down to `apps/{appName}/...`.
+- Diagnostics rely on `IDiagnosticRule.EvaluateAsync()`; current rules cover ACR Pull, Key Vault access, and DNS name availability.
 
-## Sonar Quality Rules
-- **S1192** — Duplicate strings in migrations (accepted)
-- **new_duplicated_lines_density** — Quality gate threshold **3%**
+## Sonar Notes
 
-## Sonar Quick Wins [2026-04-28]
-
-- PR #324 branch remediation: `Application/Imports/Common/Creation/ResourceCommandFactory` now reduces cognitive complexity in two hot spots. `CreateResourceAsync` dispatches through a typed static handler table instead of a giant switch body, and `OrderByDependency` keeps the same Kahn topological sort behavior while delegating graph construction / queue draining / cycle fallback to small private helpers. Focused `InfraFlowSculptor.Application.Tests` factory dispatch + mapping + ordering tests validate the behavior.
-- Backend regex hotspots now use explicit `TimeSpan.FromMilliseconds(250)` match timeouts in local helpers and validators (`BicepGeneration`, `Contracts`, `Domain`) instead of unbounded regex evaluation.
-- Two new focused .NET test projects were added: `tests/InfraFlowSculptor.Contracts.Tests/` and `tests/InfraFlowSculptor.Domain.Tests/`. They currently cover the touched Sonar remediation slices only; broader DTO/domain coverage remains tracked in `.github/test-debt.md`.
-- `.github/workflows/copilot-setup-steps.yml` now pins external actions to full commit SHAs and uses `npm ci --ignore-scripts` for the frontend setup step.
-- `src/Front/Dockerfile` now copies explicit build inputs instead of `COPY . .`, installs dependencies with `npm ci --ignore-scripts --no-audit --no-fund`, and runs on `nginxinc/nginx-unprivileged:1.29-alpine`. `src/Front/.dockerignore` excludes `.env*`, `.npmrc`, editor folders, coverage, and logs.
-- Sonar remediation now starts with a **Lot 0** blocker fix: `scripts/fix-legacy-repository-topology.ps1` no longer reads or forwards `POSTGRES_PASSWORD`; it runs `psql` as the local container `postgres` user instead.
-- The first backend quick-win batch also landed in `BicepGeneration` / `PipelineGeneration`: `BicepEmitter` output parity was locked by stronger tests while removing a dead local, `ConfigVarsStage` dropped an unused parameter with unchanged YAML output, and `IdentityTransformer` / `AppSettingsTransformer` now use targeted constants for repeated semantic keys instead of literal duplication.
-- The next Sonar backend batch targeted generator-heavy S1192 noise in `ContainerAppTypeBicepGenerator`, `RedisCacheTypeBicepGenerator`, and `WebAppTypeBicepGenerator`; the refactor stayed behavior-neutral and was validated by the dedicated `InfraFlowSculptor.BicepGeneration.Tests` project plus full-solution `dotnet test` / `dotnet build`.
-- Latest local Sonar-zero batch: `InfraFlowSculptor.GenerationCore/AzureResourceTypes` now exposes its ARM-type lookup as an immutable case-insensitive frozen dictionary through `IReadOnlyDictionary`, with focused coverage in the new `tests/InfraFlowSculptor.GenerationCore.Tests/` project. `Application/Imports/Common/Creation/ResourceCommandFactory` also reuses a single `DotNet` enum-name constant for both Web App and Function App defaults.
-- Frontend local Sonar-zero batch: `src/Front/src/app/features/project-detail/project-detail.component.ts` dropped dead Angular animation metadata, moved tree-shaping logic into pure `project-detail-tree.helpers.ts` helpers with focused spec coverage, tightened the explicit ZIP-load safety wrapper around `JSZip.loadAsync`, and `src/Front/tsconfig.json` now sets `rootDir` to `./src` to keep IDE diagnostics aligned with the Angular build.
-- PR #327 local Sonar cleanup removed 5 leak-period issues by dropping redundant wrapper casts in `UpdateRedisCacheCommandHandler`, removing the redundant dictionary-value cast in `ParameterFileAssembler.MergePropertyIntoObject`, and replacing the 10-parameter Azure DevOps push helper with a private typed execution context; the batch added focused regression tests in `tests/InfraFlowSculptor.BicepGeneration.Tests` and `tests/InfraFlowSculptor.Infrastructure.Tests`.
-- PR #327 follow-up review cleanup removed the obsolete direct `Microsoft.AspNetCore.DataProtection` reference from `InfraFlowSculptor.Infrastructure`, dropped the conflicting `Ignore(s => s.AllCorsRules)` from `StorageAccountConfiguration`, and kept the frontend tree-ordering helper on a fixed `Intl.Collator` path with an explicit trailing newline so PR comments do not reopen on formatting alone.
+- Accepted rule exceptions: duplicate strings in migrations (`S1192`) and a `new_duplicated_lines_density` quality-gate threshold of `3%`.
+- The 2026-04-28 remediation wave also standardized regex timeouts, hardened ZIP extraction guards, pinned GitHub Actions SHAs, and tightened Docker frontend build inputs.

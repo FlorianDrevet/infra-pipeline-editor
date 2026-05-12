@@ -15,14 +15,7 @@ public sealed class StorageAccountTypeBicepGenerator
   private const string StorageAccountModuleName = "storageAccount";
   private const string StorageAccountModuleFolderName = "StorageAccount";
   private const string StorageResourceSymbol = "storage";
-  private const string StorageAccountArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.StorageAccountArmType;
-  private const string BlobServiceArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.StorageBlobServicesArmType;
-  private const string BlobContainerArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.StorageBlobContainersArmType;
-  private const string ManagementPolicyArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.StorageManagementPoliciesArmType;
-  private const string TableServiceArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.StorageTableServicesArmType;
-  private const string TableArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.StorageTablesArmType;
-  private const string QueueServiceArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.StorageQueueServicesArmType;
-  private const string QueueArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.StorageQueuesArmType;
+  private const string StorageAccountArmType = "Microsoft.Storage/storageAccounts@2025-06-01";
   private const string SkuTypeName = "SkuName";
   private const string StorageKindTypeName = "StorageKind";
   private const string AccessTierTypeName = "AccessTier";
@@ -417,7 +410,7 @@ public sealed class StorageAccountTypeBicepGenerator
         }
         """;
 
-    private static readonly string BlobsModuleTemplate = $$"""
+    private const string BlobsModuleTemplate = """
         import { CorsRuleDescription, ContainerLifecycleRule } from './types.bicep'
 
         @description('Storage account name')
@@ -432,11 +425,11 @@ public sealed class StorageAccountTypeBicepGenerator
         @description('Blob lifecycle management rules')
         param containerLifecycleRules ContainerLifecycleRule[] = []
 
-        resource storageAccount '{{StorageAccountArmType}}' existing = {
+        resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
           name: storageAccountName
         }
 
-        resource blobService '{{BlobServiceArmType}}' = {
+        resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2025-06-01' = {
           name: 'default'
           parent: storageAccount
           properties: {
@@ -446,7 +439,7 @@ public sealed class StorageAccountTypeBicepGenerator
           }
         }
 
-        resource container '{{BlobContainerArmType}}' = [
+        resource container 'Microsoft.Storage/storageAccounts/blobServices/containers@2025-06-01' = [
           for blobContainerName in blobContainerNames: {
             name: blobContainerName
             parent: blobService
@@ -474,7 +467,7 @@ public sealed class StorageAccountTypeBicepGenerator
           }
         ]
 
-        resource managementPolicies '{{ManagementPolicyArmType}}' = if (!empty(containerLifecycleRules)) {
+        resource managementPolicies 'Microsoft.Storage/storageAccounts/managementPolicies@2025-06-01' = if (!empty(containerLifecycleRules)) {
           name: 'default'
           parent: storageAccount
           properties: {
@@ -485,7 +478,7 @@ public sealed class StorageAccountTypeBicepGenerator
         }
         """;
 
-    private static readonly string TablesModuleTemplate = $$"""
+    private const string TablesModuleTemplate = """
         import { CorsRuleDescription } from './types.bicep'
 
         @description('Storage account name')
@@ -497,11 +490,11 @@ public sealed class StorageAccountTypeBicepGenerator
         @description('CORS rules')
         param corsRules CorsRuleDescription[] = []
 
-        resource storageAccount '{{StorageAccountArmType}}' existing = {
+        resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
           name: storageAccountName
         }
 
-        resource tableService '{{TableServiceArmType}}' = {
+        resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2025-06-01' = {
           name: 'default'
           parent: storageAccount
           properties: {
@@ -511,7 +504,7 @@ public sealed class StorageAccountTypeBicepGenerator
           }
         }
 
-        resource table '{{TableArmType}}' = [
+        resource table 'Microsoft.Storage/storageAccounts/tableServices/tables@2025-06-01' = [
           for tableName in tableNames: {
             name: tableName
             parent: tableService
@@ -519,23 +512,23 @@ public sealed class StorageAccountTypeBicepGenerator
         ]
         """;
 
-    private static readonly string QueuesModuleTemplate = $$"""
+    private const string QueuesModuleTemplate = """
         @description('Storage account name')
         param storageAccountName string
 
         @description('Queue names')
         param queueNames string[]
 
-        resource storageAccount '{{StorageAccountArmType}}' existing = {
+        resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
           name: storageAccountName
         }
 
-        resource queueService '{{QueueServiceArmType}}' = {
+        resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2025-06-01' = {
           name: 'default'
           parent: storageAccount
         }
 
-        resource queue '{{QueueArmType}}' = [
+        resource queue 'Microsoft.Storage/storageAccounts/queueServices/queues@2025-06-01' = [
           for queueName in queueNames: {
             name: queueName
             parent: queueService

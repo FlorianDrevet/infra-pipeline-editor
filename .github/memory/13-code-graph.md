@@ -21,7 +21,7 @@ Ce dépôt utilise **deux graphes complémentaires** :
 ## Index status
 
 - **Repo indexé :** `infra-pipeline-editor`
-- **Workspace instruction snapshot [2026-05-12] :** 22 924 symbols, 93 032 relationships, 300 execution flows.
+- **Workspace instruction snapshot [2026-05-13] :** 23 815 symbols, 100 016 relationships, 300 execution flows.
 - **Règle pratique :** pour les noms partagés entre entités métier et classes d'erreur, fournir `file_path` à `gitnexus_context()` pour obtenir le bon symbole du premier coup.
 
 ## Symboles à haut risque (beaucoup de dépendants upstream)
@@ -30,9 +30,10 @@ Ce dépôt utilise **deux graphes complémentaires** :
 |---------|------|-----------------|
 | `AzureResource` | Base class (TPT) | 18 agrégats enfants héritent — tout changement cascade sur toutes les ressources |
 | `IInfraConfigAccessService` | Interface | Utilisé par tous les handlers Resource pour la vérification d'accès |
-| `BicepGenerationEngine` | Class (~88 lignes) | Façade mince mais point d'entrée central de la génération Bicep ; orchestre la pipeline de 9 stages pour les handlers config et projet |
+| `BlobDownloadHelper` | Class | Helper transversal des artefacts latest-prefix ; GitNexus impact [2026-05-13] : 429 symboles impactés, 33 dépendants directs, risque **CRITICAL** |
+| `BicepGenerationEngine` | Class (~88 lignes) | Façade mince mais point d'entrée central de la génération Bicep ; GitNexus impact [2026-05-13] : 397 symboles impactés, 4 dépendants directs, risque **CRITICAL** |
 | `BicepAssembler` | Class (~180 lines) | Thin orchestrator — delegates to 14 specialized classes under `Assemblers/`, `Helpers/`, `StorageAccount/`, `Models/` |
-| `InfrastructureConfigReadRepository` | Class | Point central de lecture — switch cases sur tous les types de ressources |
+| `InfrastructureConfigReadRepository` | Class | Point central de lecture — switch cases sur tous les types de ressources ; GitNexus impact [2026-05-13] : 37 symboles impactés, 14 dépendants directs, risque **MEDIUM** |
 | `AppPipelineGenerationEngine` | Class | Orchestrateur app pipeline — 5 generators (Container/Code × resource type), appelé par les handlers génération pipeline; spot-check GitNexus [2026-04-25]: risque upstream **MEDIUM**, 6 dépendants directs |
 | `MonoRepoPipelineAssembler` | Class | Assembleur pipeline YAML infra — mono-repo structure, couplé aux handlers génération pipeline |
 | `ResourceCommandFactory` | Class | Pivot partagé entre `ApplyImportPreview`, `ProjectSetupOrchestrator`, `ProjectCreationTools`, `IacImportTools` et leurs suites de tests ; GitNexus impact [2026-04-30] : 11 dépendants directs, risque **MEDIUM** |
@@ -78,4 +79,4 @@ Ce dépôt utilise **deux graphes complémentaires** :
 
 ---
 
-*Dernière mise à jour : 2026-05-12 — Dream consolidation*
+*Dernière mise à jour : 2026-05-13 — Dream consolidation*
