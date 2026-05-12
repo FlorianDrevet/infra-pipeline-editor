@@ -279,6 +279,28 @@ public sealed class StorageAccountTypeBicepGeneratorTests
     }
 
     [Fact]
+    public void Given_ResourceWithBlobAndTableCorsRules_When_Generate_Then_MapsEachRuleSetToItsCompanion()
+    {
+        // Arrange
+        var resource = CreateResource(new Dictionary<string, string>
+        {
+            ["corsRules"] = "[{\"allowedOrigins\":[\"https://blob.example.com\"],\"allowedMethods\":[\"GET\"],\"allowedHeaders\":[],\"exposedHeaders\":[],\"maxAgeInSeconds\":3600}]",
+            ["tableCorsRules"] = "[{\"allowedOrigins\":[\"https://table.example.com\"],\"allowedMethods\":[\"POST\"],\"allowedHeaders\":[],\"exposedHeaders\":[],\"maxAgeInSeconds\":1800}]",
+        });
+
+        // Act
+        var module = _sut.Generate(resource);
+        var blobsCompanion = module.CompanionModules.Single(c => c.ModuleSymbolSuffix == "Blobs");
+        var tablesCompanion = module.CompanionModules.Single(c => c.ModuleSymbolSuffix == "Tables");
+
+        // Assert
+        blobsCompanion.CorsRules.Should().ContainSingle();
+        blobsCompanion.CorsRules[0].AllowedOrigins.Should().ContainSingle("https://blob.example.com");
+        tablesCompanion.TableCorsRules.Should().ContainSingle();
+        tablesCompanion.TableCorsRules[0].AllowedOrigins.Should().ContainSingle("https://table.example.com");
+    }
+
+    [Fact]
     public void Given_ResourceWithDefaults_When_Generate_Then_ParametersHaveDefaults()
     {
         var module = _sut.Generate(CreateResource());

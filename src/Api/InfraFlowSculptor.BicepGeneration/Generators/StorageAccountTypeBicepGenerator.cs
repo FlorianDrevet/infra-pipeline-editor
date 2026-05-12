@@ -240,8 +240,16 @@ public sealed class StorageAccountTypeBicepGenerator
     }
 
     private static List<BlobCorsRuleData> ParseCorsRules(IReadOnlyDictionary<string, string> properties)
+        => ParseCorsRuleDataList(properties, CorsRulesPropertyName);
+
+    private static List<BlobCorsRuleData> ParseTableCorsRules(IReadOnlyDictionary<string, string> properties)
+        => ParseCorsRuleDataList(properties, TableCorsRulesPropertyName);
+
+    private static List<BlobCorsRuleData> ParseCorsRuleDataList(
+        IReadOnlyDictionary<string, string> properties,
+        string propertyName)
     {
-      if (!properties.TryGetValue(CorsRulesPropertyName, out var json) || string.IsNullOrEmpty(json))
+      if (!properties.TryGetValue(propertyName, out var json) || string.IsNullOrEmpty(json))
             return [];
 
         var raw = JsonSerializer.Deserialize<List<CorsRuleJson>>(json);
@@ -255,23 +263,6 @@ public sealed class StorageAccountTypeBicepGenerator
             r.maxAgeInSeconds))
             .ToList();
     }
-
-        private static List<BlobCorsRuleData> ParseTableCorsRules(IReadOnlyDictionary<string, string> properties)
-        {
-          if (!properties.TryGetValue(TableCorsRulesPropertyName, out var json) || string.IsNullOrEmpty(json))
-            return [];
-
-          var raw = JsonSerializer.Deserialize<List<CorsRuleJson>>(json);
-          if (raw is null) return [];
-
-          return raw.Select(r => new BlobCorsRuleData(
-            r.allowedOrigins ?? [],
-            r.allowedMethods ?? [],
-            r.allowedHeaders ?? [],
-            r.exposedHeaders ?? [],
-            r.maxAgeInSeconds))
-            .ToList();
-        }
 
     private sealed record CorsRuleJson(
         List<string>? allowedOrigins,

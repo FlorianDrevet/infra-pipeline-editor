@@ -316,6 +316,46 @@ public sealed class StorageAccountTests
         sut.AllCorsRules.Should().HaveCount(2);
     }
 
+    [Fact]
+    public void Given_BlobCorsRules_When_GetBlobCorsRulesRepeatedly_Then_ReusesCachedView()
+    {
+        // Arrange
+        var sut = CreateValidStorageAccount();
+        sut.SetCorsRules(
+        [
+            ((IReadOnlyList<string>)new[] { "https://blob.example.com" },
+             (IReadOnlyList<string>)new[] { "GET" },
+             (IReadOnlyList<string>)Array.Empty<string>(),
+             (IReadOnlyList<string>)Array.Empty<string>(),
+             1800),
+        ]);
+
+        // Act
+        var firstView = sut.GetBlobCorsRules();
+        var secondView = sut.GetBlobCorsRules();
+
+        sut.SetCorsRules(
+        [
+            ((IReadOnlyList<string>)new[] { "https://blob.example.com" },
+             (IReadOnlyList<string>)new[] { "GET" },
+             (IReadOnlyList<string>)Array.Empty<string>(),
+             (IReadOnlyList<string>)Array.Empty<string>(),
+             1800),
+            ((IReadOnlyList<string>)new[] { "https://blob-2.example.com" },
+             (IReadOnlyList<string>)new[] { "POST" },
+             (IReadOnlyList<string>)Array.Empty<string>(),
+             (IReadOnlyList<string>)Array.Empty<string>(),
+             900),
+        ]);
+
+        var refreshedView = sut.GetBlobCorsRules();
+
+        // Assert
+        secondView.Should().BeSameAs(firstView);
+        refreshedView.Should().BeSameAs(firstView);
+        refreshedView.Should().HaveCount(2);
+    }
+
     // ─── Lifecycle Rules ────────────────────────────────────────────────────
 
     [Fact]

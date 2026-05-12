@@ -41,20 +41,17 @@ public sealed class GeneratePipelineCommandHandler(
         if (config is null)
             return Errors.InfrastructureConfig.NotFoundError(configId);
 
-        // Load project-level pipeline variable groups
-        var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
-            new ProjectId(config.ProjectId), cancellationToken);
-        // Load project (with Repositories + legacy GitRepositoryConfiguration) for V2 routing.
-        var projectWithGit = await projectRepository.GetByIdWithAllAsync(
+        // Load the enriched project snapshot needed for routing and project-level pipeline settings.
+        var project = await projectRepository.GetByIdWithAllAndPipelineVariableGroupsAsync(
             new ProjectId(config.ProjectId), cancellationToken);
 
         // Resolve the pipeline-kind target to derive the BicepBasePath used by release pipeline YAML
         // (infra path inside the target repo). A missing repository is tolerated here: BicepBasePath
         // simply becomes null, matching the previous behavior when no Git configuration existed.
         string? bicepBasePath = null;
-        if (projectWithGit is not null && domainConfig is not null)
+        if (project is not null && domainConfig is not null)
         {
-            var targetResult = targetResolver.Resolve(projectWithGit, domainConfig, ArtifactKind.Pipeline);
+            var targetResult = targetResolver.Resolve(project, domainConfig, ArtifactKind.Pipeline);
             if (!targetResult.IsError)
             {
                 bicepBasePath = targetResult.Value.BasePath;

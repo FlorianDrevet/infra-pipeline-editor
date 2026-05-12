@@ -72,6 +72,7 @@ builder.Navigation(p => p.Tags).HasField("_tags").UsePropertyAccessMode(Property
 - `BaseRepository<T, TContext>` — `GetByIdAsync`, `GetByIdReadOnlyAsync`, `GetAllAsync`, `AddAsync`, `UpdateAsync`, `DeleteAsync`
 - **⚠️ CRITICAL:** Never use `x.Id.Value == id.Value` in LINQ-to-EF. Always compare whole value objects: `x.Id == id`. EF uses `IdValueConverter<T>` to translate.
 - **Namespace note:** `IInfrastructureConfigRepository` uses fully-qualified type name to avoid CS0118 ambiguity.
+- `StorageAccountRepository` is the current DB-007 reference for duplicated eager-loading graphs: keep the shared storage sub-resource include chain in a private `WithSubResources(IQueryable<StorageAccount>)` helper and reuse it across tracked/read-only variants instead of cloning the same 7 `Include(...)` calls.
 
 ## FK Cascade / Delete Pitfalls [2026-04-04]
 
