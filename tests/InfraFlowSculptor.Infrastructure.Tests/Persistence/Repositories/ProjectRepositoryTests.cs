@@ -4,6 +4,7 @@ using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
@@ -108,6 +109,23 @@ public sealed class ProjectRepositoryTests : IDisposable
         // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(project.Id);
+    }
+
+    [Fact]
+    public async Task Given_StoredProject_When_GetByIdWithMembersReadOnlyAsync_Then_ReturnsDetachedProject_Async()
+    {
+        // Arrange
+        var project = NewProject();
+        await _context.Projects.AddAsync(project);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetByIdWithMembersReadOnlyAsync(project.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(project.Id);
+        _context.Entry(result).State.Should().Be(EntityState.Detached);
     }
 
     [Fact(Skip = UserJoinSkipReason)]

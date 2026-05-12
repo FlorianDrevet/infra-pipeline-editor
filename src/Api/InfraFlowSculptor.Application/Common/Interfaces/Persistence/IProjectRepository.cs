@@ -18,6 +18,12 @@ public interface IProjectRepository : IRepository<Project>
     Task<Project?> GetByIdWithMembersAsync(ProjectId id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves a project by identifier, including its members, without enabling EF Core change tracking.
+    /// Use this lookup for authorization checks and other read-only flows that only need member identities/roles.
+    /// </summary>
+    Task<Project?> GetByIdWithMembersReadOnlyAsync(ProjectId id, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Retrieves a project by identifier, including members, environments, and naming templates.
     /// </summary>
     Task<Project?> GetByIdWithAllAsync(ProjectId id, CancellationToken cancellationToken = default);

@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoints for the Service Bus Namespace resource.</summary>
@@ -43,7 +45,7 @@ public static class ServiceBusNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetServiceBusNamespace")
+                .WithName(ServiceBusNamespaceRouteNames.GetServiceBusNamespace)
                 .WithSummary("Get a Service Bus Namespace")
                 .WithDescription("Returns the full details of a single Azure Service Bus Namespace resource.")
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status200OK)
@@ -62,7 +64,7 @@ public static class ServiceBusNamespaceController
                             {
                                 var response = mapper.Map<ServiceBusNamespaceResponse>(sb);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetServiceBusNamespace",
+                                    routeName: ServiceBusNamespaceRouteNames.GetServiceBusNamespace,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -70,7 +72,7 @@ public static class ServiceBusNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateServiceBusNamespace")
+                .WithName(ServiceBusNamespaceRouteNames.CreateServiceBusNamespace)
                 .WithSummary("Create a Service Bus Namespace")
                 .WithDescription("Creates a new Azure Service Bus Namespace resource inside the specified Resource Group.")
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status201Created)
@@ -94,7 +96,7 @@ public static class ServiceBusNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateServiceBusNamespace")
+                .WithName(ServiceBusNamespaceRouteNames.UpdateServiceBusNamespace)
                 .WithSummary("Update a Service Bus Namespace")
                 .WithDescription("Replaces all mutable properties of an existing Service Bus Namespace.")
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status200OK)
@@ -114,7 +116,7 @@ public static class ServiceBusNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteServiceBusNamespace")
+                .WithName(ServiceBusNamespaceRouteNames.DeleteServiceBusNamespace)
                 .WithSummary("Delete a Service Bus Namespace")
                 .WithDescription("Permanently deletes an Azure Service Bus Namespace resource.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -134,7 +136,7 @@ public static class ServiceBusNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddServiceBusQueue")
+                .WithName(ServiceBusNamespaceRouteNames.AddServiceBusQueue)
                 .WithSummary("Add a queue")
                 .WithDescription("Adds a new queue to the Service Bus Namespace.")
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status200OK)
@@ -153,7 +155,7 @@ public static class ServiceBusNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveServiceBusQueue")
+                .WithName(ServiceBusNamespaceRouteNames.RemoveServiceBusQueue)
                 .WithSummary("Remove a queue")
                 .WithDescription("Removes a queue from the Service Bus Namespace.")
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status200OK)
@@ -172,7 +174,7 @@ public static class ServiceBusNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddServiceBusTopicSubscription")
+                .WithName(ServiceBusNamespaceRouteNames.AddServiceBusTopicSubscription)
                 .WithSummary("Add a topic subscription")
                 .WithDescription("Adds a new topic subscription to the Service Bus Namespace.")
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status200OK)
@@ -191,7 +193,7 @@ public static class ServiceBusNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveServiceBusTopicSubscription")
+                .WithName(ServiceBusNamespaceRouteNames.RemoveServiceBusTopicSubscription)
                 .WithSummary("Remove a topic subscription")
                 .WithDescription("Removes a topic subscription from the Service Bus Namespace.")
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status200OK)
@@ -217,3 +219,4 @@ public class AddServiceBusTopicSubscriptionRequest
     /// <summary>The subscription name within the topic.</summary>
     public required string SubscriptionName { get; init; }
 }
+

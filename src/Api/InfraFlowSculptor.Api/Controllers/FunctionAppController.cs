@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoint definitions for the Function App feature.</summary>
@@ -39,7 +41,7 @@ public static class FunctionAppController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetFunctionApp")
+                .WithName(FunctionAppRouteNames.GetFunctionApp)
                 .WithSummary("Get a Function App")
                 .WithDescription("Returns the full details of a single Azure Function App resource.")
                 .Produces<FunctionAppResponse>(StatusCodes.Status200OK)
@@ -58,7 +60,7 @@ public static class FunctionAppController
                             {
                                 var response = mapper.Map<FunctionAppResponse>(functionApp);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetFunctionApp",
+                                    routeName: FunctionAppRouteNames.GetFunctionApp,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -66,7 +68,7 @@ public static class FunctionAppController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateFunctionApp")
+                .WithName(FunctionAppRouteNames.CreateFunctionApp)
                 .WithSummary("Create a Function App")
                 .WithDescription("Creates a new Azure Function App resource inside the specified Resource Group. The App Service Plan must already exist. Requires Owner or Contributor access.")
                 .Produces<FunctionAppResponse>(StatusCodes.Status201Created)
@@ -90,7 +92,7 @@ public static class FunctionAppController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateFunctionApp")
+                .WithName(FunctionAppRouteNames.UpdateFunctionApp)
                 .WithSummary("Update a Function App")
                 .WithDescription("Replaces all mutable properties of an existing Function App. Requires Owner or Contributor access.")
                 .Produces<FunctionAppResponse>(StatusCodes.Status200OK)
@@ -110,7 +112,7 @@ public static class FunctionAppController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteFunctionApp")
+                .WithName(FunctionAppRouteNames.DeleteFunctionApp)
                 .WithSummary("Delete a Function App")
                 .WithDescription("Permanently deletes an Azure Function App resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -120,3 +122,4 @@ public static class FunctionAppController
         });
     }
 }
+

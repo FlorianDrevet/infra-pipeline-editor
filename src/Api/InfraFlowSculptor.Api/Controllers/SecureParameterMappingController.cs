@@ -8,6 +8,8 @@ using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>API endpoints for managing secure parameter mappings on Azure resources.</summary>
@@ -36,7 +38,7 @@ public static class SecureParameterMappingController
                                 m.PipelineVariableName)).ToList()),
                             errors => errors.Result());
                     })
-                .WithName("ListSecureParameterMappings")
+                .WithName(SecureParameterMappingRouteNames.ListSecureParameterMappings)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapPut("",
@@ -58,8 +60,9 @@ public static class SecureParameterMappingController
                             _ => Results.Ok(),
                             errors => errors.Result());
                     })
-                .WithName("SetSecureParameterMapping")
+                .WithName(SecureParameterMappingRouteNames.SetSecureParameterMapping)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
         });
     }
 }
+

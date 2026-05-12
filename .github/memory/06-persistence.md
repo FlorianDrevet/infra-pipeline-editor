@@ -91,6 +91,13 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 - `ResourceGroupRepository` uses these views through `GetConfiguredEnvironmentsByResourceGroupAsync()` and `GetChildToParentMappingAsync()` so Application handlers do not need to know all typed environment-setting tables or child-resource TPT tables.
 - `ListProjectResourcesQueryHandler` still lists project resources via `GetByInfraConfigIdAsync()` with `Include(r => r.Resources)`; the views support adjacent resource-read scenarios like `ListResourceGroupResources` and incoming cross-config reference resolution.
 
+## Read-Only Authorization Lookups [2026-05-12]
+
+- Do not add `.AsNoTracking()` blindly to a tracked repository method if that method is shared by read and write/owner flows.
+- `ProjectAccessService` is the reference split for DB-003: `VerifyReadAccessAsync(...)` now uses `IProjectRepository.GetByIdWithMembersReadOnlyAsync(...)`, while `VerifyWriteAccessAsync(...)` and `VerifyOwnerAccessAsync(...)` keep using the tracked `GetByIdWithMembersAsync(...)` because several project commands mutate `accessResult.Value` afterward.
+- When the caller only needs membership/role checks, prefer a dedicated no-tracking lookup that loads only the navigation data actually needed for authorization.
+- Counter-example: `PersonalAccessTokenRepository.GetByTokenHashAsync(...)` must stay tracked in the current auth flow because `PersonalAccessTokenAuthenticationHandler` records PAT usage and persists `LastUsedAt` immediately after loading the aggregate.
+
 ## Resource Group Storage List Optimization [2026-04-23]
 
 - `ListResourceGroupResourcesQueryHandler` enriches Storage Accounts with lightweight child collections through `IResourceGroupRepository.GetStorageSubResourcesByStorageAccountIdsAsync()`.

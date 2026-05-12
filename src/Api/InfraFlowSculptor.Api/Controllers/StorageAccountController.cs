@@ -19,6 +19,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 public static class StorageAccountController
@@ -45,7 +47,7 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetStorageAccount")
+                .WithName(StorageAccountRouteNames.GetStorageAccount)
                 .WithSummary("Get a Storage Account")
                 .WithDescription("Returns the full details of a single Azure Storage Account, including its Blob Containers, Queues, and Tables.")
                 .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
@@ -64,7 +66,7 @@ public static class StorageAccountController
                             {
                                 var response = mapper.Map<StorageAccountResponse>(sa);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetStorageAccount",
+                                    routeName: StorageAccountRouteNames.GetStorageAccount,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -72,7 +74,7 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateStorageAccount")
+                .WithName(StorageAccountRouteNames.CreateStorageAccount)
                 .WithSummary("Create a Storage Account")
                 .WithDescription("Creates a new Azure Storage Account resource inside the specified Resource Group. Requires Owner or Contributor access.")
                 .Produces<StorageAccountResponse>(StatusCodes.Status201Created)
@@ -96,7 +98,7 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateStorageAccount")
+                .WithName(StorageAccountRouteNames.UpdateStorageAccount)
                 .WithSummary("Update a Storage Account")
                 .WithDescription("Replaces all mutable properties of an existing Storage Account. Requires Owner or Contributor access.")
                 .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
@@ -116,7 +118,7 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteStorageAccount")
+                .WithName(StorageAccountRouteNames.DeleteStorageAccount)
                 .WithSummary("Delete a Storage Account")
                 .WithDescription("Permanently deletes an Azure Storage Account resource and all its sub-resources (Blob Containers, Queues, Tables). Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -143,7 +145,7 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddBlobContainer")
+                .WithName(StorageAccountRouteNames.AddBlobContainer)
                 .WithSummary("Add a Blob Container")
                 .WithDescription("Adds a new Blob Container to the specified Storage Account. Returns the updated Storage Account. Requires Owner or Contributor access.")
                 .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
@@ -165,7 +167,7 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveBlobContainer")
+                .WithName(StorageAccountRouteNames.RemoveBlobContainer)
                 .WithSummary("Remove a Blob Container")
                 .WithDescription("Removes a Blob Container from the specified Storage Account. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -194,7 +196,7 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateBlobContainerPublicAccess")
+                .WithName(StorageAccountRouteNames.UpdateBlobContainerPublicAccess)
                 .WithSummary("Update Blob Container Public Access")
                 .WithDescription("Updates the public access level of an existing Blob Container. Returns the updated Storage Account. Requires Owner or Contributor access.")
                 .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
@@ -219,7 +221,7 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddQueue")
+                .WithName(StorageAccountRouteNames.AddQueue)
                 .WithSummary("Add a Storage Queue")
                 .WithDescription("Adds a new Storage Queue to the specified Storage Account. Returns the updated Storage Account. Requires Owner or Contributor access.")
                 .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
@@ -241,7 +243,7 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveQueue")
+                .WithName(StorageAccountRouteNames.RemoveQueue)
                 .WithSummary("Remove a Storage Queue")
                 .WithDescription("Removes a Storage Queue from the specified Storage Account. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -265,7 +267,7 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddTable")
+                .WithName(StorageAccountRouteNames.AddTable)
                 .WithSummary("Add a Storage Table")
                 .WithDescription("Adds a new Storage Table to the specified Storage Account. Returns the updated Storage Account. Requires Owner or Contributor access.")
                 .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
@@ -287,7 +289,7 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveTable")
+                .WithName(StorageAccountRouteNames.RemoveTable)
                 .WithSummary("Remove a Storage Table")
                 .WithDescription("Removes a Storage Table from the specified Storage Account. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -297,3 +299,4 @@ public static class StorageAccountController
         });
     }
 }
+

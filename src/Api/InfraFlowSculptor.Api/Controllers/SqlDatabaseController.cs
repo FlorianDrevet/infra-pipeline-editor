@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoint definitions for the SQL Database feature.</summary>
@@ -39,7 +41,7 @@ public static class SqlDatabaseController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetSqlDatabase")
+                .WithName(SqlDatabaseRouteNames.GetSqlDatabase)
                 .WithSummary("Get a SQL Database")
                 .WithDescription("Returns the full details of a single Azure SQL Database resource.")
                 .Produces<SqlDatabaseResponse>(StatusCodes.Status200OK)
@@ -58,7 +60,7 @@ public static class SqlDatabaseController
                             {
                                 var response = mapper.Map<SqlDatabaseResponse>(database);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetSqlDatabase",
+                                    routeName: SqlDatabaseRouteNames.GetSqlDatabase,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -66,7 +68,7 @@ public static class SqlDatabaseController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateSqlDatabase")
+                .WithName(SqlDatabaseRouteNames.CreateSqlDatabase)
                 .WithSummary("Create a SQL Database")
                 .WithDescription("Creates a new Azure SQL Database resource inside the specified Resource Group. The SQL Server must already exist. Requires Owner or Contributor access.")
                 .Produces<SqlDatabaseResponse>(StatusCodes.Status201Created)
@@ -90,7 +92,7 @@ public static class SqlDatabaseController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateSqlDatabase")
+                .WithName(SqlDatabaseRouteNames.UpdateSqlDatabase)
                 .WithSummary("Update a SQL Database")
                 .WithDescription("Replaces all mutable properties of an existing SQL Database. Requires Owner or Contributor access.")
                 .Produces<SqlDatabaseResponse>(StatusCodes.Status200OK)
@@ -110,7 +112,7 @@ public static class SqlDatabaseController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteSqlDatabase")
+                .WithName(SqlDatabaseRouteNames.DeleteSqlDatabase)
                 .WithSummary("Delete a SQL Database")
                 .WithDescription("Permanently deletes an Azure SQL Database resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -120,3 +122,4 @@ public static class SqlDatabaseController
         });
     }
 }
+

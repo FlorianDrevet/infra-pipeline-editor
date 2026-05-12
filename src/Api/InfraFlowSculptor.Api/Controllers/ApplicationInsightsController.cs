@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoints for the Application Insights resource.</summary>
@@ -39,7 +41,7 @@ public static class ApplicationInsightsController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetApplicationInsights")
+                .WithName(ApplicationInsightsRouteNames.GetApplicationInsights)
                 .WithSummary("Get an Application Insights resource")
                 .WithDescription("Returns the full details of a single Azure Application Insights resource.")
                 .Produces<ApplicationInsightsResponse>(StatusCodes.Status200OK)
@@ -58,7 +60,7 @@ public static class ApplicationInsightsController
                             {
                                 var response = mapper.Map<ApplicationInsightsResponse>(ai);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetApplicationInsights",
+                                    routeName: ApplicationInsightsRouteNames.GetApplicationInsights,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -66,7 +68,7 @@ public static class ApplicationInsightsController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateApplicationInsights")
+                .WithName(ApplicationInsightsRouteNames.CreateApplicationInsights)
                 .WithSummary("Create an Application Insights resource")
                 .WithDescription("Creates a new Azure Application Insights resource inside the specified Resource Group.")
                 .Produces<ApplicationInsightsResponse>(StatusCodes.Status201Created)
@@ -90,7 +92,7 @@ public static class ApplicationInsightsController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateApplicationInsights")
+                .WithName(ApplicationInsightsRouteNames.UpdateApplicationInsights)
                 .WithSummary("Update an Application Insights resource")
                 .WithDescription("Replaces all mutable properties of an existing Application Insights resource.")
                 .Produces<ApplicationInsightsResponse>(StatusCodes.Status200OK)
@@ -110,7 +112,7 @@ public static class ApplicationInsightsController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteApplicationInsights")
+                .WithName(ApplicationInsightsRouteNames.DeleteApplicationInsights)
                 .WithSummary("Delete an Application Insights resource")
                 .WithDescription("Permanently deletes an Azure Application Insights resource.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -120,3 +122,4 @@ public static class ApplicationInsightsController
         });
     }
 }
+

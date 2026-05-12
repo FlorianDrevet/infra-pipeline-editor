@@ -9,6 +9,8 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>API endpoints for managing custom domain bindings on compute resources.</summary>
@@ -32,7 +34,7 @@ public static class CustomDomainController
                             domains => Results.Ok(domains.Adapt<List<CustomDomainResponse>>()),
                             errors => errors.Result());
                     })
-                .WithName("ListCustomDomains")
+                .WithName(CustomDomainRouteNames.ListCustomDomains)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapPost("",
@@ -54,7 +56,7 @@ public static class CustomDomainController
                                 domain.Adapt<CustomDomainResponse>()),
                             errors => errors.Result());
                     })
-                .WithName("AddCustomDomain")
+                .WithName(CustomDomainRouteNames.AddCustomDomain)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapDelete("/{customDomainId:guid}",
@@ -72,8 +74,9 @@ public static class CustomDomainController
                             _ => Results.NoContent(),
                             errors => errors.Result());
                     })
-                .WithName("RemoveCustomDomain")
+                .WithName(CustomDomainRouteNames.RemoveCustomDomain)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
         });
     }
 }
+

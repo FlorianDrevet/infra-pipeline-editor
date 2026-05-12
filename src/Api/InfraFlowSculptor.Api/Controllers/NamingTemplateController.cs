@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 public static class NamingTemplateController
@@ -39,7 +41,7 @@ public static class NamingTemplateController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SetDefaultNamingTemplate")
+                .WithName(NamingTemplateRouteNames.SetDefaultNamingTemplate)
                 .WithSummary("Set the default naming template")
                 .WithDescription(
                     "Sets or clears the default naming template for all resource types that do not have a specific override. " +
@@ -66,7 +68,7 @@ public static class NamingTemplateController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SetResourceNamingTemplate")
+                .WithName(NamingTemplateRouteNames.SetResourceNamingTemplate)
                 .WithSummary("Set a per-resource-type naming template")
                 .WithDescription(
                     "Creates or replaces the naming template for a specific Azure resource type (e.g. 'KeyVault', 'StorageAccount'). " +
@@ -93,7 +95,7 @@ public static class NamingTemplateController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveResourceNamingTemplate")
+                .WithName(NamingTemplateRouteNames.RemoveResourceNamingTemplate)
                 .WithSummary("Remove a per-resource-type naming template")
                 .WithDescription("Removes the naming template override for a specific Azure resource type. The default naming template will be used instead. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -118,7 +120,7 @@ public static class NamingTemplateController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SetResourceAbbreviationOverride")
+                .WithName(NamingTemplateRouteNames.SetResourceAbbreviationOverride)
                 .WithSummary("Set a per-resource-type abbreviation override")
                 .WithDescription(
                     "Creates or replaces the abbreviation for a specific Azure resource type (e.g. 'KeyVault' → 'kv'). " +
@@ -144,7 +146,7 @@ public static class NamingTemplateController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveResourceAbbreviationOverride")
+                .WithName(NamingTemplateRouteNames.RemoveResourceAbbreviationOverride)
                 .WithSummary("Remove a per-resource-type abbreviation override")
                 .WithDescription("Removes the abbreviation override for a specific Azure resource type. The catalog default will be used instead. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -186,7 +188,7 @@ public static class NamingTemplateController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CheckResourceNameAvailability")
+                .WithName(NamingTemplateRouteNames.CheckResourceNameAvailability)
                 .WithSummary("Check Azure resource name availability across all environments")
                 .WithDescription("Applies the project/config naming templates per environment, validates the generated names against Azure naming rules, and (for supported types like ContainerRegistry) calls Azure to check global DNS availability.")
                 .Produces<CheckResourceNameAvailabilityResponse>(StatusCodes.Status200OK)
@@ -197,3 +199,4 @@ public static class NamingTemplateController
         });
     }
 }
+

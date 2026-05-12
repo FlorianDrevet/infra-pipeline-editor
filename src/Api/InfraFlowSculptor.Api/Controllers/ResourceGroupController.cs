@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 public static class ResourceGroupController
@@ -41,7 +43,7 @@ public static class ResourceGroupController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetResourceGroup")
+                .WithName(ResourceGroupRouteNames.GetResourceGroup)
                 .WithSummary("Get a Resource Group")
                 .WithDescription("Returns the full details of a single Resource Group, including its Azure region.")
                 .Produces<ResourceGroupResponse>(StatusCodes.Status200OK)
@@ -64,7 +66,7 @@ public static class ResourceGroupController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListResourceGroupResources")
+                .WithName(ResourceGroupRouteNames.ListResourceGroupResources)
                 .WithSummary("List resources in a Resource Group")
                 .WithDescription("Returns a lightweight list of all Azure resources (Key Vaults, Storage Accounts, Redis Caches, etc.) that belong to the specified Resource Group.")
                 .Produces<IReadOnlyList<AzureResourceResponse>>(StatusCodes.Status200OK)
@@ -83,7 +85,7 @@ public static class ResourceGroupController
                             {
                                 var response = mapper.Map<ResourceGroupResponse>(resourceGroup);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetResourceGroup",
+                                    routeName: ResourceGroupRouteNames.GetResourceGroup,
                                     routeValues: new { id = resourceGroup.Id.Value },
                                     value: response
                                 );
@@ -91,7 +93,7 @@ public static class ResourceGroupController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateResourceGroup")
+                .WithName(ResourceGroupRouteNames.CreateResourceGroup)
                 .WithSummary("Create a Resource Group")
                 .WithDescription("Creates a new Azure Resource Group inside an existing Infrastructure Configuration. Requires Owner or Contributor access.")
                 .Produces<ResourceGroupResponse>(StatusCodes.Status201Created)
@@ -111,7 +113,7 @@ public static class ResourceGroupController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteResourceGroup")
+                .WithName(ResourceGroupRouteNames.DeleteResourceGroup)
                 .WithSummary("Delete a Resource Group")
                 .WithDescription("Permanently deletes a Resource Group and all its contained Azure resources. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -121,3 +123,4 @@ public static class ResourceGroupController
         });
     }
 }
+

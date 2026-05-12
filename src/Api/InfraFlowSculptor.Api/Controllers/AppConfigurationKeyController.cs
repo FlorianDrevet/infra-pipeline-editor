@@ -10,6 +10,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>API endpoints for managing configuration keys on App Configuration resources.</summary>
@@ -34,7 +36,7 @@ public static class AppConfigurationKeyController
                                 keys.Select(k => mapper.Map<AppConfigurationKeyResponse>(k)).ToList()),
                             errors => errors.Result());
                     })
-                .WithName("ListAppConfigurationKeys")
+                .WithName(AppConfigurationKeyRouteNames.ListAppConfigurationKeys)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapPost("",
@@ -71,7 +73,7 @@ public static class AppConfigurationKeyController
                                 mapper.Map<AppConfigurationKeyResponse>(configKey)),
                             errors => errors.Result());
                     })
-                .WithName("AddAppConfigurationKey")
+                .WithName(AppConfigurationKeyRouteNames.AddAppConfigurationKey)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapDelete("/{configurationKeyId:guid}",
@@ -89,8 +91,9 @@ public static class AppConfigurationKeyController
                             _ => Results.NoContent(),
                             errors => errors.Result());
                     })
-                .WithName("RemoveAppConfigurationKey")
+                .WithName(AppConfigurationKeyRouteNames.RemoveAppConfigurationKey)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
         });
     }
 }
+

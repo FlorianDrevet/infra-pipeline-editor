@@ -11,6 +11,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 public static class PipelineGenerationController
@@ -38,7 +40,7 @@ public static class PipelineGenerationController
                         );
                     })
                 .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
-                .WithName("GeneratePipeline")
+                .WithName(PipelineGenerationRouteNames.GeneratePipeline)
                 .Produces<GeneratePipelineResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -59,7 +61,7 @@ public static class PipelineGenerationController
                         );
                     })
                 .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
-                .WithName("DownloadPipeline")
+                .WithName(PipelineGenerationRouteNames.DownloadPipeline)
                 .Produces(StatusCodes.Status200OK, contentType: "application/zip")
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
@@ -80,7 +82,7 @@ public static class PipelineGenerationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetPipelineFileContent")
+                .WithName(PipelineGenerationRouteNames.GetPipelineFileContent)
                 .Produces(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
@@ -100,7 +102,7 @@ public static class PipelineGenerationController
                         );
                     })
                 .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
-                .WithName("PushPipelineToGit")
+                .WithName(PipelineGenerationRouteNames.PushPipelineToGit)
                 .WithSummary("Push generated pipeline files to Git")
                 .WithDescription("Pushes the latest generated Azure DevOps pipeline files to the configured Git repository.")
                 .Produces<PushPipelineToGitResponse>(StatusCodes.Status200OK)
@@ -110,3 +112,4 @@ public static class PipelineGenerationController
         });
     }
 }
+

@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 public static class RedisCacheController
@@ -37,7 +39,7 @@ public static class RedisCacheController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetRedisCache")
+                .WithName(RedisCacheRouteNames.GetRedisCache)
                 .WithSummary("Get a Redis Cache")
                 .WithDescription("Returns the full details of a single Azure Redis Cache resource.")
                 .Produces<RedisCacheResponse>(StatusCodes.Status200OK)
@@ -56,7 +58,7 @@ public static class RedisCacheController
                             {
                                 var response = mapper.Map<RedisCacheResponse>(redisCache);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetRedisCache",
+                                    routeName: RedisCacheRouteNames.GetRedisCache,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -64,7 +66,7 @@ public static class RedisCacheController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateRedisCache")
+                .WithName(RedisCacheRouteNames.CreateRedisCache)
                 .WithSummary("Create a Redis Cache")
                 .WithDescription("Creates a new Azure Redis Cache resource inside the specified Resource Group. Requires Owner or Contributor access.")
                 .Produces<RedisCacheResponse>(StatusCodes.Status201Created)
@@ -88,7 +90,7 @@ public static class RedisCacheController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateRedisCache")
+                .WithName(RedisCacheRouteNames.UpdateRedisCache)
                 .WithSummary("Update a Redis Cache")
                 .WithDescription("Replaces all mutable properties of an existing Redis Cache. Requires Owner or Contributor access.")
                 .Produces<RedisCacheResponse>(StatusCodes.Status200OK)
@@ -108,7 +110,7 @@ public static class RedisCacheController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteRedisCache")
+                .WithName(RedisCacheRouteNames.DeleteRedisCache)
                 .WithSummary("Delete a Redis Cache")
                 .WithDescription("Permanently deletes an Azure Redis Cache resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -118,3 +120,4 @@ public static class RedisCacheController
         });
     }
 }
+

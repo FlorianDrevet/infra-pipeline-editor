@@ -11,6 +11,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 public static class BicepGenerationController
@@ -38,7 +40,7 @@ public static class BicepGenerationController
                         );
                     })
                 .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
-                .WithName("GenerateBicep")
+                .WithName(BicepGenerationRouteNames.GenerateBicep)
                 .Produces<GenerateBicepResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -59,7 +61,7 @@ public static class BicepGenerationController
                         );
                     })
                 .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
-                .WithName("DownloadBicep")
+                .WithName(BicepGenerationRouteNames.DownloadBicep)
                 .Produces(StatusCodes.Status200OK, contentType: "application/zip")
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
@@ -80,7 +82,7 @@ public static class BicepGenerationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetBicepFileContent")
+                .WithName(BicepGenerationRouteNames.GetBicepFileContent)
                 .Produces(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
@@ -100,7 +102,7 @@ public static class BicepGenerationController
                         );
                     })
                 .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
-                .WithName("PushBicepToGit")
+                .WithName(BicepGenerationRouteNames.PushBicepToGit)
                 .WithSummary("Push generated Bicep files to Git")
                 .WithDescription("Pushes the latest generated Bicep files to the configured Git repository, creating or updating the specified branch.")
                 .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
@@ -110,3 +112,4 @@ public static class BicepGenerationController
         });
     }
 }
+

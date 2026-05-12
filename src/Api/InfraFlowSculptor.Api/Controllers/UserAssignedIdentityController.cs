@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>
@@ -46,7 +48,7 @@ public static class UserAssignedIdentityController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetUserAssignedIdentity")
+                .WithName(UserAssignedIdentityRouteNames.GetUserAssignedIdentity)
                 .WithSummary("Get a User Assigned Identity")
                 .WithDescription("Returns the full details of a single user-assigned managed identity resource.")
                 .Produces<UserAssignedIdentityResponse>(StatusCodes.Status200OK)
@@ -65,7 +67,7 @@ public static class UserAssignedIdentityController
                             {
                                 var response = mapper.Map<UserAssignedIdentityResponse>(identity);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetUserAssignedIdentity",
+                                    routeName: UserAssignedIdentityRouteNames.GetUserAssignedIdentity,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -73,7 +75,7 @@ public static class UserAssignedIdentityController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateUserAssignedIdentity")
+                .WithName(UserAssignedIdentityRouteNames.CreateUserAssignedIdentity)
                 .WithSummary("Create a User Assigned Identity")
                 .WithDescription("Creates a new user-assigned managed identity inside the specified Resource Group. Requires Owner or Contributor access.")
                 .Produces<UserAssignedIdentityResponse>(StatusCodes.Status201Created)
@@ -97,7 +99,7 @@ public static class UserAssignedIdentityController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateUserAssignedIdentity")
+                .WithName(UserAssignedIdentityRouteNames.UpdateUserAssignedIdentity)
                 .WithSummary("Update a User Assigned Identity")
                 .WithDescription("Replaces all mutable properties of an existing user-assigned managed identity. Requires Owner or Contributor access.")
                 .Produces<UserAssignedIdentityResponse>(StatusCodes.Status200OK)
@@ -117,7 +119,7 @@ public static class UserAssignedIdentityController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteUserAssignedIdentity")
+                .WithName(UserAssignedIdentityRouteNames.DeleteUserAssignedIdentity)
                 .WithSummary("Delete a User Assigned Identity")
                 .WithDescription("Permanently deletes a user-assigned managed identity resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -142,7 +144,7 @@ public static class UserAssignedIdentityController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListGrantedRoleAssignments")
+                .WithName(UserAssignedIdentityRouteNames.ListGrantedRoleAssignments)
                 .WithSummary("List role assignments granted through this identity")
                 .WithDescription("Returns all RBAC role assignments across all resources that use this User-Assigned Identity. Requires read access.")
                 .Produces<List<IdentityRoleAssignmentResponse>>(StatusCodes.Status200OK)
@@ -163,7 +165,7 @@ public static class UserAssignedIdentityController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UnlinkResourceFromIdentity")
+                .WithName(UserAssignedIdentityRouteNames.UnlinkResourceFromIdentity)
                 .WithSummary("Unlink a resource from this identity")
                 .WithDescription(
                     "Removes the association between a source resource and this User-Assigned Identity. " +
@@ -176,3 +178,4 @@ public static class UserAssignedIdentityController
         });
     }
 }
+

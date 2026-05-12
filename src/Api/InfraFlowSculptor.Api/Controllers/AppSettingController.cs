@@ -12,6 +12,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>API endpoints for managing app settings (environment variables) on compute resources.</summary>
@@ -36,7 +38,7 @@ public static class AppSettingController
                                 settings.Select(s => mapper.Map<AppSettingResponse>(s)).ToList()),
                             errors => errors.Result());
                     })
-                .WithName("ListAppSettings")
+                .WithName(AppSettingRouteNames.ListAppSettings)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapPost("",
@@ -72,7 +74,7 @@ public static class AppSettingController
                                 mapper.Map<AppSettingResponse>(appSetting)),
                             errors => errors.Result());
                     })
-                .WithName("AddAppSetting")
+                .WithName(AppSettingRouteNames.AddAppSetting)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapDelete("/{appSettingId:guid}",
@@ -90,7 +92,7 @@ public static class AppSettingController
                             _ => Results.NoContent(),
                             errors => errors.Result());
                     })
-                .WithName("RemoveAppSetting")
+                .WithName(AppSettingRouteNames.RemoveAppSetting)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapPut("/{appSettingId:guid}",
@@ -112,7 +114,7 @@ public static class AppSettingController
                             appSetting => Results.Ok(mapper.Map<AppSettingResponse>(appSetting)),
                             errors => errors.Result());
                     })
-                .WithName("UpdateStaticAppSetting")
+                .WithName(AppSettingRouteNames.UpdateStaticAppSetting)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             // Endpoint to get available outputs from a resource (for building the UI picker)
@@ -129,7 +131,7 @@ public static class AppSettingController
                             outputs => Results.Ok(mapper.Map<AvailableOutputsResponse>(outputs)),
                             errors => errors.Result());
                     })
-                .WithName("GetAvailableOutputs")
+                .WithName(AppSettingRouteNames.GetAvailableOutputs)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             // Endpoint to check whether a compute resource has Key Vault access
@@ -149,8 +151,9 @@ public static class AppSettingController
                             access => Results.Ok(mapper.Map<CheckKeyVaultAccessResponse>(access)),
                             errors => errors.Result());
                     })
-                .WithName("CheckKeyVaultAccess")
+                .WithName(AppSettingRouteNames.CheckKeyVaultAccess)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
         });
     }
 }
+

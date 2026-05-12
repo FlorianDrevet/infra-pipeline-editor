@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoints for the Container App Environment resource.</summary>
@@ -39,7 +41,7 @@ public static class ContainerAppEnvironmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetContainerAppEnvironment")
+                .WithName(ContainerAppEnvironmentRouteNames.GetContainerAppEnvironment)
                 .WithSummary("Get a Container App Environment")
                 .WithDescription("Returns the full details of a single Azure Container App Environment resource.")
                 .Produces<ContainerAppEnvironmentResponse>(StatusCodes.Status200OK)
@@ -58,7 +60,7 @@ public static class ContainerAppEnvironmentController
                             {
                                 var response = mapper.Map<ContainerAppEnvironmentResponse>(cae);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetContainerAppEnvironment",
+                                    routeName: ContainerAppEnvironmentRouteNames.GetContainerAppEnvironment,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -66,7 +68,7 @@ public static class ContainerAppEnvironmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateContainerAppEnvironment")
+                .WithName(ContainerAppEnvironmentRouteNames.CreateContainerAppEnvironment)
                 .WithSummary("Create a Container App Environment")
                 .WithDescription("Creates a new Azure Container App Environment resource inside the specified Resource Group.")
                 .Produces<ContainerAppEnvironmentResponse>(StatusCodes.Status201Created)
@@ -90,7 +92,7 @@ public static class ContainerAppEnvironmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateContainerAppEnvironment")
+                .WithName(ContainerAppEnvironmentRouteNames.UpdateContainerAppEnvironment)
                 .WithSummary("Update a Container App Environment")
                 .WithDescription("Replaces all mutable properties of an existing Container App Environment.")
                 .Produces<ContainerAppEnvironmentResponse>(StatusCodes.Status200OK)
@@ -110,7 +112,7 @@ public static class ContainerAppEnvironmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteContainerAppEnvironment")
+                .WithName(ContainerAppEnvironmentRouteNames.DeleteContainerAppEnvironment)
                 .WithSummary("Delete a Container App Environment")
                 .WithDescription("Permanently deletes an Azure Container App Environment resource.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -120,3 +122,4 @@ public static class ContainerAppEnvironmentController
         });
     }
 }
+

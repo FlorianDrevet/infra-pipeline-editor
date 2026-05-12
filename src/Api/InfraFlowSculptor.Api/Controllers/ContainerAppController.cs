@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoints for the Container App resource.</summary>
@@ -39,7 +41,7 @@ public static class ContainerAppController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetContainerApp")
+                .WithName(ContainerAppRouteNames.GetContainerApp)
                 .WithSummary("Get a Container App")
                 .WithDescription("Returns the full details of a single Azure Container App resource.")
                 .Produces<ContainerAppResponse>(StatusCodes.Status200OK)
@@ -58,7 +60,7 @@ public static class ContainerAppController
                             {
                                 var response = mapper.Map<ContainerAppResponse>(ca);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetContainerApp",
+                                    routeName: ContainerAppRouteNames.GetContainerApp,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -66,7 +68,7 @@ public static class ContainerAppController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateContainerApp")
+                .WithName(ContainerAppRouteNames.CreateContainerApp)
                 .WithSummary("Create a Container App")
                 .WithDescription("Creates a new Azure Container App resource inside the specified Resource Group.")
                 .Produces<ContainerAppResponse>(StatusCodes.Status201Created)
@@ -90,7 +92,7 @@ public static class ContainerAppController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateContainerApp")
+                .WithName(ContainerAppRouteNames.UpdateContainerApp)
                 .WithSummary("Update a Container App")
                 .WithDescription("Replaces all mutable properties of an existing Container App.")
                 .Produces<ContainerAppResponse>(StatusCodes.Status200OK)
@@ -110,7 +112,7 @@ public static class ContainerAppController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteContainerApp")
+                .WithName(ContainerAppRouteNames.DeleteContainerApp)
                 .WithSummary("Delete a Container App")
                 .WithDescription("Permanently deletes an Azure Container App resource.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -120,3 +122,4 @@ public static class ContainerAppController
         });
     }
 }
+

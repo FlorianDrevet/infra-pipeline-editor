@@ -10,6 +10,8 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>
@@ -44,7 +46,7 @@ public static class PersonalAccessTokenController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListPersonalAccessTokens")
+                .WithName(PersonalAccessTokenRouteNames.ListPersonalAccessTokens)
                 .WithSummary("List personal access tokens")
                 .WithDescription("Returns all personal access tokens belonging to the current authenticated user. Token values are not included — only metadata.")
                 .Produces<List<PersonalAccessTokenResponse>>(StatusCodes.Status200OK)
@@ -68,7 +70,7 @@ public static class PersonalAccessTokenController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreatePersonalAccessToken")
+                .WithName(PersonalAccessTokenRouteNames.CreatePersonalAccessToken)
                 .WithSummary("Create a personal access token")
                 .WithDescription("Generates a new personal access token for the current user. The plaintext token is returned only once in the response — store it securely.")
                 .Produces<CreatedPersonalAccessTokenResponse>(StatusCodes.Status201Created)
@@ -86,7 +88,7 @@ public static class PersonalAccessTokenController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RevokePersonalAccessToken")
+                .WithName(PersonalAccessTokenRouteNames.RevokePersonalAccessToken)
                 .WithSummary("Revoke a personal access token")
                 .WithDescription("Revokes the specified personal access token. Once revoked, the token can no longer be used for authentication.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -96,3 +98,4 @@ public static class PersonalAccessTokenController
         });
     }
 }
+

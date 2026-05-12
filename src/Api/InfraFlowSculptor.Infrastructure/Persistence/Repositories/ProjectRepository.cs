@@ -22,6 +22,14 @@ public sealed class ProjectRepository(ProjectDbContext context)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
     /// <inheritdoc />
+    public async Task<Project?> GetByIdWithMembersReadOnlyAsync(
+        ProjectId id, CancellationToken cancellationToken = default)
+        => await Context.Projects
+            .AsNoTracking()
+            .Include(p => p.Members)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+    /// <inheritdoc />
     public async Task<Project?> GetByIdWithAllAsync(
         ProjectId id, CancellationToken cancellationToken = default)
         => await Context.Projects

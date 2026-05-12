@@ -20,6 +20,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 public static class InfrastructureConfigController
@@ -48,7 +50,7 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListMyInfrastructureConfigs")
+                .WithName(InfrastructureConfigRouteNames.ListMyInfrastructureConfigs)
                 .WithSummary("List my Infrastructure Configurations")
                 .WithDescription("Returns all Infrastructure Configurations the current user has access to via project membership.")
                 .Produces<IReadOnlyList<InfrastructureConfigResponse>>(StatusCodes.Status200OK)
@@ -69,7 +71,7 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetInfrastructureConfiguration")
+                .WithName(InfrastructureConfigRouteNames.GetInfrastructureConfiguration)
                 .WithSummary("Get an Infrastructure Configuration")
                 .WithDescription("Returns the full details of a single Infrastructure Configuration.")
                 .Produces<InfrastructureConfigResponse>(StatusCodes.Status200OK)
@@ -94,7 +96,7 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListResourceGroupsByConfig")
+                .WithName(InfrastructureConfigRouteNames.ListResourceGroupsByConfig)
                 .WithSummary("List resource groups for a configuration")
                 .WithDescription("Returns all Resource Groups that belong to the specified Infrastructure Configuration.")
                 .Produces<IReadOnlyList<ResourceGroupResponse>>(StatusCodes.Status200OK)
@@ -120,7 +122,7 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateInfrastructureConfig")
+                .WithName(InfrastructureConfigRouteNames.CreateInfrastructureConfig)
                 .WithSummary("Create an Infrastructure Configuration")
                 .WithDescription("Creates a new Infrastructure Configuration within the specified project. Requires Contributor or Owner access to the project.")
                 .Produces<InfrastructureConfigResponse>(StatusCodes.Status201Created)
@@ -142,7 +144,7 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SetInheritance")
+                .WithName(InfrastructureConfigRouteNames.SetInheritance)
                 .WithSummary("Toggle project-level inheritance")
                 .WithDescription("Controls whether this configuration inherits naming conventions from the parent project. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -165,7 +167,7 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SetInfraConfigTags")
+                .WithName(InfrastructureConfigRouteNames.SetInfraConfigTags)
                 .WithSummary("Set configuration-level tags")
                 .WithDescription("Replaces all configuration-level tags with the provided set. These tags extend or override project-level tags. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -187,7 +189,7 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteInfrastructureConfig")
+                .WithName(InfrastructureConfigRouteNames.DeleteInfrastructureConfig)
                 .WithSummary("Delete an infrastructure configuration")
                 .WithDescription("Permanently deletes an infrastructure configuration. Requires Owner access on the parent project.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -213,7 +215,7 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListCrossConfigReferences")
+                .WithName(InfrastructureConfigRouteNames.ListCrossConfigReferences)
                 .WithSummary("List cross-config references")
                 .WithDescription("Returns all cross-configuration resource references for the specified infrastructure configuration, with resolved target metadata.")
                 .Produces<IReadOnlyList<CrossConfigReferenceResponse>>(StatusCodes.Status200OK)
@@ -235,7 +237,7 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddCrossConfigReference")
+                .WithName(InfrastructureConfigRouteNames.AddCrossConfigReference)
                 .WithSummary("Add a cross-config resource reference")
                 .WithDescription("Adds a reference to an Azure resource from another infrastructure configuration within the same project. Used for Bicep 'existing' resource declarations.")
                 .Produces<CrossConfigReferenceResult>(StatusCodes.Status201Created)
@@ -256,7 +258,7 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveCrossConfigReference")
+                .WithName(InfrastructureConfigRouteNames.RemoveCrossConfigReference)
                 .WithSummary("Remove a cross-config resource reference")
                 .WithDescription("Removes a cross-configuration resource reference from the infrastructure configuration.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -280,7 +282,7 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListIncomingCrossConfigReferences")
+                .WithName(InfrastructureConfigRouteNames.ListIncomingCrossConfigReferences)
                 .WithSummary("List incoming cross-config references")
                 .WithDescription("Returns resources from other configurations in the same project that depend on resources in this configuration.")
                 .Produces<IReadOnlyList<IncomingCrossConfigReferenceResponse>>(StatusCodes.Status200OK)
@@ -300,7 +302,7 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetConfigDiagnostics")
+                .WithName(InfrastructureConfigRouteNames.GetConfigDiagnostics)
                 .WithSummary("Get configuration diagnostics")
                 .WithDescription("Runs all diagnostic rules against the configuration and returns findings such as missing RBAC assignments.")
                 .Produces<ConfigDiagnosticsResponse>(StatusCodes.Status200OK)
@@ -310,3 +312,4 @@ public static class InfrastructureConfigController
         });
     }
 }
+

@@ -31,7 +31,7 @@ internal sealed class ProjectAccessService(
             return cached;
 
         var userId = await currentUser.GetUserIdAsync(cancellationToken);
-        var project = await projectRepository.GetByIdWithMembersAsync(projectId, cancellationToken);
+        var project = await projectRepository.GetByIdWithMembersReadOnlyAsync(projectId, cancellationToken);
 
         if (project is null || !project.Members.Any(m => m.UserId == userId))
         {

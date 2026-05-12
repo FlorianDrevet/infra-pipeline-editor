@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoints for the Event Hub Namespace resource.</summary>
@@ -43,7 +45,7 @@ public static class EventHubNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetEventHubNamespace")
+                .WithName(EventHubNamespaceRouteNames.GetEventHubNamespace)
                 .WithSummary("Get an Event Hub Namespace")
                 .WithDescription("Returns the full details of a single Azure Event Hub Namespace resource.")
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status200OK)
@@ -62,7 +64,7 @@ public static class EventHubNamespaceController
                             {
                                 var response = mapper.Map<EventHubNamespaceResponse>(eh);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetEventHubNamespace",
+                                    routeName: EventHubNamespaceRouteNames.GetEventHubNamespace,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -70,7 +72,7 @@ public static class EventHubNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateEventHubNamespace")
+                .WithName(EventHubNamespaceRouteNames.CreateEventHubNamespace)
                 .WithSummary("Create an Event Hub Namespace")
                 .WithDescription("Creates a new Azure Event Hub Namespace resource inside the specified Resource Group.")
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status201Created)
@@ -94,7 +96,7 @@ public static class EventHubNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateEventHubNamespace")
+                .WithName(EventHubNamespaceRouteNames.UpdateEventHubNamespace)
                 .WithSummary("Update an Event Hub Namespace")
                 .WithDescription("Replaces all mutable properties of an existing Event Hub Namespace.")
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status200OK)
@@ -114,7 +116,7 @@ public static class EventHubNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteEventHubNamespace")
+                .WithName(EventHubNamespaceRouteNames.DeleteEventHubNamespace)
                 .WithSummary("Delete an Event Hub Namespace")
                 .WithDescription("Permanently deletes an Azure Event Hub Namespace resource.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -134,7 +136,7 @@ public static class EventHubNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddEventHub")
+                .WithName(EventHubNamespaceRouteNames.AddEventHub)
                 .WithSummary("Add an event hub")
                 .WithDescription("Adds a new event hub to the Event Hub Namespace.")
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status200OK)
@@ -153,7 +155,7 @@ public static class EventHubNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveEventHub")
+                .WithName(EventHubNamespaceRouteNames.RemoveEventHub)
                 .WithSummary("Remove an event hub")
                 .WithDescription("Removes an event hub from the Event Hub Namespace.")
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status200OK)
@@ -172,7 +174,7 @@ public static class EventHubNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddEventHubConsumerGroup")
+                .WithName(EventHubNamespaceRouteNames.AddEventHubConsumerGroup)
                 .WithSummary("Add a consumer group")
                 .WithDescription("Adds a new consumer group to the Event Hub Namespace.")
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status200OK)
@@ -191,7 +193,7 @@ public static class EventHubNamespaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveEventHubConsumerGroup")
+                .WithName(EventHubNamespaceRouteNames.RemoveEventHubConsumerGroup)
                 .WithSummary("Remove a consumer group")
                 .WithDescription("Removes a consumer group from the Event Hub Namespace.")
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status200OK)
@@ -217,3 +219,4 @@ public class AddEventHubConsumerGroupRequest
     /// <summary>The consumer group name within the event hub.</summary>
     public required string ConsumerGroupName { get; init; }
 }
+
