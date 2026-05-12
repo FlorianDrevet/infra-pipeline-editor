@@ -23,11 +23,11 @@ public sealed class GetContainerRegistryQueryHandler(
         GetContainerRegistryQuery query,
         CancellationToken cancellationToken)
     {
-        var containerRegistry = await containerRegistryRepository.GetByIdAsync(query.Id, cancellationToken);
+        var containerRegistry = await containerRegistryRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (containerRegistry is null)
             return Errors.ContainerRegistry.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(containerRegistry.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(containerRegistry.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.ContainerRegistry.NotFoundError(query.Id);
 

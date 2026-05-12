@@ -23,6 +23,18 @@ public class SqlDatabaseRepository(ProjectDbContext context)
     }
 
     /// <inheritdoc />
+    public override async Task<SqlDatabase?> GetByIdReadOnlyAsync(
+        ValueObject id,
+        CancellationToken cancellationToken)
+    {
+        return await Context.Set<SqlDatabase>()
+            .AsNoTracking()
+            .Include(x => x.DependsOn)
+            .Include(x => x.EnvironmentSettings)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<List<SqlDatabase>> GetByResourceGroupIdAsync(
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)

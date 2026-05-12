@@ -69,7 +69,7 @@ builder.Navigation(p => p.Tags).HasField("_tags").UsePropertyAccessMode(Property
 
 ## Repository Pattern
 - Interface in Application layer, implementation in Infrastructure
-- `BaseRepository<T, TContext>` — `GetByIdAsync`, `GetAllAsync`, `AddAsync`, `UpdateAsync`, `DeleteAsync`
+- `BaseRepository<T, TContext>` — `GetByIdAsync`, `GetByIdReadOnlyAsync`, `GetAllAsync`, `AddAsync`, `UpdateAsync`, `DeleteAsync`
 - **⚠️ CRITICAL:** Never use `x.Id.Value == id.Value` in LINQ-to-EF. Always compare whole value objects: `x.Id == id`. EF uses `IdValueConverter<T>` to translate.
 - **Namespace note:** `IInfrastructureConfigRepository` uses fully-qualified type name to avoid CS0118 ambiguity.
 
@@ -98,10 +98,13 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 ## Read-Only Authorization Lookups [2026-05-12]
 
 - Do not add `.AsNoTracking()` blindly to a tracked repository method if that method is shared by read and write/owner flows.
+- `BaseRepository<TEntity, TContext>.GetByIdReadOnlyAsync(...)` is now the generic fallback for single-key aggregates that only need a detached lookup; `AzureResourceRepository<TEntity>` keeps the common `DependsOn` include on both tracked and read-only variants so resource repositories can override only when they need extra eager-loading.
 - `ProjectAccessService` is the reference split for DB-003: `VerifyReadAccessAsync(...)` now uses `IProjectRepository.GetByIdWithMembersReadOnlyAsync(...)`, while `VerifyWriteAccessAsync(...)` and `VerifyOwnerAccessAsync(...)` keep using the tracked `GetByIdWithMembersAsync(...)` because several project commands mutate `accessResult.Value` afterward.
 - `InfraConfigAccessService` now follows the same split: `VerifyReadAccessAsync(...)` uses `IInfrastructureConfigRepository.GetByIdReadOnlyAsync(...)`, while `VerifyWriteAccessAsync(...)` stays on the tracked `GetByIdAsync(...)` path because write flows may continue mutating or depending on the loaded aggregate state.
 - `ResourceGroupRepository.GetByIdReadOnlyAsync(...)` is the reference split for pure `ResourceGroup` queries that only need group metadata and `InfraConfigId`: `GetResourceGroupQueryHandler` and `ListResourceGroupResourcesQueryHandler` now use this no-tracking lookup, while commands keep the tracked `GetByIdAsync(...)` path.
 - The same `ResourceGroupRepository.GetByIdReadOnlyAsync(...)` split is now the reference for adjacent read-only handlers that only need `InfraConfigId` for authorization: `GetKeyVaultQueryHandler`, `ListKeyVaultsQueryHandler`, `GetRedisCacheQueryHandler`, `ListRedisCachesQueryHandler`, and `ListStorageAccountsQueryHandler` all use the read-only lookup instead of the tracked path.
+- The DB-003 sweep now extends the same pattern to pure resource `Get` handlers that only authorize then map a result: `GetWebAppQueryHandler`, `GetFunctionAppQueryHandler`, `GetAppServicePlanQueryHandler`, `GetContainerAppQueryHandler`, `GetContainerAppEnvironmentQueryHandler`, `GetContainerRegistryQueryHandler`, `GetCosmosDbQueryHandler`, `GetSqlServerQueryHandler`, `GetSqlDatabaseQueryHandler`, `GetKeyVaultQueryHandler`, and `GetRedisCacheQueryHandler` all load their main aggregate through `GetByIdReadOnlyAsync(...)`, while their specialized repositories mirror the tracked include graph with `AsNoTracking()`.
+- `StorageAccountAccessHelper.GetWithReadAccessAsync(...)` follows the same split through `IStorageAccountRepository.GetByIdWithSubResourcesReadOnlyAsync(...)`; write flows still use the tracked `GetByIdWithSubResourcesAsync(...)` because subresource commands continue mutating the loaded aggregate after authorization.
 - When the caller only needs membership/role checks, prefer a dedicated no-tracking lookup that loads only the navigation data actually needed for authorization.
 - Counter-example: `PersonalAccessTokenRepository.GetByTokenHashAsync(...)` must stay tracked in the current auth flow because `PersonalAccessTokenAuthenticationHandler` records PAT usage and persists `LastUsedAt` immediately after loading the aggregate.
 

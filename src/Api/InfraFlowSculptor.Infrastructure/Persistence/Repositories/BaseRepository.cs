@@ -39,6 +39,33 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
         return await Context.Set<TEntity>().FindAsync(cancellationToken: cancellationToken, keyValues: [id]);
     }
 
+        public virtual async Task<TEntity?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken = default)
+        {
+            var entityType = Context.Model.FindEntityType(typeof(TEntity))
+                ?? throw new InvalidOperationException($"Entity type {typeof(TEntity).Name} is not part of the current DbContext model.");
+            var primaryKey = entityType.FindPrimaryKey()
+                ?? throw new InvalidOperationException($"Entity type {typeof(TEntity).Name} does not define a primary key.");
+
+            if (primaryKey.Properties.Count != 1)
+                throw new InvalidOperationException($"Entity type {typeof(TEntity).Name} uses a composite key and cannot be loaded with GetByIdReadOnlyAsync.");
+
+            var keyProperty = primaryKey.Properties[0];
+            var parameter = Expression.Parameter(typeof(TEntity), "entity");
+            var propertyAccess = keyProperty.PropertyInfo is not null
+                ? Expression.Property(parameter, keyProperty.PropertyInfo)
+                : Expression.Property(parameter, keyProperty.Name);
+
+            if (!propertyAccess.Type.IsInstanceOfType(id))
+                throw new InvalidOperationException($"Identifier type {id.GetType().Name} does not match the primary key type {propertyAccess.Type.Name} for entity {typeof(TEntity).Name}.");
+
+            var equals = Expression.Equal(propertyAccess, Expression.Constant(id, propertyAccess.Type));
+            var predicate = Expression.Lambda<Func<TEntity, bool>>(equals, parameter);
+
+            return await Context.Set<TEntity>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(predicate, cancellationToken);
+        }
+
     public virtual async Task<IEnumerable<TEntity>> GetAllAsync(params Expression<Func<TEntity, object>>[] includes)
     {
         IQueryable<TEntity> query = Context.Set<TEntity>();

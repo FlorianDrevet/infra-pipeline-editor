@@ -21,11 +21,11 @@ public sealed class GetFunctionAppQueryHandler(
         GetFunctionAppQuery query,
         CancellationToken cancellationToken)
     {
-        var functionApp = await functionAppRepository.GetByIdAsync(query.Id, cancellationToken);
+        var functionApp = await functionAppRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (functionApp is null)
             return Errors.FunctionApp.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(functionApp.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(functionApp.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.FunctionApp.NotFoundError(query.Id);
 

@@ -21,11 +21,11 @@ public class GetWebAppQueryHandler(
         GetWebAppQuery query,
         CancellationToken cancellationToken)
     {
-        var webApp = await webAppRepository.GetByIdAsync(query.Id, cancellationToken);
+        var webApp = await webAppRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (webApp is null)
             return Errors.WebApp.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(webApp.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(webApp.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.WebApp.NotFoundError(query.Id);
 

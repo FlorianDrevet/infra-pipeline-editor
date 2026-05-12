@@ -29,6 +29,11 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
     IRepositoryTargetResolver targetResolver)
     : ICommandHandler<PushProjectGeneratedArtifactsToGitCommand, PushBicepToGitResult>
 {
+    private const string BicepArtifactType = "bicep";
+    private const string PipelineArtifactType = "pipeline";
+    private const string BootstrapArtifactType = "bootstrap";
+    private const int ProjectArtifactPrefixSegmentCount = 4;
+
     /// <inheritdoc />
     public async Task<ErrorOr<PushBicepToGitResult>> Handle(
         PushProjectGeneratedArtifactsToGitCommand command,
@@ -62,22 +67,19 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
         if (secretResult.IsError)
             return secretResult.Errors;
 
-        var bicepFilesResult = await GetLatestProjectFilesAsync(
-            "bicep",
+        var bicepFilesResult = await LoadLatestArtifactFilesAsync(
+            BicepArtifactType,
             command.ProjectId.Value,
             Errors.Project.BicepFilesNotFoundError);
         if (bicepFilesResult.IsError)
             return bicepFilesResult.Errors;
 
-        var pipelineFilesResult = await GetLatestProjectFilesAsync(
-            "pipeline",
-            command.ProjectId.Value,
-            Errors.Project.PipelineFilesNotFoundError);
+        var pipelineFilesResult = await LoadLatestPipelineFilesAsync(command.ProjectId.Value);
         if (pipelineFilesResult.IsError)
             return pipelineFilesResult.Errors;
 
-        var bootstrapFilesResult = await GetLatestProjectFilesAsync(
-            "bootstrap",
+        var bootstrapFilesResult = await LoadLatestArtifactFilesAsync(
+            BootstrapArtifactType,
             command.ProjectId.Value,
             Errors.Project.BootstrapFilesNotFoundError);
         if (bootstrapFilesResult.IsError)
@@ -109,47 +111,28 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
         return await multiScopeGitProvider.PushScopedFilesAsync(multiScopePushRequest.Value, cancellationToken);
     }
 
-    private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> GetLatestProjectFilesAsync(
+    private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadLatestArtifactFilesAsync(
         string artifactType,
         Guid projectId,
         Func<Guid, Error> notFoundErrorFactory)
     {
-        var prefix = $"{artifactType}/project/{projectId}/";
-        var allBlobs = await blobService.ListBlobsAsync(prefix);
+        return await BlobDownloadHelper.GetLatestBlobFilesAsync(
+            blobService,
+            blobPrefix: $"{artifactType}/project/{projectId}/",
+            prefixSegmentCount: ProjectArtifactPrefixSegmentCount,
+            notFoundErrorFactory,
+            entityId: projectId);
+    }
 
-        if (allBlobs.Count == 0)
-            return notFoundErrorFactory(projectId);
-
-        var latestPrefix = allBlobs
-            .Select(blobName => string.Join('/', blobName.Split('/').Take(4)))
-            .Distinct()
-            .OrderDescending()
-            .FirstOrDefault();
-
-        if (string.IsNullOrWhiteSpace(latestPrefix))
-            return notFoundErrorFactory(projectId);
-
-        var latestBlobs = allBlobs
-            .Where(blobName => blobName.StartsWith(latestPrefix, StringComparison.Ordinal))
-            .ToList();
-
-        var files = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var blobName in latestBlobs)
-        {
-            var content = await blobService.DownloadContentAsync(blobName);
-            if (content is null)
-                continue;
-
-            var relativePath = blobName[(latestPrefix.Length + 1)..];
-            files[relativePath] = content;
-        }
-
-        if (files.Count == 0)
-            return notFoundErrorFactory(projectId);
-
-        return string.Equals(artifactType, "pipeline", StringComparison.Ordinal)
-            ? GeneratedPipelinePathNormalizer.Normalize(files)
-            : files;
+    private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadLatestPipelineFilesAsync(Guid projectId)
+    {
+        return await BlobDownloadHelper.GetLatestBlobFilesAsync(
+            blobService,
+            blobPrefix: $"{PipelineArtifactType}/project/{projectId}/",
+            prefixSegmentCount: ProjectArtifactPrefixSegmentCount,
+            notFoundErrorFactory: Errors.Project.PipelineFilesNotFoundError,
+            entityId: projectId,
+            postProcess: GeneratedPipelinePathNormalizer.Normalize);
     }
 
 }

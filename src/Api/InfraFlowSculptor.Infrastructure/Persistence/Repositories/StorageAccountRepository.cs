@@ -28,9 +28,37 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
+    public override async Task<StorageAccount?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken)
+    {
+        return await Context.Set<StorageAccount>()
+            .AsNoTracking()
+            .Include(s => s.DependsOn)
+            .Include(s => s.EnvironmentSettings)
+            .Include(s => s.BlobContainers)
+            .Include(s => s.AllCorsRules)
+            .Include(s => s.LifecycleRules)
+            .Include(s => s.Queues)
+            .Include(s => s.Tables)
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+    }
+
     public async Task<StorageAccount?> GetByIdWithSubResourcesAsync(AzureResourceId id, CancellationToken cancellationToken = default)
     {
         return await Context.Set<StorageAccount>()
+            .Include(s => s.DependsOn)
+            .Include(s => s.EnvironmentSettings)
+            .Include(s => s.BlobContainers)
+            .Include(s => s.AllCorsRules)
+            .Include(s => s.LifecycleRules)
+            .Include(s => s.Queues)
+            .Include(s => s.Tables)
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+    }
+
+    public async Task<StorageAccount?> GetByIdWithSubResourcesReadOnlyAsync(AzureResourceId id, CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<StorageAccount>()
+            .AsNoTracking()
             .Include(s => s.DependsOn)
             .Include(s => s.EnvironmentSettings)
             .Include(s => s.BlobContainers)

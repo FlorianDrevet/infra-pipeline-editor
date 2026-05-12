@@ -24,11 +24,11 @@ public sealed class GetContainerAppEnvironmentQueryHandler(
         GetContainerAppEnvironmentQuery query,
         CancellationToken cancellationToken)
     {
-        var containerAppEnvironment = await containerAppEnvironmentRepository.GetByIdAsync(query.Id, cancellationToken);
+        var containerAppEnvironment = await containerAppEnvironmentRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (containerAppEnvironment is null)
             return Errors.ContainerAppEnvironment.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(containerAppEnvironment.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(containerAppEnvironment.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.ContainerAppEnvironment.NotFoundError(query.Id);
 

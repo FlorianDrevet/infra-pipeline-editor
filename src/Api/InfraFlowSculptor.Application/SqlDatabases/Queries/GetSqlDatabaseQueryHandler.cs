@@ -21,11 +21,11 @@ public class GetSqlDatabaseQueryHandler(
         GetSqlDatabaseQuery query,
         CancellationToken cancellationToken)
     {
-        var database = await sqlDatabaseRepository.GetByIdAsync(query.Id, cancellationToken);
+        var database = await sqlDatabaseRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (database is null)
             return Errors.SqlDatabase.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(database.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(database.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.SqlDatabase.NotFoundError(query.Id);
 

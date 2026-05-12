@@ -58,7 +58,7 @@ public sealed class GetRedisCacheQueryHandlerTests
     public async Task Given_RedisCacheNotFound_When_Handle_Then_ReturnsNotFoundAsync()
     {
         // Arrange
-        _redisCacheRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _redisCacheRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns((RedisCache?)null);
 
         // Act
@@ -73,7 +73,7 @@ public sealed class GetRedisCacheQueryHandlerTests
     public async Task Given_ReadAccessGranted_When_Handle_Then_MapsResultAsync()
     {
         // Arrange
-        _redisCacheRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _redisCacheRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(_redisCache);
         _resourceGroupRepository.GetByIdReadOnlyAsync(_redisCache.ResourceGroupId, Arg.Any<CancellationToken>())
             .Returns(_resourceGroup);

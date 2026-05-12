@@ -61,7 +61,7 @@ public sealed class GetStorageAccountQueryHandlerTests
     {
         // Arrange
         _storageAccountRepository
-            .GetByIdWithSubResourcesAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
+            .GetByIdWithSubResourcesReadOnlyAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
             .Returns((StorageAccount?)null);
 
         // Act
@@ -77,9 +77,9 @@ public sealed class GetStorageAccountQueryHandlerTests
     {
         // Arrange
         _storageAccountRepository
-            .GetByIdWithSubResourcesAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
+            .GetByIdWithSubResourcesReadOnlyAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
             .Returns(_storageAccount);
-        _resourceGroupRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _resourceGroupRepository.GetByIdReadOnlyAsync(_resourceGroup.Id, Arg.Any<CancellationToken>())
             .Returns(_resourceGroup);
         _accessService.VerifyReadAccessAsync(_config.Id, Arg.Any<CancellationToken>())
             .Returns(_config);

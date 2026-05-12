@@ -21,11 +21,11 @@ public class GetAppServicePlanQueryHandler(
         GetAppServicePlanQuery query,
         CancellationToken cancellationToken)
     {
-        var plan = await appServicePlanRepository.GetByIdAsync(query.Id, cancellationToken);
+        var plan = await appServicePlanRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (plan is null)
             return Errors.AppServicePlan.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(plan.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(plan.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.AppServicePlan.NotFoundError(query.Id);
 
