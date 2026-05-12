@@ -45,6 +45,14 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
+    public async Task<InfrastructureConfig?> GetByIdWithMembersReadOnlyAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default)
+    {
+        return await Context.InfrastructureConfigs
+            .AsNoTracking()
+            .Include(c => c.CrossConfigReferences)
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+    }
+
     public async Task<List<InfrastructureConfig>> GetAllForUserAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         // With project-level membership, list configs by joining through Projects

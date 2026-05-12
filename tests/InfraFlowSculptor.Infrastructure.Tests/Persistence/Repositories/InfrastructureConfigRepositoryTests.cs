@@ -112,6 +112,23 @@ public sealed class InfrastructureConfigRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task Given_StoredConfig_When_GetByIdWithMembersReadOnlyAsync_Then_ReturnsDetachedConfig_Async()
+    {
+        // Arrange
+        var config = InfrastructureConfig.Create(new Name(ConfigName), ProjectId.CreateUnique());
+        await _context.InfrastructureConfigs.AddAsync(config);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetByIdWithMembersReadOnlyAsync(config.Id, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(config.Id);
+        _context.Entry(result).State.Should().Be(EntityState.Detached);
+    }
+
+    [Fact]
     public async Task Given_StoredConfig_When_GetByIdReadOnlyAsync_Then_ReturnsDetachedConfig_Async()
     {
         // Arrange

@@ -64,7 +64,7 @@ public sealed class ListCrossConfigReferencesQueryHandlerTests
         // Arrange
         _accessService.VerifyReadAccessAsync(_sourceConfigId, Arg.Any<CancellationToken>())
             .Returns(_sourceConfig);
-        _infrastructureConfigRepository.GetByIdWithMembersAsync(_sourceConfigId, Arg.Any<CancellationToken>())
+        _infrastructureConfigRepository.GetByIdWithMembersReadOnlyAsync(_sourceConfigId, Arg.Any<CancellationToken>())
             .Returns(_sourceConfig);
         _infrastructureConfigRepository.GetConfigSummariesByIdsAsync(
                 Arg.Any<IReadOnlyList<InfrastructureConfigId>>(),
@@ -91,6 +91,13 @@ public sealed class ListCrossConfigReferencesQueryHandlerTests
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().HaveCount(3);
+
+        await _infrastructureConfigRepository.Received(1).GetByIdWithMembersReadOnlyAsync(
+            _sourceConfigId,
+            Arg.Any<CancellationToken>());
+        await _infrastructureConfigRepository.DidNotReceive().GetByIdWithMembersAsync(
+            _sourceConfigId,
+            Arg.Any<CancellationToken>());
 
         await _infrastructureConfigRepository.Received(1).GetConfigSummariesByIdsAsync(
             Arg.Is<IReadOnlyList<InfrastructureConfigId>>(ids =>

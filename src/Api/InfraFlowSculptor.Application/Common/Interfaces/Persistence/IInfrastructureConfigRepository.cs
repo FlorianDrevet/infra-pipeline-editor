@@ -11,6 +11,7 @@ public interface IInfrastructureConfigRepository : IRepository<Domain.Infrastruc
 {
     Task<Domain.InfrastructureConfigAggregate.InfrastructureConfig?> GetByIdReadOnlyAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default);
     Task<Domain.InfrastructureConfigAggregate.InfrastructureConfig?> GetByIdWithMembersAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default);
+    Task<Domain.InfrastructureConfigAggregate.InfrastructureConfig?> GetByIdWithMembersReadOnlyAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default);
     Task<List<Domain.InfrastructureConfigAggregate.InfrastructureConfig>> GetAllForUserAsync(UserId userId, CancellationToken cancellationToken = default);
 
     /// <summary>

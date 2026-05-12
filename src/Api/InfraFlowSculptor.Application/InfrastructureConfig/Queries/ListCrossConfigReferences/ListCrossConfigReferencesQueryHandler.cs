@@ -27,7 +27,7 @@ public sealed class ListCrossConfigReferencesQueryHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        var config = await infraConfigRepository.GetByIdWithMembersAsync(configId, cancellationToken);
+        var config = await infraConfigRepository.GetByIdWithMembersReadOnlyAsync(configId, cancellationToken);
         if (config is null)
             return authResult.Errors;
 
