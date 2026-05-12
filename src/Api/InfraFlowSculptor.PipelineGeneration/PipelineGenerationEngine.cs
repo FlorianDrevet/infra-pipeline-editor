@@ -1,5 +1,7 @@
 using System.Text;
+using ErrorOr;
 using InfraFlowSculptor.GenerationCore;
+using InfraFlowSculptor.GenerationCore.Errors;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Infra;
 using InfraFlowSculptor.PipelineGeneration.Infra.Stages;
@@ -14,6 +16,8 @@ namespace InfraFlowSculptor.PipelineGeneration;
 /// </summary>
 public sealed class PipelineGenerationEngine
 {
+    private const string PipelineVariableGroupNameMessagePrefix = "Pipeline variable group names";
+
     private readonly InfraPipeline _pipeline;
 
     private const string AzureDevOpsDirectory = ".azuredevops";
@@ -80,20 +84,27 @@ public sealed class PipelineGenerationEngine
     /// <param name="configName">The name of the infrastructure configuration.</param>
     /// <param name="isMonoRepo">When <c>true</c>, skips per-config variables folder (variables are shared at root level).</param>
     /// <returns>The generated per-config pipeline files.</returns>
-    public PipelineGenerationResult Generate(GenerationRequest request, string configName, bool isMonoRepo = false)
+    public ErrorOr<PipelineGenerationResult> Generate(GenerationRequest request, string configName, bool isMonoRepo = false)
     {
-        configName = PathSanitizer.Sanitize(configName);
-
-        var context = new InfraPipelineContext
+        try
         {
-            Request = request,
-            ConfigName = configName,
-            IsMonoRepo = isMonoRepo,
-        };
+            configName = PathSanitizer.Sanitize(configName);
 
-        _pipeline.Execute(context);
+            var context = new InfraPipelineContext
+            {
+                Request = request,
+                ConfigName = configName,
+                IsMonoRepo = isMonoRepo,
+            };
 
-        return new PipelineGenerationResult { TemplateFiles = context.Files };
+            _pipeline.Execute(context);
+
+            return new PipelineGenerationResult { TemplateFiles = context.Files };
+        }
+        catch (InvalidOperationException exception) when (TryMapExpectedException(exception, out var error))
+        {
+            return error;
+        }
     }
 
     /// <summary>
@@ -129,6 +140,18 @@ public sealed class PipelineGenerationEngine
         }
 
         return files;
+    }
+
+    private static bool TryMapExpectedException(InvalidOperationException exception, out Error error)
+    {
+        if (exception.Message.StartsWith(PipelineVariableGroupNameMessagePrefix, StringComparison.Ordinal))
+        {
+            error = GenerationErrors.InvalidPipelineVariableGroupName(exception.Message);
+            return true;
+        }
+
+        error = GenerationErrors.InvalidInfrastructurePipelineConfiguration(exception.Message);
+        return true;
     }
 
 

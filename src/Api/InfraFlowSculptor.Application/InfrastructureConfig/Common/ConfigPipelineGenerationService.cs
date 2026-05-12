@@ -1,3 +1,4 @@
+using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
 using InfraFlowSculptor.BicepGeneration.Generators;
@@ -38,7 +39,7 @@ internal sealed class ConfigPipelineGenerationService(
             bicepGenerators);
     }
 
-    public async Task<AppPipelineGenerationResult> GenerateAppPipelinesAsync(
+    public async Task<ErrorOr<AppPipelineGenerationResult>> GenerateAppPipelinesAsync(
         InfrastructureConfigReadModel config,
         GenerationRequest generationRequest,
         bool isMonoRepo,

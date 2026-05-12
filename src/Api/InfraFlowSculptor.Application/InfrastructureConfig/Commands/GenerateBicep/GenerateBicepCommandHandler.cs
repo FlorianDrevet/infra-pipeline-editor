@@ -53,39 +53,43 @@ public sealed class GenerateBicepCommandHandler(
         var generationRequest = GenerationRequestBuilder.Build(config);
 
         var result = bicepGenerationEngine.Generate(generationRequest);
+        if (result.IsError)
+            return result.Errors;
+
+        var generationResult = result.Value;
 
         var prefix = $"bicep/{config.Id}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
 
         // Upload types.bicep
         await blobService.UploadContentAsync(
             $"{prefix}/types.bicep",
-            result.TypesBicep,
+            generationResult.TypesBicep,
             PlainTextContentType);
 
         // Upload functions.bicep
         await blobService.UploadContentAsync(
             $"{prefix}/functions.bicep",
-            result.FunctionsBicep,
+            generationResult.FunctionsBicep,
             PlainTextContentType);
 
         // Upload constants.bicep (only when role assignments exist)
         Uri? constantsBicepUri = null;
-        if (!string.IsNullOrEmpty(result.ConstantsBicep))
+        if (!string.IsNullOrEmpty(generationResult.ConstantsBicep))
         {
             constantsBicepUri = await blobService.UploadContentAsync(
                 $"{prefix}/constants.bicep",
-                result.ConstantsBicep,
+            generationResult.ConstantsBicep,
                 PlainTextContentType);
         }
 
         // Upload main.bicep
         var mainBicepUri = await blobService.UploadContentAsync(
             $"{prefix}/main.bicep",
-            result.MainBicep,
+            generationResult.MainBicep,
             PlainTextContentType);
 
         var parameterUris = new Dictionary<string, Uri>();
-        foreach (var (fileName, content) in result.EnvironmentParameterFiles)
+        foreach (var (fileName, content) in generationResult.EnvironmentParameterFiles)
         {
             var destinationPath = ResolveArtifactPath(prefix, fileName);
             var paramUri = await blobService.UploadContentAsync(
@@ -96,7 +100,7 @@ public sealed class GenerateBicepCommandHandler(
         }
 
         var moduleUris = new Dictionary<string, Uri>();
-        foreach (var (path, content) in result.ModuleFiles)
+        foreach (var (path, content) in generationResult.ModuleFiles)
         {
             var moduleUri = await blobService.UploadContentAsync(
                 $"{prefix}/{path}",

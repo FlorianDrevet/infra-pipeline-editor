@@ -81,6 +81,10 @@ public sealed class GenerateProjectPipelineCommandHandler(
                 project.AgentPoolName,
                 bicepBasePath);
             var result = pipelineGenerationEngine.Generate(generationRequest, config.Name, isMonoRepo: true);
+            if (result.IsError)
+                return result.Errors;
+
+            var infraPipelineResult = result.Value;
 
             // Generate app pipelines for compute resources in this config
             var appResult = await configPipelineGenerationService.GenerateAppPipelinesAsync(
@@ -89,18 +93,22 @@ public sealed class GenerateProjectPipelineCommandHandler(
                     isMonoRepo: true,
                     cancellationToken)
                 .ConfigureAwait(false);
+            if (appResult.IsError)
+                return appResult.Errors;
+
+            var generatedAppPipelines = appResult.Value;
 
             // Merge app pipeline files into the infra result
-            if (appResult.Files.Count > 0)
+            if (generatedAppPipelines.Files.Count > 0)
             {
-                var mergedFiles = new Dictionary<string, string>(result.Files);
-                foreach (var (path, content) in appResult.Files)
+                var mergedFiles = new Dictionary<string, string>(infraPipelineResult.Files);
+                foreach (var (path, content) in generatedAppPipelines.Files)
                     mergedFiles[path] = content;
 
-                result = new PipelineGenerationResult { TemplateFiles = mergedFiles };
+                infraPipelineResult = new PipelineGenerationResult { TemplateFiles = mergedFiles };
             }
 
-            perConfigResults[config.Name] = result;
+            perConfigResults[config.Name] = infraPipelineResult;
         }
 
         // 5. Collect unique environment definitions across all configs (dedup by ShortName)

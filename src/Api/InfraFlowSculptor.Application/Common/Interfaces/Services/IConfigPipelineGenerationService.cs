@@ -1,3 +1,4 @@
+using ErrorOr;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.GenerationCore.Models;
@@ -22,7 +23,7 @@ public interface IConfigPipelineGenerationService
     /// <summary>
     /// Generates application pipeline artifacts for the compute resources of one configuration.
     /// </summary>
-    Task<AppPipelineGenerationResult> GenerateAppPipelinesAsync(
+    Task<ErrorOr<AppPipelineGenerationResult>> GenerateAppPipelinesAsync(
         InfrastructureConfigReadModel config,
         GenerationRequest generationRequest,
         bool isMonoRepo,

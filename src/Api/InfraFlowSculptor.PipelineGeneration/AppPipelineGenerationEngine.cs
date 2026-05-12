@@ -1,4 +1,6 @@
+using ErrorOr;
 using InfraFlowSculptor.GenerationCore;
+using InfraFlowSculptor.GenerationCore.Errors;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Generators;
 using InfraFlowSculptor.PipelineGeneration.Generators.App;
@@ -12,6 +14,9 @@ namespace InfraFlowSculptor.PipelineGeneration;
 /// </summary>
 public sealed class AppPipelineGenerationEngine
 {
+    private const string PipelineVariableGroupNameMessagePrefix = "Pipeline variable group names";
+    private const string UnsupportedAppPipelineMessagePrefix = "Unsupported ";
+
     private readonly IReadOnlyList<IAppPipelineGenerator> _generators;
 
     /// <summary>
@@ -34,7 +39,7 @@ public sealed class AppPipelineGenerationEngine
     /// <exception cref="InvalidOperationException">
     /// Thrown when no generator is registered for the resource type and deployment mode combination.
     /// </exception>
-    public AppPipelineGenerationResult Generate(AppPipelineGenerationRequest request)
+    public ErrorOr<AppPipelineGenerationResult> Generate(AppPipelineGenerationRequest request)
     {
         // Sanitize names that become path segments or YAML references
         request.ResourceName = PathSanitizer.Sanitize(request.ResourceName);
@@ -44,9 +49,7 @@ public sealed class AppPipelineGenerationEngine
 
         if (!DeploymentModes.All.Contains(request.DeploymentMode))
         {
-            throw new ArgumentException(
-                $"Invalid deployment mode '{request.DeploymentMode}'. Valid values are: {string.Join(", ", DeploymentModes.All)}.",
-                nameof(request));
+            return GenerationErrors.InvalidDeploymentMode(request.DeploymentMode, DeploymentModes.All);
         }
 
         var generator = _generators.FirstOrDefault(g =>
@@ -55,11 +58,17 @@ public sealed class AppPipelineGenerationEngine
 
         if (generator is null)
         {
-            throw new InvalidOperationException(
-                $"No application pipeline generator registered for resource type '{request.ResourceType}' with deployment mode '{request.DeploymentMode}'.");
+            return GenerationErrors.MissingAppPipelineGenerator(request.ResourceType, request.DeploymentMode);
         }
 
-        return generator.Generate(request);
+        try
+        {
+            return generator.Generate(request);
+        }
+        catch (InvalidOperationException exception) when (TryMapExpectedException(exception, out var error))
+        {
+            return error;
+        }
     }
 
     /// <summary>
@@ -71,7 +80,7 @@ public sealed class AppPipelineGenerationEngine
     /// <param name="mode">The pipeline mode (Isolated or Combined).</param>
     /// <param name="configName">The infrastructure configuration name.</param>
     /// <returns>The merged pipeline generation result.</returns>
-    public AppPipelineGenerationResult GenerateAll(
+    public ErrorOr<AppPipelineGenerationResult> GenerateAll(
         IReadOnlyList<AppPipelineGenerationRequest> requests,
         AppPipelineMode mode,
         string configName)
@@ -99,7 +108,7 @@ public sealed class AppPipelineGenerationEngine
     /// Generates isolated per-resource pipeline wrappers, each under apps/{appName}/.
     /// Shared templates are emitted separately via <see cref="GenerateSharedTemplates"/>.
     /// </summary>
-    private AppPipelineGenerationResult GenerateIsolated(
+    private ErrorOr<AppPipelineGenerationResult> GenerateIsolated(
         IReadOnlyList<AppPipelineGenerationRequest> requests)
     {
         var mergedFiles = new Dictionary<string, string>();
@@ -107,9 +116,12 @@ public sealed class AppPipelineGenerationEngine
         foreach (var request in requests)
         {
             var result = Generate(request);
+            if (result.IsError)
+                return result.Errors;
+
             var appName = PathSanitizer.Sanitize(request.ApplicationName ?? request.ResourceName);
 
-            foreach (var (path, content) in result.Files)
+            foreach (var (path, content) in result.Value.Files)
             {
                 mergedFiles[BuildIsolatedOutputPath(appName, path)] = content;
             }
@@ -122,7 +134,7 @@ public sealed class AppPipelineGenerationEngine
     /// Generates combined per-config pipeline wrappers under apps/{configName}/.
     /// Shared templates are emitted separately via <see cref="GenerateSharedTemplates"/>.
     /// </summary>
-    private AppPipelineGenerationResult GenerateCombined(
+    private ErrorOr<AppPipelineGenerationResult> GenerateCombined(
         IReadOnlyList<AppPipelineGenerationRequest> requests,
         string configName)
     {
@@ -133,9 +145,12 @@ public sealed class AppPipelineGenerationEngine
         foreach (var request in requests)
         {
             var result = Generate(request);
+            if (result.IsError)
+                return result.Errors;
+
             var appName = PathSanitizer.Sanitize(request.ApplicationName ?? request.ResourceName);
 
-            foreach (var (path, content) in result.Files)
+            foreach (var (path, content) in result.Value.Files)
             {
                 mergedFiles[BuildCombinedOutputPath(configName, appName, path)] = content;
             }
@@ -170,5 +185,23 @@ public sealed class AppPipelineGenerationEngine
             return normalizedPath;
 
         return normalizedPath[(separatorIndex + 1)..];
+    }
+
+    private static bool TryMapExpectedException(InvalidOperationException exception, out Error error)
+    {
+        if (exception.Message.StartsWith(PipelineVariableGroupNameMessagePrefix, StringComparison.Ordinal))
+        {
+            error = GenerationErrors.InvalidPipelineVariableGroupName(exception.Message);
+            return true;
+        }
+
+        if (exception.Message.StartsWith(UnsupportedAppPipelineMessagePrefix, StringComparison.Ordinal))
+        {
+            error = GenerationErrors.InvalidAppPipelineConfiguration(exception.Message);
+            return true;
+        }
+
+        error = default;
+        return false;
     }
 }

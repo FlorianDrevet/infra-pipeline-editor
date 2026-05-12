@@ -1,4 +1,5 @@
 ﻿using InfraFlowSculptor.GenerationCore;
+using InfraFlowSculptor.BicepGeneration.Models;
 
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 
@@ -20,6 +21,10 @@ namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
 {
     private const string AppServicePlanIdPropertyName = "appServicePlanId";
+    private const string AcrLoginServerParameterName = "acrLoginServer";
+    private const string ContainerRegistryIdPropertyName = "containerRegistryId";
+    private const string ContainerRegistryLoginServerOutputName = "loginServer";
+    private const string ContainerRegistryLoginServerPropertyPath = "properties.loginServer";
     private const string ContainerAppEnvironmentIdPropertyName = "containerAppEnvironmentId";
     private const string LogAnalyticsWorkspaceIdPropertyName = "logAnalyticsWorkspaceId";
     private const string SqlServerIdPropertyName = "sqlServerId";
@@ -38,22 +43,56 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
             var resource = item.Resource;
             var parentModuleIdRefs = new Dictionary<string, (string Name, string ResourceTypeName)>();
             var parentModuleNameRefs = new Dictionary<string, (string Name, string ResourceTypeName)>();
+            var parentModuleOutputRefs = new Dictionary<string, (string Name, string ResourceTypeName, string OutputName)>();
             var existingResourceIdRefs = new Dictionary<string, string>();
+            var existingResourcePropertyRefs = new Dictionary<string, (string ResourceName, string PropertyPath)>();
 
             TryResolveIdReference(resource, resourceIdToInfo, AppServicePlanIdPropertyName, parentModuleIdRefs);
             TryResolveIdReference(resource, resourceIdToInfo, ContainerAppEnvironmentIdPropertyName, parentModuleIdRefs);
+            ResolveContainerRegistryLoginServerReference(
+                item.Module,
+                resource,
+                context,
+                parentModuleOutputRefs,
+                existingResourcePropertyRefs);
             ResolveLogAnalyticsWorkspaceReference(resource, context, parentModuleIdRefs, existingResourceIdRefs);
             TryResolveNameReference(resource, resourceIdToInfo, SqlServerIdPropertyName, SqlServerNameReferenceKey, parentModuleNameRefs);
+
+            var parameters = RemoveDerivedParameters(
+                item.Module.Parameters,
+                parentModuleOutputRefs.Keys,
+                existingResourcePropertyRefs.Keys);
 
             item.Module = item.Module with
             {
                 IdentityKind = item.IdentityKind,
                 UsesParameterizedIdentity = item.UsesParameterizedIdentity,
+                Parameters = parameters,
                 ParentModuleIdReferences = parentModuleIdRefs,
                 ParentModuleNameReferences = parentModuleNameRefs,
+                ParentModuleOutputReferences = parentModuleOutputRefs,
                 ExistingResourceIdReferences = existingResourceIdRefs,
+                ExistingResourcePropertyReferences = existingResourcePropertyRefs,
             };
         }
+    }
+
+    private static IReadOnlyDictionary<string, object> RemoveDerivedParameters(
+        IReadOnlyDictionary<string, object> parameters,
+        IEnumerable<string> parentModuleOutputKeys,
+        IEnumerable<string> existingResourcePropertyKeys)
+    {
+        var derivedParameterKeys = new HashSet<string>(parentModuleOutputKeys, StringComparer.OrdinalIgnoreCase);
+        derivedParameterKeys.UnionWith(existingResourcePropertyKeys);
+
+        if (derivedParameterKeys.Count == 0)
+        {
+            return parameters;
+        }
+
+        return parameters
+            .Where(parameter => !derivedParameterKeys.Contains(parameter.Key))
+            .ToDictionary(parameter => parameter.Key, parameter => parameter.Value, StringComparer.OrdinalIgnoreCase);
     }
 
     private static void TryResolveIdReference(
@@ -83,6 +122,40 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
         {
             target[targetKey] = info;
         }
+    }
+
+    private static void ResolveContainerRegistryLoginServerReference(
+        GeneratedTypeModule module,
+        ResourceDefinition resource,
+        BicepGenerationContext context,
+        IDictionary<string, (string Name, string ResourceTypeName, string OutputName)> parentModuleOutputRefs,
+        IDictionary<string, (string ResourceName, string PropertyPath)> existingResourcePropertyRefs)
+    {
+        if (!module.Parameters.ContainsKey(AcrLoginServerParameterName))
+        {
+            return;
+        }
+
+        if (resource.Properties.TryGetValue(ContainerRegistryIdPropertyName, out var containerRegistryIdValue)
+            && Guid.TryParse(containerRegistryIdValue, out var containerRegistryId)
+            && context.ResourceIdToInfo.TryGetValue(containerRegistryId, out var containerRegistryInfo)
+            && string.Equals(containerRegistryInfo.ResourceTypeName, AzureResourceTypes.ContainerRegistry, StringComparison.OrdinalIgnoreCase))
+        {
+            parentModuleOutputRefs[AcrLoginServerParameterName] =
+                (containerRegistryInfo.Name, containerRegistryInfo.ResourceTypeName, ContainerRegistryLoginServerOutputName);
+            return;
+        }
+
+        var existingContainerRegistry = context.Request.ExistingResourceReferences.FirstOrDefault(reference =>
+            reference.ResourceType.Equals(AzureResourceTypes.ArmTypes.ContainerRegistryType, StringComparison.OrdinalIgnoreCase));
+
+        if (existingContainerRegistry is null)
+        {
+            return;
+        }
+
+        existingResourcePropertyRefs[AcrLoginServerParameterName] =
+            (existingContainerRegistry.ResourceName, ContainerRegistryLoginServerPropertyPath);
     }
 
     private static void ResolveLogAnalyticsWorkspaceReference(

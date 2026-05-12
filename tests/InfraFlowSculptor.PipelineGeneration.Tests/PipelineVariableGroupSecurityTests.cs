@@ -1,3 +1,4 @@
+using ErrorOr;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Generators;
@@ -9,7 +10,7 @@ namespace InfraFlowSculptor.PipelineGeneration.Tests;
 public sealed class PipelineVariableGroupSecurityTests
 {
     [Fact]
-    public void Given_GroupNameWithAzureTemplateExpression_When_GenerateInfraPipeline_Then_ThrowsInvalidOperationException()
+    public void Given_GroupNameWithAzureTemplateExpression_When_GenerateInfraPipeline_Then_ReturnsValidationError()
     {
         // Arrange
         var sut = new PipelineGenerationEngine();
@@ -23,16 +24,17 @@ public sealed class PipelineVariableGroupSecurityTests
         ];
 
         // Act
-        var act = () => sut.Generate(request, "core");
+        var result = sut.Generate(request, "core");
 
         // Assert
-        act.Should()
-            .Throw<InvalidOperationException>()
-            .WithMessage("*must not contain Azure DevOps template expressions*");
+        result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.Validation);
+        result.FirstError.Code.Should().Be("Generation.InvalidPipelineVariableGroupName");
+        result.FirstError.Description.Should().Contain("must not contain Azure DevOps template expressions");
     }
 
     [Fact]
-    public void Given_GroupNameWithAzureTemplateExpression_When_GenerateAppPipeline_Then_ThrowsInvalidOperationException()
+    public void Given_GroupNameWithAzureTemplateExpression_When_GenerateAppPipeline_Then_ReturnsValidationError()
     {
         // Arrange
         var sut = new AppPipelineGenerationEngine([new WebAppCodePipelineGenerator()]);
@@ -46,12 +48,13 @@ public sealed class PipelineVariableGroupSecurityTests
         ];
 
         // Act
-        var act = () => sut.Generate(request);
+    var result = sut.Generate(request);
 
         // Assert
-        act.Should()
-            .Throw<InvalidOperationException>()
-            .WithMessage("*must not contain Azure DevOps template expressions*");
+    result.IsError.Should().BeTrue();
+    result.FirstError.Type.Should().Be(ErrorType.Validation);
+    result.FirstError.Code.Should().Be("Generation.InvalidPipelineVariableGroupName");
+    result.FirstError.Description.Should().Contain("must not contain Azure DevOps template expressions");
     }
 
     [Fact]
@@ -72,7 +75,8 @@ public sealed class PipelineVariableGroupSecurityTests
         var result = sut.Generate(request, "core");
 
         // Assert
-        result.TemplateFiles["release.pipeline.yml"]
+        result.IsError.Should().BeFalse();
+        result.Value.TemplateFiles["release.pipeline.yml"]
             .Should()
             .Contain("- group: 'ifs-shared-${{ environment }}'");
     }

@@ -65,6 +65,10 @@ public sealed class GeneratePipelineCommandHandler(
             bicepBasePath);
 
         var result = pipelineGenerationEngine.Generate(generationRequest, config.Name);
+        if (result.IsError)
+            return result.Errors;
+
+        var pipelineResult = result.Value;
 
         // ─── App Pipeline Generation ────────────────────────────────────────
         var appResult = await configPipelineGenerationService.GenerateAppPipelinesAsync(
@@ -73,19 +77,23 @@ public sealed class GeneratePipelineCommandHandler(
                 isMonoRepo: false,
                 cancellationToken)
             .ConfigureAwait(false);
+        if (appResult.IsError)
+            return appResult.Errors;
+
+        var generatedAppPipelines = appResult.Value;
 
         // ─── Upload all artifacts ───────────────────────────────────────────
         var timestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
         var fileUris = new Dictionary<string, Uri>();
 
-        foreach (var (path, content) in result.Files)
+        foreach (var (path, content) in pipelineResult.Files)
         {
             var uri = await artifactService.UploadArtifactAsync(
                 "pipeline", command.InfrastructureConfigId, timestamp, path, content);
             fileUris[path] = uri;
         }
 
-        foreach (var (path, content) in appResult.Files)
+        foreach (var (path, content) in generatedAppPipelines.Files)
         {
             var uri = await artifactService.UploadArtifactAsync(
                 "pipeline", command.InfrastructureConfigId, timestamp, path, content);
@@ -93,7 +101,7 @@ public sealed class GeneratePipelineCommandHandler(
         }
 
         // Upload shared app pipeline templates (only when there are app pipelines to reference them)
-        if (appResult.Files.Count > 0)
+        if (generatedAppPipelines.Files.Count > 0)
         {
             foreach (var (path, content) in AppPipelineGenerationEngine.GenerateSharedTemplates())
             {

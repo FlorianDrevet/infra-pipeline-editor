@@ -74,13 +74,17 @@ public sealed class GenerateProjectBicepCommandHandler(
         };
 
         var result = bicepGenerationEngine.GenerateMonoRepo(monoRepoRequest);
+        if (result.IsError)
+            return result.Errors;
+
+        var monoRepoResult = result.Value;
 
         // 5. Upload to blob storage
         var prefix = $"bicep/project/{command.ProjectId.Value}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
         const string sharedPathSegment = "Common/";
 
         var commonFileUris = new Dictionary<string, Uri>();
-        foreach (var (path, content) in result.CommonFiles)
+        foreach (var (path, content) in monoRepoResult.CommonFiles)
         {
             var uri = await blobService.UploadContentAsync(
                 $"{prefix}/{sharedPathSegment}{path}", content, "text/plain");
@@ -88,7 +92,7 @@ public sealed class GenerateProjectBicepCommandHandler(
         }
 
         var configFileUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>();
-        foreach (var (configName, files) in result.ConfigFiles)
+        foreach (var (configName, files) in monoRepoResult.ConfigFiles)
         {
             var uris = new Dictionary<string, Uri>();
             foreach (var (path, content) in files)

@@ -1,3 +1,4 @@
+using FluentAssertions;
 using InfraFlowSculptor.PipelineGeneration.Models;
 using InfraFlowSculptor.PipelineGeneration.Tests.Common;
 using InfraFlowSculptor.PipelineGeneration.Tests.Fixtures;
@@ -47,10 +48,16 @@ public sealed class MonoRepoPipelineAssemblerGoldenTests
         var coreRequest = GenerationRequestFixtures.StandardStandalone();
         var sharedRequest = GenerationRequestFixtures.WithVariableGroupsAndSecureParams();
 
+        var coreResult = _engine.Generate(coreRequest, "core", isMonoRepo: true);
+        coreResult.IsError.Should().BeFalse();
+
+        var sharedResult = _engine.Generate(sharedRequest, "shared", isMonoRepo: true);
+        sharedResult.IsError.Should().BeFalse();
+
         var perConfigResults = new Dictionary<string, PipelineGenerationResult>
         {
-            ["core"] = _engine.Generate(coreRequest, "core", isMonoRepo: true),
-            ["shared"] = _engine.Generate(sharedRequest, "shared", isMonoRepo: true),
+            ["core"] = coreResult.Value,
+            ["shared"] = sharedResult.Value,
         };
 
         var environments = GenerationRequestFixtures.ThreeEnvironments();

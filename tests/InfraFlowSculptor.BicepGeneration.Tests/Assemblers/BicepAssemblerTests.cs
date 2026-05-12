@@ -80,7 +80,6 @@ public sealed class BicepAssemblerTests
     public void Given_ContainerAppLinkedToExistingContainerRegistry_When_Assemble_Then_ComputesAcrLoginServerInMainBicep()
     {
         // Arrange
-        var containerRegistryId = Guid.NewGuid();
         var modules = new[]
         {
             new GeneratedTypeModule
@@ -95,8 +94,11 @@ public sealed class BicepAssemblerTests
                 ResourceAbbreviation = "ca",
                 Parameters = new Dictionary<string, object>
                 {
-                    ["acrLoginServer"] = string.Empty,
                     ["acrManagedIdentityClientId"] = string.Empty,
+                },
+                ExistingResourcePropertyReferences = new Dictionary<string, (string ResourceName, string PropertyPath)>
+                {
+                    ["acrLoginServer"] = ("infraflowsculptor", "properties.loginServer"),
                 },
             },
         };
@@ -121,23 +123,6 @@ public sealed class BicepAssemblerTests
             },
         };
 
-        var resources = new[]
-        {
-            new ResourceDefinition
-            {
-                ResourceId = Guid.NewGuid(),
-                Name = "ifs-api",
-                Type = AzureResourceTypes.ArmTypes.ContainerAppType,
-                ResourceGroupName = "ifs",
-                ResourceAbbreviation = "ca",
-                Properties = new Dictionary<string, string>
-                {
-                    ["containerRegistryId"] = containerRegistryId.ToString(),
-                    ["acrAuthMode"] = "ManagedIdentity",
-                },
-            },
-        };
-
         var namingContext = new NamingContext
         {
             ResourceTemplates = new Dictionary<string, string>
@@ -150,7 +135,7 @@ public sealed class BicepAssemblerTests
         {
             new ExistingResourceReference
             {
-                ResourceName = "ifs",
+                ResourceName = "infraflowsculptor",
                 ResourceTypeName = AzureResourceTypes.ContainerRegistry,
                 ResourceType = AzureResourceTypes.ArmTypes.ContainerRegistryType,
                 ResourceGroupName = "ifs-core",
@@ -167,7 +152,7 @@ public sealed class BicepAssemblerTests
                 ResourceGroups = resourceGroups,
                 Environments = environments,
                 EnvironmentNames = ["dev"],
-                Resources = resources,
+                Resources = [],
                 NamingContext = namingContext,
                 RoleAssignments = [],
                 AppSettings = [],
@@ -175,8 +160,8 @@ public sealed class BicepAssemblerTests
             });
 
         // Assert
-        result.MainBicep.Should().Contain("acrLoginServer: containerAppIfsApiAcrLoginServer");
-        result.MainBicep.Should().Contain("param containerAppIfsApiAcrLoginServer string");
-        result.EnvironmentParameterFiles["main.dev.bicepparam"].Should().Contain("containerAppIfsApiAcrLoginServer");
+        result.MainBicep.Should().Contain("acrLoginServer: existing_infraflowsculptor.properties.loginServer");
+        result.MainBicep.Should().NotContain("param containerAppIfsApiAcrLoginServer string");
+        result.EnvironmentParameterFiles["main.dev.bicepparam"].Should().NotContain("containerAppIfsApiAcrLoginServer");
     }
 }
