@@ -27,4 +27,12 @@ public interface IInfrastructureConfigRepository : IRepository<Domain.Infrastruc
     /// Use this projection when only summary fields are needed, avoiding loading full aggregates.
     /// </summary>
     Task<List<InfraConfigSummary>> GetConfigSummariesForUserAsync(UserId userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns lightweight summaries (Id, Name) for the specified infrastructure configuration identifiers.
+    /// Use this projection when resolving multiple target configurations without loading full aggregates.
+    /// </summary>
+    Task<List<InfraConfigSummary>> GetConfigSummariesByIdsAsync(
+        IReadOnlyList<InfrastructureConfigId> ids,
+        CancellationToken cancellationToken = default);
 }

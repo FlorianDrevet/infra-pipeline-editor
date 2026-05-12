@@ -1,4 +1,5 @@
 using FluentAssertions;
+using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -143,5 +144,37 @@ public sealed class InfrastructureConfigRepositoryTests : IDisposable
         // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(config.Id);
+    }
+
+    [Fact]
+    public async Task Given_StoredConfigs_When_GetConfigSummariesByIdsAsync_Then_ReturnsOnlyRequestedSummaries_Async()
+    {
+        // Arrange
+        var projectId = ProjectId.CreateUnique();
+        var first = InfrastructureConfig.Create(new Name(ConfigName), projectId);
+        var second = InfrastructureConfig.Create(new Name(OtherConfigName), projectId);
+        var unrelated = InfrastructureConfig.Create(new Name("shared-test"), ProjectId.CreateUnique());
+
+        await _context.InfrastructureConfigs.AddRangeAsync(first, second, unrelated);
+        await _context.SaveChangesAsync();
+
+        var requestedIds = new List<InfrastructureConfigId>
+        {
+            first.Id,
+            second.Id,
+            first.Id,
+        };
+
+        // Act
+        var result = await _sut.GetConfigSummariesByIdsAsync(requestedIds);
+
+        // Assert
+        result.Should().BeEquivalentTo(
+            new[]
+            {
+                new InfraConfigSummary(first.Id.Value, first.Name.Value),
+                new InfraConfigSummary(second.Id.Value, second.Name.Value),
+            },
+            options => options.WithoutStrictOrdering());
     }
 }

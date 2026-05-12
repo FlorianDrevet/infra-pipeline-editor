@@ -9,7 +9,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListCrossCo
 
 /// <summary>
 /// Handles listing cross-configuration resource references with resolved target metadata.
-/// Batch-loads all target configs and resources in two queries instead of 2N sequential ones.
+/// Batch-loads target config summaries and target resources to avoid residual N+1 queries.
 /// </summary>
 public sealed class ListCrossConfigReferencesQueryHandler(
     IInfraConfigAccessService accessService,
@@ -34,18 +34,15 @@ public sealed class ListCrossConfigReferencesQueryHandler(
         if (config.CrossConfigReferences.Count == 0)
             return new List<CrossConfigReferenceDetailResult>();
 
-        // Batch-load all target config IDs in one query
+        // Batch-load all target config summaries in one query.
         var targetConfigIds = config.CrossConfigReferences
             .Select(r => r.TargetConfigId)
             .Distinct()
             .ToList();
-        var targetConfigs = new Dictionary<InfrastructureConfigId, Domain.InfrastructureConfigAggregate.InfrastructureConfig>();
-        foreach (var tcId in targetConfigIds)
-        {
-            var tc = await infraConfigRepository.GetByIdAsync(tcId, cancellationToken);
-            if (tc is not null)
-                targetConfigs[tc.Id] = tc;
-        }
+        var targetConfigs = (await infraConfigRepository.GetConfigSummariesByIdsAsync(
+                targetConfigIds,
+                cancellationToken))
+            .ToDictionary(summary => summary.Id);
 
         // Batch-load all target resource metadata (name, type, RG name) in one query
         var targetResourceIds = config.CrossConfigReferences
@@ -60,7 +57,7 @@ public sealed class ListCrossConfigReferencesQueryHandler(
 
         foreach (var reference in config.CrossConfigReferences)
         {
-            if (!targetConfigs.TryGetValue(reference.TargetConfigId, out var targetConfig))
+            if (!targetConfigs.TryGetValue(reference.TargetConfigId.Value, out var targetConfig))
                 continue;
 
             if (!resourceMetadata.TryGetValue(reference.TargetResourceId.Value, out var meta))
@@ -69,7 +66,7 @@ public sealed class ListCrossConfigReferencesQueryHandler(
             results.Add(new CrossConfigReferenceDetailResult(
                 ReferenceId: reference.Id.Value,
                 TargetConfigId: reference.TargetConfigId.Value,
-                TargetConfigName: targetConfig.Name.Value,
+                TargetConfigName: targetConfig.Name,
                 TargetResourceId: reference.TargetResourceId.Value,
                 TargetResourceName: meta.ResourceName,
                 TargetResourceType: meta.ResourceType,

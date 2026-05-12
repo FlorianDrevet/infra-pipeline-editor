@@ -11,6 +11,8 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 
 public class ResourceGroupConfiguration : IEntityTypeConfiguration<ResourceGroup>
 {
+    private const int ResourceGroupNameMaxLength = 90;
+
     public void Configure(EntityTypeBuilder<ResourceGroup> builder)
     {
         ConfigureUsersTable(builder);
@@ -24,7 +26,8 @@ public class ResourceGroupConfiguration : IEntityTypeConfiguration<ResourceGroup
         builder.ConfigureAggregateRootId<ResourceGroup, ResourceGroupId>();
         
         builder.Property(config => config.Name)
-            .HasConversion(new SingleValueConverter<Name, string>());
+            .HasConversion(new SingleValueConverter<Name, string>())
+            .HasMaxLength(ResourceGroupNameMaxLength);
         
         builder.Property(rg => rg.InfraConfigId)
             .HasConversion(new IdValueConverter<InfrastructureConfigId>());

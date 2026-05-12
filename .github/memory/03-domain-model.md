@@ -90,6 +90,7 @@ These reusable entity types are owned by multiple aggregates:
 - Concrete aggregates inheriting from `AzureResource` must be declared `sealed`.
 - All `EnumValueObject<T>`-derived classes must be declared `sealed` [2026-04-16].
 - Value object properties must use `private set`.
+- `SingleValueObject<T>.ToString()` now returns the wrapped value string (or `string.Empty` for `null`) instead of the CLR type name [2026-05-12].
 - Error strings must be in English.
 - `Location` is the canonical source for Azure wire-format region keys: use `Location.DefaultAzureRegionKey` for the default region and `Location.ToAzureRegionKey(...)` instead of hardcoding values like `westeurope` or `francecentral` [2026-04-29].
 

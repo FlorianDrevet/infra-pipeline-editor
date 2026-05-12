@@ -16,6 +16,11 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
 {
     private const string TableName = "Projects";
+    private const int ProjectNameMaxLength = 80;
+    private const int NamingTemplateMaxLength = 500;
+    private const int EnvironmentNameMaxLength = 100;
+    private const int EnvironmentShortNameMaxLength = 20;
+    private const int EnvironmentAffixMaxLength = 50;
 
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<Project> builder)
@@ -26,6 +31,7 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
 
         builder.Property(x => x.Name)
             .HasConversion(new SingleValueConverter<Name, string>())
+            .HasMaxLength(ProjectNameMaxLength)
             .IsRequired();
 
         builder.Property(x => x.Description)
@@ -39,6 +45,7 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
 #pragma warning disable CS8620 // Nullability mismatch — EF Core handles null conversion internally
             .HasConversion(new SingleValueConverter<NamingTemplate, string>())
 #pragma warning restore CS8620
+            .HasMaxLength(NamingTemplateMaxLength)
             .IsRequired(false);
 
         // ========================
@@ -137,16 +144,20 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
                 .HasConversion(new IdValueConverter<ProjectId>());
 
             env.Property(x => x.Name)
-                .HasConversion(new SingleValueConverter<Name, string>());
+                .HasConversion(new SingleValueConverter<Name, string>())
+                .HasMaxLength(EnvironmentNameMaxLength);
 
             env.Property(x => x.ShortName)
-                .HasConversion(new SingleValueConverter<ShortName, string>());
+                .HasConversion(new SingleValueConverter<ShortName, string>())
+                .HasMaxLength(EnvironmentShortNameMaxLength);
 
             env.Property(x => x.Prefix)
-                .HasConversion(new SingleValueConverter<Prefix, string>());
+                .HasConversion(new SingleValueConverter<Prefix, string>())
+                .HasMaxLength(EnvironmentAffixMaxLength);
 
             env.Property(x => x.Suffix)
-                .HasConversion(new SingleValueConverter<Suffix, string>());
+                .HasConversion(new SingleValueConverter<Suffix, string>())
+                .HasMaxLength(EnvironmentAffixMaxLength);
 
             env.Property(x => x.Location)
                 .HasConversion(new EnumValueConverter<Location, Location.LocationEnum>());

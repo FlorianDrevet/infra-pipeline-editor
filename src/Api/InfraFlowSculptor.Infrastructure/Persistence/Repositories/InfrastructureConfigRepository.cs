@@ -71,4 +71,21 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
             .Select(c => new InfraConfigSummary(c.Id.Value, c.Name.Value))
             .ToListAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<List<InfraConfigSummary>> GetConfigSummariesByIdsAsync(
+        IReadOnlyList<InfrastructureConfigId> ids,
+        CancellationToken cancellationToken = default)
+    {
+        if (ids.Count == 0)
+            return [];
+
+        var distinctIds = ids.Distinct().ToList();
+
+        return await Context.InfrastructureConfigs
+            .AsNoTracking()
+            .Where(c => distinctIds.Contains(c.Id))
+            .Select(c => new InfraConfigSummary(c.Id.Value, c.Name.Value))
+            .ToListAsync(cancellationToken);
+    }
 }

@@ -7,7 +7,7 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 public class CreateInfrastructureConfigRequest
 {
     /// <summary>Human-readable name for the new Infrastructure Configuration.</summary>
-    [Required]
+    [Required, StringLength(100)]
     public required string Name { get; init; }
 
     /// <summary>Identifier of the parent project.</summary>

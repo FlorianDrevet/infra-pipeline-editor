@@ -99,6 +99,13 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 - Access check: ResourceGroup has `InfraConfigId` directly; KeyVault/RedisCache have `ResourceGroupId` → load ResourceGroup → use `InfraConfigId`
 - For identity-scoped read queries such as `ListRoleAssignmentsByIdentityQueryHandler`, collapse identity-not-found, parent-resource-group-not-found, and denied-read-access outcomes to the same not-found result to avoid leaking authorization boundaries; keep the handler split into focused helpers for access validation, referenced-resource loading, and projection.
 
+## Batch Summary Loading [2026-05-12]
+
+- `ListCrossConfigReferencesQueryHandler` is the reference fix for residual query-side N+1 when only target config names are needed.
+- Prefer a batch summary repository method such as `IInfrastructureConfigRepository.GetConfigSummariesByIdsAsync(...)` over looping on `GetByIdAsync(...)` when a query only needs lightweight metadata (`Id`, `Name`) for multiple configs.
+- Keep the handler orchestration simple: distinct target config IDs -> one batch summary query -> one batch resource metadata query -> in-memory join for the final result.
+- Do not load full aggregates just to resolve names in read-only queries.
+
 ## Domain Services [2026-04-16]
 
 - `IRoleAssignmentDomainService` / `RoleAssignmentDomainService`: extracted cross-cutting role assignment logic shared by Add/Remove/Assign/Unassign/Update identity handlers.

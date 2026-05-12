@@ -9,6 +9,8 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 public sealed class ResourceNamingTemplateConfiguration
     : IEntityTypeConfiguration<ResourceNamingTemplate>
 {
+    private const int NamingTemplateMaxLength = 500;
+
     public void Configure(EntityTypeBuilder<ResourceNamingTemplate> builder)
     {
         builder.ToTable("ResourceNamingTemplates");
@@ -28,7 +30,8 @@ public sealed class ResourceNamingTemplateConfiguration
 
         builder.Property(x => x.Template)
             .IsRequired()
-            .HasConversion(new SingleValueConverter<NamingTemplate, string>());
+            .HasConversion(new SingleValueConverter<NamingTemplate, string>())
+            .HasMaxLength(NamingTemplateMaxLength);
 
         builder.HasIndex(x => new { x.InfraConfigId, x.ResourceType })
             .IsUnique();

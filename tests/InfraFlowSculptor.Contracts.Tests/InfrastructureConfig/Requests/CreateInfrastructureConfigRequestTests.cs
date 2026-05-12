@@ -92,4 +92,21 @@ public sealed class CreateInfrastructureConfigRequestTests
         // Assert
         results.HasErrorForMember(nameof(CreateInfrastructureConfigRequest.ProjectId)).Should().BeTrue();
     }
+
+    [Fact]
+    public void Given_NameLongerThan100Characters_When_Validate_Then_ReturnsNameError()
+    {
+        // Arrange
+        var sut = new CreateInfrastructureConfigRequest
+        {
+            Name = new string('a', 101),
+            ProjectId = ValidProjectId,
+        };
+
+        // Act
+        var results = RequestValidator.Validate(sut);
+
+        // Assert
+        results.HasErrorForMember(nameof(CreateInfrastructureConfigRequest.Name)).Should().BeTrue();
+    }
 }

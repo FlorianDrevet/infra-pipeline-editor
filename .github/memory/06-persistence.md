@@ -18,7 +18,34 @@ public sealed class SomethingConfiguration : IEntityTypeConfiguration<Something>
 }
 ```
 
+## Canonical String Lengths [2026-05-12]
+
+- Core persisted string/value-object columns must declare `HasMaxLength(...)` explicitly instead of relying on provider default `text` columns.
+- Current canonical matrix for the DB-001 sweep:
+    - `Project.Name` = `80`
+    - `Project.DefaultNamingTemplate` = `500`
+    - `ProjectEnvironmentDefinition.Name` = `100`
+    - `ProjectEnvironmentDefinition.ShortName` = `20`
+    - `ProjectEnvironmentDefinition.Prefix` / `Suffix` = `50`
+    - `InfrastructureConfig.Name` = `100`
+    - `InfrastructureConfig.DefaultNamingTemplate` = `500`
+    - `ResourceGroup.Name` = `90`
+    - `AzureResource.Name` / `CustomNameOverride` = `260`
+    - `ProjectResourceNamingTemplate.Template` / `ResourceNamingTemplate.Template` = `500`
+- When a persistence cap is introduced on a create flow, align the application validator and request contract in the same change set to fail fast before SQL (done for `CreateProject` and `CreateInfrastructureConfig`).
+- `ResourceGroup.Name` is capped from the official Azure `Microsoft.Resources/resourcegroups` rule (`1-90`); the repo now aligns `CreateResourceGroup` request + validator with that bound instead of letting SQL reject it late.
+- `ParameterDefinition` remains intentionally unresolved in DB-001: current ARM/Bicep docs confirm parameter names must be valid identifiers and `defaultValue` can carry typed literals, but do not provide a single canonical persisted max-length matrix for `Name` / `DefaultValue` across `string|int|bool|object|array`.
+
 ## Key Conventions
+
+### Index coverage verification must use a relational provider [2026-05-12]
+
+- For EF Core index metadata, do not rely on the InMemory provider as the sole observation point when checking convention-generated FK indexes.
+- `IndexCoverageConfigurationTests` uses a Npgsql-configured `ProjectDbContext` without opening a connection so the relational model exposes the effective index coverage seen by migrations/snapshot.
+- Verified DB-002-obsolete coverage in the current model:
+    - explicit indexes: `InfrastructureConfig.ProjectId`, `AzureResource.ResourceType`
+    - convention/FK indexes: `AzureResource.ResourceGroupId`, `ResourceGroup.InfraConfigId`, `AppSetting.SourceResourceId`, `AppSetting.KeyVaultResourceId`, `AppConfigurationKey.SourceResourceId`, `AppConfigurationKey.KeyVaultResourceId`
+    - composite coverage: unique `RoleAssignment(SourceResourceId, TargetResourceId, UserAssignedIdentityId, RoleDefinitionId)` already covers source-target lookups
 
 ### Ignore computed navigations over shared backing field
 When an aggregate exposes one persisted collection plus filtered/computed projections over the same backing field, map only the persisted navigation and add `builder.Ignore(...)` for every computed projection.
@@ -60,6 +87,7 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 ## SQL Read Views [2026-04-23]
 
 - `ProjectDbContext` maps `vw_ResourceEnvironmentEntries` and `vw_ChildToParentLinks` as keyless read models (`ResourceEnvironmentEntryView`, `ChildToParentLinkView`).
+- `ResourceGroupRepository.GetConfiguredEnvironmentsByResourceGroupAsync(...)` is the canonical consumer of `vw_ResourceEnvironmentEntries`: the old audit finding about 16 sequential environment-settings queries is obsolete on the current codebase because the method now executes a single read-only query over that view.
 - `ResourceGroupRepository` uses these views through `GetConfiguredEnvironmentsByResourceGroupAsync()` and `GetChildToParentMappingAsync()` so Application handlers do not need to know all typed environment-setting tables or child-resource TPT tables.
 - `ListProjectResourcesQueryHandler` still lists project resources via `GetByInfraConfigIdAsync()` with `Include(r => r.Resources)`; the views support adjacent resource-read scenarios like `ListResourceGroupResources` and incoming cross-config reference resolution.
 
@@ -110,3 +138,5 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 
 ## Migrations
 17+ migration files in `src/Api/InfraFlowSculptor.Infrastructure/Migrations/`. Always add a new migration when changing domain model.
+- `20260512091902_AddCoreStringLengthConstraints` adds the first DB-001 migration slice for the core project / environment / infra-config / naming-template / AzureResource columns and keeps the snapshot in sync.
+- `20260512095600_AddResourceGroupNameLengthConstraint` adds the follow-up DB-001 slice that constrains `ResourceGroup.Name` to `varchar(90)`.
