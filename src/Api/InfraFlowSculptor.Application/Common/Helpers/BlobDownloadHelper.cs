@@ -44,7 +44,10 @@ internal static class BlobDownloadHelper
             .Select(blobName => string.Join('/', blobName.Split('/').Take(prefixSegmentCount)))
             .Distinct()
             .OrderDescending()
-            .First();
+            .FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(latestPrefix))
+            return notFoundErrorFactory(entityId);
 
         var latestBlobs = allBlobs
             .Where(blobName => blobName.StartsWith(latestPrefix, StringComparison.Ordinal))
@@ -204,7 +207,10 @@ internal static class BlobDownloadHelper
             .Select(blobName => string.Join('/', blobName.Split('/').Take(prefixSegmentCount)))
             .Distinct()
             .OrderDescending()
-            .First();
+            .FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(latestPrefix))
+            return notFoundErrorFactory(entityId);
 
         var latestBlobs = allBlobs
             .Where(blobName => blobName.StartsWith($"{latestPrefix}/", StringComparison.Ordinal))

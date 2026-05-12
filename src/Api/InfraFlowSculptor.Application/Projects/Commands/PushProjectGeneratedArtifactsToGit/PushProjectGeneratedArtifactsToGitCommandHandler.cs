@@ -124,7 +124,10 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
             .Select(blobName => string.Join('/', blobName.Split('/').Take(4)))
             .Distinct()
             .OrderDescending()
-            .First();
+            .FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(latestPrefix))
+            return notFoundErrorFactory(projectId);
 
         var latestBlobs = allBlobs
             .Where(blobName => blobName.StartsWith(latestPrefix, StringComparison.Ordinal))

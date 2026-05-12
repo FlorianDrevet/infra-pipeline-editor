@@ -35,7 +35,10 @@ public sealed class GetProjectBootstrapPipelineFileContentQueryHandler(
             .Select(blobName => string.Join('/', blobName.Split('/').Take(4)))
             .Distinct()
             .OrderDescending()
-            .First();
+            .FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(latestPrefix))
+            return Errors.Project.BootstrapFilesNotFoundError(query.ProjectId);
 
         var blobName = $"{latestPrefix}/{query.FilePath}";
         var content = await blobService.DownloadContentAsync(blobName);

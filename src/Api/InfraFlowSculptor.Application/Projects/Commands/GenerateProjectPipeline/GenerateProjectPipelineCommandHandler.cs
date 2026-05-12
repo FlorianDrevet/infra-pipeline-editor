@@ -108,7 +108,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
         var environments = configs
             .SelectMany(c => c.Environments)
             .GroupBy(e => e.ShortName.ToLowerInvariant())
-            .Select(g => g.First())
+            .SelectMany(g => g.Take(1))
             .Select(e => new EnvironmentDefinition
             {
                 Name = e.Name,

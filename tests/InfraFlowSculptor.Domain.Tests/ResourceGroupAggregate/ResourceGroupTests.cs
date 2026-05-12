@@ -187,4 +187,38 @@ public sealed class ResourceGroupTests
         result.FirstError.Code.Should().Be(Errors.ResourceGroup.RemoveResource.ErrorCodes.ResourceIsDependencyCode);
         sut.Resources.Should().Contain(dependency);
     }
+
+    [Fact]
+    public void Given_DependencyFromAnotherResourceGroup_When_AddDependency_Then_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var sut = CreateValidResourceGroup();
+        var otherGroup = CreateValidResourceGroup();
+        var dependent = CreateStorageAccount(sut.Id, "stdependent");
+        var foreignDependency = CreateStorageAccount(otherGroup.Id, "stforeigndependency");
+
+        // Act
+        var act = () => dependent.AddDependency(foreignDependency);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*same resource group*");
+    }
+
+    [Fact]
+    public void Given_CyclicDependency_When_AddDependency_Then_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var sut = CreateValidResourceGroup();
+        var first = CreateStorageAccount(sut.Id, "stfirst");
+        var second = CreateStorageAccount(sut.Id, "stsecond");
+        first.AddDependency(second);
+
+        // Act
+        var act = () => second.AddDependency(first);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*cyclic dependency*");
+    }
 }

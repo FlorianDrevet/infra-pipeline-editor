@@ -90,7 +90,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         var environments = configs
             .SelectMany(config => config.Environments)
             .GroupBy(environment => environment.ShortName.ToLowerInvariant())
-            .Select(group => group.First())
+            .SelectMany(group => group.Take(1))
             .ToList();
 
         var variableGroups = BuildVariableGroupDefinitions(
@@ -364,7 +364,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
             return projectEnvironments
                 .OrderBy(environment => environment.Order.Value)
                 .GroupBy(environment => environment.ShortName.Value, StringComparer.OrdinalIgnoreCase)
-                .Select(group => group.First())
+                .SelectMany(group => group.Take(1))
                 .Select(environment => new BootstrapEnvironmentDefinition(
                     Name: environment.ShortName.Value.ToLowerInvariant(),
                     DisplayName: environment.Name.Value,
@@ -375,7 +375,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         return configs
             .SelectMany(config => config.Environments)
             .GroupBy(environment => environment.ShortName, StringComparer.OrdinalIgnoreCase)
-            .Select(group => group.First())
+            .SelectMany(group => group.Take(1))
             .OrderBy(environment => environment.ShortName, StringComparer.OrdinalIgnoreCase)
             .Select(environment => new BootstrapEnvironmentDefinition(
                 Name: environment.ShortName.ToLowerInvariant(),

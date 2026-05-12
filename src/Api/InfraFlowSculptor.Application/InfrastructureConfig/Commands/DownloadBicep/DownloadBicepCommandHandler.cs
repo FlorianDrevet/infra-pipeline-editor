@@ -35,7 +35,10 @@ public sealed class DownloadBicepCommandHandler(
             .Select(b => string.Join('/', b.Split('/').Take(3)))
             .Distinct()
             .OrderDescending()
-            .First();
+            .FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(latestPrefix))
+            return Errors.InfrastructureConfig.BicepFilesNotFoundError(command.InfrastructureConfigId);
 
         var latestBlobs = allBlobs
             .Where(b => b.StartsWith(latestPrefix, StringComparison.Ordinal))

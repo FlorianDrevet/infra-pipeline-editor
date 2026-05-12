@@ -24,7 +24,10 @@ public sealed class GetBicepFileContentQueryHandler(IBlobService blobService)
             .Select(b => string.Join('/', b.Split('/').Take(3)))
             .Distinct()
             .OrderDescending()
-            .First();
+            .FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(latestPrefix))
+            return Errors.InfrastructureConfig.BicepFilesNotFoundError(query.InfrastructureConfigId);
 
         var blobName = $"{latestPrefix}/{query.FilePath}";
         var content = await blobService.DownloadContentAsync(blobName);

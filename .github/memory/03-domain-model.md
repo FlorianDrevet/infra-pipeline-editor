@@ -83,6 +83,7 @@ These reusable entity types are owned by multiple aggregates:
 - `Project.Members` is `IReadOnlyCollection<ProjectMember>` — mutated via `AddMember()`, `ChangeRole()`, `RemoveMember()`.
 - `InfrastructureConfig` has a `ProjectId` FK. Access checks resolved via **project membership** — `IInfraConfigAccessService`.
 - `AzureResource` inheritance uses EF Core **TPT**: `HasBaseType<AzureResource>().ToTable("...")`.
+- `AzureResource.AddDependency(...)` now enforces same-resource-group dependencies and rejects cyclic graphs; self-dependency still throws and duplicate dependencies remain a no-op [2026-05-12].
 
 ## Domain Code Quality Rules [2026-03-30]
 

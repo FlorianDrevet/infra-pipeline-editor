@@ -113,13 +113,43 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// <exception cref="InvalidOperationException">Thrown when the resource attempts to depend on itself.</exception>
     public void AddDependency(AzureResource resource)
     {
+        ArgumentNullException.ThrowIfNull(resource);
+
         if (resource.Id == Id)
             throw new InvalidOperationException("A resource cannot depend on itself.");
+
+        if (resource.ResourceGroupId != ResourceGroupId)
+            throw new InvalidOperationException("A resource can only depend on resources in the same resource group.");
+
+        if (resource.HasDependencyOn(Id.Value))
+            throw new InvalidOperationException("A resource cannot create a cyclic dependency.");
 
         if (_dependsOn.Any(r => r.Id == resource.Id))
             return;
 
         _dependsOn.Add(resource);
+    }
+
+    private bool HasDependencyOn(Guid resourceId)
+    {
+        return HasDependencyOn(resourceId, []);
+    }
+
+    private bool HasDependencyOn(Guid resourceId, HashSet<Guid> visitedResourceIds)
+    {
+        if (!visitedResourceIds.Add(Id.Value))
+            return false;
+
+        foreach (var dependency in _dependsOn)
+        {
+            if (dependency.Id.Value == resourceId)
+                return true;
+
+            if (dependency.HasDependencyOn(resourceId, visitedResourceIds))
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>Adds a role assignment from this resource to the specified target resource.</summary>

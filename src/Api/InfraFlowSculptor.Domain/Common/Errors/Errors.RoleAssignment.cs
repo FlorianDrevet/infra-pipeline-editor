@@ -29,6 +29,16 @@ public static partial class Errors
             metadata: new Dictionary<string, object> { { "Id", id.ToString() } }
         );
 
+        /// <summary>Returned when a created role assignment cannot be resolved after persistence.</summary>
+        public static Error CreatedAssignmentNotFound(
+            AzureResourceId sourceResourceId,
+            AzureResourceId targetResourceId,
+            string roleDefinitionId) => Error.Failure(
+            code: "RoleAssignment.CreatedAssignmentNotFound",
+            description:
+                $"The created role assignment from resource '{sourceResourceId}' to '{targetResourceId}' " +
+                $"for role '{roleDefinitionId}' could not be resolved after persistence.");
+
         /// <summary>Returned when a role definition is not applicable to the target resource type.</summary>
         public static Error InvalidRoleDefinitionForResourceType(string roleDefinitionId, string resourceType) =>
             Error.Validation(

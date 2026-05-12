@@ -44,6 +44,7 @@ result.Match(
 ## Endpoint Conventions [2026-04-16]
 
 - All protected endpoints must include `.ProducesProblem(401)` for accurate OpenAPI 401 documentation.
+- Repo-wide verification on 2026-05-12 found `179/179` controller endpoint blocks (`MapGet`/`MapPost`/`MapPut`/`MapDelete`/`MapPatch`) in `InfraFlowSculptor.Api` already document `.ProducesProblem(StatusCodes.Status401Unauthorized)`; future API-001 follow-ups should re-check the branch state before reopening the finding.
 - ErrorOr extension (`ToErrorResult()`) returns **all** errors in the non-validation branch, not just the first.
 - Route names must live in per-controller constants files under `src/Api/InfraFlowSculptor.Api/Controllers/Constants/` (pattern: `<ControllerBaseName>RouteNames.cs`). Controllers must not inline literals in `.WithName(...)` or `CreatedAtRoute(routeName: ...)`; `ControllerRouteNameConstantsTests` in `tests/InfraFlowSculptor.Api.Tests` enforces this for future controllers.
 

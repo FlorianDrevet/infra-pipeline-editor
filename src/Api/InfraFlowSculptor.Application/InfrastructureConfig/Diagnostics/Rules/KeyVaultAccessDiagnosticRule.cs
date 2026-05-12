@@ -35,7 +35,9 @@ public sealed class KeyVaultAccessDiagnosticRule : IDiagnosticRule
         foreach (var group in kvReferencePairs)
         {
             var (resourceId, keyVaultResourceId) = group.Key;
-            var first = group.First();
+            var first = group.FirstOrDefault();
+            if (first is null)
+                continue;
 
             var hasKvAccess = config.RoleAssignments.Any(ra =>
                 ra.SourceResourceId == resourceId

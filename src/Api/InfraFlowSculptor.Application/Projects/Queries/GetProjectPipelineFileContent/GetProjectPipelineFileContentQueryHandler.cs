@@ -32,7 +32,10 @@ public sealed class GetProjectPipelineFileContentQueryHandler(
             .Select(blobName => string.Join('/', blobName.Split('/').Take(4)))
             .Distinct()
             .OrderDescending()
-            .First();
+            .FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(latestPrefix))
+            return Errors.Project.PipelineFilesNotFoundError(query.ProjectId);
 
         var candidateBlobNames = new[]
         {

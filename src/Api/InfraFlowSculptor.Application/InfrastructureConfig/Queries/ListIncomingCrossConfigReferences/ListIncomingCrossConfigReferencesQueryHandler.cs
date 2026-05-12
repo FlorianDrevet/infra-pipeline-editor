@@ -95,7 +95,14 @@ public sealed class ListIncomingCrossConfigReferencesQueryHandler(
 
         foreach (var siblingId in siblingConfigIds)
         {
-            var siblingName = incomingRefs.First(r => r.SiblingId == siblingId).SiblingName;
+            var siblingName = incomingRefs
+                .Where(r => r.SiblingId == siblingId)
+                .Select(r => r.SiblingName)
+                .FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(siblingName))
+                continue;
+
             await AppendSiblingMappingAsync(siblingId, siblingName, allChildToParent, cancellationToken);
         }
 
