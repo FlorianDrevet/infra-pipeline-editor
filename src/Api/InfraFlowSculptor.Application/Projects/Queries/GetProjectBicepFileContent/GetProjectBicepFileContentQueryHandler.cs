@@ -29,9 +29,10 @@ public sealed class GetProjectBicepFileContentQueryHandler(
             prefixSegmentCount: 4,
             notFoundErrorFactory: Errors.Project.BicepFilesNotFoundError,
             entityId: query.ProjectId,
-            fileNotFoundErrorFactory: Errors.Project.BicepFileNotFoundError,
-            requestedFilePath: query.FilePath,
-            candidateRelativePaths: [query.FilePath]);
+            options: new BlobDownloadHelper.LatestBlobContentOptions(
+                Errors.Project.BicepFileNotFoundError,
+                query.FilePath,
+                [query.FilePath]));
         if (contentResult.IsError)
             return contentResult.Errors;
 

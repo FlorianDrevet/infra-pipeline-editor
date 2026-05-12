@@ -6,18 +6,12 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
-using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
-using InfraFlowSculptor.BicepGeneration.Generators;
-using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
-using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration;
 using InfraFlowSculptor.PipelineGeneration.Models;
 using MediatR;
-using AppPipelineMode = InfraFlowSculptor.GenerationCore.Models.AppPipelineMode;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipeline;
 
@@ -27,13 +21,12 @@ public sealed class GenerateProjectPipelineCommandHandler(
     IProjectRepository projectRepository,
     IInfrastructureConfigReadRepository configReadRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
-    AppPipelineGenerationEngine appPipelineGenerationEngine,
-    IAppPipelineRequestFactory appPipelineRequestFactory,
-    IEnumerable<IResourceTypeBicepSpecGenerator> bicepGenerators,
+    IConfigPipelineGenerationService configPipelineGenerationService,
     IBlobService blobService,
     IRepositoryTargetResolver targetResolver)
     : ICommandHandler<GenerateProjectPipelineCommand, GenerateProjectPipelineResult>
 {
+    private const string PlainTextContentType = "text/plain";
 
 
     /// <inheritdoc />
@@ -82,16 +75,19 @@ public sealed class GenerateProjectPipelineCommandHandler(
 
         foreach (var config in configs)
         {
-            var generationRequest = GenerationRequestBuilder.BuildForPipeline(
+            var generationRequest = configPipelineGenerationService.BuildGenerationRequestForPipeline(
                 config,
                 project.PipelineVariableGroups,
                 project.AgentPoolName,
-                bicepBasePath,
-                bicepGenerators);
+                bicepBasePath);
             var result = pipelineGenerationEngine.Generate(generationRequest, config.Name, isMonoRepo: true);
 
             // Generate app pipelines for compute resources in this config
-            var appResult = await GenerateAppPipelinesForConfigAsync(config, project, cancellationToken)
+            var appResult = await configPipelineGenerationService.GenerateAppPipelinesAsync(
+                    config,
+                    generationRequest,
+                    isMonoRepo: true,
+                    cancellationToken)
                 .ConfigureAwait(false);
 
             // Merge app pipeline files into the infra result
@@ -148,7 +144,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
         {
             var repoRelativePath = $".azuredevops/Common/{path}";
             var uri = await blobService.UploadContentAsync(
-                $"{prefix}/infra/{repoRelativePath}", content, "text/plain");
+                $"{prefix}/infra/{repoRelativePath}", content, PlainTextContentType);
             infraCommonUris[repoRelativePath] = uri;
         }
 
@@ -162,7 +158,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
             {
                 var repoRelativePath = ToCommonAzureDevOpsPath(path);
                 var uri = await blobService.UploadContentAsync(
-                    $"{prefix}/app/{repoRelativePath}", content, "text/plain");
+                    $"{prefix}/app/{repoRelativePath}", content, PlainTextContentType);
                 appCommonUris[repoRelativePath] = uri;
             }
         }
@@ -180,7 +176,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
             {
                 var repoRelativePath = $".azuredevops/{configName}/{path}";
                 var uri = await blobService.UploadContentAsync(
-                    $"{prefix}/infra/{repoRelativePath}", content, "text/plain");
+                    $"{prefix}/infra/{repoRelativePath}", content, PlainTextContentType);
                 infraUris[repoRelativePath] = uri;
             }
 
@@ -189,7 +185,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
             {
                 var repoRelativePath = $".azuredevops/{configName}/{path}";
                 var uri = await blobService.UploadContentAsync(
-                    $"{prefix}/app/{repoRelativePath}", content, "text/plain");
+                    $"{prefix}/app/{repoRelativePath}", content, PlainTextContentType);
                 appUris[repoRelativePath] = uri;
             }
 
@@ -224,65 +220,4 @@ public sealed class GenerateProjectPipelineCommandHandler(
             ? $".azuredevops/Common/{path[azureDevOpsPrefix.Length..]}"
             : $".azuredevops/Common/{path}";
     }
-
-    /// <summary>
-    /// Generates app pipelines for all compute resources in the given configuration.
-    /// </summary>
-    private async Task<AppPipelineGenerationResult> GenerateAppPipelinesForConfigAsync(
-        InfrastructureConfigReadModel config,
-        Domain.ProjectAggregate.Project? project,
-        CancellationToken cancellationToken)
-    {
-        var computeTypes = new HashSet<string>
-        {
-            AzureResourceTypes.ArmTypes.ContainerAppType,
-            AzureResourceTypes.ArmTypes.WebAppType,
-            AzureResourceTypes.ArmTypes.FunctionAppType,
-        };
-
-        var computeResources = config.ResourceGroups
-            .SelectMany(rg => rg.Resources)
-            .Where(r => computeTypes.Contains(r.ResourceType))
-            .ToList();
-
-        var appRequests = new List<AppPipelineGenerationRequest>();
-
-        var environments = config.Environments
-            .Select(e => new EnvironmentDefinition
-            {
-                Name = e.Name,
-                ShortName = e.ShortName,
-                Location = e.Location,
-                Prefix = e.Prefix,
-                Suffix = e.Suffix,
-                AzureResourceManagerConnection = e.AzureResourceManagerConnection,
-                SubscriptionId = e.SubscriptionId,
-                Tags = e.Tags,
-            })
-            .ToList();
-
-        foreach (var resource in computeResources)
-        {
-            var resourceId = new AzureResourceId(resource.Id);
-            var req = await appPipelineRequestFactory.CreateAsync(
-                resourceId, resource.ResourceType, cancellationToken).ConfigureAwait(false);
-
-            if (req is null)
-                continue;
-
-            req.ConfigName = config.Name;
-            req.Environments = environments;
-            req.IsMonoRepo = true;
-            req.AgentPoolName = project?.AgentPoolName;
-
-            appRequests.Add(req);
-        }
-
-        var appPipelineMode = Enum.TryParse<AppPipelineMode>(config.AppPipelineMode, out var parsedMode)
-            ? parsedMode
-            : AppPipelineMode.Isolated;
-
-        return appPipelineGenerationEngine.GenerateAll(appRequests, appPipelineMode, config.Name);
-    }
-
 }

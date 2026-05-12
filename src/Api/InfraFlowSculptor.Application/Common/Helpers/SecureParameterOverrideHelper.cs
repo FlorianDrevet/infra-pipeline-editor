@@ -27,9 +27,6 @@ public static class SecureParameterOverrideHelper
         List<PipelineVariableGroupDefinition> variableGroups)
     {
         var autoDerived = new List<string>();
-        var mappingLookup = (secureParameterMappings ?? [])
-            .Where(m => m.VariableGroupId.HasValue && m.PipelineVariableName is not null)
-            .ToDictionary(m => (m.ResourceId, m.SecureParameterName));
 
         foreach (var resource in resources)
         {

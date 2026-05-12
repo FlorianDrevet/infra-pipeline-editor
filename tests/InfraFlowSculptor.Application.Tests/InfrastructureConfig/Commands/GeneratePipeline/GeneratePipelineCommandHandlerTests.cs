@@ -25,12 +25,9 @@ public sealed class GeneratePipelineCommandHandlerTests
             _configReadRepository,
             projectRepository: null!,
             pipelineGenerationEngine: null!,
-            appPipelineGenerationEngine: null!,
-            appPipelineRequestFactory: null!,
-            bicepGenerators: [],
+            configPipelineGenerationService: null!,
             artifactService: null!,
             targetResolver: null!,
-            infraConfigRepository: null!,
             accessService: _accessService);
     }
 

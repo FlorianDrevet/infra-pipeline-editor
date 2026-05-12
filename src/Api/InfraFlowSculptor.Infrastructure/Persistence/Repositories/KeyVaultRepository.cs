@@ -13,7 +13,7 @@ public class KeyVaultRepository: AzureResourceRepository<KeyVault>, IKeyVaultRep
     {
     }
 
-    public override async Task<KeyVault?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
+    public override async Task<KeyVault?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await Context.Set<KeyVault>()
             .Include(kv => kv.DependsOn)

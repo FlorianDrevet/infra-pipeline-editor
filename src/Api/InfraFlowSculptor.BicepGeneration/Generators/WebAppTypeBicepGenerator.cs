@@ -219,7 +219,7 @@ public sealed class WebAppTypeBicepGenerator
                     new BicepReference(AcrUserManagedIdentityIdPropertyName),
                     new BicepRawExpression(NullExpression))));
         }
-        else if (isContainer && useAdminCredentials)
+        else if (useAdminCredentials)
         {
             props.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsPropertyName,
                 new BicepBoolLiteral(false)));
@@ -329,22 +329,25 @@ public sealed class WebAppTypeBicepGenerator
             }
         }
 
-        var moduleFileName = isContainer
-            ? useAdminCredentials
+        var moduleFileName = WebAppModuleName;
+        var moduleBicepContent = WebAppCodeModuleTemplate;
+
+        if (isContainer)
+        {
+            moduleFileName = useAdminCredentials
                 ? AdminCredentialsModuleFileName
-                : ManagedIdentityModuleFileName
-            : WebAppModuleName;
+                : ManagedIdentityModuleFileName;
+            moduleBicepContent = useAdminCredentials
+                ? WebAppContainerAdminCredentialsModuleTemplate
+                : WebAppContainerManagedIdentityModuleTemplate;
+        }
 
         return new GeneratedTypeModule
         {
             ModuleName = WebAppModuleName,
             ModuleFileName = moduleFileName,
             ModuleFolderName = WebAppModuleFolderName,
-            ModuleBicepContent = isContainer
-                ? useAdminCredentials
-                    ? WebAppContainerAdminCredentialsModuleTemplate
-                    : WebAppContainerManagedIdentityModuleTemplate
-                : WebAppCodeModuleTemplate,
+            ModuleBicepContent = moduleBicepContent,
             ModuleTypesBicepContent = WebAppTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = BicepParameterModelConverter.ToDictionary(parameters),

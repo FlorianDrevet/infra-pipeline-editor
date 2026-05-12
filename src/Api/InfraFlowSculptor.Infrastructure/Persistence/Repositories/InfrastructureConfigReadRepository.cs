@@ -258,12 +258,35 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         var externalTargets = await LoadExternalTargetsAsync(externalTargetIds, cancellationToken);
 
         var roleAssignmentReadModels = BuildRoleAssignmentReadModels(roleAssignments, allResources, externalTargets);
+        var mappingContext = new ResourceMappingContext(
+            kvSettings,
+            rcSettings,
+            saSettings,
+            blobContainers,
+            storageQueues,
+            storageTables,
+            storageCorsRules,
+            lifecycleRules,
+            aspSettings,
+            waSettings,
+            faSettings,
+            acSettings,
+            caeSettings,
+            caSettings,
+            lawSettings,
+            aiSettings,
+            cosmosSettings,
+            sqlServerSettings,
+            sqlDbSettings,
+            sbSettings,
+            crSettings,
+            ehSettings);
 
         var resourceGroups = BuildResourceGroupReadModels(
             config.ResourceGroups,
             allResources,
             customDomains,
-            r => MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageQueues, storageTables, storageCorsRules, lifecycleRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings, crSettings, ehSettings));
+            r => MapResource(r, mappingContext));
 
         // â”€â”€ Load parent project for environments and naming context â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var project = await dbContext.Projects
@@ -275,7 +298,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == config.ProjectId, cancellationToken);
 
-        var environments = BuildEnvironmentList(config, project);
+        var environments = BuildEnvironmentList(project);
         var namingContext = BuildNamingContext(config, project);
 
         // â”€â”€ Load pipeline variable groups for VG name resolution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -338,7 +361,6 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
     /// Resolves the environment list from the parent project.
     /// </summary>
     private static List<EnvironmentDefinitionReadModel> BuildEnvironmentList(
-        InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig config,
         Project? project)
     {
         if (project is null)
@@ -394,31 +416,57 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
     /// Maps an <see cref="AzureResource"/> to its read model using typed environment settings.
     /// Returns <c>null</c> for resource types that are not yet supported by the generator.
     /// </summary>
+    private sealed record ResourceMappingContext(
+        IReadOnlyList<KeyVaultEnvironmentSettings> KvSettings,
+        IReadOnlyList<RedisCacheEnvironmentSettings> RcSettings,
+        IReadOnlyList<StorageAccountEnvironmentSettings> SaSettings,
+        IReadOnlyList<BlobContainer> BlobContainers,
+        IReadOnlyList<StorageQueue> StorageQueues,
+        IReadOnlyList<StorageTable> StorageTables,
+        IReadOnlyList<CorsRule> StorageCorsRules,
+        IReadOnlyList<BlobLifecycleRule> LifecycleRules,
+        IReadOnlyList<AppServicePlanEnvironmentSettings> AspSettings,
+        IReadOnlyList<WebAppEnvironmentSettings> WaSettings,
+        IReadOnlyList<FunctionAppEnvironmentSettings> FaSettings,
+        IReadOnlyList<AppConfigurationEnvironmentSettings> AcSettings,
+        IReadOnlyList<ContainerAppEnvironmentEnvironmentSettings> CaeSettings,
+        IReadOnlyList<ContainerAppEnvironmentSettings> CaSettings,
+        IReadOnlyList<LogAnalyticsWorkspaceEnvironmentSettings> LawSettings,
+        IReadOnlyList<ApplicationInsightsEnvironmentSettings> AiSettings,
+        IReadOnlyList<CosmosDbEnvironmentSettings> CosmosSettings,
+        IReadOnlyList<SqlServerEnvironmentSettings> SqlServerSettings,
+        IReadOnlyList<SqlDatabaseEnvironmentSettings> SqlDbSettings,
+        IReadOnlyList<ServiceBusNamespaceEnvironmentSettings> SbSettings,
+        IReadOnlyList<ContainerRegistryEnvironmentSettings> CrSettings,
+        IReadOnlyList<EventHubNamespaceEnvironmentSettings> EhSettings);
+
     private static AzureResourceReadModel? MapResource(
         AzureResource resource,
-        IReadOnlyList<KeyVaultEnvironmentSettings> kvSettings,
-        IReadOnlyList<RedisCacheEnvironmentSettings> rcSettings,
-        IReadOnlyList<StorageAccountEnvironmentSettings> saSettings,
-        IReadOnlyList<BlobContainer> blobContainers,
-        IReadOnlyList<StorageQueue> storageQueues,
-        IReadOnlyList<StorageTable> storageTables,
-        IReadOnlyList<CorsRule> storageCorsRules,
-        IReadOnlyList<BlobLifecycleRule> lifecycleRules,
-        IReadOnlyList<AppServicePlanEnvironmentSettings> aspSettings,
-        IReadOnlyList<WebAppEnvironmentSettings> waSettings,
-        IReadOnlyList<FunctionAppEnvironmentSettings> faSettings,
-        IReadOnlyList<AppConfigurationEnvironmentSettings> acSettings,
-        IReadOnlyList<ContainerAppEnvironmentEnvironmentSettings> caeSettings,
-        IReadOnlyList<ContainerAppEnvironmentSettings> caSettings,
-        IReadOnlyList<LogAnalyticsWorkspaceEnvironmentSettings> lawSettings,
-        IReadOnlyList<ApplicationInsightsEnvironmentSettings> aiSettings,
-        IReadOnlyList<CosmosDbEnvironmentSettings> cosmosSettings,
-        IReadOnlyList<SqlServerEnvironmentSettings> sqlServerSettings,
-        IReadOnlyList<SqlDatabaseEnvironmentSettings> sqlDbSettings,
-        IReadOnlyList<ServiceBusNamespaceEnvironmentSettings> sbSettings,
-        IReadOnlyList<ContainerRegistryEnvironmentSettings> crSettings,
-        IReadOnlyList<EventHubNamespaceEnvironmentSettings> ehSettings)
+        ResourceMappingContext context)
     {
+        var kvSettings = context.KvSettings;
+        var rcSettings = context.RcSettings;
+        var saSettings = context.SaSettings;
+        var blobContainers = context.BlobContainers;
+        var storageQueues = context.StorageQueues;
+        var storageTables = context.StorageTables;
+        var storageCorsRules = context.StorageCorsRules;
+        var lifecycleRules = context.LifecycleRules;
+        var aspSettings = context.AspSettings;
+        var waSettings = context.WaSettings;
+        var faSettings = context.FaSettings;
+        var acSettings = context.AcSettings;
+        var caeSettings = context.CaeSettings;
+        var caSettings = context.CaSettings;
+        var lawSettings = context.LawSettings;
+        var aiSettings = context.AiSettings;
+        var cosmosSettings = context.CosmosSettings;
+        var sqlServerSettings = context.SqlServerSettings;
+        var sqlDbSettings = context.SqlDbSettings;
+        var sbSettings = context.SbSettings;
+        var crSettings = context.CrSettings;
+        var ehSettings = context.EhSettings;
+
         return resource switch
         {
             KeyVault kv => new AzureResourceReadModel(

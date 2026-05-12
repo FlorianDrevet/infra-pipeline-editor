@@ -139,9 +139,10 @@ public sealed class BlobDownloadHelperTests
             prefixSegmentCount: 4,
             notFoundErrorFactory: Errors.Project.BicepFilesNotFoundError,
             entityId,
-            fileNotFoundErrorFactory: Errors.Project.BicepFileNotFoundError,
-            requestedFilePath: "main.bicep",
-            candidateRelativePaths: ["main.bicep"]);
+            options: new BlobDownloadHelper.LatestBlobContentOptions(
+                Errors.Project.BicepFileNotFoundError,
+                "main.bicep",
+                ["main.bicep"]));
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -169,14 +170,14 @@ public sealed class BlobDownloadHelperTests
             prefixSegmentCount: 4,
             notFoundErrorFactory: Errors.Project.PipelineFilesNotFoundError,
             entityId,
-            fileNotFoundErrorFactory: Errors.Project.PipelineFileNotFoundError,
-            requestedFilePath: ".azuredevops/main.yml",
-            candidateRelativePaths:
-            [
+            options: new BlobDownloadHelper.LatestBlobContentOptions(
+                Errors.Project.PipelineFileNotFoundError,
                 ".azuredevops/main.yml",
-                "infra/.azuredevops/main.yml",
-                "app/.azuredevops/main.yml",
-            ]);
+                [
+                    ".azuredevops/main.yml",
+                    "infra/.azuredevops/main.yml",
+                    "app/.azuredevops/main.yml",
+                ]));
 
         // Assert
         result.IsError.Should().BeFalse();

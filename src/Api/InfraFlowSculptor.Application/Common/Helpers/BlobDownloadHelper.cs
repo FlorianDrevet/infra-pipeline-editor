@@ -22,6 +22,14 @@ internal static class BlobDownloadHelper
         Func<Dictionary<string, string>, IReadOnlyDictionary<string, string>>? SecondPostProcess = null);
 
     /// <summary>
+    /// Options for reading one requested file from the latest blob folder.
+    /// </summary>
+    internal sealed record LatestBlobContentOptions(
+        Func<string, Error> FileNotFoundErrorFactory,
+        string RequestedFilePath,
+        IReadOnlyList<string> CandidateRelativePaths);
+
+    /// <summary>
     /// Lists blobs under <paramref name="blobPrefix"/>, finds the latest timestamp folder,
     /// zips all matching files, and returns the byte array with a file name.
     /// </summary>
@@ -74,7 +82,7 @@ internal static class BlobDownloadHelper
 
                 var relativePath = blobName[(latestPrefix.Length + 1)..];
                 var entry = archive.CreateEntry(relativePath, CompressionLevel.Optimal);
-                await using var entryStream = entry.Open();
+                await using var entryStream = await entry.OpenAsync(cancellationToken);
                 await entryStream.WriteAsync(Encoding.UTF8.GetBytes(content), cancellationToken);
             }
         }
@@ -204,9 +212,7 @@ internal static class BlobDownloadHelper
         int prefixSegmentCount,
         Func<Guid, Error> notFoundErrorFactory,
         Guid entityId,
-        Func<string, Error> fileNotFoundErrorFactory,
-        string requestedFilePath,
-        IReadOnlyList<string> candidateRelativePaths)
+        LatestBlobContentOptions options)
     {
         var latestFilesResult = await GetLatestBlobFilesCoreAsync(
             blobService,
@@ -217,13 +223,13 @@ internal static class BlobDownloadHelper
         if (latestFilesResult.IsError)
             return latestFilesResult.Errors;
 
-        foreach (var candidateRelativePath in candidateRelativePaths)
+        foreach (var candidateRelativePath in options.CandidateRelativePaths)
         {
             if (latestFilesResult.Value.TryGetValue(candidateRelativePath, out var content))
                 return content;
         }
 
-        return fileNotFoundErrorFactory(requestedFilePath);
+        return options.FileNotFoundErrorFactory(options.RequestedFilePath);
     }
 
     private static async Task<ErrorOr<Dictionary<string, string>>> GetLatestBlobFilesCoreAsync(

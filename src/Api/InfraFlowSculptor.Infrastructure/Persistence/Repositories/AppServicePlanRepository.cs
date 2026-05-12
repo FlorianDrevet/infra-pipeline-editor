@@ -13,7 +13,7 @@ public class AppServicePlanRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<AppServicePlan?> GetByIdAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await Context.Set<AppServicePlan>()
             .Include(x => x.DependsOn)

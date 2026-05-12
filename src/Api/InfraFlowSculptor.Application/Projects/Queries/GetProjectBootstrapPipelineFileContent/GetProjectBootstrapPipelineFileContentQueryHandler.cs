@@ -32,9 +32,10 @@ public sealed class GetProjectBootstrapPipelineFileContentQueryHandler(
             prefixSegmentCount: 4,
             notFoundErrorFactory: Errors.Project.BootstrapFilesNotFoundError,
             entityId: query.ProjectId,
-            fileNotFoundErrorFactory: Errors.Project.BootstrapFileNotFoundError,
-            requestedFilePath: query.FilePath,
-            candidateRelativePaths: [query.FilePath]);
+            options: new BlobDownloadHelper.LatestBlobContentOptions(
+                Errors.Project.BootstrapFileNotFoundError,
+                query.FilePath,
+                [query.FilePath]));
         if (contentResult.IsError)
             return contentResult.Errors;
 

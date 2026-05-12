@@ -7,7 +7,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectPipelineVariableGroups;
-using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
@@ -23,9 +22,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
     IInfrastructureConfigReadRepository configReadRepository,
-    IContainerAppRepository containerAppRepository,
-    IWebAppRepository webAppRepository,
-    IFunctionAppRepository functionAppRepository,
+    IApplicationFolderNameResolver applicationFolderNameResolver,
     BootstrapPipelineGenerationEngine bootstrapEngine,
     IBlobService blobService,
     IRepositoryTargetResolver targetResolver)
@@ -207,7 +204,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         {
             var sanitizedConfigName = PathSanitizer.Sanitize(config.Name);
 
-            infraPipelines.AddRange(BuildInfrastructurePipelineDefinitions(config.Name, sanitizedConfigName, infraBasePrefix));
+                infraPipelines.AddRange(BuildInfrastructurePipelineDefinitions(sanitizedConfigName, infraBasePrefix));
             appPipelines.AddRange(await BuildApplicationPipelineDefinitionsAsync(
                     config,
                     sanitizedConfigName,
@@ -222,7 +219,6 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
     }
 
     private static IReadOnlyList<BootstrapPipelineDefinition> BuildInfrastructurePipelineDefinitions(
-        string configName,
         string sanitizedConfigName,
         string basePrefix)
     {
@@ -258,7 +254,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
 
         foreach (var resource in computeResources)
         {
-            var appFolderName = await ResolveApplicationFolderNameAsync(resource, cancellationToken)
+            var appFolderName = await applicationFolderNameResolver.ResolveAsync(resource, cancellationToken)
                 .ConfigureAwait(false);
             var sanitizedAppName = PathSanitizer.Sanitize(appFolderName);
             var yamlBasePath = $"/{basePrefix}.azuredevops/{sanitizedConfigName}/apps/{sanitizedAppName}";
@@ -283,27 +279,6 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         return resourceType is AzureResourceTypes.ArmTypes.ContainerAppType
             or AzureResourceTypes.ArmTypes.WebAppType
             or AzureResourceTypes.ArmTypes.FunctionAppType;
-    }
-
-    private async Task<string> ResolveApplicationFolderNameAsync(
-        AzureResourceReadModel resource,
-        CancellationToken cancellationToken)
-    {
-        var resourceId = new AzureResourceId(resource.Id);
-
-        return resource.ResourceType switch
-        {
-            AzureResourceTypes.ArmTypes.ContainerAppType =>
-                (await containerAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
-                ?? resource.Name,
-            AzureResourceTypes.ArmTypes.WebAppType =>
-                (await webAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
-                ?? resource.Name,
-            AzureResourceTypes.ArmTypes.FunctionAppType =>
-                (await functionAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
-                ?? resource.Name,
-            _ => resource.Name,
-        };
     }
 
     private static IReadOnlyList<BootstrapVariableGroupDefinition> BuildVariableGroupDefinitions(

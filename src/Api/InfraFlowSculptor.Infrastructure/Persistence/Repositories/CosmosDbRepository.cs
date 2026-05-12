@@ -18,7 +18,7 @@ public sealed class CosmosDbRepository : AzureResourceRepository<CosmosDb>, ICos
     }
 
     /// <inheritdoc />
-    public override async Task<CosmosDb?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
+    public override async Task<CosmosDb?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await Context.Set<CosmosDb>()
             .Include(c => c.DependsOn)

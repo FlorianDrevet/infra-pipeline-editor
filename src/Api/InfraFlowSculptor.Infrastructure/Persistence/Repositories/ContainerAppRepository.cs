@@ -13,7 +13,7 @@ public sealed class ContainerAppRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<ContainerApp?> GetByIdAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await Context.Set<ContainerApp>()
             .Include(x => x.DependsOn)

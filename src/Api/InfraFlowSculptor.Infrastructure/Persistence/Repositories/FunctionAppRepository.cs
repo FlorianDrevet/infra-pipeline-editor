@@ -14,7 +14,7 @@ public sealed class FunctionAppRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<FunctionApp?> GetByIdAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await Context.Set<FunctionApp>()
             .Include(x => x.DependsOn)

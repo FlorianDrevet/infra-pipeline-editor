@@ -1,6 +1,7 @@
 using FluentAssertions;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipeline;
 using InfraFlowSculptor.Domain.Common.Errors;
@@ -33,9 +34,7 @@ public sealed class GenerateProjectPipelineCommandHandlerTests
             _projectRepository,
             _configReadRepository,
             pipelineGenerationEngine: null!,
-            appPipelineGenerationEngine: null!,
-            appPipelineRequestFactory: null!,
-            bicepGenerators: [],
+            configPipelineGenerationService: null!,
             blobService: null!,
             targetResolver: null!);
     }

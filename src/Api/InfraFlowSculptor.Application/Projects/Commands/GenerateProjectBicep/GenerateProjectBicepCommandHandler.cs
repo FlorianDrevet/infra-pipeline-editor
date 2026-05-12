@@ -20,11 +20,6 @@ public sealed class GenerateProjectBicepCommandHandler(
     IBlobService blobService)
     : ICommandHandler<GenerateProjectBicepCommand, GenerateProjectBicepResult>
 {
-    /// <summary>The subdirectory name where Bicep parameter files are stored.</summary>
-    private const string ParametersDirectory = "parameters";
-
-
-
     /// <inheritdoc />
     public async Task<ErrorOr<GenerateProjectBicepResult>> Handle(
         GenerateProjectBicepCommand command,

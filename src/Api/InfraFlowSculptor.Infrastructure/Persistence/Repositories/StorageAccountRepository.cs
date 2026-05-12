@@ -15,7 +15,7 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
     {
     }
 
-    public override async Task<StorageAccount?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
+    public override async Task<StorageAccount?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await Context.Set<StorageAccount>()
             .Include(s => s.DependsOn)

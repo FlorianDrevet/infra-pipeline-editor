@@ -19,6 +19,8 @@ public sealed class GenerateBicepCommandHandler(
     IInfraConfigAccessService accessService)
     : ICommandHandler<GenerateBicepCommand, GenerateBicepResult>
 {
+    private const string PlainTextContentType = "text/plain";
+
     /// <summary>
     /// The subdirectory name where Bicep parameter files are stored.
     /// </summary>
@@ -58,13 +60,13 @@ public sealed class GenerateBicepCommandHandler(
         await blobService.UploadContentAsync(
             $"{prefix}/types.bicep",
             result.TypesBicep,
-            "text/plain");
+            PlainTextContentType);
 
         // Upload functions.bicep
         await blobService.UploadContentAsync(
             $"{prefix}/functions.bicep",
             result.FunctionsBicep,
-            "text/plain");
+            PlainTextContentType);
 
         // Upload constants.bicep (only when role assignments exist)
         Uri? constantsBicepUri = null;
@@ -73,14 +75,14 @@ public sealed class GenerateBicepCommandHandler(
             constantsBicepUri = await blobService.UploadContentAsync(
                 $"{prefix}/constants.bicep",
                 result.ConstantsBicep,
-                "text/plain");
+                PlainTextContentType);
         }
 
         // Upload main.bicep
         var mainBicepUri = await blobService.UploadContentAsync(
             $"{prefix}/main.bicep",
             result.MainBicep,
-            "text/plain");
+            PlainTextContentType);
 
         var parameterUris = new Dictionary<string, Uri>();
         foreach (var (fileName, content) in result.EnvironmentParameterFiles)

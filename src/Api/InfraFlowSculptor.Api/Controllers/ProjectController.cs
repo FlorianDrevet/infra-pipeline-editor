@@ -71,6 +71,8 @@ namespace InfraFlowSculptor.Api.Controllers;
 /// <summary>Minimal API endpoint definitions for the Project feature.</summary>
 public static class ProjectController
 {
+    private const string ZipContentType = "application/zip";
+
     /// <summary>Registers the Project endpoints on the application builder.</summary>
     public static IApplicationBuilder UseProjectController(this IApplicationBuilder builder)
     {
@@ -1008,7 +1010,7 @@ public static class ProjectController
                         return result.Match(
                             value => Results.File(
                                 value.ZipContent,
-                                "application/zip",
+                                ZipContentType,
                                 value.FileName),
                             errors => errors.Result()
                         );
@@ -1017,7 +1019,7 @@ public static class ProjectController
                 .WithName(ProjectRouteNames.DownloadProjectBicep)
                 .WithSummary("Download generated Bicep files for a project")
                 .WithDescription("Downloads the latest generated mono-repo Bicep files for the given project as a ZIP archive.")
-                .Produces(StatusCodes.Status200OK, contentType: "application/zip")
+                .Produces(StatusCodes.Status200OK, contentType: ZipContentType)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
@@ -1117,7 +1119,7 @@ public static class ProjectController
                         return result.Match(
                             value => Results.File(
                                 value.ZipContent,
-                                "application/zip",
+                                ZipContentType,
                                 value.FileName),
                             errors => errors.Result()
                         );
@@ -1126,7 +1128,7 @@ public static class ProjectController
                 .WithName(ProjectRouteNames.DownloadProjectPipeline)
                 .WithSummary("Download generated pipeline files for a project")
                 .WithDescription("Downloads the latest generated mono-repo pipeline files for the given project as a ZIP archive.")
-                .Produces(StatusCodes.Status200OK, contentType: "application/zip")
+                .Produces(StatusCodes.Status200OK, contentType: ZipContentType)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
@@ -1220,7 +1222,7 @@ public static class ProjectController
                         return result.Match(
                             value => Results.File(
                                 value.ZipContent,
-                                "application/zip",
+                                ZipContentType,
                                 value.FileName),
                             errors => errors.Result()
                         );

@@ -1,6 +1,7 @@
 using FluentAssertions;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBootstrapPipeline;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ProjectAggregate;
@@ -28,9 +29,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandlerTests
             _accessService,
             _projectRepository,
             _configReadRepository,
-            containerAppRepository: null!,
-            webAppRepository: null!,
-            functionAppRepository: null!,
+            applicationFolderNameResolver: null!,
             bootstrapEngine: null!,
             blobService: null!,
             targetResolver: null!);

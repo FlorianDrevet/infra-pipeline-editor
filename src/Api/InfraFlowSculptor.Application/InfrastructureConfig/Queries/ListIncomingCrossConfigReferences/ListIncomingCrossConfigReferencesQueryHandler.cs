@@ -49,17 +49,17 @@ public sealed class ListIncomingCrossConfigReferencesQueryHandler(
         var siblingConfigs = await infraConfigRepository.GetByProjectIdAsync(config.ProjectId, cancellationToken);
         var incomingRefs = new List<IncomingReferenceRecord>();
 
-        foreach (var sibling in siblingConfigs)
+        foreach (var siblingId in siblingConfigs.Select(sibling => sibling.Id))
         {
-            if (sibling.Id == config.Id) continue;
+            if (siblingId == config.Id) continue;
 
-            var siblingWithRefs = await infraConfigRepository.GetByIdWithMembersAsync(sibling.Id, cancellationToken);
+            var siblingWithRefs = await infraConfigRepository.GetByIdWithMembersAsync(siblingId, cancellationToken);
             if (siblingWithRefs is null) continue;
 
             foreach (var r in siblingWithRefs.CrossConfigReferences.Where(r => r.TargetConfigId == config.Id))
             {
                 incomingRefs.Add(new IncomingReferenceRecord(
-                    sibling.Id,
+                    siblingId,
                     siblingWithRefs.Name.Value,
                     r.Id.Value,
                     r.TargetResourceId));

@@ -29,14 +29,14 @@ public sealed class GetProjectPipelineFileContentQueryHandler(
             prefixSegmentCount: 4,
             notFoundErrorFactory: Errors.Project.PipelineFilesNotFoundError,
             entityId: query.ProjectId,
-            fileNotFoundErrorFactory: Errors.Project.PipelineFileNotFoundError,
-            requestedFilePath: query.FilePath,
-            candidateRelativePaths:
-            [
+            options: new BlobDownloadHelper.LatestBlobContentOptions(
+                Errors.Project.PipelineFileNotFoundError,
                 query.FilePath,
-                $"infra/{query.FilePath}",
-                $"app/{query.FilePath}",
-            ]);
+                [
+                    query.FilePath,
+                    $"infra/{query.FilePath}",
+                    $"app/{query.FilePath}",
+                ]));
         if (contentResult.IsError)
             return contentResult.Errors;
 

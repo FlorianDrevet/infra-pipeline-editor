@@ -20,9 +20,10 @@ public sealed class GetBicepFileContentQueryHandler(IBlobService blobService)
             prefixSegmentCount: 3,
             notFoundErrorFactory: Errors.InfrastructureConfig.BicepFilesNotFoundError,
             entityId: query.InfrastructureConfigId,
-            fileNotFoundErrorFactory: Errors.InfrastructureConfig.BicepFileNotFoundError,
-            requestedFilePath: query.FilePath,
-            candidateRelativePaths: [query.FilePath]);
+            options: new BlobDownloadHelper.LatestBlobContentOptions(
+                Errors.InfrastructureConfig.BicepFileNotFoundError,
+                query.FilePath,
+                [query.FilePath]));
         if (contentResult.IsError)
             return contentResult.Errors;
 

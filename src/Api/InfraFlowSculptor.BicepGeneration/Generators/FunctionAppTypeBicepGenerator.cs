@@ -253,7 +253,7 @@ public sealed class FunctionAppTypeBicepGenerator
                     new BicepReference(AcrUserManagedIdentityIdParameterName),
                     new BicepRawExpression(NullExpression))));
         }
-        else if (isContainer && useAdminCredentials)
+              else if (useAdminCredentials)
         {
             siteConfigProps.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsParameterName,
                 new BicepBoolLiteral(false)));
@@ -327,22 +327,25 @@ public sealed class FunctionAppTypeBicepGenerator
         var useAdminCredentials = isContainer
             && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
 
-        var moduleFileName = isContainer
-            ? useAdminCredentials
-            ? AdminCredentialsModuleFileName
-            : ManagedIdentityModuleFileName
-          : ModuleName;
+        var moduleFileName = ModuleName;
+        var moduleBicepContent = FunctionAppCodeModuleTemplate;
+
+        if (isContainer)
+        {
+            moduleFileName = useAdminCredentials
+                ? AdminCredentialsModuleFileName
+                : ManagedIdentityModuleFileName;
+            moduleBicepContent = useAdminCredentials
+                ? FunctionAppContainerAdminCredentialsModuleTemplate
+                : FunctionAppContainerManagedIdentityModuleTemplate;
+        }
 
         return new GeneratedTypeModule
         {
           ModuleName = ModuleName,
             ModuleFileName = moduleFileName,
           ModuleFolderName = ModuleFolderName,
-            ModuleBicepContent = isContainer
-                ? useAdminCredentials
-                    ? FunctionAppContainerAdminCredentialsModuleTemplate
-                    : FunctionAppContainerManagedIdentityModuleTemplate
-                : FunctionAppCodeModuleTemplate,
+            ModuleBicepContent = moduleBicepContent,
             ModuleTypesBicepContent = FunctionAppTypesTemplate,
             ResourceTypeName = ResourceTypeName,
           SecureParameters = isContainer && useAdminCredentials ? [AcrPasswordParameterName] : [],

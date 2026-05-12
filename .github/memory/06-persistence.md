@@ -117,6 +117,11 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 - `ResourceGroupRepository` intentionally uses 3 narrow batch queries over `BlobContainers`, `StorageQueues`, and `StorageTables` filtered by Storage Account IDs, instead of loading full StorageAccount aggregates or adding a new SQL view/migration.
 - This keeps the first Resource Group list to a single HTTP payload while avoiding the previous frontend N+1 pattern (`GET /storage-accounts/{id}` per account).
 
+## Large Read-Model Mapping Contexts [2026-05-12]
+
+- `InfrastructureConfigReadRepository.MapResource(...)` is the current reference fix when a private projection helper starts needing dozens of preloaded collections: group those typed settings/subresource lists into a dedicated private context object (`ResourceMappingContext`) and pass that single context through the mapper boundary instead of keeping a 20+ parameter signature.
+- Keep this pattern local to the repository/read-model mapper when the grouped data is only an implementation detail of the projection pipeline; do not promote it to a public DTO or application contract.
+
 ## Repository Naming Conventions [2026-04-16]
 
 - `GetByContainedResourceIdAsync` — finds a parent entity (e.g. ResourceGroup) by a child resource's ID. Renamed from the ambiguous `GetByResourceIdAsync`.

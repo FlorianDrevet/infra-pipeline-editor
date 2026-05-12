@@ -14,7 +14,7 @@ public class SqlDatabaseRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<SqlDatabase?> GetByIdAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await Context.Set<SqlDatabase>()
             .Include(x => x.DependsOn)
