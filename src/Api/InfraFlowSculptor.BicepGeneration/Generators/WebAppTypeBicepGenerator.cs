@@ -45,8 +45,8 @@ public sealed class WebAppTypeBicepGenerator
     private const string CustomDomainsParameterName = "customDomains";
     private const string WebAppModuleName = "webApp";
     private const string WebAppModuleFolderName = "WebApp";
-    private const string WebAppArmType = "Microsoft.Web/sites@2023-12-01";
-    private const string HostNameBindingsArmType = "Microsoft.Web/sites/hostNameBindings@2023-12-01";
+    private const string WebAppArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.WebAppArmType;
+    private const string HostNameBindingsArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.HostNameBindingsArmType;
     private const string HostNameBindingsResourceName = "hostNameBindings";
     private const string DockerImageVariableName = "dockerImage";
     private const string AcrUsernameVariableName = "acrUsername";

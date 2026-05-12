@@ -28,7 +28,7 @@ public sealed class CosmosDbTypeBicepGenerator
     private const string EnableFreeTierParameterName = "enableFreeTier";
     private const string CapabilitiesParameterName = "capabilities";
     private const string ResourceSymbol = "cosmosDbAccount";
-    private const string CosmosDbArmType = "Microsoft.DocumentDB/databaseAccounts@2024-05-15";
+    private const string CosmosDbArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.CosmosDbArmType;
     private const string DatabaseAccountOfferTypePropertyName = "databaseAccountOfferType";
     private const string StandardOfferValue = "Standard";
     private const string ConsistencyPolicyPropertyName = "consistencyPolicy";
@@ -154,7 +154,7 @@ public sealed class CosmosDbTypeBicepGenerator
         type BackupPolicyType = 'Periodic' | 'Continuous'
         """;
 
-    private const string CosmosDbModuleTemplate = """
+    private static readonly string CosmosDbModuleTemplate = $$"""
         import { DatabaseKind, ConsistencyLevel, BackupPolicyType } from './types.bicep'
 
         @description('Azure region for the Cosmos DB account')
@@ -190,7 +190,7 @@ public sealed class CosmosDbTypeBicepGenerator
         @description('Additional capabilities (e.g. EnableServerless)')
         param capabilities array = []
 
-        resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
+        resource cosmosDbAccount '{{CosmosDbArmType}}' = {
           name: name
           location: location
           kind: kind

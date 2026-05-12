@@ -24,7 +24,7 @@ public sealed class AppConfigurationTypeBicepGenerator
     private const string DisableLocalAuthParameterName = "disableLocalAuth";
     private const string PublicNetworkAccessParameterName = "publicNetworkAccess";
     private const string ResourceSymbol = "appConfig";
-    private const string AppConfigurationArmType = "Microsoft.AppConfiguration/configurationStores@2023-03-01";
+    private const string AppConfigurationArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.AppConfigurationArmType;
     private const string DefaultSkuName = "standard";
     private const int DefaultSoftDeleteRetentionInDays = 7;
     private const string PublicNetworkAccessEnabledValue = "Enabled";
@@ -110,7 +110,7 @@ public sealed class AppConfigurationTypeBicepGenerator
         type PublicNetworkAccess = 'Enabled' | 'Disabled'
         """;
 
-    private const string AppConfigurationModuleTemplate = """
+    private static readonly string AppConfigurationModuleTemplate = $$"""
         import { SkuName, PublicNetworkAccess } from './types.bicep'
 
         @description('Azure region for the App Configuration store')
@@ -134,7 +134,7 @@ public sealed class AppConfigurationTypeBicepGenerator
         @description('Public network access setting')
         param publicNetworkAccess PublicNetworkAccess = 'Enabled'
 
-        resource appConfig 'Microsoft.AppConfiguration/configurationStores@2023-03-01' = {
+        resource appConfig '{{AppConfigurationArmType}}' = {
           name: name
           location: location
           sku: {

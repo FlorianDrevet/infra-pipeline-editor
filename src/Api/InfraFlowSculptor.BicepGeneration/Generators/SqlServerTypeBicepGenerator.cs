@@ -20,7 +20,7 @@ public sealed class SqlServerTypeBicepGenerator
     private const string AdministratorLoginParameterName = "administratorLogin";
     private const string AdministratorLoginPasswordParameterName = "administratorLoginPassword";
     private const string MinimalTlsVersionParameterName = "minimalTlsVersion";
-    private const string SqlServerArmType = "Microsoft.Sql/servers@2023-08-01-preview";
+    private const string SqlServerArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.SqlServerArmType;
     private const string DefaultSqlServerVersion = "12.0";
     private const string LegacySqlServerVersion = "V12";
     private const string DefaultMinimumTlsVersion = "1.2";

@@ -24,7 +24,7 @@ public sealed class EventHubNamespaceTypeBicepGenerator
     private const string AutoInflateEnabledParameterName = "autoInflateEnabled";
     private const string MaxThroughputUnitsParameterName = "maxThroughputUnits";
     private const string ResourceSymbol = "eventHubNamespace";
-    private const string EventHubNamespaceArmType = "Microsoft.EventHub/namespaces@2024-01-01";
+    private const string EventHubNamespaceArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.EventHubNamespaceArmType;
     private const string TierPropertyName = "tier";
     private const string DisableLocalAuthenticationPropertyName = "disableLocalAuthentication";
     private const string IsAutoInflateEnabledPropertyName = "isAutoInflateEnabled";
@@ -103,7 +103,7 @@ public sealed class EventHubNamespaceTypeBicepGenerator
 
     private static readonly string EventHubTypesTemplate = MessagingNamespaceBicepGeneratorHelper.BuildTypesTemplate("Event Hub Namespace");
 
-    private const string EventHubModuleTemplate = """
+    private static readonly string EventHubModuleTemplate = $$"""
         import { SkuName, TlsVersion } from './types.bicep'
 
         @description('Azure region for the Event Hub Namespace')
@@ -133,7 +133,7 @@ public sealed class EventHubNamespaceTypeBicepGenerator
         @description('Maximum throughput units when auto-inflate is enabled (0-40)')
         param maxThroughputUnits int = 0
 
-        resource eventHubNamespace 'Microsoft.EventHub/namespaces@2024-01-01' = {
+        resource eventHubNamespace '{{EventHubNamespaceArmType}}' = {
           name: name
           location: location
           sku: {

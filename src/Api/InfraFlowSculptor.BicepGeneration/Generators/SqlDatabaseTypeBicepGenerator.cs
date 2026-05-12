@@ -23,8 +23,8 @@ public sealed class SqlDatabaseTypeBicepGenerator
     private const string ZoneRedundantParameterName = "zoneRedundant";
     private const string SqlServerResourceName = "sqlServer";
     private const string SqlDatabaseResourceName = "sqlDatabase";
-    private const string SqlServerArmType = "Microsoft.Sql/servers@2023-08-01-preview";
-    private const string SqlDatabaseArmType = "Microsoft.Sql/servers/databases@2023-08-01-preview";
+    private const string SqlServerArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.SqlServerArmType;
+    private const string SqlDatabaseArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.SqlDatabaseArmType;
     private const string DefaultSkuName = "Basic";
     private const string DefaultMaxSizeGb = "2";
     private const string DefaultCollation = "SQL_Latin1_General_CP1_CI_AS";
@@ -101,7 +101,7 @@ public sealed class SqlDatabaseTypeBicepGenerator
         type SkuName = 'Basic' | 'Standard' | 'Premium' | 'GeneralPurpose' | 'BusinessCritical' | 'Hyperscale'
         """;
 
-    private const string SqlDatabaseModuleTemplate = """
+    private static readonly string SqlDatabaseModuleTemplate = $$"""
         import { SkuName } from './types.bicep'
 
         @description('Azure region for the SQL Database')
@@ -125,11 +125,11 @@ public sealed class SqlDatabaseTypeBicepGenerator
         @description('Whether the database is zone redundant')
         param zoneRedundant bool
 
-        resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' existing = {
+        resource sqlServer '{{SqlServerArmType}}' existing = {
           name: sqlServerName
         }
 
-        resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {
+        resource sqlDatabase '{{SqlDatabaseArmType}}' = {
           parent: sqlServer
           name: name
           location: location

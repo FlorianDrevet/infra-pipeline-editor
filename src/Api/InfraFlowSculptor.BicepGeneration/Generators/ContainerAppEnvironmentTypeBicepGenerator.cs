@@ -21,9 +21,9 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
     private const string ZoneRedundancyEnabledParameterName = "zoneRedundancyEnabled";
     private const string LogAnalyticsWorkspaceIdParameterName = "logAnalyticsWorkspaceId";
     private const string ResourceSymbol = "containerAppEnv";
-    private const string ContainerAppEnvironmentArmType = "Microsoft.App/managedEnvironments@2024-03-01";
+    private const string ContainerAppEnvironmentArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.ContainerAppEnvironmentArmType;
     private const string DiagnosticSettingsResourceName = "diagnosticSettings";
-    private const string DiagnosticSettingsArmType = "Microsoft.Insights/diagnosticSettings@2021-05-01-preview";
+    private const string DiagnosticSettingsArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.DiagnosticSettingsArmType;
     private const string ZoneRedundantPropertyName = "zoneRedundant";
     private const string VnetConfigurationPropertyName = "vnetConfiguration";
     private const string InternalPropertyName = "internal";
@@ -139,7 +139,7 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
         type WorkloadProfileType = 'Consumption' | 'D4' | 'D8' | 'D16' | 'D32' | 'E4' | 'E8' | 'E16' | 'E32'
         """;
 
-    private const string ContainerAppEnvironmentModuleTemplate = """
+    private static readonly string ContainerAppEnvironmentModuleTemplate = $$"""
         import { WorkloadProfileType } from './types.bicep'
 
         @description('Azure region for the Container App Environment')
@@ -160,7 +160,7 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
         @description('Resource ID of the Log Analytics workspace. When provided, logs are routed to this workspace via Azure Monitor — no shared key required.')
         param logAnalyticsWorkspaceId string = ''
 
-        resource containerAppEnv 'Microsoft.App/managedEnvironments@2024-03-01' = {
+        resource containerAppEnv '{{ContainerAppEnvironmentArmType}}' = {
           name: name
           location: location
           properties: {
@@ -180,7 +180,7 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
           }
         }
 
-        resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (logAnalyticsWorkspaceId != '') {
+        resource diagnosticSettings '{{DiagnosticSettingsArmType}}' = if (logAnalyticsWorkspaceId != '') {
           name: 'containerAppEnvLogs'
           scope: containerAppEnv
           properties: {

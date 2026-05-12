@@ -22,7 +22,7 @@ public sealed class ServiceBusNamespaceTypeBicepGenerator
     private const string DisableLocalAuthParameterName = "disableLocalAuth";
     private const string MinimumTlsVersionParameterName = "minimumTlsVersion";
     private const string ResourceSymbol = "serviceBusNamespace";
-    private const string ServiceBusNamespaceArmType = "Microsoft.ServiceBus/namespaces@2022-10-01-preview";
+    private const string ServiceBusNamespaceArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.ServiceBusNamespaceArmType;
     private const string PremiumSkuValue = "Premium";
     private const string TierPropertyName = "tier";
     private const string DefaultConnectionStringOutputName = "defaultConnectionString";
@@ -95,7 +95,7 @@ public sealed class ServiceBusNamespaceTypeBicepGenerator
 
     private static readonly string ServiceBusTypesTemplate = MessagingNamespaceBicepGeneratorHelper.BuildTypesTemplate("Service Bus Namespace");
 
-    private const string ServiceBusModuleTemplate = """
+    private static readonly string ServiceBusModuleTemplate = $$"""
         import { SkuName, TlsVersion } from './types.bicep'
 
         @description('Azure region for the Service Bus Namespace')
@@ -119,7 +119,7 @@ public sealed class ServiceBusNamespaceTypeBicepGenerator
         @description('Minimum TLS version')
         param minimumTlsVersion TlsVersion = '1.2'
 
-        resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2022-10-01-preview' = {
+        resource serviceBusNamespace '{{ServiceBusNamespaceArmType}}' = {
           name: name
           location: location
           sku: {

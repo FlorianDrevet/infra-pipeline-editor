@@ -17,7 +17,7 @@ public sealed class UserAssignedIdentityTypeBicepGenerator : IResourceTypeBicepS
     private const string ModuleFolderName = "UserAssignedIdentity";
     private const string ModuleFileName = "userAssignedIdentity";
     private const string ResourceSymbol = "identity";
-    private const string UserAssignedIdentityArmType = "Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31";
+    private const string UserAssignedIdentityArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.UserAssignedIdentityArmType;
     private const string ResourceIdOutputName = "resourceId";
     private const string PrincipalIdOutputName = "principalId";
     private const string ClientIdOutputName = "clientId";
@@ -61,14 +61,14 @@ public sealed class UserAssignedIdentityTypeBicepGenerator : IResourceTypeBicepS
         };
     }
 
-    private const string UserAssignedIdentityModuleTemplate = """
+    private static readonly string UserAssignedIdentityModuleTemplate = $$"""
         @description('Azure region for the User Assigned Identity')
         param location string
 
         @description('Name of the User Assigned Identity')
         param name string
 
-        resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+        resource identity '{{UserAssignedIdentityArmType}}' = {
           name: name
           location: location
         }

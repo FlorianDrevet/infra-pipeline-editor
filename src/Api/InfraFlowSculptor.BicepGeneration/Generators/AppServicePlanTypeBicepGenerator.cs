@@ -21,7 +21,7 @@ public sealed class AppServicePlanTypeBicepGenerator
     private const string IsLinuxVariableName = "isLinux";
     private const string KindVariableName = "kind";
     private const string ResourceSymbol = "asp";
-    private const string AppServicePlanArmType = "Microsoft.Web/serverfarms@2023-12-01";
+    private const string AppServicePlanArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.AppServicePlanArmType;
     private const string DefaultSkuName = "F1";
     private const string DefaultOsType = "Linux";
     private const string LinuxKind = "linux";
@@ -104,7 +104,7 @@ public sealed class AppServicePlanTypeBicepGenerator
         type OsType = 'Linux' | 'Windows'
         """;
 
-    private const string AppServicePlanModuleTemplate = """
+    private static readonly string AppServicePlanModuleTemplate = $$"""
         import { SkuName, OsType } from './types.bicep'
 
         @description('Azure region for the App Service Plan')
@@ -125,7 +125,7 @@ public sealed class AppServicePlanTypeBicepGenerator
         var isLinux = osType == 'Linux'
         var kind = isLinux ? 'linux' : 'app'
 
-        resource asp 'Microsoft.Web/serverfarms@2023-12-01' = {
+        resource asp '{{AppServicePlanArmType}}' = {
           name: name
           location: location
           kind: kind

@@ -22,7 +22,7 @@ public sealed class ContainerRegistryTypeBicepGenerator
     private const string PublicNetworkAccessParameterName = "publicNetworkAccess";
     private const string ZoneRedundancyParameterName = "zoneRedundancy";
     private const string ResourceSymbol = "containerRegistry";
-    private const string ContainerRegistryArmType = "Microsoft.ContainerRegistry/registries@2023-07-01";
+    private const string ContainerRegistryArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.ContainerRegistryArmType;
     private const string DefaultSkuName = "Basic";
     private const string DefaultPublicNetworkAccess = "Enabled";
     private const string EnabledStateValue = "Enabled";
@@ -106,7 +106,7 @@ public sealed class ContainerRegistryTypeBicepGenerator
         type PublicNetworkAccess = 'Enabled' | 'Disabled'
         """;
 
-    private const string ContainerRegistryModuleTemplate = """
+    private static readonly string ContainerRegistryModuleTemplate = $$"""
         import { SkuName, PublicNetworkAccess } from './types.bicep'
 
         @description('Azure region for the Container Registry')
@@ -127,7 +127,7 @@ public sealed class ContainerRegistryTypeBicepGenerator
         @description('Whether zone redundancy is enabled (Premium only)')
         param zoneRedundancy bool = false
 
-        resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
+        resource containerRegistry '{{ContainerRegistryArmType}}' = {
           name: name
           location: location
           sku: {

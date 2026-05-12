@@ -22,7 +22,7 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
     private const string RetentionInDaysParameterName = "retentionInDays";
     private const string DailyQuotaGbParameterName = "dailyQuotaGb";
     private const string ResourceSymbol = "logAnalyticsWorkspace";
-    private const string LogAnalyticsWorkspaceArmType = "Microsoft.OperationalInsights/workspaces@2023-09-01";
+    private const string LogAnalyticsWorkspaceArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.LogAnalyticsWorkspaceArmType;
     private const string DefaultSkuName = "PerGB2018";
     private const int DefaultRetentionInDays = 30;
     private const int DefaultDailyQuotaGb = -1;
@@ -95,7 +95,7 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
         type SkuName = 'Free' | 'Standalone' | 'PerNode' | 'PerGB2018' | 'Premium' | 'Standard' | 'CapacityReservation' | 'LACluster'
         """;
 
-    private const string LogAnalyticsWorkspaceModuleTemplate = """
+    private static readonly string LogAnalyticsWorkspaceModuleTemplate = $$"""
         import { SkuName } from './types.bicep'
 
         @description('Azure region for the Log Analytics workspace')
@@ -113,7 +113,7 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
         @description('Daily ingestion quota in GB (-1 for unlimited)')
         param dailyQuotaGb int = -1
 
-        resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
+        resource logAnalyticsWorkspace '{{LogAnalyticsWorkspaceArmType}}' = {
           name: name
           location: location
           properties: {

@@ -162,6 +162,15 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 - For Container Apps using Managed Identity ACR auth with a user-assigned `AcrPull` role, `AzureResource.AssignedUserAssignedIdentityId` must also point to that same UAI; otherwise Bicep generation falls back to the system identity for `acrManagedIdentityClientId`.
 - The API JWT secret app setting must be stored as `JwtSettings__Secret`; `JWT_SECRET` is the Key Vault secret name, not the ASP.NET configuration key bound from `JwtSettings:Secret`.
 
+## Audit Architecture Study (Proposal) [2026-05-12]
+
+- The current repository shape favors transactionally capturing audit trails at the EF Core boundary, not in MediatR alone: most writes flow through `UnitOfWorkBehavior` + `ProjectDbContext.SaveChangesAsync(...)`, while the remaining out-of-band writes (`UserProvisioningMiddleware`, `PersonalAccessTokenAuthenticationHandler`) still go through the same DbContext.
+- The recommended storage model for a first implementation is the current PostgreSQL database with dedicated audit tables: a strongly indexed relational batch/envelope plus per-entity change rows carrying a JSONB delta for flexible property-level diffs.
+- `ICurrentUser` is not a sufficient sole actor source for auditing because some writes happen before `HttpContext.Items["ProvisionedUserId"]` is guaranteed; any future audit implementation should introduce a dedicated request-scoped audit context populated from HTTP/auth earlier and enriched by MediatR commands when available.
+- Keep business/compliance audit separate from technical observability logs and from noisy security updates such as PAT `LastUsedAt`; use the same persistence store initially, but distinct categories/tables and retention policies.
+- NoSQL/document-store separation is a poor first-step fit here because the codebase currently has no outbox, CDC, or event-store infrastructure to make dual writes reliable.
+- Event sourcing is explicitly not the recommended first response to the current need: it is much more invasive than the requested "who changed what" audit trail and would force new concurrency, projection, and schema-evolution concerns across the write side.
+
 ## Migrations
 17+ migration files in `src/Api/InfraFlowSculptor.Infrastructure/Migrations/`. Always add a new migration when changing domain model.
 - `20260512091902_AddCoreStringLengthConstraints` adds the first DB-001 migration slice for the core project / environment / infra-config / naming-template / AzureResource columns and keeps the snapshot in sync.
