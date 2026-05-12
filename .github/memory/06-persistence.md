@@ -78,6 +78,7 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 - **Cascade** is safe for mandatory child relationships (e.g. `ResourceLinks.SourceResourceId`, `AzureResourceDependencies.DependsOnId`, `ResourceParameterUsages.ParameterId`, `RoleAssignment.TargetResourceId`).
 - EF Core ordering conflict: if a Cascade-delete on parent already orphans rows, a parallel SetNull on the same rows emits SQL after the rows are gone → FK error. Solution: make both paths Cascade.
 - Concrete rule [2026-04-23]: `AppSettingConfiguration.KeyVaultResourceId` must stay `SetNull`, not `Cascade`, so deleting a Key Vault detaches optional app-setting references instead of silently deleting the settings themselves.
+- Concrete rule [2026-05-12]: `AppSettingConfiguration.SourceResourceId` must also stay `SetNull`; deleting a referenced source resource should invalidate the output-link mapping without deleting the `AppSetting` row. The fix is materialized by migration `20260512121558_SetNullOnAppSettingSourceResource`.
 
 ## Polymorphic TPT Queries [2026-04-16]
 
@@ -95,6 +96,7 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 
 - Do not add `.AsNoTracking()` blindly to a tracked repository method if that method is shared by read and write/owner flows.
 - `ProjectAccessService` is the reference split for DB-003: `VerifyReadAccessAsync(...)` now uses `IProjectRepository.GetByIdWithMembersReadOnlyAsync(...)`, while `VerifyWriteAccessAsync(...)` and `VerifyOwnerAccessAsync(...)` keep using the tracked `GetByIdWithMembersAsync(...)` because several project commands mutate `accessResult.Value` afterward.
+- `ResourceGroupRepository.GetByIdReadOnlyAsync(...)` is the reference split for pure `ResourceGroup` queries that only need group metadata and `InfraConfigId`: `GetResourceGroupQueryHandler` and `ListResourceGroupResourcesQueryHandler` now use this no-tracking lookup, while commands keep the tracked `GetByIdAsync(...)` path.
 - When the caller only needs membership/role checks, prefer a dedicated no-tracking lookup that loads only the navigation data actually needed for authorization.
 - Counter-example: `PersonalAccessTokenRepository.GetByTokenHashAsync(...)` must stay tracked in the current auth flow because `PersonalAccessTokenAuthenticationHandler` records PAT usage and persists `LastUsedAt` immediately after loading the aggregate.
 
