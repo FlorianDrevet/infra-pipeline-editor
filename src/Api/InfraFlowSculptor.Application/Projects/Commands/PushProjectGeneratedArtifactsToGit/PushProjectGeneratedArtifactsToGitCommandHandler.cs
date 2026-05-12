@@ -65,39 +65,37 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
         var bicepFilesResult = await GetLatestProjectFilesAsync(
             "bicep",
             command.ProjectId.Value,
-            Errors.Project.BicepFilesNotFoundError,
-            cancellationToken);
+            Errors.Project.BicepFilesNotFoundError);
         if (bicepFilesResult.IsError)
             return bicepFilesResult.Errors;
 
         var pipelineFilesResult = await GetLatestProjectFilesAsync(
             "pipeline",
             command.ProjectId.Value,
-            Errors.Project.PipelineFilesNotFoundError,
-            cancellationToken);
+            Errors.Project.PipelineFilesNotFoundError);
         if (pipelineFilesResult.IsError)
             return pipelineFilesResult.Errors;
 
         var bootstrapFilesResult = await GetLatestProjectFilesAsync(
             "bootstrap",
             command.ProjectId.Value,
-            Errors.Project.BootstrapFilesNotFoundError,
-            cancellationToken);
+            Errors.Project.BootstrapFilesNotFoundError);
         if (bootstrapFilesResult.IsError)
             return bootstrapFilesResult.Errors;
 
-        var multiScopePushRequest = BuildPushRequest(
-            secretResult.Value,
-            target.Owner,
-            target.RepositoryName,
-            target.Branch,
-            command.BranchName,
-            command.CommitMessage,
-            target.BasePath,
-            bicepFilesResult.Value,
-            target.PipelineBasePath,
-            pipelineFilesResult.Value,
-            bootstrapFilesResult.Value);
+        var multiScopePushRequest = MultiScopeGitPushRequestBuilder.Build(
+            token: secretResult.Value,
+            owner: target.Owner,
+            repositoryName: target.RepositoryName,
+            baseBranch: target.Branch,
+            targetBranchName: command.BranchName,
+            commitMessage: command.CommitMessage,
+            scopes:
+            [
+                (target.BasePath, bicepFilesResult.Value),
+                (target.PipelineBasePath, pipelineFilesResult.Value),
+                (target.PipelineBasePath, bootstrapFilesResult.Value),
+            ]);
         if (multiScopePushRequest.IsError)
             return multiScopePushRequest.Errors;
 
@@ -114,8 +112,7 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
     private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> GetLatestProjectFilesAsync(
         string artifactType,
         Guid projectId,
-        Func<Guid, Error> notFoundErrorFactory,
-        CancellationToken cancellationToken)
+        Func<Guid, Error> notFoundErrorFactory)
     {
         var prefix = $"{artifactType}/project/{projectId}/";
         var allBlobs = await blobService.ListBlobsAsync(prefix);
@@ -152,126 +149,4 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
             : files;
     }
 
-    private static ErrorOr<MultiScopeGitPushRequest> BuildPushRequest(
-        string token,
-        string owner,
-        string repositoryName,
-        string baseBranch,
-        string targetBranchName,
-        string commitMessage,
-        string? bicepBasePath,
-        IReadOnlyDictionary<string, string> bicepFiles,
-        string? pipelineBasePath,
-        IReadOnlyDictionary<string, string> pipelineFiles,
-        IReadOnlyDictionary<string, string> bootstrapFiles)
-    {
-        var mergedScopes = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
-
-        var mergeError = TryMergeFiles(mergedScopes, bicepBasePath, bicepFiles);
-        if (mergeError is not null)
-            return mergeError.Value;
-
-        mergeError = TryMergeFiles(mergedScopes, pipelineBasePath, pipelineFiles);
-        if (mergeError is not null)
-            return mergeError.Value;
-
-        mergeError = TryMergeFiles(mergedScopes, pipelineBasePath, bootstrapFiles);
-        if (mergeError is not null)
-            return mergeError.Value;
-
-        return new MultiScopeGitPushRequest
-        {
-            Token = token,
-            Owner = owner,
-            RepositoryName = repositoryName,
-            BaseBranch = baseBranch,
-            TargetBranchName = targetBranchName,
-            CommitMessage = commitMessage,
-            Scopes = mergedScopes
-                .Select(scope => new MultiScopeGitPushRequest.GitPushScope
-                {
-                    BasePath = string.IsNullOrEmpty(scope.Key) ? null : scope.Key,
-                    Files = scope.Value,
-                })
-                .ToList(),
-        };
-    }
-
-    private static Error? TryMergeFiles(
-        IDictionary<string, Dictionary<string, string>> mergedScopes,
-        string? basePath,
-        IReadOnlyDictionary<string, string> files)
-    {
-        var normalizedBasePath = NormalizeBasePath(basePath);
-
-        if (!string.IsNullOrEmpty(normalizedBasePath))
-        {
-            foreach (var (relativePath, content) in files)
-            {
-                var mergeError = TryAddScopedFile(mergedScopes, normalizedBasePath, relativePath, content);
-                if (mergeError is not null)
-                    return mergeError;
-            }
-
-            return null;
-        }
-
-        foreach (var (relativePath, content) in files)
-        {
-            // Root-level scopes are re-sliced by top-level folder so Git cleanup can delete stale generated
-            // files without claiming the entire repository root as a cleanup scope.
-            var (scopedBasePath, scopedRelativePath) = SplitRootScopedPath(relativePath);
-            var mergeError = TryAddScopedFile(mergedScopes, scopedBasePath, scopedRelativePath, content);
-            if (mergeError is not null)
-            {
-                return mergeError;
-            }
-        }
-
-        return null;
-    }
-
-    private static Error? TryAddScopedFile(
-        IDictionary<string, Dictionary<string, string>> mergedScopes,
-        string basePath,
-        string relativePath,
-        string content)
-    {
-        if (!mergedScopes.TryGetValue(basePath, out var scopedFiles))
-        {
-            scopedFiles = new Dictionary<string, string>(StringComparer.Ordinal);
-            mergedScopes[basePath] = scopedFiles;
-        }
-
-        if (scopedFiles.TryGetValue(relativePath, out var existingContent)
-            && !string.Equals(existingContent, content, StringComparison.Ordinal))
-        {
-            var resolvedPath = CombinePath(basePath, relativePath);
-            return Errors.GitRepository.PushFailed(
-                $"Generated file collision detected for path '{resolvedPath}'.");
-        }
-
-        scopedFiles[relativePath] = content;
-        return null;
-    }
-
-    private static (string BasePath, string RelativePath) SplitRootScopedPath(string relativePath)
-    {
-        var normalizedRelativePath = relativePath.TrimStart('/');
-        var separatorIndex = normalizedRelativePath.IndexOf('/');
-
-        return separatorIndex < 0
-            ? (string.Empty, normalizedRelativePath)
-            : (normalizedRelativePath[..separatorIndex], normalizedRelativePath[(separatorIndex + 1)..]);
-    }
-
-    private static string NormalizeBasePath(string? basePath) =>
-        string.IsNullOrWhiteSpace(basePath)
-            ? string.Empty
-            : basePath.Trim('/');
-
-    private static string CombinePath(string basePath, string relativePath) =>
-        string.IsNullOrEmpty(basePath)
-            ? relativePath.TrimStart('/')
-            : $"{basePath}/{relativePath.TrimStart('/')}";
 }

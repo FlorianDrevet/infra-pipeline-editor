@@ -54,16 +54,16 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
             return secretResult.Errors;
         var token = secretResult.Value;
 
-        var pipelineSplitResult = await LoadLatestPipelineFilesSplitAsync(command.ProjectId.Value, cancellationToken);
+        var pipelineSplitResult = await LoadLatestPipelineFilesSplitAsync(command.ProjectId.Value);
         if (pipelineSplitResult.IsError)
             return pipelineSplitResult.Errors;
         var (infraPipelineFiles, appPipelineFiles) = pipelineSplitResult.Value;
 
-        var infraArtifactsResult = await LoadInfraArtifactsAsync(command, cancellationToken);
+        var infraArtifactsResult = await LoadInfraArtifactsAsync(command);
         if (infraArtifactsResult.IsError) return infraArtifactsResult.Errors;
         var infraArtifacts = infraArtifactsResult.Value;
 
-        var appArtifactsResult = await LoadAppArtifactsAsync(command, cancellationToken);
+        var appArtifactsResult = await LoadAppArtifactsAsync(command);
         if (appArtifactsResult.IsError) return appArtifactsResult.Errors;
         var appBootstrapFiles = appArtifactsResult.Value;
 
@@ -118,18 +118,18 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
     }
 
     private async Task<ErrorOr<InfraArtifacts>>
-        LoadInfraArtifactsAsync(PushProjectArtifactsToMultiRepoCommand command, CancellationToken cancellationToken)
+        LoadInfraArtifactsAsync(PushProjectArtifactsToMultiRepoCommand command)
     {
         if (command.Infra is null)
             return new InfraArtifacts(null, null);
 
         var bicepFilesResult = await LoadLatestArtifactFilesAsync(
-            "bicep", command.ProjectId.Value, Errors.Project.BicepFilesNotFoundError, cancellationToken);
+            "bicep", command.ProjectId.Value, Errors.Project.BicepFilesNotFoundError);
         if (bicepFilesResult.IsError)
             return bicepFilesResult.Errors;
 
         var bootstrapFilesResult = await LoadLatestBootstrapFilesAsync(
-            command.ProjectId.Value, bucketPrefix: "infra/", cancellationToken);
+            command.ProjectId.Value, bucketPrefix: "infra/");
         if (bootstrapFilesResult.IsError)
             return bootstrapFilesResult.Errors;
 
@@ -137,13 +137,13 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
     }
 
     private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadAppArtifactsAsync(
-        PushProjectArtifactsToMultiRepoCommand command, CancellationToken cancellationToken)
+        PushProjectArtifactsToMultiRepoCommand command)
     {
         if (command.Code is null)
             return ErrorOrFactory.From<IReadOnlyDictionary<string, string>>(new Dictionary<string, string>());
 
         var appBootstrapFilesResult = await LoadLatestBootstrapFilesAsync(
-            command.ProjectId.Value, bucketPrefix: "app/", cancellationToken);
+            command.ProjectId.Value, bucketPrefix: "app/");
         if (appBootstrapFilesResult.IsError)
             return appBootstrapFilesResult.Errors;
 
@@ -163,10 +163,13 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
         IReadOnlyDictionary<string, string> bootstrapFiles,
         CancellationToken cancellationToken)
     {
-        var infraPushRequest = BuildPushRequest(
-            token,
-            infraTarget,
-            infraPushTarget,
+        var infraPushRequest = MultiScopeGitPushRequestBuilder.Build(
+            token: token,
+            owner: infraTarget.Owner,
+            repositoryName: infraTarget.RepositoryName,
+            baseBranch: infraTarget.Branch,
+            targetBranchName: infraPushTarget.BranchName,
+            commitMessage: infraPushTarget.CommitMessage,
             scopes:
             [
                 (infraTarget.BasePath, bicepFiles),
@@ -197,10 +200,13 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
                 ErrorDescription: "No application pipeline files to push.");
         }
 
-        var appPushRequest = BuildPushRequest(
-            token,
-            appTarget,
-            codePushTarget,
+        var appPushRequest = MultiScopeGitPushRequestBuilder.Build(
+            token: token,
+            owner: appTarget.Owner,
+            repositoryName: appTarget.RepositoryName,
+            baseBranch: appTarget.Branch,
+            targetBranchName: codePushTarget.BranchName,
+            commitMessage: codePushTarget.CommitMessage,
             scopes:
             [
                 (appTarget.PipelineBasePath, appPipelineFiles),
@@ -254,7 +260,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
     }
 
     private async Task<ErrorOr<(IReadOnlyDictionary<string, string> Infra, IReadOnlyDictionary<string, string> App)>>
-        LoadLatestPipelineFilesSplitAsync(Guid projectId, CancellationToken cancellationToken)
+        LoadLatestPipelineFilesSplitAsync(Guid projectId)
     {
         return await BlobDownloadHelper.GetLatestDualBucketBlobFilesAsync(
             blobService,
@@ -272,8 +278,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
     private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadLatestArtifactFilesAsync(
         string artifactType,
         Guid projectId,
-        Func<Guid, Error> notFoundErrorFactory,
-        CancellationToken cancellationToken)
+        Func<Guid, Error> notFoundErrorFactory)
     {
         return await BlobDownloadHelper.GetLatestBlobFilesAsync(
             blobService,
@@ -289,7 +294,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
     /// Passing a <paramref name="bucketPrefix"/> (e.g. <c>"infra/"</c>) returns only that bucket's files with the prefix stripped.
     /// </summary>
     private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadLatestBootstrapFilesAsync(
-        Guid projectId, string? bucketPrefix, CancellationToken cancellationToken)
+        Guid projectId, string? bucketPrefix)
     {
         return await BlobDownloadHelper.GetLatestBlobFilesAsync(
             blobService,
@@ -309,99 +314,4 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
             StringComparer.Ordinal);
     }
 
-    private static ErrorOr<MultiScopeGitPushRequest> BuildPushRequest(
-        string token,
-        ResolvedRepositoryTarget target,
-        RepoPushTarget pushTarget,
-        IReadOnlyList<(string? BasePath, IReadOnlyDictionary<string, string> Files)> scopes)
-    {
-        var mergedScopes = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
-
-        foreach (var (basePath, files) in scopes)
-        {
-            var normalizedBasePath = NormalizeBasePath(basePath);
-
-            if (!string.IsNullOrEmpty(normalizedBasePath))
-            {
-                foreach (var (relativePath, content) in files)
-                {
-                    var mergeError = TryAddScopedFile(mergedScopes, normalizedBasePath, relativePath, content);
-                    if (mergeError is not null)
-                        return mergeError.Value;
-                }
-
-                continue;
-            }
-
-            foreach (var (relativePath, content) in files)
-            {
-                // Root-level scopes are re-sliced by top-level folder so Git cleanup can delete stale generated
-                // files without claiming the entire repository root as a cleanup scope.
-                var (scopedBasePath, scopedRelativePath) = SplitRootScopedPath(relativePath);
-                var mergeError = TryAddScopedFile(mergedScopes, scopedBasePath, scopedRelativePath, content);
-                if (mergeError is not null)
-                {
-                    return mergeError.Value;
-                }
-            }
-        }
-
-        return new MultiScopeGitPushRequest
-        {
-            Token = token,
-            Owner = target.Owner,
-            RepositoryName = target.RepositoryName,
-            BaseBranch = target.Branch,
-            TargetBranchName = pushTarget.BranchName,
-            CommitMessage = pushTarget.CommitMessage,
-            Scopes = mergedScopes
-                .Select(scope => new MultiScopeGitPushRequest.GitPushScope
-                {
-                    BasePath = string.IsNullOrEmpty(scope.Key) ? null : scope.Key,
-                    Files = scope.Value,
-                })
-                .ToList(),
-        };
-    }
-
-    private static Error? TryAddScopedFile(
-        IDictionary<string, Dictionary<string, string>> mergedScopes,
-        string basePath,
-        string relativePath,
-        string content)
-    {
-        if (!mergedScopes.TryGetValue(basePath, out var scopedFiles))
-        {
-            scopedFiles = new Dictionary<string, string>(StringComparer.Ordinal);
-            mergedScopes[basePath] = scopedFiles;
-        }
-
-        if (scopedFiles.TryGetValue(relativePath, out var existing)
-            && !string.Equals(existing, content, StringComparison.Ordinal))
-        {
-            return Errors.GitRepository.PushFailed(
-                $"Generated file collision detected for path '{CombinePath(basePath, relativePath)}'.");
-        }
-
-        scopedFiles[relativePath] = content;
-        return null;
-    }
-
-    private static (string BasePath, string RelativePath) SplitRootScopedPath(string relativePath)
-    {
-        var normalizedRelativePath = relativePath.TrimStart('/');
-        var separatorIndex = normalizedRelativePath.IndexOf('/');
-
-        return separatorIndex < 0
-            ? (string.Empty, normalizedRelativePath)
-            : (normalizedRelativePath[..separatorIndex], normalizedRelativePath[(separatorIndex + 1)..]);
-    }
-
-    private static string NormalizeBasePath(string? basePath) =>
-        string.IsNullOrWhiteSpace(basePath) ? string.Empty : basePath.Trim('/');
-
-    private static string CombinePath(string basePath, string relativePath) =>
-        string.IsNullOrEmpty(basePath)
-            ? relativePath.TrimStart('/')
-            : $"{basePath}/{relativePath.TrimStart('/')}";
 }
