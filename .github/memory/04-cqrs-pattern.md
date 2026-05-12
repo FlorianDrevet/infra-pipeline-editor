@@ -55,6 +55,7 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 ## Validator Cross-Rules [2026-04-30]
 
 - `CreateProjectWithSetupCommandValidator` is the canonical example of a project-slice validator that mixes scalar rules with aggregate cross-rules: `LayoutPreset` drives the allowed project-level repository count (`AllInOne` = 1, `SplitInfraCode` = 2, `MultiRepo` = 0), and repository connection details (`ProviderType`, `RepositoryUrl`, `DefaultBranch`) must be provided all together or all omitted.
+- Project-level Git push commands sharing the same input envelope (`ProjectId`, `BranchName`, `CommitMessage`) should stay aligned on the same guard rails: non-empty project id, branch name required with the existing Git-safe regex and `200`-character cap, and commit message required with a `500`-character cap. `PushProjectBootstrapPipelineToGitCommandValidator` and `PushProjectGeneratedArtifactsToGitCommandValidator` were added to align this slice with the pre-existing `PushProjectBicepToGitCommandValidator` and `PushProjectPipelineToGitCommandValidator`.
 - Keep these orchestration-style checks in FluentValidation when they are pure input consistency checks and do not require repository access.
 
 ## Orchestration Handlers [2026-05-11]
