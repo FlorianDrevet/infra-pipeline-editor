@@ -33,7 +33,7 @@ public sealed class AppServicePlanTypeBicepGenerator
     private const string ResourceIdExpression = ResourceSymbol + ".id";
 
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.AppServicePlan;
+        => AzureResourceTypes.ArmTypes.AppServicePlanType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.AppServicePlan;

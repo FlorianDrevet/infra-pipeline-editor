@@ -26,7 +26,7 @@ public sealed class UserAssignedIdentityTypeBicepGenerator : IResourceTypeBicepS
     private const string ClientIdExpression = ResourceSymbol + ".properties.clientId";
 
     /// <inheritdoc />
-    public string ResourceType => AzureResourceTypes.ArmTypes.UserAssignedIdentity;
+    public string ResourceType => AzureResourceTypes.ArmTypes.UserAssignedIdentityType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.UserAssignedIdentity;

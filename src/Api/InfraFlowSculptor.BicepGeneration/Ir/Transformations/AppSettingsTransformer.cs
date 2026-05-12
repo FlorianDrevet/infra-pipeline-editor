@@ -22,7 +22,7 @@ internal static class AppSettingsTransformer
     /// </summary>
     internal static BicepModuleSpec WithAppSettings(this BicepModuleSpec spec, string armResourceType)
     {
-        if (armResourceType == AzureResourceTypes.ArmTypes.ContainerApp)
+        if (armResourceType == AzureResourceTypes.ArmTypes.ContainerAppType)
             return WithContainerAppEnvVars(spec);
 
         return WithWebFunctionAppSettings(spec);

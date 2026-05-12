@@ -40,7 +40,7 @@ public sealed class EventHubNamespaceTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.EventHubNamespace;
+        => AzureResourceTypes.ArmTypes.EventHubNamespaceType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.EventHubNamespace;

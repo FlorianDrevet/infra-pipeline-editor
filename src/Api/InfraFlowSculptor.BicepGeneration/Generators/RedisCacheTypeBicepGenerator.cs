@@ -51,7 +51,7 @@ public sealed class RedisCacheTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.RedisCache;
+        => AzureResourceTypes.ArmTypes.RedisCacheType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.RedisCache;

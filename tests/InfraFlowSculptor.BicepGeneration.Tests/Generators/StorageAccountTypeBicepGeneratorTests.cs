@@ -18,7 +18,7 @@ public sealed class StorageAccountTypeBicepGeneratorTests
         {
             ResourceId = Guid.NewGuid(),
             Name = "my-storage",
-            Type = AzureResourceTypes.ArmTypes.StorageAccount,
+            Type = AzureResourceTypes.ArmTypes.StorageAccountType,
             ResourceGroupName = "rg-test",
             ResourceAbbreviation = "st",
             Properties = properties ?? new Dictionary<string, string>(),
@@ -36,7 +36,7 @@ public sealed class StorageAccountTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.StorageAccount);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.StorageAccountType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.StorageAccount);
     }
 

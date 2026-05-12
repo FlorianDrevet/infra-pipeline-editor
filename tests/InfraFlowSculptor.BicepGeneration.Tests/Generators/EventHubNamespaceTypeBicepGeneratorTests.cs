@@ -15,7 +15,7 @@ public sealed class EventHubNamespaceTypeBicepGeneratorTests
     {
         ResourceId = Guid.NewGuid(),
         Name = "my-evhns",
-        Type = AzureResourceTypes.ArmTypes.EventHubNamespace,
+        Type = AzureResourceTypes.ArmTypes.EventHubNamespaceType,
         ResourceGroupName = "rg-test",
         ResourceAbbreviation = "evhns",
     };
@@ -31,7 +31,7 @@ public sealed class EventHubNamespaceTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.EventHubNamespace);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.EventHubNamespaceType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.EventHubNamespace);
     }
 

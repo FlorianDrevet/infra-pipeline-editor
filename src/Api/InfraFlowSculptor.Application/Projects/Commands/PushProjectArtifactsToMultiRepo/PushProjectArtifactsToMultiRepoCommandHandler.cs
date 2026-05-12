@@ -256,49 +256,17 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
     private async Task<ErrorOr<(IReadOnlyDictionary<string, string> Infra, IReadOnlyDictionary<string, string> App)>>
         LoadLatestPipelineFilesSplitAsync(Guid projectId, CancellationToken cancellationToken)
     {
-        var prefix = $"pipeline/project/{projectId}/";
-        var allBlobs = await blobService.ListBlobsAsync(prefix);
-
-        if (allBlobs.Count == 0)
-            return Errors.Project.PipelineFilesNotFoundError(projectId);
-
-        var latestPrefix = allBlobs
-            .Select(blobName => string.Join('/', blobName.Split('/').Take(4)))
-            .Distinct()
-            .OrderDescending()
-            .First();
-
-        var latestBlobs = allBlobs
-            .Where(blobName => blobName.StartsWith(latestPrefix, StringComparison.Ordinal))
-            .ToList();
-
-        var infra = new Dictionary<string, string>(StringComparer.Ordinal);
-        var app = new Dictionary<string, string>(StringComparer.Ordinal);
-
-        foreach (var blobName in latestBlobs)
-        {
-            var content = await blobService.DownloadContentAsync(blobName);
-            if (content is null)
-                continue;
-
-            var relativePath = blobName[(latestPrefix.Length + 1)..];
-
-            if (relativePath.StartsWith($"{InfraBucket}/", StringComparison.Ordinal))
-                infra[relativePath[(InfraBucket.Length + 1)..]] = content;
-            else if (relativePath.StartsWith($"{AppBucket}/", StringComparison.Ordinal))
-                app[relativePath[(AppBucket.Length + 1)..]] = content;
-            else
-                infra[relativePath] = content; // legacy layout fallback (no bucket prefix)
-        }
-
-        if (infra.Count == 0 && app.Count == 0)
-            return Errors.Project.PipelineFilesNotFoundError(projectId);
-
-        var normalizedInfra = GeneratedPipelinePathNormalizer.Normalize(infra);
-        var normalizedApp = GeneratedPipelinePathNormalizer.Normalize(app);
-
-        return ((IReadOnlyDictionary<string, string>)normalizedInfra,
-                (IReadOnlyDictionary<string, string>)normalizedApp);
+        return await BlobDownloadHelper.GetLatestDualBucketBlobFilesAsync(
+            blobService,
+            blobPrefix: $"pipeline/project/{projectId}/",
+            prefixSegmentCount: 4,
+            notFoundErrorFactory: Errors.Project.PipelineFilesNotFoundError,
+            entityId: projectId,
+            firstBucketName: InfraBucket,
+            secondBucketName: AppBucket,
+            legacyDefaultBucketName: InfraBucket,
+            firstPostProcess: GeneratedPipelinePathNormalizer.Normalize,
+            secondPostProcess: GeneratedPipelinePathNormalizer.Normalize);
     }
 
     private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadLatestArtifactFilesAsync(
@@ -307,37 +275,12 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
         Func<Guid, Error> notFoundErrorFactory,
         CancellationToken cancellationToken)
     {
-        var prefix = $"{artifactType}/project/{projectId}/";
-        var allBlobs = await blobService.ListBlobsAsync(prefix);
-
-        if (allBlobs.Count == 0)
-            return notFoundErrorFactory(projectId);
-
-        var latestPrefix = allBlobs
-            .Select(blobName => string.Join('/', blobName.Split('/').Take(4)))
-            .Distinct()
-            .OrderDescending()
-            .First();
-
-        var latestBlobs = allBlobs
-            .Where(blobName => blobName.StartsWith(latestPrefix, StringComparison.Ordinal))
-            .ToList();
-
-        var files = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var blobName in latestBlobs)
-        {
-            var content = await blobService.DownloadContentAsync(blobName);
-            if (content is null)
-                continue;
-
-            var relativePath = blobName[(latestPrefix.Length + 1)..];
-            files[relativePath] = content;
-        }
-
-        if (files.Count == 0)
-            return notFoundErrorFactory(projectId);
-
-        return files;
+        return await BlobDownloadHelper.GetLatestBlobFilesAsync(
+            blobService,
+            blobPrefix: $"{artifactType}/project/{projectId}/",
+            prefixSegmentCount: 4,
+            notFoundErrorFactory,
+            entityId: projectId);
     }
 
     /// <summary>
@@ -348,42 +291,22 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
     private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadLatestBootstrapFilesAsync(
         Guid projectId, string? bucketPrefix, CancellationToken cancellationToken)
     {
-        var prefix = $"bootstrap/project/{projectId}/";
-        var allBlobs = await blobService.ListBlobsAsync(prefix);
+        return await BlobDownloadHelper.GetLatestBlobFilesAsync(
+            blobService,
+            blobPrefix: $"bootstrap/project/{projectId}/",
+            prefixSegmentCount: 4,
+            notFoundErrorFactory: Errors.Project.BootstrapFilesNotFoundError,
+            entityId: projectId,
+            subPrefix: bucketPrefix,
+            postProcess: PrefixBootstrapPaths);
+    }
 
-        if (allBlobs.Count == 0)
-            return Errors.Project.BootstrapFilesNotFoundError(projectId);
-
-        var latestPrefix = allBlobs
-            .Select(b => string.Join('/', b.Split('/').Take(4)))
-            .Distinct()
-            .OrderDescending()
-            .First();
-
-        var bucketBlobPrefix = string.IsNullOrEmpty(bucketPrefix)
-            ? latestPrefix + "/"
-            : $"{latestPrefix}/{bucketPrefix.TrimEnd('/')}/";
-
-        var latestBlobs = allBlobs
-            .Where(b => b.StartsWith(bucketBlobPrefix, StringComparison.Ordinal))
-            .ToList();
-
-        var files = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var blobName in latestBlobs)
-        {
-            var content = await blobService.DownloadContentAsync(blobName);
-            if (content is null)
-                continue;
-
-            var relativePath = blobName[bucketBlobPrefix.Length..];
-            // Bootstrap pipeline always lives under .azuredevops/ at the repository root.
-            files[$".azuredevops/{relativePath}"] = content;
-        }
-
-        if (files.Count == 0)
-            return Errors.Project.BootstrapFilesNotFoundError(projectId);
-
-        return files;
+    private static IReadOnlyDictionary<string, string> PrefixBootstrapPaths(Dictionary<string, string> files)
+    {
+        return files.ToDictionary(
+            static pair => $".azuredevops/{pair.Key}",
+            static pair => pair.Value,
+            StringComparer.Ordinal);
     }
 
     private static ErrorOr<MultiScopeGitPushRequest> BuildPushRequest(

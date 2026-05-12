@@ -35,7 +35,7 @@ public sealed class ContainerRegistryTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.ContainerRegistry;
+        => AzureResourceTypes.ArmTypes.ContainerRegistryType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.ContainerRegistry;

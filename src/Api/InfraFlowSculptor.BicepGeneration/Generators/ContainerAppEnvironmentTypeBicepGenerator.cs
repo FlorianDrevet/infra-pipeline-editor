@@ -50,7 +50,7 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.ContainerAppEnvironment;
+        => AzureResourceTypes.ArmTypes.ContainerAppEnvironmentType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.ContainerAppEnvironment;

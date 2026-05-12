@@ -1,4 +1,5 @@
 using FluentAssertions;
+using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
@@ -171,6 +172,24 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.ProjectRepository.NoContentKind().Code);
+        await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
+    }
+
+    [Fact]
+    public async Task Given_CurrentUserNotProvisioned_When_Handle_Then_ReturnsUnauthorizedAsync()
+    {
+        // Arrange
+        _currentUser.GetUserIdAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<UserId>(
+                new UnauthorizedAccessException("User was not provisioned.")));
+        var command = CreateValidCommand();
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.Unauthorized);
         await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
     }
 

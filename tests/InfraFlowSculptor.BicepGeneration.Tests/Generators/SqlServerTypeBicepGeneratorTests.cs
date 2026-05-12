@@ -16,7 +16,7 @@ public sealed class SqlServerTypeBicepGeneratorTests
     {
         ResourceId = Guid.NewGuid(),
         Name = "my-sql",
-        Type = AzureResourceTypes.ArmTypes.SqlServer,
+        Type = AzureResourceTypes.ArmTypes.SqlServerType,
         ResourceGroupName = "rg-test",
         ResourceAbbreviation = "sql",
         Properties = properties ?? new Dictionary<string, string>(),
@@ -33,7 +33,7 @@ public sealed class SqlServerTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.SqlServer);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.SqlServerType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.SqlServer);
     }
 

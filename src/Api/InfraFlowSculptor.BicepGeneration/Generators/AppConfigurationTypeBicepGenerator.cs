@@ -36,7 +36,7 @@ public sealed class AppConfigurationTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.AppConfiguration;
+        => AzureResourceTypes.ArmTypes.AppConfigurationType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.AppConfiguration;

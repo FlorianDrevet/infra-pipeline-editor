@@ -25,11 +25,11 @@ public sealed class AppPipelineRequestFactory(
     {
         return resourceType switch
         {
-            AzureResourceTypes.ArmTypes.ContainerApp => await CreateFromContainerAppAsync(resourceId, cancellationToken)
+            AzureResourceTypes.ArmTypes.ContainerAppType => await CreateFromContainerAppAsync(resourceId, cancellationToken)
                 .ConfigureAwait(false),
-            AzureResourceTypes.ArmTypes.WebApp => await CreateFromWebAppAsync(resourceId, cancellationToken)
+            AzureResourceTypes.ArmTypes.WebAppType => await CreateFromWebAppAsync(resourceId, cancellationToken)
                 .ConfigureAwait(false),
-            AzureResourceTypes.ArmTypes.FunctionApp => await CreateFromFunctionAppAsync(resourceId, cancellationToken)
+            AzureResourceTypes.ArmTypes.FunctionAppType => await CreateFromFunctionAppAsync(resourceId, cancellationToken)
                 .ConfigureAwait(false),
             _ => null,
         };

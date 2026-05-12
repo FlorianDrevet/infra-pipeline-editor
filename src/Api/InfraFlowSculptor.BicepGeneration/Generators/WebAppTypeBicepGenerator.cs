@@ -90,7 +90,7 @@ public sealed class WebAppTypeBicepGenerator
     private const string DockerRegistryServerPasswordSettingName = "DOCKER_REGISTRY_SERVER_PASSWORD";
 
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.WebApp;
+        => AzureResourceTypes.ArmTypes.WebAppType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.WebApp;

@@ -15,7 +15,7 @@ public sealed class AppServicePlanTypeBicepGeneratorTests
     {
         ResourceId = Guid.NewGuid(),
         Name = "my-asp",
-        Type = AzureResourceTypes.ArmTypes.AppServicePlan,
+        Type = AzureResourceTypes.ArmTypes.AppServicePlanType,
         ResourceGroupName = "rg-test",
         ResourceAbbreviation = "asp",
         Properties = new Dictionary<string, string>
@@ -37,7 +37,7 @@ public sealed class AppServicePlanTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.AppServicePlan);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.AppServicePlanType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.AppServicePlan);
     }
 

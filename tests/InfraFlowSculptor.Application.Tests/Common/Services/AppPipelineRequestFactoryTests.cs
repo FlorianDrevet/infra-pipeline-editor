@@ -70,7 +70,7 @@ public sealed class AppPipelineRequestFactoryTests
         // Act
         var result = await _sut.CreateAsync(
             containerApp.Id,
-            AzureResourceTypes.ArmTypes.ContainerApp,
+            AzureResourceTypes.ArmTypes.ContainerAppType,
             CancellationToken.None);
 
         // Assert
@@ -103,7 +103,7 @@ public sealed class AppPipelineRequestFactoryTests
         // Act
         var result = await _sut.CreateAsync(
             webApp.Id,
-            AzureResourceTypes.ArmTypes.WebApp,
+            AzureResourceTypes.ArmTypes.WebAppType,
             CancellationToken.None);
 
         // Assert
@@ -136,7 +136,7 @@ public sealed class AppPipelineRequestFactoryTests
         // Act
         var result = await _sut.CreateAsync(
             functionApp.Id,
-            AzureResourceTypes.ArmTypes.FunctionApp,
+            AzureResourceTypes.ArmTypes.FunctionAppType,
             CancellationToken.None);
 
         // Assert
@@ -153,7 +153,7 @@ public sealed class AppPipelineRequestFactoryTests
         // Act
         var result = await _sut.CreateAsync(
             AzureResourceId.CreateUnique(),
-            AzureResourceTypes.ArmTypes.StorageAccount,
+            AzureResourceTypes.ArmTypes.StorageAccountType,
             CancellationToken.None);
 
         // Assert

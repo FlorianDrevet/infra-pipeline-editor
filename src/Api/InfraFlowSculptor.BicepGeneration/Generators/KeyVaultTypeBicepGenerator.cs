@@ -39,7 +39,7 @@ public sealed class KeyVaultTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.KeyVault;
+        => AzureResourceTypes.ArmTypes.KeyVaultType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.KeyVault;

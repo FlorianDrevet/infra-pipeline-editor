@@ -70,6 +70,7 @@ Legacy 920-line `BicepGenerationEngine` → thin facade (~85 LOC) + `BicepGenera
 - Pure engine in `InfraFlowSculptor.BicepGeneration` (no domain dependency)
 - `IResourceTypeBicepGenerator` per resource type, singletons in DI
 - `AzureResourceTypes` in `GenerationCore`: **never use magic strings**
+- `AzureResourceTypes.ArmTypes` constants now use an explicit `*Type` suffix (`WebAppType`, `ContainerRegistryType`, etc.) so the ARM-type catalog no longer shadows the outer friendly-name constants (`WebApp`, `ContainerRegistry`, etc.). New code must use the suffixed members.
 
 ## BicepAssembler [2026-04-04]
 Thin orchestrator (~180 LOC) + 14 specialized classes: 7 assemblers (`Types`, `Functions`, `Constants`, `MainBicep`, `ParameterFile`, `KvSecrets`, `RoleAssignment`), 4 helpers (`Formatting`, `ResourceTypeMetadata`, `ModuleHeader`, `Naming`), `StorageAccountCompanionHelper`, 2 model types. `MainBicepAssembler.Generate` returns `MainBicepEmissionResult` with `OutputUsageTracker`.

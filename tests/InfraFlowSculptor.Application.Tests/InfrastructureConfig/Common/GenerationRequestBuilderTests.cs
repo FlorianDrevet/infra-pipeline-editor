@@ -28,7 +28,7 @@ public sealed class GenerationRequestBuilderTests
                             Id: Guid.NewGuid(),
                             Name: "ifs-api",
                             Location: "FranceCentral",
-                            ResourceType: AzureResourceTypes.ArmTypes.ContainerApp,
+                            ResourceType: AzureResourceTypes.ArmTypes.ContainerAppType,
                             Properties: new Dictionary<string, string>
                             {
                                 ["containerRegistryId"] = containerRegistryId.ToString(),
@@ -38,7 +38,7 @@ public sealed class GenerationRequestBuilderTests
                             Id: containerRegistryId,
                             Name: "ifs",
                             Location: "FranceCentral",
-                            ResourceType: AzureResourceTypes.ArmTypes.ContainerRegistry,
+                            ResourceType: AzureResourceTypes.ArmTypes.ContainerRegistryType,
                             Properties: new Dictionary<string, string>(),
                             EnvironmentConfigs: [],
                             AssignedUserAssignedIdentityName: null,
@@ -74,6 +74,6 @@ public sealed class GenerationRequestBuilderTests
         // Assert
         result.ExistingResourceReferences.Should().ContainSingle(reference =>
             reference.ResourceName == "ifs"
-            && reference.ResourceType == AzureResourceTypes.ArmTypes.ContainerRegistry);
+            && reference.ResourceType == AzureResourceTypes.ArmTypes.ContainerRegistryType);
     }
 }

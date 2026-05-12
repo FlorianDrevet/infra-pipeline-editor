@@ -33,7 +33,7 @@ public sealed class SqlDatabaseTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.SqlDatabase;
+        => AzureResourceTypes.ArmTypes.SqlDatabaseType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.SqlDatabase;

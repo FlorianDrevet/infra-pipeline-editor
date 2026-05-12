@@ -41,21 +41,7 @@ app.AddDevelopmentTools(builder.Configuration);
 app.UseCors();
 
 app.UseErrorHandling();
-
-app.Use(async (ctx, next) =>
-{
-    var headers = ctx.Response.Headers;
-    headers["X-Frame-Options"] = "DENY";
-    headers["X-Content-Type-Options"] = "nosniff";
-    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-    headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()";
-    headers["Cross-Origin-Opener-Policy"] = "same-origin";
-    headers["Cross-Origin-Resource-Policy"] = "same-site";
-    // CSP tailored for a JSON API: no resources, no embedding. The frontend serves its own assets.
-    headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
-    // X-XSS-Protection intentionally NOT set: deprecated and can introduce vulnerabilities in legacy browsers (OWASP guidance).
-    await next();
-});
+app.UseMiddleware<SecurityHeadersMiddleware>();
 
 if (!app.Environment.IsDevelopment())
 {

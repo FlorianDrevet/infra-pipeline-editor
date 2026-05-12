@@ -14,11 +14,11 @@ public sealed class BicepAssemblerTests
         var roleAssignment = new RoleAssignmentDefinition
         {
             SourceResourceName = "ifs-frontend",
-            SourceResourceType = AzureResourceTypes.ArmTypes.ContainerApp,
+            SourceResourceType = AzureResourceTypes.ArmTypes.ContainerAppType,
             SourceResourceTypeName = AzureResourceTypes.ContainerApp,
             SourceResourceGroupName = "ifs",
             TargetResourceName = "ifs",
-            TargetResourceType = AzureResourceTypes.ArmTypes.ContainerRegistry,
+            TargetResourceType = AzureResourceTypes.ArmTypes.ContainerRegistryType,
             TargetResourceTypeName = AzureResourceTypes.ContainerRegistry,
             TargetResourceGroupName = "ifs-core",
             TargetResourceAbbreviation = "cr",
@@ -124,7 +124,7 @@ public sealed class BicepAssemblerTests
             {
                 ResourceId = Guid.NewGuid(),
                 Name = "ifs-api",
-                Type = AzureResourceTypes.ArmTypes.ContainerApp,
+                Type = AzureResourceTypes.ArmTypes.ContainerAppType,
                 ResourceGroupName = "ifs",
                 ResourceAbbreviation = "ca",
                 Properties = new Dictionary<string, string>
@@ -149,7 +149,7 @@ public sealed class BicepAssemblerTests
             {
                 ResourceName = "ifs",
                 ResourceTypeName = AzureResourceTypes.ContainerRegistry,
-                ResourceType = AzureResourceTypes.ArmTypes.ContainerRegistry,
+                ResourceType = AzureResourceTypes.ArmTypes.ContainerRegistryType,
                 ResourceGroupName = "ifs-core",
                 ResourceAbbreviation = "acr",
                 SourceConfigName = string.Empty,

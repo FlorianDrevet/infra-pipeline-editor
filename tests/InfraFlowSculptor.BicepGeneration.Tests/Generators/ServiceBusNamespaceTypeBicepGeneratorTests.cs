@@ -15,7 +15,7 @@ public sealed class ServiceBusNamespaceTypeBicepGeneratorTests
     {
         ResourceId = Guid.NewGuid(),
         Name = "my-sbns",
-        Type = AzureResourceTypes.ArmTypes.ServiceBusNamespace,
+        Type = AzureResourceTypes.ArmTypes.ServiceBusNamespaceType,
         ResourceGroupName = "rg-test",
         ResourceAbbreviation = "sbns",
     };
@@ -31,7 +31,7 @@ public sealed class ServiceBusNamespaceTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.ServiceBusNamespace);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.ServiceBusNamespaceType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.ServiceBusNamespace);
     }
 

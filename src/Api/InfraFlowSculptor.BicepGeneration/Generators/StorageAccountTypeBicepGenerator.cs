@@ -62,7 +62,7 @@ public sealed class StorageAccountTypeBicepGenerator
   private const string TablesModuleFileName = "storage.table.module.bicep";
 
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.StorageAccount;
+        => AzureResourceTypes.ArmTypes.StorageAccountType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.StorageAccount;

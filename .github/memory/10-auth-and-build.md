@@ -34,6 +34,7 @@ npm install; npm run start; npm run build; npm run typecheck
 ```
 
 - On Windows, `dotnet build .\InfraFlowSculptor.slnx` can fail with `MSB3021` / `MSB3027` if `InfraFlowSculptor.Api.exe`, `InfraFlowSculptor.Mcp.exe`, or `InfraFlowSculptor.AppHost.exe` are already running from the repo `bin\Debug\net10.0` outputs. Stop those processes first to release locked assemblies before rebuilding.
+- Stale VS Code integrated `pwsh` shells can also lock `src\Api\InfraFlowSculptor.GenerationCore\bin\Debug\net10.0\InfraFlowSculptor.GenerationCore.dll` after reflection/debug commands, which can leave `InfraFlowSculptor.BicepGeneration` compiling against stale metadata. Close those locking shells before retrying an isolated `BicepGeneration` build.
 
 ## Tests
 
@@ -67,19 +68,23 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 ## API Security Perimeter [2026-05-12]
 
 - The API CORS policy is now wired through `AddApiCors(builder.Configuration)` and typed `ApiCorsOptions` bound from the `Cors` section, so `Program.cs` no longer reads `Cors:AllowedOrigins` directly. The resulting allow-list is unchanged: configured origins come from `Cors:AllowedOrigins`, otherwise the API falls back to `http://localhost:4200`; allowed methods remain `GET, POST, PUT, DELETE, PATCH, OPTIONS`; allowed headers remain `Content-Type, Authorization, Accept, X-Requested-With`; credentials stay enabled.
-- The API response-header middleware now also adds `Cross-Origin-Opener-Policy=same-origin`, `Cross-Origin-Resource-Policy=same-site`, and `Content-Security-Policy=default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`, which is intentionally strict because the API only serves JSON.
+- The API response-header middleware now also adds `Cross-Origin-Opener-Policy=same-origin`, `Cross-Origin-Resource-Policy=same-site`, and a route-aware `Content-Security-Policy`.
+- The default CSP remains strict for API and OpenAPI JSON responses: `default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`.
+- The Development Scalar UI under `/scalar` now gets a narrower relaxed CSP (`script-src/style-src 'self' 'unsafe-inline'`, same-origin fonts/images/connect) so the embedded API reference UI keeps working without dropping the rest of the security headers.
 
 ## Handler Authorization Coverage [2026-05-12]
 
 - `GenerateBicepCommandHandler` and `DownloadBicepCommandHandler` were already protected by `IInfraConfigAccessService` in the current codebase when APP-002 was revisited.
 - `GeneratePipelineCommandHandler` now verifies `IInfraConfigAccessService.VerifyWriteAccessAsync(...)` before loading the infra config, generating YAML, or uploading artifacts.
 - `DownloadPipelineCommandHandler` now verifies `IInfraConfigAccessService.VerifyReadAccessAsync(...)` before downloading the latest generated archive.
-- The remaining APP-002 design question is no longer a broad handler sweep: it is mainly whether `CreateProjectCommandHandler` needs an authorization gate beyond the API fallback policy and current-user-owned self-service creation model.
+- `CreateProjectCommandHandler` and `CreateProjectWithSetupCommandHandler` keep the intended self-service rule (authenticated users create their own project only), but now catch `UnauthorizedAccessException` from `ICurrentUser.GetUserIdAsync()` and return `Error.Unauthorized(...)` instead of leaking a generic `500` when user provisioning/current-user resolution is missing.
+- On the current branch, APP-002 is effectively closed without adding an extra admin gate: the API fallback policy still requires authentication, and the handlers now fail explicitly with `401` when the current user cannot be resolved.
 
 ## Package Vulnerability Note [2026-05-12]
 
-- Current restores on this branch still resolve transitive `Microsoft.AspNetCore.DataProtection` `10.0.0` in API/Infrastructure outputs, so `dotnet build` can emit `NU1904` for `GHSA-9mv3-2cwr-p262`.
-- `Directory.Packages.props` does not centrally pin `Microsoft.AspNetCore.DataProtection`; clearing that warning likely requires an explicit central/transitive pin or an upstream package baseline update, not just removing a direct package reference.
+- `Directory.Packages.props` now pins `Microsoft.AspNetCore.DataProtection` to `10.0.7`.
+- `InfraFlowSculptor.Infrastructure` carries an explicit `PackageReference` to `Microsoft.AspNetCore.DataProtection`, which forces the patched line over the vulnerable transitive `10.0.0` restore path.
+- `dotnet build .\InfraFlowSculptor.slnx` is now clean of the previous `NU1904` warning for `GHSA-9mv3-2cwr-p262` on this branch.
 
 ## Project Pipeline Mono-Repo Layout [2026-04-24]
 

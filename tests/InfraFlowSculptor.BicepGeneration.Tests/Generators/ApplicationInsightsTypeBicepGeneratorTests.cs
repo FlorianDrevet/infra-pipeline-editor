@@ -15,7 +15,7 @@ public sealed class ApplicationInsightsTypeBicepGeneratorTests
     {
         ResourceId = Guid.NewGuid(),
         Name = "my-appinsights",
-        Type = AzureResourceTypes.ArmTypes.ApplicationInsights,
+        Type = AzureResourceTypes.ArmTypes.ApplicationInsightsType,
         ResourceGroupName = "rg-test",
         ResourceAbbreviation = "appi",
     };
@@ -31,7 +31,7 @@ public sealed class ApplicationInsightsTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.ApplicationInsights);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.ApplicationInsightsType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.ApplicationInsights);
     }
 

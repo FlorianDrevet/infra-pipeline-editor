@@ -34,27 +34,26 @@ public static class AzureResourceTypes
     /// <summary>
     /// Azure ARM resource provider type strings (e.g. "Microsoft.KeyVault/vaults").
     /// </summary>
-    [SuppressMessage("Critical Code Smell", "S3218:Inner class members should not shadow outer class \"static\" or type members", Justification = "The inner ArmTypes constants intentionally mirror the outer friendly-name constants (same Azure resource concept, different value). This naming symmetry is the public contract: callers write AzureResourceTypes.KeyVault for the friendly name and AzureResourceTypes.ArmTypes.KeyVault for the ARM type. Renaming would break the symmetry without adding clarity.")]
     public static class ArmTypes
     {
-        public const string KeyVault = "Microsoft.KeyVault/vaults";
-        public const string RedisCache = "Microsoft.Cache/Redis";
-        public const string StorageAccount = "Microsoft.Storage/storageAccounts";
-        public const string AppServicePlan = "Microsoft.Web/serverfarms";
-        public const string WebApp = "Microsoft.Web/sites";
-        public const string FunctionApp = "Microsoft.Web/sites/functionapp";
-        public const string UserAssignedIdentity = "Microsoft.ManagedIdentity/userAssignedIdentities";
-        public const string AppConfiguration = "Microsoft.AppConfiguration/configurationStores";
-        public const string ContainerAppEnvironment = "Microsoft.App/managedEnvironments";
-        public const string ContainerApp = "Microsoft.App/containerApps";
-        public const string LogAnalyticsWorkspace = "Microsoft.OperationalInsights/workspaces";
-        public const string ApplicationInsights = "Microsoft.Insights/components";
-        public const string CosmosDb = "Microsoft.DocumentDB/databaseAccounts";
-        public const string SqlServer = "Microsoft.Sql/servers";
-        public const string SqlDatabase = "Microsoft.Sql/servers/databases";
-        public const string ServiceBusNamespace = "Microsoft.ServiceBus/namespaces";
-        public const string ContainerRegistry = "Microsoft.ContainerRegistry/registries";
-        public const string EventHubNamespace = "Microsoft.EventHub/namespaces";
+        public const string KeyVaultType = "Microsoft.KeyVault/vaults";
+        public const string RedisCacheType = "Microsoft.Cache/Redis";
+        public const string StorageAccountType = "Microsoft.Storage/storageAccounts";
+        public const string AppServicePlanType = "Microsoft.Web/serverfarms";
+        public const string WebAppType = "Microsoft.Web/sites";
+        public const string FunctionAppType = "Microsoft.Web/sites/functionapp";
+        public const string UserAssignedIdentityType = "Microsoft.ManagedIdentity/userAssignedIdentities";
+        public const string AppConfigurationType = "Microsoft.AppConfiguration/configurationStores";
+        public const string ContainerAppEnvironmentType = "Microsoft.App/managedEnvironments";
+        public const string ContainerAppType = "Microsoft.App/containerApps";
+        public const string LogAnalyticsWorkspaceType = "Microsoft.OperationalInsights/workspaces";
+        public const string ApplicationInsightsType = "Microsoft.Insights/components";
+        public const string CosmosDbType = "Microsoft.DocumentDB/databaseAccounts";
+        public const string SqlServerType = "Microsoft.Sql/servers";
+        public const string SqlDatabaseType = "Microsoft.Sql/servers/databases";
+        public const string ServiceBusNamespaceType = "Microsoft.ServiceBus/namespaces";
+        public const string ContainerRegistryType = "Microsoft.ContainerRegistry/registries";
+        public const string EventHubNamespaceType = "Microsoft.EventHub/namespaces";
     }
 
     /// <summary>
@@ -65,24 +64,24 @@ public static class AzureResourceTypes
     public static IReadOnlyDictionary<string, string> ArmTypeToFriendlyName { get; } =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            [ArmTypes.KeyVault] = KeyVault,
-            [ArmTypes.RedisCache] = RedisCache,
-            [ArmTypes.StorageAccount] = StorageAccount,
-            [ArmTypes.AppServicePlan] = AppServicePlan,
-            [ArmTypes.WebApp] = WebApp,
-            [ArmTypes.FunctionApp] = FunctionApp,
-            [ArmTypes.UserAssignedIdentity] = UserAssignedIdentity,
-            [ArmTypes.AppConfiguration] = AppConfiguration,
-            [ArmTypes.ContainerAppEnvironment] = ContainerAppEnvironment,
-            [ArmTypes.ContainerApp] = ContainerApp,
-            [ArmTypes.LogAnalyticsWorkspace] = LogAnalyticsWorkspace,
-            [ArmTypes.ApplicationInsights] = ApplicationInsights,
-            [ArmTypes.CosmosDb] = CosmosDb,
-            [ArmTypes.SqlServer] = SqlServer,
-            [ArmTypes.SqlDatabase] = SqlDatabase,
-            [ArmTypes.ServiceBusNamespace] = ServiceBusNamespace,
-            [ArmTypes.ContainerRegistry] = ContainerRegistry,
-            [ArmTypes.EventHubNamespace] = EventHubNamespace,
+            [ArmTypes.KeyVaultType] = KeyVault,
+            [ArmTypes.RedisCacheType] = RedisCache,
+            [ArmTypes.StorageAccountType] = StorageAccount,
+            [ArmTypes.AppServicePlanType] = AppServicePlan,
+            [ArmTypes.WebAppType] = WebApp,
+            [ArmTypes.FunctionAppType] = FunctionApp,
+            [ArmTypes.UserAssignedIdentityType] = UserAssignedIdentity,
+            [ArmTypes.AppConfigurationType] = AppConfiguration,
+            [ArmTypes.ContainerAppEnvironmentType] = ContainerAppEnvironment,
+            [ArmTypes.ContainerAppType] = ContainerApp,
+            [ArmTypes.LogAnalyticsWorkspaceType] = LogAnalyticsWorkspace,
+            [ArmTypes.ApplicationInsightsType] = ApplicationInsights,
+            [ArmTypes.CosmosDbType] = CosmosDb,
+            [ArmTypes.SqlServerType] = SqlServer,
+            [ArmTypes.SqlDatabaseType] = SqlDatabase,
+            [ArmTypes.ServiceBusNamespaceType] = ServiceBusNamespace,
+            [ArmTypes.ContainerRegistryType] = ContainerRegistry,
+            [ArmTypes.EventHubNamespaceType] = EventHubNamespace,
         }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
@@ -103,9 +102,9 @@ public static class AzureResourceTypes
     /// </summary>
     public static readonly IReadOnlySet<string> ComputeArmTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
-        ArmTypes.WebApp,
-        ArmTypes.FunctionApp,
-        ArmTypes.ContainerApp,
+        ArmTypes.WebAppType,
+        ArmTypes.FunctionAppType,
+        ArmTypes.ContainerAppType,
     };
 
     /// <summary>

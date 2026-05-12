@@ -37,7 +37,7 @@ public sealed class ServiceBusNamespaceTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.ServiceBusNamespace;
+        => AzureResourceTypes.ArmTypes.ServiceBusNamespaceType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.ServiceBusNamespace;

@@ -16,7 +16,7 @@ public sealed class SqlDatabaseTypeBicepGeneratorTests
     {
         ResourceId = Guid.NewGuid(),
         Name = "my-sqldb",
-        Type = AzureResourceTypes.ArmTypes.SqlDatabase,
+        Type = AzureResourceTypes.ArmTypes.SqlDatabaseType,
         ResourceGroupName = "rg-test",
         ResourceAbbreviation = "sqldb",
         Properties = properties ?? new Dictionary<string, string>(),
@@ -33,7 +33,7 @@ public sealed class SqlDatabaseTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.SqlDatabase);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.SqlDatabaseType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.SqlDatabase);
     }
 

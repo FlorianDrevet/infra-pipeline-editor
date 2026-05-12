@@ -319,7 +319,7 @@ public sealed class ContainerAppTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.ContainerApp;
+        => AzureResourceTypes.ArmTypes.ContainerAppType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.ContainerApp;

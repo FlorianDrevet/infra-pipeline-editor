@@ -23,8 +23,8 @@ public sealed class AppSettingsInjectionStageTests
     {
         // Arrange
         var context = CreateContext(
-            "my-webapp", AzureResourceTypes.ArmTypes.WebApp,
-            computeArmTypesWithAppSettings: [AzureResourceTypes.ArmTypes.WebApp]);
+            "my-webapp", AzureResourceTypes.ArmTypes.WebAppType,
+            computeArmTypesWithAppSettings: [AzureResourceTypes.ArmTypes.WebAppType]);
 
         // Act
         _sut.Execute(context);
@@ -38,8 +38,8 @@ public sealed class AppSettingsInjectionStageTests
     {
         // Arrange
         var context = CreateContext(
-            "my-container", AzureResourceTypes.ArmTypes.ContainerApp,
-            computeArmTypesWithAppSettings: [AzureResourceTypes.ArmTypes.ContainerApp]);
+            "my-container", AzureResourceTypes.ArmTypes.ContainerAppType,
+            computeArmTypesWithAppSettings: [AzureResourceTypes.ArmTypes.ContainerAppType]);
 
         // Act
         _sut.Execute(context);
@@ -54,8 +54,8 @@ public sealed class AppSettingsInjectionStageTests
         // Arrange
         var originalSpec = CreateMinimalSpec();
         var context = CreateContext(
-            "my-kv", AzureResourceTypes.ArmTypes.KeyVault,
-            computeArmTypesWithAppSettings: [AzureResourceTypes.ArmTypes.WebApp],
+            "my-kv", AzureResourceTypes.ArmTypes.KeyVaultType,
+            computeArmTypesWithAppSettings: [AzureResourceTypes.ArmTypes.WebAppType],
             specOverride: originalSpec);
 
         // Act
@@ -71,7 +71,7 @@ public sealed class AppSettingsInjectionStageTests
     {
         // Arrange — WebApp type but no app settings target this ARM type
         var context = CreateContext(
-            "my-webapp", AzureResourceTypes.ArmTypes.WebApp,
+            "my-webapp", AzureResourceTypes.ArmTypes.WebAppType,
             computeArmTypesWithAppSettings: []);
 
         // Act

@@ -43,7 +43,7 @@ public sealed class ApplicationInsightsTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.ApplicationInsights;
+        => AzureResourceTypes.ArmTypes.ApplicationInsightsType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.ApplicationInsights;

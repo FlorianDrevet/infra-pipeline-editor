@@ -285,9 +285,9 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
 
     private static bool IsApplicationPipelineResource(string resourceType)
     {
-        return resourceType is AzureResourceTypes.ArmTypes.ContainerApp
-            or AzureResourceTypes.ArmTypes.WebApp
-            or AzureResourceTypes.ArmTypes.FunctionApp;
+        return resourceType is AzureResourceTypes.ArmTypes.ContainerAppType
+            or AzureResourceTypes.ArmTypes.WebAppType
+            or AzureResourceTypes.ArmTypes.FunctionAppType;
     }
 
     private async Task<string> ResolveApplicationFolderNameAsync(
@@ -298,13 +298,13 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
 
         return resource.ResourceType switch
         {
-            AzureResourceTypes.ArmTypes.ContainerApp =>
+            AzureResourceTypes.ArmTypes.ContainerAppType =>
                 (await containerAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
                 ?? resource.Name,
-            AzureResourceTypes.ArmTypes.WebApp =>
+            AzureResourceTypes.ArmTypes.WebAppType =>
                 (await webAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
                 ?? resource.Name,
-            AzureResourceTypes.ArmTypes.FunctionApp =>
+            AzureResourceTypes.ArmTypes.FunctionAppType =>
                 (await functionAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
                 ?? resource.Name,
             _ => resource.Name,

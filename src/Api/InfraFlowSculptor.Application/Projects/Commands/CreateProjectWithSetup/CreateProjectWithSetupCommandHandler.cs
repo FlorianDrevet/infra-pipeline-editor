@@ -40,7 +40,16 @@ public sealed class CreateProjectWithSetupCommandHandler(
     public async Task<ErrorOr<ProjectResult>> Handle(
         CreateProjectWithSetupCommand command, CancellationToken cancellationToken)
     {
-        var userId = await currentUser.GetUserIdAsync(cancellationToken);
+        UserId userId;
+        try
+        {
+            userId = await currentUser.GetUserIdAsync(cancellationToken);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Error.Unauthorized(description: ex.Message);
+        }
+
         var project = CreateProject(command, userId);
 
         var layoutResult = ApplyLayoutPreset(project, command.LayoutPreset);

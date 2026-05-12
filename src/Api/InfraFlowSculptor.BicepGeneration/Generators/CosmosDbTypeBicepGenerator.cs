@@ -52,7 +52,7 @@ public sealed class CosmosDbTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.CosmosDb;
+        => AzureResourceTypes.ArmTypes.CosmosDbType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.CosmosDb;

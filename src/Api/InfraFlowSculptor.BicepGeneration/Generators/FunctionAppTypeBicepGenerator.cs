@@ -93,7 +93,7 @@ public sealed class FunctionAppTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.FunctionApp;
+        => AzureResourceTypes.ArmTypes.FunctionAppType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.FunctionApp;

@@ -1,6 +1,6 @@
 ## But principal
 
-Étendre la PR #328 au-dela du lot securite/validation initial avec plusieurs remediations d'audit substantielles et validees: modernisation du rate limiting, sweep DB-001 en deux tranches, reclassement propre de DB-002 comme obsolete apres verification du modele relationnel, suppression du N+1 critique de APP-003 sur les references croisees de configuration, plusieurs splits read-only `DB-003`, correction du cascade-delete `DB-006` sur `AppSetting`, durcissement `APP-002` sur la generation/download pipeline, et premiere extraction `APP-005` pour retirer une duplication lourde entre handlers pipeline.
+Étendre la PR #328 au-dela du lot securite/validation initial avec plusieurs remediations d'audit substantielles et validees: modernisation du rate limiting, sweep DB-001 en deux tranches, reclassement propre de DB-002 comme obsolete apres verification du modele relationnel, suppression du N+1 critique de APP-003 sur les references croisees de configuration, plusieurs splits read-only `DB-003`, correction du cascade-delete `DB-006` sur `AppSetting`, durcissement `APP-002` sur la generation/download pipeline puis sur la creation de projet self-service (retour `401` explicite si `CurrentUser` n'est pas resolu), deux extractions successives `APP-005`, et suppression du warning `NU1904` via le pin `Microsoft.AspNetCore.DataProtection` 10.0.7.
 
 ---
 
@@ -34,7 +34,9 @@
 - `GetKeyVaultQueryHandler`, `ListKeyVaultsQueryHandler`, `GetRedisCacheQueryHandler`, `ListRedisCachesQueryHandler` et `ListStorageAccountsQueryHandler` basculent eux aussi sur `IResourceGroupRepository.GetByIdReadOnlyAsync(...)` pour leurs checks read-only de resource group.
 - `GeneratePipelineCommandHandler` verifie maintenant `IInfraConfigAccessService.VerifyWriteAccessAsync(...)` avant tout chargement d'infrastructure config / generation / upload d'artefacts pipeline.
 - `DownloadPipelineCommandHandler` verifie maintenant `IInfraConfigAccessService.VerifyReadAccessAsync(...)` avant tout telechargement d'artefact pipeline.
+- `CreateProjectCommandHandler` et `CreateProjectWithSetupCommandHandler` convertissent maintenant un echec de `ICurrentUser.GetUserIdAsync(...)` en `Error.Unauthorized(...)`, ce qui aligne le mode self-service authentifie sur une reponse `401` explicite au lieu d'un `500` generique quand le current user n'est pas provisionne.
 - La duplication d'assemblage de `AppPipelineGenerationRequest` entre `GeneratePipelineCommandHandler` et `GenerateProjectPipelineCommandHandler` est extraite dans `IAppPipelineRequestFactory`, ce qui retire un bloc de logique partagee non-trivial des deux handlers.
+- `BlobDownloadHelper` centralise maintenant la resolution des derniers blobs simples et dual-bucket (`infra` / `app`), et `PushProjectArtifactsToMultiRepoCommandHandler` reutilise ce helper au lieu de dupliquer la logique de selection du dernier lot d'artefacts pipeline et bootstrap.
 
 ### Contracts (InfraFlowSculptor.Contracts)
 
@@ -63,6 +65,7 @@
 - Extension du pattern `DB-003` aux checks read-only de `ResourceGroup` sur les families KeyVault / RedisCache / StorageAccount, toujours sans casser les paths de commande qui ont besoin d'un aggregate tracke.
 - DB-006 corrige : `AppSetting.SourceResourceId` passe de `Cascade` a `SetNull`, aligne sur la semantique deja retenue pour `KeyVaultResourceId`, afin de conserver l'app setting quand la ressource source referencee disparait.
 - Generation de la migration EF Core `SetNullOnAppSettingSourceResource` pour materialiser ce changement de FK en base.
+- Le warning de restauration `NU1904` est supprime en pinnant explicitement `Microsoft.AspNetCore.DataProtection` en `10.0.7` dans `Directory.Packages.props` et en ajoutant une reference directe dans `InfraFlowSculptor.Infrastructure`, qui etait le projet d'origine du transitif vulnerable `10.0.0`.
 
 ### Tests
 
@@ -80,7 +83,9 @@
 - Extension de `GetResourceGroupQueryHandlerTests` et `ResourceGroupRepositoryTests` pour verrouiller `GetByIdReadOnlyAsync(...)` et son caractere detache.
 - Ajout de tests cibles pour les nouveaux slices `DB-003` sur `GetKeyVault`, `ListKeyVaults`, `GetRedisCache`, `ListRedisCaches` et `ListStorageAccounts`, afin de verrouiller l'usage de `GetByIdReadOnlyAsync(...)` au lieu du lookup tracke.
 - Ajout de `GeneratePipelineCommandHandlerTests` et `DownloadPipelineCommandHandlerTests` pour verrouiller le short-circuit d'autorisation `APP-002` sur la generation et le telechargement pipeline.
+- Ajout de `CreateProjectCommandUnauthorizedTests` et d'un cas dedie dans `CreateProjectWithSetupCommandHandlerTests` pour verrouiller le retour `Unauthorized` quand `ICurrentUser` n'est pas provisionne.
 - Ajout de `AppPipelineRequestFactoryTests` pour verrouiller l'extraction partagee `APP-005` (ContainerApp, WebApp, FunctionApp, unsupported resource type).
+- Ajout de `BlobDownloadHelperTests` pour verrouiller la nouvelle extraction `APP-005` sur la recuperation des derniers artefacts dual-bucket.
 - Ajout de `DeleteBehaviorConfigurationTests` pour verifier sur le modele relationnel EF que `AppSetting.SourceResourceId` et `KeyVaultResourceId` utilisent bien `SetNull`.
 
 ### Documentation / audit
@@ -91,10 +96,11 @@
 - Mise a jour de audits/triage-2026-05-12.md : #179 est reclasse CLOSED-OBSOLETE, car `GetConfiguredEnvironmentsByResourceGroupAsync(...)` interroge deja `vw_ResourceEnvironmentEntries` en une seule requete au lieu des 16 acces sequentiels cites par l'audit.
 - Mise a jour de audits/triage-2026-05-12.md : #180 est reclasse CLOSED-OBSOLETE, car l'index unique composite `RoleAssignment(SourceResourceId, TargetResourceId, UserAssignedIdentityId, RoleDefinitionId)` existe deja dans le modele relationnel courant et reste verrouille par `IndexCoverageConfigurationTests`.
 - Mise a jour de audits/triage-2026-05-12.md : #178 reste ouvert mais documente maintenant plusieurs remediations sures no-tracking (`ProjectAccessService.VerifyReadAccessAsync(...)`, queries `ResourceGroup`, puis checks read-only KeyVault / RedisCache / StorageAccount) sans casser les flows de commande restes trackes par design.
-- Mise a jour de audits/triage-2026-05-12.md : #169 reste ouvert en `OPEN-NEEDS-DESIGN`, mais documente que les gaps concrets `GeneratePipeline` / `DownloadPipeline` sont corriges et que le reliquat porte surtout sur la politique `CreateProject`.
-- Mise a jour de audits/triage-2026-05-12.md : #185 reste ouvert mais documente la premiere extraction partagee `IAppPipelineRequestFactory` entre les deux handlers pipeline avant d'attaquer les autres god handlers.
+- Mise a jour de audits/triage-2026-05-12.md : #169 passe en `FIXED-IN-PR`, car les handlers pipeline sont maintenant proteges et les create flows projet self-service renvoient explicitement `Unauthorized` si `CurrentUser` n'est pas resolu.
+- Mise a jour de audits/triage-2026-05-12.md : #185 reste ouvert mais documente maintenant deux extractions a levier (`IAppPipelineRequestFactory` puis `BlobDownloadHelper`) avant d'attaquer les autres god handlers.
+- Mise a jour de audits/triage-2026-05-12.md : #222 passe en `FIXED-IN-PR` avec l'extraction de la logique de recuperation des derniers blobs dans `BlobDownloadHelper`.
 - Mise a jour de audits/triage-2026-05-12.md : #181 passe en FIXED-IN-PR apres bascule de `AppSetting.SourceResourceId` vers `SetNull`, couverture metadata relationnelle et migration dediee.
-- Memoire projet mise a jour avec la matrice canonique de longueurs, la borne officielle ResourceGroup.Name = 90, le pattern CQRS de chargement batch par resumes, les splits read-only projet/resource-group et leur extension aux handlers read-only voisins, ainsi que les migrations associees.
+- Memoire projet mise a jour avec la politique explicite de creation self-service (`Unauthorized` au lieu de `500` si `CurrentUser` manque), le deuxieme slice `APP-005` via `BlobDownloadHelper`, et la suppression du warning `NU1904` via le pin `DataProtection`.
 
 ---
 
@@ -113,10 +119,10 @@ Migrations :
 ## Validation
 
 - [x] dotnet build .\InfraFlowSculptor.slnx
-- [x] dotnet test .\InfraFlowSculptor.slnx (2003 total, 0 failed, 9 skipped)
+- [x] dotnet test .\InfraFlowSculptor.slnx (2012 total, 0 failed, 9 skipped)
 - [x] Tests cibles verts pour GeneratedFilePathValidationTests, ValidationBehaviorTests, EnumValidationTests, CoreStringLengthConfigurationTests, IndexCoverageConfigurationTests, DeleteBehaviorConfigurationTests, CreateProjectCommandValidatorTests, CreateProjectRequestTests, CreateInfrastructureConfigCommandValidatorTests, CreateInfrastructureConfigRequestTests, CreateResourceGroupCommandValidatorTests, CreateResourceGroupRequestTests, ListCrossConfigReferencesQueryHandlerTests, `ProjectAccessServiceTests`, `ProjectRepositoryTests`, `GetResourceGroupQueryHandlerTests`, `ListResourceGroupResourcesQueryHandlerTests`, `ResourceGroupRepositoryTests`, les nouveaux tests DB-003 KeyVault / Redis / Storage, `GeneratePipelineCommandHandlerTests`, `DownloadPipelineCommandHandlerTests`, `AppPipelineRequestFactoryTests`, et le test repository cible de `GetConfigSummariesByIdsAsync(...)`
 
-Note : les warnings NU1904 sur Microsoft.AspNetCore.DataProtection restent inchanges sur la branche et relevent d'une mise a niveau de dependance dediee.
+Note : le warning `NU1904` precedent sur `Microsoft.AspNetCore.DataProtection 10.0.0` est supprime sur la branche par le pin explicite `10.0.7`.
 
 ---
 
@@ -124,6 +130,7 @@ Note : les warnings NU1904 sur Microsoft.AspNetCore.DataProtection restent incha
 
 Closes #164
 Closes #165
+Closes #169
 Closes #167
 Closes #170
 Closes #179
@@ -131,7 +138,7 @@ Closes #180
 Closes #181
 Closes #201
 Closes #207
+Closes #222
 Partial progress on #166
 Partial progress on #178
-Partial progress on #169
 Partial progress on #185

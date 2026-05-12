@@ -99,8 +99,8 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
             return;
         }
 
-        if (resource.Type is not AzureResourceTypes.ArmTypes.ApplicationInsights
-            and not AzureResourceTypes.ArmTypes.ContainerAppEnvironment)
+        if (resource.Type is not AzureResourceTypes.ArmTypes.ApplicationInsightsType
+            and not AzureResourceTypes.ArmTypes.ContainerAppEnvironmentType)
         {
             return;
         }
@@ -109,7 +109,7 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
             return;
 
         var fallbackLaw = context.Request.Resources.FirstOrDefault(r =>
-            r.Type.Equals(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace, StringComparison.OrdinalIgnoreCase));
+            r.Type.Equals(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspaceType, StringComparison.OrdinalIgnoreCase));
         if (fallbackLaw is not null)
         {
             parentModuleIdRefs[LogAnalyticsWorkspaceIdPropertyName] = (fallbackLaw.Name, AzureResourceTypes.LogAnalyticsWorkspace);
@@ -117,7 +117,7 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
         }
 
         var existingLaw = context.Request.ExistingResourceReferences.FirstOrDefault(r =>
-            r.ResourceType.Equals(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace, StringComparison.OrdinalIgnoreCase));
+            r.ResourceType.Equals(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspaceType, StringComparison.OrdinalIgnoreCase));
         if (existingLaw is not null)
         {
             existingResourceIdRefs[LogAnalyticsWorkspaceIdPropertyName] = existingLaw.ResourceName;

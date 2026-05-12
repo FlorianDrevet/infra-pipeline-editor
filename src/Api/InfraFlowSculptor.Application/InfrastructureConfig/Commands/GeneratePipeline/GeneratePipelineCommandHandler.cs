@@ -169,9 +169,9 @@ public sealed class GeneratePipelineCommandHandler(
         // ─── App Pipeline Generation ────────────────────────────────────────
         var computeTypes = new HashSet<string>
         {
-            AzureResourceTypes.ArmTypes.ContainerApp,
-            AzureResourceTypes.ArmTypes.WebApp,
-            AzureResourceTypes.ArmTypes.FunctionApp,
+            AzureResourceTypes.ArmTypes.ContainerAppType,
+            AzureResourceTypes.ArmTypes.WebAppType,
+            AzureResourceTypes.ArmTypes.FunctionAppType,
         };
 
         var computeResources = config.ResourceGroups

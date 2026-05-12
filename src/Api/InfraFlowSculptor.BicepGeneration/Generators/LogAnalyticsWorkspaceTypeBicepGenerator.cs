@@ -35,7 +35,7 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace;
+        => AzureResourceTypes.ArmTypes.LogAnalyticsWorkspaceType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.LogAnalyticsWorkspace;

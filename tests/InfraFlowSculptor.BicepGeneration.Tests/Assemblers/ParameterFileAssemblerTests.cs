@@ -48,7 +48,7 @@ public sealed class ParameterFileAssemblerTests
             new ResourceDefinition
             {
                 Name = "my-app",
-                Type = AzureResourceTypes.ArmTypes.ContainerApp,
+                Type = AzureResourceTypes.ArmTypes.ContainerAppType,
                 EnvironmentConfigs = new Dictionary<string, IReadOnlyDictionary<string, string>>
                 {
                     ["dev"] = new Dictionary<string, string>
@@ -110,7 +110,7 @@ public sealed class ParameterFileAssemblerTests
             new ResourceDefinition
             {
                 Name = "my-app",
-                Type = AzureResourceTypes.ArmTypes.ContainerApp,
+                Type = AzureResourceTypes.ArmTypes.ContainerAppType,
                 EnvironmentConfigs = new Dictionary<string, IReadOnlyDictionary<string, string>>
                 {
                     ["dev"] = new Dictionary<string, string>

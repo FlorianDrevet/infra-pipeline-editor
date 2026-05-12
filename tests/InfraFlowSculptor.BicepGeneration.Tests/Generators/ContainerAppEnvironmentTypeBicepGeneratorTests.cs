@@ -16,7 +16,7 @@ public sealed class ContainerAppEnvironmentTypeBicepGeneratorTests
     {
         ResourceId = Guid.NewGuid(),
         Name = "my-cae",
-        Type = AzureResourceTypes.ArmTypes.ContainerAppEnvironment,
+        Type = AzureResourceTypes.ArmTypes.ContainerAppEnvironmentType,
         ResourceGroupName = "rg-test",
         ResourceAbbreviation = "cae",
         Properties = properties ?? new Dictionary<string, string>(),
@@ -33,7 +33,7 @@ public sealed class ContainerAppEnvironmentTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.ContainerAppEnvironment);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.ContainerAppEnvironmentType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.ContainerAppEnvironment);
     }
 

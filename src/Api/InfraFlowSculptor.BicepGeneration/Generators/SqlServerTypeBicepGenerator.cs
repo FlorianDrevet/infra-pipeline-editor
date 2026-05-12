@@ -34,7 +34,7 @@ public sealed class SqlServerTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.SqlServer;
+        => AzureResourceTypes.ArmTypes.SqlServerType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.SqlServer;
