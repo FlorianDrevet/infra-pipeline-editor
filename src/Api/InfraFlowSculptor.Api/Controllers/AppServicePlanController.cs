@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
 using InfraFlowSculptor.Api.Controllers.Constants;
+using InfraFlowSculptor.Api.Controllers.Common;
 
 namespace InfraFlowSculptor.Api.Controllers;
 
@@ -122,24 +123,9 @@ public static class AppServicePlanController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            group.MapGet("/{id:guid}/dependents",
-                    async ([FromRoute] Guid id, IMediator mediator) =>
-                    {
-                        var query = new GetDependentResourcesQuery(new AzureResourceId(id));
-                        var result = await mediator.Send(query);
-
-                        return result.Match(
-                            dependents => Results.Ok(dependents.Select(d =>
-                                new DependentResourceResponse(d.Id.ToString(), d.Name, d.ResourceType)).ToList()),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName(AppServicePlanRouteNames.GetAppServicePlanDependents)
-                .WithSummary("Get dependent resources")
-                .WithDescription("Returns all resources that depend on this App Service Plan and would be deleted alongside it.")
-                .Produces<List<DependentResourceResponse>>(StatusCodes.Status200OK)
-                .ProducesProblem(StatusCodes.Status401Unauthorized)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
+            group.MapDependentResourcesEndpoint(
+                AppServicePlanRouteNames.GetAppServicePlanDependents,
+                "App Service Plan");
         });
     }
 }

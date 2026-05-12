@@ -48,6 +48,11 @@ result.Match(
 - ErrorOr extension (`ToErrorResult()`) returns **all** errors in the non-validation branch, not just the first.
 - Route names must live in per-controller constants files under `src/Api/InfraFlowSculptor.Api/Controllers/Constants/` (pattern: `<ControllerBaseName>RouteNames.cs`). Controllers must not inline literals in `.WithName(...)` or `CreatedAtRoute(routeName: ...)`; `ControllerRouteNameConstantsTests` in `tests/InfraFlowSculptor.Api.Tests` enforces this for future controllers.
 
+## Shared Dependents Endpoint [2026-05-12]
+
+- The generic `/{id:guid}/dependents` Minimal API block is now centralized in `Controllers/Common/DependentResourcesEndpointMapper.cs`.
+- When a controller exposes the standard dependent-resources flow, prefer `group.MapDependentResourcesEndpoint(routeName, resourceDisplayName)` over duplicating the `GetDependentResourcesQuery` + `ErrorOr` mapping block inline.
+
 ## Response DTO Convention (API-002) [2026-04-16]
 
 - All response DTO ID fields use `string` (not `Guid`). Mapster config maps `Id.Value.ToString()`.
