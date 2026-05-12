@@ -12,27 +12,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddCors(options =>
-{
-    // Audit SEC-005 (2026-05-12): explicit allow-list of methods, headers, and origins.
-    // Origins overridable via configuration key "Cors:AllowedOrigins" (string[]) for non-dev environments.
-    var configuredOrigins = builder.Configuration
-        .GetSection("Cors:AllowedOrigins")
-        .Get<string[]>();
-    var origins = configuredOrigins is { Length: > 0 }
-        ? configuredOrigins
-        : new[] { "http://localhost:4200" };
-
-    options.AddPolicy("CorsPolicy", policy =>
-    {
-        policy
-            .WithOrigins(origins)
-            .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-            .WithHeaders("Content-Type", "Authorization", "Accept", "X-Requested-With")
-            .AllowCredentials();
-    });
-});
+builder.Services.AddApiCors(builder.Configuration);
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("IsAdmin", policy => policy.RequireRole("Admin")); 
@@ -58,12 +38,10 @@ var app = builder.Build();
 app.AddDevelopmentTools(builder.Configuration);
 
 //Middleware
-app.UseCors("CorsPolicy");
+app.UseCors();
 
 app.UseErrorHandling();
 
-// Audit SEC-002 (2026-05-12): security headers applied to every response.
-// Includes a strict default-deny CSP suitable for a JSON API (no inline scripts, no embedding).
 app.Use(async (ctx, next) =>
 {
     var headers = ctx.Response.Headers;

@@ -66,8 +66,15 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 
 ## API Security Perimeter [2026-05-12]
 
-- `Program.cs` now enforces an explicit CORS allow-list: origins come from `Cors:AllowedOrigins` when configured, otherwise default to `http://localhost:4200`; allowed methods are `GET, POST, PUT, DELETE, PATCH, OPTIONS`; allowed headers are `Content-Type, Authorization, Accept, X-Requested-With`; credentials stay enabled.
+- The API CORS policy is now wired through `AddApiCors(builder.Configuration)` and typed `ApiCorsOptions` bound from the `Cors` section, so `Program.cs` no longer reads `Cors:AllowedOrigins` directly. The resulting allow-list is unchanged: configured origins come from `Cors:AllowedOrigins`, otherwise the API falls back to `http://localhost:4200`; allowed methods remain `GET, POST, PUT, DELETE, PATCH, OPTIONS`; allowed headers remain `Content-Type, Authorization, Accept, X-Requested-With`; credentials stay enabled.
 - The API response-header middleware now also adds `Cross-Origin-Opener-Policy=same-origin`, `Cross-Origin-Resource-Policy=same-site`, and `Content-Security-Policy=default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`, which is intentionally strict because the API only serves JSON.
+
+## Handler Authorization Coverage [2026-05-12]
+
+- `GenerateBicepCommandHandler` and `DownloadBicepCommandHandler` were already protected by `IInfraConfigAccessService` in the current codebase when APP-002 was revisited.
+- `GeneratePipelineCommandHandler` now verifies `IInfraConfigAccessService.VerifyWriteAccessAsync(...)` before loading the infra config, generating YAML, or uploading artifacts.
+- `DownloadPipelineCommandHandler` now verifies `IInfraConfigAccessService.VerifyReadAccessAsync(...)` before downloading the latest generated archive.
+- The remaining APP-002 design question is no longer a broad handler sweep: it is mainly whether `CreateProjectCommandHandler` needs an authorization gate beyond the API fallback policy and current-user-owned self-service creation model.
 
 ## Package Vulnerability Note [2026-05-12]
 

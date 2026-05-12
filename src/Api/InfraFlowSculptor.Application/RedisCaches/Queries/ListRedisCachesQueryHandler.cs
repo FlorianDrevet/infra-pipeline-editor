@@ -17,7 +17,7 @@ public class ListRedisCachesQueryHandler(
 {
     public async Task<ErrorOr<List<RedisCacheResult>>> Handle(ListRedisCachesQuery query, CancellationToken cancellationToken)
     {
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(query.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(query.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.ResourceGroup.NotFound(query.ResourceGroupId);
 

@@ -75,7 +75,7 @@ public sealed class GetRedisCacheQueryHandlerTests
         // Arrange
         _redisCacheRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(_redisCache);
-        _resourceGroupRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _resourceGroupRepository.GetByIdReadOnlyAsync(_redisCache.ResourceGroupId, Arg.Any<CancellationToken>())
             .Returns(_resourceGroup);
         _accessService.VerifyReadAccessAsync(_config.Id, Arg.Any<CancellationToken>())
             .Returns(_config);
@@ -86,5 +86,9 @@ public sealed class GetRedisCacheQueryHandlerTests
         // Assert
         result.IsError.Should().BeFalse();
         _mapper.Received(1).Map<RedisCacheResult>(_redisCache);
+        await _resourceGroupRepository.Received(1)
+            .GetByIdReadOnlyAsync(_redisCache.ResourceGroupId, Arg.Any<CancellationToken>());
+        await _resourceGroupRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
     }
 }

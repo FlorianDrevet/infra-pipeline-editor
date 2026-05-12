@@ -111,3 +111,9 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 - `IRoleAssignmentDomainService` / `RoleAssignmentDomainService`: extracted cross-cutting role assignment logic shared by Add/Remove/Assign/Unassign/Update identity handlers.
 - Pattern: when 3+ handlers share identical domain logic (load resource, check access, validate, mutate), extract into a domain service interface + implementation registered in `Application/DependencyInjection.cs`.
 - Domain services live under `Application/{Feature}/Common/`.
+
+## Shared Handler Extraction With Leverage [2026-05-12]
+
+- Do not introduce an `*Orchestrator` just because a handler is large. Extract only when at least one non-trivial responsibility is genuinely duplicated across handlers.
+- `IAppPipelineRequestFactory` is the current reference slice for APP-005: it centralizes the repeated `AzureResourceType -> load typed compute resource -> optionally resolve Container Registry -> build AppPipelineGenerationRequest` flow that was duplicated in both `GeneratePipelineCommandHandler` and `GenerateProjectPipelineCommandHandler`.
+- This kind of extraction belongs in `Application/Common/Interfaces/Services` + `Application/Common/Services` when the shared logic spans multiple feature folders and depends on application repositories, but does not justify a larger orchestration abstraction.

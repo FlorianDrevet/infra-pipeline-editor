@@ -25,25 +25,29 @@ public sealed class GeneratePipelineCommandHandler(
     IProjectRepository projectRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     AppPipelineGenerationEngine appPipelineGenerationEngine,
+    IAppPipelineRequestFactory appPipelineRequestFactory,
     IEnumerable<IResourceTypeBicepSpecGenerator> bicepGenerators,
-    IContainerAppRepository containerAppRepository,
-    IWebAppRepository webAppRepository,
-    IFunctionAppRepository functionAppRepository,
-    IContainerRegistryRepository containerRegistryRepository,
     IGeneratedArtifactService artifactService,
     IRepositoryTargetResolver targetResolver,
-    IInfrastructureConfigRepository infraConfigRepository)
+    IInfrastructureConfigRepository infraConfigRepository,
+    IInfraConfigAccessService accessService)
     : ICommandHandler<GeneratePipelineCommand, GeneratePipelineResult>
 {
     public async Task<ErrorOr<GeneratePipelineResult>> Handle(
         GeneratePipelineCommand command,
         CancellationToken cancellationToken)
     {
+        var configId = new InfrastructureConfigId(command.InfrastructureConfigId);
+
+        var accessResult = await accessService.VerifyWriteAccessAsync(configId, cancellationToken);
+        if (accessResult.IsError)
+            return accessResult.Errors;
+
         var config = await configRepository.GetByIdWithResourcesAsync(
             command.InfrastructureConfigId, cancellationToken);
 
         if (config is null)
-            return Errors.InfrastructureConfig.NotFoundError(new InfrastructureConfigId(command.InfrastructureConfigId));
+            return Errors.InfrastructureConfig.NotFoundError(configId);
 
         var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);
 
@@ -180,7 +184,7 @@ public sealed class GeneratePipelineCommandHandler(
         foreach (var resource in computeResources)
         {
             var resourceId = new AzureResourceId(resource.Id);
-            var req = await BuildAppPipelineRequestAsync(
+            var req = await appPipelineRequestFactory.CreateAsync(
                 resourceId, resource.ResourceType, cancellationToken).ConfigureAwait(false);
 
             if (req is null)
@@ -230,132 +234,6 @@ public sealed class GeneratePipelineCommandHandler(
         }
 
         return new GeneratePipelineResult(fileUris);
-    }
-
-    /// <summary>
-    /// Builds an <see cref="AppPipelineGenerationRequest"/> from a typed compute resource.
-    /// Returns <c>null</c> if the resource is not found.
-    /// </summary>
-    private async Task<AppPipelineGenerationRequest?> BuildAppPipelineRequestAsync(
-        AzureResourceId resourceId,
-        string resourceType,
-        CancellationToken cancellationToken)
-    {
-        return resourceType switch
-        {
-            AzureResourceTypes.ArmTypes.ContainerApp => await BuildFromContainerAppAsync(resourceId, cancellationToken)
-                .ConfigureAwait(false),
-            AzureResourceTypes.ArmTypes.WebApp => await BuildFromWebAppAsync(resourceId, cancellationToken)
-                .ConfigureAwait(false),
-            AzureResourceTypes.ArmTypes.FunctionApp => await BuildFromFunctionAppAsync(resourceId, cancellationToken)
-                .ConfigureAwait(false),
-            _ => null,
-        };
-    }
-
-    private async Task<AppPipelineGenerationRequest?> BuildFromContainerAppAsync(
-        AzureResourceId resourceId,
-        CancellationToken cancellationToken)
-    {
-        var containerApp = await containerAppRepository
-            .GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false);
-
-        if (containerApp is null)
-            return null;
-
-        var containerRegistryName = await ResolveContainerRegistryNameAsync(
-            containerApp.ContainerRegistryId, cancellationToken).ConfigureAwait(false);
-
-        return new AppPipelineGenerationRequest
-        {
-            ResourceName = containerApp.Name,
-            ApplicationName = containerApp.ApplicationName,
-            ResourceType = AzureResourceTypes.ContainerApp,
-            DeploymentMode = DeploymentMode.DeploymentModeType.Container.ToString(),
-            DockerfilePath = containerApp.DockerfilePath,
-            DockerImageName = containerApp.DockerImageName,
-            ContainerRegistryName = containerRegistryName,
-            AcrAuthMode = containerApp.AcrAuthMode?.Value.ToString(),
-            PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
-            EnableSecurityScans = true,
-        };
-    }
-
-    private async Task<AppPipelineGenerationRequest?> BuildFromWebAppAsync(
-        AzureResourceId resourceId,
-        CancellationToken cancellationToken)
-    {
-        var webApp = await webAppRepository
-            .GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false);
-
-        if (webApp is null)
-            return null;
-
-        var containerRegistryName = await ResolveContainerRegistryNameAsync(
-            webApp.ContainerRegistryId, cancellationToken).ConfigureAwait(false);
-
-        return new AppPipelineGenerationRequest
-        {
-            ResourceName = webApp.Name,
-            ApplicationName = webApp.ApplicationName,
-            ResourceType = AzureResourceTypes.WebApp,
-            DeploymentMode = webApp.DeploymentMode.Value.ToString(),
-            DockerfilePath = webApp.DockerfilePath,
-            SourceCodePath = webApp.SourceCodePath,
-            BuildCommand = webApp.BuildCommand,
-            DockerImageName = webApp.DockerImageName,
-            ContainerRegistryName = containerRegistryName,
-            AcrAuthMode = webApp.AcrAuthMode?.Value.ToString(),
-            RuntimeStack = webApp.RuntimeStack.Value.ToString(),
-            RuntimeVersion = webApp.RuntimeVersion,
-            PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
-            EnableSecurityScans = true,
-        };
-    }
-
-    private async Task<AppPipelineGenerationRequest?> BuildFromFunctionAppAsync(
-        AzureResourceId resourceId,
-        CancellationToken cancellationToken)
-    {
-        var functionApp = await functionAppRepository
-            .GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false);
-
-        if (functionApp is null)
-            return null;
-
-        var containerRegistryName = await ResolveContainerRegistryNameAsync(
-            functionApp.ContainerRegistryId, cancellationToken).ConfigureAwait(false);
-
-        return new AppPipelineGenerationRequest
-        {
-            ResourceName = functionApp.Name,
-            ApplicationName = functionApp.ApplicationName,
-            ResourceType = AzureResourceTypes.FunctionApp,
-            DeploymentMode = functionApp.DeploymentMode.Value.ToString(),
-            DockerfilePath = functionApp.DockerfilePath,
-            SourceCodePath = functionApp.SourceCodePath,
-            BuildCommand = functionApp.BuildCommand,
-            DockerImageName = functionApp.DockerImageName,
-            ContainerRegistryName = containerRegistryName,
-            AcrAuthMode = functionApp.AcrAuthMode?.Value.ToString(),
-            RuntimeStack = functionApp.RuntimeStack.Value.ToString(),
-            RuntimeVersion = functionApp.RuntimeVersion,
-            PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
-            EnableSecurityScans = true,
-        };
-    }
-
-    private async Task<string?> ResolveContainerRegistryNameAsync(
-        AzureResourceId? containerRegistryId,
-        CancellationToken cancellationToken)
-    {
-        if (containerRegistryId is null)
-            return null;
-
-        var containerRegistry = await containerRegistryRepository
-            .GetByIdAsync(containerRegistryId, cancellationToken).ConfigureAwait(false);
-
-        return containerRegistry?.Name.Value;
     }
 
     private static string GetResourceTypeName(string azureResourceType) =>

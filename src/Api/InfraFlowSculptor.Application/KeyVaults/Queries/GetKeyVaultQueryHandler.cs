@@ -21,7 +21,7 @@ public class GetKeyVaultQueryHandler(
         if (keyVault is null)
             return Errors.KeyVault.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(keyVault.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(keyVault.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.KeyVault.NotFoundError(query.Id);
 

@@ -21,7 +21,7 @@ public class GetRedisCacheQueryHandler(
         if (redisCache is null)
             return Errors.RedisCache.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(redisCache.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(redisCache.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.RedisCache.NotFoundError(query.Id);
 
