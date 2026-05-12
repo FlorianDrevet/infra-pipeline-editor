@@ -19,7 +19,7 @@ public sealed class AnalyzeRoleAssignmentImpactQueryHandler(
         AnalyzeRoleAssignmentImpactQuery request,
         CancellationToken cancellationToken)
     {
-        var sourceResource = await azureResourceRepository.GetByIdWithRoleAssignmentsAndAppSettingsAsync(
+        var sourceResource = await azureResourceRepository.GetByIdWithRoleAssignmentsAndAppSettingsReadOnlyAsync(
             request.SourceResourceId, cancellationToken);
 
         if (sourceResource is null)
@@ -30,7 +30,7 @@ public sealed class AnalyzeRoleAssignmentImpactQueryHandler(
         if (assignment is null)
             return Errors.RoleAssignment.NotFound(request.RoleAssignmentId);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(
             sourceResource.ResourceGroupId, cancellationToken);
 
         if (resourceGroup is null)

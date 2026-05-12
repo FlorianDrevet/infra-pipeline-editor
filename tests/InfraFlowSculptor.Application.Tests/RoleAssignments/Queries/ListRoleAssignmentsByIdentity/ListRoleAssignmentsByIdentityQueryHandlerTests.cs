@@ -96,7 +96,7 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandlerTests
     public async Task Given_IdentityDoesNotExist_When_Handle_Then_ReturnsNotFoundAsync()
     {
         // Arrange
-        _userAssignedIdentityRepository.GetByIdAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>())
+        _userAssignedIdentityRepository.GetByIdReadOnlyAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>())
             .Returns((UserAssignedIdentity?)null);
 
         // Act
@@ -105,6 +105,8 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.UserAssignedIdentity.NotFoundError(_query.IdentityId).Code);
+        await _userAssignedIdentityRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -121,6 +123,14 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.UserAssignedIdentity.NotFoundError(_query.IdentityId).Code);
+        await _userAssignedIdentityRepository.Received(1)
+            .GetByIdReadOnlyAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>());
+        await _resourceGroupRepository.Received(1)
+            .GetByIdReadOnlyAsync(_resourceGroup.Id, Arg.Any<CancellationToken>());
+        await _userAssignedIdentityRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>());
+        await _resourceGroupRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -137,6 +147,14 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandlerTests
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().BeEmpty();
+        await _userAssignedIdentityRepository.Received(1)
+            .GetByIdReadOnlyAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>());
+        await _resourceGroupRepository.Received(1)
+            .GetByIdReadOnlyAsync(_resourceGroup.Id, Arg.Any<CancellationToken>());
+        await _userAssignedIdentityRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>());
+        await _resourceGroupRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -146,7 +164,7 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandlerTests
         ConfigureIdentityAccess();
         _azureResourceRepository.GetRoleAssignmentsByIdentityIdAsync(_identity.Id, Arg.Any<CancellationToken>())
             .Returns([_roleAssignment]);
-        _azureResourceRepository.GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
+        _azureResourceRepository.GetByIdReadOnlyAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
             .Returns(callInfo =>
             {
                 var resourceId = callInfo.Arg<AzureResourceId>();
@@ -180,13 +198,25 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandlerTests
             RoleDefinitionId = _roleDefinitionId,
             RoleName = _roleDefinitionName,
         });
+        await _userAssignedIdentityRepository.Received(1)
+            .GetByIdReadOnlyAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>());
+        await _resourceGroupRepository.Received(1)
+            .GetByIdReadOnlyAsync(_resourceGroup.Id, Arg.Any<CancellationToken>());
+        await _azureResourceRepository.Received(2)
+            .GetByIdReadOnlyAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>());
+        await _userAssignedIdentityRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>());
+        await _resourceGroupRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>());
+        await _azureResourceRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>());
     }
 
     private void ConfigureIdentityAccess()
     {
-        _userAssignedIdentityRepository.GetByIdAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>())
+        _userAssignedIdentityRepository.GetByIdReadOnlyAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(_identity);
-        _resourceGroupRepository.GetByIdAsync(Arg.Any<Domain.Common.Models.ValueObject>(), Arg.Any<CancellationToken>())
+        _resourceGroupRepository.GetByIdReadOnlyAsync(_resourceGroup.Id, Arg.Any<CancellationToken>())
             .Returns(_resourceGroup);
         _accessService.VerifyReadAccessAsync(_resourceGroup.InfraConfigId, Arg.Any<CancellationToken>())
             .Returns(_infrastructureConfig);

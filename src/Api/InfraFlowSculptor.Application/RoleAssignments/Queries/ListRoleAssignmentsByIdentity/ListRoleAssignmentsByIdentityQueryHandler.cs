@@ -29,7 +29,7 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandler(
         CancellationToken cancellationToken)
     {
         var notFoundError = Errors.UserAssignedIdentity.NotFoundError(request.IdentityId);
-        var identity = await userAssignedIdentityRepository.GetByIdAsync(request.IdentityId, cancellationToken);
+        var identity = await userAssignedIdentityRepository.GetByIdReadOnlyAsync(request.IdentityId, cancellationToken);
         if (identity is null)
             return notFoundError;
 
@@ -52,7 +52,7 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandler(
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken)
     {
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(resourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(resourceGroupId, cancellationToken);
         if (resourceGroup is null)
         {
             return false;
@@ -74,7 +74,7 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandler(
         var resourceLookup = new Dictionary<AzureResourceId, AzureResource>();
         foreach (var referencedId in referencedIds)
         {
-            var resource = await azureResourceRepository.GetByIdAsync(referencedId, cancellationToken);
+            var resource = await azureResourceRepository.GetByIdReadOnlyAsync(referencedId, cancellationToken);
             if (resource is not null)
             {
                 resourceLookup[referencedId] = resource;
