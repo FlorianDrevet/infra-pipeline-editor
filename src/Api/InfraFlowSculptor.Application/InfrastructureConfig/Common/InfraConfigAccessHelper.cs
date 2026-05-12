@@ -26,7 +26,7 @@ internal sealed class InfraConfigAccessService(
         if (_readCache.TryGetValue(infraConfigId, out var cached))
             return cached;
 
-        var infraConfig = await configRepository.GetByIdAsync(infraConfigId, cancellationToken);
+        var infraConfig = await configRepository.GetByIdReadOnlyAsync(infraConfigId, cancellationToken);
 
         if (infraConfig is null)
         {

@@ -25,7 +25,6 @@ namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipelin
 public sealed class GenerateProjectPipelineCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
-    IInfrastructureConfigRepository configRepository,
     IInfrastructureConfigReadRepository configReadRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     AppPipelineGenerationEngine appPipelineGenerationEngine,
@@ -47,6 +46,8 @@ public sealed class GenerateProjectPipelineCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
+        var projectForGate = authResult.Value;
+
         // 2. Load all configurations for this project
         var configs = await configReadRepository.GetAllByProjectIdWithResourcesAsync(
             command.ProjectId.Value, cancellationToken);
@@ -54,37 +55,28 @@ public sealed class GenerateProjectPipelineCommandHandler(
         if (configs.Count == 0)
             return Errors.Project.NoConfigurationsError();
 
-        // 2.bis Ambiguity gate: reject project-level generate-all for heterogeneous multi-repo topologies.
-        // Uses domain aggregates to access RepositoryBinding (not exposed by the read model).
-        var projectForGate = await projectRepository.GetByIdAsync(command.ProjectId, cancellationToken);
-        if (projectForGate is null)
-            return Errors.Project.NotFoundError(command.ProjectId);
-
-        var domainConfigs = await configRepository.GetByProjectIdAsync(command.ProjectId, cancellationToken);
-        if (!projectForGate.CanGenerateAllFromProjectLevel(domainConfigs))
+        // Reject project-level generate-all for heterogeneous multi-repo topologies.
+        if (!projectForGate.CanGenerateAllFromProjectLevel())
             return Errors.GitRouting.AmbiguousProjectLevelGeneration;
 
-        // 3. Load project-level pipeline variable groups
-        var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
+        // 3. Load the enriched project snapshot needed for repository routing and variable groups.
+        var project = await projectRepository.GetByIdWithAllAndPipelineVariableGroupsAsync(
             command.ProjectId, cancellationToken);
-        var projectWithGit = await projectRepository.GetByIdWithAllAsync(
-            command.ProjectId, cancellationToken);
+        if (project is null)
+            return Errors.Project.NotFoundError(command.ProjectId);
 
-        var projectVariableGroups = project?.PipelineVariableGroups.ToList() ?? [];
+        var projectVariableGroups = project.PipelineVariableGroups.ToList();
 
         // Resolve the project-level target (alias "default") to determine base paths within the repo.
         // Heterogeneous multi-repo projects will simply fall back to null paths here — the per-config
         // push handlers are responsible for enforcing the routing at push time.
         string? bicepBasePath = null;
         string? pipelineBasePath = null;
-        if (projectWithGit is not null)
+        var targetResult = targetResolver.Resolve(project, config: null, ArtifactKind.Pipeline);
+        if (!targetResult.IsError)
         {
-            var targetResult = targetResolver.Resolve(projectWithGit, config: null, ArtifactKind.Pipeline);
-            if (!targetResult.IsError)
-            {
-                bicepBasePath = targetResult.Value.BasePath;
-                pipelineBasePath = targetResult.Value.PipelineBasePath;
-            }
+            bicepBasePath = targetResult.Value.BasePath;
+            pipelineBasePath = targetResult.Value.PipelineBasePath;
         }
 
         // 4. Generate pipeline YAML per config (mono-repo mode: no per-config variables)
@@ -92,7 +84,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
 
         foreach (var config in configs)
         {
-            var generationRequest = BuildGenerationRequest(config, projectVariableGroups, projectWithGit ?? project, bicepGenerators, bicepBasePath);
+            var generationRequest = BuildGenerationRequest(config, projectVariableGroups, project, bicepGenerators, bicepBasePath);
             var result = pipelineGenerationEngine.Generate(generationRequest, config.Name, isMonoRepo: true);
 
             // Generate app pipelines for compute resources in this config
@@ -131,7 +123,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
             .ToList();
 
         // 6. Assemble mono-repo output
-        var agentPoolName = project?.AgentPoolName;
+        var agentPoolName = project.AgentPoolName;
         var assembled = MonoRepoPipelineAssembler.Assemble(
             perConfigResults,
             environments,

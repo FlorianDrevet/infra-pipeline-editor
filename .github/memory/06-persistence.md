@@ -31,10 +31,13 @@ public sealed class SomethingConfiguration : IEntityTypeConfiguration<Something>
     - `InfrastructureConfig.DefaultNamingTemplate` = `500`
     - `ResourceGroup.Name` = `90`
     - `AzureResource.Name` / `CustomNameOverride` = `260`
+    - `ParameterDefinition.Name` = `100`
+    - `ParameterDefinition.Type` = `20`
+    - `ParameterDefinition.DefaultValue` = `500`
     - `ProjectResourceNamingTemplate.Template` / `ResourceNamingTemplate.Template` = `500`
 - When a persistence cap is introduced on a create flow, align the application validator and request contract in the same change set to fail fast before SQL (done for `CreateProject` and `CreateInfrastructureConfig`).
 - `ResourceGroup.Name` is capped from the official Azure `Microsoft.Resources/resourcegroups` rule (`1-90`); the repo now aligns `CreateResourceGroup` request + validator with that bound instead of letting SQL reject it late.
-- `ParameterDefinition` remains intentionally unresolved in DB-001: current ARM/Bicep docs confirm parameter names must be valid identifiers and `defaultValue` can carry typed literals, but do not provide a single canonical persisted max-length matrix for `Name` / `DefaultValue` across `string|int|bool|object|array`.
+- `ParameterDefinition` now follows the same explicit-persistence rule even without a dedicated create/update API surface yet; if such a surface is added later, align its validator/contract in the same change set.
 
 ## Key Conventions
 
@@ -96,6 +99,7 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 
 - Do not add `.AsNoTracking()` blindly to a tracked repository method if that method is shared by read and write/owner flows.
 - `ProjectAccessService` is the reference split for DB-003: `VerifyReadAccessAsync(...)` now uses `IProjectRepository.GetByIdWithMembersReadOnlyAsync(...)`, while `VerifyWriteAccessAsync(...)` and `VerifyOwnerAccessAsync(...)` keep using the tracked `GetByIdWithMembersAsync(...)` because several project commands mutate `accessResult.Value` afterward.
+- `InfraConfigAccessService` now follows the same split: `VerifyReadAccessAsync(...)` uses `IInfrastructureConfigRepository.GetByIdReadOnlyAsync(...)`, while `VerifyWriteAccessAsync(...)` stays on the tracked `GetByIdAsync(...)` path because write flows may continue mutating or depending on the loaded aggregate state.
 - `ResourceGroupRepository.GetByIdReadOnlyAsync(...)` is the reference split for pure `ResourceGroup` queries that only need group metadata and `InfraConfigId`: `GetResourceGroupQueryHandler` and `ListResourceGroupResourcesQueryHandler` now use this no-tracking lookup, while commands keep the tracked `GetByIdAsync(...)` path.
 - The same `ResourceGroupRepository.GetByIdReadOnlyAsync(...)` split is now the reference for adjacent read-only handlers that only need `InfraConfigId` for authorization: `GetKeyVaultQueryHandler`, `ListKeyVaultsQueryHandler`, `GetRedisCacheQueryHandler`, `ListRedisCachesQueryHandler`, and `ListStorageAccountsQueryHandler` all use the read-only lookup instead of the tracked path.
 - When the caller only needs membership/role checks, prefer a dedicated no-tracking lookup that loads only the navigation data actually needed for authorization.
@@ -150,3 +154,4 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 17+ migration files in `src/Api/InfraFlowSculptor.Infrastructure/Migrations/`. Always add a new migration when changing domain model.
 - `20260512091902_AddCoreStringLengthConstraints` adds the first DB-001 migration slice for the core project / environment / infra-config / naming-template / AzureResource columns and keeps the snapshot in sync.
 - `20260512095600_AddResourceGroupNameLengthConstraint` adds the follow-up DB-001 slice that constrains `ResourceGroup.Name` to `varchar(90)`.
+- `20260512140453_AddParameterDefinitionLengthConstraints` closes DB-001 by constraining `ParameterDefinition.Name` / `Type` / `DefaultValue` to `varchar(100)` / `varchar(20)` / `varchar(500)`.

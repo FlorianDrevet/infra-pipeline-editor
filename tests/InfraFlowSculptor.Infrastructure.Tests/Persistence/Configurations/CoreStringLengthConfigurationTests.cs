@@ -21,6 +21,9 @@ public sealed class CoreStringLengthConfigurationTests
     private const int ProjectEnvironmentShortNameMaxLength = 20;
     private const int ProjectEnvironmentAffixMaxLength = 50;
     private const int ResourceGroupNameMaxLength = 90;
+    private const int ParameterDefinitionNameMaxLength = 100;
+    private const int ParameterDefinitionTypeMaxLength = 20;
+    private const int ParameterDefinitionDefaultValueMaxLength = 500;
 
     [Fact]
     public void Given_ProjectEntityModel_When_InspectingCoreStringProperties_Then_UsesExpectedMaxLengths()
@@ -130,6 +133,23 @@ public sealed class CoreStringLengthConfigurationTests
 
         // Assert
         nameProperty.GetMaxLength().Should().Be(ResourceGroupNameMaxLength);
+    }
+
+    [Fact]
+    public void Given_ParameterDefinitionEntityModel_When_InspectingStringProperties_Then_UsesExpectedMaxLengths()
+    {
+        // Arrange
+        using var context = InMemoryDbContextFactory.Create();
+
+        // Act
+        var nameProperty = GetProperty<ParameterDefinition>(context, nameof(ParameterDefinition.Name));
+        var typeProperty = GetProperty<ParameterDefinition>(context, nameof(ParameterDefinition.Type));
+        var defaultValueProperty = GetProperty<ParameterDefinition>(context, nameof(ParameterDefinition.DefaultValue));
+
+        // Assert
+        nameProperty.GetMaxLength().Should().Be(ParameterDefinitionNameMaxLength);
+        typeProperty.GetMaxLength().Should().Be(ParameterDefinitionTypeMaxLength);
+        defaultValueProperty.GetMaxLength().Should().Be(ParameterDefinitionDefaultValueMaxLength);
     }
 
     private static IProperty GetProperty<TEntity>(ProjectDbContext context, string propertyName)

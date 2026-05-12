@@ -5,6 +5,7 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
@@ -108,6 +109,23 @@ public sealed class InfrastructureConfigRepositoryTests : IDisposable
         // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(config.Id);
+    }
+
+    [Fact]
+    public async Task Given_StoredConfig_When_GetByIdReadOnlyAsync_Then_ReturnsDetachedConfig_Async()
+    {
+        // Arrange
+        var config = InfrastructureConfig.Create(new Name(ConfigName), ProjectId.CreateUnique());
+        await _context.InfrastructureConfigs.AddAsync(config);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetByIdReadOnlyAsync(config.Id, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(config.Id);
+        _context.Entry(result).State.Should().Be(EntityState.Detached);
     }
 
     [Fact]

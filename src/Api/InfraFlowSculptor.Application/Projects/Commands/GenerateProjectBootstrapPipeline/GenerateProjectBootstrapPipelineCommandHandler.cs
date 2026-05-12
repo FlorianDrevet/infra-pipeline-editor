@@ -40,7 +40,9 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        var project = await projectRepository.GetByIdWithAllAsync(command.ProjectId, cancellationToken);
+        var project = await projectRepository.GetByIdWithAllAndPipelineVariableGroupsAsync(
+            command.ProjectId,
+            cancellationToken);
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
@@ -57,13 +59,6 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
 
         if (configs.Count == 0)
             return Errors.Project.NoConfigurationsError();
-
-        var projectWithVariableGroups = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
-            command.ProjectId,
-            cancellationToken);
-
-        if (projectWithVariableGroups is null)
-            return Errors.Project.NotFoundError(command.ProjectId);
 
         var ownerParts = target.Owner.Split('/', 2);
         var organizationName = DecodeUrlSegment(ownerParts[0]);
@@ -87,7 +82,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
                 cancellationToken)
             .ConfigureAwait(false);
 
-        var projectVariableGroups = projectWithVariableGroups.PipelineVariableGroups.ToList();
+        var projectVariableGroups = project.PipelineVariableGroups.ToList();
         var variableGroupUsages = await projectRepository.GetPipelineVariableUsagesAsync(
             projectVariableGroups.Select(group => group.Id).ToList(),
             cancellationToken);

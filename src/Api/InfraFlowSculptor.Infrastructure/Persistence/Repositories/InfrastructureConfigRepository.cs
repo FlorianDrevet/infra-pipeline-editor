@@ -16,6 +16,16 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
     {
     }
 
+    public async Task<InfrastructureConfig?> GetByIdReadOnlyAsync(
+        InfrastructureConfigId id,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.InfrastructureConfigs
+            .AsNoTracking()
+            .Include(c => c.Repositories)
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+    }
+
     /// <summary>Override to eagerly load the per-config Repositories collection (MultiRepo layout).</summary>
     public override async Task<InfrastructureConfig?> GetByIdAsync(
         Domain.Common.Models.ValueObject id, CancellationToken cancellationToken = default)

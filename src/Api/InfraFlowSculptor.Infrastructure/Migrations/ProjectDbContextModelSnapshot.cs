@@ -885,7 +885,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("DefaultValue")
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<Guid>("InfraConfigId")
                         .HasColumnType("uuid");
@@ -895,11 +896,13 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.HasKey("Id");
 

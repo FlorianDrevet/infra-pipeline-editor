@@ -29,6 +29,12 @@ public interface IProjectRepository : IRepository<Project>
     Task<Project?> GetByIdWithAllAsync(ProjectId id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves a project by identifier, including the data required by project-level generation flows.
+    /// This includes repository routing metadata, environment and naming data, and pipeline variable groups.
+    /// </summary>
+    Task<Project?> GetByIdWithAllAndPipelineVariableGroupsAsync(ProjectId id, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Retrieves a project by identifier, including its pipeline variable groups and their mappings.
     /// </summary>
     Task<Project?> GetByIdWithPipelineVariableGroupsAsync(ProjectId id, CancellationToken cancellationToken = default);

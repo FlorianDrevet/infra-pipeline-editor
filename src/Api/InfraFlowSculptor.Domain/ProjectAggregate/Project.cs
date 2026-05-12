@@ -490,13 +490,11 @@ public sealed class Project : AggregateRoot<ProjectId>
 
     /// <summary>
     /// Returns <see langword="true"/> when a single project-level "generate all" operation is unambiguous,
-    /// i.e. the project layout owns its repos (AllInOne or SplitInfraCode). MultiRepo always returns <see langword="false"/>
+    /// i.e. the project layout owns its repositories. MultiRepo always returns <see langword="false"/>
     /// because each configuration owns its own repositories.
     /// </summary>
-    /// <param name="configs">Reserved for future heuristics. Currently unused.</param>
-    public bool CanGenerateAllFromProjectLevel(IReadOnlyCollection<InfrastructureConfig> configs)
+    public bool CanGenerateAllFromProjectLevel()
     {
-        ArgumentNullException.ThrowIfNull(configs);
         return LayoutPreset.Value != LayoutPresetEnum.MultiRepo;
     }
 

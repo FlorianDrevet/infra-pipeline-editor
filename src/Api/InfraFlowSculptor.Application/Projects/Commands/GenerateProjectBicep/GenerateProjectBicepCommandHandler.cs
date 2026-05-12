@@ -15,8 +15,6 @@ namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBicep;
 /// <summary>Handles the <see cref="GenerateProjectBicepCommand"/>.</summary>
 public sealed class GenerateProjectBicepCommandHandler(
     IProjectAccessService accessService,
-    IProjectRepository projectRepository,
-    IInfrastructureConfigRepository configRepository,
     IInfrastructureConfigReadRepository configReadRepository,
     BicepGenerationEngine bicepGenerationEngine,
     IBlobService blobService)
@@ -37,6 +35,8 @@ public sealed class GenerateProjectBicepCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
+        var project = authResult.Value;
+
         // 2. Load all configurations for this project
         var configs = await configReadRepository.GetAllByProjectIdWithResourcesAsync(
             command.ProjectId.Value, cancellationToken);
@@ -44,14 +44,8 @@ public sealed class GenerateProjectBicepCommandHandler(
         if (configs.Count == 0)
             return Errors.Project.NoConfigurationsError();
 
-        // 2.bis Ambiguity gate: reject project-level generate-all for heterogeneous multi-repo topologies.
-        // Uses domain aggregates to access RepositoryBinding (not exposed by the read model).
-        var project = await projectRepository.GetByIdAsync(command.ProjectId, cancellationToken);
-        if (project is null)
-            return Errors.Project.NotFoundError(command.ProjectId);
-
-        var domainConfigs = await configRepository.GetByProjectIdAsync(command.ProjectId, cancellationToken);
-        if (!project.CanGenerateAllFromProjectLevel(domainConfigs))
+        // Reject project-level generate-all for heterogeneous multi-repo topologies.
+        if (!project.CanGenerateAllFromProjectLevel())
             return Errors.GitRouting.AmbiguousProjectLevelGeneration;
 
         // 3. Build per-config generation requests
