@@ -3,6 +3,7 @@ using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Application.Common.Services;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectGeneratedArtifactsToGit;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
@@ -60,7 +61,7 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandlerTests
             _accessService,
             _projectRepository,
             _keyVaultSecretClient,
-            _gitProviderFactory,
+            new MultiScopeGitPushExecutor(_gitProviderFactory),
             _blobService,
             _targetResolver);
     }

@@ -52,6 +52,7 @@ public static class DependencyInjection
         // Resource naming
         services.AddScoped<IResourceNameResolver, ResourceNameResolver>();
         services.AddScoped<IAppPipelineRequestFactory, AppPipelineRequestFactory>();
+        services.AddScoped<IMultiScopeGitPushExecutor, MultiScopeGitPushExecutor>();
 
         // V2 multi-repo Git routing
         services.AddScoped<IRepositoryTargetResolver, RepositoryTargetResolver>();

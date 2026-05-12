@@ -19,13 +19,19 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
     IKeyVaultSecretClient keyVaultSecretClient,
-    IGitProviderFactory gitProviderFactory,
+    IMultiScopeGitPushExecutor multiScopeGitPushExecutor,
     IBlobService blobService,
     IRepositoryTargetResolver targetResolver)
     : ICommandHandler<PushProjectArtifactsToMultiRepoCommand, PushProjectArtifactsToMultiRepoResult>
 {
     private const string InfraBucket = "infra";
     private const string AppBucket = "app";
+    private const string BicepArtifactType = "bicep";
+    private const string InfraBootstrapBucketPrefix = "infra/";
+    private const string AppBootstrapBucketPrefix = "app/";
+    private const string UnsupportedMultiScopePushReason =
+        "The selected Git provider does not support multi-scope pushes.";
+    private const string UnexpectedGitProviderErrorCode = "GitProvider.UnexpectedError";
 
     /// <inheritdoc />
     public async Task<ErrorOr<PushProjectArtifactsToMultiRepoResult>> Handle(
@@ -124,12 +130,12 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
             return new InfraArtifacts(null, null);
 
         var bicepFilesResult = await LoadLatestArtifactFilesAsync(
-            "bicep", command.ProjectId.Value, Errors.Project.BicepFilesNotFoundError);
+            BicepArtifactType, command.ProjectId.Value, Errors.Project.BicepFilesNotFoundError);
         if (bicepFilesResult.IsError)
             return bicepFilesResult.Errors;
 
         var bootstrapFilesResult = await LoadLatestBootstrapFilesAsync(
-            command.ProjectId.Value, bucketPrefix: "infra/");
+            command.ProjectId.Value, bucketPrefix: InfraBootstrapBucketPrefix);
         if (bootstrapFilesResult.IsError)
             return bootstrapFilesResult.Errors;
 
@@ -143,7 +149,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
             return ErrorOrFactory.From<IReadOnlyDictionary<string, string>>(new Dictionary<string, string>());
 
         var appBootstrapFilesResult = await LoadLatestBootstrapFilesAsync(
-            command.ProjectId.Value, bucketPrefix: "app/");
+            command.ProjectId.Value, bucketPrefix: AppBootstrapBucketPrefix);
         if (appBootstrapFilesResult.IsError)
             return appBootstrapFilesResult.Errors;
 
@@ -231,16 +237,11 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
 
         try
         {
-            var provider = gitProviderFactory.Create(target.ProviderType);
-            if (provider is not IGitMultiScopePushProviderService multiScopeProvider)
-            {
-                var error = Errors.GitRepository.PushFailed(
-                    "The selected Git provider does not support multi-scope pushes.");
-                return new RepoPushResult(alias, Success: false, BranchUrl: null, CommitSha: null,
-                    FileCount: 0, ErrorCode: error.Code, ErrorDescription: error.Description);
-            }
-
-            var pushResult = await multiScopeProvider.PushScopedFilesAsync(requestResult.Value, cancellationToken);
+            var pushResult = await multiScopeGitPushExecutor.PushAsync(
+                target,
+                requestResult.Value,
+                UnsupportedMultiScopePushReason,
+                cancellationToken);
             if (pushResult.IsError)
             {
                 var first = pushResult.Errors[0];
@@ -255,7 +256,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
         catch (Exception ex)
         {
             return new RepoPushResult(alias, Success: false, BranchUrl: null, CommitSha: null,
-                FileCount: 0, ErrorCode: "GitProvider.UnexpectedError", ErrorDescription: ex.Message);
+                FileCount: 0, ErrorCode: UnexpectedGitProviderErrorCode, ErrorDescription: ex.Message);
         }
     }
 

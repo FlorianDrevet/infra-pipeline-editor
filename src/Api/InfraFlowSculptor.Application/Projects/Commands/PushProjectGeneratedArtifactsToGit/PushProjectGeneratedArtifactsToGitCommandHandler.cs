@@ -24,7 +24,7 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
     IKeyVaultSecretClient keyVaultSecretClient,
-    IGitProviderFactory gitProviderFactory,
+    IMultiScopeGitPushExecutor multiScopeGitPushExecutor,
     IBlobService blobService,
     IRepositoryTargetResolver targetResolver)
     : ICommandHandler<PushProjectGeneratedArtifactsToGitCommand, PushBicepToGitResult>
@@ -33,6 +33,8 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
     private const string PipelineArtifactType = "pipeline";
     private const string BootstrapArtifactType = "bootstrap";
     private const int ProjectArtifactPrefixSegmentCount = 4;
+    private const string UnsupportedMultiScopePushReason =
+        "The selected Git provider does not support pushing multiple generated artifact roots in a single commit.";
 
     /// <inheritdoc />
     public async Task<ErrorOr<PushBicepToGitResult>> Handle(
@@ -101,14 +103,11 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
         if (multiScopePushRequest.IsError)
             return multiScopePushRequest.Errors;
 
-        var gitProvider = gitProviderFactory.Create(target.ProviderType);
-        if (gitProvider is not IGitMultiScopePushProviderService multiScopeGitProvider)
-        {
-            return Errors.GitRepository.PushFailed(
-                "The selected Git provider does not support pushing multiple generated artifact roots in a single commit.");
-        }
-
-        return await multiScopeGitProvider.PushScopedFilesAsync(multiScopePushRequest.Value, cancellationToken);
+        return await multiScopeGitPushExecutor.PushAsync(
+            target,
+            multiScopePushRequest.Value,
+            UnsupportedMultiScopePushReason,
+            cancellationToken);
     }
 
     private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadLatestArtifactFilesAsync(

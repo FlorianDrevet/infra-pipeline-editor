@@ -24,11 +24,11 @@ public sealed class GetUserAssignedIdentityQueryHandler(
         GetUserAssignedIdentityQuery query,
         CancellationToken cancellationToken)
     {
-        var identity = await userAssignedIdentityRepository.GetByIdAsync(query.Id, cancellationToken);
+        var identity = await userAssignedIdentityRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (identity is null)
             return Errors.UserAssignedIdentity.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(identity.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(identity.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.UserAssignedIdentity.NotFoundError(query.Id);
 
