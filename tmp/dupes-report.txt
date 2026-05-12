@@ -1,0 +1,174 @@
+﻿Duplicate groups: 51
+Total issues in dup groups: 102
+
+=== ALL DUPLICATE GROUPS ===
+GROUP (2): [DB-005] Contrainte d'unicit├® manquante sur RoleAssignment
+  #180 created=2026-04-15 bodyLen=967 title='[DB-005] Contrainte d'unicit├® manquante sur RoleAssignment'
+  #249 created=2026-04-15 bodyLen=803 title='[AUDIT][DB-005] Contrainte d'unicit├® manquante sur RoleAssignment'
+GROUP (2): [DB-006] Cascade delete complexe et risqu├®e sur AppSetting
+  #181 created=2026-04-15 bodyLen=964 title='[DB-006] Cascade delete complexe et risqu├®e sur AppSetting'
+  #250 created=2026-04-15 bodyLen=796 title='[AUDIT][DB-006] Cascade delete complexe et risqu├®e sur AppSetting'
+GROUP (2): [DB-007] Duplication de code dans StorageAccountRepository
+  #182 created=2026-04-15 bodyLen=845 title='[DB-007] Duplication de code dans StorageAccountRepository'
+  #251 created=2026-04-15 bodyLen=676 title='[AUDIT][DB-007] Duplication de code dans StorageAccountRepository'
+GROUP (2): [SEC-007] Divulgation d'informations dans les erreurs
+  #177 created=2026-04-15 bodyLen=911 title='[SEC-007] Divulgation d'informations dans les erreurs'
+  #246 created=2026-04-15 bodyLen=791 title='[AUDIT][SEC-007] Divulgation d'informations dans les erreurs'
+GROUP (2): [DB-003] `AsNoTracking()` manquant sur les queries read-only
+  #178 created=2026-04-15 bodyLen=920 title='[DB-003] `AsNoTracking()` manquant sur les queries read-only'
+  #247 created=2026-04-15 bodyLen=771 title='[AUDIT][DB-003] `AsNoTracking()` manquant sur les queries read-only'
+GROUP (2): [DB-004] Requ├¬te avec 16 appels DB s├®quentiels dans ResourceGroupRepository
+  #179 created=2026-04-15 bodyLen=983 title='[DB-004] Requ├¬te avec 16 appels DB s├®quentiels dans ResourceGroupRepository'
+  #248 created=2026-04-15 bodyLen=754 title='[AUDIT][DB-004] Requ├¬te avec 16 appels DB s├®quentiels dans ResourceGroupRepository'
+GROUP (2): [APP-006] `.First()` sans v├®rification sur collections vides
+  #186 created=2026-04-15 bodyLen=932 title='[APP-006] `.First()` sans v├®rification sur collections vides'
+  #255 created=2026-04-15 bodyLen=1063 title='[AUDIT][APP-006] `.First()` sans v├®rification sur collections vides'
+GROUP (2): [APP-007] Double chargement du m├¬me agr├®gat dans un handler
+  #187 created=2026-04-15 bodyLen=813 title='[APP-007] Double chargement du m├¬me agr├®gat dans un handler'
+  #256 created=2026-04-15 bodyLen=703 title='[AUDIT][APP-007] Double chargement du m├¬me agr├®gat dans un handler'
+GROUP (2): [DDD-003] Collections mutables expos├®es (CorsRule)
+  #188 created=2026-04-15 bodyLen=915 title='[DDD-003] Collections mutables expos├®es (CorsRule)'
+  #257 created=2026-04-15 bodyLen=761 title='[AUDIT][DDD-003] Collections mutables expos├®es (CorsRule)'
+GROUP (2): [DB-008] 56 migrations EF Core accumul├®es sans squash
+  #183 created=2026-04-15 bodyLen=889 title='[DB-008] 56 migrations EF Core accumul├®es sans squash'
+  #252 created=2026-04-15 bodyLen=752 title='[AUDIT][DB-008] 56 migrations EF Core accumul├®es sans squash'
+GROUP (2): [APP-004] `dynamic` cast dans ValidationBehavior
+  #184 created=2026-04-15 bodyLen=849 title='[APP-004] `dynamic` cast dans ValidationBehavior'
+  #253 created=2026-04-15 bodyLen=710 title='[AUDIT][APP-004] `dynamic` cast dans ValidationBehavior'
+GROUP (2): [APP-005] Handlers god-class (400+ lignes)
+  #185 created=2026-04-15 bodyLen=1033 title='[APP-005] Handlers god-class (400+ lignes)'
+  #254 created=2026-04-15 bodyLen=779 title='[AUDIT][APP-005] Handlers god-class (400+ lignes)'
+GROUP (2): [SEC-006] Limite de taille des requ├¬tes non configur├®e
+  #176 created=2026-04-15 bodyLen=900 title='[SEC-006] Limite de taille des requ├¬tes non configur├®e'
+  #245 created=2026-04-15 bodyLen=794 title='[AUDIT][SEC-006] Limite de taille des requ├¬tes non configur├®e'
+GROUP (2): [SEC-004] Vuln├®rabilit├® de path traversal sur les endpoints de fichiers
+  #165 created=2026-04-15 bodyLen=1083 title='[SEC-004] Vuln├®rabilit├® de path traversal sur les endpoints de fichiers'
+  #234 created=2026-04-15 bodyLen=888 title='[AUDIT][SEC-004] Vuln├®rabilit├® de path traversal sur les endpoints de fichiers'
+GROUP (2): [DB-001] Absence de contraintes `HasMaxLength` sur 20+ configurations EF Core
+  #166 created=2026-04-15 bodyLen=1350 title='[DB-001] Absence de contraintes `HasMaxLength` sur 20+ configurations EF Core'
+  #235 created=2026-04-15 bodyLen=1570 title='[AUDIT][DB-001] Absence de contraintes `HasMaxLength` sur 20+ configurations EF Core'
+GROUP (2): [DB-002] Absence d'index sur 30+ configurations EF Core
+  #167 created=2026-04-15 bodyLen=1281 title='[DB-002] Absence d'index sur 30+ configurations EF Core'
+  #236 created=2026-04-15 bodyLen=1500 title='[AUDIT][DB-002] Absence d'index sur 30+ configurations EF Core'
+GROUP (2): [SEC-001] Absence totale de tests unitaires et d'int├®gration
+  #162 created=2026-04-15 bodyLen=1350 title='[SEC-001] Absence totale de tests unitaires et d'int├®gration'
+  #231 created=2026-04-15 bodyLen=1220 title='[AUDIT][SEC-001] Absence totale de tests unitaires et d'int├®gration'
+GROUP (2): [SEC-002] Headers de s├®curit├® HTTP manquants
+  #163 created=2026-04-15 bodyLen=1080 title='[SEC-002] Headers de s├®curit├® HTTP manquants'
+  #232 created=2026-04-15 bodyLen=712 title='[AUDIT][SEC-002] Headers de s├®curit├® HTTP manquants'
+GROUP (2): [SEC-003] Rate limiting incomplet ÔÇö seulement sur login
+  #164 created=2026-04-15 bodyLen=1182 title='[SEC-003] Rate limiting incomplet ÔÇö seulement sur login'
+  #233 created=2026-04-15 bodyLen=995 title='[AUDIT][SEC-003] Rate limiting incomplet ÔÇö seulement sur login'
+GROUP (2): [DDD-001] `SingleValueObject.Value` a un setter public ÔÇö violation d'immutabilit├®
+  #171 created=2026-04-15 bodyLen=968 title='[DDD-001] `SingleValueObject.Value` a un setter public ÔÇö violation d'immutabilit├®'
+  #240 created=2026-04-15 bodyLen=730 title='[AUDIT][DDD-001] `SingleValueObject.Value` a un setter public ÔÇö violation d'immutabilit├®'
+GROUP (2): [GEN-001] `BicepGenerationEngine.GenerateCore()` ÔÇö m├®thode de 950+ lignes
+  #173 created=2026-04-15 bodyLen=1077 title='[GEN-001] `BicepGenerationEngine.GenerateCore()` ÔÇö m├®thode de 950+ lignes'
+  #242 created=2026-04-15 bodyLen=887 title='[AUDIT][GEN-001] `BicepGenerationEngine.GenerateCore()` ÔÇö m├®thode de 950+ lignes'
+GROUP (2): [SEC-005] CORS trop permissif
+  #175 created=2026-04-15 bodyLen=917 title='[SEC-005] CORS trop permissif'
+  #244 created=2026-04-15 bodyLen=799 title='[AUDIT][SEC-005] CORS trop permissif'
+GROUP (2): [APP-001] 70 commands sans validator (57% des commands)
+  #168 created=2026-04-15 bodyLen=1209 title='[APP-001] 70 commands sans validator (57% des commands)'
+  #237 created=2026-04-15 bodyLen=808 title='[AUDIT][APP-001] 70 commands sans validator (57% des commands)'
+GROUP (2): [APP-002] Autorisations manquantes sur des handlers sensibles
+  #169 created=2026-04-15 bodyLen=1271 title='[APP-002] Autorisations manquantes sur des handlers sensibles'
+  #238 created=2026-04-15 bodyLen=1502 title='[AUDIT][APP-002] Autorisations manquantes sur des handlers sensibles'
+GROUP (2): [APP-003] Pattern N+1 dans ListCrossConfigReferencesQueryHandler
+  #170 created=2026-04-15 bodyLen=1067 title='[APP-003] Pattern N+1 dans ListCrossConfigReferencesQueryHandler'
+  #239 created=2026-04-15 bodyLen=815 title='[AUDIT][APP-003] Pattern N+1 dans ListCrossConfigReferencesQueryHandler'
+GROUP (2): [DDD-004] Propri├®t├®s navigation avec `= null!` (null-forgiving abuse)
+  #189 created=2026-04-15 bodyLen=973 title='[DDD-004] Propri├®t├®s navigation avec `= null!` (null-forgiving abuse)'
+  #258 created=2026-04-15 bodyLen=722 title='[AUDIT][DDD-004] Propri├®t├®s navigation avec `= null!` (null-forgiving abuse)'
+GROUP (2): [DDD-012] `ToString()` manquant sur `SingleValueObject`
+  #215 created=2026-04-15 bodyLen=656 title='[DDD-012] `ToString()` manquant sur `SingleValueObject`'
+  #284 created=2026-04-15 bodyLen=766 title='[AUDIT][DDD-012] `ToString()` manquant sur `SingleValueObject`'
+GROUP (2): [DDD-013] Incoh├®rence null check style (`== null` vs `is null`)
+  #216 created=2026-04-15 bodyLen=612 title='[DDD-013] Incoh├®rence null check style (`== null` vs `is null`)'
+  #285 created=2026-04-15 bodyLen=689 title='[AUDIT][DDD-013] Incoh├®rence null check style (`== null` vs `is null`)'
+GROUP (2): [DDD-014] Raw strings o├╣ des value objects seraient plus type-safe
+  #217 created=2026-04-15 bodyLen=747 title='[DDD-014] Raw strings o├╣ des value objects seraient plus type-safe'
+  #286 created=2026-04-15 bodyLen=863 title='[AUDIT][DDD-014] Raw strings o├╣ des value objects seraient plus type-safe'
+GROUP (2): [GEN-006] Gestion d'erreurs incoh├®rente entre les engines
+  #210 created=2026-04-15 bodyLen=733 title='[GEN-006] Gestion d'erreurs incoh├®rente entre les engines'
+  #279 created=2026-04-15 bodyLen=815 title='[AUDIT][GEN-006] Gestion d'erreurs incoh├®rente entre les engines'
+GROUP (2): [GEN-008] Code dupliqu├® : parsing des CorsRules
+  #212 created=2026-04-15 bodyLen=753 title='[GEN-008] Code dupliqu├® : parsing des CorsRules'
+  #281 created=2026-04-15 bodyLen=678 title='[AUDIT][GEN-008] Code dupliqu├® : parsing des CorsRules'
+GROUP (2): [INFRA-001] `BlobService` et `GeneratedArtifactService` enregistr├®s en Singleton
+  #213 created=2026-04-15 bodyLen=837 title='[INFRA-001] `BlobService` et `GeneratedArtifactService` enregistr├®s en Singleton'
+  #282 created=2026-04-15 bodyLen=782 title='[AUDIT][INFRA-001] `BlobService` et `GeneratedArtifactService` enregistr├®s en Singleton'
+GROUP (2): [API-008] `GuidValidation` accepte les cha├«nes vides (retourne true)
+  #221 created=2026-04-15 bodyLen=668 title='[API-008] `GuidValidation` accepte les cha├«nes vides (retourne true)'
+  #290 created=2026-04-15 bodyLen=784 title='[AUDIT][API-008] `GuidValidation` accepte les cha├«nes vides (retourne true)'
+GROUP (2): [APP-013] Duplication de logique de r├®cup├®ration blob latest
+  #222 created=2026-04-15 bodyLen=685 title='[APP-013] Duplication de logique de r├®cup├®ration blob latest'
+  #291 created=2026-04-15 bodyLen=768 title='[AUDIT][APP-013] Duplication de logique de r├®cup├®ration blob latest'
+GROUP (2): [GEN-009] Regex peut matcher dans les commentaires/strings
+  #224 created=2026-04-15 bodyLen=669 title='[GEN-009] Regex peut matcher dans les commentaires/strings'
+  #293 created=2026-04-15 bodyLen=788 title='[AUDIT][GEN-009] Regex peut matcher dans les commentaires/strings'
+GROUP (2): [DDD-015] Duplication de XML doc sur `RemoveAppSetting`
+  #218 created=2026-04-15 bodyLen=611 title='[DDD-015] Duplication de XML doc sur `RemoveAppSetting`'
+  #287 created=2026-04-15 bodyLen=611 title='[AUDIT][DDD-015] Duplication de XML doc sur `RemoveAppSetting`'
+GROUP (2): [API-006] Typo dans le nom : `KeyVaultControllerController`
+  #219 created=2026-04-15 bodyLen=612 title='[API-006] Typo dans le nom : `KeyVaultControllerController`'
+  #288 created=2026-04-15 bodyLen=682 title='[AUDIT][API-006] Typo dans le nom : `KeyVaultControllerController`'
+GROUP (2): [API-007] Nommage incoh├®rent : `UseXyzController` vs convention
+  #220 created=2026-04-15 bodyLen=604 title='[API-007] Nommage incoh├®rent : `UseXyzController` vs convention'
+  #289 created=2026-04-15 bodyLen=694 title='[AUDIT][API-007] Nommage incoh├®rent : `UseXyzController` vs convention'
+GROUP (2): [GEN-005] Magic strings dans les API versions Bicep
+  #209 created=2026-04-15 bodyLen=673 title='[GEN-005] Magic strings dans les API versions Bicep'
+  #278 created=2026-04-15 bodyLen=796 title='[AUDIT][GEN-005] Magic strings dans les API versions Bicep'
+GROUP (2): [DDD-007] Aucun domain event ├®mis
+  #194 created=2026-04-15 bodyLen=801 title='[DDD-007] Aucun domain event ├®mis'
+  #263 created=2026-04-15 bodyLen=748 title='[AUDIT][DDD-007] Aucun domain event ├®mis'
+GROUP (2): [DDD-008] Duplication du pattern Update dans les agr├®gats
+  #195 created=2026-04-15 bodyLen=809 title='[DDD-008] Duplication du pattern Update dans les agr├®gats'
+  #264 created=2026-04-15 bodyLen=702 title='[AUDIT][DDD-008] Duplication du pattern Update dans les agr├®gats'
+GROUP (2): [DDD-009] Incoh├®rence `IReadOnlyCollection` vs `IReadOnlyList`
+  #196 created=2026-04-15 bodyLen=740 title='[DDD-009] Incoh├®rence `IReadOnlyCollection` vs `IReadOnlyList`'
+  #265 created=2026-04-15 bodyLen=671 title='[AUDIT][DDD-009] Incoh├®rence `IReadOnlyCollection` vs `IReadOnlyList`'
+GROUP (2): [DDD-005] Aucun invariant de domaine dans AzureResource.AddDependency
+  #190 created=2026-04-15 bodyLen=906 title='[DDD-005] Aucun invariant de domaine dans AzureResource.AddDependency'
+  #259 created=2026-04-15 bodyLen=764 title='[AUDIT][DDD-005] Aucun invariant de domaine dans AzureResource.AddDependency'
+GROUP (2): [GEN-004] Injection YAML potentielle dans PipelineGenerationEngine
+  #192 created=2026-04-15 bodyLen=921 title='[GEN-004] Injection YAML potentielle dans PipelineGenerationEngine'
+  #261 created=2026-04-15 bodyLen=783 title='[AUDIT][GEN-004] Injection YAML potentielle dans PipelineGenerationEngine'
+GROUP (2): [DDD-006] Aucune validation dans les constructeurs de value objects
+  #193 created=2026-04-15 bodyLen=726 title='[DDD-006] Aucune validation dans les constructeurs de value objects'
+  #262 created=2026-04-15 bodyLen=667 title='[AUDIT][DDD-006] Aucune validation dans les constructeurs de value objects'
+GROUP (2): [APP-010] ValidationBehavior s'applique aussi aux queries
+  #201 created=2026-04-15 bodyLen=731 title='[APP-010] ValidationBehavior s'applique aussi aux queries'
+  #270 created=2026-04-15 bodyLen=679 title='[AUDIT][APP-010] ValidationBehavior s'applique aussi aux queries'
+GROUP (2): [APP-012] Repository interface ne standardise pas l'eager loading
+  #203 created=2026-04-15 bodyLen=798 title='[APP-012] Repository interface ne standardise pas l'eager loading'
+  #272 created=2026-04-15 bodyLen=753 title='[AUDIT][APP-012] Repository interface ne standardise pas l'eager loading'
+GROUP (2): [API-004] `EnumValidation` est case-sensitive
+  #207 created=2026-04-15 bodyLen=818 title='[API-004] `EnumValidation` est case-sensitive'
+  #276 created=2026-04-15 bodyLen=701 title='[AUDIT][API-004] `EnumValidation` est case-sensitive'
+GROUP (2): [DDD-010] Allocation inutile dans les computed properties (CorsRules)
+  #197 created=2026-04-15 bodyLen=777 title='[DDD-010] Allocation inutile dans les computed properties (CorsRules)'
+  #266 created=2026-04-15 bodyLen=718 title='[AUDIT][DDD-010] Allocation inutile dans les computed properties (CorsRules)'
+GROUP (2): [APP-008] Masquage incoh├®rent des erreurs d'autorisation
+  #199 created=2026-04-15 bodyLen=789 title='[APP-008] Masquage incoh├®rent des erreurs d'autorisation'
+  #268 created=2026-04-15 bodyLen=713 title='[AUDIT][APP-008] Masquage incoh├®rent des erreurs d'autorisation'
+GROUP (2): [APP-009] `CancellationToken` manquant sur `IRepository.GetAllAsync()`
+  #200 created=2026-04-15 bodyLen=771 title='[APP-009] `CancellationToken` manquant sur `IRepository.GetAllAsync()`'
+  #269 created=2026-04-15 bodyLen=668 title='[AUDIT][APP-009] `CancellationToken` manquant sur `IRepository.GetAllAsync()`'
+
+=== UNIQUE (no duplicate) ===
+  #295 [AUDIT][INFRA-003] Projections et DTOs non optimis├®s dans les repositories
+  #243 [AUDIT][GEN-002] Manipulation de cha├«nes non-s├®curis├®e dans la g├®n├®ration Bicep
+  #241 [AUDIT][DDD-002] 16 classes d'agr├®gats AzureResource non sealed
+  #227 [INFRA-004] Pas de `DbSet<AzureResource>` pour les requ├¬tes base-type
+  #225 [GEN-010] Pas de validation des modes de d├®ploiement dans AppPipelineGenerationEngine
+  #223 [APP-014] Naming incoh├®rent des m├®thodes repository
+  #214 [INFRA-002] `GitHubGitProviderService` cr├®e un `HttpClient` ├á chaque appel
+  #211 [GEN-007] Identifiers normalization incoh├®rente
+  #208 [API-005] Tags Azure sans validation de limites
+  #206 [API-003] `ErrorOrExtended` ÔÇö Seule la premi├¿re erreur est retourn├®e
+  #205 [API-002] Incoh├®rence des types d'ID (string vs Guid) dans les r├®ponses
+  #204 [API-001] Documentation 401 Unauthorized incoh├®rente
+  #202 [APP-011] Pas de domain services pour la logique m├®tier cross-cutting
+  #198 [DDD-011] `sealed` manquant sur les enum value objects
+  #191 [GEN-003] `.Single()` sans gestion d'erreur dans BicepGenerationEngine
