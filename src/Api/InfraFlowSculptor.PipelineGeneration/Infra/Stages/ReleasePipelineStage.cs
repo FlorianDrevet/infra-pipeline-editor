@@ -68,7 +68,9 @@ public sealed class ReleasePipelineStage : IInfraPipelineStage
         // Emit variable group references (expand {env} placeholder to Azure DevOps template expression)
         foreach (var group in request.PipelineVariableGroups)
         {
-            var resolvedName = group.GroupName.Replace("{env}", "${{ environment }}", StringComparison.OrdinalIgnoreCase);
+            var resolvedName = PipelineVariableGroupNameHelper.ResolveYamlScalar(
+                group.GroupName,
+                "${{ environment }}");
             sb.AppendLine($"          - group: {resolvedName}");
         }
         sb.AppendLine();

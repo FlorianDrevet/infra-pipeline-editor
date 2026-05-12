@@ -46,7 +46,7 @@ public sealed class AppPipelineGenerationEngine
         {
             throw new ArgumentException(
                 $"Invalid deployment mode '{request.DeploymentMode}'. Valid values are: {string.Join(", ", DeploymentModes.All)}.",
-                nameof(request.DeploymentMode));
+                nameof(request));
         }
 
         var generator = _generators.FirstOrDefault(g =>
@@ -80,7 +80,7 @@ public sealed class AppPipelineGenerationEngine
             return new AppPipelineGenerationResult { Files = new Dictionary<string, string>() };
 
         if (mode == AppPipelineMode.Isolated)
-            return GenerateIsolated(requests, configName);
+            return GenerateIsolated(requests);
 
         return GenerateCombined(requests, configName);
     }
@@ -100,8 +100,7 @@ public sealed class AppPipelineGenerationEngine
     /// Shared templates are emitted separately via <see cref="GenerateSharedTemplates"/>.
     /// </summary>
     private AppPipelineGenerationResult GenerateIsolated(
-        IReadOnlyList<AppPipelineGenerationRequest> requests,
-        string configName)
+        IReadOnlyList<AppPipelineGenerationRequest> requests)
     {
         var mergedFiles = new Dictionary<string, string>();
 

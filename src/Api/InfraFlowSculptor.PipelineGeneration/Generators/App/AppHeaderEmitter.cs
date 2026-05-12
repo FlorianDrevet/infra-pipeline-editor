@@ -110,7 +110,7 @@ internal static class AppHeaderEmitter
 
         foreach (var group in request.PipelineVariableGroups)
         {
-            var resolvedName = group.GroupName.Replace("{env}", envKey, StringComparison.OrdinalIgnoreCase);
+            var resolvedName = PipelineVariableGroupNameHelper.ResolveYamlScalar(group.GroupName, envKey);
             sb.AppendLine($"{indent}- group: {resolvedName}");
         }
     }

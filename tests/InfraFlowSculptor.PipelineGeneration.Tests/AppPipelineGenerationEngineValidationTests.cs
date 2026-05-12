@@ -25,7 +25,7 @@ public sealed class AppPipelineGenerationEngineValidationTests
         // Assert
         act.Should()
             .Throw<ArgumentException>()
-            .Where(ex => ex.ParamName == nameof(request.DeploymentMode))
+            .Where(ex => ex.ParamName == nameof(request))
             .Where(ex => ex.Message.Contains("Hybrid"))
             .Where(ex => ex.Message.Contains(DeploymentModes.Code))
             .Where(ex => ex.Message.Contains(DeploymentModes.Container));
