@@ -43,6 +43,7 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 ```
 
 - Active .NET test projects currently checked in:
+	- `tests/InfraFlowSculptor.Api.Tests/`
 	- `tests/InfraFlowSculptor.Application.Tests/`
 	- `tests/InfraFlowSculptor.BicepGeneration.Tests/`
 	- `tests/InfraFlowSculptor.Contracts.Tests/`
@@ -60,7 +61,18 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 
 - `Program.cs` now adds `X-Frame-Options=DENY`, `X-Content-Type-Options=nosniff`, `Referrer-Policy=strict-origin-when-cross-origin`, and a restrictive `Permissions-Policy` before HTTPS redirection.
 - `UseHsts()` is enabled outside Development.
-- `RateLimiting` exposes a global limiter (100 req/min per user or IP) and an `Expensive` policy (10 req/min) applied to generation, download, and push endpoints.
+- `RateLimiting` now binds from the `RateLimiting` configuration section into `ApiRateLimitingOptions`, validates on startup, runs after `UseAuthentication()`, partitions authenticated traffic by stable user claims (`ClaimConstants.ObjectId`, fallback `NameIdentifier`) before falling back to remote IP, applies a global fixed-window limiter, keeps a named `Expensive` policy for config-level and project-level generation/download/push endpoints, and adds `Retry-After` on `429` rejections when the limiter exposes retry metadata.
+- Focused API coverage now lives in `tests/InfraFlowSculptor.Api.Tests/RateLimiting/RateLimitingTests.cs` using `Microsoft.AspNetCore.TestHost`; it covers startup validation, `429` + `Retry-After`, same-IP authenticated partitioning, and controller metadata for the expensive policy. The remaining gap is a full end-to-end harness booting the real `Program.cs` entrypoint.
+
+## API Security Perimeter [2026-05-12]
+
+- `Program.cs` now enforces an explicit CORS allow-list: origins come from `Cors:AllowedOrigins` when configured, otherwise default to `http://localhost:4200`; allowed methods are `GET, POST, PUT, DELETE, PATCH, OPTIONS`; allowed headers are `Content-Type, Authorization, Accept, X-Requested-With`; credentials stay enabled.
+- The API response-header middleware now also adds `Cross-Origin-Opener-Policy=same-origin`, `Cross-Origin-Resource-Policy=same-site`, and `Content-Security-Policy=default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`, which is intentionally strict because the API only serves JSON.
+
+## Package Vulnerability Note [2026-05-12]
+
+- Current restores on this branch still resolve transitive `Microsoft.AspNetCore.DataProtection` `10.0.0` in API/Infrastructure outputs, so `dotnet build` can emit `NU1904` for `GHSA-9mv3-2cwr-p262`.
+- `Directory.Packages.props` does not centrally pin `Microsoft.AspNetCore.DataProtection`; clearing that warning likely requires an explicit central/transitive pin or an upstream package baseline update, not just removing a direct package reference.
 
 ## Project Pipeline Mono-Repo Layout [2026-04-24]
 

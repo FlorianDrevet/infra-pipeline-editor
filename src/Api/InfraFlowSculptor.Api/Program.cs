@@ -86,9 +86,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseRateLimiter(); //After UseRouting
-app.UseStatusCodePages();
 app.UseAuthentication();
+app.UseRateLimiter(); // After UseRouting and authentication so user-based partitions can resolve claims.
+app.UseStatusCodePages();
 app.UseAuthorization();
 app.UseMiddleware<UserProvisioningMiddleware>();
 

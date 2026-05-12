@@ -21,7 +21,7 @@ Ce dépôt utilise **deux graphes complémentaires** :
 ## Index status
 
 - **Repo indexé :** `infra-pipeline-editor`
-- **Session context [2026-04-30] :** 15 162 symbols, 69 021 edges, 958 clusters, 300 execution flows (verified via `npx gitnexus analyze`).
+- **Workspace instruction snapshot [2026-05-12] :** 22 924 symbols, 93 032 relationships, 300 execution flows.
 - **Règle pratique :** pour les noms partagés entre entités métier et classes d'erreur, fournir `file_path` à `gitnexus_context()` pour obtenir le bon symbole du premier coup.
 
 ## Symboles à haut risque (beaucoup de dépendants upstream)
@@ -66,7 +66,7 @@ Ce dépôt utilise **deux graphes complémentaires** :
 | Bicep generation tests | Active xUnit project | `tests/InfraFlowSculptor.BicepGeneration.Tests/` |
 | Pipeline generation tests | Active xUnit project | `tests/InfraFlowSculptor.PipelineGeneration.Tests/` |
 | MCP tests | Active xUnit project | `tests/InfraFlowSculptor.Mcp.Tests/` |
-| Checked-in test projects | 8 | `tests/**/*.csproj` (verified in repo on 2026-05-11) |
+| Checked-in test projects | 9 | `tests/**/*.csproj` (verified in repo on 2026-05-12) |
 
 ## Clusters fonctionnels principaux
 
@@ -78,4 +78,4 @@ Ce dépôt utilise **deux graphes complémentaires** :
 
 ---
 
-*Dernière mise à jour : 2026-04-30 — Dream consolidation*
+*Dernière mise à jour : 2026-05-12 — Dream consolidation*

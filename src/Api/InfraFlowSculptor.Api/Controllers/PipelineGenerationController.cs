@@ -4,6 +4,7 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Commands.PushPipelineTo
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetPipelineFileContent;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
+using InfraFlowSculptor.Api.RateLimiting;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +36,7 @@ public static class PipelineGenerationController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("GeneratePipeline")
                 .Produces<GeneratePipelineResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status404NotFound)
@@ -55,6 +57,7 @@ public static class PipelineGenerationController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("DownloadPipeline")
                 .Produces(StatusCodes.Status200OK, contentType: "application/zip")
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -90,6 +93,7 @@ public static class PipelineGenerationController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("PushPipelineToGit")
                 .WithSummary("Push generated pipeline files to Git")
                 .WithDescription("Pushes the latest generated Azure DevOps pipeline files to the configured Git repository.")

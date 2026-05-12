@@ -988,7 +988,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("GenerateProjectBicep")
                 .WithSummary("Generate Bicep files for the entire project (mono-repo)")
                 .WithDescription("Generates Bicep files for all configurations in the project, organized as a mono-repo with a shared Common folder and per-config deployment folders.")
@@ -1011,7 +1011,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("DownloadProjectBicep")
                 .WithSummary("Download generated Bicep files for a project")
                 .WithDescription("Downloads the latest generated mono-repo Bicep files for the given project as a ZIP archive.")
@@ -1062,7 +1062,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("PushProjectBicepToGit")
                 .WithSummary("Push project-level Bicep files to Git (mono-repo)")
                 .WithDescription("Pushes the latest project-level generated Bicep files to the configured Git repository. Used in MonoRepo mode.")
@@ -1097,7 +1097,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("GenerateProjectPipeline")
                 .WithSummary("Generate pipeline files for the entire project (mono-repo)")
                 .WithDescription("Generates Azure DevOps pipeline YAML files for all configurations in the project.")
@@ -1120,7 +1120,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("DownloadProjectPipeline")
                 .WithSummary("Download generated pipeline files for a project")
                 .WithDescription("Downloads the latest generated mono-repo pipeline files for the given project as a ZIP archive.")
@@ -1171,7 +1171,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("PushProjectPipelineToGit")
                 .WithSummary("Push project-level pipeline files to Git (mono-repo)")
                 .WithDescription("Pushes the latest project-level generated pipeline files to the configured Git repository. Used in MonoRepo mode.")
@@ -1199,7 +1199,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("GenerateProjectBootstrapPipeline")
                 .WithSummary("Generate the Azure DevOps bootstrap pipeline for a project")
                 .WithDescription("Generates bootstrap.pipeline.yml â€” an idempotent Azure DevOps pipeline that provisions pipeline definitions, variable groups and authorizations via az devops CLI.")
@@ -1223,7 +1223,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("DownloadProjectBootstrapPipeline")
                 .WithSummary("Download the latest bootstrap pipeline as a ZIP archive")
                 .WithDescription("Returns a ZIP archive containing the latest generated bootstrap.pipeline.yml for the given project.")
@@ -1274,7 +1274,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("PushProjectBootstrapPipelineToGit")
                 .WithSummary("Push the bootstrap pipeline file to Git (Azure DevOps)")
                 .WithDescription("Pushes the latest generated bootstrap.pipeline.yml to the configured Git repository.")
@@ -1300,6 +1300,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("PushProjectGeneratedArtifactsToGit")
                 .WithSummary("Push generated project artifacts to Git in a single commit (mono-repo)")
                 .WithDescription("Pushes the latest project-level generated Bicep, pipeline, and bootstrap pipeline files to the configured Git repository in one provider call and one commit.")
@@ -1349,6 +1350,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("PushProjectArtifactsToMultiRepo")
                 .WithSummary("Push project artifacts to one or two repositories (SplitInfraCode multi push)")
                 .WithDescription("Pushes the latest project-level generated artifacts to the requested infrastructure-flagged repository (Bicep + infra pipeline + bootstrap), the requested application-code repository (app pipeline files), or both in independent commits. Per-repo errors are reported in the response, not as HTTP errors.")

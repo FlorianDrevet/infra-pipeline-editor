@@ -4,6 +4,7 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Commands.PushBicepToGit
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetBicepFileContent;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
+using InfraFlowSculptor.Api.RateLimiting;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +36,7 @@ public static class BicepGenerationController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("GenerateBicep")
                 .Produces<GenerateBicepResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status404NotFound)
@@ -55,6 +57,7 @@ public static class BicepGenerationController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("DownloadBicep")
                 .Produces(StatusCodes.Status200OK, contentType: "application/zip")
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -90,6 +93,7 @@ public static class BicepGenerationController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
                 .WithName("PushBicepToGit")
                 .WithSummary("Push generated Bicep files to Git")
                 .WithDescription("Pushes the latest generated Bicep files to the configured Git repository, creating or updating the specified branch.")
