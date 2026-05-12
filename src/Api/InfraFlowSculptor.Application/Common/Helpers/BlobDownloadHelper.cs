@@ -12,6 +12,16 @@ namespace InfraFlowSculptor.Application.Common.Helpers;
 internal static class BlobDownloadHelper
 {
     /// <summary>
+    /// Options for partitioning the latest blob folder into two logical buckets.
+    /// </summary>
+    internal sealed record DualBucketBlobFilesOptions(
+        string FirstBucketName,
+        string SecondBucketName,
+        string? LegacyDefaultBucketName = null,
+        Func<Dictionary<string, string>, IReadOnlyDictionary<string, string>>? FirstPostProcess = null,
+        Func<Dictionary<string, string>, IReadOnlyDictionary<string, string>>? SecondPostProcess = null);
+
+    /// <summary>
     /// Lists blobs under <paramref name="blobPrefix"/>, finds the latest timestamp folder,
     /// zips all matching files, and returns the byte array with a file name.
     /// </summary>
@@ -129,6 +139,7 @@ internal static class BlobDownloadHelper
     /// Lists blobs under <paramref name="blobPrefix"/>, finds the latest timestamp folder,
     /// and partitions the files into two named buckets inside that folder.
     /// </summary>
+    /// <param name="options">Options describing the two bucket names and optional post-processing.</param>
     internal static async Task<ErrorOr<(IReadOnlyDictionary<string, string> First, IReadOnlyDictionary<string, string> Second)>>
         GetLatestDualBucketBlobFilesAsync(
             IBlobService blobService,
@@ -136,11 +147,7 @@ internal static class BlobDownloadHelper
             int prefixSegmentCount,
             Func<Guid, Error> notFoundErrorFactory,
             Guid entityId,
-            string firstBucketName,
-            string secondBucketName,
-            string? legacyDefaultBucketName = null,
-            Func<Dictionary<string, string>, IReadOnlyDictionary<string, string>>? firstPostProcess = null,
-            Func<Dictionary<string, string>, IReadOnlyDictionary<string, string>>? secondPostProcess = null)
+            DualBucketBlobFilesOptions options)
     {
         var latestFilesResult = await GetLatestBlobFilesCoreAsync(
             blobService,
@@ -156,36 +163,36 @@ internal static class BlobDownloadHelper
 
         foreach (var (relativePath, content) in latestFilesResult.Value)
         {
-            if (TryStripBucketPrefix(relativePath, firstBucketName, out var firstRelativePath))
+            if (TryStripBucketPrefix(relativePath, options.FirstBucketName, out var firstRelativePath))
             {
                 firstFiles[firstRelativePath] = content;
                 continue;
             }
 
-            if (TryStripBucketPrefix(relativePath, secondBucketName, out var secondRelativePath))
+            if (TryStripBucketPrefix(relativePath, options.SecondBucketName, out var secondRelativePath))
             {
                 secondFiles[secondRelativePath] = content;
                 continue;
             }
 
-            if (string.Equals(legacyDefaultBucketName, firstBucketName, StringComparison.Ordinal))
+            if (string.Equals(options.LegacyDefaultBucketName, options.FirstBucketName, StringComparison.Ordinal))
             {
                 firstFiles[relativePath] = content;
                 continue;
             }
 
-            if (string.Equals(legacyDefaultBucketName, secondBucketName, StringComparison.Ordinal))
+            if (string.Equals(options.LegacyDefaultBucketName, options.SecondBucketName, StringComparison.Ordinal))
                 secondFiles[relativePath] = content;
         }
 
         if (firstFiles.Count == 0 && secondFiles.Count == 0)
             return notFoundErrorFactory(entityId);
 
-        IReadOnlyDictionary<string, string> firstResult = firstPostProcess is not null
-            ? firstPostProcess(firstFiles)
+        IReadOnlyDictionary<string, string> firstResult = options.FirstPostProcess is not null
+            ? options.FirstPostProcess(firstFiles)
             : firstFiles;
-        IReadOnlyDictionary<string, string> secondResult = secondPostProcess is not null
-            ? secondPostProcess(secondFiles)
+        IReadOnlyDictionary<string, string> secondResult = options.SecondPostProcess is not null
+            ? options.SecondPostProcess(secondFiles)
             : secondFiles;
 
         return (firstResult, secondResult);

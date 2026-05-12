@@ -268,11 +268,12 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
             prefixSegmentCount: 4,
             notFoundErrorFactory: Errors.Project.PipelineFilesNotFoundError,
             entityId: projectId,
-            firstBucketName: InfraBucket,
-            secondBucketName: AppBucket,
-            legacyDefaultBucketName: InfraBucket,
-            firstPostProcess: GeneratedPipelinePathNormalizer.Normalize,
-            secondPostProcess: GeneratedPipelinePathNormalizer.Normalize);
+            new BlobDownloadHelper.DualBucketBlobFilesOptions(
+                FirstBucketName: InfraBucket,
+                SecondBucketName: AppBucket,
+                LegacyDefaultBucketName: InfraBucket,
+                FirstPostProcess: GeneratedPipelinePathNormalizer.Normalize,
+                SecondPostProcess: GeneratedPipelinePathNormalizer.Normalize));
     }
 
     private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadLatestArtifactFilesAsync(

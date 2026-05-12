@@ -65,8 +65,6 @@ public sealed class GenerateProjectPipelineCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        var projectVariableGroups = project.PipelineVariableGroups.ToList();
-
         // Resolve the project-level target (alias "default") to determine base paths within the repo.
         // Heterogeneous multi-repo projects will simply fall back to null paths here — the per-config
         // push handlers are responsible for enforcing the routing at push time.
@@ -84,7 +82,12 @@ public sealed class GenerateProjectPipelineCommandHandler(
 
         foreach (var config in configs)
         {
-            var generationRequest = BuildGenerationRequest(config, projectVariableGroups, project, bicepGenerators, bicepBasePath);
+            var generationRequest = GenerationRequestBuilder.BuildForPipeline(
+                config,
+                project.PipelineVariableGroups,
+                project.AgentPoolName,
+                bicepBasePath,
+                bicepGenerators);
             var result = pipelineGenerationEngine.Generate(generationRequest, config.Name, isMonoRepo: true);
 
             // Generate app pipelines for compute resources in this config
@@ -220,128 +223,6 @@ public sealed class GenerateProjectPipelineCommandHandler(
         return path.StartsWith(azureDevOpsPrefix, StringComparison.Ordinal)
             ? $".azuredevops/Common/{path[azureDevOpsPrefix.Length..]}"
             : $".azuredevops/Common/{path}";
-    }
-
-    private static GenerationRequest BuildGenerationRequest(
-        InfrastructureConfigReadModel config,
-        List<Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup> projectVariableGroups,
-        Domain.ProjectAggregate.Project? project,
-        IEnumerable<IResourceTypeBicepSpecGenerator> generators,
-        string? bicepBasePath)
-    {
-        var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);
-
-        var resources = config.ResourceGroups
-            .SelectMany(rg => rg.Resources
-                .Where(r => !r.IsExisting)
-                .Select(r => new ResourceDefinition
-            {
-                Name = r.Name,
-                Type = r.ResourceType,
-                ResourceGroupName = rg.Name,
-                Sku = r.Properties.GetValueOrDefault("sku", string.Empty),
-                Properties = r.Properties,
-                ResourceAbbreviation = GetResourceAbbreviation(r.ResourceType, mergedAbbreviations),
-                EnvironmentConfigs = r.EnvironmentConfigs
-                    .ToDictionary(
-                        ec => ec.EnvironmentName,
-                        ec => (IReadOnlyDictionary<string, string>)ec.Properties),
-                AssignedUserAssignedIdentityName = r.AssignedUserAssignedIdentityName,
-            }))
-            .ToList();
-
-        var resourceGroups = config.ResourceGroups
-            .Select(rg => new ResourceGroupDefinition
-            {
-                Name = rg.Name,
-                Location = rg.Location,
-                ResourceAbbreviation = "rg"
-            })
-            .ToList();
-
-        var environmentNames = config.Environments.Select(e => e.Name).ToList();
-
-        var environments = config.Environments
-            .Select(e => new EnvironmentDefinition
-            {
-                Name = e.Name,
-                ShortName = e.ShortName,
-                Location = e.Location,
-                Prefix = e.Prefix,
-                Suffix = e.Suffix,
-                AzureResourceManagerConnection = e.AzureResourceManagerConnection,
-                SubscriptionId = e.SubscriptionId,
-                Tags = e.Tags,
-            })
-            .ToList();
-
-        var namingContext = new NamingContext
-        {
-            DefaultTemplate = config.NamingContext.DefaultTemplate,
-            ResourceTemplates = config.NamingContext.ResourceTemplates,
-            ResourceAbbreviations = mergedAbbreviations,
-        };
-
-        // Derive PVG mappings from app settings linked to each variable group
-        var pipelineVariableGroups = projectVariableGroups
-            .Select(g =>
-            {
-                var mappings = config.AppSettings
-                    .Where(s => s.IsViaVariableGroup && s.VariableGroupId.HasValue
-                        && s.VariableGroupId.Value == g.Id.Value)
-                    .Select(s => new PipelineVariableMappingDefinition
-                    {
-                        PipelineVariableName = s.PipelineVariableName!,
-                        BicepParameterName = AppSettingPipelineParameterNameHelper.ResolveBicepParameterName(s),
-                    })
-                    .ToList();
-
-                return new PipelineVariableGroupDefinition
-                {
-                    GroupName = g.GroupName,
-                    Mappings = mappings,
-                };
-            })
-            .ToList();
-
-        return new GenerationRequest
-        {
-            Resources = resources,
-            ResourceGroups = resourceGroups,
-            Environments = environments,
-            EnvironmentNames = environmentNames,
-            NamingContext = namingContext,
-            RoleAssignments = [],
-            AppSettings = [],
-            ExistingResourceReferences = [],
-            PipelineVariableGroups = pipelineVariableGroups,
-            SecureParameterOverrides = SecureParameterOverrideHelper.DeriveSecureParameterOverrides(
-                resources, generators, config.SecureParameterMappings, pipelineVariableGroups),
-            AgentPoolName = project?.AgentPoolName,
-            BicepBasePath = bicepBasePath,
-        };
-    }
-
-    private static string GetResourceAbbreviation(
-        string azureResourceType,
-        IReadOnlyDictionary<string, string> mergedAbbreviations)
-    {
-        var typeName = AzureResourceTypes.GetFriendlyName(azureResourceType);
-        return mergedAbbreviations.TryGetValue(typeName, out var abbr)
-            ? abbr
-            : ResourceAbbreviationCatalog.GetAbbreviation(typeName);
-    }
-
-    private static IReadOnlyDictionary<string, string> MergeAbbreviations(
-        IReadOnlyDictionary<string, string> overrides)
-    {
-        var merged = new Dictionary<string, string>(ResourceAbbreviationCatalog.GetAll(), StringComparer.OrdinalIgnoreCase);
-        foreach (var (key, value) in overrides)
-        {
-            merged[key] = value;
-        }
-
-        return merged;
     }
 
     /// <summary>

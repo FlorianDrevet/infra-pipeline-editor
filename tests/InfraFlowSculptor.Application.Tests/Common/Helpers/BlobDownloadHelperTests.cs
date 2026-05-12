@@ -43,9 +43,10 @@ public sealed class BlobDownloadHelperTests
             prefixSegmentCount: 4,
             notFoundErrorFactory: Errors.Project.PipelineFilesNotFoundError,
             entityId,
-            firstBucketName: "infra",
-            secondBucketName: "app",
-            legacyDefaultBucketName: "infra");
+            new BlobDownloadHelper.DualBucketBlobFilesOptions(
+                FirstBucketName: "infra",
+                SecondBucketName: "app",
+                LegacyDefaultBucketName: "infra"));
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -69,9 +70,10 @@ public sealed class BlobDownloadHelperTests
             prefixSegmentCount: 4,
             notFoundErrorFactory: Errors.Project.PipelineFilesNotFoundError,
             entityId,
-            firstBucketName: "infra",
-            secondBucketName: "app",
-            legacyDefaultBucketName: "infra");
+            new BlobDownloadHelper.DualBucketBlobFilesOptions(
+                FirstBucketName: "infra",
+                SecondBucketName: "app",
+                LegacyDefaultBucketName: "infra"));
 
         // Assert
         result.IsError.Should().BeTrue();
