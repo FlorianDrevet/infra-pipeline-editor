@@ -4,6 +4,7 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Commands.PushPipelineTo
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetPipelineFileContent;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
+using InfraFlowSculptor.Api.Common;
 using InfraFlowSculptor.Api.RateLimiting;
 using MapsterMapper;
 using MediatR;
@@ -66,7 +67,12 @@ public static class PipelineGenerationController
             group.MapGet("/{configId:guid}/files/{*filePath}",
                     async (Guid configId, string filePath, IMediator mediator) =>
                     {
-                        var query = new GetPipelineFileContentQuery(configId, filePath);
+                        if (!SafeRelativePath.TryNormalize(filePath, out var safePath))
+                        {
+                            return Results.BadRequest(new { message = "Invalid file path." });
+                        }
+
+                        var query = new GetPipelineFileContentQuery(configId, safePath);
                         var result = await mediator.Send(query);
 
                         return result.Match(

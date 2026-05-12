@@ -52,6 +52,22 @@ public sealed class EnumValidationTests
         results.Should().BeEmpty();
     }
 
+    [Theory]
+    [InlineData("first")]
+    [InlineData("SECOND")]
+    [InlineData("sEcOnD")]
+    public void Given_DefinedEnumNameWithDifferentCasing_When_Validate_Then_NoError(string value)
+    {
+        // Arrange
+        var sut = new StringHolder { Value = value };
+
+        // Act
+        var results = ValidateInstance(sut);
+
+        // Assert
+        results.Should().BeEmpty();
+    }
+
     [Fact]
     public void Given_UndefinedEnumName_When_Validate_Then_ReturnsError()
     {

@@ -1,5 +1,6 @@
 using ErrorOr;
 using FluentValidation;
+using InfraFlowSculptor.Application.Common.Interfaces;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.Common.Behaviors;
@@ -19,7 +20,7 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IValidator<TRequest>
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        if (validator is null)
+        if (validator is null || request is not ICommandBase)
         {
             return await next();
         }

@@ -42,6 +42,7 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 ## Unit of Work [2026-03-30]
 
 - `IUnitOfWork` / `UnitOfWork` wraps `ProjectDbContext.SaveChangesAsync`
+- `ValidationBehavior` only applies to commands implementing `ICommandBase`; queries must bypass FluentValidation even if a validator exists for the query type.
 - `UnitOfWorkBehavior` only applies to `ICommand<T>` (via `ICommandBase` constraint)
 - Pipeline order: `ValidationBehavior` → `UnitOfWorkBehavior` → Handler
 - **Critical:** Repositories MUST NOT call `SaveChangesAsync()`.
