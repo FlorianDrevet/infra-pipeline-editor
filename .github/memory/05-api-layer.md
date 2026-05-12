@@ -25,6 +25,13 @@ result.Match(
 );
 ```
 
+## Request Body Limits [2026-05-12]
+
+- `Program.cs` now registers `AddApiRequestLimits(builder.Configuration)`.
+- `ApiRequestLimitsOptions` binds the `RequestLimits` section and defaults `MaxRequestBodySizeBytes` to `52_428_800` (50 MB).
+- `AddApiRequestLimits(...)` projects that typed option into `KestrelServerOptions.Limits.MaxRequestBodySize` and validates the configuration at startup.
+- Focused coverage lives in `tests/InfraFlowSculptor.Api.Tests/Security/RequestLimitsServiceCollectionExtensionsTests.cs`.
+
 ## Contracts Pattern
 
 - Request: `[Required, GuidValidation]` on properties, prefer `string` + `GuidValidation` for body GUIDs
@@ -54,7 +61,8 @@ result.Match(
 ## Tag Validation [2026-04-16]
 
 - Azure tag limits enforced: key max 512 chars, value max 256 chars, max 15 tags per entity.
-- Validated in `SetInfraConfigTagsCommandValidator` and `SetProjectTagsCommandValidator`.
+- Contract-layer limits are now centralized in `TagRequestConstraints` and enforced on request DTOs via `TagRequest` string-length attributes plus `MaxCollectionCountAttribute` on `SetProjectTagsRequest`, `SetInfraConfigTagsRequest`, `AddProjectEnvironmentRequest`, and `UpdateProjectEnvironmentRequest`.
+- Application validators (`SetInfraConfigTagsCommandValidator`, `SetProjectTagsCommandValidator`) still validate the command-layer equivalents.
 
 ## Mapster Mappings
 

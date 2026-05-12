@@ -13,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddApiCors(builder.Configuration);
+builder.Services.AddApiRequestLimits(builder.Configuration);
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("IsAdmin", policy => policy.RequireRole("Admin")); 

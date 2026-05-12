@@ -6,10 +6,10 @@ namespace InfraFlowSculptor.Contracts.Common.Requests;
 public class TagRequest
 {
     /// <summary>Tag name (key).</summary>
-    [Required, StringLength(512)]
+    [Required, StringLength(TagRequestConstraints.MaxNameLength)]
     public required string Name { get; init; }
 
     /// <summary>Tag value.</summary>
-    [Required, StringLength(256)]
+    [Required, StringLength(TagRequestConstraints.MaxValueLength)]
     public required string Value { get; init; }
 }
