@@ -543,7 +543,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
       onOpenAddResourceDialog: (resourceGroupId) => this.openAddResourceDialog(resourceGroupId),
       onOpenDeleteResourceGroupDialog: (resourceGroup) => this.openDeleteResourceGroupDialog(resourceGroup),
       onOpenDeleteResourceDialog: (resource, resourceGroupId) => {
-        this.openDeleteResourceDialog(resource, resourceGroupId).catch(() => undefined);
+        this.openDeleteResourceDialog(resource, resourceGroupId);
       },
       isParentExpanded: (parentId) => this.isParentExpanded(parentId),
       onToggleParentExpand: (parentId) => this.toggleParentExpand(parentId),

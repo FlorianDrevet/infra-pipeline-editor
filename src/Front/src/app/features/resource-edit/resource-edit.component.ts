@@ -79,12 +79,11 @@ import { AppConfigurationKeyResponse } from './models/app-configuration-key.inte
 import { AddAppConfigKeyDialogComponent, AddAppConfigKeyDialogData } from './add-app-config-key-dialog/add-app-config-key-dialog.component';
 import { RoleAssignmentImpactDialogComponent, RoleAssignmentImpactDialogData } from './role-assignment-impact-dialog/role-assignment-impact-dialog.component';
 import { CreateUaiDialogComponent } from './create-uai-dialog/create-uai-dialog.component';
-import { CustomDomainService } from '../../shared/services/custom-domain.service';
-import { CustomDomainResponse, AddCustomDomainRequest } from '../../shared/interfaces/custom-domain.interface';
 import { PageContextService } from '../../shared/services/page-context.service';
-import { AddCustomDomainDialogComponent, AddCustomDomainDialogData } from './add-custom-domain-dialog/add-custom-domain-dialog.component';
 import { CompactSelectComponent } from '../../shared/components/compact-select/compact-select.component';
 import { DeploymentConfigComponent } from '../../shared/components/deployment-config/deployment-config.component';
+import { ResourceEditCustomDomainsSectionComponent } from './sections/custom-domains/resource-edit-custom-domains-section.component';
+import { createResourceEditCustomDomainsSectionController } from './sections/custom-domains/resource-edit-custom-domains-section.controller';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
@@ -366,6 +365,7 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
     MatExpansionModule,
     CompactSelectComponent,
     DeploymentConfigComponent,
+    ResourceEditCustomDomainsSectionComponent,
     ToggleSectionCardComponent,
     DsButtonComponent,
     DsTextFieldComponent,
@@ -406,7 +406,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly secureParamMappingService = inject(SecureParameterMappingService);
   private readonly configKeyService = inject(AppConfigurationKeyService);
   private readonly nameAvailabilityService = inject(NameAvailabilityService);
-  private readonly customDomainService = inject(CustomDomainService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
   private readonly pageContextService = inject(PageContextService);
@@ -420,6 +419,10 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly resource = signal<ResourceData | null>(null);
   protected readonly config = signal<InfrastructureConfigResponse | null>(null);
   protected readonly project = signal<ProjectResponse | null>(null);
+  protected readonly customDomainsSection = createResourceEditCustomDomainsSectionController({
+    getResourceId: () => this.resourceId,
+    getEnvironments: () => this.environments(),
+  });
   protected readonly isLoading = signal(false);
   protected readonly isSaving = signal(false);
   protected readonly loadError = signal('');
@@ -726,15 +729,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   );
 
   // ─── Custom Domains ───
-  protected readonly customDomains = signal<CustomDomainResponse[]>([]);
-  protected readonly customDomainsLoading = signal(false);
-  protected readonly customDomainsError = signal('');
   protected readonly supportsCustomDomains = computed(() =>
     ['WebApp', 'FunctionApp', 'ContainerApp'].includes(this.resourceType)
   );
-  protected customDomainsForEnv(envName: string): CustomDomainResponse[] {
-    return this.customDomains().filter(d => d.environmentName === envName);
-  }
 
   /** App settings grouped by category for sectioned display */
   protected readonly appSettingsGrouped = computed(() => {
@@ -1052,7 +1049,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         this.loadAppSettings();
       }
       if (this.supportsCustomDomains()) {
-        this.loadCustomDomains();
+        void this.customDomainsSection.load();
       }
       if (this.supportsConfigKeys()) {
         this.loadConfigKeys();
@@ -1063,71 +1060,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       if (this.resourceType === 'SqlServer') {
         this.loadSecureParamMappings();
       }
-    } catch {
-      this.loadError.set('RESOURCE_EDIT.ERROR.LOAD_FAILED');
-    } finally {
-      this.isLoading.set(false);
-    }
-  }
-
-  private async loadResource(): Promise<ResourceData> {
-    switch (this.resourceType) {
-      case 'KeyVault':
-        return this.keyVaultService.getById(this.resourceId);
-      case 'RedisCache':
-        return this.redisCacheService.getById(this.resourceId);
-      case 'StorageAccount':
-        return this.storageAccountService.getById(this.resourceId);
-      case 'AppServicePlan':
-        return this.appServicePlanService.getById(this.resourceId);
-      case 'WebApp':
-        return this.webAppService.getById(this.resourceId);
-      case 'FunctionApp':
-        return this.functionAppService.getById(this.resourceId);
-      case 'UserAssignedIdentity':
-        return this.userAssignedIdentityService.getById(this.resourceId);
-      case 'AppConfiguration':
-        return this.appConfigurationService.getById(this.resourceId);
-      case 'ContainerAppEnvironment':
-        return this.containerAppEnvironmentService.getById(this.resourceId);
-      case 'ContainerApp':
-        return this.containerAppService.getById(this.resourceId);
-      case 'LogAnalyticsWorkspace':
-        return this.logAnalyticsWorkspaceService.getById(this.resourceId);
-      case 'ApplicationInsights':
-        return this.applicationInsightsService.getById(this.resourceId);
-      case 'CosmosDb':
-        return this.cosmosDbService.getById(this.resourceId);
-      case 'ServiceBusNamespace':
-        return this.serviceBusNamespaceService.getById(this.resourceId);
-      case 'ContainerRegistry':
-        return this.containerRegistryService.getById(this.resourceId);
-      case 'SqlServer':
-        return this.sqlServerService.getById(this.resourceId);
-      case 'SqlDatabase':
-        return this.sqlDatabaseService.getById(this.resourceId);
-      default:
-        throw new Error(`Unknown resource type: ${this.resourceType}`);
-    }
-  }
-
-  private buildGeneralForm(resource: ResourceData): void {
-    const result = buildResourceEditGeneralForm({
-      fb: this.fb,
-      resourceType: this.resourceType,
-      resource,
-      resolveAcrAuthMode: (containerRegistryId, acrAuthMode) => this.resolveAcrAuthMode(containerRegistryId, acrAuthMode),
-    });
-
-    this.acrAccessChecking.set(false);
-    this.resetAcrPullAccessState();
-    this.generalForm = result.form;
-    this.deploymentMode.set(result.deploymentMode);
-    this.selectedContainerRegistryId.set(result.selectedContainerRegistryId);
-    this.acrAuthMode.set(result.acrAuthMode);
-    this.storageCorsRulesDraft.set(result.storageCorsRulesDraft);
-    this.storageTableCorsRulesDraft.set(result.storageTableCorsRulesDraft);
-    this.lifecycleRulesDraft.set(result.lifecycleRulesDraft);
 
     // Initialize runtime version options for WebApp/FunctionApp
     if (this.resourceType === 'WebApp') {

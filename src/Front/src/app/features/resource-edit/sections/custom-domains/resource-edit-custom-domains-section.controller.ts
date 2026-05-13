@@ -1,0 +1,116 @@
+import { inject, signal } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+
+import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { CustomDomainResponse } from '../../../../shared/interfaces/custom-domain.interface';
+import { EnvironmentDefinitionResponse } from '../../../../shared/interfaces/infra-config.interface';
+import { CustomDomainService } from '../../../../shared/services/custom-domain.service';
+import {
+  AddCustomDomainDialogComponent,
+  AddCustomDomainDialogData,
+} from '../../add-custom-domain-dialog/add-custom-domain-dialog.component';
+import { ResourceEditCustomDomainsSection } from './resource-edit-custom-domains-section.interface';
+
+interface ResourceEditCustomDomainsSectionControllerDependencies {
+  getResourceId(): string;
+  getEnvironments(): EnvironmentDefinitionResponse[];
+}
+
+export function createResourceEditCustomDomainsSectionController(
+  dependencies: ResourceEditCustomDomainsSectionControllerDependencies,
+): ResourceEditCustomDomainsSection {
+  const dialog = inject(MatDialog);
+  const customDomainService = inject(CustomDomainService);
+
+  const customDomains = signal<CustomDomainResponse[]>([]);
+  const isLoading = signal(false);
+  const errorKey = signal('');
+
+  const load = async (): Promise<void> => {
+    const resourceId = dependencies.getResourceId();
+    if (!resourceId) {
+      customDomains.set([]);
+      return;
+    }
+
+    isLoading.set(true);
+    errorKey.set('');
+    try {
+      const domains = await customDomainService.getByResourceId(resourceId);
+      customDomains.set(domains);
+    } catch {
+      errorKey.set('RESOURCE_EDIT.CUSTOM_DOMAINS.LOAD_ERROR');
+    } finally {
+      isLoading.set(false);
+    }
+  };
+
+  const domainsForEnvironment = (environmentName: string): CustomDomainResponse[] =>
+    customDomains().filter((domain) => domain.environmentName === environmentName);
+
+  const openAddDialog = (environmentName: string): void => {
+    const dialogRef = dialog.open(AddCustomDomainDialogComponent, {
+      width: '520px',
+      data: {
+        environments: dependencies.getEnvironments(),
+        existingDomains: customDomains(),
+        preselectedEnvironment: environmentName,
+      } satisfies AddCustomDomainDialogData,
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (!result) {
+        return;
+      }
+
+      isLoading.set(true);
+      errorKey.set('');
+      try {
+        await customDomainService.add(dependencies.getResourceId(), result);
+        await load();
+      } catch {
+        errorKey.set('RESOURCE_EDIT.CUSTOM_DOMAINS.ADD_ERROR');
+      } finally {
+        isLoading.set(false);
+      }
+    });
+  };
+
+  const removeDomain = (domain: CustomDomainResponse): void => {
+    const dialogRef = dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_CONFIRM_TITLE',
+        messageKey: 'RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_CONFIRM_MESSAGE',
+        messageParams: { domain: domain.domainName },
+        confirmKey: 'COMMON.DELETE',
+        cancelKey: 'COMMON.CANCEL',
+      } satisfies ConfirmDialogData,
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) {
+        return;
+      }
+
+      isLoading.set(true);
+      errorKey.set('');
+      try {
+        await customDomainService.remove(dependencies.getResourceId(), domain.id);
+        customDomains.update((currentDomains) => currentDomains.filter((currentDomain) => currentDomain.id !== domain.id));
+      } catch {
+        errorKey.set('RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_ERROR');
+      } finally {
+        isLoading.set(false);
+      }
+    });
+  };
+
+  return {
+    errorKey,
+    isLoading,
+    load,
+    domainsForEnvironment,
+    openAddDialog,
+    removeDomain,
+  };
+}
