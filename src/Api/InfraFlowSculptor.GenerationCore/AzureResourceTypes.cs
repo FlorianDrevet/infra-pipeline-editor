@@ -1,5 +1,4 @@
 using System.Collections.Frozen;
-using System.Diagnostics.CodeAnalysis;
 
 namespace InfraFlowSculptor.GenerationCore;
 
@@ -60,8 +59,7 @@ public static class AzureResourceTypes
     /// Maps Azure ARM resource type strings to their friendly type names.
     /// Case-insensitive lookup.
     /// </summary>
-    [SuppressMessage("Minor Bug", "S3887:Use an immutable collection or reduce the accessibility of the non-private readonly field", Justification = "Backed by a FrozenDictionary which is immutable; the IReadOnlyDictionary interface used as the declared type also prevents mutation by callers.")]
-    public static IReadOnlyDictionary<string, string> ArmTypeToFriendlyName { get; } =
+    private static readonly FrozenDictionary<string, string> ArmTypeToFriendlyNameMap =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             [ArmTypes.KeyVaultType] = KeyVault,
@@ -83,6 +81,12 @@ public static class AzureResourceTypes
             [ArmTypes.ContainerRegistryType] = ContainerRegistry,
             [ArmTypes.EventHubNamespaceType] = EventHubNamespace,
         }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Maps Azure ARM resource type strings to their friendly type names.
+    /// Case-insensitive lookup.
+    /// </summary>
+    public static IReadOnlyDictionary<string, string> ArmTypeToFriendlyName => ArmTypeToFriendlyNameMap;
 
     /// <summary>
     /// All known friendly type names.

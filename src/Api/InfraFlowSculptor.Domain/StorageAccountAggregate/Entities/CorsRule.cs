@@ -1,7 +1,6 @@
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
-using System.Diagnostics.CodeAnalysis;
 using System.Collections.ObjectModel;
 
 namespace InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
@@ -50,8 +49,7 @@ public class CorsRule : Entity<CorsRuleId>
         _exposedHeadersView = _exposedHeaders.AsReadOnly();
     }
 
-    [SuppressMessage("Code Smell", "S1144:Unused private types or members should be removed", Justification = "Required by EF Core materialization.")]
-    private CorsRule()
+    internal CorsRule()
     {
         _allowedOriginsView = _allowedOrigins.AsReadOnly();
         _allowedMethodsView = _allowedMethods.AsReadOnly();
