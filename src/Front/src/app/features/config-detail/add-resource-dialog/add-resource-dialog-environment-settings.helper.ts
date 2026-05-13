@@ -29,55 +29,60 @@ export interface AddResourceEnvironmentSettingsContext {
   readonly envFormArray: FormArray<FormGroup>;
 }
 
+type AddResourceEnvironmentTextValue = string | null;
+type AddResourceEnvironmentNumberValue = number | string | null;
+type AddResourceEnvironmentBooleanValue = boolean | null;
+type AddResourceEnvironmentScalarValue = string | number | boolean | null | undefined;
+
 interface AddResourceEnvironmentFormValue {
-  readonly sku?: string | null;
-  readonly skuName?: string | null;
-  readonly capacity?: number | string | null;
-  readonly maxMemoryPolicy?: string | null;
-  readonly alwaysOn?: boolean | null;
-  readonly httpsOnly?: boolean | null;
-  readonly dockerImageTag?: string | null;
-  readonly maxInstanceCount?: number | string | null;
-  readonly softDeleteRetentionInDays?: number | string | null;
-  readonly purgeProtectionEnabled?: boolean | null;
-  readonly disableLocalAuth?: boolean | null;
-  readonly publicNetworkAccess?: string | null;
-  readonly workloadProfileType?: string | null;
-  readonly internalLoadBalancerEnabled?: boolean | null;
-  readonly zoneRedundancyEnabled?: boolean | null;
-  readonly cpuCores?: string | null;
-  readonly memoryGi?: string | null;
-  readonly minReplicas?: number | string | null;
-  readonly maxReplicas?: number | string | null;
-  readonly ingressEnabled?: boolean | null;
-  readonly ingressTargetPort?: number | string | null;
-  readonly ingressExternal?: boolean | null;
-  readonly transportMethod?: string | null;
-  readonly readinessProbePath?: string | null;
-  readonly readinessProbePort?: number | string | null;
-  readonly livenessProbePath?: string | null;
-  readonly livenessProbePort?: number | string | null;
-  readonly startupProbePath?: string | null;
-  readonly startupProbePort?: number | string | null;
-  readonly retentionInDays?: number | string | null;
-  readonly dailyQuotaGb?: number | string | null;
-  readonly samplingPercentage?: number | string | null;
-  readonly disableIpMasking?: boolean | null;
-  readonly ingestionMode?: string | null;
-  readonly databaseApiType?: string | null;
-  readonly consistencyLevel?: string | null;
-  readonly maxStalenessPrefix?: number | string | null;
-  readonly maxIntervalInSeconds?: number | string | null;
-  readonly enableAutomaticFailover?: boolean | null;
-  readonly enableMultipleWriteLocations?: boolean | null;
-  readonly backupPolicyType?: string | null;
-  readonly enableFreeTier?: boolean | null;
-  readonly minimalTlsVersion?: string | null;
-  readonly maxSizeGb?: number | string | null;
-  readonly zoneRedundant?: boolean | null;
-  readonly minimumTlsVersion?: string | null;
-  readonly adminUserEnabled?: boolean | null;
-  readonly zoneRedundancy?: boolean | null;
+  readonly sku?: AddResourceEnvironmentTextValue;
+  readonly skuName?: AddResourceEnvironmentTextValue;
+  readonly capacity?: AddResourceEnvironmentNumberValue;
+  readonly maxMemoryPolicy?: AddResourceEnvironmentTextValue;
+  readonly alwaysOn?: AddResourceEnvironmentBooleanValue;
+  readonly httpsOnly?: AddResourceEnvironmentBooleanValue;
+  readonly dockerImageTag?: AddResourceEnvironmentTextValue;
+  readonly maxInstanceCount?: AddResourceEnvironmentNumberValue;
+  readonly softDeleteRetentionInDays?: AddResourceEnvironmentNumberValue;
+  readonly purgeProtectionEnabled?: AddResourceEnvironmentBooleanValue;
+  readonly disableLocalAuth?: AddResourceEnvironmentBooleanValue;
+  readonly publicNetworkAccess?: AddResourceEnvironmentTextValue;
+  readonly workloadProfileType?: AddResourceEnvironmentTextValue;
+  readonly internalLoadBalancerEnabled?: AddResourceEnvironmentBooleanValue;
+  readonly zoneRedundancyEnabled?: AddResourceEnvironmentBooleanValue;
+  readonly cpuCores?: AddResourceEnvironmentTextValue;
+  readonly memoryGi?: AddResourceEnvironmentTextValue;
+  readonly minReplicas?: AddResourceEnvironmentNumberValue;
+  readonly maxReplicas?: AddResourceEnvironmentNumberValue;
+  readonly ingressEnabled?: AddResourceEnvironmentBooleanValue;
+  readonly ingressTargetPort?: AddResourceEnvironmentNumberValue;
+  readonly ingressExternal?: AddResourceEnvironmentBooleanValue;
+  readonly transportMethod?: AddResourceEnvironmentTextValue;
+  readonly readinessProbePath?: AddResourceEnvironmentTextValue;
+  readonly readinessProbePort?: AddResourceEnvironmentNumberValue;
+  readonly livenessProbePath?: AddResourceEnvironmentTextValue;
+  readonly livenessProbePort?: AddResourceEnvironmentNumberValue;
+  readonly startupProbePath?: AddResourceEnvironmentTextValue;
+  readonly startupProbePort?: AddResourceEnvironmentNumberValue;
+  readonly retentionInDays?: AddResourceEnvironmentNumberValue;
+  readonly dailyQuotaGb?: AddResourceEnvironmentNumberValue;
+  readonly samplingPercentage?: AddResourceEnvironmentNumberValue;
+  readonly disableIpMasking?: AddResourceEnvironmentBooleanValue;
+  readonly ingestionMode?: AddResourceEnvironmentTextValue;
+  readonly databaseApiType?: AddResourceEnvironmentTextValue;
+  readonly consistencyLevel?: AddResourceEnvironmentTextValue;
+  readonly maxStalenessPrefix?: AddResourceEnvironmentNumberValue;
+  readonly maxIntervalInSeconds?: AddResourceEnvironmentNumberValue;
+  readonly enableAutomaticFailover?: AddResourceEnvironmentBooleanValue;
+  readonly enableMultipleWriteLocations?: AddResourceEnvironmentBooleanValue;
+  readonly backupPolicyType?: AddResourceEnvironmentTextValue;
+  readonly enableFreeTier?: AddResourceEnvironmentBooleanValue;
+  readonly minimalTlsVersion?: AddResourceEnvironmentTextValue;
+  readonly maxSizeGb?: AddResourceEnvironmentNumberValue;
+  readonly zoneRedundant?: AddResourceEnvironmentBooleanValue;
+  readonly minimumTlsVersion?: AddResourceEnvironmentTextValue;
+  readonly adminUserEnabled?: AddResourceEnvironmentBooleanValue;
+  readonly zoneRedundancy?: AddResourceEnvironmentBooleanValue;
 }
 
 const CONTAINER_APP_PROBE_DEFAULTS: Readonly<Record<AddResourceProbeType, { path: string; port: number }>> = {
@@ -407,13 +412,13 @@ function getEnvironmentRawValue(envFormArray: FormArray<FormGroup>, index: numbe
   return envFormArray.at(index).getRawValue() as AddResourceEnvironmentFormValue;
 }
 
-function asStringOrNull(value: string | number | boolean | null | undefined): string | null {
+function asStringOrNull(value: AddResourceEnvironmentScalarValue): string | null {
   return typeof value === 'string' && value.length > 0
     ? value
     : null;
 }
 
-function asNumberOrNull(value: string | number | boolean | null | undefined): number | null {
+function asNumberOrNull(value: AddResourceEnvironmentScalarValue): number | null {
   if (value === null || value === undefined || value === '') {
     return null;
   }
@@ -421,7 +426,7 @@ function asNumberOrNull(value: string | number | boolean | null | undefined): nu
   return Number(value);
 }
 
-function asBooleanOrNull(value: string | number | boolean | null | undefined): boolean | null {
+function asBooleanOrNull(value: AddResourceEnvironmentScalarValue): boolean | null {
   return typeof value === 'boolean'
     ? value
     : null;

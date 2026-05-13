@@ -68,20 +68,24 @@ export function createConfigDetailVariableGroupsSectionController(
       width: '420px',
     });
 
-    dialogRef.afterClosed().subscribe(async (groupName?: string) => {
-      const projectId = dependencies.getProjectId();
-      if (!groupName || !projectId) {
-        return;
-      }
-
-      errorKey.set('');
-      try {
-        const newGroup = await projectService.addPipelineVariableGroup(projectId, { groupName });
-        variableGroups.update((currentGroups) => [...currentGroups, { ...newGroup, variables: newGroup.variables ?? [] }]);
-      } catch {
-        errorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
-      }
+    dialogRef.afterClosed().subscribe((groupName?: string) => {
+      void handleAddDialogClosed(groupName);
     });
+  };
+
+  const handleAddDialogClosed = async (groupName?: string): Promise<void> => {
+    const projectId = dependencies.getProjectId();
+    if (!groupName || !projectId) {
+      return;
+    }
+
+    errorKey.set('');
+    try {
+      const newGroup = await projectService.addPipelineVariableGroup(projectId, { groupName });
+      variableGroups.update((currentGroups) => [...currentGroups, { ...newGroup, variables: newGroup.variables ?? [] }]);
+    } catch {
+      errorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
+    }
   };
 
   const openRemoveDialog = (group: ProjectPipelineVariableGroupResponse): void => {
@@ -97,7 +101,15 @@ export function createConfigDetailVariableGroupsSectionController(
       data: dialogData,
     });
 
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+    dialogRef.afterClosed().subscribe((confirmed?: boolean) => {
+      void handleRemoveDialogClosed(group, confirmed);
+    });
+  };
+
+  const handleRemoveDialogClosed = async (
+    group: ProjectPipelineVariableGroupResponse,
+    confirmed?: boolean,
+  ): Promise<void> => {
       const projectId = dependencies.getProjectId();
       if (!confirmed || !projectId) {
         return;
@@ -110,7 +122,7 @@ export function createConfigDetailVariableGroupsSectionController(
       } catch {
         errorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_GROUP');
       }
-    });
+    };
   };
 
   return {

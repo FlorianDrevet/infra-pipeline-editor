@@ -17,7 +17,6 @@ import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/inter
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import {
-  DsButtonComponent,
   DsSelectOption,
 } from '../../shared/components/ds';
 import {

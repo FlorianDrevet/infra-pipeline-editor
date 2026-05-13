@@ -19,6 +19,10 @@ internal static class InfraPipelineSharedTemplateBuilder
     private const string SubscriptionDeploymentScope = "Subscription";
     private const string ValidationDeploymentMode = "Validation";
     private const string IncrementalDeploymentMode = "Incremental";
+    private const string StringParameterType = "string";
+    private const string ClosingBraceIndentedSix = "              }";
+    private const string ClosingBraceIndentedFour = "        }";
+    private const string ClosingBraceIndentedThree = "      }";
 
     internal static string GenerateSharedPrTemplate(
         IReadOnlyList<string> configNames,
@@ -72,7 +76,7 @@ internal static class InfraPipelineSharedTemplateBuilder
         sb.AppendLine("                $config = Get-Content -Path $configPath | ConvertFrom-Json");
         sb.AppendLine("                $config.analyzers.core.rules.'use-recent-api-versions'.level = \"warning\"");
         sb.AppendLine("                $config | ConvertTo-Json -Depth 99 | Set-Content -Path $configPath");
-        sb.AppendLine("              }");
+        sb.AppendLine(ClosingBraceIndentedSix);
         sb.AppendLine("            displayName: Update Bicep Config");
         sb.AppendLine("            name: UpdateBicepConfig");
         sb.AppendLine();
@@ -253,9 +257,9 @@ internal static class InfraPipelineSharedTemplateBuilder
         sb.AppendLine("        if (Test-Path -LiteralPath $templateDirectory) {");
         sb.AppendLine("          Write-Host \"Template directory contents:\"");
         sb.AppendLine("          Get-ChildItem -LiteralPath $templateDirectory -Recurse | Select-Object FullName | Format-Table -AutoSize | Out-String | Write-Host");
-        sb.AppendLine("        }");
+        sb.AppendLine(ClosingBraceIndentedFour);
         sb.AppendLine("        throw \"Template file not found: $templateFile\"");
-        sb.AppendLine("      }");
+        sb.AppendLine(ClosingBraceIndentedThree);
         sb.AppendLine();
         sb.AppendLine("      if (-not (Test-Path -LiteralPath $parametersFile)) {");
         sb.AppendLine("        $parametersDirectory = Split-Path -Path $parametersFile -Parent");
@@ -264,7 +268,7 @@ internal static class InfraPipelineSharedTemplateBuilder
         sb.AppendLine("          Write-Host \"Parameters directory contents:\"");
         sb.AppendLine("          Get-ChildItem -LiteralPath $parametersDirectory -Recurse | Select-Object FullName | Format-Table -AutoSize | Out-String | Write-Host");
         sb.AppendLine("          $fallbackFiles = @(Get-ChildItem -LiteralPath $parametersDirectory -Filter 'main.*.bicepparam' -File)");
-        sb.AppendLine("        }");
+        sb.AppendLine(ClosingBraceIndentedFour);
         sb.AppendLine();
         sb.AppendLine("        if ($fallbackFiles.Count -eq 1) {");
         sb.AppendLine("          $parametersFile = $fallbackFiles[0].FullName");
@@ -273,7 +277,7 @@ internal static class InfraPipelineSharedTemplateBuilder
         sb.AppendLine("        else {");
         sb.AppendLine("          throw \"Parameters file not found: $parametersFile\"");
         sb.AppendLine("        }");
-        sb.AppendLine("      }");
+        sb.AppendLine(ClosingBraceIndentedThree);
         sb.AppendLine();
         sb.AppendLine("      $resolvedTemplateFile = (Resolve-Path -LiteralPath $templateFile).Path");
         sb.AppendLine("      $resolvedParametersFile = (Resolve-Path -LiteralPath $parametersFile).Path");
@@ -370,7 +374,7 @@ internal static class InfraPipelineSharedTemplateBuilder
         string name,
         IReadOnlyList<string> values)
     {
-        AppendParameter(stringBuilder, name, "string");
+        AppendParameter(stringBuilder, name, StringParameterType);
         stringBuilder.AppendLine("    values:");
         foreach (var value in values)
         {

@@ -118,4 +118,5 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 ## Sonar Notes
 
 - Accepted rule exceptions: duplicate strings in migrations (`S1192`) and a `new_duplicated_lines_density` quality-gate threshold of `3%`.
+- Keep `sonar.cpd.exclusions` explicitly aligned with `tmp/**` / `**/tmp/**`; the broader `sonar.exclusions` entry alone did not reliably prevent scratch PowerShell remediation scripts under `tmp/` from surfacing in Sonar duplication metrics.
 - The 2026-04-28 remediation wave also standardized regex timeouts, hardened ZIP extraction guards, pinned GitHub Actions SHAs, and tightened Docker frontend build inputs.

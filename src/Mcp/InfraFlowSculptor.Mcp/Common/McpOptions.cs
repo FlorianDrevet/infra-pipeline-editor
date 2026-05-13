@@ -6,11 +6,15 @@ namespace InfraFlowSculptor.Mcp.Common;
 /// </summary>
 public sealed class McpOptions
 {
+    private const string DefaultListenScheme = "http";
+    private const string DefaultListenHost = "127.0.0.1";
+    private const int DefaultListenPort = 5258;
+
     /// <summary>The configuration section name.</summary>
     public const string SectionName = "Mcp";
 
     /// <summary>The default listen URL used by the MCP host.</summary>
-    public const string DefaultListenUrl = "http://127.0.0.1:5258";
+    public static string DefaultListenUrl => $"{DefaultListenScheme}://{DefaultListenHost}:{DefaultListenPort}";
 
     /// <summary>The default route path used by the MCP endpoint.</summary>
     public const string DefaultRoute = "/mcp";

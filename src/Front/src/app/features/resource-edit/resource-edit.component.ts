@@ -57,7 +57,6 @@ import { NameAvailabilityService } from '../../shared/services/name-availability
 import { EnvironmentNameAvailabilityResponseItem } from '../../shared/interfaces/name-availability.interface';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
-import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { RESOURCE_TYPE_ICONS } from '../../shared/resource-metadata/resource-type.metadata';
 import { LOCATION_OPTIONS } from '../../shared/enums/location.enum';
 import { OS_TYPE_OPTIONS } from '../../shared/resource-metadata/os-type.metadata';
