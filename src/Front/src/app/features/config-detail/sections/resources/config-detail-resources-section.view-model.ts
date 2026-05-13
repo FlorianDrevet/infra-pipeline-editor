@@ -1,0 +1,44 @@
+import { DsSelectOption } from '../../../../shared/components/ds';
+import { ResourceDiagnosticResponse } from '../../../../shared/interfaces/bicep-generator.interface';
+import { CrossConfigReferenceResponse } from '../../../../shared/interfaces/cross-config-reference.interface';
+import { EnvironmentDefinitionResponse } from '../../../../shared/interfaces/infra-config.interface';
+import { AzureResourceResponse, ResourceGroupResponse } from '../../../../shared/interfaces/resource-group.interface';
+import { StorageAccountSubResourcesResponse } from '../../../../shared/interfaces/storage-account.interface';
+import { ResourceDisplayItem } from '../../helpers/config-detail-resource-grouping.helpers';
+
+export interface ConfigDetailResourcesSectionViewModel {
+  configId: string;
+  canWrite: boolean;
+  resourceGroups: ReadonlyArray<ResourceGroupResponse>;
+  sortedEnvironments: ReadonlyArray<EnvironmentDefinitionResponse>;
+  previewEnvOptions: DsSelectOption[];
+  previewEnvId: string | null;
+  rgErrorKey: string;
+  expandedRgId: string | null;
+  rgResources: Readonly<Record<string, AzureResourceResponse[] | undefined>>;
+  rgResourcesLoading: string | null;
+  resourceTypeIcons: Readonly<Record<string, string>>;
+  storageAccountDetails: Readonly<Record<string, StorageAccountSubResourcesResponse | undefined>>;
+  storageDetailsLoading: string | null;
+  onSetPreviewEnvId: (environmentId: string | null) => void;
+  onOpenAddResourceGroupDialog: () => void;
+  onToggleRgExpand: (resourceGroupId: string) => void | Promise<void>;
+  getGroupedResources: (resourceGroupId: string) => ReadonlyArray<ResourceDisplayItem>;
+  resolveNamingPreview: (resourceName: string, resourceType: string) => string | null;
+  hasMissingEnvironments: (resource: AzureResourceResponse) => boolean;
+  getMissingEnvironments: (resource: AzureResourceResponse) => string[];
+  hasResourceDiagnostics: (resourceId: string) => boolean;
+  getResourceDiagnostics: (resourceId: string) => ResourceDiagnosticResponse[];
+  onOpenAddResourceDialog: (resourceGroupId: string) => void;
+  onOpenDeleteResourceGroupDialog: (resourceGroup: ResourceGroupResponse) => void;
+  onOpenDeleteResourceDialog: (resource: AzureResourceResponse, resourceGroupId: string) => void;
+  isParentExpanded: (parentId: string) => boolean;
+  onToggleParentExpand: (parentId: string) => void;
+  onToggleStorageParentExpand: (parentId: string) => void;
+  getStorageSubResourceCount: (storageAccountId: string) => number;
+  publicAccessI18nKey: (value: string) => string;
+  onNavigateToStorageTab: (storageAccountId: string, tab: 'blob_containers' | 'queues' | 'tables') => void;
+  onOpenAddStorageSubResourceDialog: (storageAccountId: string) => void;
+  onOpenAddChildResourceDialog: (parentResource: AzureResourceResponse, resourceGroupId: string) => void;
+  getUnparentedCrossConfigRefs: (resourceGroupId: string) => ReadonlyArray<CrossConfigReferenceResponse>;
+}

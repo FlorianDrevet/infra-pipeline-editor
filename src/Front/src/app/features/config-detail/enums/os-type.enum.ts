@@ -1,9 +1,1 @@
-export enum OsTypeEnum {
-  Windows = 'Windows',
-  Linux = 'Linux',
-}
-
-export const OS_TYPE_OPTIONS = Object.entries(OsTypeEnum).map(([key, value]) => ({
-  label: key,
-  value,
-}));
+export { OS_TYPE_OPTIONS, OsTypeEnum } from '../../../shared/resource-metadata/os-type.metadata';

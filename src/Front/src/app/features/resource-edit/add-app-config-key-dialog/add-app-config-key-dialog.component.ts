@@ -18,7 +18,7 @@ import { OutputDefinitionResponse } from '../../../shared/interfaces/app-setting
 import { ProjectPipelineVariableGroupResponse } from '../../../shared/interfaces/project.interface';
 import { AppConfigurationKeyService } from '../services/app-configuration-key.service';
 import { AddAppConfigurationKeyRequest } from '../models/app-configuration-key.interface';
-import { RESOURCE_TYPE_ICONS } from '../../config-detail/enums/resource-type.enum';
+import { RESOURCE_TYPE_ICONS } from '../../../shared/resource-metadata/resource-type.metadata';
 
 export interface AddAppConfigKeyDialogData {
   appConfigurationId: string;

@@ -8,6 +8,7 @@ using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using NSubstitute;
+using InfraFlowSculptor.PipelineGeneration.Models;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
 namespace InfraFlowSculptor.Application.Tests.Projects.Commands.GenerateProjectBootstrapPipeline;
@@ -29,7 +30,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandlerTests
             _accessService,
             _projectRepository,
             _configReadRepository,
-            applicationFolderNameResolver: null!,
+            definitionBuilder: null!,
             bootstrapEngine: null!,
             blobService: null!,
             targetResolver: null!);

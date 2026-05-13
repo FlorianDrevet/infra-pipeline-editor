@@ -23,22 +23,22 @@ import { ProjectService } from '../../shared/services/project.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RoleAssignmentService } from '../../shared/services/role-assignment.service';
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
-import { KeyVaultResponse, KeyVaultEnvironmentConfigEntry } from '../../shared/interfaces/key-vault.interface';
-import { RedisCacheResponse, RedisCacheEnvironmentConfigEntry } from '../../shared/interfaces/redis-cache.interface';
-import { StorageAccountResponse, StorageAccountEnvironmentConfigEntry, BlobContainerResponse, StorageQueueResponse, StorageTableResponse, CorsRuleEntry, CorsRuleResponse, BlobLifecycleRuleEntry } from '../../shared/interfaces/storage-account.interface';
-import { AppServicePlanResponse, AppServicePlanEnvironmentConfigEntry } from '../../shared/interfaces/app-service-plan.interface';
-import { WebAppResponse, WebAppEnvironmentConfigEntry } from '../../shared/interfaces/web-app.interface';
-import { FunctionAppResponse, FunctionAppEnvironmentConfigEntry } from '../../shared/interfaces/function-app.interface';
-import { AppConfigurationResponse, AppConfigurationEnvironmentConfigEntry } from '../../shared/interfaces/app-configuration.interface';
-import { ContainerAppEnvironmentResponse, ContainerAppEnvironmentEnvironmentConfigEntry } from '../../shared/interfaces/container-app-environment.interface';
-import { ContainerAppResponse, ContainerAppEnvironmentConfigEntry } from '../../shared/interfaces/container-app.interface';
-import { LogAnalyticsWorkspaceResponse, LogAnalyticsWorkspaceEnvironmentConfigEntry } from '../../shared/interfaces/log-analytics-workspace.interface';
-import { ApplicationInsightsResponse, ApplicationInsightsEnvironmentConfigEntry } from '../../shared/interfaces/application-insights.interface';
-import { CosmosDbResponse, CosmosDbEnvironmentConfigEntry } from '../../shared/interfaces/cosmos-db.interface';
-import { ServiceBusNamespaceResponse, ServiceBusNamespaceEnvironmentConfigEntry } from '../../shared/interfaces/service-bus-namespace.interface';
-import { AcrAuthMode, ContainerRegistryResponse, ContainerRegistryEnvironmentConfigEntry } from '../../shared/interfaces/container-registry.interface';
-import { SqlServerResponse, SqlServerEnvironmentConfigEntry } from '../../shared/interfaces/sql-server.interface';
-import { SqlDatabaseResponse, SqlDatabaseEnvironmentConfigEntry } from '../../shared/interfaces/sql-database.interface';
+import { KeyVaultResponse } from '../../shared/interfaces/key-vault.interface';
+import { RedisCacheResponse } from '../../shared/interfaces/redis-cache.interface';
+import { StorageAccountResponse, BlobContainerResponse, StorageQueueResponse, StorageTableResponse, CorsRuleEntry, BlobLifecycleRuleEntry } from '../../shared/interfaces/storage-account.interface';
+import { AppServicePlanResponse } from '../../shared/interfaces/app-service-plan.interface';
+import { WebAppResponse } from '../../shared/interfaces/web-app.interface';
+import { FunctionAppResponse } from '../../shared/interfaces/function-app.interface';
+import { AppConfigurationResponse } from '../../shared/interfaces/app-configuration.interface';
+import { ContainerAppEnvironmentResponse } from '../../shared/interfaces/container-app-environment.interface';
+import { ContainerAppResponse } from '../../shared/interfaces/container-app.interface';
+import { LogAnalyticsWorkspaceResponse } from '../../shared/interfaces/log-analytics-workspace.interface';
+import { ApplicationInsightsResponse } from '../../shared/interfaces/application-insights.interface';
+import { CosmosDbResponse } from '../../shared/interfaces/cosmos-db.interface';
+import { ServiceBusNamespaceResponse } from '../../shared/interfaces/service-bus-namespace.interface';
+import { AcrAuthMode, ContainerRegistryResponse } from '../../shared/interfaces/container-registry.interface';
+import { SqlServerResponse } from '../../shared/interfaces/sql-server.interface';
+import { SqlDatabaseResponse } from '../../shared/interfaces/sql-database.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
@@ -60,12 +60,12 @@ import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../
 import { ProjectResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
 import { RoleAssignmentResponse, AzureRoleDefinitionResponse, IdentityRoleAssignmentResponse, RoleAssignmentImpactResponse } from '../../shared/interfaces/role-assignment.interface';
 import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
-import { RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
+import { RESOURCE_TYPE_ICONS } from '../../shared/resource-metadata/resource-type.metadata';
 import { LOCATION_OPTIONS } from '../../shared/enums/location.enum';
-import { OS_TYPE_OPTIONS } from '../config-detail/enums/os-type.enum';
-import { RUNTIME_STACK_OPTIONS } from '../config-detail/enums/runtime-stack.enum';
-import { FUNCTION_APP_RUNTIME_STACK_OPTIONS } from '../config-detail/enums/function-app-runtime-stack.enum';
-import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service-plan-sku.enum';
+import { OS_TYPE_OPTIONS } from '../../shared/resource-metadata/os-type.metadata';
+import { RUNTIME_STACK_OPTIONS } from '../../shared/resource-metadata/runtime-stack.metadata';
+import { FUNCTION_APP_RUNTIME_STACK_OPTIONS } from '../../shared/resource-metadata/function-app-runtime-stack.metadata';
+import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../../shared/resource-metadata/app-service-plan-sku.metadata';
 import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData, AddRoleAssignmentDialogResult } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
 import { AddAppSettingDialogComponent, AddAppSettingDialogData } from './add-app-setting-dialog/add-app-setting-dialog.component';
 import { ImportAppSettingsDialogComponent, ImportAppSettingsDialogData } from './import-app-settings-dialog/import-app-settings-dialog.component';
@@ -88,6 +88,37 @@ import { DeploymentConfigComponent } from '../../shared/components/deployment-co
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
+import {
+  ResourceEditEnvironmentFormEntry,
+  buildAppConfigurationEnvironmentSettings,
+  buildAppServicePlanEnvironmentSettings,
+  buildApplicationInsightsEnvironmentSettings,
+  buildBlobLifecycleRules,
+  buildContainerAppEnvironmentResourceSettings,
+  buildContainerAppEnvironmentSettings,
+  buildContainerRegistryEnvironmentSettings,
+  buildCosmosDbEnvironmentSettings,
+  buildFunctionAppEnvironmentSettings,
+  buildKeyVaultEnvironmentSettings,
+  buildLogAnalyticsWorkspaceEnvironmentSettings,
+  buildRedisCacheEnvironmentSettings,
+  buildServiceBusNamespaceEnvironmentSettings,
+  buildSqlDatabaseEnvironmentSettings,
+  buildSqlServerEnvironmentSettings,
+  buildStorageAccountCorsRules,
+  buildStorageAccountEnvironmentSettings,
+  buildWebAppEnvironmentSettings,
+  toNullableNumber,
+} from './helpers/resource-edit-environment-settings.helpers';
+import { buildResourceEditEnvironmentForms, buildResourceEditGeneralForm } from './helpers/resource-edit-form-builders.helpers';
+import {
+  buildCorsErrorKey,
+  normalizeCorsHeader,
+  normalizeCorsOrigin,
+  validateCorsHeader,
+  validateCorsOrigin,
+  validateStorageCorsRules,
+} from './helpers/resource-edit-storage-cors.helpers';
 
 const ADD_APP_SETTING_DIALOG_PANEL_CLASS = 'ifs-add-app-setting-dialog';
 const IMPORT_APP_SETTINGS_DIALOG_PANEL_CLASS = 'ifs-import-app-settings-dialog';
@@ -177,7 +208,6 @@ const STORAGE_CORS_METHOD_OPTIONS = ['DELETE', 'GET', 'HEAD', 'MERGE', 'OPTIONS'
 const STORAGE_CORS_ALLOWED_HEADER_SUGGESTIONS = ['authorization', 'content-type', 'x-ms-*', 'x-ms-meta*', 'x-ms-client-request-id'];
 const STORAGE_CORS_EXPOSED_HEADER_SUGGESTIONS = ['content-type', 'etag', 'x-ms-*', 'x-ms-meta*', 'x-ms-request-id'];
 const STORAGE_CORS_MAX_AGE_PRESETS = [300, 3600, 86400];
-const CORS_HEADER_SPECIAL_CHARACTERS = "!#$%&'*+.^_`|~-";
 
 const APP_CONFIGURATION_SKU_OPTIONS = [
   { label: 'Free', value: 'Free' },
@@ -895,7 +925,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   // ─── Forms ───
   protected generalForm!: FormGroup;
-  protected envForms = signal<{ envName: string; form: FormGroup }[]>([]);
+  protected envForms = signal<ResourceEditEnvironmentFormEntry[]>([]);
 
   // ─── Environments ───
   protected readonly environments = computed<EnvironmentDefinitionResponse[]>(() => {
@@ -959,7 +989,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.pageContextService.setBreadcrumb(segments);
   });
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     this.configId = this.route.snapshot.paramMap.get('configId') ?? '';
     this.resourceType = this.route.snapshot.paramMap.get('resourceType') ?? '';
     this.resourceId = this.route.snapshot.paramMap.get('resourceId') ?? '';
@@ -980,7 +1010,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       }
     }
 
-    await this.loadData();
+    void this.loadData();
   }
 
   private async loadData(): Promise<void> {
@@ -1082,125 +1112,22 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   private buildGeneralForm(resource: ResourceData): void {
-    const base: Record<string, unknown[]> = {
-      name: [resource.name, [Validators.required, Validators.maxLength(80)]],
-      location: [resource.location, [Validators.required]],
-    };
+    const result = buildResourceEditGeneralForm({
+      fb: this.fb,
+      resourceType: this.resourceType,
+      resource,
+      resolveAcrAuthMode: (containerRegistryId, acrAuthMode) => this.resolveAcrAuthMode(containerRegistryId, acrAuthMode),
+    });
 
     this.acrAccessChecking.set(false);
     this.resetAcrPullAccessState();
-    this.selectedContainerRegistryId.set(null);
-    this.acrAuthMode.set(null);
-
-    if (this.resourceType === 'KeyVault') {
-      const kv = resource as KeyVaultResponse;
-      base['enableRbacAuthorization'] = [kv.enableRbacAuthorization];
-      base['enabledForDeployment'] = [kv.enabledForDeployment];
-      base['enabledForDiskEncryption'] = [kv.enabledForDiskEncryption];
-      base['enabledForTemplateDeployment'] = [kv.enabledForTemplateDeployment];
-      base['enablePurgeProtection'] = [kv.enablePurgeProtection];
-      base['enableSoftDelete'] = [kv.enableSoftDelete];
-    } else if (this.resourceType === 'AppServicePlan') {
-      const asp = resource as AppServicePlanResponse;
-      base['osType'] = [asp.osType, [Validators.required]];
-    } else if (this.resourceType === 'WebApp') {
-      const wa = resource as WebAppResponse;
-      const resolvedAcrAuthMode = this.resolveAcrAuthMode(wa.containerRegistryId ?? null, wa.acrAuthMode ?? null);
-      base['appServicePlanId'] = [wa.appServicePlanId];
-      base['deploymentMode'] = [wa.deploymentMode || 'Code'];
-      base['containerRegistryId'] = [wa.containerRegistryId ?? null];
-      base['acrAuthMode'] = [resolvedAcrAuthMode];
-      base['dockerImageName'] = [wa.dockerImageName ?? null];
-      base['runtimeStack'] = [wa.runtimeStack, [Validators.required]];
-      base['runtimeVersion'] = [wa.runtimeVersion];
-      base['alwaysOn'] = [wa.alwaysOn];
-      base['httpsOnly'] = [wa.httpsOnly];
-      base['dockerfilePath'] = [wa.dockerfilePath ?? ''];
-      base['sourceCodePath'] = [wa.sourceCodePath ?? ''];
-      base['buildCommand'] = [wa.buildCommand ?? ''];
-      base['applicationName'] = [wa.applicationName ?? ''];
-      this.deploymentMode.set((wa.deploymentMode as 'Code' | 'Container') || 'Code');
-      this.selectedContainerRegistryId.set(wa.containerRegistryId ?? null);
-      this.acrAuthMode.set(resolvedAcrAuthMode);
-    } else if (this.resourceType === 'FunctionApp') {
-      const fa = resource as FunctionAppResponse;
-      const resolvedAcrAuthMode = this.resolveAcrAuthMode(fa.containerRegistryId ?? null, fa.acrAuthMode ?? null);
-      base['appServicePlanId'] = [fa.appServicePlanId];
-      base['deploymentMode'] = [fa.deploymentMode || 'Code'];
-      base['containerRegistryId'] = [fa.containerRegistryId ?? null];
-      base['acrAuthMode'] = [resolvedAcrAuthMode];
-      base['dockerImageName'] = [fa.dockerImageName ?? null];
-      base['runtimeStack'] = [fa.runtimeStack, [Validators.required]];
-      base['runtimeVersion'] = [fa.runtimeVersion];
-      base['httpsOnly'] = [fa.httpsOnly];
-      base['dockerfilePath'] = [fa.dockerfilePath ?? ''];
-      base['sourceCodePath'] = [fa.sourceCodePath ?? ''];
-      base['buildCommand'] = [fa.buildCommand ?? ''];
-      base['applicationName'] = [fa.applicationName ?? ''];
-      this.deploymentMode.set((fa.deploymentMode as 'Code' | 'Container') || 'Code');
-      this.selectedContainerRegistryId.set(fa.containerRegistryId ?? null);
-      this.acrAuthMode.set(resolvedAcrAuthMode);
-    } else if (this.resourceType === 'StorageAccount') {
-      const sa = resource as StorageAccountResponse;
-      base['kind'] = [sa.kind, [Validators.required]];
-      base['accessTier'] = [sa.accessTier, [Validators.required]];
-      base['allowBlobPublicAccess'] = [sa.allowBlobPublicAccess];
-      base['enableHttpsTrafficOnly'] = [sa.enableHttpsTrafficOnly];
-      base['minimumTlsVersion'] = [sa.minimumTlsVersion, [Validators.required]];
-      this.storageCorsRulesDraft.set((sa.corsRules ?? []).map(rule => ({
-        allowedOrigins: [...rule.allowedOrigins],
-        allowedMethods: [...rule.allowedMethods],
-        allowedHeaders: [...rule.allowedHeaders],
-        exposedHeaders: [...rule.exposedHeaders],
-        maxAgeInSeconds: rule.maxAgeInSeconds,
-      })));
-      this.storageTableCorsRulesDraft.set((sa.tableCorsRules ?? []).map(rule => ({
-        allowedOrigins: [...rule.allowedOrigins],
-        allowedMethods: [...rule.allowedMethods],
-        allowedHeaders: [...rule.allowedHeaders],
-        exposedHeaders: [...rule.exposedHeaders],
-        maxAgeInSeconds: rule.maxAgeInSeconds,
-      })));
-      this.lifecycleRulesDraft.set((sa.lifecycleRules ?? []).map(rule => ({
-        ruleName: rule.ruleName,
-        containerNames: [...rule.containerNames],
-        timeToLiveInDays: rule.timeToLiveInDays,
-      })));
-    } else if (this.resourceType === 'ContainerApp') {
-      const ca = resource as ContainerAppResponse;
-      const resolvedAcrAuthMode = this.resolveAcrAuthMode(ca.containerRegistryId ?? null, ca.acrAuthMode ?? null);
-      base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
-      base['containerRegistryId'] = [ca.containerRegistryId ?? null];
-      base['acrAuthMode'] = [resolvedAcrAuthMode];
-      base['dockerImageName'] = [ca.dockerImageName ?? null];
-      base['dockerfilePath'] = [ca.dockerfilePath ?? ''];
-      base['applicationName'] = [ca.applicationName ?? ''];
-      this.selectedContainerRegistryId.set(ca.containerRegistryId ?? null);
-      this.acrAuthMode.set(resolvedAcrAuthMode);
-    } else if (this.resourceType === 'ContainerAppEnvironment') {
-      const cae = resource as ContainerAppEnvironmentResponse;
-      base['logAnalyticsWorkspaceId'] = [cae.logAnalyticsWorkspaceId ?? null];
-    } else if (this.resourceType === 'ApplicationInsights') {
-      const ai = resource as ApplicationInsightsResponse;
-      base['logAnalyticsWorkspaceId'] = [ai.logAnalyticsWorkspaceId];
-    } else if (this.resourceType === 'RedisCache') {
-      const rc = resource as RedisCacheResponse;
-      base['redisVersion'] = [rc.redisVersion, [Validators.required]];
-      base['enableNonSslPort'] = [rc.enableNonSslPort];
-      base['minimumTlsVersion'] = [rc.minimumTlsVersion, [Validators.required]];
-      base['disableAccessKeyAuthentication'] = [rc.disableAccessKeyAuthentication];
-      base['enableAadAuth'] = [rc.enableAadAuth];
-    } else if (this.resourceType === 'SqlServer') {
-      const sql = resource as SqlServerResponse;
-      base['version'] = [sql.version, [Validators.required]];
-      base['administratorLogin'] = [sql.administratorLogin, [Validators.required]];
-    } else if (this.resourceType === 'SqlDatabase') {
-      const db = resource as SqlDatabaseResponse;
-      base['sqlServerId'] = [db.sqlServerId, [Validators.required]];
-      base['collation'] = [db.collation];
-    }
-
-    this.generalForm = this.fb.group(base);
+    this.generalForm = result.form;
+    this.deploymentMode.set(result.deploymentMode);
+    this.selectedContainerRegistryId.set(result.selectedContainerRegistryId);
+    this.acrAuthMode.set(result.acrAuthMode);
+    this.storageCorsRulesDraft.set(result.storageCorsRulesDraft);
+    this.storageTableCorsRulesDraft.set(result.storageTableCorsRulesDraft);
+    this.lifecycleRulesDraft.set(result.lifecycleRulesDraft);
 
     // Initialize runtime version options for WebApp/FunctionApp
     if (this.resourceType === 'WebApp') {
@@ -1209,21 +1136,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     } else if (this.resourceType === 'FunctionApp') {
       const stack = this.generalForm.get('runtimeStack')?.value;
       this.runtimeVersionOptions.set(FUNCTIONAPP_RUNTIME_VERSION_MAP[stack] ?? []);
+    } else {
+      this.runtimeVersionOptions.set([]);
     }
   }
 
   private buildEnvForms(resource: ResourceData): void {
-    const envs = this.environments();
-    const forms: { envName: string; form: FormGroup }[] = [];
-
-    for (const env of envs) {
-      forms.push({
-        envName: env.name,
-        form: this.buildSingleEnvForm(resource, env.name),
-      });
-    }
-
-    this.envForms.set(forms);
+    this.envForms.set(
+      buildResourceEditEnvironmentForms(this.fb, this.resourceType, resource, this.environments()),
+    );
   }
 
   protected onProbeToggle(envIndex: number, probeType: 'readiness' | 'liveness' | 'startup', enabled: boolean): void {
@@ -1240,177 +1161,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       [`${probeType}ProbePath`]: enabled ? defaults[probeType].path : null,
       [`${probeType}ProbePort`]: enabled ? defaults[probeType].port : null,
     });
-  }
-
-  private buildSingleEnvForm(resource: ResourceData, envName: string): FormGroup {
-    switch (this.resourceType) {
-      case 'KeyVault': {
-        const kv = resource as KeyVaultResponse;
-        const settings = kv.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-        });
-      }
-      case 'RedisCache': {
-        const rc = resource as RedisCacheResponse;
-        const settings = rc.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          capacity: [settings?.capacity ?? null],
-          maxMemoryPolicy: [settings?.maxMemoryPolicy ?? null],
-        });
-      }
-      case 'StorageAccount': {
-        const sa = resource as StorageAccountResponse;
-        const settings = sa.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-        });
-      }
-      case 'AppServicePlan': {
-        const asp = resource as AppServicePlanResponse;
-        const settings = asp.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          capacity: [settings?.capacity ?? null],
-        });
-      }
-      case 'WebApp': {
-        const wa = resource as WebAppResponse;
-        const settings = wa.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          alwaysOn: [settings?.alwaysOn ?? null],
-          httpsOnly: [settings?.httpsOnly ?? null],
-          dockerImageTag: [settings?.dockerImageTag ?? null],
-        });
-      }
-      case 'FunctionApp': {
-        const fa = resource as FunctionAppResponse;
-        const settings = fa.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          httpsOnly: [settings?.httpsOnly ?? null],
-          maxInstanceCount: [settings?.maxInstanceCount ?? null],
-          dockerImageTag: [settings?.dockerImageTag ?? null],
-        });
-      }
-      case 'AppConfiguration': {
-        const ac = resource as AppConfigurationResponse;
-        const settings = ac.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          softDeleteRetentionInDays: [settings?.softDeleteRetentionInDays ?? null],
-          purgeProtectionEnabled: [settings?.purgeProtectionEnabled ?? null],
-          disableLocalAuth: [settings?.disableLocalAuth ?? null],
-          publicNetworkAccess: [settings?.publicNetworkAccess ?? null],
-        });
-      }
-      case 'ContainerAppEnvironment': {
-        const cae = resource as ContainerAppEnvironmentResponse;
-        const settings = cae.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          workloadProfileType: [settings?.workloadProfileType ?? null],
-          internalLoadBalancerEnabled: [settings?.internalLoadBalancerEnabled ?? null],
-          zoneRedundancyEnabled: [settings?.zoneRedundancyEnabled ?? null],
-        });
-      }
-      case 'ContainerApp': {
-        const ca = resource as ContainerAppResponse;
-        const settings = ca.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          cpuCores: [settings?.cpuCores ?? null],
-          memoryGi: [settings?.memoryGi ?? null],
-          minReplicas: [settings?.minReplicas ?? null],
-          maxReplicas: [settings?.maxReplicas ?? null],
-          ingressEnabled: [settings?.ingressEnabled ?? null],
-          ingressTargetPort: [settings?.ingressTargetPort ?? null],
-          ingressExternal: [settings?.ingressExternal ?? null],
-          transportMethod: [settings?.transportMethod ?? null],
-          readinessProbeEnabled: [!!(settings?.readinessProbePath)],
-          readinessProbePath: [settings?.readinessProbePath ?? null],
-          readinessProbePort: [settings?.readinessProbePort ?? null],
-          livenessProbeEnabled: [!!(settings?.livenessProbePath)],
-          livenessProbePath: [settings?.livenessProbePath ?? null],
-          livenessProbePort: [settings?.livenessProbePort ?? null],
-          startupProbeEnabled: [!!(settings?.startupProbePath)],
-          startupProbePath: [settings?.startupProbePath ?? null],
-          startupProbePort: [settings?.startupProbePort ?? null],
-        });
-      }
-      case 'LogAnalyticsWorkspace': {
-        const law = resource as LogAnalyticsWorkspaceResponse;
-        const settings = law.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          retentionInDays: [settings?.retentionInDays ?? null],
-          dailyQuotaGb: [settings?.dailyQuotaGb ?? null],
-        });
-      }
-      case 'ApplicationInsights': {
-        const ai = resource as ApplicationInsightsResponse;
-        const settings = ai.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          samplingPercentage: [settings?.samplingPercentage ?? null],
-          retentionInDays: [settings?.retentionInDays ?? null],
-          disableIpMasking: [settings?.disableIpMasking ?? null],
-          disableLocalAuth: [settings?.disableLocalAuth ?? null],
-          ingestionMode: [settings?.ingestionMode ?? null],
-        });
-      }
-      case 'CosmosDb': {
-        const cosmosDb = resource as CosmosDbResponse;
-        const settings = cosmosDb.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          databaseApiType: [settings?.databaseApiType ?? null],
-          consistencyLevel: [settings?.consistencyLevel ?? null],
-          maxStalenessPrefix: [settings?.maxStalenessPrefix ?? null],
-          maxIntervalInSeconds: [settings?.maxIntervalInSeconds ?? null],
-          enableAutomaticFailover: [settings?.enableAutomaticFailover ?? null],
-          enableMultipleWriteLocations: [settings?.enableMultipleWriteLocations ?? null],
-          backupPolicyType: [settings?.backupPolicyType ?? null],
-          enableFreeTier: [settings?.enableFreeTier ?? null],
-        });
-      }
-      case 'ServiceBusNamespace': {
-        const sb = resource as ServiceBusNamespaceResponse;
-        const settings = sb.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          capacity: [settings?.capacity ?? null],
-          zoneRedundant: [settings?.zoneRedundant ?? null],
-          disableLocalAuth: [settings?.disableLocalAuth ?? null],
-          minimumTlsVersion: [settings?.minimumTlsVersion ?? null],
-        });
-      }
-      case 'ContainerRegistry': {
-        const cr = resource as ContainerRegistryResponse;
-        const settings = cr.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          adminUserEnabled: [settings?.adminUserEnabled ?? null],
-          publicNetworkAccess: [settings?.publicNetworkAccess ?? null],
-          zoneRedundancy: [settings?.zoneRedundancy ?? null],
-        });
-      }
-      case 'SqlServer': {
-        const sql = resource as SqlServerResponse;
-        const settings = sql.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          minimalTlsVersion: [settings?.minimalTlsVersion ?? null],
-        });
-      }
-      case 'SqlDatabase': {
-        const db = resource as SqlDatabaseResponse;
-        const settings = db.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          maxSizeGb: [settings?.maxSizeGb ?? null],
-          zoneRedundant: [settings?.zoneRedundant ?? null],
-        });
-      }
-      default:
-        return this.fb.group({});
-    }
   }
 
   /** User confirms the unavailable name is theirs and overrides the save block. */
@@ -1453,6 +1203,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.saveSuccess.set(false);
 
     const general = this.generalForm.getRawValue();
+    const envForms = this.envForms();
 
     try {
       switch (this.resourceType) {
@@ -1466,19 +1217,19 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             enabledForTemplateDeployment: general.enabledForTemplateDeployment,
             enablePurgeProtection: general.enablePurgeProtection,
             enableSoftDelete: general.enableSoftDelete,
-            environmentSettings: this.buildKeyVaultEnvSettings(),
+            environmentSettings: buildKeyVaultEnvironmentSettings(envForms),
           });
           break;
         case 'RedisCache':
           await this.redisCacheService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            redisVersion: general.redisVersion != null ? Number(general.redisVersion) : null,
+            redisVersion: toNullableNumber(general.redisVersion),
             enableNonSslPort: general.enableNonSslPort ?? false,
             minimumTlsVersion: general.minimumTlsVersion || null,
             disableAccessKeyAuthentication: general.disableAccessKeyAuthentication ?? false,
             enableAadAuth: general.enableAadAuth ?? false,
-            environmentSettings: this.buildRedisCacheEnvSettings(),
+            environmentSettings: buildRedisCacheEnvironmentSettings(envForms),
           });
           break;
         case 'StorageAccount':
@@ -1496,10 +1247,10 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             allowBlobPublicAccess: general.allowBlobPublicAccess ?? false,
             enableHttpsTrafficOnly: general.enableHttpsTrafficOnly ?? true,
             minimumTlsVersion: general.minimumTlsVersion,
-            corsRules: this.buildStorageAccountCorsRules(),
-            tableCorsRules: this.buildStorageAccountTableCorsRules(),
-            lifecycleRules: this.buildLifecycleRules(),
-            environmentSettings: this.buildStorageAccountEnvSettings(),
+            corsRules: buildStorageAccountCorsRules(this.storageCorsRulesDraft()),
+            tableCorsRules: buildStorageAccountCorsRules(this.storageTableCorsRulesDraft()),
+            lifecycleRules: buildBlobLifecycleRules(this.lifecycleRulesDraft()),
+            environmentSettings: buildStorageAccountEnvironmentSettings(envForms),
           });
           break;
         case 'AppServicePlan':
@@ -1507,7 +1258,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             name: general.name,
             location: general.location,
             osType: general.osType,
-            environmentSettings: this.buildAppServicePlanEnvSettings(),
+            environmentSettings: buildAppServicePlanEnvironmentSettings(envForms),
           });
           break;
         case 'WebApp': {
@@ -1531,7 +1282,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             runtimeVersion: general.runtimeVersion,
             alwaysOn: general.alwaysOn,
             httpsOnly: general.httpsOnly,
-            environmentSettings: this.buildWebAppEnvSettings(),
+            environmentSettings: buildWebAppEnvironmentSettings(envForms),
           });
           break;
         }
@@ -1555,7 +1306,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             runtimeStack: general.runtimeStack,
             runtimeVersion: general.runtimeVersion,
             httpsOnly: general.httpsOnly,
-            environmentSettings: this.buildFunctionAppEnvSettings(),
+            environmentSettings: buildFunctionAppEnvironmentSettings(envForms),
           });
           break;
         }
@@ -1569,7 +1320,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           await this.appConfigurationService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            environmentSettings: this.buildAppConfigurationEnvSettings(),
+            environmentSettings: buildAppConfigurationEnvironmentSettings(envForms),
           });
           break;
         case 'ContainerAppEnvironment':
@@ -1577,7 +1328,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             name: general.name,
             location: general.location,
             logAnalyticsWorkspaceId: general.logAnalyticsWorkspaceId || null,
-            environmentSettings: this.buildContainerAppEnvironmentEnvSettings(),
+            environmentSettings: buildContainerAppEnvironmentResourceSettings(envForms),
           });
           break;
         case 'ContainerApp': {
@@ -1592,7 +1343,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             dockerImageName: general.dockerImageName || null,
             dockerfilePath: general.dockerfilePath || null,
             applicationName: general.applicationName || null,
-            environmentSettings: this.buildContainerAppEnvSettings(),
+            environmentSettings: buildContainerAppEnvironmentSettings(envForms),
           });
           break;
         }
@@ -1600,7 +1351,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           await this.logAnalyticsWorkspaceService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            environmentSettings: this.buildLogAnalyticsWorkspaceEnvSettings(),
+            environmentSettings: buildLogAnalyticsWorkspaceEnvironmentSettings(envForms),
           });
           break;
         case 'ApplicationInsights':
@@ -1608,28 +1359,28 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             name: general.name,
             location: general.location,
             logAnalyticsWorkspaceId: general.logAnalyticsWorkspaceId,
-            environmentSettings: this.buildApplicationInsightsEnvSettings(),
+            environmentSettings: buildApplicationInsightsEnvironmentSettings(envForms),
           });
           break;
         case 'CosmosDb':
           await this.cosmosDbService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            environmentSettings: this.buildCosmosDbEnvSettings(),
+            environmentSettings: buildCosmosDbEnvironmentSettings(envForms),
           });
           break;
         case 'ServiceBusNamespace':
           await this.serviceBusNamespaceService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            environmentSettings: this.buildServiceBusNamespaceEnvSettings(),
+            environmentSettings: buildServiceBusNamespaceEnvironmentSettings(envForms),
           });
           break;
         case 'ContainerRegistry':
           await this.containerRegistryService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            environmentSettings: this.buildContainerRegistryEnvSettings(),
+            environmentSettings: buildContainerRegistryEnvironmentSettings(envForms),
           });
           break;
         case 'SqlServer':
@@ -1638,7 +1389,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             location: general.location,
             version: general.version,
             administratorLogin: general.administratorLogin,
-            environmentSettings: this.buildSqlServerEnvSettings(),
+            environmentSettings: buildSqlServerEnvironmentSettings(envForms),
           });
           break;
         case 'SqlDatabase':
@@ -1647,7 +1398,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             location: general.location,
             sqlServerId: general.sqlServerId,
             collation: general.collation ?? 'SQL_Latin1_General_CP1_CI_AS',
-            environmentSettings: this.buildSqlDatabaseEnvSettings(),
+            environmentSettings: buildSqlDatabaseEnvironmentSettings(envForms),
           });
           break;
       }
@@ -2926,7 +2677,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   protected corsFieldError(service: CorsServiceKey, index: number, field: CorsFieldKey): string {
-    return this.corsFieldErrors()[this.buildCorsErrorKey(service, index, field)] ?? '';
+    return this.corsFieldErrors()[buildCorsErrorKey(service, index, field)] ?? '';
   }
 
   protected corsHeaderSuggestions(field: 'allowedHeaders' | 'exposedHeaders'): readonly string[] {
@@ -3060,65 +2811,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ─── Environment settings builders ───
-
-  private buildKeyVaultEnvSettings(): KeyVaultEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => ({
-      environmentName: ef.envName,
-      sku: ef.form.getRawValue().sku || null,
-    }));
-  }
-
-  private buildRedisCacheEnvSettings(): RedisCacheEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        capacity: raw.capacity != null ? Number(raw.capacity) : null,
-        maxMemoryPolicy: raw.maxMemoryPolicy || null,
-      };
-    });
-  }
-
-  private buildStorageAccountEnvSettings(): StorageAccountEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-      };
-    });
-  }
-
-  private buildStorageAccountCorsRules(): CorsRuleEntry[] {
-    return this.storageCorsRulesDraft().map(rule => ({
-      allowedOrigins: [...rule.allowedOrigins],
-      allowedMethods: [...rule.allowedMethods],
-      allowedHeaders: [...rule.allowedHeaders],
-      exposedHeaders: [...rule.exposedHeaders],
-      maxAgeInSeconds: rule.maxAgeInSeconds,
-    }));
-  }
-
-  private buildStorageAccountTableCorsRules(): CorsRuleEntry[] {
-    return this.storageTableCorsRulesDraft().map(rule => ({
-      allowedOrigins: [...rule.allowedOrigins],
-      allowedMethods: [...rule.allowedMethods],
-      allowedHeaders: [...rule.allowedHeaders],
-      exposedHeaders: [...rule.exposedHeaders],
-      maxAgeInSeconds: rule.maxAgeInSeconds,
-    }));
-  }
-
-  private buildLifecycleRules(): BlobLifecycleRuleEntry[] {
-    return this.lifecycleRulesDraft().map(rule => ({
-      ruleName: rule.ruleName,
-      containerNames: [...rule.containerNames],
-      timeToLiveInDays: rule.timeToLiveInDays,
-    }));
-  }
-
   private addCorsRuleFor(service: CorsServiceKey): void {
     this.updateCorsRules(service, rules => [
       ...rules,
@@ -3141,12 +2833,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   private addCorsRuleValueFor(service: CorsServiceKey, index: number, field: CorsListField, value: string): void {
     const normalized = field === 'allowedOrigins'
-      ? this.normalizeCorsOrigin(value)
-      : this.normalizeCorsHeader(value);
+      ? normalizeCorsOrigin(value)
+      : normalizeCorsHeader(value);
 
     const validationError = field === 'allowedOrigins'
-      ? this.validateCorsOrigin(value)
-      : this.validateCorsHeader(value, field);
+      ? validateCorsOrigin(value)
+      : validateCorsHeader(value);
 
     if (validationError) {
       this.setCorsFieldError(service, index, field, validationError);
@@ -3250,248 +2942,25 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   private validateAllStorageCorsRules(): boolean {
-    let isValid = true;
-    this.corsFieldErrors.set({});
-
-    for (const service of ['blob', 'table'] as const) {
-      this.corsRulesFor(service).forEach((rule, index) => {
-        if (rule.allowedOrigins.length === 0) {
-          this.setCorsFieldError(service, index, 'allowedOrigins', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_ORIGIN_REQUIRED');
-          isValid = false;
-        }
-
-        if (rule.allowedMethods.length === 0) {
-          this.setCorsFieldError(service, index, 'allowedMethods', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_METHOD_REQUIRED');
-          isValid = false;
-        }
-
-        if (!Number.isInteger(rule.maxAgeInSeconds) || rule.maxAgeInSeconds < 0) {
-          this.setCorsFieldError(service, index, 'maxAgeInSeconds', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_MAX_AGE');
-          isValid = false;
-        }
-
-        for (const origin of rule.allowedOrigins) {
-          if (this.validateCorsOrigin(origin)) {
-            this.setCorsFieldError(service, index, 'allowedOrigins', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_ORIGIN');
-            isValid = false;
-            break;
-          }
-        }
-
-        for (const field of ['allowedHeaders', 'exposedHeaders'] as const) {
-          for (const header of rule[field]) {
-            const headerError = this.validateCorsHeader(header, field);
-            if (headerError) {
-              this.setCorsFieldError(service, index, field, headerError);
-              isValid = false;
-              break;
-            }
-          }
-        }
-      });
-    }
-
-    return isValid;
-  }
-
-  private validateCorsOrigin(value: string): string {
-    const normalized = value.trim();
-    if (!normalized) {
-      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_EMPTY_VALUE';
-    }
-
-    if (normalized.length > 256) {
-      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_TOO_LONG';
-    }
-
-    if (normalized === '*') {
-      return '';
-    }
-
-    const withoutTrailingSlash = this.trimTrailingSlashes(normalized);
-    if (withoutTrailingSlash.includes('*.')) {
-      return this.isValidWildcardCorsOrigin(withoutTrailingSlash)
-        ? ''
-        : 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_ORIGIN';
-    }
-
-    try {
-      const url = new URL(withoutTrailingSlash);
-      const isHttp = url.protocol === 'http:' || url.protocol === 'https:';
-      const hasNoPath = url.pathname === '' || url.pathname === '/';
-      const noSearch = !url.search;
-      const noHash = !url.hash;
-      return isHttp && hasNoPath && noSearch && noHash
-        ? ''
-        : 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_ORIGIN';
-    } catch {
-      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_ORIGIN';
-    }
-  }
-
-  private normalizeCorsOrigin(value: string): string {
-    const normalized = this.trimTrailingSlashes(value.trim());
-    if (normalized === '*' || normalized.includes('*.')) {
-      return normalized.toLowerCase();
-    }
-
-    try {
-      const url = new URL(normalized);
-      return `${url.protocol}//${url.host}`.toLowerCase();
-    } catch {
-      return normalized;
-    }
-  }
-
-  private validateCorsHeader(value: string, _field: 'allowedHeaders' | 'exposedHeaders'): string {
-    const normalized = value.trim();
-    if (!normalized) {
-      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_EMPTY_VALUE';
-    }
-
-    if (normalized.length > 256) {
-      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_TOO_LONG';
-    }
-
-    if (!this.isValidCorsHeaderValue(normalized)) {
-      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_HEADER';
-    }
-
-    return '';
-  }
-
-  private trimTrailingSlashes(value: string): string {
-    let endIndex = value.length;
-    while (endIndex > 0 && value[endIndex - 1] === '/') {
-      endIndex--;
-    }
-
-    return endIndex === value.length
-      ? value
-      : value.slice(0, endIndex);
-  }
-
-  private isValidWildcardCorsOrigin(value: string): boolean {
-    const schemeSeparatorIndex = value.indexOf('://');
-    if (schemeSeparatorIndex <= 0) {
-      return false;
-    }
-
-    const protocol = value.slice(0, schemeSeparatorIndex).toLowerCase();
-    if (protocol !== 'http' && protocol !== 'https') {
-      return false;
-    }
-
-    const hostAndPort = value.slice(schemeSeparatorIndex + 3);
-    if (!hostAndPort.startsWith('*.') || hostAndPort.includes('/') || hostAndPort.includes('?') || hostAndPort.includes('#')) {
-      return false;
-    }
-
-    const wildcardHostAndPort = hostAndPort.slice(2);
-    if (!wildcardHostAndPort || wildcardHostAndPort.includes('*')) {
-      return false;
-    }
-
-    const hostAndPortParts = this.splitCorsHostAndPort(wildcardHostAndPort);
-    if (!hostAndPortParts) {
-      return false;
-    }
-
-    return this.isValidCorsDomain(hostAndPortParts.host)
-      && (hostAndPortParts.port === null || this.isValidCorsPort(hostAndPortParts.port));
-  }
-
-  private splitCorsHostAndPort(value: string): { host: string; port: string | null } | null {
-    const firstSeparatorIndex = value.indexOf(':');
-    if (firstSeparatorIndex < 0) {
-      return { host: value, port: null };
-    }
-
-    if (firstSeparatorIndex !== value.lastIndexOf(':')) {
-      return null;
-    }
-
-    const host = value.slice(0, firstSeparatorIndex);
-    const port = value.slice(firstSeparatorIndex + 1);
-    if (!host || !port) {
-      return null;
-    }
-
-    return { host, port };
-  }
-
-  private isValidCorsPort(value: string): boolean {
-    if (value.length === 0 || value.length > 5) {
-      return false;
-    }
-
-    for (const character of value) {
-      if (character < '0' || character > '9') {
-        return false;
-      }
-    }
-
-    const portNumber = Number(value);
-    return Number.isInteger(portNumber) && portNumber >= 1 && portNumber <= 65535;
-  }
-
-  private isValidCorsDomain(value: string): boolean {
-    const labels = value.split('.');
-    return labels.length > 0
-      && labels.every((label) => label.length > 0 && this.isValidCorsDomainLabel(label));
-  }
-
-  private isValidCorsDomainLabel(value: string): boolean {
-    for (const character of value) {
-      if (!this.isAsciiAlphaNumericCharacter(character) && character !== '-') {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  private isValidCorsHeaderValue(value: string): boolean {
-    for (const character of value) {
-      if (!this.isValidCorsHeaderCharacter(character)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  private isValidCorsHeaderCharacter(character: string): boolean {
-    return this.isAsciiAlphaNumericCharacter(character)
-      || CORS_HEADER_SPECIAL_CHARACTERS.includes(character);
-  }
-
-  private isAsciiAlphaNumericCharacter(character: string): boolean {
-    const code = character.charCodeAt(0);
-    return (code >= 48 && code <= 57)
-      || (code >= 65 && code <= 90)
-      || (code >= 97 && code <= 122);
-  }
-
-  private normalizeCorsHeader(value: string): string {
-    return value.trim().toLowerCase();
-  }
-
-  private buildCorsErrorKey(service: CorsServiceKey, index: number, field: CorsFieldKey): string {
-    return `${service}:${index}:${field}`;
+    const validationResult = validateStorageCorsRules(
+      this.storageCorsRulesDraft(),
+      this.storageTableCorsRulesDraft(),
+    );
+    this.corsFieldErrors.set(validationResult.errors);
+    return validationResult.isValid;
   }
 
   private setCorsFieldError(service: CorsServiceKey, index: number, field: CorsFieldKey, errorKey: string): void {
     this.corsFieldErrors.update(errors => ({
       ...errors,
-      [this.buildCorsErrorKey(service, index, field)]: errorKey,
+      [buildCorsErrorKey(service, index, field)]: errorKey,
     }));
   }
 
   private clearCorsFieldError(service: CorsServiceKey, index: number, field: CorsFieldKey): void {
     this.corsFieldErrors.update(errors => {
       const updated = { ...errors };
-      delete updated[this.buildCorsErrorKey(service, index, field)];
+      delete updated[buildCorsErrorKey(service, index, field)];
       return updated;
     });
   }
@@ -3500,183 +2969,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.corsFieldErrors.update(errors => Object.fromEntries(
       Object.entries(errors).filter(([key]) => !key.startsWith(`${service}:${index}:`))
     ));
-  }
-
-  private buildAppServicePlanEnvSettings(): AppServicePlanEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        capacity: raw.capacity != null ? Number(raw.capacity) : null,
-      };
-    });
-  }
-
-  private buildWebAppEnvSettings(): WebAppEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        alwaysOn: raw.alwaysOn ?? null,
-        httpsOnly: raw.httpsOnly ?? null,
-        dockerImageTag: raw.dockerImageTag || null,
-      };
-    });
-  }
-
-  private buildFunctionAppEnvSettings(): FunctionAppEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        httpsOnly: raw.httpsOnly ?? null,
-        maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
-        dockerImageTag: raw.dockerImageTag || null,
-      };
-    });
-  }
-
-  private buildAppConfigurationEnvSettings(): AppConfigurationEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        softDeleteRetentionInDays: raw.softDeleteRetentionInDays != null ? Number(raw.softDeleteRetentionInDays) : null,
-        purgeProtectionEnabled: raw.purgeProtectionEnabled ?? null,
-        disableLocalAuth: raw.disableLocalAuth ?? null,
-        publicNetworkAccess: raw.publicNetworkAccess || null,
-      };
-    });
-  }
-
-  private buildContainerAppEnvironmentEnvSettings(): ContainerAppEnvironmentEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        workloadProfileType: raw.workloadProfileType || null,
-        internalLoadBalancerEnabled: raw.internalLoadBalancerEnabled ?? null,
-        zoneRedundancyEnabled: raw.zoneRedundancyEnabled ?? null,
-      };
-    });
-  }
-
-  private buildContainerAppEnvSettings(): ContainerAppEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        cpuCores: raw.cpuCores || null,
-        memoryGi: raw.memoryGi || null,
-        minReplicas: raw.minReplicas != null ? Number(raw.minReplicas) : null,
-        maxReplicas: raw.maxReplicas != null ? Number(raw.maxReplicas) : null,
-        ingressEnabled: raw.ingressEnabled ?? null,
-        ingressTargetPort: raw.ingressTargetPort != null ? Number(raw.ingressTargetPort) : null,
-        ingressExternal: raw.ingressExternal ?? null,
-        transportMethod: raw.transportMethod || null,
-        readinessProbePath: raw.readinessProbePath || null,
-        readinessProbePort: raw.readinessProbePort != null ? Number(raw.readinessProbePort) : null,
-        livenessProbePath: raw.livenessProbePath || null,
-        livenessProbePort: raw.livenessProbePort != null ? Number(raw.livenessProbePort) : null,
-        startupProbePath: raw.startupProbePath || null,
-        startupProbePort: raw.startupProbePort != null ? Number(raw.startupProbePort) : null,
-      };
-    });
-  }
-
-  private buildLogAnalyticsWorkspaceEnvSettings(): LogAnalyticsWorkspaceEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        retentionInDays: raw.retentionInDays != null ? Number(raw.retentionInDays) : null,
-        dailyQuotaGb: raw.dailyQuotaGb != null ? Number(raw.dailyQuotaGb) : null,
-      };
-    });
-  }
-
-  private buildApplicationInsightsEnvSettings(): ApplicationInsightsEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        samplingPercentage: raw.samplingPercentage != null ? Number(raw.samplingPercentage) : null,
-        retentionInDays: raw.retentionInDays != null ? Number(raw.retentionInDays) : null,
-        disableIpMasking: raw.disableIpMasking ?? null,
-        disableLocalAuth: raw.disableLocalAuth ?? null,
-        ingestionMode: raw.ingestionMode || null,
-      };
-    });
-  }
-
-  private buildCosmosDbEnvSettings(): CosmosDbEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        databaseApiType: raw.databaseApiType || null,
-        consistencyLevel: raw.consistencyLevel || null,
-        maxStalenessPrefix: raw.maxStalenessPrefix != null ? Number(raw.maxStalenessPrefix) : null,
-        maxIntervalInSeconds: raw.maxIntervalInSeconds != null ? Number(raw.maxIntervalInSeconds) : null,
-        enableAutomaticFailover: raw.enableAutomaticFailover ?? null,
-        enableMultipleWriteLocations: raw.enableMultipleWriteLocations ?? null,
-        backupPolicyType: raw.backupPolicyType || null,
-        enableFreeTier: raw.enableFreeTier ?? null,
-      };
-    });
-  }
-
-  private buildServiceBusNamespaceEnvSettings(): ServiceBusNamespaceEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        capacity: raw.capacity != null ? Number(raw.capacity) : null,
-        zoneRedundant: raw.zoneRedundant ?? null,
-        disableLocalAuth: raw.disableLocalAuth ?? null,
-        minimumTlsVersion: raw.minimumTlsVersion || null,
-      };
-    });
-  }
-
-  private buildContainerRegistryEnvSettings(): ContainerRegistryEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        adminUserEnabled: raw.adminUserEnabled ?? null,
-        publicNetworkAccess: raw.publicNetworkAccess || null,
-        zoneRedundancy: raw.zoneRedundancy ?? null,
-      };
-    });
-  }
-
-  private buildSqlServerEnvSettings(): SqlServerEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        minimalTlsVersion: raw.minimalTlsVersion || null,
-      };
-    });
-  }
-
-  private buildSqlDatabaseEnvSettings(): SqlDatabaseEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        maxSizeGb: raw.maxSizeGb != null ? Number(raw.maxSizeGb) : null,
-        zoneRedundant: raw.zoneRedundant ?? null,
-      };
-    });
   }
 
   // ─── Secure Parameter Mappings (SqlServer password config) ───

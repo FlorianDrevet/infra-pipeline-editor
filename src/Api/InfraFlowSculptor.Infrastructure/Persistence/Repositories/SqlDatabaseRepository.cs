@@ -16,9 +16,7 @@ public class SqlDatabaseRepository(ProjectDbContext context)
         ValueObject id,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<SqlDatabase>()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<SqlDatabase>())
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
@@ -27,10 +25,7 @@ public class SqlDatabaseRepository(ProjectDbContext context)
         ValueObject id,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<SqlDatabase>()
-            .AsNoTracking()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<SqlDatabase>().AsNoTracking())
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
@@ -39,9 +34,7 @@ public class SqlDatabaseRepository(ProjectDbContext context)
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<SqlDatabase>()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<SqlDatabase>())
             .Where(x => x.ResourceGroupId == resourceGroupId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -56,5 +49,12 @@ public class SqlDatabaseRepository(ProjectDbContext context)
             .Where(x => x.SqlServerId == sqlServerId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    private static IQueryable<SqlDatabase> WithSubResources(IQueryable<SqlDatabase> query)
+    {
+        return query
+            .Include(x => x.DependsOn)
+            .Include(x => x.EnvironmentSettings);
     }
 }

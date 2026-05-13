@@ -2,8 +2,8 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using FluentAssertions;
-using InfraFlowSculptor.Api.RateLimiting;
 using InfraFlowSculptor.Mcp.Common;
+using InfraFlowSculptor.Mcp.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -101,7 +101,7 @@ public sealed class McpHttpPipelineExtensionsTests
             builder.Services.AddAuthentication(TestAuthenticationHandler.SchemeName)
                 .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(TestAuthenticationHandler.SchemeName, _ => { });
             builder.Services.AddAuthorization();
-            builder.Services.AddRateLimiting();
+            builder.Services.AddMcpRateLimiting();
 
             var application = builder.Build();
 

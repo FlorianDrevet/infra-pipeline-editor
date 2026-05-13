@@ -15,7 +15,7 @@ import { AppSettingService } from '../../../shared/services/app-setting.service'
 import { AppSettingResponse, OutputDefinitionResponse } from '../../../shared/interfaces/app-setting.interface';
 import { ProjectPipelineVariableGroupResponse } from '../../../shared/interfaces/project.interface';
 import { ProjectService } from '../../../shared/services/project.service';
-import { RESOURCE_TYPE_ICONS } from '../../config-detail/enums/resource-type.enum';
+import { RESOURCE_TYPE_ICONS } from '../../../shared/resource-metadata/resource-type.metadata';
 import {
   buildImportAppSettingsAcceptAttribute,
   getImportAppSettingsModeDefinition,

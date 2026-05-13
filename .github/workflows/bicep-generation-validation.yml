@@ -1,0 +1,53 @@
+name: bicep-generation-validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/bicep-generation-validation.yml'
+      - 'scripts/Invoke-GeneratedBicepValidation.ps1'
+      - 'src/Api/InfraFlowSculptor.BicepGeneration/**'
+      - 'src/Api/InfraFlowSculptor.GenerationCore/**'
+      - 'tests/InfraFlowSculptor.BicepGeneration.Tests/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/bicep-generation-validation.yml'
+      - 'scripts/Invoke-GeneratedBicepValidation.ps1'
+      - 'src/Api/InfraFlowSculptor.BicepGeneration/**'
+      - 'src/Api/InfraFlowSculptor.GenerationCore/**'
+      - 'tests/InfraFlowSculptor.BicepGeneration.Tests/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-generated-bicep:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: '10.0.100'
+          dotnet-quality: 'preview'
+
+      - name: Install Bicep CLI
+        shell: pwsh
+        run: |
+          $bicepVersion = 'v0.43.8'
+          $installDirectory = Join-Path $env:RUNNER_TEMP 'bicep-cli'
+          $binaryPath = Join-Path $installDirectory 'bicep'
+          New-Item -ItemType Directory -Path $installDirectory -Force | Out-Null
+          Invoke-WebRequest -Uri "https://github.com/Azure/bicep/releases/download/$bicepVersion/bicep-linux-x64" -OutFile $binaryPath
+          & chmod +x $binaryPath
+          $installDirectory | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          & $binaryPath --version
+
+      - name: Generate and build representative Bicep files
+        shell: pwsh
+        run: .\scripts\Invoke-GeneratedBicepValidation.ps1 -OutputDirectory .\artifacts\generated-bicep-ci

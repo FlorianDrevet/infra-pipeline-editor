@@ -20,19 +20,14 @@ public sealed class CosmosDbRepository : AzureResourceRepository<CosmosDb>, ICos
     /// <inheritdoc />
     public override async Task<CosmosDb?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
-        return await Context.Set<CosmosDb>()
-            .Include(c => c.DependsOn)
-            .Include(c => c.EnvironmentSettings)
+        return await WithSubResources(Context.Set<CosmosDb>())
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
     /// <inheritdoc />
     public override async Task<CosmosDb?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
-        return await Context.Set<CosmosDb>()
-            .AsNoTracking()
-            .Include(c => c.DependsOn)
-            .Include(c => c.EnvironmentSettings)
+        return await WithSubResources(Context.Set<CosmosDb>().AsNoTracking())
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
@@ -41,11 +36,16 @@ public sealed class CosmosDbRepository : AzureResourceRepository<CosmosDb>, ICos
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<CosmosDb>()
-            .Include(c => c.DependsOn)
-            .Include(c => c.EnvironmentSettings)
+        return await WithSubResources(Context.Set<CosmosDb>())
             .Where(c => c.ResourceGroupId == resourceGroupId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    private static IQueryable<CosmosDb> WithSubResources(IQueryable<CosmosDb> query)
+    {
+        return query
+            .Include(c => c.DependsOn)
+            .Include(c => c.EnvironmentSettings);
     }
 }

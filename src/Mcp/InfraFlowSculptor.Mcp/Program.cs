@@ -1,12 +1,11 @@
 using InfraFlowSculptor.Application;
-using InfraFlowSculptor.Api.RateLimiting;
-using InfraFlowSculptor.Mcp.DependencyInjection;
 using InfraFlowSculptor.Infrastructure;
 using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Drafts;
 using InfraFlowSculptor.Mcp.Imports;
 using InfraFlowSculptor.Mcp.Imports.Resources;
 using InfraFlowSculptor.Mcp.Prompts;
+using InfraFlowSculptor.Mcp.RateLimiting;
 using InfraFlowSculptor.Mcp.Resources;
 using InfraFlowSculptor.Mcp.Tools;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -36,11 +35,10 @@ builder.Services
     .WithPrompts<ProjectCreationPrompts>();
 
 builder.Services
-    .AddMcpMappings()
     .AddApplication()
     .AddInfrastructure(builder.Configuration, builder.Environment, includeAuthentication: false)
     .AddPatAuthentication()
-    .AddRateLimiting();
+    .AddMcpRateLimiting();
 
 var app = builder.Build();
 

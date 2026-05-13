@@ -16,9 +16,7 @@ public sealed class FunctionAppRepository(ProjectDbContext context)
         ValueObject id,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<FunctionApp>()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<FunctionApp>())
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
@@ -27,10 +25,7 @@ public sealed class FunctionAppRepository(ProjectDbContext context)
         ValueObject id,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<FunctionApp>()
-            .AsNoTracking()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<FunctionApp>().AsNoTracking())
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
@@ -39,9 +34,7 @@ public sealed class FunctionAppRepository(ProjectDbContext context)
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<FunctionApp>()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<FunctionApp>())
             .Where(x => x.ResourceGroupId == resourceGroupId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -56,5 +49,12 @@ public sealed class FunctionAppRepository(ProjectDbContext context)
             .Where(x => x.AppServicePlanId == appServicePlanId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    private static IQueryable<FunctionApp> WithSubResources(IQueryable<FunctionApp> query)
+    {
+        return query
+            .Include(x => x.DependsOn)
+            .Include(x => x.EnvironmentSettings);
     }
 }

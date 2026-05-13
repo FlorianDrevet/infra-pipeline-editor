@@ -1,0 +1,108 @@
+import { FormBuilder } from '@angular/forms';
+
+import { buildResourceEditEnvironmentForms, buildResourceEditGeneralForm } from './resource-edit-form-builders.helpers';
+
+describe('resource edit form builders helpers', () => {
+  it('builds a general storage account form and clones draft arrays', () => {
+    const result = buildResourceEditGeneralForm({
+      fb: new FormBuilder(),
+      resourceType: 'StorageAccount',
+      resource: createStorageAccountResource(),
+      resolveAcrAuthMode: () => null,
+    });
+
+    expect(result.form.get('name')?.value).toBe('storage-main');
+    expect(result.form.get('kind')?.value).toBe('StorageV2');
+    expect(result.storageCorsRulesDraft[0]?.allowedOrigins).toEqual(['https://app.example.com']);
+    expect(result.storageCorsRulesDraft[0]?.allowedOrigins).not.toBe(createStorageAccountResource().corsRules?.[0]?.allowedOrigins);
+    expect(result.lifecycleRulesDraft[0]?.containerNames).toEqual(['assets']);
+    expect(result.lifecycleRulesDraft[0]?.containerNames).not.toBe(createStorageAccountResource().lifecycleRules?.[0]?.containerNames);
+  });
+
+  it('builds container app environment forms with probe toggles derived from probe paths', () => {
+    const forms = buildResourceEditEnvironmentForms(
+      new FormBuilder(),
+      'ContainerApp',
+      createContainerAppResource(),
+      [
+        { id: 'env-dev', name: 'Development', shortName: 'dev', prefix: 'dev', suffix: 'svc', location: 'westeurope', subscriptionId: 'sub-1', order: 1, requiresApproval: false, azureResourceManagerConnection: null, tags: [] },
+      ],
+    );
+
+    expect(forms.length).toBe(1);
+    const form = forms[0].form;
+    expect(form.get('ingressEnabled')?.value).toBeTrue();
+    expect(form.get('readinessProbeEnabled')?.value).toBeTrue();
+    expect(form.get('readinessProbePath')?.value).toBe('/ready');
+    expect(form.get('startupProbeEnabled')?.value).toBeFalse();
+  });
+});
+
+function createStorageAccountResource() {
+  return {
+    id: 'storage-1',
+    name: 'storage-main',
+    location: 'westeurope',
+    resourceGroupId: 'rg-1',
+    kind: 'StorageV2',
+    accessTier: 'Hot',
+    allowBlobPublicAccess: false,
+    enableHttpsTrafficOnly: true,
+    minimumTlsVersion: 'TLS1_2',
+    blobContainers: [],
+    queues: [],
+    tables: [],
+    corsRules: [
+      {
+        allowedOrigins: ['https://app.example.com'],
+        allowedMethods: ['GET'],
+        allowedHeaders: ['content-type'],
+        exposedHeaders: ['etag'],
+        maxAgeInSeconds: 3600,
+      },
+    ],
+    tableCorsRules: [],
+    lifecycleRules: [
+      {
+        ruleName: 'delete-old-assets',
+        containerNames: ['assets'],
+        timeToLiveInDays: 30,
+      },
+    ],
+    environmentSettings: [],
+  } as const;
+}
+
+function createContainerAppResource() {
+  return {
+    id: 'container-app-1',
+    name: 'api',
+    location: 'westeurope',
+    resourceGroupId: 'rg-1',
+    containerAppEnvironmentId: 'cae-1',
+    containerRegistryId: 'acr-1',
+    dockerImageName: 'api:latest',
+    dockerfilePath: '',
+    applicationName: 'api',
+    acrAuthMode: 'ManagedIdentity',
+    environmentSettings: [
+      {
+        environmentName: 'Development',
+        cpuCores: '0.5',
+        memoryGi: '1',
+        minReplicas: 1,
+        maxReplicas: 3,
+        ingressEnabled: true,
+        ingressTargetPort: 8080,
+        ingressExternal: true,
+        transportMethod: 'Auto',
+        readinessProbePath: '/ready',
+        readinessProbePort: 8080,
+        livenessProbePath: '/live',
+        livenessProbePort: 8080,
+        startupProbePath: null,
+        startupProbePort: null,
+      },
+    ],
+  } as const;
+}

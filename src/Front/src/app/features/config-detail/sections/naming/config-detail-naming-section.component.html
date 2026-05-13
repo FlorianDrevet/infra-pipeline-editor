@@ -1,0 +1,217 @@
+<div class="tab-content">
+  <div class="inheritance-banner" [class.inheritance-banner--inherited]="viewModel().useProjectNamingConventions">
+    <div class="inheritance-banner__info">
+      <mat-icon class="inheritance-banner__icon">{{ viewModel().useProjectNamingConventions ? 'link' : 'link_off' }}</mat-icon>
+      <span>{{ (viewModel().useProjectNamingConventions ? 'CONFIG_DETAIL.INHERITANCE.NAMING_INHERITED' : 'CONFIG_DETAIL.INHERITANCE.NAMING_OVERRIDDEN') | translate }}</span>
+    </div>
+    @if (viewModel().canWrite) {
+      <mat-slide-toggle
+        [checked]="viewModel().useProjectNamingConventions"
+        [disabled]="viewModel().inheritanceLoading"
+        (change)="viewModel().onToggleInheritanceNaming($event.checked)"
+        color="primary">
+        {{ 'CONFIG_DETAIL.INHERITANCE.USE_PROJECT' | translate }}
+      </mat-slide-toggle>
+    }
+  </div>
+
+  @if (viewModel().useProjectNamingConventions) {
+    <article class="default-template default-template--readonly">
+      <div class="default-template__header">
+        <span>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT' | translate }}</span>
+        <span class="inherited-chip">
+          <mat-icon>link</mat-icon>
+          {{ 'CONFIG_DETAIL.INHERITANCE.FROM_PROJECT' | translate }}
+        </span>
+      </div>
+      @if (viewModel().project?.defaultNamingTemplate) {
+        <code>{{ viewModel().project!.defaultNamingTemplate }}</code>
+      } @else {
+        <p class="default-template__empty">{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT_EMPTY' | translate }}</p>
+      }
+    </article>
+
+    @if ((viewModel().project?.resourceNamingTemplates ?? []).length > 0) {
+      <div class="template-list">
+        @for (template of viewModel().project!.resourceNamingTemplates; track template.id) {
+          <article class="template-row template-row--readonly">
+            <div class="template-row__meta">
+              <strong>{{ template.resourceType }}</strong>
+              <code>{{ template.template }}</code>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <mat-icon class="empty-state__icon">label</mat-icon>
+        <p>{{ 'CONFIG_DETAIL.INHERITANCE.NO_PROJECT_NAMING' | translate }}</p>
+      </div>
+    }
+  } @else {
+    <div class="tab-content__toolbar naming-toolbar">
+      @if (viewModel().canWrite) {
+        <button
+          class="template-action-btn template-action-btn--add"
+          [disabled]="viewModel().namingActionKey !== null"
+          (click)="viewModel().onOpenDefaultNamingTemplateDialog()">
+          <mat-icon>edit</mat-icon>
+          {{ (viewModel().config.defaultNamingTemplate ? 'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT_DEFAULT' : 'CONFIG_DETAIL.NAMING_TEMPLATES.ADD_DEFAULT') | translate }}
+        </button>
+        <button
+          class="template-action-btn template-action-btn--add"
+          [disabled]="!viewModel().canAddResourceNamingTemplate || viewModel().namingActionKey !== null"
+          [matTooltip]="(!viewModel().canAddResourceNamingTemplate ? 'CONFIG_DETAIL.NAMING_TEMPLATES.ALL_RESOURCE_TYPES_CONFIGURED' : 'CONFIG_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE') | translate"
+          (click)="viewModel().onOpenResourceNamingTemplateDialog()">
+          <mat-icon>add_circle_outline</mat-icon>
+          {{ 'CONFIG_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE' | translate }}
+        </button>
+      }
+    </div>
+
+    @if (viewModel().namingErrorKey) {
+      <p class="naming-error">{{ viewModel().namingErrorKey | translate }}</p>
+    }
+
+    <article class="default-template" [class.default-template--busy]="viewModel().isNamingActionActive('default')">
+      @if (viewModel().isNamingActionActive('default')) {
+        <div class="default-template__spinner">
+          <mat-spinner diameter="22"></mat-spinner>
+        </div>
+      }
+
+      <div class="default-template__header">
+        <span>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT' | translate }}</span>
+        @if (viewModel().canWrite) {
+          <button
+            class="template-action-btn template-action-btn--inline"
+            [disabled]="viewModel().namingActionKey !== null"
+            (click)="viewModel().onOpenDefaultNamingTemplateDialog()">
+            <mat-icon>edit</mat-icon>
+            {{ 'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT' | translate }}
+          </button>
+        }
+      </div>
+
+      @if (viewModel().config.defaultNamingTemplate) {
+        <code>{{ viewModel().config.defaultNamingTemplate }}</code>
+      } @else {
+        <p class="default-template__empty">{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT_EMPTY' | translate }}</p>
+      }
+    </article>
+
+    @if (viewModel().config.resourceNamingTemplates.length > 0) {
+      <div class="template-list">
+        @for (template of viewModel().config.resourceNamingTemplates; track template.id) {
+          <article class="template-row" [class.template-row--busy]="viewModel().isResourceNamingTemplateBusy(template.resourceType)">
+            @if (viewModel().isResourceNamingTemplateBusy(template.resourceType)) {
+              <div class="template-row__spinner">
+                <mat-spinner diameter="18"></mat-spinner>
+              </div>
+            }
+
+            <div class="template-row__meta">
+              <strong>{{ template.resourceType }}</strong>
+              <code>{{ template.template }}</code>
+            </div>
+
+            @if (viewModel().canWrite) {
+              <div class="template-row__actions">
+                <button
+                  class="template-action-btn template-action-btn--edit"
+                  [matTooltip]="'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT' | translate"
+                  [disabled]="viewModel().isResourceNamingTemplateBusy(template.resourceType) || viewModel().namingActionKey !== null"
+                  (click)="viewModel().onOpenResourceNamingTemplateDialog(template)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  class="template-action-btn template-action-btn--delete"
+                  [matTooltip]="'CONFIG_DETAIL.NAMING_TEMPLATES.REMOVE' | translate"
+                  [disabled]="viewModel().isResourceNamingTemplateBusy(template.resourceType) || viewModel().namingActionKey !== null"
+                  (click)="viewModel().onOpenRemoveResourceNamingTemplateDialog(template)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+            }
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <mat-icon class="empty-state__icon">label</mat-icon>
+        <p>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.EMPTY' | translate }}</p>
+      </div>
+    }
+  }
+
+  <section class="abbreviations-section">
+    <h3 class="abbreviations-section__title">
+      <mat-icon>text_fields</mat-icon>
+      {{ 'ABBREVIATIONS.TITLE' | translate }}
+    </h3>
+    <p class="abbreviations-section__subtitle">{{ 'ABBREVIATIONS.SUBTITLE' | translate }}</p>
+
+    @if (viewModel().abbreviationDisplayItems.length === 0) {
+      <div class="empty-state">
+        <mat-icon class="empty-state__icon">text_fields</mat-icon>
+        <p>{{ 'ABBREVIATIONS.EMPTY' | translate }}</p>
+      </div>
+    } @else {
+      <div class="abbreviation-list">
+        <div class="abbreviation-list__header">
+          <span class="abbreviation-list__col abbreviation-list__col--type">{{ 'ABBREVIATIONS.COLUMN_RESOURCE_TYPE' | translate }}</span>
+          <span class="abbreviation-list__col abbreviation-list__col--default">{{ 'ABBREVIATIONS.COLUMN_DEFAULT' | translate }}</span>
+          <span class="abbreviation-list__col abbreviation-list__col--effective">{{ 'ABBREVIATIONS.COLUMN_EFFECTIVE' | translate }}</span>
+          <span class="abbreviation-list__col abbreviation-list__col--status"></span>
+          <span class="abbreviation-list__col abbreviation-list__col--actions"></span>
+        </div>
+
+        @for (item of viewModel().abbreviationDisplayItems; track item.resourceType) {
+          <article class="abbreviation-row" [class.abbreviation-row--busy]="viewModel().isAbbreviationBusy(item.resourceType)">
+            @if (viewModel().isAbbreviationBusy(item.resourceType)) {
+              <div class="abbreviation-row__spinner">
+                <mat-spinner diameter="18"></mat-spinner>
+              </div>
+            }
+
+            <span class="abbreviation-list__col abbreviation-list__col--type">
+              <mat-icon class="abbreviation-row__icon">{{ viewModel().resourceTypeIcons[item.resourceType] }}</mat-icon>
+              {{ item.resourceType }}
+            </span>
+            <span class="abbreviation-list__col abbreviation-list__col--default">
+              <code>{{ item.defaultAbbreviation }}</code>
+            </span>
+            <span class="abbreviation-list__col abbreviation-list__col--effective">
+              <code class="effective-abbr" [class.effective-abbr--custom]="item.isCustomized">{{ item.effectiveAbbreviation }}</code>
+            </span>
+            <span class="abbreviation-list__col abbreviation-list__col--status">
+              @if (item.isCustomized) {
+                <span class="customized-chip">{{ 'ABBREVIATIONS.CUSTOMIZED' | translate }}</span>
+              }
+            </span>
+            @if (viewModel().canWrite) {
+              <span class="abbreviation-list__col abbreviation-list__col--actions">
+                <button
+                  class="template-action-btn template-action-btn--edit"
+                  [matTooltip]="'ABBREVIATIONS.EDIT' | translate"
+                  [disabled]="viewModel().isAbbreviationBusy(item.resourceType) || viewModel().namingActionKey !== null"
+                  (click)="viewModel().onOpenEditAbbreviationDialog(item)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                @if (item.isCustomized) {
+                  <button
+                    class="template-action-btn template-action-btn--delete"
+                    [matTooltip]="'ABBREVIATIONS.RESET' | translate"
+                    [disabled]="viewModel().isAbbreviationBusy(item.resourceType) || viewModel().namingActionKey !== null"
+                    (click)="viewModel().onOpenResetAbbreviationDialog(item)">
+                    <mat-icon>restart_alt</mat-icon>
+                  </button>
+                }
+              </span>
+            }
+          </article>
+        }
+      </div>
+    }
+  </section>
+</div>

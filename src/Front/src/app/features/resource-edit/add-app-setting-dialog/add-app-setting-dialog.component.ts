@@ -16,7 +16,7 @@ import { RoleAssignmentService } from '../../../shared/services/role-assignment.
 import { ProjectService } from '../../../shared/services/project.service';
 import { OutputDefinitionResponse } from '../../../shared/interfaces/app-setting.interface';
 import { ProjectPipelineVariableGroupResponse } from '../../../shared/interfaces/project.interface';
-import { RESOURCE_TYPE_ICONS } from '../../config-detail/enums/resource-type.enum';
+import { RESOURCE_TYPE_ICONS } from '../../../shared/resource-metadata/resource-type.metadata';
 
 export interface AddAppSettingDialogData {
   resourceId: string;

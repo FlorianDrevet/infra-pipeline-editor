@@ -60,7 +60,7 @@ import {
   PushToGitDialogComponent,
   PushToGitDialogData,
 } from '../config-detail/push-to-git-dialog/push-to-git-dialog.component';
-import { RESOURCE_TYPE_OPTIONS, RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
+import { RESOURCE_TYPE_OPTIONS, RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS } from '../../shared/resource-metadata/resource-type.metadata';
 import { AddVariableGroupDialogComponent } from '../config-detail/add-variable-group-dialog/add-variable-group-dialog.component';
 import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
