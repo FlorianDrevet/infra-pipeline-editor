@@ -5,6 +5,22 @@ namespace InfraFlowSculptor.Domain.Tests.Common.ValueObjects;
 
 public sealed class NameTests
 {
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Given_InvalidValue_When_Constructed_Then_ThrowsArgumentException(string? value)
+    {
+        // Arrange
+        Action act = () => _ = new Name(value!);
+
+        // Act
+        var assertion = act.Should().Throw<ArgumentException>();
+
+        // Assert
+        assertion.Which.ParamName.Should().Be("value");
+    }
+
     [Fact]
     public void Given_NonEmptyValue_When_Constructed_Then_ExposesValue()
     {

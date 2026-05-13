@@ -60,6 +60,7 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 - `AddInfraConfigRepositoryCommandValidator` is the current APP-001 reference for infra-config repository commands: require `ProjectId` and `ConfigId`, enforce the shared alias contract (`^[a-z0-9-]+$`, max `50`), require the full connection tuple (`ProviderType`, `RepositoryUrl`, `DefaultBranch`), and reject empty `ContentKinds`. Reuse `RepositoryConnectionValidationRules` for provider/url consistency instead of duplicating ad-hoc parsing guards in the handler.
 - `UpdateAppConfigurationCommandValidator` is the current APP-001 follow-up for typed resource update commands that still lacked FluentValidation: keep the rule set narrow and aligned with the handler-owned contract (`Id` and `Name` required), while leaving optional `EnvironmentSettings` semantics untouched.
 - `RevokePersonalAccessTokenCommandValidator` is the current APP-001 follow-up for identity-only security commands: keep the rule set minimal (`Id` required) and leave ownership / already-revoked semantics to the handler, which still owns the authenticated-user check.
+- `SetProjectResourceNamingTemplateCommandValidator` and `SetProjectResourceAbbreviationCommandValidator` are the current reference slice for catalog-backed string inputs: validate `ResourceType` against `AzureResourceTypes.All` at the validator boundary instead of introducing a cross-cutting `ResourceTypeName` value object into the Project aggregate flow [2026-05-13].
 - `AllCommandsHaveValidatorsTests` is the durable APP-001 guardrail: every concrete `ICommand<T>` in the Application assembly must have a FluentValidation validator type discovered by assembly scan. When a new command is added, the structural test should fail until a validator exists.
 - The APP-001 closure rule is now explicit: every command gets a validator, but validators stay input-only. Use them for required IDs, required top-level strings, max lengths, and parse-safe enum/catalog checks; leave aggregate existence, ownership, authorization, and business-state semantics in handlers/domain services.
 - Keep these orchestration-style checks in FluentValidation when they are pure input consistency checks and do not require repository access.
@@ -119,6 +120,7 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 
 - `IRoleAssignmentDomainService` / `RoleAssignmentDomainService`: extracted cross-cutting role assignment logic shared by Add/Remove/Assign/Unassign/Update identity handlers.
 - Pattern: when 3+ handlers share identical domain logic (load resource, check access, validate, mutate), extract into a domain service interface + implementation registered in `Application/DependencyInjection.cs`.
+- APP-011 is now the closure proof for this pattern: do not create extra domain-service layers when the existing shared service already centralizes the duplicated cross-cutting behavior cited by the audit.
 - Domain services live under `Application/{Feature}/Common/`.
 
 ## Shared Handler Extraction With Leverage [2026-05-12]

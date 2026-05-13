@@ -21,7 +21,7 @@ public sealed class ProjectMember : Entity<ProjectMemberId>
     public ProjectId ProjectId { get; set; } = null!;
 
     /// <summary>Navigation property to the parent project.</summary>
-    public Project Project { get; set; } = null!;
+    public Project? Project { get; set; }
 
     /// <summary>
     /// Navigation property to the associated <see cref="UserAggregate.User"/>.

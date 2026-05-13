@@ -147,7 +147,7 @@ public sealed class ProjectRepository(ProjectDbContext context)
         var resourceLookup = await Context.AzureResources
             .AsNoTracking()
             .Include(r => r.ResourceGroup)
-                .ThenInclude(rg => rg.InfraConfig)
+                .ThenInclude(rg => rg!.InfraConfig)
             .Where(r => allResourceIds.Contains(r.Id))
             .ToDictionaryAsync(
                 r => r.Id.Value,
@@ -155,7 +155,7 @@ public sealed class ProjectRepository(ProjectDbContext context)
                 {
                     ResourceName = r.Name.Value,
                     r.ResourceType,
-                    ConfigName = r.ResourceGroup.InfraConfig.Name.Value,
+                    ConfigName = r.ResourceGroup!.InfraConfig.Name.Value,
                 },
                 cancellationToken);
 

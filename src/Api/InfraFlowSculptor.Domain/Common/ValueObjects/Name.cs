@@ -7,7 +7,13 @@ public sealed class Name : SingleValueObject<string>
 {
     private Name() { }
 
-    public Name(string value) : base(value)
+    public Name(string value) : base(Validate(value))
     {
+    }
+
+    private static string Validate(string value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(value);
+        return value;
     }
 }

@@ -33,6 +33,7 @@
 - Repository interfaces live in Application; implementations live in Infrastructure.
 - `BaseRepository<T, TContext>` owns the common tracked and read-only key lookups, plus `AddAsync`, `UpdateAsync`, and `DeleteAsync`.
 - `IRepository<T>.GetAllAsync(...)` now keeps the original includes-only signature and also exposes an additive token-aware overload `GetAllAsync(CancellationToken, params includes)`. `BaseRepository` routes the legacy overload to the token-aware path and passes the token to `ToListAsync(cancellationToken)`. Keep `IUserRepository` as the deliberate specialized exception with its own explicit token-aware signature.
+- APP-012 closure decision: keep eager-loading contracts explicit (`GetByIdWithXAsync(...)`, `GetByContainedXIdAsync(...)`, read-only variants) and do not widen `IRepository<>` with a generic includes callback API. The explicit repository surface is the documented convention for this codebase [2026-05-13].
 - In EF LINQ, compare whole value objects (`x.Id == id`), never `x.Id.Value == id.Value`.
 - `StorageAccountRepository` is the DB-007 reference for duplicated eager-loading graphs: keep the shared include chain in a private `WithSubResources(...)` helper.
 
@@ -62,6 +63,7 @@
 ## Large Read-Model Mapping Contexts [2026-05-12]
 - When a private mapper starts needing many preloaded collections, group them into a dedicated local context object instead of widening the method signature.
 - `InfrastructureConfigReadRepository.ResourceMappingContext` is the current reference pattern.
+- INFRA-003 closure rule: prefer targeted summary methods, read repositories, and local read models over a generic projections/DTO layer added to every repository [2026-05-13].
 
 ## Repository Naming And Layout Persistence
 - Use `GetByContainedResourceIdAsync`-style names for parent-by-child lookups; avoid ambiguous `GetByResourceIdAsync`.

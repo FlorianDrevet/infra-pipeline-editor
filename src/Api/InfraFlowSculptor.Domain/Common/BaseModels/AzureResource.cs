@@ -29,7 +29,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     public required ResourceGroupId ResourceGroupId { get; set; }
 
     /// <summary>Navigation property to the parent resource group.</summary>
-    public ResourceGroup ResourceGroup { get; set; } = null!;
+    public ResourceGroup? ResourceGroup { get; set; }
 
     /// <summary>Gets the display name of the resource.</summary>
     public required Name Name { get; set; }

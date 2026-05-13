@@ -8,7 +8,17 @@ public sealed class EntraId : SingleValueObject<Guid>
     private EntraId() { }
 
     /// <summary>Initializes a new <see cref="EntraId"/> with the given Guid.</summary>
-    public EntraId(Guid value) : base(value)
+    public EntraId(Guid value) : base(Validate(value))
     {
+    }
+
+    private static Guid Validate(Guid value)
+    {
+        if (value == Guid.Empty)
+        {
+            throw new ArgumentException("EntraId cannot be empty.", nameof(value));
+        }
+
+        return value;
     }
 }
