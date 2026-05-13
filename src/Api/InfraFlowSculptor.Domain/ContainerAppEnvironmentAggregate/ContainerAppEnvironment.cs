@@ -36,8 +36,7 @@ public sealed class ContainerAppEnvironment : AzureResource
     /// <param name="logAnalyticsWorkspaceId">Optional Log Analytics Workspace identifier for diagnostics.</param>
     public void Update(Name name, Location location, AzureResourceId? logAnalyticsWorkspaceId)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
 
         if (IsExisting)
             return;

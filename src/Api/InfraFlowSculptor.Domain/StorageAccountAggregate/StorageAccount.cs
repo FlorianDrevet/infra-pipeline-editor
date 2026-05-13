@@ -158,8 +158,7 @@ public sealed class StorageAccount : AzureResource
         bool enableHttpsTrafficOnly,
         StorageAccountTlsVersion minimumTlsVersion)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
 
         if (IsExisting)
             return;

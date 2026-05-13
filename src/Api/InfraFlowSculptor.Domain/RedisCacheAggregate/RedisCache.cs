@@ -50,8 +50,7 @@ public sealed class RedisCache : AzureResource
         bool disableAccessKeyAuthentication,
         bool enableAadAuth)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
 
         if (IsExisting)
             return;

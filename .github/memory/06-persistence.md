@@ -3,6 +3,7 @@
 ## DbContext
 - `ProjectDbContext` lives in `src/Api/InfraFlowSculptor.Infrastructure/Persistence/ProjectDbContext.cs`.
 - PostgreSQL target with `ApplyConfigurationsFromAssembly()`.
+- `ProjectDbContext.SaveChangesAsync(...)` is now the minimal in-process domain-event dispatch boundary: collect `IHasDomainEvents` aggregates from the change tracker, save first, clear their events, then dispatch them through the optional `IDomainEventDispatcher`. Keep this seam in-process only; outbox/audit/event-sourcing remain separate concerns.
 
 ## Configuration Pattern
 - One sealed `IEntityTypeConfiguration<T>` per aggregate/entity: table/key mapping, typed converters, indexes, and navigation configuration.
@@ -31,6 +32,7 @@
 ## Repository Pattern
 - Repository interfaces live in Application; implementations live in Infrastructure.
 - `BaseRepository<T, TContext>` owns the common tracked and read-only key lookups, plus `AddAsync`, `UpdateAsync`, and `DeleteAsync`.
+- `IRepository<T>.GetAllAsync(...)` now keeps the original includes-only signature and also exposes an additive token-aware overload `GetAllAsync(CancellationToken, params includes)`. `BaseRepository` routes the legacy overload to the token-aware path and passes the token to `ToListAsync(cancellationToken)`. Keep `IUserRepository` as the deliberate specialized exception with its own explicit token-aware signature.
 - In EF LINQ, compare whole value objects (`x.Id == id`), never `x.Id.Value == id.Value`.
 - `StorageAccountRepository` is the DB-007 reference for duplicated eager-loading graphs: keep the shared include chain in a private `WithSubResources(...)` helper.
 

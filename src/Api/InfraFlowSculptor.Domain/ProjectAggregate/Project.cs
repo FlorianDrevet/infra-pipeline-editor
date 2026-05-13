@@ -3,6 +3,7 @@ using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
+using InfraFlowSculptor.Domain.ProjectAggregate.Events;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
@@ -116,7 +117,11 @@ public sealed class Project : AggregateRoot<ProjectId>
     /// The caller is automatically added as Owner.
     /// </summary>
     public static Project Create(Name name, string? description, UserId ownerId)
-        => new(ProjectId.CreateUnique(), name, description, ownerId);
+    {
+        var project = new Project(ProjectId.CreateUnique(), name, description, ownerId);
+        project.AddDomainEvent(new ProjectCreatedDomainEvent(project.Id));
+        return project;
+    }
 
     /// <summary>EF Core constructor.</summary>
     public Project() { }

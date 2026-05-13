@@ -30,8 +30,7 @@ public sealed class AppServicePlan : AzureResource
     /// <summary>Updates the mutable properties of this App Service Plan.</summary>
     public void Update(Name name, Location location, AppServicePlanOsType osType)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
 
         if (IsExisting)
             return;

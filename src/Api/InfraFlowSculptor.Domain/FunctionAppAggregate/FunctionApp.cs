@@ -78,8 +78,7 @@ public sealed class FunctionApp : AzureResource
         string? buildCommand,
         string? applicationName)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
 
         if (IsExisting)
             return;

@@ -38,6 +38,17 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     public required Location Location { get; set; }
 
     /// <summary>
+    /// Sets the shared resource display name and Azure region.
+    /// </summary>
+    /// <param name="name">The new display name.</param>
+    /// <param name="location">The new Azure region.</param>
+    protected void SetNameAndLocation(Name name, Location location)
+    {
+        Name = name;
+        Location = location;
+    }
+
+    /// <summary>
     /// When set, overrides any naming template and uses this value as the resolved resource name.
     /// Set this at resource creation time when the user explicitly provides a full name.
     /// </summary>

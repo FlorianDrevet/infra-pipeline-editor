@@ -128,6 +128,38 @@ public sealed class ProjectRepositoryTests : IDisposable
         _context.Entry(result).State.Should().Be(EntityState.Detached);
     }
 
+    [Fact]
+    public async Task Given_StoredProjects_When_GetAllAsyncWithCancellationToken_Then_ReturnsAll_Async()
+    {
+        // Arrange
+        var firstProject = NewProject();
+        var secondProject = NewProject();
+        await _context.Projects.AddRangeAsync(firstProject, secondProject);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetAllAsync(CancellationToken.None);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().Contain(project => project.Id == firstProject.Id);
+        result.Should().Contain(project => project.Id == secondProject.Id);
+    }
+
+    [Fact]
+    public async Task Given_CancelledToken_When_GetAllAsyncWithCancellationToken_Then_ThrowsOperationCanceledException_Async()
+    {
+        // Arrange
+        using var cancellationTokenSource = new CancellationTokenSource();
+        await cancellationTokenSource.CancelAsync();
+
+        // Act
+        Func<Task> act = async () => await _sut.GetAllAsync(cancellationTokenSource.Token);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
     [Fact(Skip = UserJoinSkipReason)]
     public Task Given_ProjectsForUser_When_GetAllForUserAsync_Then_ReturnsOnlyOwned_Async() => Task.CompletedTask;
 

@@ -56,8 +56,7 @@ public sealed class ContainerApp : AzureResource
     /// <param name="applicationName">The optional user-friendly application name for pipeline display.</param>
     public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, AcrAuthMode? acrAuthMode, string? dockerImageName, string? dockerfilePath, string? applicationName)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
 
         if (IsExisting)
             return;

@@ -20,8 +20,7 @@ public sealed class UserAssignedIdentity : AzureResource
     /// <param name="location">The new Azure location.</param>
     public void Update(Name name, Location location)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
     }
 
     /// <summary>

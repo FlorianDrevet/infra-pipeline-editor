@@ -78,11 +78,18 @@ These reusable entity types are owned by multiple aggregates:
 - `SecureParameterMapping` stores `SecureParameterName`, optional `VariableGroupId`, and `PipelineVariableName` so a secure Bicep param can be injected from an Azure DevOps variable group.
 - `AzureResource.SetSecureParameterMapping(...)` acts as upsert/clear: `null` group clears an existing mapping, inconsistent half-filled mappings are rejected.
 
+## Domain Events [2026-05-13]
+
+- `AggregateRoot<TId>` now implements `IHasDomainEvents` and owns an in-process `IReadOnlyCollection<IDomainEvent>` exposed through `DomainEvents`, plus `AddDomainEvent(...)` / `ClearDomainEvents()` helpers.
+- `Project.Create(...)` is the first event producer on the current branch and raises `ProjectCreatedDomainEvent`.
+- This seam is intentionally narrow: in-process only, no outbox, no integration-event rollout, and no requirement that every aggregate emits events yet.
+
 ## Domain Invariants
 
 - `Project.Members` is `IReadOnlyCollection<ProjectMember>` — mutated via `AddMember()`, `ChangeRole()`, `RemoveMember()`.
 - `InfrastructureConfig` has a `ProjectId` FK. Access checks resolved via **project membership** — `IInfraConfigAccessService`.
 - `AzureResource` inheritance uses EF Core **TPT**: `HasBaseType<AzureResource>().ToTable("...")`.
+- `AzureResource.SetNameAndLocation(...)` is the shared helper for the common `Name` + `Location` mutation path; concrete Azure-resource `Update(...)` methods delegate this shared part to the base while keeping their resource-specific assignments local [2026-05-13].
 - `AzureResource.AddDependency(...)` now enforces same-resource-group dependencies and rejects cyclic graphs; self-dependency still throws and duplicate dependencies remain a no-op [2026-05-12].
 - `CorsRule` now keeps its string collections behind read-only views backed by private lists, and `StorageAccount.GetBlobCorsRules()` / `GetTableCorsRules()` reuse cached filtered views instead of recomputing `Where(...).ToList()` on every access [2026-05-12].
 

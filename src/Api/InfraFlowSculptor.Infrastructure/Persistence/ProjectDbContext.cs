@@ -2,6 +2,7 @@ using InfraFlowSculptor.Domain.AppConfigurationAggregate;
 using InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities;
+using InfraFlowSculptor.Application.Common.Interfaces.DomainEvents;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.Models;
@@ -46,8 +47,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence;
 
-public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbContext(options)
+public class ProjectDbContext : DbContext
 {
+    private readonly IDomainEventDispatcher? _domainEventDispatcher;
+
+    /// <summary>
+    /// Initializes a new <see cref="ProjectDbContext"/> instance.
+    /// </summary>
+    /// <param name="options">The EF Core options for this context.</param>
+    /// <param name="domainEventDispatcher">The optional in-process domain event dispatcher.</param>
+    public ProjectDbContext(
+        DbContextOptions<ProjectDbContext> options,
+        IDomainEventDispatcher? domainEventDispatcher = null)
+        : base(options)
+    {
+        _domainEventDispatcher = domainEventDispatcher;
+    }
+
     public DbSet<AzureResource> AzureResources { get; set; } = null!;
     public DbSet<Project> Projects { get; set; } = null!;
     public DbSet<ProjectMember> ProjectMembers { get; set; } = null!;
@@ -137,7 +153,29 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
             }
         }
 
-        return await base.SaveChangesAsync(cancellationToken);
+        var aggregatesWithDomainEvents = ChangeTracker.Entries<IHasDomainEvents>()
+            .Where(entry => entry.Entity.DomainEvents.Count > 0)
+            .Select(entry => entry.Entity)
+            .ToList();
+        var domainEvents = aggregatesWithDomainEvents
+            .SelectMany(aggregate => aggregate.DomainEvents)
+            .ToList();
+
+        var savedEntries = await base.SaveChangesAsync(cancellationToken);
+
+        if (domainEvents.Count == 0)
+            return savedEntries;
+
+        foreach (var aggregate in aggregatesWithDomainEvents)
+        {
+            aggregate.ClearDomainEvents();
+        }
+
+        if (_domainEventDispatcher is null)
+            return savedEntries;
+
+        await _domainEventDispatcher.DispatchAsync(domainEvents, cancellationToken);
+        return savedEntries;
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
