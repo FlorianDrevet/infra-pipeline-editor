@@ -1,8 +1,11 @@
 using FluentAssertions;
+using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
+using InfraFlowSculptor.Application.Projects.Common.Generation;
+using InfraFlowSculptor.Application.Projects.Common.Storage;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipeline;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ProjectAggregate;
@@ -18,6 +21,9 @@ public sealed class GenerateProjectPipelineCommandHandlerTests
     private readonly IProjectAccessService _accessService;
     private readonly IProjectRepository _projectRepository;
     private readonly IInfrastructureConfigReadRepository _configReadRepository;
+    private readonly IRepositoryTargetResolver _targetResolver;
+    private readonly IProjectPipelineAggregator _projectPipelineAggregator;
+    private readonly IMonoRepoBlobUploadOrchestrator _blobUploadOrchestrator;
     private readonly Project _project;
     private readonly GenerateProjectPipelineCommandHandler _sut;
 
@@ -26,6 +32,9 @@ public sealed class GenerateProjectPipelineCommandHandlerTests
         _accessService = Substitute.For<IProjectAccessService>();
         _projectRepository = Substitute.For<IProjectRepository>();
         _configReadRepository = Substitute.For<IInfrastructureConfigReadRepository>();
+        _targetResolver = Substitute.For<IRepositoryTargetResolver>();
+        _projectPipelineAggregator = Substitute.For<IProjectPipelineAggregator>();
+        _blobUploadOrchestrator = Substitute.For<IMonoRepoBlobUploadOrchestrator>();
         _project = Project.Create(new Name("Retail Platform"), "Provision retail assets.", UserId.CreateUnique());
         _project.SetLayoutPreset(new LayoutPreset(LayoutPresetEnum.MultiRepo));
 
@@ -33,10 +42,9 @@ public sealed class GenerateProjectPipelineCommandHandlerTests
             _accessService,
             _projectRepository,
             _configReadRepository,
-            pipelineGenerationEngine: null!,
-            configPipelineGenerationService: null!,
-            blobService: null!,
-            targetResolver: null!);
+            _targetResolver,
+            _projectPipelineAggregator,
+            _blobUploadOrchestrator);
     }
 
     [Fact]

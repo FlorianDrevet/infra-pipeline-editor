@@ -82,3 +82,4 @@
 ## Migrations
 - Schema changes still require a new EF migration under `src/Api/InfraFlowSculptor.Infrastructure/Migrations/`.
 - Current DB-001 / delete-behavior reference migrations: `20260512091902_AddCoreStringLengthConstraints`, `20260512095600_AddResourceGroupNameLengthConstraint`, `20260512121558_SetNullOnAppSettingSourceResource`, and `20260512140453_AddParameterDefinitionLengthConstraints`.
+- Do not squash a sub-range in the middle of the active EF Core migration chain. The DB-008 closure decision is now explicit: the only safe squash is a full baseline reset on an empty database, coordinated as release engineering, not a partial rewrite inside a feature branch with later migrations already layered on top.
