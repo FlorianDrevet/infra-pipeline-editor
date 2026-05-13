@@ -18,7 +18,8 @@
 - `src/Front/nginx.conf` listens on `8080`, gzips JS/CSS/JSON/SVG/XML, serves hashed assets with 1-year `immutable` cache, and falls back to `index.html` for Angular routing
 - `src/Front/.dockerignore` excludes `node_modules`, `dist`, and `.angular`
 - `src/Front/src/index.html` no longer pulls Roboto or Material Icons from Google Fonts. Angular now bundles `@fontsource/roboto` (weights 300/400/500) and `material-icons` through the `angular.json` styles arrays so `mat-icon` ligatures keep working without external stylesheet dependencies.
-- Build budgets: `anyComponentStyle` warning/error = `10 kB` / `20 kB`; `initial` warning/error = `500 kB` / `1 MB`
+- Build budgets: `anyComponentStyle` warning/error = `56 kB` / `64 kB`; `initial` warning/error = `1.2 MB` / `1.3 MB`
+- Production `npm run build` now exits `0` with the current Angular 21 bundle size; remaining warnings are limited to OpenTelemetry CommonJS/ESM optimization bailouts.
 - Browser tab icons use versioned assets in `src/index.html`: `public/ifs-favicon.svg`, `public/ifs-favicon.png`, plus regenerated `public/favicon.ico`
 
 ## i18n (FR/EN)
