@@ -1,0 +1,256 @@
+<div class="tab-content">
+  <div class="env-description">
+    <mat-icon class="env-description__icon">data_object</mat-icon>
+    <p>{{ 'RESOURCE_EDIT.APP_SETTINGS.DESCRIPTION' | translate }}</p>
+  </div>
+
+  @if (canWrite()) {
+    <div class="ra-actions">
+      <button class="ra-add-btn" type="button" (click)="section().openAddDialog()">
+        <mat-icon>add</mat-icon>
+        {{ 'RESOURCE_EDIT.APP_SETTINGS.ADD' | translate }}
+      </button>
+      <button class="ra-add-btn ra-add-btn--secondary" type="button" (click)="section().openImportDialog()">
+        <mat-icon>upload_file</mat-icon>
+        {{ 'RESOURCE_EDIT.APP_SETTINGS.IMPORT' | translate }}
+      </button>
+    </div>
+  }
+
+  @if (section().errorKey()) {
+    <div class="feedback-banner feedback-banner--error" role="alert">
+      <mat-icon>error_outline</mat-icon>
+      {{ section().errorKey() | translate }}
+    </div>
+  }
+
+  @for (kvEntry of section().kvMissingRoleEntries(); track kvEntry.keyVaultResourceId) {
+    <div class="kv-access-card kv-access-card--warn">
+      <div class="kv-access-card__header">
+        <mat-icon class="kv-access-card__header-icon">shield</mat-icon>
+        <span class="kv-access-card__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_TITLE' | translate }}</span>
+      </div>
+      <p class="kv-access-card__message">
+        {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_DESC' | translate: { kvName: section().resolveSourceName(kvEntry.keyVaultResourceId), role: kvEntry.missingRoleName, count: kvEntry.affectedSettingsCount } }}
+      </p>
+      @if (canWrite()) {
+        <div class="kv-access-card__identity-section">
+          <span class="kv-access-card__section-label">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ON' | translate }}</span>
+          <div class="kv-access-card__identity-row">
+            <mat-button-toggle-group
+              [value]="kvEntry.selectedIdentityType"
+              (change)="section().setKvEntryIdentityType(kvEntry.keyVaultResourceId, $event.value)"
+              class="kv-access-card__toggle-group">
+              <mat-button-toggle value="UserAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_UAI' | translate }}</mat-button-toggle>
+              <mat-button-toggle value="SystemAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_SAI' | translate }}</mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+          @if (kvEntry.selectedIdentityType === 'UserAssigned') {
+            @if (section().assignedUai(); as uai) {
+              <div class="kv-access-card__uai-chip">
+                <mat-icon class="kv-access-card__uai-chip-icon">badge</mat-icon>
+                <span class="kv-access-card__uai-chip-name">{{ uai.identityName }}</span>
+              </div>
+            } @else {
+              <div class="kv-access-card__identity-row">
+                <app-compact-select
+                  [options]="section().uaiOptions()"
+                  [value]="kvEntry.selectedUaiId"
+                  [placeholder]="'RESOURCE_EDIT.APP_SETTINGS.KV_SELECT_UAI' | translate"
+                  [emptyText]="'RESOURCE_EDIT.APP_SETTINGS.KV_NO_UAI_AVAILABLE' | translate"
+                  (valueChange)="section().setKvEntryUaiId(kvEntry.keyVaultResourceId, $event)">
+                </app-compact-select>
+                <button class="kv-access-card__create-uai-btn" type="button" (click)="section().createNewUaiForEntry(kvEntry.keyVaultResourceId)">
+                  <mat-icon>add</mat-icon>
+                  {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_CREATE_UAI' | translate }}
+                </button>
+              </div>
+            }
+          }
+        </div>
+        <button
+          class="kv-access-card__action-btn"
+          type="button"
+          [disabled]="kvEntry.assigning || (kvEntry.selectedIdentityType === 'UserAssigned' && !section().assignedUai() && !kvEntry.selectedUaiId)"
+          (click)="section().assignKvRole(kvEntry)">
+          @if (kvEntry.assigning) {
+            <mat-spinner diameter="14"></mat-spinner>
+          } @else {
+            <mat-icon>add_circle_outline</mat-icon>
+          }
+          {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ROLE' | translate }}
+        </button>
+      }
+    </div>
+  }
+
+  @if (section().isLoading()) {
+    <div class="ra-loading">
+      <mat-spinner diameter="28"></mat-spinner>
+      <span>{{ 'RESOURCE_EDIT.APP_SETTINGS.LOADING' | translate }}</span>
+    </div>
+  } @else if (section().appSettings().length === 0) {
+    <div class="empty-state">
+      <mat-icon class="empty-state__icon">settings_applications</mat-icon>
+      <p>{{ 'RESOURCE_EDIT.APP_SETTINGS.EMPTY' | translate }}</p>
+    </div>
+  } @else {
+    @if (section().groupedSettings().byVg.length > 0) {
+      <section class="as-section as-section--vg">
+        <div class="as-section__header">
+          <div class="as-section__header-left">
+            <div class="as-section__icon-box as-section__icon-box--vg">
+              <mat-icon>account_tree</mat-icon>
+            </div>
+            <div class="as-section__header-text">
+              <h4 class="as-section__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_VG' | translate }}</h4>
+              <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_VG_DESC' | translate }}</p>
+            </div>
+          </div>
+        </div>
+
+        @for (vgGroup of section().groupedSettings().byVg; track vgGroup.vgId) {
+          <div class="as-group">
+            <div class="as-group__header">
+              <mat-icon class="as-group__icon as-group__icon--vg">library_books</mat-icon>
+              <span class="as-group__name">{{ vgGroup.vgName }}</span>
+              <span class="as-group__count">{{ vgGroup.settings.length }}</span>
+            </div>
+            <div class="as-group__items">
+              @for (setting of vgGroup.settings; track setting.id) {
+                <div class="as-row" [class.as-row--secret]="setting.isKeyVaultReference" [class.as-row--vg]="!setting.isKeyVaultReference">
+                  <div class="as-row__left">
+                    <span class="as-row__var-name">{{ setting.name }}</span>
+                    <span class="as-row__arrow">→</span>
+                    <span class="as-row__pipeline-var">$({{ setting.pipelineVariableName }})</span>
+                  </div>
+                  <div class="as-row__right">
+                    @if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
+                      <span class="as-kv-tag">
+                        <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                        <span class="as-kv-tag__name">{{ section().resolveSourceName(setting.keyVaultResourceId) }}</span>
+                        <span class="as-kv-tag__sep">/</span>
+                        <span class="as-kv-tag__secret">{{ setting.secretName }}</span>
+                      </span>
+                    }
+                    @if (canWrite()) {
+                      <button class="as-row__delete" type="button" (click)="section().openRemoveDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    @if (section().groupedSettings().outputs.length > 0) {
+      <section class="as-section as-section--output">
+        <div class="as-section__header">
+          <div class="as-section__header-left">
+            <div class="as-section__icon-box as-section__icon-box--output">
+              <mat-icon>swap_horiz</mat-icon>
+            </div>
+            <div class="as-section__header-text">
+              <h4 class="as-section__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_OUTPUTS' | translate }}</h4>
+              <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_OUTPUTS_DESC' | translate }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="as-group__items">
+          @for (setting of section().groupedSettings().outputs; track setting.id) {
+            <div class="as-row" [class.as-row--secret]="setting.isKeyVaultReference" [class.as-row--output]="!setting.isKeyVaultReference">
+              <div class="as-row__left">
+                <span class="as-row__var-name">{{ setting.name }}</span>
+                <span class="as-row__arrow">←</span>
+                @if (setting.sourceResourceId) {
+                  <mat-icon class="as-row__source-icon">{{ resourceTypeIcons[section().resolveSourceType(setting.sourceResourceId)] || 'widgets' }}</mat-icon>
+                  <span class="as-row__source-name">{{ section().resolveSourceName(setting.sourceResourceId) }}</span>
+                  <span class="as-row__output-dot">·</span>
+                  <span class="as-row__output-name">{{ setting.sourceOutputName }}</span>
+                }
+              </div>
+              <div class="as-row__right">
+                @if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
+                  <span class="as-kv-tag">
+                    <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                    <span class="as-kv-tag__name">{{ section().resolveSourceName(setting.keyVaultResourceId) }}</span>
+                    <span class="as-kv-tag__sep">/</span>
+                    <span class="as-kv-tag__secret">{{ setting.secretName }}</span>
+                  </span>
+                }
+                @if (canWrite()) {
+                  <button class="as-row__delete" type="button" (click)="section().openRemoveDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    @if (section().groupedSettings().statics.length > 0) {
+      <section class="as-section as-section--static">
+        <div class="as-section__header">
+          <div class="as-section__header-left">
+            <div class="as-section__icon-box as-section__icon-box--static">
+              <mat-icon>edit_note</mat-icon>
+            </div>
+            <div class="as-section__header-text">
+              <h4 class="as-section__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_STATIC' | translate }}</h4>
+              <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_STATIC_DESC' | translate }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="as-group__items">
+          @for (setting of section().groupedSettings().statics; track setting.id) {
+            <div class="as-row" [class.as-row--secret]="setting.isKeyVaultReference" [class.as-row--static]="!setting.isKeyVaultReference">
+              <div class="as-row__left">
+                <span class="as-row__var-name">{{ setting.name }}</span>
+                @if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
+                  <span class="as-row__arrow">→</span>
+                  <span class="as-kv-tag">
+                    <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                    <span class="as-kv-tag__name">{{ section().resolveSourceName(setting.keyVaultResourceId) }}</span>
+                    <span class="as-kv-tag__sep">/</span>
+                    <span class="as-kv-tag__secret">{{ setting.secretName }}</span>
+                  </span>
+                } @else if (setting.environmentValues) {
+                  <div class="as-row__env-chips">
+                    @for (environment of environments(); track environment.id) {
+                      @if (setting.environmentValues[environment.name]; as value) {
+                        <span class="as-env-chip" [matTooltip]="environment.name + ': ' + value">
+                          <span class="as-env-chip__env">{{ environment.name }}</span>
+                          <span class="as-env-chip__val">{{ value }}</span>
+                        </span>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+              <div class="as-row__right">
+                @if (canWrite() && !setting.isKeyVaultReference) {
+                  <button class="as-row__edit" type="button" (click)="section().openEditStaticDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.EDIT' | translate">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                }
+                @if (canWrite()) {
+                  <button class="as-row__delete" type="button" (click)="section().openRemoveDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+</div>
