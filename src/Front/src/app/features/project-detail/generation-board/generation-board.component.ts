@@ -184,7 +184,7 @@ export class GenerationBoardComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    void this.load();
+    this.runTask(this.load());
   }
 
   private async load(): Promise<void> {
@@ -249,11 +249,19 @@ export class GenerationBoardComponent implements OnInit {
       return;
     }
 
-    void this.router.navigate(['/projects', projectId]);
+    this.runNavigation(this.router.navigate(['/projects', projectId]));
   }
 
   protected openConfiguration(configId: string): void {
-    void this.router.navigate(['/config', configId]);
+    this.runNavigation(this.router.navigate(['/config', configId]));
+  }
+
+  private runNavigation(navigationPromise: Promise<boolean>): void {
+    navigationPromise.catch(() => undefined);
+  }
+
+  private runTask(taskPromise: Promise<void>): void {
+    taskPromise.catch(() => undefined);
   }
 
   private showError(key: string): void {

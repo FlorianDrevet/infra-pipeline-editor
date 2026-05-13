@@ -20,9 +20,13 @@ export class ConfigGenerationComponent implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      void this.router.navigate(['/config', id], { queryParams: { generate: true } });
+      this.runNavigation(this.router.navigate(['/config', id], { queryParams: { generate: true } }));
     } else {
-      void this.router.navigate(['/']);
+      this.runNavigation(this.router.navigate(['/']));
     }
+  }
+
+  private runNavigation(navigationPromise: Promise<boolean>): void {
+    navigationPromise.catch(() => undefined);
   }
 }

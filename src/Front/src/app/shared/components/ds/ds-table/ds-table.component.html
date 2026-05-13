@@ -1,16 +1,14 @@
 <div
   class="ds-table"
-  role="table"
   [attr.aria-label]="ariaLabel || null"
   [class.ds-table--interactive]="isInteractive"
   [style.--ds-table-row-height]="rowHeightVar"
   [style.grid-template-columns]="gridTemplateColumns"
 >
-  <div class="ds-table__header" role="row">
+  <div class="ds-table__header">
     @for (column of columns; track trackColumn($index, column)) {
       <div
         class="ds-table__header-cell"
-        role="columnheader"
         [ngClass]="{
           'ds-table__cell--align-center': column.align === 'center',
           'ds-table__cell--align-end': column.align === 'end',
@@ -50,7 +48,6 @@
     @for (row of rows; track trackRow($index, row)) {
       <div
         class="ds-table__row"
-        role="row"
         [attr.tabindex]="isInteractive ? 0 : null"
         (click)="onRowClick(row)"
         (keydown)="onRowKeyDown($event, row)"
@@ -58,7 +55,6 @@
         @for (column of columns; track trackColumn($index, column)) {
           <div
             class="ds-table__cell"
-            role="cell"
             [ngClass]="[
               column.cellClass || '',
               column.align === 'center' ? 'ds-table__cell--align-center' : '',

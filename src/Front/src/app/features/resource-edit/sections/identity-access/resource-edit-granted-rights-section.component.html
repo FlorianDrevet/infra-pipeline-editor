@@ -1,0 +1,50 @@
+<div class="tab-content">
+  <div class="env-description">
+    <mat-icon class="env-description__icon">verified_user</mat-icon>
+    <p>{{ 'RESOURCE_EDIT.GRANTED_RIGHTS.DESCRIPTION' | translate }}</p>
+  </div>
+
+  @if (canWrite()) {
+    <div class="ra-actions">
+      <button class="ra-add-btn" (click)="section().openAddRoleAssignmentDialog()">
+        <mat-icon>add</mat-icon>
+        {{ 'RESOURCE_EDIT.GRANTED_RIGHTS.ASSIGN_RIGHT' | translate }}
+      </button>
+    </div>
+  }
+
+  @if (section().identityRoleAssignmentsError()) {
+    <div class="feedback-banner feedback-banner--error" role="alert">
+      <mat-icon>error_outline</mat-icon>
+      {{ section().identityRoleAssignmentsError() | translate }}
+    </div>
+  }
+
+  @if (section().identityRoleAssignmentsLoading()) {
+    <div class="ra-loading">
+      <mat-spinner diameter="28"></mat-spinner>
+      <span>{{ 'RESOURCE_EDIT.GRANTED_RIGHTS.LOADING' | translate }}</span>
+    </div>
+  } @else if (section().identityRoleAssignments().length === 0) {
+    <div class="empty-state">
+      <mat-icon class="empty-state__icon">verified_user</mat-icon>
+      <p>{{ 'RESOURCE_EDIT.GRANTED_RIGHTS.EMPTY' | translate }}</p>
+    </div>
+  } @else {
+    <div class="uai-rights-list">
+      @for (assignment of section().identityRoleAssignments(); track assignment.id) {
+        <div class="uai-right-row">
+          <span class="uai-right-row__role">
+            <mat-icon class="uai-right-row__role-icon">shield</mat-icon>
+            {{ assignment.roleName }}
+          </span>
+          <mat-icon class="uai-right-row__arrow">east</mat-icon>
+          <span class="uai-right-row__target">
+            <mat-icon class="uai-right-row__target-icon">{{ resourceTypeIcons[assignment.targetResourceType] || 'widgets' }}</mat-icon>
+            {{ assignment.targetResourceName }}
+          </span>
+        </div>
+      }
+    </div>
+  }
+</div>

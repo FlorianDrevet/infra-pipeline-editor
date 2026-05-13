@@ -2,7 +2,7 @@ import { inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { CustomDomainResponse } from '../../../../shared/interfaces/custom-domain.interface';
+import { AddCustomDomainRequest, CustomDomainResponse } from '../../../../shared/interfaces/custom-domain.interface';
 import { EnvironmentDefinitionResponse } from '../../../../shared/interfaces/infra-config.interface';
 import { CustomDomainService } from '../../../../shared/services/custom-domain.service';
 import {
@@ -48,6 +48,19 @@ export function createResourceEditCustomDomainsSectionController(
   const domainsForEnvironment = (environmentName: string): CustomDomainResponse[] =>
     customDomains().filter((domain) => domain.environmentName === environmentName);
 
+  const addCustomDomain = async (request: AddCustomDomainRequest): Promise<void> => {
+    isLoading.set(true);
+    errorKey.set('');
+    try {
+      await customDomainService.add(dependencies.getResourceId(), request);
+      await load();
+    } catch {
+      errorKey.set('RESOURCE_EDIT.CUSTOM_DOMAINS.ADD_ERROR');
+    } finally {
+      isLoading.set(false);
+    }
+  };
+
   const openAddDialog = (environmentName: string): void => {
     const dialogRef = dialog.open(AddCustomDomainDialogComponent, {
       width: '520px',
@@ -58,22 +71,26 @@ export function createResourceEditCustomDomainsSectionController(
       } satisfies AddCustomDomainDialogData,
     });
 
-    dialogRef.afterClosed().subscribe(async (result) => {
+    dialogRef.afterClosed().subscribe((result?: AddCustomDomainRequest) => {
       if (!result) {
         return;
       }
 
-      isLoading.set(true);
-      errorKey.set('');
-      try {
-        await customDomainService.add(dependencies.getResourceId(), result);
-        await load();
-      } catch {
-        errorKey.set('RESOURCE_EDIT.CUSTOM_DOMAINS.ADD_ERROR');
-      } finally {
-        isLoading.set(false);
-      }
+      addCustomDomain(result).catch(() => undefined);
     });
+  };
+
+  const removeCustomDomain = async (domain: CustomDomainResponse): Promise<void> => {
+    isLoading.set(true);
+    errorKey.set('');
+    try {
+      await customDomainService.remove(dependencies.getResourceId(), domain.id);
+      customDomains.update((currentDomains) => currentDomains.filter((currentDomain) => currentDomain.id !== domain.id));
+    } catch {
+      errorKey.set('RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_ERROR');
+    } finally {
+      isLoading.set(false);
+    }
   };
 
   const removeDomain = (domain: CustomDomainResponse): void => {
@@ -87,21 +104,12 @@ export function createResourceEditCustomDomainsSectionController(
       } satisfies ConfirmDialogData,
     });
 
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+    dialogRef.afterClosed().subscribe((confirmed?: boolean) => {
       if (!confirmed) {
         return;
       }
 
-      isLoading.set(true);
-      errorKey.set('');
-      try {
-        await customDomainService.remove(dependencies.getResourceId(), domain.id);
-        customDomains.update((currentDomains) => currentDomains.filter((currentDomain) => currentDomain.id !== domain.id));
-      } catch {
-        errorKey.set('RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_ERROR');
-      } finally {
-        isLoading.set(false);
-      }
+      removeCustomDomain(domain).catch(() => undefined);
     });
   };
 

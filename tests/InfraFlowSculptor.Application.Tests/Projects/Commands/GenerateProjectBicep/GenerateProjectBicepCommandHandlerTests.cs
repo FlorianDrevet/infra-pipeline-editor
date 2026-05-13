@@ -165,6 +165,57 @@ public sealed class GenerateProjectBicepCommandHandlerTests
             && reference.TargetResourceId == containerRegistryId);
     }
 
+    [Fact]
+    public async Task Given_CancellationToken_When_Handle_Then_ForwardsItToBicepGenerationContextAsync()
+    {
+        // Arrange
+        var project = Project.Create(new Name("Infra Flow Sculptor"), "Provision IFS assets.", UserId.CreateUnique());
+        project.SetLayoutPreset(new LayoutPreset(LayoutPresetEnum.AllInOne));
+
+        _accessService.VerifyWriteAccessAsync(project.Id, Arg.Any<CancellationToken>())
+            .Returns(project);
+        _configReadRepository.GetAllByProjectIdWithResourcesAsync(project.Id.Value, Arg.Any<CancellationToken>())
+            .Returns([BuildConfigReadModel(project.Id.Value)]);
+        _blobUploadOrchestrator.UploadBicepAsync(
+                Arg.Any<string>(),
+                Arg.Any<MonoRepoGenerationResult>(),
+                Arg.Any<CancellationToken>())
+            .Returns(new ProjectBicepBlobUploadResult(
+                new Dictionary<string, Uri>(),
+                new Dictionary<string, IReadOnlyDictionary<string, Uri>>()));
+
+        var capturedCancellationToken = CancellationToken.None;
+        var stage = Substitute.For<IBicepGenerationStage>();
+        stage.Order.Returns(100);
+        stage.When(current => current.Execute(Arg.Any<BicepGenerationContext>()))
+            .Do(callInfo =>
+            {
+                var context = callInfo.Arg<BicepGenerationContext>();
+                capturedCancellationToken = context.CancellationToken;
+                context.Result = new GenerationResult
+                {
+                    MainBicep = "targetScope = 'subscription'\n",
+                };
+            });
+
+        var engine = new BicepGenerationEngine(new BicepGenerationPipeline([stage]));
+        var sut = new GenerateProjectBicepCommandHandler(
+            _accessService,
+            _configReadRepository,
+            engine,
+            _blobUploadOrchestrator);
+
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var command = new GenerateProjectBicepCommand(project.Id);
+
+        // Act
+        var result = await sut.Handle(command, cancellationTokenSource.Token);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        capturedCancellationToken.Should().Be(cancellationTokenSource.Token);
+    }
+
     private static InfrastructureConfigReadModel BuildConfigReadModel(
         Guid projectId,
         string configName = "retail-shared",

@@ -21,63 +21,16 @@
   }
 
   @for (kvEntry of section().kvMissingRoleEntries(); track kvEntry.keyVaultResourceId) {
-    <div class="kv-access-card kv-access-card--warn">
-      <div class="kv-access-card__header">
-        <mat-icon class="kv-access-card__header-icon">shield</mat-icon>
-        <span class="kv-access-card__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_TITLE' | translate }}</span>
-      </div>
-      <p class="kv-access-card__message">
-        {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_DESC' | translate: { kvName: section().resolveSourceName(kvEntry.keyVaultResourceId), role: kvEntry.missingRoleName, count: kvEntry.affectedSettingsCount } }}
-      </p>
-      @if (canWrite()) {
-        <div class="kv-access-card__identity-section">
-          <span class="kv-access-card__section-label">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ON' | translate }}</span>
-          <div class="kv-access-card__identity-row">
-            <mat-button-toggle-group
-              [value]="kvEntry.selectedIdentityType"
-              (change)="section().setKvEntryIdentityType(kvEntry.keyVaultResourceId, $event.value)"
-              class="kv-access-card__toggle-group">
-              <mat-button-toggle value="UserAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_UAI' | translate }}</mat-button-toggle>
-              <mat-button-toggle value="SystemAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_SAI' | translate }}</mat-button-toggle>
-            </mat-button-toggle-group>
-          </div>
-          @if (kvEntry.selectedIdentityType === 'UserAssigned') {
-            @if (section().assignedUai(); as uai) {
-              <div class="kv-access-card__uai-chip">
-                <mat-icon class="kv-access-card__uai-chip-icon">badge</mat-icon>
-                <span class="kv-access-card__uai-chip-name">{{ uai.identityName }}</span>
-              </div>
-            } @else {
-              <div class="kv-access-card__identity-row">
-                <app-compact-select
-                  [options]="section().uaiOptions()"
-                  [value]="kvEntry.selectedUaiId"
-                  [placeholder]="'RESOURCE_EDIT.APP_SETTINGS.KV_SELECT_UAI' | translate"
-                  [emptyText]="'RESOURCE_EDIT.APP_SETTINGS.KV_NO_UAI_AVAILABLE' | translate"
-                  (valueChange)="section().setKvEntryUaiId(kvEntry.keyVaultResourceId, $event)">
-                </app-compact-select>
-                <button class="kv-access-card__create-uai-btn" type="button" (click)="section().createNewUaiForEntry(kvEntry.keyVaultResourceId)">
-                  <mat-icon>add</mat-icon>
-                  {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_CREATE_UAI' | translate }}
-                </button>
-              </div>
-            }
-          }
-        </div>
-        <button
-          class="kv-access-card__action-btn"
-          type="button"
-          [disabled]="kvEntry.assigning || (kvEntry.selectedIdentityType === 'UserAssigned' && !section().assignedUai() && !kvEntry.selectedUaiId)"
-          (click)="section().assignKvRole(kvEntry)">
-          @if (kvEntry.assigning) {
-            <mat-spinner diameter="14"></mat-spinner>
-          } @else {
-            <mat-icon>add_circle_outline</mat-icon>
-          }
-          {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ROLE' | translate }}
-        </button>
-      }
-    </div>
+    <app-resource-edit-kv-missing-role-card
+      [canWrite]="canWrite()"
+      [entry]="kvEntry"
+      [assignedUai]="section().assignedUai()"
+      [uaiOptions]="section().uaiOptions()"
+      (identityTypeChange)="section().setKvEntryIdentityType(kvEntry.keyVaultResourceId, $event)"
+      (uaiIdChange)="section().setKvEntryUaiId(kvEntry.keyVaultResourceId, $event)"
+      (createUai)="section().createNewUaiForEntry(kvEntry.keyVaultResourceId)"
+      (assignRole)="section().assignKvRole(kvEntry)">
+    </app-resource-edit-kv-missing-role-card>
   }
 
   @if (section().isLoading()) {

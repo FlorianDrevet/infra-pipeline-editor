@@ -3,12 +3,13 @@ using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Mcp.Drafts;
 using InfraFlowSculptor.Mcp.Drafts.Models;
+using Microsoft.Extensions.Options;
 
 namespace InfraFlowSculptor.Mcp.Tests.Drafts;
 
 public sealed class ProjectDraftServiceTests
 {
-    private readonly ProjectDraftService _sut = new();
+    private readonly ProjectDraftService _sut = CreateSut();
 
     // ── CreateDraftFromPrompt ──────────────────────────────────────────
 
@@ -165,6 +166,22 @@ public sealed class ProjectDraftServiceTests
         draft.Intent.Repositories[1].ContentKinds.Should().Contain("ApplicationCode");
     }
 
+    [Fact]
+    public void Given_MaxDraftCountReached_When_CreateDraftFromPrompt_Then_ThrowsProjectDraftLimitExceededException()
+    {
+        // Arrange
+        var sut = CreateSut(maxDraftCount: 1);
+        var firstDraft = sut.CreateDraftFromPrompt("projet FirstApp mono repo");
+
+        // Act
+        var action = () => sut.CreateDraftFromPrompt("projet SecondApp mono repo");
+
+        // Assert
+        action.Should().Throw<ProjectDraftLimitExceededException>()
+            .WithMessage("*1*");
+        sut.GetDraft(firstDraft.DraftId).Should().NotBeNull();
+    }
+
     // ── ValidateAndUpdate ──────────────────────────────────────────────
 
     [Fact]
@@ -242,5 +259,13 @@ public sealed class ProjectDraftServiceTests
 
         // Assert
         draft.Should().BeNull();
+    }
+
+    private static ProjectDraftService CreateSut(int maxDraftCount = 100)
+    {
+        return new ProjectDraftService(Options.Create(new ProjectDraftStorageOptions
+        {
+            MaxDraftCount = maxDraftCount,
+        }));
     }
 }

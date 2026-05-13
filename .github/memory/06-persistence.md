@@ -33,6 +33,7 @@
 - `IdValueConverter<TId>` and `NullableIdValueConverter<TId>` map typed IDs to `Guid` / nullable `Guid`.
 - `SingleValueConverter<TValueObject, TPrimitive>` maps single-value objects.
 - `EnumValueConverter<TEnumValueObject, TEnum>` and `NullableEnumValueConverter<TEnumValueObject, TEnum>` map enum value objects.
+- DB-015 closure rule [2026-05-13]: reuse `NullableIdValueConverter<TId>` for nullable strongly typed identifiers instead of cloning local `Guid?` converters. The current reference usages are `ContainerAppConfiguration`, `ContainerAppEnvironmentConfiguration`, `FunctionAppConfiguration`, and `WebAppConfiguration`.
 
 ## Repository Pattern
 - Repository interfaces live in Application; implementations live in Infrastructure.
@@ -42,6 +43,7 @@
 - `UserProvisioningService` is the current reference when an HTTP/auth boundary needs an atomic persistence-side existence check: it lives in Infrastructure, implements an Application interface, and uses PostgreSQL `INSERT ... ON CONFLICT ("EntraId") DO NOTHING` against the `User` table before reusing the persisted `Id` [2026-05-13].
 - In EF LINQ, compare whole value objects (`x.Id == id`), never `x.Id.Value == id.Value`.
 - `StorageAccountRepository` is the DB-007 reference for duplicated eager-loading graphs: keep the shared include chain in a private `WithSubResources(...)` helper.
+- DB-007 follow-up [2026-05-13]: resource repositories with repeated eager-loading graphs now keep them repository-local behind private helpers instead of duplicating inline `Include(...)` chains or widening `IRepository<>`. `RepositoryIncludeHelperConventionTests` guards the touched set (`WebApp`, `FunctionApp`, `AppServicePlan`, `ApplicationInsights`, `KeyVault`, `LogAnalyticsWorkspace`, `ContainerApp`, `ContainerAppEnvironment`, `ContainerRegistry`, `CosmosDb`, `RedisCache`, `EventHubNamespace`, `ServiceBusNamespace`, `SqlServer`, `SqlDatabase`, `AppConfiguration`).
 
 ## FK Cascade / Delete Pitfalls [2026-04-04]
 - `Restrict` on cross-resource FKs is unsafe when parent deletes already cascade through `AzureResources`.
@@ -69,6 +71,7 @@
 ## Large Read-Model Mapping Contexts [2026-05-12]
 - When a private mapper starts needing many preloaded collections, group them into a dedicated local context object instead of widening the method signature.
 - `InfrastructureConfigReadRepository.ResourceMappingContext` is the current reference pattern.
+- `InfrastructureConfigReadRepository.MapResource(...)` must emit canonical `AzureResourceTypes.ArmTypes.*` values for read-model `ResourceType` fields. Do not reintroduce raw `Microsoft.*` ARM type strings in that mapper; keep the API read models aligned with `GenerationCore.AzureResourceTypes` [2026-05-13].
 - INFRA-003 closure rule: prefer targeted summary methods, read repositories, and local read models over a generic projections/DTO layer added to every repository [2026-05-13].
 
 ## Repository Naming And Layout Persistence

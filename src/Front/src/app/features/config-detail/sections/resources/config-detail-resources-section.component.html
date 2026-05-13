@@ -83,24 +83,10 @@
                             <div class="resource-item__info">
                               <div class="resource-name-row">
                                 <strong>{{ item.resource.name }}</strong>
-                                @if (viewModel().resolveNamingPreview(item.resource.name, item.resource.resourceType); as preview) {
-                                  <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
-                                    <mat-icon class="naming-preview__icon">label</mat-icon>
-                                    {{ preview }}
-                                  </span>
-                                }
-                                @if (viewModel().hasMissingEnvironments(item.resource)) {
-                                  <span class="missing-env-badge" [matTooltip]="('CONFIG_DETAIL.RESOURCES.MISSING_ENV_TOOLTIP' | translate) + ': ' + viewModel().getMissingEnvironments(item.resource).join(', ')">
-                                    <mat-icon class="missing-env-badge__icon">warning_amber</mat-icon>
-                                    {{ viewModel().getMissingEnvironments(item.resource).length }}
-                                  </span>
-                                }
-                                @if (viewModel().hasResourceDiagnostics(item.resource.id)) {
-                                  <app-diagnostic-popover [diagnostics]="viewModel().getResourceDiagnostics(item.resource.id)" />
-                                }
-                                @if (item.resource.isExisting) {
-                                  <span class="existing-resource-badge">{{ 'RESOURCE_LIST.EXISTING_BADGE' | translate }}</span>
-                                }
+                                <ng-container
+                                  [ngTemplateOutlet]="resourceIndicatorsTemplate"
+                                  [ngTemplateOutletContext]="{ resource: item.resource, showExisting: true }">
+                                </ng-container>
                               </div>
                               <span class="resource-item__type">{{ item.resource.resourceType }}</span>
                             </div>
@@ -219,24 +205,10 @@
                                     {{ item.crossConfigRef.targetConfigName }}
                                   </a>
                                 } @else {
-                                  @if (viewModel().resolveNamingPreview(item.resource.name, item.resource.resourceType); as preview) {
-                                    <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
-                                      <mat-icon class="naming-preview__icon">label</mat-icon>
-                                      {{ preview }}
-                                    </span>
-                                  }
-                                  @if (viewModel().hasMissingEnvironments(item.resource)) {
-                                    <span class="missing-env-badge" [matTooltip]="('CONFIG_DETAIL.RESOURCES.MISSING_ENV_TOOLTIP' | translate) + ': ' + viewModel().getMissingEnvironments(item.resource).join(', ')">
-                                      <mat-icon class="missing-env-badge__icon">warning_amber</mat-icon>
-                                      {{ viewModel().getMissingEnvironments(item.resource).length }}
-                                    </span>
-                                  }
-                                  @if (viewModel().hasResourceDiagnostics(item.resource.id)) {
-                                    <app-diagnostic-popover [diagnostics]="viewModel().getResourceDiagnostics(item.resource.id)" />
-                                  }
-                                  @if (item.resource.isExisting) {
-                                    <span class="existing-resource-badge">{{ 'RESOURCE_LIST.EXISTING_BADGE' | translate }}</span>
-                                  }
+                                  <ng-container
+                                    [ngTemplateOutlet]="resourceIndicatorsTemplate"
+                                    [ngTemplateOutletContext]="{ resource: item.resource, showExisting: true }">
+                                  </ng-container>
                                 }
                               </div>
                               <span class="resource-item__type">
@@ -280,21 +252,10 @@
                                     <div class="resource-item__info">
                                       <div class="resource-name-row">
                                         <strong>{{ child.name }}</strong>
-                                        @if (viewModel().resolveNamingPreview(child.name, child.resourceType); as preview) {
-                                          <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
-                                            <mat-icon class="naming-preview__icon">label</mat-icon>
-                                            {{ preview }}
-                                          </span>
-                                        }
-                                        @if (viewModel().hasMissingEnvironments(child)) {
-                                          <span class="missing-env-badge" [matTooltip]="('CONFIG_DETAIL.RESOURCES.MISSING_ENV_TOOLTIP' | translate) + ': ' + viewModel().getMissingEnvironments(child).join(', ')">
-                                            <mat-icon class="missing-env-badge__icon">warning_amber</mat-icon>
-                                            {{ viewModel().getMissingEnvironments(child).length }}
-                                          </span>
-                                        }
-                                        @if (viewModel().hasResourceDiagnostics(child.id)) {
-                                          <app-diagnostic-popover [diagnostics]="viewModel().getResourceDiagnostics(child.id)" />
-                                        }
+                                        <ng-container
+                                          [ngTemplateOutlet]="resourceIndicatorsTemplate"
+                                          [ngTemplateOutletContext]="{ resource: child, showExisting: false }">
+                                        </ng-container>
                                       </div>
                                       <span class="resource-item__type">{{ child.resourceType }}</span>
                                     </div>
@@ -353,24 +314,10 @@
                           <div class="resource-item__info">
                             <div class="resource-name-row">
                               <strong>{{ item.resource.name }}</strong>
-                              @if (viewModel().resolveNamingPreview(item.resource.name, item.resource.resourceType); as preview) {
-                                <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
-                                  <mat-icon class="naming-preview__icon">label</mat-icon>
-                                  {{ preview }}
-                                </span>
-                              }
-                              @if (viewModel().hasMissingEnvironments(item.resource)) {
-                                <span class="missing-env-badge" [matTooltip]="('CONFIG_DETAIL.RESOURCES.MISSING_ENV_TOOLTIP' | translate) + ': ' + viewModel().getMissingEnvironments(item.resource).join(', ')">
-                                  <mat-icon class="missing-env-badge__icon">warning_amber</mat-icon>
-                                  {{ viewModel().getMissingEnvironments(item.resource).length }}
-                                </span>
-                              }
-                              @if (viewModel().hasResourceDiagnostics(item.resource.id)) {
-                                <app-diagnostic-popover [diagnostics]="viewModel().getResourceDiagnostics(item.resource.id)" />
-                              }
-                              @if (item.resource.isExisting) {
-                                <span class="existing-resource-badge">{{ 'RESOURCE_LIST.EXISTING_BADGE' | translate }}</span>
-                              }
+                              <ng-container
+                                [ngTemplateOutlet]="resourceIndicatorsTemplate"
+                                [ngTemplateOutletContext]="{ resource: item.resource, showExisting: true }">
+                              </ng-container>
                             </div>
                             <span class="resource-item__type">{{ item.resource.resourceType }}</span>
                           </div>
@@ -390,27 +337,10 @@
                     }
 
                     @if (viewModel().getUnparentedCrossConfigRefs(resourceGroup.id).length > 0) {
-                      <div class="cross-config-section">
-                        <div class="cross-config-section__header">
-                          <mat-icon class="cross-config-section__icon">link</mat-icon>
-                          <span>{{ 'CONFIG_DETAIL.RESOURCES.CROSS_CONFIG_SECTION' | translate }}</span>
-                        </div>
-                        @for (reference of viewModel().getUnparentedCrossConfigRefs(resourceGroup.id); track reference.referenceId) {
-                          <div class="resource-item resource-item--cross-config">
-                            <mat-icon class="resource-item__icon resource-item__icon--cross-config">{{ viewModel().resourceTypeIcons[reference.targetResourceType] || 'widgets' }}</mat-icon>
-                            <div class="resource-item__info">
-                              <div class="resource-name-row">
-                                <strong>{{ reference.targetResourceName }}</strong>
-                                <a class="cross-config-badge" [routerLink]="['/config', reference.targetConfigId]" [matTooltip]="'CONFIG_DETAIL.RESOURCES.NAVIGATE_TO_CONFIG' | translate">
-                                  <mat-icon class="cross-config-badge__icon">open_in_new</mat-icon>
-                                  {{ reference.targetConfigName }}
-                                </a>
-                              </div>
-                              <span class="resource-item__type">{{ reference.targetResourceType }} · {{ reference.targetResourceGroupName }}</span>
-                            </div>
-                          </div>
-                        }
-                      </div>
+                      <ng-container
+                        [ngTemplateOutlet]="crossConfigSectionTemplate"
+                        [ngTemplateOutletContext]="{ references: viewModel().getUnparentedCrossConfigRefs(resourceGroup.id) }">
+                      </ng-container>
                     }
                   </div>
                 } @else {
@@ -421,27 +351,10 @@
 
                   @if (viewModel().getUnparentedCrossConfigRefs(resourceGroup.id).length > 0) {
                     <div class="resource-list">
-                      <div class="cross-config-section">
-                        <div class="cross-config-section__header">
-                          <mat-icon class="cross-config-section__icon">link</mat-icon>
-                          <span>{{ 'CONFIG_DETAIL.RESOURCES.CROSS_CONFIG_SECTION' | translate }}</span>
-                        </div>
-                        @for (reference of viewModel().getUnparentedCrossConfigRefs(resourceGroup.id); track reference.referenceId) {
-                          <div class="resource-item resource-item--cross-config">
-                            <mat-icon class="resource-item__icon resource-item__icon--cross-config">{{ viewModel().resourceTypeIcons[reference.targetResourceType] || 'widgets' }}</mat-icon>
-                            <div class="resource-item__info">
-                              <div class="resource-name-row">
-                                <strong>{{ reference.targetResourceName }}</strong>
-                                <a class="cross-config-badge" [routerLink]="['/config', reference.targetConfigId]" [matTooltip]="'CONFIG_DETAIL.RESOURCES.NAVIGATE_TO_CONFIG' | translate">
-                                  <mat-icon class="cross-config-badge__icon">open_in_new</mat-icon>
-                                  {{ reference.targetConfigName }}
-                                </a>
-                              </div>
-                              <span class="resource-item__type">{{ reference.targetResourceType }} · {{ reference.targetResourceGroupName }}</span>
-                            </div>
-                          </div>
-                        }
-                      </div>
+                      <ng-container
+                        [ngTemplateOutlet]="crossConfigSectionTemplate"
+                        [ngTemplateOutletContext]="{ references: viewModel().getUnparentedCrossConfigRefs(resourceGroup.id) }">
+                      </ng-container>
                     </div>
                   }
                 }
@@ -464,3 +377,49 @@
     </div>
   }
 </div>
+
+<ng-template #resourceIndicatorsTemplate let-resource="resource" let-showExisting="showExisting">
+  @if (viewModel().resolveNamingPreview(resource.name, resource.resourceType); as preview) {
+    <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+      <mat-icon class="naming-preview__icon">label</mat-icon>
+      {{ preview }}
+    </span>
+  }
+  @let missingEnvironments = viewModel().getMissingEnvironments(resource);
+  @if (missingEnvironments.length > 0) {
+    <span class="missing-env-badge" [matTooltip]="('CONFIG_DETAIL.RESOURCES.MISSING_ENV_TOOLTIP' | translate) + ': ' + missingEnvironments.join(', ')">
+      <mat-icon class="missing-env-badge__icon">warning_amber</mat-icon>
+      {{ missingEnvironments.length }}
+    </span>
+  }
+  @if (viewModel().hasResourceDiagnostics(resource.id)) {
+    <app-diagnostic-popover [diagnostics]="viewModel().getResourceDiagnostics(resource.id)" />
+  }
+  @if (showExisting && resource.isExisting) {
+    <span class="existing-resource-badge">{{ 'RESOURCE_LIST.EXISTING_BADGE' | translate }}</span>
+  }
+</ng-template>
+
+<ng-template #crossConfigSectionTemplate let-references="references">
+  <div class="cross-config-section">
+    <div class="cross-config-section__header">
+      <mat-icon class="cross-config-section__icon">link</mat-icon>
+      <span>{{ 'CONFIG_DETAIL.RESOURCES.CROSS_CONFIG_SECTION' | translate }}</span>
+    </div>
+    @for (reference of references; track reference.referenceId) {
+      <div class="resource-item resource-item--cross-config">
+        <mat-icon class="resource-item__icon resource-item__icon--cross-config">{{ viewModel().resourceTypeIcons[reference.targetResourceType] || 'widgets' }}</mat-icon>
+        <div class="resource-item__info">
+          <div class="resource-name-row">
+            <strong>{{ reference.targetResourceName }}</strong>
+            <a class="cross-config-badge" [routerLink]="['/config', reference.targetConfigId]" [matTooltip]="'CONFIG_DETAIL.RESOURCES.NAVIGATE_TO_CONFIG' | translate">
+              <mat-icon class="cross-config-badge__icon">open_in_new</mat-icon>
+              {{ reference.targetConfigName }}
+            </a>
+          </div>
+          <span class="resource-item__type">{{ reference.targetResourceType }} · {{ reference.targetResourceGroupName }}</span>
+        </div>
+      </div>
+    }
+  </div>
+</ng-template>

@@ -92,17 +92,17 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         ProjectId = projectId;
     }
 
+    /// <summary>EF Core constructor.</summary>
+    private InfrastructureConfig()
+    {
+    }
+
     /// <summary>
     /// Creates a new <see cref="InfrastructureConfig"/> belonging to the specified project.
     /// </summary>
     public static InfrastructureConfig Create(Name name, ProjectId projectId)
     {
         return new InfrastructureConfig(InfrastructureConfigId.CreateUnique(), name, projectId);
-    }
-
-    /// <summary>EF Core constructor.</summary>
-    private InfrastructureConfig()
-    {
     }
 
     /// <summary>Adds a resource group if one with the same name does not already exist.</summary>

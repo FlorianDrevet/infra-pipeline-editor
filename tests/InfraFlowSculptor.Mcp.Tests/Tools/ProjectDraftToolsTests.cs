@@ -41,6 +41,23 @@ public sealed class ProjectDraftToolsTests
     }
 
     [Fact]
+    public void DraftProjectFromPrompt_DraftLimitReached_ReturnsStructuredError()
+    {
+        // Arrange
+        _draftService.CreateDraftFromPrompt("create project TestApp mono repo")
+            .Returns(_ => throw new ProjectDraftLimitExceededException(1));
+
+        // Act
+        var json = ProjectDraftTools.DraftProjectFromPrompt(_draftService, "create project TestApp mono repo");
+
+        // Assert
+        json.Should().NotBeNullOrWhiteSpace();
+        var doc = JsonDocument.Parse(json);
+        doc.RootElement.GetProperty("error").GetString().Should().Be("draft_limit_reached");
+        doc.RootElement.GetProperty("message").GetString().Should().Contain("1");
+    }
+
+    [Fact]
     public void ValidateProjectDraft_WithOverrides_ReturnsUpdatedDraft()
     {
         // Arrange

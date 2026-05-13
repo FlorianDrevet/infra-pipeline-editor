@@ -11,7 +11,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse, GenerateProjectPipelineResponse, GenerateProjectBootstrapPipelineResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
+import { ProjectResponse, ProjectMemberResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
 import {
   InfrastructureConfigResponse,
   EnvironmentDefinitionResponse,
@@ -52,59 +52,16 @@ import {
 } from './add-project-naming-template-dialog/add-project-naming-template-dialog.component';
 import { LayoutRepositoriesComponent } from './layout-repositories/layout-repositories.component';
 import { SplitGenerationSwitcherComponent } from './split-generation-switcher/split-generation-switcher.component';
-import {
-  MultiRepoPushDialogComponent,
-  MultiRepoPushDialogData,
-} from './multi-repo-push-dialog/multi-repo-push-dialog.component';
-import {
-  PushToGitDialogComponent,
-  PushToGitDialogData,
-} from '../config-detail/push-to-git-dialog/push-to-git-dialog.component';
 import { RESOURCE_TYPE_OPTIONS, RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS } from '../../shared/resource-metadata/resource-type.metadata';
 import { AddVariableGroupDialogComponent } from '../config-detail/add-variable-group-dialog/add-variable-group-dialog.component';
-import { saveAs } from 'file-saver';
-import JSZip from 'jszip';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
-import { BicepFilePanelComponent, BicepFileNode, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
-import {
-  GenerationDiagnosticsDialogComponent,
-  GenerationDiagnosticsDialogData,
-  ConfigDiagnosticGroup,
-  ConfigMissingEnvGroup,
-  MissingEnvResource,
-} from '../../shared/components/generation-diagnostics-dialog/generation-diagnostics-dialog.component';
-import { ResourceGroupService } from '../../shared/services/resource-group.service';
-import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
-import { firstValueFrom } from 'rxjs';
-import { MultiRepoPushMode } from '../../shared/interfaces/multi-repo-push.interface';
-import {
-  GeneratedArtifactArchiveSourceSpec,
-  resolveGeneratedArtifactEntryPath,
-} from './project-generated-artifact-paths';
-import { shouldDeferMonoRepoBatchReveal } from './project-generation-visibility.helper';
-import { buildAzureDevOpsNodes, buildProjectBicepNodes } from './project-detail-tree.helpers';
+import { BicepFilePanelComponent } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
+import { ProjectDetailGenerationWorkflowService } from './project-detail-generation-workflow.service';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
 const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit', Reader: 'visibility' };
-const MAX_PROJECT_ARCHIVE_SOURCE_BYTES = 10 * 1024 * 1024;
-const MAX_PROJECT_ARCHIVE_ENTRY_COUNT = 500;
-const MAX_PROJECT_ARCHIVE_ENTRY_BYTES = 2 * 1024 * 1024;
-const MAX_PROJECT_ARCHIVE_TOTAL_BYTES = 25 * 1024 * 1024;
-const COMBINED_ARCHIVE_LOAD_OPTIONS = {
-  checkCRC32: true,
-  createFolders: false,
-} as const;
-
-interface CombinedArtifactArchiveSource extends GeneratedArtifactArchiveSourceSpec {
-  archivePromise: Promise<Blob>;
-}
-
-interface CombinedProjectArchiveExtractionState {
-  totalExtractedBytes: number;
-}
-
 @Component({
   selector: 'app-project-detail',
   standalone: true,
@@ -132,6 +89,7 @@ interface CombinedProjectArchiveExtractionState {
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',
+  providers: [ProjectDetailGenerationWorkflowService],
 })
 export class ProjectDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
@@ -141,11 +99,11 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthenticationService);
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
-  private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly translate = inject(TranslateService);
   private readonly pageContextService = inject(PageContextService);
   private readonly sidebarContextService = inject(SidebarContextService);
+  private readonly generationWorkflow = inject(ProjectDetailGenerationWorkflowService);
 
   protected readonly project = signal<ProjectResponse | null>(null);
   private readonly breadcrumbEffect = effect(() => {
@@ -164,6 +122,10 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     this.pageContextService.clear();
   }
   protected readonly configs = signal<InfrastructureConfigResponse[]>([]);
+  private readonly generationSyncEffect = effect(() => {
+    this.generationWorkflow.setProject(this.project());
+    this.generationWorkflow.setConfigs(this.configs());
+  });
   protected readonly availableUsers = signal<UserResponse[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly loadError = signal('');
@@ -199,38 +161,30 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   protected readonly useCustomPool = signal(false);
 
   // ─── Diagnostics Validation ───
-  protected readonly validatingDiagnostics = signal(false);
-  protected readonly projectGenerateAllBatchActive = signal(false);
+  protected readonly validatingDiagnostics = this.generationWorkflow.validatingDiagnostics;
 
   // ─── Project Bicep Generation (mono-repo) ───
-  protected readonly projectBicepLoading = signal(false);
-  protected readonly projectBicepResult = signal<GenerateProjectBicepResponse | null>(null);
-  protected readonly projectBicepDownloading = signal(false);
-  protected readonly projectInfraArtifactsDownloading = signal(false);
-  protected readonly projectBicepErrorKey = signal('');
-  protected readonly projectBicepPanelOpen = signal(false);
-  protected readonly projectGenerationPanelCollapsed = signal(false);
+  protected readonly projectBicepLoading = this.generationWorkflow.projectBicepLoading;
+  protected readonly projectBicepResult = this.generationWorkflow.projectBicepResult;
+  protected readonly projectBicepDownloading = this.generationWorkflow.projectBicepDownloading;
+  protected readonly projectInfraArtifactsDownloading = this.generationWorkflow.projectInfraArtifactsDownloading;
+  protected readonly projectBicepErrorKey = this.generationWorkflow.projectBicepErrorKey;
+  protected readonly projectGenerationPanelCollapsed = this.generationWorkflow.projectGenerationPanelCollapsed;
 
   // ─── Project Pipeline Generation (mono-repo) ───
-  protected readonly projectPipelineLoading = signal(false);
-  protected readonly projectPipelineResult = signal<GenerateProjectPipelineResponse | null>(null);
-  protected readonly projectPipelineDownloading = signal(false);
-  protected readonly projectCodeArtifactsDownloading = signal(false);
-  protected readonly projectPipelineErrorKey = signal('');
-  protected readonly projectPipelinePanelOpen = signal(false);
+  protected readonly projectPipelineLoading = this.generationWorkflow.projectPipelineLoading;
+  protected readonly projectPipelineResult = this.generationWorkflow.projectPipelineResult;
+  protected readonly projectPipelineDownloading = this.generationWorkflow.projectPipelineDownloading;
+  protected readonly projectCodeArtifactsDownloading = this.generationWorkflow.projectCodeArtifactsDownloading;
+  protected readonly projectPipelineErrorKey = this.generationWorkflow.projectPipelineErrorKey;
 
   // ─── Project Bootstrap Pipeline Generation (Azure DevOps) ───
-  protected readonly projectBootstrapLoading = signal(false);
-  protected readonly projectBootstrapResult = signal<GenerateProjectBootstrapPipelineResponse | null>(null);
-  protected readonly projectBootstrapDownloading = signal(false);
-  protected readonly projectBootstrapErrorKey = signal('');
-  protected readonly projectBootstrapPanelOpen = signal(false);
-  protected readonly canPushAllProjectArtifacts = computed(
-    () => this.projectBicepResult() !== null
-      && this.projectPipelineResult() !== null
-      && this.projectBootstrapResult() !== null,
-  );
-  protected readonly isSplitInfraCodeLayout = computed(() => this.project()?.layoutPreset === 'SplitInfraCode');
+  protected readonly projectBootstrapLoading = this.generationWorkflow.projectBootstrapLoading;
+  protected readonly projectBootstrapResult = this.generationWorkflow.projectBootstrapResult;
+  protected readonly projectBootstrapDownloading = this.generationWorkflow.projectBootstrapDownloading;
+  protected readonly projectBootstrapErrorKey = this.generationWorkflow.projectBootstrapErrorKey;
+  protected readonly canPushAllProjectArtifacts = this.generationWorkflow.canPushAllProjectArtifacts;
+  protected readonly isSplitInfraCodeLayout = this.generationWorkflow.isSplitInfraCodeLayout;
 
   // ─── Pipeline Variable Groups ───
   protected readonly variableGroups = signal<ProjectPipelineVariableGroupResponse[]>([]);
@@ -238,51 +192,12 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   protected readonly vgErrorKey = signal('');
   protected readonly vgLoaded = signal(false);
 
-  protected readonly projectBicepNodes = computed<BicepTreeNode[]>(() => {
-    const result = this.projectBicepResult();
-    return result
-      ? buildProjectBicepNodes(result.commonFileUris, result.configFileUris)
-      : [];
-  });
-
-  protected readonly loadProjectBicepFile = (filePath: string): Promise<string> => {
-    const projectId = this.project()?.id ?? '';
-    return this.projectService.getProjectBicepFileContent(projectId, filePath);
-  };
-
-  protected readonly projectPipelineNodes = computed<BicepTreeNode[]>(() => {
-    const result = this.projectPipelineResult();
-    if (!result) return [];
-    return buildAzureDevOpsNodes(result.commonFileUris, result.configFileUris);
-  });
-
-  protected readonly loadProjectPipelineFile = (filePath: string): Promise<string> => {
-    const projectId = this.project()?.id ?? '';
-    return this.projectService.getProjectPipelineFileContent(projectId, filePath);
-  };
-
-  protected readonly projectBootstrapNodes = computed<BicepTreeNode[]>(() => {
-    const result = this.projectBootstrapResult();
-    if (!result) return [];
-    const nodes: BicepTreeNode[] = [];
-    for (const [fileName] of Object.entries(result.fileUris)) {
-      nodes.push({
-        kind: 'file',
-        path: fileName,
-        displayName: fileName,
-        type: 'generic',
-        uri: fileName,
-        depth: 0,
-        parentFolderKey: '',
-      } satisfies BicepFileNode);
-    }
-    return nodes;
-  });
-
-  protected readonly loadProjectBootstrapFile = (filePath: string): Promise<string> => {
-    const projectId = this.project()?.id ?? '';
-    return this.projectService.getProjectBootstrapPipelineFileContent(projectId, filePath);
-  };
+  protected readonly projectBicepNodes = this.generationWorkflow.projectBicepNodes;
+  protected readonly loadProjectBicepFile = this.generationWorkflow.loadProjectBicepFile;
+  protected readonly projectPipelineNodes = this.generationWorkflow.projectPipelineNodes;
+  protected readonly loadProjectPipelineFile = this.generationWorkflow.loadProjectPipelineFile;
+  protected readonly projectBootstrapNodes = this.generationWorkflow.projectBootstrapNodes;
+  protected readonly loadProjectBootstrapFile = this.generationWorkflow.loadProjectBootstrapFile;
 
   protected readonly sortedEnvironments = computed(() => {
     const envs = this.project()?.environmentDefinitions ?? [];
@@ -894,485 +809,23 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ─── Project Bicep Generation (mono-repo) ───
-
-  protected async generateProjectBicep(): Promise<void> {
-    const projectId = this.project()?.id;
-    if (!projectId || this.projectBicepLoading()) return;
-
-    const shouldContinue = await this.checkProjectDiagnostics();
-    if (!shouldContinue) return;
-
-    await this.doGenerateProjectBicep();
-  }
-
-  private async doGenerateProjectBicep(): Promise<void> {
-    const projectId = this.project()?.id;
-    if (!projectId || this.projectBicepLoading()) return;
-
-    this.projectBicepLoading.set(true);
-    this.projectBicepErrorKey.set('');
-    this.projectBicepResult.set(null);
-    this.projectGenerationPanelCollapsed.set(false);
-    this.projectBicepPanelOpen.set(true);
-
-    try {
-      const result = await this.projectService.generateProjectBicep(projectId);
-      this.projectBicepResult.set(result);
-    } catch {
-      this.projectBicepErrorKey.set('PROJECT_DETAIL.BICEP.GENERATE_ERROR');
-    } finally {
-      this.projectBicepLoading.set(false);
-    }
-  }
-
-  // ─── Project Pipeline Generation (mono-repo) ───
-
-  protected async generateProjectPipeline(): Promise<void> {
-    const projectId = this.project()?.id;
-    if (!projectId || this.projectPipelineLoading()) return;
-
-    const shouldContinue = await this.checkProjectDiagnostics();
-    if (!shouldContinue) return;
-
-    await this.doGenerateProjectPipeline();
-  }
-
-  private async doGenerateProjectPipeline(): Promise<void> {
-    const projectId = this.project()?.id;
-    if (!projectId || this.projectPipelineLoading()) return;
-
-    this.projectPipelineLoading.set(true);
-    this.projectPipelineErrorKey.set('');
-    this.projectPipelineResult.set(null);
-    this.projectGenerationPanelCollapsed.set(false);
-    this.projectPipelinePanelOpen.set(true);
-
-    try {
-      const result = await this.projectService.generateProjectPipeline(projectId);
-      this.projectPipelineResult.set(result);
-    } catch {
-      this.projectPipelineErrorKey.set('PROJECT_DETAIL.PIPELINE.GENERATE_ERROR');
-    } finally {
-      this.projectPipelineLoading.set(false);
-    }
-  }
-
-  // ─── Unified Generate All (mono-repo) ───
-
-  protected readonly anyProjectGenerationLoading = computed(
-    () => this.projectBicepLoading() || this.projectPipelineLoading() || this.projectBootstrapLoading(),
-  );
-
-  protected readonly projectGenerateAllLoading = computed(
-    () => this.validatingDiagnostics() || this.anyProjectGenerationLoading(),
-  );
-
-  protected readonly deferMonoRepoBatchReveal = computed(
-    () => shouldDeferMonoRepoBatchReveal({
-      isGenerateAllBatchActive: this.projectGenerateAllBatchActive(),
-      isAnyGenerationLoading: this.anyProjectGenerationLoading(),
-    }),
-  );
-
-  protected readonly projectGenerationPanelOpen = computed(
-    () => this.projectBicepPanelOpen() || this.projectPipelinePanelOpen() || this.projectBootstrapPanelOpen() || this.anyProjectGenerationLoading(),
-  );
-
-  protected async generateAll(): Promise<void> {
-    const projectId = this.project()?.id;
-    if (!projectId || this.projectGenerateAllLoading()) return;
-
-    this.validatingDiagnostics.set(true);
-    try {
-      const shouldContinue = await this.checkProjectDiagnostics();
-      if (!shouldContinue) return;
-    } finally {
-      this.validatingDiagnostics.set(false);
-    }
-
-    this.projectGenerateAllBatchActive.set(true);
-    try {
-      await Promise.all([
-        this.doGenerateProjectBicep(),
-        this.doGenerateProjectPipeline(),
-        this.doGenerateProjectBootstrap(),
-      ]);
-    } finally {
-      this.projectGenerateAllBatchActive.set(false);
-    }
-  }
-
-  protected toggleProjectGenerationPanelCollapsed(): void {
-    this.projectGenerationPanelCollapsed.update((collapsed) => !collapsed);
-  }
-
-  // ─── Generation Diagnostics Dialog ───
-
-  private async checkProjectDiagnostics(): Promise<boolean> {
-    const allConfigs = this.configs();
-    if (allConfigs.length === 0) return true;
-
-    const project = this.project();
-    const allEnvNames = (project?.environmentDefinitions ?? [])
-      .sort((a, b) => a.order - b.order)
-      .map(e => e.name);
-
-    const ENV_SETTINGS_EXCLUDED_TYPES = new Set(['UserAssignedIdentity']);
-
-    const results = await Promise.all(
-      allConfigs.map(async (config) => {
-        try {
-          const [diagResult, rgs] = await Promise.all([
-            this.infraConfigService.getDiagnostics(config.id),
-            this.infraConfigService.getResourceGroups(config.id),
-          ]);
-
-          const rgResources = await Promise.all(
-            rgs.map(rg => this.resourceGroupService.getResources(rg.id).catch(() => [] as AzureResourceResponse[])),
-          );
-
-          const missingEnvResources: MissingEnvResource[] = [];
-          for (const resources of rgResources) {
-            for (const resource of resources) {
-              if (resource.isExisting) continue;
-              if (ENV_SETTINGS_EXCLUDED_TYPES.has(resource.resourceType)) continue;
-              const configured = new Set(resource.configuredEnvironments ?? []);
-              const missing = allEnvNames.filter(name => !configured.has(name));
-              if (missing.length > 0) {
-                missingEnvResources.push({
-                  resourceId: resource.id,
-                  resourceName: resource.name,
-                  resourceType: resource.resourceType,
-                  missingEnvironments: missing,
-                });
-              }
-            }
-          }
-
-          return { config, diagnostics: diagResult.diagnostics, missingEnvResources };
-        } catch {
-          return { config, diagnostics: [], missingEnvResources: [] as MissingEnvResource[] };
-        }
-      }),
-    );
-
-    const configsWithIssues: ConfigDiagnosticGroup[] = results
-      .filter(r => r.diagnostics.length > 0)
-      .map(r => ({
-        configId: r.config.id,
-        configName: r.config.name,
-        diagnostics: r.diagnostics,
-      }));
-
-    const configsWithMissingEnvs: ConfigMissingEnvGroup[] = results
-      .filter(r => r.missingEnvResources.length > 0)
-      .map(r => ({
-        configId: r.config.id,
-        configName: r.config.name,
-        resources: r.missingEnvResources,
-      }));
-
-    if (configsWithIssues.length === 0 && configsWithMissingEnvs.length === 0) return true;
-
-    const dialogRef = this.dialog.open(GenerationDiagnosticsDialogComponent, {
-      data: {
-        configDiagnostics: configsWithIssues,
-        missingEnvConfigs: configsWithMissingEnvs.length > 0 ? configsWithMissingEnvs : undefined,
-      } satisfies GenerationDiagnosticsDialogData,
-      width: '640px',
-      maxHeight: '80vh',
-    });
-    const result = await firstValueFrom(dialogRef.afterClosed());
-    return result === true;
-  }
-
-  protected closeProjectBicepPanel(): void {
-    this.projectBicepPanelOpen.set(false);
-    this.projectBicepResult.set(null);
-    this.projectBicepErrorKey.set('');
-  }
-
-  protected async downloadProjectBicepFiles(): Promise<void> {
-    const project = this.project();
-    const result = this.projectBicepResult();
-
-    if (!project?.id || !result || this.projectBicepDownloading()) return;
-
-    this.projectBicepDownloading.set(true);
-    try {
-      const blob = await this.projectService.downloadProjectZip(project.id);
-      const projectName = project.name ?? 'project';
-      saveAs(blob, `${projectName}-bicep.zip`);
-    } finally {
-      this.projectBicepDownloading.set(false);
-    }
-  }
-
-  protected async downloadProjectInfraArtifacts(): Promise<void> {
-    const project = this.project();
-    const bicepResult = this.projectBicepResult();
-    const pipelineResult = this.projectPipelineResult();
-    const bootstrapResult = this.projectBootstrapResult();
-
-    if (!project?.id || !bicepResult || !pipelineResult || !bootstrapResult || this.projectInfraArtifactsDownloading()) {
-      return;
-    }
-
-    this.projectInfraArtifactsDownloading.set(true);
-    try {
-      const blob = await this.buildCombinedProjectArchive([
-        { archivePromise: this.projectService.downloadProjectZip(project.id), archiveKind: 'bicep' },
-        { archivePromise: this.projectService.downloadProjectPipelineZip(project.id), archiveKind: 'pipeline', filterPrefix: 'infra' },
-        { archivePromise: this.projectService.downloadProjectBootstrapPipelineZip(project.id), archiveKind: 'bootstrap', filterPrefix: 'infra' },
-      ]);
-
-      saveAs(blob, `${project.name ?? 'project'}-infra-artifacts.zip`);
-    } catch (error) {
-      console.error('Failed to assemble project infrastructure artifacts archive.', error);
-      this.showProjectActionError('PROJECT_DETAIL.SWITCHER.DOWNLOAD_ARCHIVE_ERROR');
-    } finally {
-      this.projectInfraArtifactsDownloading.set(false);
-    }
-  }
-
-  protected async downloadProjectCodeArtifacts(): Promise<void> {
-    const project = this.project();
-    const pipelineResult = this.projectPipelineResult();
-    const bootstrapResult = this.projectBootstrapResult();
-
-    if (!project?.id || !pipelineResult || !bootstrapResult || this.projectCodeArtifactsDownloading()) {
-      return;
-    }
-
-    this.projectCodeArtifactsDownloading.set(true);
-    try {
-      const blob = await this.buildCombinedProjectArchive([
-        { archivePromise: this.projectService.downloadProjectPipelineZip(project.id), archiveKind: 'pipeline', filterPrefix: 'app' },
-        { archivePromise: this.projectService.downloadProjectBootstrapPipelineZip(project.id), archiveKind: 'bootstrap', filterPrefix: 'app' },
-      ]);
-
-      saveAs(blob, `${project.name ?? 'project'}-code-artifacts.zip`);
-    } catch (error) {
-      console.error('Failed to assemble project code artifacts archive.', error);
-      this.showProjectActionError('PROJECT_DETAIL.SWITCHER.DOWNLOAD_ARCHIVE_ERROR');
-    } finally {
-      this.projectCodeArtifactsDownloading.set(false);
-    }
-  }
-
-
-
-  protected openProjectPushAllToGitDialog(): void {
-    const project = this.project();
-    if (project?.layoutPreset === 'SplitInfraCode' || !project?.repositories?.length) return;
-
-    const data: PushToGitDialogData = {
-      configId: '', // Not used for project push
-      projectId: project.id,
-      isProjectLevel: true,
-      isCombinedProjectPush: true,
-    };
-    this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
-  }
-
-  protected openProjectMultiRepoPushDialog(mode: MultiRepoPushMode): void {
-    const project = this.project();
-    const aliases = project ? this.resolveSplitRepoAliases(project) : null;
-    if (!project || !aliases) {
-      this.showProjectActionError('PROJECT_DETAIL.MULTI_REPO_PUSH.MISSING_SLOTS');
-      return;
-    }
-
-    const data: MultiRepoPushDialogData = {
-      projectId: project.id,
-      infraAlias: aliases.infraAlias,
-      codeAlias: aliases.codeAlias,
-      mode,
-    };
-
-    this.dialog.open(MultiRepoPushDialogComponent, {
-      width: mode === 'both' ? '68rem' : '38rem',
-      maxWidth: '96vw',
-      panelClass: 'ifs-multi-repo-push-dialog',
-      data,
-    });
-  }
-
-  private async buildCombinedProjectArchive(sources: CombinedArtifactArchiveSource[]): Promise<Blob> {
-    const archive = new JSZip();
-    const extractionState: CombinedProjectArchiveExtractionState = { totalExtractedBytes: 0 };
-
-    for (const source of sources) {
-      const sourceBlob = await source.archivePromise;
-      await this.appendArchiveEntries(archive, sourceBlob, source, extractionState);
-    }
-
-    return archive.generateAsync({ type: 'blob' });
-  }
-
-  private async appendArchiveEntries(
-    targetArchive: JSZip,
-    sourceArchiveBlob: Blob,
-    source: CombinedArtifactArchiveSource,
-    extractionState: CombinedProjectArchiveExtractionState,
-  ): Promise<void> {
-    const sourceArchive = await this.loadCombinedArchiveSafely(sourceArchiveBlob);
-    const fileEntries = Object.values(sourceArchive.files).filter((entry) => !entry.dir);
-    if (fileEntries.length > MAX_PROJECT_ARCHIVE_ENTRY_COUNT) {
-      throw new Error('Generated artifact archive contains too many files.');
-    }
-
-    for (const entry of fileEntries) {
-      const entryPathResolution = resolveGeneratedArtifactEntryPath(entry.name, source);
-      if (entryPathResolution.status === 'unsafe') {
-        throw new Error(`Generated artifact archive contains an unsafe path: ${entry.name}`);
-      }
-
-      if (entryPathResolution.status !== 'resolved') {
-        continue;
-      }
-
-      const entryPath = entryPathResolution.path;
-      if (!entryPath) {
-        throw new Error(`Generated artifact archive resolved an empty target path for entry: ${entry.name}`);
-      }
-
-      const expectedEntrySize = this.tryGetArchiveEntryUncompressedSize(entry);
-      if (expectedEntrySize !== null) {
-        this.ensureCombinedArchiveEntrySizeWithinLimits(expectedEntrySize, extractionState.totalExtractedBytes);
-      }
-
-      const entryBytes = await entry.async('uint8array');
-      this.ensureCombinedArchiveEntrySizeWithinLimits(entryBytes.byteLength, extractionState.totalExtractedBytes);
-
-      extractionState.totalExtractedBytes += entryBytes.byteLength;
-      targetArchive.file(entryPath, entryBytes);
-    }
-  }
-
-  private async loadCombinedArchiveSafely(sourceArchiveBlob: Blob): Promise<JSZip> {
-    this.ensureCombinedArchiveSourceSizeWithinLimits(sourceArchiveBlob);
-
-    // Keep folder creation virtual and verify CRCs before any entry bytes are materialized.
-    return JSZip.loadAsync(sourceArchiveBlob, COMBINED_ARCHIVE_LOAD_OPTIONS);
-  }
-
-  private ensureCombinedArchiveSourceSizeWithinLimits(sourceArchiveBlob: Blob): void {
-    if (sourceArchiveBlob.size > MAX_PROJECT_ARCHIVE_SOURCE_BYTES) {
-      throw new Error('Generated artifact archive exceeds the maximum allowed compressed size.');
-    }
-  }
-
-  private tryGetArchiveEntryUncompressedSize(entry: object): number | null {
-    const uncompressedSize = (entry as { _data?: { uncompressedSize?: number } })._data?.uncompressedSize;
-    return typeof uncompressedSize === 'number' && Number.isFinite(uncompressedSize)
-      ? uncompressedSize
-      : null;
-  }
-
-  private ensureCombinedArchiveEntrySizeWithinLimits(entrySize: number, currentTotalExtractedBytes: number): void {
-    if (entrySize > MAX_PROJECT_ARCHIVE_ENTRY_BYTES) {
-      throw new Error('Generated artifact archive contains a file that exceeds the maximum allowed size.');
-    }
-
-    if (currentTotalExtractedBytes + entrySize > MAX_PROJECT_ARCHIVE_TOTAL_BYTES) {
-      throw new Error('Generated artifact archive exceeds the maximum allowed extracted size.');
-    }
-  }
-
-  private resolveSplitRepoAliases(project: ProjectResponse): { infraAlias: string; codeAlias: string } | null {
-    const repositories = project.repositories ?? [];
-    const infraAlias = repositories.find((repository) => repository.contentKinds?.includes('Infrastructure'))?.alias;
-    const codeAlias = repositories.find((repository) => repository.contentKinds?.includes('ApplicationCode'))?.alias;
-
-    return infraAlias && codeAlias
-      ? { infraAlias, codeAlias }
-      : null;
-  }
-
-  private showProjectActionError(messageKey: string): void {
-    this.snackBar.open(
-      this.translate.instant(messageKey),
-      this.translate.instant('COMMON.CLOSE'),
-      {
-        duration: 5000,
-        panelClass: 'error-snackbar',
-      },
-    );
-  }
-
-  protected closeProjectPipelinePanel(): void {
-    this.projectPipelinePanelOpen.set(false);
-    this.projectPipelineResult.set(null);
-    this.projectPipelineErrorKey.set('');
-  }
-
-  protected async downloadProjectPipelineFiles(): Promise<void> {
-    const project = this.project();
-    const result = this.projectPipelineResult();
-
-    if (!project?.id || !result || this.projectPipelineDownloading()) return;
-
-    this.projectPipelineDownloading.set(true);
-    try {
-      const blob = await this.projectService.downloadProjectPipelineZip(project.id);
-      const projectName = project.name ?? 'project';
-      saveAs(blob, `${projectName}-pipeline.zip`);
-    } finally {
-      this.projectPipelineDownloading.set(false);
-    }
-  }
-
-  // ─── Project Bootstrap Pipeline Generation (Azure DevOps) ───
-
-  protected async generateProjectBootstrap(): Promise<void> {
-    const projectId = this.project()?.id;
-    if (!projectId || this.projectBootstrapLoading()) return;
-    await this.doGenerateProjectBootstrap();
-  }
-
-  private async doGenerateProjectBootstrap(): Promise<void> {
-    const projectId = this.project()?.id;
-    if (!projectId || this.projectBootstrapLoading()) return;
-
-    this.projectBootstrapLoading.set(true);
-    this.projectBootstrapErrorKey.set('');
-    this.projectBootstrapResult.set(null);
-    this.projectGenerationPanelCollapsed.set(false);
-    this.projectBootstrapPanelOpen.set(true);
-
-    try {
-      const result = await this.projectService.generateProjectBootstrapPipeline(projectId);
-      this.projectBootstrapResult.set(result);
-    } catch {
-      this.projectBootstrapErrorKey.set('PROJECT_DETAIL.BOOTSTRAP.GENERATE_ERROR');
-    } finally {
-      this.projectBootstrapLoading.set(false);
-    }
-  }
-
-  protected closeProjectBootstrapPanel(): void {
-    this.projectBootstrapPanelOpen.set(false);
-    this.projectBootstrapResult.set(null);
-    this.projectBootstrapErrorKey.set('');
-  }
-
-  protected async downloadProjectBootstrapFiles(): Promise<void> {
-    const project = this.project();
-    const result = this.projectBootstrapResult();
-
-    if (!project?.id || !result || this.projectBootstrapDownloading()) return;
-
-    this.projectBootstrapDownloading.set(true);
-    try {
-      const blob = await this.projectService.downloadProjectBootstrapPipelineZip(project.id);
-      const projectName = project.name ?? 'project';
-      saveAs(blob, `${projectName}-bootstrap.zip`);
-    } finally {
-      this.projectBootstrapDownloading.set(false);
-    }
-  }
+  // ─── Project Generation Workflow ───
+
+  protected readonly generateProjectBicep = this.generationWorkflow.generateProjectBicep;
+  protected readonly generateProjectPipeline = this.generationWorkflow.generateProjectPipeline;
+  protected readonly generateProjectBootstrap = this.generationWorkflow.generateProjectBootstrap;
+  protected readonly projectGenerateAllLoading = this.generationWorkflow.projectGenerateAllLoading;
+  protected readonly deferMonoRepoBatchReveal = this.generationWorkflow.deferMonoRepoBatchReveal;
+  protected readonly projectGenerationPanelOpen = this.generationWorkflow.projectGenerationPanelOpen;
+  protected readonly generateAll = this.generationWorkflow.generateAll;
+  protected readonly toggleProjectGenerationPanelCollapsed = this.generationWorkflow.toggleProjectGenerationPanelCollapsed;
+  protected readonly downloadProjectBicepFiles = this.generationWorkflow.downloadProjectBicepFiles;
+  protected readonly downloadProjectInfraArtifacts = this.generationWorkflow.downloadProjectInfraArtifacts;
+  protected readonly downloadProjectCodeArtifacts = this.generationWorkflow.downloadProjectCodeArtifacts;
+  protected readonly openProjectPushAllToGitDialog = this.generationWorkflow.openProjectPushAllToGitDialog;
+  protected readonly openProjectMultiRepoPushDialog = this.generationWorkflow.openProjectMultiRepoPushDialog;
+  protected readonly downloadProjectPipelineFiles = this.generationWorkflow.downloadProjectPipelineFiles;
+  protected readonly downloadProjectBootstrapFiles = this.generationWorkflow.downloadProjectBootstrapFiles;
 
   // ─── Pipeline Variable Groups ───
 

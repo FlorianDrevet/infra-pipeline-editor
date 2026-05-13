@@ -9,7 +9,7 @@ src/
 │   │   ├── Models/                        DTOs: GenerationRequest, GenerationResult, EnvironmentDefinition, ResourceDefinition, etc.
 │   │   ├── Generators/                    IResourceTypeBicepGenerator + per-resource-type implementations + factory
 │   │   └── Helpers/                       BicepIdentifierHelper, NamingTemplateTranslator
-│   ├── InfraFlowSculptor.GenerationCore    Shared generation models between Bicep and Pipeline engines
+│   ├── InfraFlowSculptor.GenerationCore    Shared generation contracts/helpers between Bicep and Pipeline engines
 │   │   └── Models/                        IGenerationResult, GenerationRequest, EnvironmentDefinition, ResourceDefinition, etc.
 │   ├── InfraFlowSculptor.PipelineGeneration  Azure DevOps pipeline YAML generation engine (mono-repo structure)
 │   │   ├── Models/                        PipelineGenerationResult, MonoRepoPipelineResult, PipelineGenerationOptions
@@ -25,6 +25,7 @@ src/
 ├── Mcp/
 │   └── InfraFlowSculptor.Mcp              MCP server (HTTP transport under Aspire, ModelContextProtocol SDK v1.2.0)
 │       ├── Common/                        McpJsonDefaults, IacSourceFormat, LayoutPresetEnum
+│       ├── RateLimiting/                  MCP-local rate limiting registrations/options/policy names (no direct Api reference)
 │       ├── Tools/                         DiscoveryTools, ProjectDraftTools, ProjectCreationTools, BicepGenerationTools, IacImportTools, ProjectSetupOrchestrator
 │       ├── Drafts/                        IProjectDraftService, ProjectDraftService, DraftOverrides, DraftProjectIntent (one-class-per-file)
 │       ├── Imports/                       MCP-local preview storage (IImportPreviewService, ImportPreviewService) + ImportPreviewResources; ARM analysis extracted to Application/Imports
@@ -44,6 +45,8 @@ src/
 - `src/Api/InfraFlowSculptor.Application/Imports/` [2026-04-28] now owns the shared ARM preview analyzer (`IImportPreviewAnalyzer`, `ImportPreviewAnalyzer`), the `PreviewIacImportQuery` slice, and the stateless `ApplyImportPreviewCommand` orchestration reused by both the API and MCP.
 - `src/Api/InfraFlowSculptor.Application/Imports/Common/Arm/` [2026-04-30] contains the strongly typed ARM deserialization models (`ArmTemplateDocument`, `ArmResource`, `ArmSku`) consumed by `ImportPreviewAnalyzer` and typed property extractors. If this folder is missing, the Application assembly fails to build with missing-type errors in the import preview slice.
 - `src/Api/InfraFlowSculptor.Application/Imports/Common/Creation/` [2026-04-29] now also owns the shared resource-creation dispatch (`ResourceCommandFactory`). The factory keeps the selection dynamic by resource type, but builds+sends supported MediatR creation commands through explicit typed `ICommand<TResult>` cases and returns `ErrorOr<Guid>` instead of `object`/reflection.
+- `InfraFlowSculptor.Mcp` no longer references `InfraFlowSculptor.Api` directly [2026-05-13]. Keep MCP HTTP hardening (`SecurityHeadersMiddleware`, rate limiting policy names/extensions) inside MCP-local `Common/` + `RateLimiting/`, and use `McpProjectTopologyTests` to guard the build topology.
+- `InfraFlowSculptor.GenerationCore` is now treated as a contracts/helpers-only assembly [2026-05-13]. Do not add runtime `Engine`, `Generator`, or `Assembler` implementations there; `GenerationCoreBoundaryTests` is the guardrail.
 - `tests/InfraFlowSculptor.Application.Tests/` [2026-04-28] now exists as a dedicated xUnit project and currently covers the import apply handler slice.
 
 ## Automation Scripts

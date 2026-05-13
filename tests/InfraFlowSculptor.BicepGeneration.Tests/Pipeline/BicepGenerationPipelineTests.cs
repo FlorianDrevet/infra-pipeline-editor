@@ -58,6 +58,31 @@ public sealed class BicepGenerationPipelineTests
     }
 
     [Fact]
+    public void Given_CancelledTokenBeforeExecution_When_Execute_Then_ThrowsOperationCanceledException()
+    {
+        // Arrange
+        var stage = Substitute.For<IBicepGenerationStage>();
+        stage.Order.Returns(100);
+
+        var sut = new BicepGenerationPipeline([stage]);
+        using var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.Cancel();
+
+        var context = new BicepGenerationContext
+        {
+            Request = new GenerationCore.Models.GenerationRequest(),
+            CancellationToken = cancellationTokenSource.Token,
+        };
+
+        // Act
+        var act = () => sut.Execute(context);
+
+        // Assert
+        act.Should().Throw<OperationCanceledException>();
+        stage.DidNotReceive().Execute(Arg.Any<BicepGenerationContext>());
+    }
+
+    [Fact]
     public void Given_SingleStage_When_Execute_Then_StageReceivesContext()
     {
         // Arrange
@@ -104,5 +129,42 @@ public sealed class BicepGenerationPipelineTests
 
         // Assert
         executionCount.Should().Be(2);
+    }
+
+    [Fact]
+    public void Given_TokenCancelledBetweenStages_When_Execute_Then_StopsBeforeNextStage()
+    {
+        // Arrange
+        var executionOrder = new List<int>();
+        using var cancellationTokenSource = new CancellationTokenSource();
+
+        var stage100 = Substitute.For<IBicepGenerationStage>();
+        stage100.Order.Returns(100);
+        stage100.When(s => s.Execute(Arg.Any<BicepGenerationContext>()))
+            .Do(_ =>
+            {
+                executionOrder.Add(100);
+                cancellationTokenSource.Cancel();
+            });
+
+        var stage200 = Substitute.For<IBicepGenerationStage>();
+        stage200.Order.Returns(200);
+        stage200.When(s => s.Execute(Arg.Any<BicepGenerationContext>()))
+            .Do(_ => executionOrder.Add(200));
+
+        var sut = new BicepGenerationPipeline([stage200, stage100]);
+        var context = new BicepGenerationContext
+        {
+            Request = new GenerationCore.Models.GenerationRequest(),
+            CancellationToken = cancellationTokenSource.Token,
+        };
+
+        // Act
+        var act = () => sut.Execute(context);
+
+        // Assert
+        act.Should().Throw<OperationCanceledException>();
+        executionOrder.Should().Equal(100);
+        stage200.DidNotReceive().Execute(Arg.Any<BicepGenerationContext>());
     }
 }

@@ -1,5 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.AppConfigurations.Common;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.AppConfigurationAggregate;
 using InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities;
@@ -31,7 +32,7 @@ public sealed class AddAppConfigurationKeyAdditionService(
         DomainInfrastructureConfig infraConfig,
         CancellationToken cancellationToken)
     {
-        if (IsVariableGroupKeyVaultReference(request))
+        if (ConfigurationValueSourceRequestPredicates.IsVariableGroupKeyVaultReference(request))
         {
             return AddVariableGroupKeyVaultReferenceAsync(
                 request,
@@ -40,45 +41,20 @@ public sealed class AddAppConfigurationKeyAdditionService(
                 cancellationToken);
         }
 
-        if (IsVariableGroupReference(request))
+        if (ConfigurationValueSourceRequestPredicates.IsVariableGroupReference(request))
             return AddVariableGroupReferenceAsync(request, appConfiguration, infraConfig, cancellationToken);
 
-        if (IsExportToKeyVault(request))
+        if (ConfigurationValueSourceRequestPredicates.IsExportToKeyVault(request))
             return AddSensitiveOutputKeyVaultReferenceAsync(request, appConfiguration, cancellationToken);
 
-        if (IsKeyVaultReference(request))
+        if (ConfigurationValueSourceRequestPredicates.IsKeyVaultReference(request))
             return AddKeyVaultReferenceAsync(request, appConfiguration, cancellationToken);
 
-        if (IsOutputReference(request))
+        if (ConfigurationValueSourceRequestPredicates.IsOutputReference(request))
             return AddOutputReferenceAsync(request, appConfiguration, cancellationToken);
 
         return AddStaticAsync(request, appConfiguration);
     }
-
-    private static bool IsVariableGroupKeyVaultReference(AddAppConfigurationKeyCommand request) =>
-        request.VariableGroupId is not null
-        && request.PipelineVariableName is not null
-        && request.KeyVaultResourceId is not null
-        && request.SecretName is not null;
-
-    private static bool IsVariableGroupReference(AddAppConfigurationKeyCommand request) =>
-        request.VariableGroupId is not null
-        && request.PipelineVariableName is not null;
-
-    private static bool IsExportToKeyVault(AddAppConfigurationKeyCommand request) =>
-        request.ExportToKeyVault
-        && request.SourceResourceId is not null
-        && request.SourceOutputName is not null
-        && request.KeyVaultResourceId is not null
-        && request.SecretName is not null;
-
-    private static bool IsKeyVaultReference(AddAppConfigurationKeyCommand request) =>
-        request.KeyVaultResourceId is not null
-        && request.SecretName is not null;
-
-    private static bool IsOutputReference(AddAppConfigurationKeyCommand request) =>
-        request.SourceResourceId is not null
-        && request.SourceOutputName is not null;
 
     private async Task<ErrorOr<AppConfigurationKeyResult>> AddVariableGroupKeyVaultReferenceAsync(
         AddAppConfigurationKeyCommand request,

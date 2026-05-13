@@ -63,6 +63,9 @@ public sealed class PersonalAccessToken : AggregateRoot<PersonalAccessTokenId>
         IsRevoked = false;
     }
 
+    /// <summary>EF Core constructor.</summary>
+    private PersonalAccessToken() { }
+
     /// <summary>
     /// Creates a new personal access token and returns both the persisted entity and the plaintext token.
     /// The plaintext token is only available at creation time and must be shown to the user immediately.
@@ -115,9 +118,6 @@ public sealed class PersonalAccessToken : AggregateRoot<PersonalAccessTokenId>
         if (ExpiresAt.HasValue && ExpiresAt.Value < utcNow) return false;
         return true;
     }
-
-    /// <summary>EF Core constructor.</summary>
-    private PersonalAccessToken() { }
 
     private static string GenerateToken()
     {

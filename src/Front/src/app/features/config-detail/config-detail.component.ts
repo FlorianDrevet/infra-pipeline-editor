@@ -12,7 +12,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   InfrastructureConfigResponse,
   ResourceNamingTemplateResponse,
-  TagRequest,
 } from '../../shared/interfaces/infra-config.interface';
 import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
@@ -20,7 +19,6 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/componen
 import {
   DsButtonComponent,
   DsSelectOption,
-  DsTextFieldComponent,
 } from '../../shared/components/ds';
 import {
   EditAbbreviationDialogComponent,
@@ -53,44 +51,24 @@ import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { ServiceBusNamespaceService } from '../../shared/services/service-bus-namespace.service';
 import { ContainerRegistryService } from '../../shared/services/container-registry.service';
 import { ProjectService } from '../../shared/services/project.service';
-import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
-import { PipelineGeneratorService } from '../../shared/services/pipeline-generator.service';
 import { CascadeDeleteDialogComponent, CascadeDeleteDialogData } from '../../shared/components/cascade-delete-dialog/cascade-delete-dialog.component';
 import { DependentResourceResponse } from '../../shared/interfaces/dependent-resource.interface';
-import { GenerateBicepResponse, ResourceDiagnosticResponse } from '../../shared/interfaces/bicep-generator.interface';
-import { GeneratePipelineResponse } from '../../shared/interfaces/pipeline-generator.interface';
-import { saveAs } from 'file-saver';
+import { ResourceDiagnosticResponse } from '../../shared/interfaces/bicep-generator.interface';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { PageContextService } from '../../shared/services/page-context.service';
 import { SidebarContextService } from '../../core/layouts/sidebar/sidebar-context.service';
-import {
-  ProjectPipelineVariableGroupResponse,
-  ProjectResponse,
-  TestGitConnectionResponse,
-} from '../../shared/interfaces/project.interface';
+import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS, PARENT_CHILD_RESOURCE_TYPES, CHILD_RESOURCE_TYPES } from '../../shared/resource-metadata/resource-type.metadata';
-import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
 import { StorageAccountSubResourcesResponse } from '../../shared/interfaces/storage-account.interface';
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
 import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
 import {
-  InfraConfigRepositoryDialogComponent,
-  InfraConfigRepositoryDialogData,
-} from './infra-config-repository-dialog/infra-config-repository-dialog.component';
-import {
-  ConfigLayoutMode,
-  InfraConfigRepositoryResponse,
-} from '../../shared/interfaces/infra-config-repository.interface';
-import { RepositoryContentKind } from '../../shared/interfaces/project-repository.interface';
-import {
   CrossConfigReferenceResponse,
   IncomingCrossConfigReferenceResponse,
 } from '../../shared/interfaces/cross-config-reference.interface';
-import { AddVariableGroupDialogComponent } from './add-variable-group-dialog/add-variable-group-dialog.component';
 import {
   GenerationDiagnosticsDialogComponent,
   GenerationDiagnosticsDialogData,
@@ -104,15 +82,18 @@ import {
   buildGroupedResourcesForResourceGroup,
   getUnparentedCrossConfigReferences,
 } from './helpers/config-detail-resource-grouping.helpers';
-import { buildConfigBicepNodes, buildConfigPipelineNodes } from './helpers/config-detail-tree.helpers';
 import { ConfigDetailGenerationSectionComponent } from './sections/generation/config-detail-generation-section.component';
-import { ConfigDetailGenerationSectionViewModel } from './sections/generation/config-detail-generation-section.view-model';
+import { createConfigDetailGenerationSectionController } from './sections/generation/config-detail-generation-section.controller';
 import { ConfigDetailGitSectionComponent } from './sections/git/config-detail-git-section.component';
-import { ConfigDetailGitSectionViewModel } from './sections/git/config-detail-git-section.view-model';
+import { createConfigDetailGitSectionController } from './sections/git/config-detail-git-section.controller';
 import { ConfigDetailNamingSectionComponent } from './sections/naming/config-detail-naming-section.component';
 import { ConfigDetailNamingSectionViewModel } from './sections/naming/config-detail-naming-section.view-model';
 import { ConfigDetailResourcesSectionComponent } from './sections/resources/config-detail-resources-section.component';
 import { ConfigDetailResourcesSectionViewModel } from './sections/resources/config-detail-resources-section.view-model';
+import { ConfigDetailTagsSectionComponent } from './sections/tags/config-detail-tags-section.component';
+import { createConfigDetailTagsSectionController } from './sections/tags/config-detail-tags-section.controller';
+import { ConfigDetailVariableGroupsSectionComponent } from './sections/variable-groups/config-detail-variable-groups-section.component';
+import { createConfigDetailVariableGroupsSectionController } from './sections/variable-groups/config-detail-variable-groups-section.controller';
 
 type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | undefined };
 
@@ -123,8 +104,6 @@ type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | un
   imports: [
     TranslateModule,
     RouterLink,
-    FormsModule,
-    ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
     MatChipsModule,
@@ -134,12 +113,12 @@ type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | un
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
-    DsButtonComponent,
-    DsTextFieldComponent,
     ConfigDetailGenerationSectionComponent,
     ConfigDetailGitSectionComponent,
     ConfigDetailNamingSectionComponent,
     ConfigDetailResourcesSectionComponent,
+    ConfigDetailTagsSectionComponent,
+    ConfigDetailVariableGroupsSectionComponent,
   ],
   templateUrl: './config-detail.component.html',
   styleUrl: './config-detail.component.scss',
@@ -168,8 +147,6 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
   private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
   private readonly containerRegistryService = inject(ContainerRegistryService);
   private readonly projectService = inject(ProjectService);
-  private readonly bicepService = inject(BicepGeneratorService);
-  private readonly pipelineService = inject(PipelineGeneratorService);
   private readonly authService = inject(AuthenticationService);
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
@@ -197,44 +174,11 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
   protected readonly storageAccountDetails = signal<Record<string, StorageAccountSubResourcesResponse | undefined>>({});
   protected readonly storageDetailsLoading = signal<string | null>(null);
 
-  // ─── Diagnostics Validation ───
-  protected readonly validatingDiagnostics = signal(false);
-
-  // ─── Bicep Generation ───
-  protected readonly bicepLoading = signal(false);
-  protected readonly bicepResult = signal<GenerateBicepResponse | null>(null);
-  protected readonly bicepErrorKey = signal('');
-  protected readonly bicepPanelOpen = signal(false);
-  protected readonly bicepDownloading = signal(false);
-
-  // ─── Bicep File Panel ───
-
-  protected readonly configBicepNodes = computed<BicepTreeNode[]>(() => {
-    const result = this.bicepResult();
-    return result ? buildConfigBicepNodes(result) : [];
+  protected readonly generationSection = createConfigDetailGenerationSectionController({
+    getConfig: () => this.config(),
+    isProjectMultiRepo: () => this.isProjectMultiRepo(),
+    showDiagnosticsDialog: () => this.showDiagnosticsDialog(),
   });
-
-  protected readonly loadConfigBicepFile = (filePath: string): Promise<string> => {
-    const configId = this.config()?.id ?? '';
-    return this.bicepService.getFileContent(configId, filePath);
-  };
-
-  // ─── Pipeline Generation ───
-  protected readonly pipelineLoading = signal(false);
-  protected readonly pipelineResult = signal<GeneratePipelineResponse | null>(null);
-  protected readonly pipelineErrorKey = signal('');
-  protected readonly pipelinePanelOpen = signal(false);
-  protected readonly pipelineDownloading = signal(false);
-
-  protected readonly configPipelineNodes = computed<BicepTreeNode[]>(() => {
-    const result = this.pipelineResult();
-    return result ? buildConfigPipelineNodes(result) : [];
-  });
-
-  protected readonly loadConfigPipelineFile = (filePath: string): Promise<string> => {
-    const configId = this.config()?.id ?? '';
-    return this.pipelineService.getFileContent(configId, filePath);
-  };
 
   // ─── Inheritance ───
   protected readonly inheritanceLoading = signal(false);
@@ -259,33 +203,18 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
   protected readonly crossConfigErrorKey = signal('');
   protected readonly crossConfigLoaded = signal(false);
 
-  // ─── Pipeline Variable Groups ───
-  protected readonly variableGroups = signal<ProjectPipelineVariableGroupResponse[]>([]);
-  protected readonly vgLoading = signal(false);
-  protected readonly vgErrorKey = signal('');
-  protected readonly vgLoaded = signal(false);
-
-  protected readonly configVariableGroups = computed(() => {
-    const configName = this.config()?.name ?? '';
-    if (!configName) return this.variableGroups();
-    return this.variableGroups()
-      .map(g => ({
-        ...g,
-        variables: g.variables.filter(v => v.configName === configName),
-      }))
-      .filter(g => g.variables.length > 0);
+  protected readonly tagsSection = createConfigDetailTagsSectionController({
+    getConfigId: () => this.config()?.id ?? null,
+    getConfigTags: () => this.config()?.tags ?? [],
+    updateConfigTags: (tags) => {
+      this.config.update((currentConfig) => currentConfig ? { ...currentConfig, tags } : currentConfig);
+    },
   });
 
-  // ─── Config Tags ───
-  protected readonly isEditingConfigTags = signal(false);
-  protected readonly editingConfigTags = signal<TagRequest[]>([]);
-  protected readonly configTagsErrorKey = signal('');
-  protected readonly configTagsSaving = signal(false);
-  protected readonly configTagNameCtrl = new FormControl('', { nonNullable: true });
-  protected readonly configTagValueCtrl = new FormControl('', { nonNullable: true });
-  protected readonly configTags = computed(() => this.config()?.tags ?? []);
-
-  protected readonly isMultiRepo = computed(() => this.project()?.layoutPreset !== 'AllInOne');
+  protected readonly variableGroupsSection = createConfigDetailVariableGroupsSectionController({
+    getProjectId: () => this.config()?.projectId ?? null,
+    getConfigName: () => this.config()?.name ?? '',
+  });
 
   /** Project layout preset narrowed to the values used by this component. */
   protected readonly projectLayoutPreset = computed<'AllInOne' | 'SplitInfraCode' | 'MultiRepo'>(() => {
@@ -296,131 +225,11 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
 
   protected readonly isProjectMultiRepo = computed(() => this.projectLayoutPreset() === 'MultiRepo');
 
-  protected readonly configLayoutMode = computed<ConfigLayoutMode | null>(() => {
-    const mode = this.config()?.layoutMode;
-    return mode === 'AllInOne' || mode === 'SplitInfraCode' ? mode : null;
+  protected readonly gitSection = createConfigDetailGitSectionController({
+    getConfig: () => this.config(),
+    canWrite: () => this.canWrite(),
+    updateConfig: (config) => this.config.set(config),
   });
-
-  protected readonly configRepositories = computed<InfraConfigRepositoryResponse[]>(
-    () => this.config()?.repositories ?? [],
-  );
-
-  protected readonly configAllInOneRepo = computed<InfraConfigRepositoryResponse | null>(
-    () => this.configRepositories()[0] ?? null,
-  );
-
-  protected readonly configSplitSlots = computed(() => {
-    const repos = this.configRepositories();
-    return [
-      {
-        kind: 'Infrastructure',
-        labelKey: 'CONFIG_DETAIL.REPOSITORIES.SLOT_INFRASTRUCTURE',
-        repo: repos.find((r) => r.contentKinds.includes('Infrastructure')) ?? null,
-      },
-      {
-        kind: 'ApplicationCode',
-        labelKey: 'CONFIG_DETAIL.REPOSITORIES.SLOT_APPLICATION_CODE',
-        repo: repos.find((r) => r.contentKinds.includes('ApplicationCode')) ?? null,
-      },
-    ] satisfies Array<{
-      kind: RepositoryContentKind;
-      labelKey: string;
-      repo: InfraConfigRepositoryResponse | null;
-    }>;
-  });
-
-  protected readonly configRepoActionId = signal<string | null>(null);
-  protected readonly configLayoutModeSaving = signal(false);
-  protected readonly gitSectionViewModel = computed<ConfigDetailGitSectionViewModel | null>(() => {
-    const config = this.config();
-    if (!config) {
-      return null;
-    }
-
-    return {
-      gitActionError: this.gitActionError(),
-      layoutMode: this.configLayoutMode(),
-      layoutModeSaving: this.configLayoutModeSaving(),
-      canWrite: this.canWrite(),
-      actionRepoId: this.configRepoActionId(),
-      allInOneRepo: this.configAllInOneRepo(),
-      splitSlots: this.configSplitSlots(),
-      onSetLayoutMode: (mode) => void this.setConfigLayoutMode(mode),
-      onOpenAllInOne: () => this.openConfigAllInOneDialog(),
-      onOpenSlot: (kind, repo) => this.openConfigSlotDialog(kind, repo),
-      onRemoveRepository: (repo) => void this.removeConfigRepository(repo),
-    };
-  });
-
-  // ─── Unified generation (multi-repo) ───
-  protected readonly generateAllLoading = computed(
-    () => this.validatingDiagnostics() || this.bicepLoading() || this.pipelineLoading(),
-  );
-  protected readonly generationPanelCollapsed = signal(false);
-  protected readonly generationPanelOpen = computed(
-    () => this.bicepPanelOpen() || this.pipelinePanelOpen() || this.bicepLoading() || this.pipelineLoading(),
-  );
-  protected readonly generationSectionViewModel = computed<ConfigDetailGenerationSectionViewModel | null>(() => {
-    if (!this.config()) {
-      return null;
-    }
-
-    return {
-      showPanel: this.isProjectMultiRepo() && this.generationPanelOpen(),
-      isCollapsed: this.generationPanelCollapsed(),
-      bicepLoading: this.bicepLoading(),
-      bicepDownloading: this.bicepDownloading(),
-      bicepResult: this.bicepResult(),
-      bicepErrorKey: this.bicepErrorKey(),
-      configBicepNodes: this.configBicepNodes(),
-      loadConfigBicepFile: this.loadConfigBicepFile,
-      pipelineLoading: this.pipelineLoading(),
-      pipelineDownloading: this.pipelineDownloading(),
-      pipelineResult: this.pipelineResult(),
-      pipelineErrorKey: this.pipelineErrorKey(),
-      configPipelineNodes: this.configPipelineNodes(),
-      loadConfigPipelineFile: this.loadConfigPipelineFile,
-      onClosePanel: () => this.closeGenerationPanel(),
-      onTogglePanelCollapsed: () => this.toggleGenerationPanelCollapsed(),
-      onDownloadBicepFiles: () => void this.downloadBicepFiles(),
-      onGenerateBicep: () => void this.generateBicep(),
-      onDownloadPipelineFiles: () => void this.downloadPipelineFiles(),
-      onGeneratePipeline: () => void this.generatePipeline(),
-    };
-  });
-
-  protected async generateAll(): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId || this.generateAllLoading()) return;
-
-    this.validatingDiagnostics.set(true);
-    try {
-      const shouldContinue = await this.showDiagnosticsDialog();
-      if (!shouldContinue) return;
-    } finally {
-      this.validatingDiagnostics.set(false);
-    }
-
-    await Promise.all([
-      this.doGenerateBicep(),
-      this.doGeneratePipeline(),
-    ]);
-  }
-
-  protected closeGenerationPanel(): void {
-    this.closeBicepPanel();
-    this.closePipelinePanel();
-    this.generationPanelCollapsed.set(false);
-  }
-
-  protected toggleGenerationPanelCollapsed(): void {
-    this.generationPanelCollapsed.update((collapsed) => !collapsed);
-  }
-
-  // ─── Git Config (multi-repo, config-level display) ───
-  protected readonly gitTestLoading = signal(false);
-  protected readonly gitTestResult = signal<TestGitConnectionResponse | null>(null);
-  protected readonly gitActionError = signal('');
 
   protected readonly useProjectNamingConventions = computed(() => this.config()?.useProjectNamingConventions ?? false);
 
@@ -639,16 +448,14 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     this.incomingCrossConfigReferences.set([]);
     this.crossConfigLoaded.set(false);
     this.crossConfigErrorKey.set('');
-    this.bicepResult.set(null);
-    this.bicepPanelOpen.set(false);
+    this.generationSection.reset();
+    this.gitSection.reset();
+    this.tagsSection.reset();
+    this.variableGroupsSection.reset();
     this.storageAccountDetails.set({});
     this.previewEnvId.set(null);
     this.diagnostics.set([]);
     this.loadError.set('');
-    this.variableGroups.set([]);
-    this.vgLoading.set(false);
-    this.vgErrorKey.set('');
-    this.vgLoaded.set(false);
   }
 
   private async loadConfig(id: string): Promise<void> {
@@ -690,7 +497,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
 
       // Non-blocking: fire-and-forget secondary data (diagnostics, variable groups, cross-config refs)
       this.loadDiagnostics().catch(() => {});
-      this.loadVariableGroups().catch(() => {});
+      this.variableGroupsSection.load().catch(() => {});
       this.loadCrossConfigReferences().catch(() => {});
 
       this.recentlyViewedService.trackView({
@@ -701,7 +508,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
 
       // Auto-trigger generation if redirected from /config/:id/generate
       if (this.route.snapshot.queryParamMap.get('generate') === 'true') {
-        void this.generateAll();
+        void this.generationSection.generateAll();
       }
     } catch {
       this.loadError.set('CONFIG_DETAIL.ERROR.LOAD_FAILED');
@@ -1442,59 +1249,6 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
 
   // ─── Delete Config ───
 
-  protected async generateBicep(): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId || this.bicepLoading()) return;
-
-    this.validatingDiagnostics.set(true);
-    try {
-      const shouldContinue = await this.showDiagnosticsDialog();
-      if (!shouldContinue) return;
-    } finally {
-      this.validatingDiagnostics.set(false);
-    }
-
-    await this.doGenerateBicep();
-  }
-
-  private async doGenerateBicep(): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId || this.bicepLoading()) return;
-
-    this.bicepLoading.set(true);
-    this.bicepErrorKey.set('');
-    this.bicepResult.set(null);
-    this.generationPanelCollapsed.set(false);
-    this.bicepPanelOpen.set(true);
-
-    try {
-      const result = await this.bicepService.generate({ infrastructureConfigId: configId });
-      this.bicepResult.set(result);
-    } catch (err: unknown) {
-      const axios = await import('axios');
-      if (axios.isAxiosError(err)) {
-        const status = err.response?.status;
-        if (status === 401 || status === 403) {
-          this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_AUTH_ERROR');
-        } else {
-          this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_ERROR');
-        }
-      } else if (err instanceof Error && err.message.includes('access token')) {
-        this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_AUTH_ERROR');
-      } else {
-        this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_ERROR');
-      }
-    } finally {
-      this.bicepLoading.set(false);
-    }
-  }
-
-  protected closeBicepPanel(): void {
-    this.bicepPanelOpen.set(false);
-    this.bicepResult.set(null);
-    this.bicepErrorKey.set('');
-  }
-
   protected openPushToGitDialog(): void {
     const configId = this.config()?.id;
     const projectId = this.config()?.projectId;
@@ -1502,95 +1256,6 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
 
     const data: PushToGitDialogData = { configId, projectId };
     this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
-  }
-
-
-
-  protected async downloadBicepFiles(): Promise<void> {
-    const result = this.bicepResult();
-    if (!result || this.bicepDownloading()) return;
-
-    this.bicepDownloading.set(true);
-    try {
-      const configId = this.config()?.id;
-      if (!configId) return;
-
-      const blob = await this.bicepService.downloadZip(configId);
-      const configName = this.config()?.name ?? 'bicep';
-      saveAs(blob, `${configName}-bicep.zip`);
-    } finally {
-      this.bicepDownloading.set(false);
-    }
-  }
-
-  // ─── Pipeline Generation ───
-
-  protected async generatePipeline(): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId || this.pipelineLoading()) return;
-
-    this.validatingDiagnostics.set(true);
-    try {
-      const shouldContinue = await this.showDiagnosticsDialog();
-      if (!shouldContinue) return;
-    } finally {
-      this.validatingDiagnostics.set(false);
-    }
-
-    await this.doGeneratePipeline();
-  }
-
-  private async doGeneratePipeline(): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId || this.pipelineLoading()) return;
-
-    this.pipelineLoading.set(true);
-    this.pipelineErrorKey.set('');
-    this.pipelineResult.set(null);
-    this.generationPanelCollapsed.set(false);
-    this.pipelinePanelOpen.set(true);
-
-    try {
-      const result = await this.pipelineService.generate({ infrastructureConfigId: configId });
-      this.pipelineResult.set(result);
-    } catch (err: unknown) {
-      const axios = await import('axios');
-      if (axios.isAxiosError(err)) {
-        const status = err.response?.status;
-        if (status === 401 || status === 403) {
-          this.pipelineErrorKey.set('CONFIG_DETAIL.PIPELINE.GENERATE_AUTH_ERROR');
-        } else {
-          this.pipelineErrorKey.set('CONFIG_DETAIL.PIPELINE.GENERATE_ERROR');
-        }
-      } else {
-        this.pipelineErrorKey.set('CONFIG_DETAIL.PIPELINE.GENERATE_ERROR');
-      }
-    } finally {
-      this.pipelineLoading.set(false);
-    }
-  }
-
-  protected closePipelinePanel(): void {
-    this.pipelinePanelOpen.set(false);
-    this.pipelineResult.set(null);
-    this.pipelineErrorKey.set('');
-  }
-
-  protected async downloadPipelineFiles(): Promise<void> {
-    const result = this.pipelineResult();
-    if (!result || this.pipelineDownloading()) return;
-
-    this.pipelineDownloading.set(true);
-    try {
-      const configId = this.config()?.id;
-      if (!configId) return;
-
-      const blob = await this.pipelineService.downloadZip(configId);
-      const configName = this.config()?.name ?? 'pipeline';
-      saveAs(blob, `${configName}-pipeline.zip`);
-    } finally {
-      this.pipelineDownloading.set(false);
-    }
   }
 
   protected openDeleteConfigDialog(): void {
@@ -1777,222 +1442,6 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
       this.crossConfigErrorKey.set('CONFIG_DETAIL.CROSS_CONFIG_REFS.LOAD_ERROR');
     } finally {
       this.crossConfigLoading.set(false);
-    }
-  }
-
-
-
-  // ─── Per-config repositories (project layout = MultiRepo) ───
-
-  protected async setConfigLayoutMode(mode: ConfigLayoutMode): Promise<void> {
-    const cfg = this.config();
-    if (!cfg) return;
-    if (this.configLayoutMode() === mode) return;
-
-    const previous = cfg;
-
-    this.gitActionError.set('');
-    this.configLayoutModeSaving.set(true);
-    this.config.set({
-      ...cfg,
-      layoutMode: mode,
-      repositories: [],
-    });
-
-    try {
-      await this.projectService.setConfigLayoutMode(cfg.projectId, cfg.id, mode);
-      const updated = await this.infraConfigService.getById(cfg.id);
-      this.config.set(updated);
-    } catch {
-      this.config.set(previous);
-      this.gitActionError.set('CONFIG_DETAIL.REPOSITORIES.LAYOUT_MODE_SAVE_ERROR');
-    } finally {
-      this.configLayoutModeSaving.set(false);
-    }
-  }
-
-  protected openConfigAllInOneDialog(): void {
-    const cfg = this.config();
-    if (!cfg) return;
-    const existing = this.configAllInOneRepo();
-    const data: InfraConfigRepositoryDialogData = {
-      projectId: cfg.projectId,
-      configId: cfg.id,
-      mode: existing ? 'edit' : 'create',
-      existing: existing ?? undefined,
-      lockedKinds: ['Infrastructure', 'ApplicationCode'],
-    };
-    const ref = this.dialog.open(InfraConfigRepositoryDialogComponent, { data, width: '560px' });
-    ref.afterClosed().subscribe(async (result) => {
-      if (result) {
-        const updated = await this.infraConfigService.getById(cfg.id);
-        this.config.set(updated);
-      }
-    });
-  }
-
-  protected openConfigSlotDialog(kind: RepositoryContentKind, repo: InfraConfigRepositoryResponse | null): void {
-    const cfg = this.config();
-    if (!cfg) return;
-    const data: InfraConfigRepositoryDialogData = {
-      projectId: cfg.projectId,
-      configId: cfg.id,
-      mode: repo ? 'edit' : 'create',
-      existing: repo ?? undefined,
-      lockedKinds: [kind],
-    };
-    const ref = this.dialog.open(InfraConfigRepositoryDialogComponent, { data, width: '560px' });
-    ref.afterClosed().subscribe(async (result) => {
-      if (result) {
-        const updated = await this.infraConfigService.getById(cfg.id);
-        this.config.set(updated);
-      }
-    });
-  }
-
-  protected async removeConfigRepository(repo: InfraConfigRepositoryResponse): Promise<void> {
-    const cfg = this.config();
-    if (!cfg) return;
-    this.configRepoActionId.set(repo.id);
-    try {
-      await this.projectService.removeConfigRepository(cfg.projectId, cfg.id, repo.id);
-      const updated = await this.infraConfigService.getById(cfg.id);
-      this.config.set(updated);
-    } catch {
-      this.gitActionError.set('CONFIG_DETAIL.REPOSITORIES.DELETE_ERROR');
-    } finally {
-      this.configRepoActionId.set(null);
-    }
-  }
-
-  protected async testGitConnection(): Promise<void> {
-    const projectId = this.project()?.id;
-    if (!projectId) return;
-
-    this.gitTestLoading.set(true);
-    this.gitTestResult.set(null);
-    this.gitActionError.set('');
-
-    try {
-      const result = await this.projectService.testGitConnection(projectId);
-      this.gitTestResult.set(result);
-    } catch {
-      this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.TEST_FAILED');
-    } finally {
-      this.gitTestLoading.set(false);
-    }
-  }
-
-  // ─── Pipeline Variable Groups ───
-
-  private async loadVariableGroups(): Promise<void> {
-    const projectId = this.config()?.projectId;
-    if (!projectId) return;
-
-    this.vgLoading.set(true);
-    this.vgErrorKey.set('');
-    try {
-      const groups = await this.projectService.getPipelineVariableGroups(projectId);
-      this.variableGroups.set(groups.map(g => ({ ...g, variables: g.variables ?? [] })));
-      this.vgLoaded.set(true);
-    } catch {
-      this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
-    } finally {
-      this.vgLoading.set(false);
-    }
-  }
-
-  protected openAddVariableGroupDialog(): void {
-    const dialogRef = this.dialog.open(AddVariableGroupDialogComponent, {
-      width: '420px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (groupName?: string) => {
-      if (!groupName) return;
-      const projectId = this.config()?.projectId;
-      if (!projectId) return;
-
-      this.vgErrorKey.set('');
-      try {
-        const newGroup = await this.projectService.addPipelineVariableGroup(projectId, { groupName });
-        this.variableGroups.update(groups => [...groups, { ...newGroup, variables: newGroup.variables ?? [] }]);
-      } catch {
-        this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
-      }
-    });
-  }
-
-  protected openRemoveVariableGroupDialog(group: ProjectPipelineVariableGroupResponse): void {
-    const data: ConfirmDialogData = {
-      titleKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP',
-      messageKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.CONFIRM_DELETE_GROUP',
-      confirmKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP',
-      cancelKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.DIALOG_CANCEL',
-    };
-
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-      const projectId = this.config()?.projectId;
-      if (!projectId) return;
-
-      this.vgErrorKey.set('');
-      try {
-        await this.projectService.removePipelineVariableGroup(projectId, group.id);
-        this.variableGroups.update(groups => groups.filter(g => g.id !== group.id));
-      } catch {
-        this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_GROUP');
-      }
-    });
-  }
-
-  // ─── Config Tags ───
-
-  protected startEditConfigTags(): void {
-    this.editingConfigTags.set(this.configTags().map(t => ({ name: t.name, value: t.value })));
-    this.configTagNameCtrl.reset();
-    this.configTagValueCtrl.reset();
-    this.configTagsErrorKey.set('');
-    this.isEditingConfigTags.set(true);
-  }
-
-  protected addConfigTag(): void {
-    const name = this.configTagNameCtrl.value.trim();
-    const value = this.configTagValueCtrl.value.trim();
-    if (!name) return;
-    this.editingConfigTags.update(tags => [
-      ...tags.filter(t => t.name !== name),
-      { name, value },
-    ]);
-    this.configTagNameCtrl.reset();
-    this.configTagValueCtrl.reset();
-  }
-
-  protected removeConfigTag(name: string): void {
-    this.editingConfigTags.update(tags => tags.filter(t => t.name !== name));
-  }
-
-  protected cancelConfigTagsEdit(): void {
-    this.isEditingConfigTags.set(false);
-    this.editingConfigTags.set([]);
-    this.configTagsErrorKey.set('');
-  }
-
-  protected async saveConfigTags(): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId || this.configTagsSaving()) return;
-    this.configTagsSaving.set(true);
-    this.configTagsErrorKey.set('');
-    try {
-      await this.infraConfigService.setTags(configId, { tags: this.editingConfigTags() });
-      this.config.update(c => c ? { ...c, tags: this.editingConfigTags() } : c);
-      this.isEditingConfigTags.set(false);
-      this.editingConfigTags.set([]);
-    } catch {
-      this.configTagsErrorKey.set('CONFIG_DETAIL.TAGS.SAVE_ERROR');
-    } finally {
-      this.configTagsSaving.set(false);
     }
   }
 }

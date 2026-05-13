@@ -36,7 +36,7 @@ export class SearchDialogComponent implements OnInit {
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
-    void this.loadAllItems();
+    this.runTask(this.loadAllItems());
     this.searchCtrl.valueChanges.subscribe((value) => {
       this.filterResults(value);
     });
@@ -77,6 +77,10 @@ export class SearchDialogComponent implements OnInit {
   }
 
   protected onKeydown(event: KeyboardEvent): void {
+    if (this.isResultEvent(event.target) && (event.key === 'Enter' || event.key === ' ')) {
+      return;
+    }
+
     const results = this.results();
     switch (event.key) {
       case 'ArrowDown':
@@ -99,12 +103,39 @@ export class SearchDialogComponent implements OnInit {
     }
   }
 
+  protected selectResult(index: number): void {
+    this.selectedIndex.set(index);
+  }
+
+  protected onResultKeydown(event: KeyboardEvent, item: SearchResult): void {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.navigateTo(item);
+  }
+
   protected navigateTo(item: SearchResult): void {
     this.dialogRef.close();
     if (item.type === 'project') {
-      void this.router.navigate(['/projects', item.id]);
+      this.runNavigation(this.router.navigate(['/projects', item.id]));
     } else {
-      void this.router.navigate(['/config', item.id]);
+      this.runNavigation(this.router.navigate(['/config', item.id]));
     }
+  }
+
+  private runNavigation(navigationPromise: Promise<boolean>): void {
+    navigationPromise.catch(() => undefined);
+  }
+
+  private runTask(taskPromise: Promise<void>): void {
+    taskPromise.catch(() => undefined);
+  }
+
+  private isResultEvent(target: EventTarget | null): boolean {
+    return target instanceof HTMLElement
+      && target.closest('.search-dialog__result') !== null;
   }
 }

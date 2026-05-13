@@ -10,6 +10,7 @@ using InfraFlowSculptor.Mcp.Imports;
 using InfraFlowSculptor.Mcp.Imports.Models;
 using InfraFlowSculptor.Mcp.Tools;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
 namespace InfraFlowSculptor.Mcp.Tests.Tools;
@@ -112,10 +113,11 @@ public sealed class IacImportToolsTests
     {
         // Arrange
         _previewService.GetPreview("preview_unknown").Returns((ImportPreview?)null);
+        var serviceProvider = CreateServiceProvider();
 
         // Act
         var json = await IacImportTools.ApplyImportPreview(
-            _previewService, _mediator,
+            serviceProvider,
             "preview_unknown", "MyProject", "AllInOne");
 
         // Assert
@@ -172,10 +174,11 @@ public sealed class IacImportToolsTests
                     SkippedResources = [],
                     NextSuggestedActions = ["Generate Bicep with 'generate_project_bicep'."],
                 }));
+        var serviceProvider = CreateServiceProvider();
 
         // Act
         var json = await IacImportTools.ApplyImportPreview(
-            _previewService, _mediator,
+            serviceProvider,
             "preview_abc12345", "MyProject", "AllInOne", resourceFilter: "[\"myKeyVault\"]");
 
         // Assert
@@ -218,10 +221,11 @@ public sealed class IacImportToolsTests
 
         _mediator.Send(Arg.Any<ApplyImportPreviewCommand>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<ErrorOr<ApplyImportPreviewResult>>(Error.Failure(description: "Validation failed")));
+        var serviceProvider = CreateServiceProvider();
 
         // Act
         var json = await IacImportTools.ApplyImportPreview(
-            _previewService, _mediator,
+            serviceProvider,
             "preview_abc12345", "MyProject", "AllInOne");
 
         // Assert
@@ -266,22 +270,31 @@ public sealed class IacImportToolsTests
                 SkippedResources = [],
                 NextSuggestedActions = [],
             }));
+        var serviceProvider = CreateServiceProvider();
 
         var method = typeof(IacImportTools).GetMethod(
             nameof(IacImportTools.ApplyImportPreview),
             BindingFlags.Public | BindingFlags.Static,
-            new[] { typeof(IImportPreviewService), typeof(ISender), typeof(string), typeof(string), typeof(string), typeof(string), typeof(string), typeof(CancellationToken) });
+            new[] { typeof(IServiceProvider), typeof(string), typeof(string), typeof(string), typeof(string), typeof(string), typeof(CancellationToken) });
 
         // Act
         method.Should().NotBeNull();
         var task = (Task<string>)method!.Invoke(
             null,
-            new object?[] { _previewService, _mediator, previewId, "MyProject", "AllInOne", null, null, expectedCancellationToken })!;
+            new object?[] { serviceProvider, previewId, "MyProject", "AllInOne", null, null, expectedCancellationToken })!;
         await task;
 
         // Assert
         await _mediator.Received(1).Send(
             Arg.Any<ApplyImportPreviewCommand>(),
             Arg.Is<CancellationToken>(cancellationToken => cancellationToken == expectedCancellationToken));
+    }
+
+    private IServiceProvider CreateServiceProvider()
+    {
+        return new ServiceCollection()
+            .AddSingleton(_previewService)
+            .AddSingleton(_mediator)
+            .BuildServiceProvider();
     }
 }

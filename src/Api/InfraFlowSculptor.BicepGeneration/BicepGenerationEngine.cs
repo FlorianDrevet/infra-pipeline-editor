@@ -39,11 +39,15 @@ public sealed class BicepGenerationEngine
     /// Generates the Bicep files for a single infrastructure configuration. Unused module
     /// outputs are pruned by the pipeline's <see cref="Pipeline.Stages.IrOutputPruningStage"/>.
     /// </summary>
-    public ErrorOr<GenerationResult> Generate(GenerationRequest request)
+    public ErrorOr<GenerationResult> Generate(
+        GenerationRequest request,
+        CancellationToken cancellationToken = default)
     {
         try
         {
-            var context = RunPipeline(request, skipOutputPruning: false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var context = RunPipeline(request, skipOutputPruning: false, cancellationToken);
             return context.Result
                 ?? throw new InvalidOperationException("Pipeline assembly stage did not produce a generation result.");
         }
@@ -63,17 +67,21 @@ public sealed class BicepGenerationEngine
     /// common folder and per-configuration folders. Unused outputs in shared modules are
     /// pruned using the union of references from every per-configuration <c>main.bicep</c>.
     /// </summary>
-    public ErrorOr<MonoRepoGenerationResult> GenerateMonoRepo(MonoRepoGenerationRequest request)
+    public ErrorOr<MonoRepoGenerationResult> GenerateMonoRepo(
+        MonoRepoGenerationRequest request,
+        CancellationToken cancellationToken = default)
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var perConfigResults = new Dictionary<string, GenerationResult>();
             var perConfigContexts = new Dictionary<string, BicepGenerationContext>();
             var hasAnyRoleAssignments = false;
 
             foreach (var (configName, configRequest) in request.ConfigRequests)
             {
-                var context = RunPipeline(configRequest, skipOutputPruning: true);
+                var context = RunPipeline(configRequest, skipOutputPruning: true, cancellationToken);
                 perConfigResults[configName] = context.Result
                     ?? throw new InvalidOperationException(
                         $"Pipeline assembly stage did not produce a generation result for configuration '{configName}'.");
@@ -83,6 +91,7 @@ public sealed class BicepGenerationEngine
                     hasAnyRoleAssignments = true;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             var monoResult = MonoRepoBicepAssembler.Assemble(
                 perConfigResults,
                 request.NamingContext,
@@ -90,6 +99,7 @@ public sealed class BicepGenerationEngine
                 hasAnyRoleAssignments,
                 request.FlattenShared);
 
+            cancellationToken.ThrowIfCancellationRequested();
             IrMonoRepoOutputPruner.Prune(monoResult, perConfigResults, perConfigContexts);
 
             return monoResult;
@@ -104,11 +114,15 @@ public sealed class BicepGenerationEngine
         }
     }
 
-    private BicepGenerationContext RunPipeline(GenerationRequest request, bool skipOutputPruning)
+    private BicepGenerationContext RunPipeline(
+        GenerationRequest request,
+        bool skipOutputPruning,
+        CancellationToken cancellationToken)
     {
         var context = new BicepGenerationContext
         {
             Request = request,
+            CancellationToken = cancellationToken,
             SkipOutputPruning = skipOutputPruning,
         };
         _pipeline.Execute(context);

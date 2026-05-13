@@ -13,26 +13,31 @@
   </div>
 
   @if (results().length > 0) {
-    <ul class="search-dialog__results" role="listbox">
+    <ul class="search-dialog__results">
       @for (item of results(); track item.id; let i = $index) {
-        <li
-          class="search-dialog__result"
-          [class.search-dialog__result--selected]="selectedIndex() === i"
-          role="option"
-          [attr.aria-selected]="selectedIndex() === i"
-          (click)="navigateTo(item)"
-          (mouseenter)="selectedIndex.set(i)"
-        >
-          <mat-icon class="search-dialog__result-icon" aria-hidden="true">
-            {{ item.type === 'project' ? 'folder' : 'settings' }}
-          </mat-icon>
-          <div class="search-dialog__result-content">
-            <span class="search-dialog__result-name">{{ item.name }}</span>
-            @if (item.description) {
-              <span class="search-dialog__result-desc">{{ item.description }}</span>
-            }
-          </div>
-          <span class="search-dialog__result-type">{{ item.type }}</span>
+        <li>
+          <button
+            type="button"
+            class="search-dialog__result"
+            [class.search-dialog__result--selected]="selectedIndex() === i"
+            [attr.aria-current]="selectedIndex() === i ? 'true' : null"
+            style="width: 100%; border: 0; background: none; text-align: left;"
+            (click)="navigateTo(item)"
+            (keydown)="onResultKeydown($event, item)"
+            (focus)="selectResult(i)"
+            (mouseenter)="selectResult(i)"
+          >
+            <mat-icon class="search-dialog__result-icon" aria-hidden="true">
+              {{ item.type === 'project' ? 'folder' : 'settings' }}
+            </mat-icon>
+            <div class="search-dialog__result-content">
+              <span class="search-dialog__result-name">{{ item.name }}</span>
+              @if (item.description) {
+                <span class="search-dialog__result-desc">{{ item.description }}</span>
+              }
+            </div>
+            <span class="search-dialog__result-type">{{ item.type }}</span>
+          </button>
         </li>
       }
     </ul>

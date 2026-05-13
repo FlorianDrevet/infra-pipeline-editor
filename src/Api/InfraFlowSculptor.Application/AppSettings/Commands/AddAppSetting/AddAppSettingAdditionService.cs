@@ -1,5 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.AppSettings.Common;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.Common.BaseModels;
@@ -29,7 +30,7 @@ public sealed class AddAppSettingAdditionService(
         DomainInfrastructureConfig infraConfig,
         CancellationToken cancellationToken)
     {
-        if (IsVariableGroupKeyVaultReference(request))
+        if (ConfigurationValueSourceRequestPredicates.IsVariableGroupKeyVaultReference(request))
         {
             return AddVariableGroupKeyVaultReferenceAsync(
                 request,
@@ -38,45 +39,20 @@ public sealed class AddAppSettingAdditionService(
                 cancellationToken);
         }
 
-        if (IsVariableGroupReference(request))
+        if (ConfigurationValueSourceRequestPredicates.IsVariableGroupReference(request))
             return AddVariableGroupReferenceAsync(request, resource, infraConfig, cancellationToken);
 
-        if (IsExportToKeyVault(request))
+        if (ConfigurationValueSourceRequestPredicates.IsExportToKeyVault(request))
             return AddSensitiveOutputKeyVaultReferenceAsync(request, resource, cancellationToken);
 
-        if (IsKeyVaultReference(request))
+        if (ConfigurationValueSourceRequestPredicates.IsKeyVaultReference(request))
             return AddKeyVaultReferenceAsync(request, resource, cancellationToken);
 
-        if (IsOutputReference(request))
+        if (ConfigurationValueSourceRequestPredicates.IsOutputReference(request))
             return AddOutputReferenceAsync(request, resource, cancellationToken);
 
         return AddStaticAsync(request, resource, cancellationToken);
     }
-
-    private static bool IsVariableGroupKeyVaultReference(AddAppSettingCommand request) =>
-        request.VariableGroupId is not null
-        && request.PipelineVariableName is not null
-        && request.KeyVaultResourceId is not null
-        && request.SecretName is not null;
-
-    private static bool IsVariableGroupReference(AddAppSettingCommand request) =>
-        request.VariableGroupId is not null
-        && request.PipelineVariableName is not null;
-
-    private static bool IsExportToKeyVault(AddAppSettingCommand request) =>
-        request.ExportToKeyVault
-        && request.SourceResourceId is not null
-        && request.SourceOutputName is not null
-        && request.KeyVaultResourceId is not null
-        && request.SecretName is not null;
-
-    private static bool IsKeyVaultReference(AddAppSettingCommand request) =>
-        request.KeyVaultResourceId is not null
-        && request.SecretName is not null;
-
-    private static bool IsOutputReference(AddAppSettingCommand request) =>
-        request.SourceResourceId is not null
-        && request.SourceOutputName is not null;
 
     private async Task<ErrorOr<AppSettingResult>> AddVariableGroupKeyVaultReferenceAsync(
         AddAppSettingCommand request,

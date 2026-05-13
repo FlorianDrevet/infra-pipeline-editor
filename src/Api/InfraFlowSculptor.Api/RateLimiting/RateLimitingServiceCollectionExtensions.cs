@@ -67,6 +67,12 @@ public static class RateLimitingServiceCollectionExtensions
             httpContext => RateLimitPartition.GetFixedWindowLimiter(
                 partitionKey: ResolvePartitionKey(httpContext),
                 factory: _ => CreateFixedWindowRateLimiterOptions(apiRateLimitingOptions.Expensive)));
+
+        rateLimiterOptions.AddPolicy(
+            RateLimitingPolicyNames.HealthChecks,
+            httpContext => RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: ResolvePartitionKey(httpContext),
+                factory: _ => CreateFixedWindowRateLimiterOptions(apiRateLimitingOptions.HealthChecks)));
     }
 
     private static PartitionedRateLimiter<HttpContext> CreateFixedWindowPartitionedLimiter(

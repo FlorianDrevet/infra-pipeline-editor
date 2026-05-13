@@ -20,6 +20,7 @@ namespace InfraFlowSculptor.Mcp.Tests.Common;
 
 public sealed class McpHttpPipelineExtensionsTests
 {
+    private const string DevelopmentEnvironmentName = "Development";
     private const string RateLimitingSectionName = "RateLimiting";
     private const string GlobalPermitLimitKey = $"{RateLimitingSectionName}:Global:PermitLimit";
     private const string GlobalWindowSecondsKey = $"{RateLimitingSectionName}:Global:WindowSeconds";
@@ -58,6 +59,27 @@ public sealed class McpHttpPipelineExtensionsTests
         secondResponse.Headers.RetryAfter.Should().NotBeNull();
     }
 
+    [Fact]
+    public async Task Given_NonDevelopmentPlainHttpListenUrl_When_UseMcpHttpPipeline_Then_LogsWarningAsync()
+    {
+        // Arrange
+        var loggerProvider = new TestLoggerProvider();
+        var settings = CreateSettings(globalPermitLimit: 2, expensivePermitLimit: 1);
+        settings[$"{McpOptions.SectionName}:{nameof(McpOptions.ListenUrl)}"] = "http://127.0.0.1:5258";
+
+        // Act
+        await using var host = await McpPipelineTestHost.CreateAsync(
+            settings,
+            environmentName: Environments.Production,
+            loggerProvider: loggerProvider);
+
+        // Assert
+        loggerProvider.Entries.Should().Contain(entry =>
+            entry.LogLevel == LogLevel.Warning
+            && entry.Message.Contains("plain HTTP", StringComparison.OrdinalIgnoreCase)
+            && entry.Message.Contains("outside Development", StringComparison.OrdinalIgnoreCase));
+    }
+
     private static Dictionary<string, string?> CreateSettings(int globalPermitLimit, int expensivePermitLimit, int windowSeconds = 5)
     {
         return new Dictionary<string, string?>
@@ -88,20 +110,30 @@ public sealed class McpHttpPipelineExtensionsTests
             return await Client.SendAsync(request);
         }
 
-        public static async Task<McpPipelineTestHost> CreateAsync(IReadOnlyDictionary<string, string?> settings)
+        public static async Task<McpPipelineTestHost> CreateAsync(
+            IReadOnlyDictionary<string, string?> settings,
+            string environmentName = DevelopmentEnvironmentName,
+            ILoggerProvider? loggerProvider = null)
         {
             var builder = WebApplication.CreateBuilder(new WebApplicationOptions
             {
-                EnvironmentName = Environments.Development,
+                EnvironmentName = environmentName,
             });
 
             builder.WebHost.UseTestServer();
             builder.Configuration.Sources.Clear();
             builder.Configuration.AddInMemoryCollection(settings);
+            builder.Services.Configure<McpOptions>(builder.Configuration.GetSection(McpOptions.SectionName));
             builder.Services.AddAuthentication(TestAuthenticationHandler.SchemeName)
                 .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(TestAuthenticationHandler.SchemeName, _ => { });
             builder.Services.AddAuthorization();
             builder.Services.AddMcpRateLimiting();
+
+            if (loggerProvider is not null)
+            {
+                builder.Logging.ClearProviders();
+                builder.Logging.AddProvider(loggerProvider);
+            }
 
             var application = builder.Build();
 
@@ -162,6 +194,46 @@ public sealed class McpHttpPipelineExtensionsTests
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
             return Task.FromResult(AuthenticateResult.Success(ticket));
+        }
+    }
+
+    private sealed record LogEntry(LogLevel LogLevel, string Message, Exception? Exception);
+
+    private sealed class TestLoggerProvider : ILoggerProvider
+    {
+        public IList<LogEntry> Entries { get; } = [];
+
+        public ILogger CreateLogger(string categoryName)
+        {
+            return new TestLogger(Entries);
+        }
+
+        public void Dispose()
+        {
+        }
+
+        private sealed class TestLogger(IList<LogEntry> entries) : ILogger
+        {
+            public IDisposable? BeginScope<TState>(TState state)
+                where TState : notnull
+            {
+                return null;
+            }
+
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                return true;
+            }
+
+            public void Log<TState>(
+                LogLevel logLevel,
+                EventId eventId,
+                TState state,
+                Exception? exception,
+                Func<TState, Exception?, string> formatter)
+            {
+                entries.Add(new LogEntry(logLevel, formatter(state, exception), exception));
+            }
         }
     }
 }

@@ -112,6 +112,9 @@ public sealed class Project : AggregateRoot<ProjectId>
         _members.Add(ProjectMember.CreateOwner(id, ownerId));
     }
 
+    /// <summary>EF Core constructor.</summary>
+    private Project() { }
+
     /// <summary>
     /// Creates a new <see cref="Project"/> with a generated identifier.
     /// The caller is automatically added as Owner.
@@ -122,9 +125,6 @@ public sealed class Project : AggregateRoot<ProjectId>
         project.AddDomainEvent(new ProjectCreatedDomainEvent(project.Id));
         return project;
     }
-
-    /// <summary>EF Core constructor.</summary>
-    private Project() { }
 
     // â”€â”€â”€ Member Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

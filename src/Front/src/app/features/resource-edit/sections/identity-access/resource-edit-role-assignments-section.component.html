@@ -1,0 +1,258 @@
+<div class="tab-content">
+  <div class="env-description">
+    <mat-icon class="env-description__icon">security</mat-icon>
+    <p>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DESCRIPTION' | translate }}</p>
+  </div>
+
+  @if (canWrite()) {
+    <div class="ra-actions">
+      <button class="ra-add-btn" (click)="section().openAddRoleAssignmentDialog()">
+        <mat-icon>add</mat-icon>
+        {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ADD' | translate }}
+      </button>
+
+      @if (section().assignedUai(); as uai) {
+        <div class="ra-assigned-uai">
+          <div class="ra-assigned-uai__current">
+            <mat-icon class="ra-assigned-uai__icon">person</mat-icon>
+            <span class="ra-assigned-uai__name">{{ uai.identityName }}</span>
+          </div>
+
+          @if (section().switchableIdentities().length > 0) {
+            <button
+              class="ra-add-btn ra-add-btn--switch"
+              [matMenuTriggerFor]="assignUaiMenu"
+              [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_UAI_TOOLTIP' | translate">
+              <mat-icon>swap_horiz</mat-icon>
+              {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_UAI' | translate }}
+            </button>
+
+            <mat-menu #assignUaiMenu="matMenu" class="ra-uai-assign-menu">
+              @for (identity of section().switchableIdentities(); track identity.id) {
+                <button mat-menu-item (click)="section().assignUaiToResource(identity.id)">
+                  <mat-icon>person</mat-icon>
+                  <div class="ra-uai-assign-menu__label">
+                    <span class="ra-uai-assign-menu__name">{{ identity.name }}</span>
+                    <span class="ra-uai-assign-menu__type">User Assigned Identity</span>
+                  </div>
+                </button>
+              }
+            </mat-menu>
+          }
+
+          <button
+            class="ra-add-btn ra-add-btn--unassign"
+            (click)="section().openUnassignUaiDialog(uai)"
+            [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_TOOLTIP' | translate">
+            <mat-icon>person_remove</mat-icon>
+            {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI' | translate }}
+          </button>
+        </div>
+      } @else if (section().availableUserAssignedIdentities().length > 0) {
+        <button class="ra-add-btn ra-add-btn--uai" [matMenuTriggerFor]="assignUaiMenu">
+          <mat-icon>person_add</mat-icon>
+          {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ASSIGN_UAI' | translate }}
+        </button>
+
+        <mat-menu #assignUaiMenu="matMenu" class="ra-uai-assign-menu">
+          @for (identity of section().availableUserAssignedIdentities(); track identity.id) {
+            <button mat-menu-item (click)="section().assignUaiToResource(identity.id)">
+              <mat-icon>person</mat-icon>
+              <div class="ra-uai-assign-menu__label">
+                <span class="ra-uai-assign-menu__name">{{ identity.name }}</span>
+                <span class="ra-uai-assign-menu__type">User Assigned Identity</span>
+              </div>
+            </button>
+          }
+        </mat-menu>
+      }
+    </div>
+  }
+
+  @if (section().roleAssignmentsError()) {
+    <div class="feedback-banner feedback-banner--error" role="alert">
+      <mat-icon>error_outline</mat-icon>
+      {{ section().roleAssignmentsError() | translate }}
+    </div>
+  }
+
+  @if (section().roleAssignmentsLoading()) {
+    <div class="ra-loading">
+      <mat-spinner diameter="28"></mat-spinner>
+      <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.LOADING' | translate }}</span>
+    </div>
+  } @else if (section().roleAssignments().length === 0 && !section().assignedUai()) {
+    <div class="empty-state">
+      <mat-icon class="empty-state__icon">admin_panel_settings</mat-icon>
+      <p>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.EMPTY' | translate }}</p>
+    </div>
+  } @else {
+    <div class="ra-list">
+      @for (group of section().groupedRoleAssignments().uaiGroups; track group.identityId) {
+        <div class="ra-uai-group" [class.ra-uai-group--expanded]="section().isUaiExpanded(group.identityId)">
+          <button class="ra-uai-header" (click)="section().toggleUaiExpand(group.identityId)">
+            <mat-icon class="ra-uai-header__chevron">expand_more</mat-icon>
+            <mat-icon class="ra-uai-header__icon">person</mat-icon>
+            <div class="ra-uai-header__info">
+              <span class="ra-uai-header__name">{{ group.identityName }}</span>
+              <span class="ra-uai-header__type">User Assigned Identity</span>
+            </div>
+            <span class="ra-uai-header__count">{{ group.assignments.length }}</span>
+            <a
+              class="ra-uai-header__nav"
+              [routerLink]="['/config', configId(), 'resource', 'UserAssignedIdentity', group.identityId]"
+              [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.NAV_TO_UAI' | translate"
+              (click)="$event.stopPropagation()">
+              <mat-icon>open_in_new</mat-icon>
+            </a>
+          </button>
+
+          @if (section().isUaiExpanded(group.identityId)) {
+            <div class="ra-uai-children">
+              @if (group.assignments.length === 0) {
+                <div class="ra-uai-empty">
+                  <mat-icon>info_outline</mat-icon>
+                  <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UAI_NO_ASSIGNMENTS' | translate }}</span>
+                </div>
+              }
+
+              @for (assignment of group.assignments; track assignment.id) {
+                <div class="ra-card ra-card--child">
+                  <div class="ra-card__main">
+                    <div class="ra-card__target">
+                      <mat-icon class="ra-card__target-icon">{{ resourceTypeIcons[section().resolveTargetType(assignment.targetResourceId)] || 'widgets' }}</mat-icon>
+                      <div class="ra-card__target-info">
+                        <span class="ra-card__target-name">{{ section().resolveTargetName(assignment.targetResourceId) }}</span>
+                        <span class="ra-card__target-type">{{ section().resolveTargetType(assignment.targetResourceId) }}</span>
+                      </div>
+                    </div>
+                    <div class="ra-card__details">
+                      <span class="ra-card__role">
+                        <mat-icon>shield</mat-icon>
+                        {{ section().resolveRoleName(assignment.roleDefinitionId) }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="ra-card__actions">
+                    @if (section().resolveRoleDocUrl(assignment.roleDefinitionId)) {
+                      <a
+                        class="ra-card__doc-link"
+                        [href]="section().resolveRoleDocUrl(assignment.roleDefinitionId)"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DOCS_LINK' | translate">
+                        <mat-icon>open_in_new</mat-icon>
+                      </a>
+                    }
+
+                    @if (canWrite()) {
+                      <button
+                        class="ra-card__action-btn ra-card__action-btn--switch"
+                        [matMenuTriggerFor]="childIdentityMenu"
+                        [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_IDENTITY' | translate">
+                        <mat-icon>swap_horiz</mat-icon>
+                      </button>
+
+                      <mat-menu #childIdentityMenu="matMenu" class="ra-identity-menu">
+                        <button
+                          mat-menu-item
+                          [disabled]="section().roleRequiresUserAssignedIdentity(assignment.roleDefinitionId)"
+                          (click)="section().switchToSystemAssigned(assignment)">
+                          <mat-icon>fingerprint</mat-icon>
+                          <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_TO_SYSTEM' | translate }}</span>
+                        </button>
+
+                        @for (identity of section().availableUserAssignedIdentities(); track identity.id) {
+                          <button
+                            mat-menu-item
+                            [disabled]="identity.id === assignment.userAssignedIdentityId"
+                            (click)="section().switchToUserAssignedIdentity(assignment, identity.id)">
+                            <mat-icon>person</mat-icon>
+                            <span>{{ identity.name }}</span>
+                            @if (identity.id === assignment.userAssignedIdentityId) {
+                              <mat-icon class="ra-identity-menu__current">check</mat-icon>
+                            }
+                          </button>
+                        }
+                      </mat-menu>
+
+                      <button
+                        class="ra-card__remove-btn"
+                        (click)="section().openRemoveRoleAssignmentDialog(assignment)"
+                        [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE' | translate">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @for (assignment of section().groupedRoleAssignments().systemAssigned; track assignment.id) {
+        <div class="ra-card">
+          <div class="ra-card__main">
+            <div class="ra-card__target">
+              <mat-icon class="ra-card__target-icon">{{ resourceTypeIcons[section().resolveTargetType(assignment.targetResourceId)] || 'widgets' }}</mat-icon>
+              <div class="ra-card__target-info">
+                <span class="ra-card__target-name">{{ section().resolveTargetName(assignment.targetResourceId) }}</span>
+                <span class="ra-card__target-type">{{ section().resolveTargetType(assignment.targetResourceId) }}</span>
+              </div>
+            </div>
+            <div class="ra-card__details">
+              <span class="ra-card__role">
+                <mat-icon>shield</mat-icon>
+                {{ section().resolveRoleName(assignment.roleDefinitionId) }}
+              </span>
+              <span class="ra-card__identity-badge ra-card__identity-badge--system">
+                <mat-icon>fingerprint</mat-icon>
+                {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SYSTEM_ASSIGNED' | translate }}
+              </span>
+            </div>
+          </div>
+          <div class="ra-card__actions">
+            @if (section().resolveRoleDocUrl(assignment.roleDefinitionId)) {
+              <a
+                class="ra-card__doc-link"
+                [href]="section().resolveRoleDocUrl(assignment.roleDefinitionId)"
+                target="_blank"
+                rel="noopener noreferrer"
+                [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DOCS_LINK' | translate">
+                <mat-icon>open_in_new</mat-icon>
+              </a>
+            }
+
+            @if (canWrite()) {
+              @if (section().availableUserAssignedIdentities().length > 0) {
+                <button
+                  class="ra-card__action-btn ra-card__action-btn--assign"
+                  [matMenuTriggerFor]="sysAssignIdentityMenu"
+                  [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ASSIGN_USER_IDENTITY' | translate">
+                  <mat-icon>person_add</mat-icon>
+                </button>
+
+                <mat-menu #sysAssignIdentityMenu="matMenu" class="ra-identity-menu">
+                  @for (identity of section().availableUserAssignedIdentities(); track identity.id) {
+                    <button mat-menu-item (click)="section().switchToUserAssignedIdentity(assignment, identity.id)">
+                      <mat-icon>person</mat-icon>
+                      <span>{{ identity.name }}</span>
+                    </button>
+                  }
+                </mat-menu>
+              }
+
+              <button
+                class="ra-card__remove-btn"
+                (click)="section().openRemoveRoleAssignmentDialog(assignment)"
+                [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE' | translate">
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

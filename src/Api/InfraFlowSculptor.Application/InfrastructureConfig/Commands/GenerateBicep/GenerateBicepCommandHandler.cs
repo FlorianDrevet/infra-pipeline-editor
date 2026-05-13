@@ -33,6 +33,7 @@ public sealed class GenerateBicepCommandHandler(
 
 
 
+    /// <inheritdoc />
     public async Task<ErrorOr<GenerateBicepResult>> Handle(
         GenerateBicepCommand command,
         CancellationToken cancellationToken)
@@ -52,7 +53,7 @@ public sealed class GenerateBicepCommandHandler(
 
         var generationRequest = GenerationRequestBuilder.Build(config);
 
-        var result = bicepGenerationEngine.Generate(generationRequest);
+        var result = bicepGenerationEngine.Generate(generationRequest, cancellationToken);
         if (result.IsError)
             return result.Errors;
 

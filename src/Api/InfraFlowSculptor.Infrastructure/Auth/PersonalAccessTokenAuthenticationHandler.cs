@@ -47,13 +47,18 @@ public sealed class PersonalAccessTokenAuthenticationHandler(
         if (pat is null)
             return AuthenticateResult.Fail("Invalid personal access token.");
 
-        if (!pat.IsValid(DateTime.UtcNow))
+        var utcNow = DateTime.UtcNow;
+
+        if (!pat.IsValid(utcNow))
             return AuthenticateResult.Fail("Personal access token is revoked or expired.");
 
-        // Record usage and persist immediately — UnitOfWork only flushes for commands,
-        // so without an explicit save the LastUsedAt update is lost on read-only requests.
-        pat.RecordUsage();
-        await dbContext.SaveChangesAsync(Context.RequestAborted);
+        if (ShouldPersistUsage(pat.LastUsedAt, utcNow))
+        {
+            // Read-only authenticated requests do not flow through the application UnitOfWork,
+            // so throttled auth-side persistence is required to keep LastUsedAt reasonably fresh.
+            pat.RecordUsage();
+            await dbContext.SaveChangesAsync(Context.RequestAborted);
+        }
 
         // Populate HttpContext.Items so ICurrentUser resolves the user transparently.
         Context.Items[UserIdItemKey] = pat.UserId;
@@ -68,5 +73,13 @@ public sealed class PersonalAccessTokenAuthenticationHandler(
         var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
         return AuthenticateResult.Success(ticket);
+    }
+
+    private static bool ShouldPersistUsage(DateTime? lastUsedAt, DateTime utcNow)
+    {
+        if (!lastUsedAt.HasValue)
+            return true;
+
+        return lastUsedAt.Value.Add(PersonalAccessTokenAuthenticationDefaults.UsagePersistenceInterval) <= utcNow;
     }
 }

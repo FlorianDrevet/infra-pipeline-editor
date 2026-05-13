@@ -13,6 +13,7 @@ internal sealed class ApiRateLimitingOptionsValidator : IValidateOptions<ApiRate
 
         ValidatePolicy(options.Global, nameof(ApiRateLimitingOptions.Global), failures);
         ValidatePolicy(options.Expensive, nameof(ApiRateLimitingOptions.Expensive), failures);
+        ValidatePolicy(options.HealthChecks, nameof(ApiRateLimitingOptions.HealthChecks), failures);
 
         if (options.Expensive.PermitLimit > options.Global.PermitLimit)
         {

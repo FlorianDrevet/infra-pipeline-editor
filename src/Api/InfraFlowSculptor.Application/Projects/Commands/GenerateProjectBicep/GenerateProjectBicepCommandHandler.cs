@@ -81,7 +81,7 @@ public sealed class GenerateProjectBicepCommandHandler(
             EnvironmentNames = allEnvironmentNames,
         };
 
-        var result = bicepGenerationEngine.GenerateMonoRepo(monoRepoRequest);
+        var result = bicepGenerationEngine.GenerateMonoRepo(monoRepoRequest, cancellationToken);
         if (result.IsError)
             return result.Errors;
 

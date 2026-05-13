@@ -39,7 +39,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   protected readonly breadcrumb = this.pageContextService.breadcrumb;
 
   public ngOnInit(): void {
-    void this.initializeUserProfile();
+    this.runTask(this.initializeUserProfile());
   }
 
   public ngOnDestroy(): void {
@@ -101,7 +101,15 @@ export class NavigationComponent implements OnInit, OnDestroy {
   }
 
   protected quickCreate(): void {
-    void this.router.navigate(['/projects'], { queryParams: { create: true } });
+    this.runNavigation(this.router.navigate(['/projects'], { queryParams: { create: true } }));
+  }
+
+  private runNavigation(navigationPromise: Promise<boolean>): void {
+    navigationPromise.catch(() => undefined);
+  }
+
+  private runTask(taskPromise: Promise<void>): void {
+    taskPromise.catch(() => undefined);
   }
 
   private async loadUserProfilePhoto(): Promise<void> {

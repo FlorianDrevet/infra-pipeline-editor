@@ -15,10 +15,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddApiCors(builder.Configuration);
 builder.Services.AddApiRequestLimits(builder.Configuration);
 
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("IsAdmin", policy => policy.RequireRole("Admin")); 
-
 builder.Services
+    .AddApiAuthorization()
     .AddPresentation()
     .AddApplication()
     .AddInfrastructure(builder.Configuration, builder.Environment)
@@ -91,10 +89,6 @@ app.UseBicepGenerationController();
 app.UsePipelineGenerationController();
 
 // Health checks
-app.MapHealthChecks("/health");
-app.MapHealthChecks("/alive", new HealthCheckOptions
-{
-    Predicate = r => r.Tags.Contains("live")
-});
+app.MapApiHealthChecks();
 
 await app.RunAsync();

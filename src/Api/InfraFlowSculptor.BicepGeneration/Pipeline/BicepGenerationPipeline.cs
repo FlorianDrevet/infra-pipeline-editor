@@ -23,8 +23,11 @@ public sealed class BicepGenerationPipeline
     /// </summary>
     public void Execute(BicepGenerationContext context)
     {
+        context.CancellationToken.ThrowIfCancellationRequested();
+
         foreach (var stage in _stages)
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             stage.Execute(context);
         }
     }

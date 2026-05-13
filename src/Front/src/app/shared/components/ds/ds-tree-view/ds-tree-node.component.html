@@ -47,7 +47,7 @@
   </div>
 
   @if (hasChildren && expanded) {
-    <div class="ds-tree-node__children" role="group">
+    <div class="ds-tree-node__children">
       @for (child of node.children; track trackChild($index, child)) {
         <app-ds-tree-node
           [node]="child"

@@ -12,7 +12,11 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var mcpOptions = builder.Configuration.GetSection(McpOptions.SectionName).Get<McpOptions>() ?? new McpOptions();
+var mcpOptionsSection = builder.Configuration.GetSection(McpOptions.SectionName);
+builder.Services.Configure<McpOptions>(mcpOptionsSection);
+builder.Services.Configure<ProjectDraftStorageOptions>(builder.Configuration.GetSection(ProjectDraftStorageOptions.SectionName));
+
+var mcpOptions = mcpOptionsSection.Get<McpOptions>() ?? new McpOptions();
 builder.WebHost.UseUrls(mcpOptions.ListenUrl);
 
 builder.Services.AddSingleton<IProjectDraftService, ProjectDraftService>();
