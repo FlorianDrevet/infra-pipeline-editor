@@ -64,4 +64,34 @@ public sealed class CorsRuleTests
         sut.AllowedMethods.Should().BeEquivalentTo(newMethods);
         sut.MaxAgeInSeconds.Should().Be(7200);
     }
+
+    [Fact]
+    public void Given_CreatedRule_When_ExposingCollectionProperties_Then_CollectionsAreReadOnly()
+    {
+        // Arrange
+        var sut = CorsRule.Create(
+            AzureResourceId.CreateUnique(),
+            new CorsServiceType(CorsServiceType.Service.Blob),
+            ["https://example.com"],
+            ["GET"],
+            ["x-custom"],
+            ["x-response"],
+            120);
+
+        // Act
+        var allowedOrigins = (ICollection<string>)sut.AllowedOrigins;
+        var allowedMethods = (ICollection<string>)sut.AllowedMethods;
+        var allowedHeaders = (ICollection<string>)sut.AllowedHeaders;
+        var exposedHeaders = (ICollection<string>)sut.ExposedHeaders;
+
+        // Assert
+        sut.AllowedOrigins.Should().NotBeAssignableTo<List<string>>();
+        sut.AllowedMethods.Should().NotBeAssignableTo<List<string>>();
+        sut.AllowedHeaders.Should().NotBeAssignableTo<List<string>>();
+        sut.ExposedHeaders.Should().NotBeAssignableTo<List<string>>();
+        FluentActions.Invoking(() => allowedOrigins.Add("https://other.example.com")).Should().Throw<NotSupportedException>();
+        FluentActions.Invoking(() => allowedMethods.Add("POST")).Should().Throw<NotSupportedException>();
+        FluentActions.Invoking(() => allowedHeaders.Add("x-added")).Should().Throw<NotSupportedException>();
+        FluentActions.Invoking(() => exposedHeaders.Add("x-added")).Should().Throw<NotSupportedException>();
+    }
 }

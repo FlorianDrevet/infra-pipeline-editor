@@ -1,7 +1,7 @@
 # Project Snapshot — Infra Flow Sculptor
 
 > **Project ID:** `fb8699ea-f568-4afb-864b-e82d2efd0905`
-> **Generated:** 2026-04-23
+> **Generated:** 2026-05-12
 > **Purpose:** Reference file for Copilot context — load this instead of querying the database.
 
 ---
@@ -78,10 +78,10 @@
 
 | Resource | Type | ID | Location |
 |----------|------|----|----------|
-| ifs | ContainerRegistry | `36ba74cb-c0a1-40a3-b224-e3be1c1b4b46` | FranceCentral |
+| infraflowsculptor | ContainerRegistry | `36ba74cb-c0a1-40a3-b224-e3be1c1b4b46` | FranceCentral |
 | ifs | LogAnalyticsWorkspace | `83b21c4d-584c-4e2e-8362-3ddf6aee73c2` | FranceCentral |
 
-##### ContainerRegistry — `ifs` (`36ba74cb`)
+##### ContainerRegistry — `infraflowsculptor` (`36ba74cb`)
 
 *No extra properties.*
 
@@ -120,12 +120,13 @@
 |----------|------|----|----------|------------------|
 | ifs | KeyVault | `fc210d60-9d8a-4899-9f9e-07dced5871c5` | FranceCentral | — |
 | ifs | StorageAccount | `efe669ac-71a9-4884-a6b1-cf16583bbf37` | FranceCentral | — |
-| ifs | SqlServer | `9700666f-4771-46f9-aaab-74d9370eee59` | FranceCentral | — |
+| infra-flow | SqlServer | `9700666f-4771-46f9-aaab-74d9370eee59` | FranceCentral | — |
 | ifs | SqlDatabase | `0ae0ab1e-a076-468d-a7af-41fd6b4d3d20` | FranceCentral | — |
 | ifs | ApplicationInsights | `e8bdb228-bc60-4de6-9d88-4d549b5a64bb` | FranceCentral | — |
 | ifs | ContainerAppEnvironment | `37cfd530-1f07-442a-849c-4c030bb147a4` | FranceCentral | — |
 | ifs-api | ContainerApp | `4615c4e9-1584-472d-b158-bdb41c49e4ed` | FranceCentral | — |
 | ifs-frontend | ContainerApp | `dda2e846-de85-4739-ba0c-ec15f63e48c7` | FranceCentral | — |
+| backend | UserAssignedIdentity | `38cb3416-b0c9-482e-80f9-2332f77974db` | FranceCentral | — |
 | frontend | UserAssignedIdentity | `90097d4d-74a6-4d23-b94a-0392c57f7d14` | FranceCentral | — |
 
 ##### KeyVault — `ifs` (`fc210d60`)
@@ -163,7 +164,7 @@
 **Blob Lifecycle Rules:**
 - `clean-ifs` → containers: `[bicep-output]`, TTL: 1 day
 
-##### SqlServer — `ifs` (`9700666f`)
+##### SqlServer — `infra-flow` (`9700666f`)
 
 | Property | Value |
 |----------|-------|
@@ -206,6 +207,10 @@
 | Development | Consumption | Consumption | false | false |
 
 ##### UserAssignedIdentity — `frontend` (`90097d4d`)
+
+*No extra properties.*
+
+##### UserAssignedIdentity — `backend` (`38cb3416`)
 
 *No extra properties.*
 
@@ -271,8 +276,22 @@
 
 | Name | Source | Details |
 |------|--------|---------|
+| `AllowedHosts` | Static value | Development=`*` |
 | `APPLICATIONINSIGHTS_CONNECTION_STRING` | Output ref: ApplicationInsights (`e8bdb228`) → `connectionString` | Direct output reference |
-| `JwtSettings__Secret` | KeyVault secret | KV: `fc210d60`, SecretName: `JWT_SECRET`, Assignment: `ViaBicepparam`, PipelineVar: `jwt-secret` |
+| `AzureAd__Audience` | Static value | Development=`(empty)` |
+| `AzureAd__ClientId` | Static value | Development=`(empty)` |
+| `AzureAd__Domain` | Static value | Development=`(empty)` |
+| `AzureAd__Instance` | Static value | Development=`(empty)` |
+| `AzureAd__TenantId` | Static value | Development=`(empty)` |
+| `BlobSettings__ContainerName` | Static value | Development=`bicep-output` |
+| `ConnectionStrings__AzureBlobStorageConnectionString` | Output ref: StorageAccount (`efe669ac`) → `connectionString` | Direct output reference |
+| `ConnectionStrings__infraDb` | Output ref: SqlServer (`9700666f`) → `connectionString` | Direct output reference |
+| `JwtSettings__Audience` | Static value | Development=`InfraFlowSculptor` |
+| `JwtSettings__ExpiryMinutes` | Static value | Development=`120` |
+| `JwtSettings__Issuer` | Static value | Development=`InfraFlowSculptor` |
+| `JwtSettings__Secret` | KeyVault secret | KV: `fc210d60`, SecretName: `jwt-secret`, Assignment: `ViaBicepparam`, PipelineVar: `jwt-secret` |
+| `Logging__LogLevel__Default` | Static value | Development=`azer` |
+| `Logging__LogLevel__Microsoft.AspNetCore` | Static value | Development=`Warning` |
 
 ---
 

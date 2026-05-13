@@ -40,12 +40,14 @@ public sealed class StorageAccountTypeBicepGenerator
   private const string SkuPropertyName = "sku";
   private const string IdentityPropertyName = "identity";
   private const string TypePropertyName = "type";
+  private const string ConnectionStringOutputName = "connectionString";
   private const string PrimaryBlobEndpointOutputName = "primaryBlobEndpoint";
   private const string PrimaryTableEndpointOutputName = "primaryTableEndpoint";
   private const string PrimaryQueueEndpointOutputName = "primaryQueueEndpoint";
   private const string PrimaryFileEndpointOutputName = "primaryFileEndpoint";
   private const string ResourceIdExpression = StorageResourceSymbol + ".id";
   private const string ResourceNameExpression = StorageResourceSymbol + ".name";
+  private const string ConnectionStringExpression = "'DefaultEndpointsProtocol=https;AccountName=${" + StorageResourceSymbol + ".name};AccountKey=${" + StorageResourceSymbol + ".listKeys().keys[0].value}'";
   private const string PrimaryBlobEndpointExpression = StorageResourceSymbol + ".properties.primaryEndpoints.blob";
   private const string PrimaryTableEndpointExpression = StorageResourceSymbol + ".properties.primaryEndpoints.table";
   private const string PrimaryQueueEndpointExpression = StorageResourceSymbol + ".properties.primaryEndpoints.queue";
@@ -62,7 +64,7 @@ public sealed class StorageAccountTypeBicepGenerator
   private const string TablesModuleFileName = "storage.table.module.bicep";
 
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.StorageAccount;
+        => AzureResourceTypes.ArmTypes.StorageAccountType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.StorageAccount;
@@ -105,6 +107,9 @@ public sealed class StorageAccountTypeBicepGenerator
                 description: "The resource ID of the Storage Account")
         .Output(NameParameterName, BicepType.String, new BicepRawExpression(ResourceNameExpression),
                 description: "The name of the Storage Account")
+            .Output(ConnectionStringOutputName, BicepType.String,
+          new BicepRawExpression(ConnectionStringExpression),
+          description: "The connection string of the Storage Account")
             .Output(PrimaryBlobEndpointOutputName, BicepType.String,
           new BicepRawExpression(PrimaryBlobEndpointExpression),
                 description: "The primary blob endpoint")
@@ -240,8 +245,16 @@ public sealed class StorageAccountTypeBicepGenerator
     }
 
     private static List<BlobCorsRuleData> ParseCorsRules(IReadOnlyDictionary<string, string> properties)
+        => ParseCorsRuleDataList(properties, CorsRulesPropertyName);
+
+    private static List<BlobCorsRuleData> ParseTableCorsRules(IReadOnlyDictionary<string, string> properties)
+        => ParseCorsRuleDataList(properties, TableCorsRulesPropertyName);
+
+    private static List<BlobCorsRuleData> ParseCorsRuleDataList(
+        IReadOnlyDictionary<string, string> properties,
+        string propertyName)
     {
-      if (!properties.TryGetValue(CorsRulesPropertyName, out var json) || string.IsNullOrEmpty(json))
+      if (!properties.TryGetValue(propertyName, out var json) || string.IsNullOrEmpty(json))
             return [];
 
         var raw = JsonSerializer.Deserialize<List<CorsRuleJson>>(json);
@@ -255,23 +268,6 @@ public sealed class StorageAccountTypeBicepGenerator
             r.maxAgeInSeconds))
             .ToList();
     }
-
-        private static List<BlobCorsRuleData> ParseTableCorsRules(IReadOnlyDictionary<string, string> properties)
-        {
-          if (!properties.TryGetValue(TableCorsRulesPropertyName, out var json) || string.IsNullOrEmpty(json))
-            return [];
-
-          var raw = JsonSerializer.Deserialize<List<CorsRuleJson>>(json);
-          if (raw is null) return [];
-
-          return raw.Select(r => new BlobCorsRuleData(
-            r.allowedOrigins ?? [],
-            r.allowedMethods ?? [],
-            r.allowedHeaders ?? [],
-            r.exposedHeaders ?? [],
-            r.maxAgeInSeconds))
-            .ToList();
-        }
 
     private sealed record CorsRuleJson(
         List<string>? allowedOrigins,
@@ -369,6 +365,9 @@ public sealed class StorageAccountTypeBicepGenerator
 
         @description('The name of the Storage Account')
         output name string = {{StorageResourceSymbol}}.name
+
+        @description('The connection string of the Storage Account')
+        output {{ConnectionStringOutputName}} string = {{ConnectionStringExpression}}
 
         @description('The primary blob endpoint')
         output primaryBlobEndpoint string = {{StorageResourceSymbol}}.properties.primaryEndpoints.blob

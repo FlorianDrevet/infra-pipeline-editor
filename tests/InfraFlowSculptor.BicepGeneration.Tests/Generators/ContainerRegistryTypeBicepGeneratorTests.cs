@@ -15,7 +15,7 @@ public sealed class ContainerRegistryTypeBicepGeneratorTests
     {
         ResourceId = Guid.NewGuid(),
         Name = "my-acr",
-        Type = AzureResourceTypes.ArmTypes.ContainerRegistry,
+        Type = AzureResourceTypes.ArmTypes.ContainerRegistryType,
         ResourceGroupName = "rg-test",
         ResourceAbbreviation = "cr",
     };
@@ -31,7 +31,7 @@ public sealed class ContainerRegistryTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.ContainerRegistry);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.ContainerRegistryType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.ContainerRegistry);
     }
 

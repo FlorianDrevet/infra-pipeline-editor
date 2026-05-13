@@ -24,11 +24,11 @@ public sealed class GetLogAnalyticsWorkspaceQueryHandler(
         GetLogAnalyticsWorkspaceQuery query,
         CancellationToken cancellationToken)
     {
-        var logAnalyticsWorkspace = await logAnalyticsWorkspaceRepository.GetByIdAsync(query.Id, cancellationToken);
+        var logAnalyticsWorkspace = await logAnalyticsWorkspaceRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (logAnalyticsWorkspace is null)
             return Errors.LogAnalyticsWorkspace.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(logAnalyticsWorkspace.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(logAnalyticsWorkspace.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.LogAnalyticsWorkspace.NotFoundError(query.Id);
 

@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoints for the Cosmos DB resource.</summary>
@@ -39,7 +41,7 @@ public static class CosmosDbController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetCosmosDb")
+                .WithName(CosmosDbRouteNames.GetCosmosDb)
                 .WithSummary("Get a Cosmos DB account")
                 .WithDescription("Returns the full details of a single Azure Cosmos DB database account resource.")
                 .Produces<CosmosDbResponse>(StatusCodes.Status200OK)
@@ -58,7 +60,7 @@ public static class CosmosDbController
                             {
                                 var response = mapper.Map<CosmosDbResponse>(cosmosDb);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetCosmosDb",
+                                    routeName: CosmosDbRouteNames.GetCosmosDb,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -66,7 +68,7 @@ public static class CosmosDbController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateCosmosDb")
+                .WithName(CosmosDbRouteNames.CreateCosmosDb)
                 .WithSummary("Create a Cosmos DB account")
                 .WithDescription("Creates a new Azure Cosmos DB database account resource inside the specified Resource Group. Requires Owner or Contributor access.")
                 .Produces<CosmosDbResponse>(StatusCodes.Status201Created)
@@ -90,7 +92,7 @@ public static class CosmosDbController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateCosmosDb")
+                .WithName(CosmosDbRouteNames.UpdateCosmosDb)
                 .WithSummary("Update a Cosmos DB account")
                 .WithDescription("Replaces all mutable properties of an existing Cosmos DB account. Requires Owner or Contributor access.")
                 .Produces<CosmosDbResponse>(StatusCodes.Status200OK)
@@ -110,7 +112,7 @@ public static class CosmosDbController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteCosmosDb")
+                .WithName(CosmosDbRouteNames.DeleteCosmosDb)
                 .WithSummary("Delete a Cosmos DB account")
                 .WithDescription("Permanently deletes an Azure Cosmos DB database account resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -120,3 +122,4 @@ public static class CosmosDbController
         });
     }
 }
+

@@ -24,7 +24,7 @@ public sealed class ListAppSettingsQueryHandler(
         ListAppSettingsQuery request,
         CancellationToken cancellationToken)
     {
-        var resource = await azureResourceRepository.GetByIdWithRoleAssignmentsAndAppSettingsAsync(
+        var resource = await azureResourceRepository.GetByIdWithRoleAssignmentsAndAppSettingsReadOnlyAsync(
             request.ResourceId, cancellationToken);
 
         if (resource is null)
@@ -51,7 +51,7 @@ public sealed class ListAppSettingsQueryHandler(
         if (vgIds.Count == 0)
             return [];
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(
             resource.ResourceGroupId, cancellationToken);
 
         if (resourceGroup is null)

@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoint definitions for the Web App feature.</summary>
@@ -39,7 +41,7 @@ public static class WebAppController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetWebApp")
+                .WithName(WebAppRouteNames.GetWebApp)
                 .WithSummary("Get a Web App")
                 .WithDescription("Returns the full details of a single Azure Web App resource.")
                 .Produces<WebAppResponse>(StatusCodes.Status200OK)
@@ -58,7 +60,7 @@ public static class WebAppController
                             {
                                 var response = mapper.Map<WebAppResponse>(webApp);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetWebApp",
+                                    routeName: WebAppRouteNames.GetWebApp,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -66,7 +68,7 @@ public static class WebAppController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateWebApp")
+                .WithName(WebAppRouteNames.CreateWebApp)
                 .WithSummary("Create a Web App")
                 .WithDescription("Creates a new Azure Web App resource inside the specified Resource Group. The App Service Plan must already exist. Requires Owner or Contributor access.")
                 .Produces<WebAppResponse>(StatusCodes.Status201Created)
@@ -90,7 +92,7 @@ public static class WebAppController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateWebApp")
+                .WithName(WebAppRouteNames.UpdateWebApp)
                 .WithSummary("Update a Web App")
                 .WithDescription("Replaces all mutable properties of an existing Web App. Requires Owner or Contributor access.")
                 .Produces<WebAppResponse>(StatusCodes.Status200OK)
@@ -110,7 +112,7 @@ public static class WebAppController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteWebApp")
+                .WithName(WebAppRouteNames.DeleteWebApp)
                 .WithSummary("Delete a Web App")
                 .WithDescription("Permanently deletes an Azure Web App resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -120,3 +122,4 @@ public static class WebAppController
         });
     }
 }
+

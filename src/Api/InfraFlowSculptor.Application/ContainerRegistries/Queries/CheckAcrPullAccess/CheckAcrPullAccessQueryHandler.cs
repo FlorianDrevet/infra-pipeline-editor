@@ -30,7 +30,7 @@ public sealed class CheckAcrPullAccessQueryHandler(
                 AcrAuthMode: AcrAuthMode.AcrAuthModeType.AdminCredentials.ToString());
         }
 
-        var resource = await azureResourceRepository.GetByIdWithRoleAssignmentsAsync(
+        var resource = await azureResourceRepository.GetByIdWithRoleAssignmentsReadOnlyAsync(
             request.ResourceId, cancellationToken);
 
         if (resource is null)
@@ -45,7 +45,7 @@ public sealed class CheckAcrPullAccessQueryHandler(
 
         if (uaiAcrPull is not null)
         {
-            var uaiResource = await azureResourceRepository.GetByIdAsync(
+            var uaiResource = await azureResourceRepository.GetByIdReadOnlyAsync(
                 uaiAcrPull.UserAssignedIdentityId!, cancellationToken);
 
             return new CheckAcrPullAccessResult(
@@ -71,7 +71,7 @@ public sealed class CheckAcrPullAccessQueryHandler(
         if (uaiOnAcr is not null)
         {
             assignedUaiId = uaiOnAcr.UserAssignedIdentityId!.Value.ToString();
-            var uaiResource = await azureResourceRepository.GetByIdAsync(
+            var uaiResource = await azureResourceRepository.GetByIdReadOnlyAsync(
                 uaiOnAcr.UserAssignedIdentityId!, cancellationToken);
             assignedUaiName = uaiResource?.Name.Value;
             hasUai = true;
@@ -86,7 +86,7 @@ public sealed class CheckAcrPullAccessQueryHandler(
             if (anyUai is not null)
             {
                 assignedUaiId = anyUai.UserAssignedIdentityId!.Value.ToString();
-                var uaiResource = await azureResourceRepository.GetByIdAsync(
+                var uaiResource = await azureResourceRepository.GetByIdReadOnlyAsync(
                     anyUai.UserAssignedIdentityId!, cancellationToken);
                 assignedUaiName = uaiResource?.Name.Value;
                 hasUai = true;

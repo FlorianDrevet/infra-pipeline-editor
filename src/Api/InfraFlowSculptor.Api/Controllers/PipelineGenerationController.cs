@@ -4,10 +4,14 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Commands.PushPipelineTo
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetPipelineFileContent;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
+using InfraFlowSculptor.Api.Common;
+using InfraFlowSculptor.Api.RateLimiting;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
+
+using InfraFlowSculptor.Api.Controllers.Constants;
 
 namespace InfraFlowSculptor.Api.Controllers;
 
@@ -35,7 +39,8 @@ public static class PipelineGenerationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GeneratePipeline")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(PipelineGenerationRouteNames.GeneratePipeline)
                 .Produces<GeneratePipelineResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -55,7 +60,8 @@ public static class PipelineGenerationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DownloadPipeline")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(PipelineGenerationRouteNames.DownloadPipeline)
                 .Produces(StatusCodes.Status200OK, contentType: "application/zip")
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
@@ -63,7 +69,12 @@ public static class PipelineGenerationController
             group.MapGet("/{configId:guid}/files/{*filePath}",
                     async (Guid configId, string filePath, IMediator mediator) =>
                     {
-                        var query = new GetPipelineFileContentQuery(configId, filePath);
+                        if (!SafeRelativePath.TryNormalize(filePath, out var safePath))
+                        {
+                            return Results.BadRequest(new { message = "Invalid file path." });
+                        }
+
+                        var query = new GetPipelineFileContentQuery(configId, safePath);
                         var result = await mediator.Send(query);
 
                         return result.Match(
@@ -71,7 +82,7 @@ public static class PipelineGenerationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetPipelineFileContent")
+                .WithName(PipelineGenerationRouteNames.GetPipelineFileContent)
                 .Produces(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
@@ -90,7 +101,8 @@ public static class PipelineGenerationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("PushPipelineToGit")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(PipelineGenerationRouteNames.PushPipelineToGit)
                 .WithSummary("Push generated pipeline files to Git")
                 .WithDescription("Pushes the latest generated Azure DevOps pipeline files to the configured Git repository.")
                 .Produces<PushPipelineToGitResponse>(StatusCodes.Status200OK)
@@ -100,3 +112,4 @@ public static class PipelineGenerationController
         });
     }
 }
+

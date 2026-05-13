@@ -53,7 +53,7 @@ public sealed class GetContainerRegistryQueryHandlerTests
     public async Task Given_ContainerRegistryNotFound_When_Handle_Then_ReturnsNotFoundAsync()
     {
         // Arrange
-        _registryRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _registryRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns((ContainerRegistry?)null);
 
         // Act
@@ -68,9 +68,9 @@ public sealed class GetContainerRegistryQueryHandlerTests
     public async Task Given_ReadAccessGranted_When_Handle_Then_MapsResultAsync()
     {
         // Arrange
-        _registryRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _registryRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(_registry);
-        _resourceGroupRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _resourceGroupRepository.GetByIdReadOnlyAsync(_resourceGroup.Id, Arg.Any<CancellationToken>())
             .Returns(_resourceGroup);
         _accessService.VerifyReadAccessAsync(_config.Id, Arg.Any<CancellationToken>())
             .Returns(_config);

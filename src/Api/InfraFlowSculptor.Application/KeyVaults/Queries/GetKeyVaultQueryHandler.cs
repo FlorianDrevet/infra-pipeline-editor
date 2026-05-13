@@ -17,11 +17,11 @@ public class GetKeyVaultQueryHandler(
 {
     public async Task<ErrorOr<KeyVaultResult>> Handle(GetKeyVaultQuery query, CancellationToken cancellationToken)
     {
-        var keyVault = await keyVaultRepository.GetByIdAsync(query.Id, cancellationToken);
+        var keyVault = await keyVaultRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (keyVault is null)
             return Errors.KeyVault.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(keyVault.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(keyVault.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.KeyVault.NotFoundError(query.Id);
 

@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Domain.Common.Errors;
@@ -22,32 +23,23 @@ public sealed class GetProjectPipelineFileContentQueryHandler(
         if (accessResult.IsError)
             return accessResult.Errors;
 
-        var prefix = $"pipeline/project/{query.ProjectId}/";
-        var allBlobs = await blobService.ListBlobsAsync(prefix);
+        var contentResult = await BlobDownloadHelper.GetLatestBlobContentAsync(
+            blobService,
+            blobPrefix: $"pipeline/project/{query.ProjectId}/",
+            prefixSegmentCount: 4,
+            notFoundErrorFactory: Errors.Project.PipelineFilesNotFoundError,
+            entityId: query.ProjectId,
+            options: new BlobDownloadHelper.LatestBlobContentOptions(
+                Errors.Project.PipelineFileNotFoundError,
+                query.FilePath,
+                [
+                    query.FilePath,
+                    $"infra/{query.FilePath}",
+                    $"app/{query.FilePath}",
+                ]));
+        if (contentResult.IsError)
+            return contentResult.Errors;
 
-        if (allBlobs.Count == 0)
-            return Errors.Project.PipelineFilesNotFoundError(query.ProjectId);
-
-        var latestPrefix = allBlobs
-            .Select(blobName => string.Join('/', blobName.Split('/').Take(4)))
-            .Distinct()
-            .OrderDescending()
-            .First();
-
-        var candidateBlobNames = new[]
-        {
-            $"{latestPrefix}/{query.FilePath}",
-            $"{latestPrefix}/infra/{query.FilePath}",
-            $"{latestPrefix}/app/{query.FilePath}",
-        };
-
-        foreach (var blobName in candidateBlobNames)
-        {
-            var content = await blobService.DownloadContentAsync(blobName);
-            if (content is not null)
-                return new GetProjectPipelineFileContentResult(content);
-        }
-
-        return Errors.Project.PipelineFileNotFoundError(query.FilePath);
+        return new GetProjectPipelineFileContentResult(contentResult.Value);
     }
 }

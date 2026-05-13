@@ -1,4 +1,5 @@
 using InfraFlowSculptor.GenerationCore;
+using InfraFlowSculptor.BicepGeneration.Constants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -24,24 +25,24 @@ public static class RoleAssignmentModuleTemplates
     /// </summary>
     private static readonly Dictionary<string, ResourceTypeMetadata> Metadata = new(StringComparer.OrdinalIgnoreCase)
     {
-        [AzureResourceTypes.KeyVault] = new(AzureResourceTypes.ArmTypes.KeyVault, "2023-07-01", "keyVault", "keyvault", "Key Vault"),
-        [AzureResourceTypes.RedisCache] = new(AzureResourceTypes.ArmTypes.RedisCache, "2023-08-01", "redisCache", "redis", "Redis Cache"),
-        [AzureResourceTypes.StorageAccount] = new(AzureResourceTypes.ArmTypes.StorageAccount, "2023-01-01", "storageAccount", "storage", "Storage Account"),
-        [AzureResourceTypes.AppServicePlan] = new(AzureResourceTypes.ArmTypes.AppServicePlan, "2023-12-01", "appServicePlan", "appserviceplan", "App Service Plan"),
-        [AzureResourceTypes.WebApp] = new(AzureResourceTypes.ArmTypes.WebApp, "2023-12-01", "webApp", "webapp", "Web App"),
-        [AzureResourceTypes.FunctionApp] = new(AzureResourceTypes.ArmTypes.WebApp, "2023-12-01", "functionApp", "functionapp", "Function App"),
-        [AzureResourceTypes.UserAssignedIdentity] = new(AzureResourceTypes.ArmTypes.UserAssignedIdentity, "2023-01-31", "identity", "identity", "User Assigned Identity"),
-        [AzureResourceTypes.AppConfiguration] = new(AzureResourceTypes.ArmTypes.AppConfiguration, "2023-03-01", "appConfig", "appconfiguration", "App Configuration"),
-        [AzureResourceTypes.ContainerAppEnvironment] = new(AzureResourceTypes.ArmTypes.ContainerAppEnvironment, "2024-03-01", "containerAppEnv", "containerappenvironment", "Container App Environment"),
-        [AzureResourceTypes.ContainerApp] = new(AzureResourceTypes.ArmTypes.ContainerApp, "2024-03-01", "containerApp", "containerapp", "Container App"),
-        [AzureResourceTypes.LogAnalyticsWorkspace] = new(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace, "2023-09-01", "logAnalyticsWorkspace", "loganalytics", "Log Analytics Workspace"),
-        [AzureResourceTypes.ApplicationInsights] = new(AzureResourceTypes.ArmTypes.ApplicationInsights, "2020-02-02", "applicationInsights", "applicationinsights", "Application Insights"),
-        [AzureResourceTypes.CosmosDb] = new(AzureResourceTypes.ArmTypes.CosmosDb, "2024-05-15", "cosmosDbAccount", "cosmos", "Cosmos DB"),
-        [AzureResourceTypes.SqlServer] = new(AzureResourceTypes.ArmTypes.SqlServer, "2023-08-01-preview", "sqlServer", "sqlserver", "SQL Server"),
-        [AzureResourceTypes.SqlDatabase] = new(AzureResourceTypes.ArmTypes.SqlDatabase, "2023-08-01-preview", "sqlDatabase", "sqldatabase", "SQL Database"),
-        [AzureResourceTypes.ServiceBusNamespace] = new(AzureResourceTypes.ArmTypes.ServiceBusNamespace, "2022-10-01-preview", "serviceBusNamespace", "servicebus", "Service Bus Namespace"),
-        [AzureResourceTypes.ContainerRegistry] = new(AzureResourceTypes.ArmTypes.ContainerRegistry, "2023-07-01", "containerRegistry", "containerregistry", "Container Registry"),
-        [AzureResourceTypes.EventHubNamespace] = new(AzureResourceTypes.ArmTypes.EventHubNamespace, "2024-01-01", "eventHubNamespace", "eventhub", "Event Hub Namespace"),
+        [AzureResourceTypes.KeyVault] = new(AzureResourceTypes.ArmTypes.KeyVaultType, BicepArmTypeCatalog.KeyVaultApiVersion, "keyVault", "keyvault", "Key Vault"),
+        [AzureResourceTypes.RedisCache] = new(AzureResourceTypes.ArmTypes.RedisCacheType, BicepArmTypeCatalog.RedisCacheApiVersion, "redisCache", "redis", "Redis Cache"),
+        [AzureResourceTypes.StorageAccount] = new(AzureResourceTypes.ArmTypes.StorageAccountType, BicepArmTypeCatalog.StorageAccountRoleAssignmentApiVersion, "storageAccount", "storage", "Storage Account"),
+        [AzureResourceTypes.AppServicePlan] = new(AzureResourceTypes.ArmTypes.AppServicePlanType, BicepArmTypeCatalog.AppServicePlanApiVersion, "appServicePlan", "appserviceplan", "App Service Plan"),
+        [AzureResourceTypes.WebApp] = new(AzureResourceTypes.ArmTypes.WebAppType, BicepArmTypeCatalog.WebAppApiVersion, "webApp", "webapp", "Web App"),
+        [AzureResourceTypes.FunctionApp] = new(AzureResourceTypes.ArmTypes.WebAppType, BicepArmTypeCatalog.WebAppApiVersion, "functionApp", "functionapp", "Function App"),
+        [AzureResourceTypes.UserAssignedIdentity] = new(AzureResourceTypes.ArmTypes.UserAssignedIdentityType, BicepArmTypeCatalog.UserAssignedIdentityApiVersion, "identity", "identity", "User Assigned Identity"),
+        [AzureResourceTypes.AppConfiguration] = new(AzureResourceTypes.ArmTypes.AppConfigurationType, BicepArmTypeCatalog.AppConfigurationApiVersion, "appConfig", "appconfiguration", "App Configuration"),
+        [AzureResourceTypes.ContainerAppEnvironment] = new(AzureResourceTypes.ArmTypes.ContainerAppEnvironmentType, BicepArmTypeCatalog.ContainerAppEnvironmentApiVersion, "containerAppEnv", "containerappenvironment", "Container App Environment"),
+        [AzureResourceTypes.ContainerApp] = new(AzureResourceTypes.ArmTypes.ContainerAppType, BicepArmTypeCatalog.ContainerAppApiVersion, "containerApp", "containerapp", "Container App"),
+        [AzureResourceTypes.LogAnalyticsWorkspace] = new(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspaceType, BicepArmTypeCatalog.LogAnalyticsWorkspaceApiVersion, "logAnalyticsWorkspace", "loganalytics", "Log Analytics Workspace"),
+        [AzureResourceTypes.ApplicationInsights] = new(AzureResourceTypes.ArmTypes.ApplicationInsightsType, BicepArmTypeCatalog.ApplicationInsightsApiVersion, "applicationInsights", "applicationinsights", "Application Insights"),
+        [AzureResourceTypes.CosmosDb] = new(AzureResourceTypes.ArmTypes.CosmosDbType, BicepArmTypeCatalog.CosmosDbApiVersion, "cosmosDbAccount", "cosmos", "Cosmos DB"),
+        [AzureResourceTypes.SqlServer] = new(AzureResourceTypes.ArmTypes.SqlServerType, BicepArmTypeCatalog.SqlServerApiVersion, "sqlServer", "sqlserver", "SQL Server"),
+        [AzureResourceTypes.SqlDatabase] = new(AzureResourceTypes.ArmTypes.SqlDatabaseType, BicepArmTypeCatalog.SqlDatabaseApiVersion, "sqlDatabase", "sqldatabase", "SQL Database"),
+        [AzureResourceTypes.ServiceBusNamespace] = new(AzureResourceTypes.ArmTypes.ServiceBusNamespaceType, BicepArmTypeCatalog.ServiceBusNamespaceApiVersion, "serviceBusNamespace", "servicebus", "Service Bus Namespace"),
+        [AzureResourceTypes.ContainerRegistry] = new(AzureResourceTypes.ArmTypes.ContainerRegistryType, BicepArmTypeCatalog.ContainerRegistryApiVersion, "containerRegistry", "containerregistry", "Container Registry"),
+        [AzureResourceTypes.EventHubNamespace] = new(AzureResourceTypes.ArmTypes.EventHubNamespaceType, BicepArmTypeCatalog.EventHubNamespaceApiVersion, "eventHubNamespace", "eventhub", "Event Hub Namespace"),
     };
 
     /// <summary>
@@ -88,7 +89,7 @@ public static class RoleAssignmentModuleTemplates
               name: name
             }
 
-            resource roleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for role in roles: {
+            resource roleAssignments '{{BicepArmTypeCatalog.RoleAssignmentsArmType}}' = [for role in roles: {
               scope: {{meta.BicepSymbol}}
               name: guid({{meta.BicepSymbol}}.id, principalId, role.id)
               properties: {

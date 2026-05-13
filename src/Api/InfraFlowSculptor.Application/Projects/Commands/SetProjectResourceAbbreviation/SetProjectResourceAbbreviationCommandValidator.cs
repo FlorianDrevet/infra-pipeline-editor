@@ -1,4 +1,5 @@
 using FluentValidation;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.SetProjectResourceAbbreviation;
 
@@ -9,7 +10,11 @@ public sealed class SetProjectResourceAbbreviationCommandValidator
     /// <inheritdoc />
     public SetProjectResourceAbbreviationCommandValidator()
     {
-        RuleFor(x => x.ResourceType).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.ResourceType)
+            .NotEmpty()
+            .MaximumLength(100)
+            .Must(resourceType => AzureResourceTypes.All.Contains(resourceType))
+            .WithMessage("ResourceType must be a supported Azure resource type.");
 
         RuleFor(x => x.Abbreviation)
             .NotEmpty()

@@ -1,3 +1,4 @@
+using FluentAssertions;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Generators;
 using InfraFlowSculptor.PipelineGeneration.Generators.App;
@@ -31,7 +32,8 @@ public sealed class AppPipelineGenerationEngineGoldenTests
         var result = _sut.Generate(request);
 
         // Assert
-        GoldenFileAssertion.AssertDictionaryMatches(result.Files, "AppPipeline/container-app");
+        result.IsError.Should().BeFalse();
+        GoldenFileAssertion.AssertDictionaryMatches(result.Value.Files, "AppPipeline/container-app");
     }
 
     [Fact]
@@ -44,7 +46,8 @@ public sealed class AppPipelineGenerationEngineGoldenTests
         var result = _sut.Generate(request);
 
         // Assert
-        GoldenFileAssertion.AssertDictionaryMatches(result.Files, "AppPipeline/web-app-code");
+        result.IsError.Should().BeFalse();
+        GoldenFileAssertion.AssertDictionaryMatches(result.Value.Files, "AppPipeline/web-app-code");
     }
 
     [Fact]
@@ -57,7 +60,8 @@ public sealed class AppPipelineGenerationEngineGoldenTests
         var result = _sut.Generate(request);
 
         // Assert
-        GoldenFileAssertion.AssertDictionaryMatches(result.Files, "AppPipeline/web-app-container-mi");
+        result.IsError.Should().BeFalse();
+        GoldenFileAssertion.AssertDictionaryMatches(result.Value.Files, "AppPipeline/web-app-container-mi");
     }
 
     [Fact]
@@ -70,7 +74,8 @@ public sealed class AppPipelineGenerationEngineGoldenTests
         var result = _sut.Generate(request);
 
         // Assert
-        GoldenFileAssertion.AssertDictionaryMatches(result.Files, "AppPipeline/web-app-container-admin");
+        result.IsError.Should().BeFalse();
+        GoldenFileAssertion.AssertDictionaryMatches(result.Value.Files, "AppPipeline/web-app-container-admin");
     }
 
     [Fact]
@@ -83,7 +88,8 @@ public sealed class AppPipelineGenerationEngineGoldenTests
         var result = _sut.Generate(request);
 
         // Assert
-        GoldenFileAssertion.AssertDictionaryMatches(result.Files, "AppPipeline/function-app-code");
+        result.IsError.Should().BeFalse();
+        GoldenFileAssertion.AssertDictionaryMatches(result.Value.Files, "AppPipeline/function-app-code");
     }
 
     [Fact]
@@ -96,7 +102,8 @@ public sealed class AppPipelineGenerationEngineGoldenTests
         var result = _sut.Generate(request);
 
         // Assert
-        GoldenFileAssertion.AssertDictionaryMatches(result.Files, "AppPipeline/function-app-container");
+        result.IsError.Should().BeFalse();
+        GoldenFileAssertion.AssertDictionaryMatches(result.Value.Files, "AppPipeline/function-app-container");
     }
 
     [Fact]
@@ -109,7 +116,8 @@ public sealed class AppPipelineGenerationEngineGoldenTests
         var result = _sut.GenerateAll(requests, AppPipelineMode.Combined, "core");
 
         // Assert
-        GoldenFileAssertion.AssertDictionaryMatches(result.Files, "AppPipeline/combined-two-resources");
+        result.IsError.Should().BeFalse();
+        GoldenFileAssertion.AssertDictionaryMatches(result.Value.Files, "AppPipeline/combined-two-resources");
     }
 
     [Fact]

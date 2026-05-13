@@ -24,11 +24,11 @@ public sealed class GetApplicationInsightsQueryHandler(
         GetApplicationInsightsQuery query,
         CancellationToken cancellationToken)
     {
-        var applicationInsights = await applicationInsightsRepository.GetByIdAsync(query.Id, cancellationToken);
+        var applicationInsights = await applicationInsightsRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (applicationInsights is null)
             return Errors.ApplicationInsights.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(applicationInsights.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(applicationInsights.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.ApplicationInsights.NotFoundError(query.Id);
 

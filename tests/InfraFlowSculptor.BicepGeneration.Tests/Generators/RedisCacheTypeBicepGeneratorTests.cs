@@ -16,7 +16,7 @@ public sealed class RedisCacheTypeBicepGeneratorTests
     {
         ResourceId = Guid.NewGuid(),
         Name = "my-redis",
-        Type = AzureResourceTypes.ArmTypes.RedisCache,
+        Type = AzureResourceTypes.ArmTypes.RedisCacheType,
         ResourceGroupName = "rg-test",
         ResourceAbbreviation = "redis",
         Properties = properties ?? new Dictionary<string, string>(),
@@ -33,7 +33,7 @@ public sealed class RedisCacheTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.RedisCache);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.RedisCacheType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.RedisCache);
     }
 

@@ -1,6 +1,7 @@
 using System.Text;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.Application.Common.Helpers;
 
@@ -40,32 +41,9 @@ internal static class AppSettingPipelineParameterNameHelper
 
     private static string BuildSecureAppSettingParameterName(string targetResourceName, string secretName)
     {
-        var moduleName = ToBicepIdentifier(targetResourceName);
+        var moduleName = BicepIdentifierNormalizer.NormalizeCamelCase(targetResourceName, DefaultResourceIdentifier);
         var pascalSecretName = ToPascalCaseFromEnvVar(secretName);
         return $"{moduleName}{pascalSecretName}{SecureParameterSuffix}";
-    }
-
-    private static string ToBicepIdentifier(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            return DefaultResourceIdentifier;
-
-        var parts = name.Split(['-', '_', ' '], StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 0)
-            return DefaultResourceIdentifier;
-
-        var stringBuilder = new StringBuilder(parts[0].ToLowerInvariant());
-        foreach (var part in parts.Skip(1))
-        {
-            if (part.Length == 0)
-                continue;
-
-            stringBuilder
-                .Append(char.ToUpperInvariant(part[0]))
-                .Append(part[1..].ToLowerInvariant());
-        }
-
-        return stringBuilder.ToString();
     }
 
     private static string ToPascalCaseFromEnvVar(string envVarName)

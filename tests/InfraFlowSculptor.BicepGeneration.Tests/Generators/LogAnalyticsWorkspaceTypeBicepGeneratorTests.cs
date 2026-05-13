@@ -15,7 +15,7 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGeneratorTests
     {
         ResourceId = Guid.NewGuid(),
         Name = "my-law",
-        Type = AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace,
+        Type = AzureResourceTypes.ArmTypes.LogAnalyticsWorkspaceType,
         ResourceGroupName = "rg-test",
         ResourceAbbreviation = "log",
     };
@@ -31,7 +31,7 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspaceType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.LogAnalyticsWorkspace);
     }
 

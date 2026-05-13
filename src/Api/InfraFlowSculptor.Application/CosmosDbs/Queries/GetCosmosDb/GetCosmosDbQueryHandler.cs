@@ -24,11 +24,11 @@ public class GetCosmosDbQueryHandler(
         GetCosmosDbQuery query,
         CancellationToken cancellationToken)
     {
-        var cosmosDb = await cosmosDbRepository.GetByIdAsync(query.Id, cancellationToken);
+        var cosmosDb = await cosmosDbRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (cosmosDb is null)
             return Errors.CosmosDb.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(cosmosDb.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(cosmosDb.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.CosmosDb.NotFoundError(query.Id);
 

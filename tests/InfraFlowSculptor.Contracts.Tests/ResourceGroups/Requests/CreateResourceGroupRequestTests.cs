@@ -6,6 +6,7 @@ namespace InfraFlowSculptor.Contracts.Tests.ResourceGroups.Requests;
 
 public sealed class CreateResourceGroupRequestTests
 {
+    private const string ValidInfraConfigId = "11111111-1111-1111-1111-111111111111";
     private const string ValidLocation = "WestEurope";
 
     [Fact]
@@ -14,8 +15,8 @@ public sealed class CreateResourceGroupRequestTests
         // Arrange
         var sut = new CreateResourceGroupRequest
         {
-            InfraConfigId = Guid.NewGuid(),
-            Name = "rg-prod",
+            InfraConfigId = Guid.Parse(ValidInfraConfigId),
+            Name = "rg-shared",
             Location = ValidLocation,
         };
 
@@ -27,30 +28,12 @@ public sealed class CreateResourceGroupRequestTests
     }
 
     [Fact]
-    public void Given_EmptyInfraConfigId_When_Validate_Then_ReturnsGuidError()
-    {
-        // Arrange
-        var sut = new CreateResourceGroupRequest
-        {
-            InfraConfigId = Guid.Empty,
-            Name = "rg-prod",
-            Location = ValidLocation,
-        };
-
-        // Act
-        var results = RequestValidator.Validate(sut);
-
-        // Assert
-        results.HasErrorForMember(nameof(CreateResourceGroupRequest.InfraConfigId)).Should().BeTrue();
-    }
-
-    [Fact]
     public void Given_NullName_When_Validate_Then_ReturnsRequiredError()
     {
         // Arrange
         var sut = new CreateResourceGroupRequest
         {
-            InfraConfigId = Guid.NewGuid(),
+            InfraConfigId = Guid.Parse(ValidInfraConfigId),
             Name = null!,
             Location = ValidLocation,
         };
@@ -63,13 +46,31 @@ public sealed class CreateResourceGroupRequestTests
     }
 
     [Fact]
+    public void Given_EmptyInfraConfigId_When_Validate_Then_ReturnsGuidError()
+    {
+        // Arrange
+        var sut = new CreateResourceGroupRequest
+        {
+            InfraConfigId = Guid.Empty,
+            Name = "rg-shared",
+            Location = ValidLocation,
+        };
+
+        // Act
+        var results = RequestValidator.Validate(sut);
+
+        // Assert
+        results.HasErrorForMember(nameof(CreateResourceGroupRequest.InfraConfigId)).Should().BeTrue();
+    }
+
+    [Fact]
     public void Given_InvalidLocation_When_Validate_Then_ReturnsEnumError()
     {
         // Arrange
         var sut = new CreateResourceGroupRequest
         {
-            InfraConfigId = Guid.NewGuid(),
-            Name = "rg-prod",
+            InfraConfigId = Guid.Parse(ValidInfraConfigId),
+            Name = "rg-shared",
             Location = "Pluto",
         };
 
@@ -78,5 +79,23 @@ public sealed class CreateResourceGroupRequestTests
 
         // Assert
         results.HasErrorForMember(nameof(CreateResourceGroupRequest.Location)).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Given_NameLongerThan90Characters_When_Validate_Then_ReturnsNameError()
+    {
+        // Arrange
+        var sut = new CreateResourceGroupRequest
+        {
+            InfraConfigId = Guid.Parse(ValidInfraConfigId),
+            Name = new string('r', 91),
+            Location = ValidLocation,
+        };
+
+        // Act
+        var results = RequestValidator.Validate(sut);
+
+        // Assert
+        results.HasErrorForMember(nameof(CreateResourceGroupRequest.Name)).Should().BeTrue();
     }
 }

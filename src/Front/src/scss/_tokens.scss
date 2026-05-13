@@ -10,29 +10,29 @@
 :root {
   // --- Brand (one desaturated blue family) ---
   --ifs-brand-50:  #eef4ff;
-  --ifs-brand-100: #dbe5ff;
-  --ifs-brand-200: #b6c7ee;
-  --ifs-brand-400: #6f8fc4;
-  --ifs-brand-500: #4f74b3;
-  --ifs-brand-600: #3a5a96;
-  --ifs-brand-700: #2c4778;
+  --ifs-brand-100: #d8e7ff;
+  --ifs-brand-200: #b6cef9;
+  --ifs-brand-400: #70a0fa;
+  --ifs-brand-500: #4e86f4;
+  --ifs-brand-600: #356dd8;
+  --ifs-brand-700: #274fa7;
 
   // --- Single accent (cyan, used sparingly: primary CTA, focus, info) ---
-  --ifs-accent-400: #56c4e6;
-  --ifs-accent-500: #3ab4d9;
-  --ifs-accent-600: #2a93b8;
+  --ifs-accent-400: #74d0ff;
+  --ifs-accent-500: #46b5ff;
+  --ifs-accent-600: #2c92dd;
 
   // --- Surfaces & text (DARK only) ---
-  --ifs-bg:              #0c0e12;
-  --ifs-surface-1:       #13161b;
-  --ifs-surface-2:       #1a1e25;
-  --ifs-surface-3:       #22272f;
-  --ifs-border-subtle:   #2a303a;
-  --ifs-border-strong:   #3a4250;
-  --ifs-text-primary:    #f0f2f5;
-  --ifs-text-secondary:  #b4bcc9;
-  --ifs-text-muted:      #7d8694;
-  --ifs-text-disabled:   #4d5460;
+  --ifs-bg:              #08111d;
+  --ifs-surface-1:       #0f1928;
+  --ifs-surface-2:       #142033;
+  --ifs-surface-3:       #1b2a41;
+  --ifs-border-subtle:   #26374f;
+  --ifs-border-strong:   #385575;
+  --ifs-text-primary:    #f2f6fc;
+  --ifs-text-secondary:  #bdc9db;
+  --ifs-text-muted:      #8995a9;
+  --ifs-text-disabled:   #586377;
   --ifs-text-on-brand:   #ffffff;
 
   // --- Semantic states (discreet) ---
@@ -43,11 +43,15 @@
   --ifs-danger:     #d24a4a;
   --ifs-danger-bg:  rgba(210, 74, 74, 0.12);
   --ifs-info:       var(--ifs-accent-500);
-  --ifs-info-bg:    rgba(58, 163, 201, 0.12);
+  --ifs-info-bg:    rgba(70, 181, 255, 0.12);
 
   // --- Gradients (max 2, role-restricted) ---
-  --ifs-gradient-login: linear-gradient(160deg, #0e1a35 0%, #1a2b52 50%, #233e6e 100%);
-  --ifs-gradient-cta:   linear-gradient(135deg, #4a7fd7 0%, #3a6bc4 50%, #3160b0 100%);
+  --ifs-gradient-login: linear-gradient(160deg, #0d1d43 0%, #15376f 50%, #1d4f98 100%);
+  --ifs-gradient-cta:   linear-gradient(135deg, #5d98ff 0%, #3d7cf3 52%, #295fc6 100%);
+  --ifs-app-backdrop:
+    radial-gradient(circle at 14% 18%, rgba(93, 152, 255, 0.20) 0%, rgba(93, 152, 255, 0) 32%),
+    radial-gradient(circle at 86% 10%, rgba(70, 181, 255, 0.14) 0%, rgba(70, 181, 255, 0) 24%),
+    linear-gradient(180deg, rgba(11, 20, 36, 0.92) 0%, rgba(8, 17, 29, 1) 100%);
 
   // --- Radius (3 values + pill) ---
   --ifs-radius-sm:   4px;
@@ -56,9 +60,9 @@
   --ifs-radius-pill: 999px;
 
   // --- Shadows (3 values, subtle brand tint for depth) ---
-  --ifs-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
-  --ifs-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.08);
-  --ifs-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.24), 0 4px 12px rgba(0, 0, 0, 0.12);
+  --ifs-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(28, 83, 177, 0.16);
+  --ifs-shadow-md: 0 10px 28px rgba(2, 8, 20, 0.28), 0 4px 12px rgba(41, 95, 198, 0.16);
+  --ifs-shadow-lg: 0 20px 56px rgba(2, 8, 20, 0.36), 0 8px 24px rgba(41, 95, 198, 0.18);
 
   // --- Spacing (4px grid, px units) ---
   --ifs-space-2:  2px;

@@ -9,6 +9,8 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
 using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics.Rules;
 using InfraFlowSculptor.Application.Projects.Common;
+using InfraFlowSculptor.Application.Projects.Common.Generation;
+using InfraFlowSculptor.Application.Projects.Common.Storage;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.BicepGeneration;
 using InfraFlowSculptor.BicepGeneration.Generators;
@@ -51,6 +53,12 @@ public static class DependencyInjection
 
         // Resource naming
         services.AddScoped<IResourceNameResolver, ResourceNameResolver>();
+        services.AddScoped<IAppPipelineRequestFactory, AppPipelineRequestFactory>();
+        services.AddScoped<IConfigPipelineGenerationService, ConfigPipelineGenerationService>();
+        services.AddScoped<IApplicationFolderNameResolver, ApplicationFolderNameResolver>();
+        services.AddScoped<IMultiScopeGitPushExecutor, MultiScopeGitPushExecutor>();
+        services.AddScoped<IProjectPipelineAggregator, ProjectPipelineAggregator>();
+        services.AddScoped<IMonoRepoBlobUploadOrchestrator, MonoRepoBlobUploadOrchestrator>();
 
         // V2 multi-repo Git routing
         services.AddScoped<IRepositoryTargetResolver, RepositoryTargetResolver>();

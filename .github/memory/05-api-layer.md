@@ -25,18 +25,33 @@ result.Match(
 );
 ```
 
+## Request Body Limits [2026-05-12]
+
+- `Program.cs` now registers `AddApiRequestLimits(builder.Configuration)`.
+- `ApiRequestLimitsOptions` binds the `RequestLimits` section and defaults `MaxRequestBodySizeBytes` to `52_428_800` (50 MB).
+- `AddApiRequestLimits(...)` projects that typed option into `KestrelServerOptions.Limits.MaxRequestBodySize` and validates the configuration at startup.
+- Focused coverage lives in `tests/InfraFlowSculptor.Api.Tests/Security/RequestLimitsServiceCollectionExtensionsTests.cs`.
+
 ## Contracts Pattern
 
 - Request: `[Required, GuidValidation]` on properties, prefer `string` + `GuidValidation` for body GUIDs
 - Response: `record SomethingResponse(string Id, string Name, ...)`
 - Validation attributes: `[GuidValidation]`, `[EnumValidation(typeof(MyEnum))]`, `[RedisVersionValidation]`
+- `[EnumValidation(typeof(MyEnum))]` accepts enum names case-insensitively when the incoming value is a string; keep `[Required]` responsible for null rejection.
 - JSON body GUID pitfall: prefer `string` + `[Required, GuidValidation]` over `Guid` for JSON bodies to avoid deserialization errors before validation
 - `AzureRoleDefinitionResponse` now carries `RequiresUserAssignedIdentity` so Angular role-assignment screens derive AcrPull-like identity constraints from backend metadata instead of hardcoded role-definition GUID checks.
 
 ## Endpoint Conventions [2026-04-16]
 
 - All protected endpoints must include `.ProducesProblem(401)` for accurate OpenAPI 401 documentation.
+- Repo-wide verification on 2026-05-12 found `179/179` controller endpoint blocks (`MapGet`/`MapPost`/`MapPut`/`MapDelete`/`MapPatch`) in `InfraFlowSculptor.Api` already document `.ProducesProblem(StatusCodes.Status401Unauthorized)`; future API-001 follow-ups should re-check the branch state before reopening the finding.
 - ErrorOr extension (`ToErrorResult()`) returns **all** errors in the non-validation branch, not just the first.
+- Route names must live in per-controller constants files under `src/Api/InfraFlowSculptor.Api/Controllers/Constants/` (pattern: `<ControllerBaseName>RouteNames.cs`). Controllers must not inline literals in `.WithName(...)` or `CreatedAtRoute(routeName: ...)`; `ControllerRouteNameConstantsTests` in `tests/InfraFlowSculptor.Api.Tests` enforces this for future controllers.
+
+## Shared Dependents Endpoint [2026-05-12]
+
+- The generic `/{id:guid}/dependents` Minimal API block is now centralized in `Controllers/Common/DependentResourcesEndpointMapper.cs`.
+- When a controller exposes the standard dependent-resources flow, prefer `group.MapDependentResourcesEndpoint(routeName, resourceDisplayName)` over duplicating the `GetDependentResourcesQuery` + `ErrorOr` mapping block inline.
 
 ## Response DTO Convention (API-002) [2026-04-16]
 
@@ -52,7 +67,8 @@ result.Match(
 ## Tag Validation [2026-04-16]
 
 - Azure tag limits enforced: key max 512 chars, value max 256 chars, max 15 tags per entity.
-- Validated in `SetInfraConfigTagsCommandValidator` and `SetProjectTagsCommandValidator`.
+- Contract-layer limits are now centralized in `TagRequestConstraints` and enforced on request DTOs via `TagRequest` string-length attributes plus `MaxCollectionCountAttribute` on `SetProjectTagsRequest`, `SetInfraConfigTagsRequest`, `AddProjectEnvironmentRequest`, and `UpdateProjectEnvironmentRequest`.
+- Application validators (`SetInfraConfigTagsCommandValidator`, `SetProjectTagsCommandValidator`) still validate the command-layer equivalents.
 
 ## Mapster Mappings
 

@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Contracts.Common.Requests;
+using InfraFlowSculptor.Contracts.ValidationAttributes;
 
 namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 
@@ -6,5 +7,6 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 public class SetInfraConfigTagsRequest
 {
     /// <summary>Gets the tags to apply to the configuration.</summary>
+    [MaxCollectionCount(TagRequestConstraints.MaxTagCount)]
     public IReadOnlyList<TagRequest> Tags { get; init; } = [];
 }

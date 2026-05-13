@@ -11,6 +11,10 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 public sealed class ParameterDefinitionConfiguration
     : IEntityTypeConfiguration<ParameterDefinition>
 {
+    private const int ParameterNameMaxLength = 100;
+    private const int ParameterTypeMaxLength = 20;
+    private const int DefaultValueMaxLength = 500;
+
     public void Configure(EntityTypeBuilder<ParameterDefinition> builder)
     {
         builder.ToTable("ParameterDefinitions");
@@ -28,14 +32,17 @@ public sealed class ParameterDefinitionConfiguration
             .HasConversion(new SingleValueConverter<IsSecret, bool>());
 
         builder.Property(x => x.Name)
-            .HasConversion(new SingleValueConverter<Name, string>());
+            .HasConversion(new SingleValueConverter<Name, string>())
+            .HasMaxLength(ParameterNameMaxLength);
 
         builder.Property(x => x.Type)
             .HasConversion(
-                new EnumValueConverter<ParameterType, ParameterType.Enum>());
+                new EnumValueConverter<ParameterType, ParameterType.Enum>())
+            .HasMaxLength(ParameterTypeMaxLength);
 
         builder.Property(x => x.IsSecret);
 
-        builder.Property(x => x.DefaultValue);
+        builder.Property(x => x.DefaultValue)
+            .HasMaxLength(DefaultValueMaxLength);
     }
 }

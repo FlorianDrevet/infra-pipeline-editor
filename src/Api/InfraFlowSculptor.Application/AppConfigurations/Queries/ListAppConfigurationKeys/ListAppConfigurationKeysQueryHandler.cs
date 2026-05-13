@@ -49,7 +49,7 @@ public sealed class ListAppConfigurationKeysQueryHandler(
         if (vgIds.Count == 0)
             return [];
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(
             appConfig.ResourceGroupId, cancellationToken);
 
         if (resourceGroup is null)

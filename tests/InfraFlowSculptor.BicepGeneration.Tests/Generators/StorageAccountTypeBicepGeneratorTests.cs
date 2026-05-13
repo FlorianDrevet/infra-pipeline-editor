@@ -18,7 +18,7 @@ public sealed class StorageAccountTypeBicepGeneratorTests
         {
             ResourceId = Guid.NewGuid(),
             Name = "my-storage",
-            Type = AzureResourceTypes.ArmTypes.StorageAccount,
+            Type = AzureResourceTypes.ArmTypes.StorageAccountType,
             ResourceGroupName = "rg-test",
             ResourceAbbreviation = "st",
             Properties = properties ?? new Dictionary<string, string>(),
@@ -36,7 +36,7 @@ public sealed class StorageAccountTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.StorageAccount);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.StorageAccountType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.StorageAccount);
     }
 
@@ -188,15 +188,16 @@ public sealed class StorageAccountTypeBicepGeneratorTests
     // ── Outputs ──
 
     [Fact]
-    public void Given_Resource_When_GenerateSpec_Then_HasSixOutputs()
+    public void Given_Resource_When_GenerateSpec_Then_HasSevenOutputs()
     {
         var spec = _sut.GenerateSpec(CreateResource());
-        spec.Outputs.Should().HaveCount(6);
+        spec.Outputs.Should().HaveCount(7);
     }
 
     [Theory]
     [InlineData("id")]
     [InlineData("name")]
+    [InlineData("connectionString")]
     [InlineData("primaryBlobEndpoint")]
     [InlineData("primaryTableEndpoint")]
     [InlineData("primaryQueueEndpoint")]
@@ -206,6 +207,17 @@ public sealed class StorageAccountTypeBicepGeneratorTests
         var spec = _sut.GenerateSpec(CreateResource());
         spec.Outputs.Should().Contain(o => o.Name == outputName)
             .Which.Type.Should().Be(BicepType.String);
+    }
+
+    [Fact]
+    public void Given_Resource_When_GenerateSpec_Then_OutputConnectionStringIsCorrect()
+    {
+        var spec = _sut.GenerateSpec(CreateResource());
+
+        var output = spec.Outputs.Should().Contain(o => o.Name == "connectionString").Subject;
+        output.Type.Should().Be(BicepType.String);
+        output.Expression.Should().BeOfType<BicepRawExpression>()
+            .Which.RawBicep.Should().Be("'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[0].value}'");
     }
 
     // ── Exported types ──
@@ -279,6 +291,28 @@ public sealed class StorageAccountTypeBicepGeneratorTests
     }
 
     [Fact]
+    public void Given_ResourceWithBlobAndTableCorsRules_When_Generate_Then_MapsEachRuleSetToItsCompanion()
+    {
+        // Arrange
+        var resource = CreateResource(new Dictionary<string, string>
+        {
+            ["corsRules"] = "[{\"allowedOrigins\":[\"https://blob.example.com\"],\"allowedMethods\":[\"GET\"],\"allowedHeaders\":[],\"exposedHeaders\":[],\"maxAgeInSeconds\":3600}]",
+            ["tableCorsRules"] = "[{\"allowedOrigins\":[\"https://table.example.com\"],\"allowedMethods\":[\"POST\"],\"allowedHeaders\":[],\"exposedHeaders\":[],\"maxAgeInSeconds\":1800}]",
+        });
+
+        // Act
+        var module = _sut.Generate(resource);
+        var blobsCompanion = module.CompanionModules.Single(c => c.ModuleSymbolSuffix == "Blobs");
+        var tablesCompanion = module.CompanionModules.Single(c => c.ModuleSymbolSuffix == "Tables");
+
+        // Assert
+        blobsCompanion.CorsRules.Should().ContainSingle();
+        blobsCompanion.CorsRules[0].AllowedOrigins.Should().ContainSingle("https://blob.example.com");
+        tablesCompanion.TableCorsRules.Should().ContainSingle();
+        tablesCompanion.TableCorsRules[0].AllowedOrigins.Should().ContainSingle("https://table.example.com");
+    }
+
+    [Fact]
     public void Given_ResourceWithDefaults_When_Generate_Then_ParametersHaveDefaults()
     {
         var module = _sut.Generate(CreateResource());
@@ -311,13 +345,14 @@ public sealed class StorageAccountTypeBicepGeneratorTests
     }
 
     [Fact]
-    public void Given_Resource_When_EmitModule_Then_ContainsSixOutputs()
+    public void Given_Resource_When_EmitModule_Then_ContainsSevenOutputs()
     {
         var spec = _sut.GenerateSpec(CreateResource());
         var emitted = new BicepEmitter().EmitModule(spec);
 
         emitted.Should().Contain("output id string");
         emitted.Should().Contain("output name string");
+        emitted.Should().Contain("output connectionString string");
         emitted.Should().Contain("output primaryBlobEndpoint string");
         emitted.Should().Contain("output primaryTableEndpoint string");
         emitted.Should().Contain("output primaryQueueEndpoint string");

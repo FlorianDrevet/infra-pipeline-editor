@@ -24,11 +24,11 @@ public class GetAppConfigurationQueryHandler(
         GetAppConfigurationQuery query,
         CancellationToken cancellationToken)
     {
-        var appConfiguration = await appConfigurationRepository.GetByIdAsync(query.Id, cancellationToken);
+        var appConfiguration = await appConfigurationRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (appConfiguration is null)
             return Errors.AppConfiguration.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(appConfiguration.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(appConfiguration.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.AppConfiguration.NotFoundError(query.Id);
 

@@ -56,7 +56,7 @@ public sealed class GetSqlServerQueryHandlerTests
     public async Task Given_SqlServerNotFound_When_Handle_Then_ReturnsNotFoundAsync()
     {
         // Arrange
-        _sqlServerRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _sqlServerRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns((SqlServer?)null);
 
         // Act
@@ -71,9 +71,9 @@ public sealed class GetSqlServerQueryHandlerTests
     public async Task Given_ReadAccessGranted_When_Handle_Then_MapsResultAsync()
     {
         // Arrange
-        _sqlServerRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _sqlServerRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(_sqlServer);
-        _resourceGroupRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _resourceGroupRepository.GetByIdReadOnlyAsync(_resourceGroup.Id, Arg.Any<CancellationToken>())
             .Returns(_resourceGroup);
         _accessService.VerifyReadAccessAsync(_config.Id, Arg.Any<CancellationToken>())
             .Returns(_config);

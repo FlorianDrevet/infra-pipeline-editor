@@ -16,7 +16,7 @@ public sealed class CosmosDbTypeBicepGeneratorTests
     {
         ResourceId = Guid.NewGuid(),
         Name = "my-cosmos",
-        Type = AzureResourceTypes.ArmTypes.CosmosDb,
+        Type = AzureResourceTypes.ArmTypes.CosmosDbType,
         ResourceGroupName = "rg-test",
         ResourceAbbreviation = "cosmos",
         Properties = properties ?? new Dictionary<string, string>(),
@@ -33,7 +33,7 @@ public sealed class CosmosDbTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.CosmosDb);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.CosmosDbType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.CosmosDb);
     }
 

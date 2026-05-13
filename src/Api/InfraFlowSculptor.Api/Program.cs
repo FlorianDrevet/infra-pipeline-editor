@@ -12,16 +12,8 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("CorsPolicy", policy =>
-    {
-        policy.AllowAnyHeader().AllowAnyMethod().WithOrigins(
-            "http://localhost:4200"
-        );
-    });
-});
+builder.Services.AddApiCors(builder.Configuration);
+builder.Services.AddApiRequestLimits(builder.Configuration);
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("IsAdmin", policy => policy.RequireRole("Admin")); 
@@ -47,21 +39,10 @@ var app = builder.Build();
 app.AddDevelopmentTools(builder.Configuration);
 
 //Middleware
-app.UseCors("CorsPolicy");
+app.UseCors();
 
 app.UseErrorHandling();
-
-// Audit SEC-002 (2026-04-23): security headers applied to every response.
-// CSP intentionally omitted: see SEC-002 follow-up.
-app.Use(async (ctx, next) =>
-{
-    var headers = ctx.Response.Headers;
-    headers["X-Frame-Options"] = "DENY";
-    headers["X-Content-Type-Options"] = "nosniff";
-    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-    headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()";
-    await next();
-});
+app.UseMiddleware<SecurityHeadersMiddleware>();
 
 if (!app.Environment.IsDevelopment())
 {
@@ -70,9 +51,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseRateLimiter(); //After UseRouting
-app.UseStatusCodePages();
 app.UseAuthentication();
+app.UseRateLimiter(); // After UseRouting and authentication so user-based partitions can resolve claims.
+app.UseStatusCodePages();
 app.UseAuthorization();
 app.UseMiddleware<UserProvisioningMiddleware>();
 
@@ -80,7 +61,7 @@ app.UseMiddleware<UserProvisioningMiddleware>();
 app.UseProjectController();
 app.UseInfrastructureConfigController();
 app.UseNamingTemplateController();
-app.UseKeyVaultControllerController();
+app.UseKeyVaultController();
 app.UseResourceGroupController();
 app.UseRedisCacheController();
 app.UseRoleAssignmentController();

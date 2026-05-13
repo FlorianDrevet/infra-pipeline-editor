@@ -28,13 +28,15 @@ public sealed class SqlServerTypeBicepGenerator
     private const string PublicNetworkAccessEnabled = "Enabled";
     private const string PublicNetworkAccessPropertyName = "publicNetworkAccess";
     private const string FullyQualifiedDomainNameOutputName = "fullyQualifiedDomainName";
+    private const string ConnectionStringOutputName = "connectionString";
     private const string ResourceIdExpression = SqlServerModuleName + ".id";
     private const string FullyQualifiedDomainNameExpression = SqlServerModuleName + ".properties.fullyQualifiedDomainName";
+    private const string ConnectionStringExpression = "'Server=tcp:${" + FullyQualifiedDomainNameExpression + "},1433;Authentication=Active Directory Default;'";
     private const string SqlServerVersionUnion = "'" + DefaultSqlServerVersion + "'";
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.SqlServer;
+        => AzureResourceTypes.ArmTypes.SqlServerType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.SqlServer;
@@ -68,6 +70,9 @@ public sealed class SqlServerTypeBicepGenerator
             .Output(FullyQualifiedDomainNameOutputName, BicepType.String,
                 new BicepRawExpression(FullyQualifiedDomainNameExpression),
                 description: "The fully qualified domain name of the SQL Server")
+            .Output(ConnectionStringOutputName, BicepType.String,
+                new BicepRawExpression(ConnectionStringExpression),
+                description: "The ADO.NET connection string of the SQL Server")
             .ExportedType(SqlServerVersionTypeName,
                 new BicepRawExpression(SqlServerVersionUnion),
                 description: "SQL Server version")
@@ -156,5 +161,6 @@ public sealed class SqlServerTypeBicepGenerator
 
         output id string = {{SqlServerModuleName}}.id
         output fullyQualifiedDomainName string = {{SqlServerModuleName}}.properties.fullyQualifiedDomainName
+        output {{ConnectionStringOutputName}} string = {{ConnectionStringExpression}}
         """;
 }

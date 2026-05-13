@@ -55,7 +55,7 @@ public sealed class GetAppServicePlanQueryHandlerTests
     public async Task Given_AppServicePlanNotFound_When_Handle_Then_ReturnsNotFoundAsync()
     {
         // Arrange
-        _appServicePlanRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _appServicePlanRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns((AppServicePlan?)null);
 
         // Act
@@ -70,9 +70,9 @@ public sealed class GetAppServicePlanQueryHandlerTests
     public async Task Given_ReadAccessGranted_When_Handle_Then_MapsResultAsync()
     {
         // Arrange
-        _appServicePlanRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _appServicePlanRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(_plan);
-        _resourceGroupRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _resourceGroupRepository.GetByIdReadOnlyAsync(_resourceGroup.Id, Arg.Any<CancellationToken>())
             .Returns(_resourceGroup);
         _accessService.VerifyReadAccessAsync(_config.Id, Arg.Any<CancellationToken>())
             .Returns(_config);

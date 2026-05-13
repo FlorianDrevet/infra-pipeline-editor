@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+using InfraFlowSculptor.Api.Controllers.Common;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoint definitions for the SQL Server feature.</summary>
@@ -41,7 +44,7 @@ public static class SqlServerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetSqlServer")
+                .WithName(SqlServerRouteNames.GetSqlServer)
                 .WithSummary("Get a SQL Server")
                 .WithDescription("Returns the full details of a single Azure SQL Server resource.")
                 .Produces<SqlServerResponse>(StatusCodes.Status200OK)
@@ -60,7 +63,7 @@ public static class SqlServerController
                             {
                                 var response = mapper.Map<SqlServerResponse>(server);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetSqlServer",
+                                    routeName: SqlServerRouteNames.GetSqlServer,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -68,7 +71,7 @@ public static class SqlServerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateSqlServer")
+                .WithName(SqlServerRouteNames.CreateSqlServer)
                 .WithSummary("Create a SQL Server")
                 .WithDescription("Creates a new Azure SQL Server resource. Requires Owner or Contributor access.")
                 .Produces<SqlServerResponse>(StatusCodes.Status201Created)
@@ -92,7 +95,7 @@ public static class SqlServerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateSqlServer")
+                .WithName(SqlServerRouteNames.UpdateSqlServer)
                 .WithSummary("Update a SQL Server")
                 .WithDescription("Replaces all mutable properties of an existing SQL Server. Requires Owner or Contributor access.")
                 .Produces<SqlServerResponse>(StatusCodes.Status200OK)
@@ -112,7 +115,7 @@ public static class SqlServerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteSqlServer")
+                .WithName(SqlServerRouteNames.DeleteSqlServer)
                 .WithSummary("Delete a SQL Server")
                 .WithDescription("Permanently deletes an Azure SQL Server resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -120,24 +123,10 @@ public static class SqlServerController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            group.MapGet("/{id:guid}/dependents",
-                    async ([FromRoute] Guid id, IMediator mediator) =>
-                    {
-                        var query = new GetDependentResourcesQuery(new AzureResourceId(id));
-                        var result = await mediator.Send(query);
-
-                        return result.Match(
-                            dependents => Results.Ok(dependents.Select(d =>
-                                new DependentResourceResponse(d.Id.ToString(), d.Name, d.ResourceType)).ToList()),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("GetSqlServerDependents")
-                .WithSummary("Get dependent resources")
-                .WithDescription("Returns all resources that depend on this SQL Server and would be deleted alongside it.")
-                .Produces<List<DependentResourceResponse>>(StatusCodes.Status200OK)
-                .ProducesProblem(StatusCodes.Status401Unauthorized)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
+            group.MapDependentResourcesEndpoint(
+                SqlServerRouteNames.GetSqlServerDependents,
+                "SQL Server");
         });
     }
 }
+

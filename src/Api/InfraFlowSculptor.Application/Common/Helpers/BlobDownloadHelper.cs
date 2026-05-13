@@ -12,6 +12,24 @@ namespace InfraFlowSculptor.Application.Common.Helpers;
 internal static class BlobDownloadHelper
 {
     /// <summary>
+    /// Options for partitioning the latest blob folder into two logical buckets.
+    /// </summary>
+    internal sealed record DualBucketBlobFilesOptions(
+        string FirstBucketName,
+        string SecondBucketName,
+        string? LegacyDefaultBucketName = null,
+        Func<Dictionary<string, string>, IReadOnlyDictionary<string, string>>? FirstPostProcess = null,
+        Func<Dictionary<string, string>, IReadOnlyDictionary<string, string>>? SecondPostProcess = null);
+
+    /// <summary>
+    /// Options for reading one requested file from the latest blob folder.
+    /// </summary>
+    internal sealed record LatestBlobContentOptions(
+        Func<string, Error> FileNotFoundErrorFactory,
+        string RequestedFilePath,
+        IReadOnlyList<string> CandidateRelativePaths);
+
+    /// <summary>
     /// Lists blobs under <paramref name="blobPrefix"/>, finds the latest timestamp folder,
     /// zips all matching files, and returns the byte array with a file name.
     /// </summary>
@@ -46,6 +64,9 @@ internal static class BlobDownloadHelper
             .OrderDescending()
             .First();
 
+        if (string.IsNullOrWhiteSpace(latestPrefix))
+            return notFoundErrorFactory(entityId);
+
         var latestBlobs = allBlobs
             .Where(blobName => blobName.StartsWith(latestPrefix, StringComparison.Ordinal))
             .ToList();
@@ -61,7 +82,7 @@ internal static class BlobDownloadHelper
 
                 var relativePath = blobName[(latestPrefix.Length + 1)..];
                 var entry = archive.CreateEntry(relativePath, CompressionLevel.Optimal);
-                await using var entryStream = entry.Open();
+                await using var entryStream = await entry.OpenAsync(cancellationToken);
                 await entryStream.WriteAsync(Encoding.UTF8.GetBytes(content), cancellationToken);
             }
         }
@@ -101,34 +122,16 @@ internal static class BlobDownloadHelper
         string? subPrefix = null,
         Func<Dictionary<string, string>, IReadOnlyDictionary<string, string>>? postProcess = null)
     {
-        var allBlobs = await blobService.ListBlobsAsync(blobPrefix);
+        var latestFilesResult = await GetLatestBlobFilesCoreAsync(
+            blobService,
+            blobPrefix,
+            prefixSegmentCount,
+            notFoundErrorFactory,
+            entityId);
+        if (latestFilesResult.IsError)
+            return latestFilesResult.Errors;
 
-        if (allBlobs.Count == 0)
-            return notFoundErrorFactory(entityId);
-
-        var latestPrefix = allBlobs
-            .Select(b => string.Join('/', b.Split('/').Take(prefixSegmentCount)))
-            .Distinct()
-            .OrderDescending()
-            .First();
-
-        var effectivePrefix = string.IsNullOrEmpty(subPrefix)
-            ? latestPrefix + "/"
-            : $"{latestPrefix}/{subPrefix.TrimEnd('/')}/";
-
-        var latestBlobs = allBlobs
-            .Where(b => b.StartsWith(effectivePrefix, StringComparison.Ordinal))
-            .ToList();
-
-        var files = new Dictionary<string, string>();
-        foreach (var blobName in latestBlobs)
-        {
-            var content = await blobService.DownloadContentAsync(blobName);
-            if (content is null) continue;
-
-            var relativePath = blobName[effectivePrefix.Length..];
-            files[relativePath] = content;
-        }
+        var files = FilterFilesBySubPrefix(latestFilesResult.Value, subPrefix);
 
         if (files.Count == 0)
             return notFoundErrorFactory(entityId);
@@ -138,5 +141,173 @@ internal static class BlobDownloadHelper
             : files;
 
         return result.ToErrorOr();
+    }
+
+    /// <summary>
+    /// Lists blobs under <paramref name="blobPrefix"/>, finds the latest timestamp folder,
+    /// and partitions the files into two named buckets inside that folder.
+    /// </summary>
+    /// <param name="options">Options describing the two bucket names and optional post-processing.</param>
+    internal static async Task<ErrorOr<(IReadOnlyDictionary<string, string> First, IReadOnlyDictionary<string, string> Second)>>
+        GetLatestDualBucketBlobFilesAsync(
+            IBlobService blobService,
+            string blobPrefix,
+            int prefixSegmentCount,
+            Func<Guid, Error> notFoundErrorFactory,
+            Guid entityId,
+            DualBucketBlobFilesOptions options)
+    {
+        var latestFilesResult = await GetLatestBlobFilesCoreAsync(
+            blobService,
+            blobPrefix,
+            prefixSegmentCount,
+            notFoundErrorFactory,
+            entityId);
+        if (latestFilesResult.IsError)
+            return latestFilesResult.Errors;
+
+        var firstFiles = new Dictionary<string, string>(StringComparer.Ordinal);
+        var secondFiles = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        foreach (var (relativePath, content) in latestFilesResult.Value)
+        {
+            if (TryStripBucketPrefix(relativePath, options.FirstBucketName, out var firstRelativePath))
+            {
+                firstFiles[firstRelativePath] = content;
+                continue;
+            }
+
+            if (TryStripBucketPrefix(relativePath, options.SecondBucketName, out var secondRelativePath))
+            {
+                secondFiles[secondRelativePath] = content;
+                continue;
+            }
+
+            if (string.Equals(options.LegacyDefaultBucketName, options.FirstBucketName, StringComparison.Ordinal))
+            {
+                firstFiles[relativePath] = content;
+                continue;
+            }
+
+            if (string.Equals(options.LegacyDefaultBucketName, options.SecondBucketName, StringComparison.Ordinal))
+                secondFiles[relativePath] = content;
+        }
+
+        if (firstFiles.Count == 0 && secondFiles.Count == 0)
+            return notFoundErrorFactory(entityId);
+
+        IReadOnlyDictionary<string, string> firstResult = options.FirstPostProcess is not null
+            ? options.FirstPostProcess(firstFiles)
+            : firstFiles;
+        IReadOnlyDictionary<string, string> secondResult = options.SecondPostProcess is not null
+            ? options.SecondPostProcess(secondFiles)
+            : secondFiles;
+
+        return (firstResult, secondResult);
+    }
+
+    internal static async Task<ErrorOr<string>> GetLatestBlobContentAsync(
+        IBlobService blobService,
+        string blobPrefix,
+        int prefixSegmentCount,
+        Func<Guid, Error> notFoundErrorFactory,
+        Guid entityId,
+        LatestBlobContentOptions options)
+    {
+        var latestFilesResult = await GetLatestBlobFilesCoreAsync(
+            blobService,
+            blobPrefix,
+            prefixSegmentCount,
+            notFoundErrorFactory,
+            entityId);
+        if (latestFilesResult.IsError)
+            return latestFilesResult.Errors;
+
+        foreach (var candidateRelativePath in options.CandidateRelativePaths)
+        {
+            if (latestFilesResult.Value.TryGetValue(candidateRelativePath, out var content))
+                return content;
+        }
+
+        return options.FileNotFoundErrorFactory(options.RequestedFilePath);
+    }
+
+    private static async Task<ErrorOr<Dictionary<string, string>>> GetLatestBlobFilesCoreAsync(
+        IBlobService blobService,
+        string blobPrefix,
+        int prefixSegmentCount,
+        Func<Guid, Error> notFoundErrorFactory,
+        Guid entityId)
+    {
+        var allBlobs = await blobService.ListBlobsAsync(blobPrefix);
+
+        if (allBlobs.Count == 0)
+            return notFoundErrorFactory(entityId);
+
+        var latestPrefix = allBlobs
+            .Select(blobName => string.Join('/', blobName.Split('/').Take(prefixSegmentCount)))
+            .Distinct()
+            .OrderDescending()
+            .First();
+
+        if (string.IsNullOrWhiteSpace(latestPrefix))
+            return notFoundErrorFactory(entityId);
+
+        var latestBlobs = allBlobs
+            .Where(blobName => blobName.StartsWith($"{latestPrefix}/", StringComparison.Ordinal))
+            .ToList();
+
+        var files = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var blobName in latestBlobs)
+        {
+            var content = await blobService.DownloadContentAsync(blobName);
+            if (content is null)
+                continue;
+
+            var relativePath = blobName[(latestPrefix.Length + 1)..];
+            files[relativePath] = content;
+        }
+
+        if (files.Count == 0)
+            return notFoundErrorFactory(entityId);
+
+        return files;
+    }
+
+    private static Dictionary<string, string> FilterFilesBySubPrefix(
+        IReadOnlyDictionary<string, string> files,
+        string? subPrefix)
+    {
+        if (string.IsNullOrEmpty(subPrefix))
+            return new Dictionary<string, string>(files, StringComparer.Ordinal);
+
+        var trimmedPrefix = subPrefix.Trim('/');
+        var prefix = $"{trimmedPrefix}/";
+        var filteredFiles = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        foreach (var (relativePath, content) in files)
+        {
+            if (!relativePath.StartsWith(prefix, StringComparison.Ordinal))
+                continue;
+
+            filteredFiles[relativePath[prefix.Length..]] = content;
+        }
+
+        return filteredFiles;
+    }
+
+    private static bool TryStripBucketPrefix(string relativePath, string bucketName, out string strippedRelativePath)
+    {
+        var normalizedBucketName = bucketName.Trim('/');
+        var prefix = $"{normalizedBucketName}/";
+
+        if (relativePath.StartsWith(prefix, StringComparison.Ordinal))
+        {
+            strippedRelativePath = relativePath[prefix.Length..];
+            return true;
+        }
+
+        strippedRelativePath = string.Empty;
+        return false;
     }
 }

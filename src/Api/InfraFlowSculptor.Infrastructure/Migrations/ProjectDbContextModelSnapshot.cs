@@ -18,7 +18,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -243,7 +243,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
 
                     b.Property<Guid>("ResourceGroupId")
                         .HasColumnType("uuid");
@@ -884,7 +885,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("DefaultValue")
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<Guid>("InfraConfigId")
                         .HasColumnType("uuid");
@@ -894,11 +896,13 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.HasKey("Id");
 
@@ -948,7 +952,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Template")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.HasKey("Id");
 
@@ -971,7 +976,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasDefaultValue("Isolated");
 
                     b.Property<string>("DefaultNamingTemplate")
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("LayoutMode")
                         .HasMaxLength(30)
@@ -979,7 +985,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid");
@@ -1228,7 +1235,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Template")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.HasKey("Id");
 
@@ -1248,7 +1256,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("character varying(200)");
 
                     b.Property<string>("DefaultNamingTemplate")
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -1262,7 +1271,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
 
                     b.HasKey("Id");
 
@@ -1313,7 +1323,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(90)
+                        .HasColumnType("character varying(90)");
 
                     b.HasKey("Id");
 
@@ -2125,7 +2136,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithMany()
                         .HasForeignKey("SourceResourceId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup", null)
                         .WithMany()
@@ -2471,14 +2482,16 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                             b1.Property<string>("Name")
                                 .IsRequired()
-                                .HasColumnType("text");
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)");
 
                             b1.Property<int>("Order")
                                 .HasColumnType("integer");
 
                             b1.Property<string>("Prefix")
                                 .IsRequired()
-                                .HasColumnType("text");
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
 
                             b1.Property<Guid>("ProjectId")
                                 .HasColumnType("uuid");
@@ -2488,14 +2501,16 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                             b1.Property<string>("ShortName")
                                 .IsRequired()
-                                .HasColumnType("text");
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)");
 
                             b1.Property<Guid>("SubscriptionId")
                                 .HasColumnType("uuid");
 
                             b1.Property<string>("Suffix")
                                 .IsRequired()
-                                .HasColumnType("text");
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
 
                             b1.HasKey("Id");
 

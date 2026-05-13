@@ -5,7 +5,9 @@ using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
+using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using MediatR;
+using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.CreateProject;
 
@@ -31,7 +33,15 @@ public sealed class CreateProjectCommandHandler(
         CancellationToken cancellationToken)
     {
         var nameVo = new Name(command.Name);
-        var userId = await currentUser.GetUserIdAsync(cancellationToken);
+        UserId userId;
+        try
+        {
+            userId = await currentUser.GetUserIdAsync(cancellationToken);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Error.Unauthorized(description: ex.Message);
+        }
 
         var project = Project.Create(nameVo, command.Description, userId);
 

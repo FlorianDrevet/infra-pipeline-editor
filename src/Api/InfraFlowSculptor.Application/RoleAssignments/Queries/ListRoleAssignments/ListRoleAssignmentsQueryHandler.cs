@@ -17,13 +17,13 @@ public class ListRoleAssignmentsQueryHandler(
         ListRoleAssignmentsQuery request,
         CancellationToken cancellationToken)
     {
-        var resource = await azureResourceRepository.GetByIdWithRoleAssignmentsAsync(
+        var resource = await azureResourceRepository.GetByIdWithRoleAssignmentsReadOnlyAsync(
             request.ResourceId, cancellationToken);
 
         if (resource is null)
             return Errors.RoleAssignment.SourceResourceNotFound(request.ResourceId);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(
             resource.ResourceGroupId, cancellationToken);
 
         if (resourceGroup is null)
@@ -50,7 +50,7 @@ public class ListRoleAssignmentsQueryHandler(
         if (resource.AssignedUserAssignedIdentityId is not null)
         {
             assignedUaiId = resource.AssignedUserAssignedIdentityId.Value.ToString();
-            var uaiResource = await azureResourceRepository.GetByIdAsync(
+            var uaiResource = await azureResourceRepository.GetByIdReadOnlyAsync(
                 resource.AssignedUserAssignedIdentityId, cancellationToken);
             assignedUaiName = uaiResource?.Name.Value;
         }

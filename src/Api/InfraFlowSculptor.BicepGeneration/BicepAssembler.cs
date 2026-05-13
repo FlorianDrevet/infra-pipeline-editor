@@ -5,6 +5,7 @@ using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
+using InfraFlowSculptor.GenerationCore.Models;
 
 namespace InfraFlowSculptor.BicepGeneration;
 
@@ -20,38 +21,39 @@ public static class BicepAssembler
     /// </summary>
     public static GenerationResult Assemble(
         IReadOnlyCollection<GeneratedTypeModule> modules,
-        IReadOnlyList<ResourceGroupDefinition> resourceGroups,
-        IReadOnlyList<EnvironmentDefinition> environments,
-        IReadOnlyList<string> environmentNames,
-        IEnumerable<ResourceDefinition> resources,
-        NamingContext namingContext,
-        IReadOnlyList<RoleAssignmentDefinition> roleAssignments,
-        IReadOnlyList<AppSettingDefinition> appSettings,
-        IReadOnlyList<ExistingResourceReference>? existingResourceReferences = null,
-        IReadOnlyDictionary<string, string>? projectTags = null,
-        IReadOnlyDictionary<string, string>? configTags = null)
+        GenerationRequest request)
     {
-        var hasRoleAssignments = roleAssignments.Count > 0;
+        var hasRoleAssignments = request.RoleAssignments.Count > 0;
         var normalizedModules = NormalizePrimaryModuleFileNames(modules);
 
-        var typesBicep = TypesBicepAssembler.Generate(environments, hasRoleAssignments);
-        var functionsBicep = FunctionsBicepAssembler.Generate(namingContext);
-        var constantsBicep = hasRoleAssignments ? ConstantsBicepAssembler.Generate(roleAssignments) : string.Empty;
-        var mainEmission = MainBicepAssembler.Generate(normalizedModules, resourceGroups, namingContext, roleAssignments, appSettings, existingResourceReferences ?? [], projectTags, configTags);
+        var typesBicep = TypesBicepAssembler.Generate(request.Environments, hasRoleAssignments);
+        var functionsBicep = FunctionsBicepAssembler.Generate(request.NamingContext);
+        var constantsBicep = hasRoleAssignments ? ConstantsBicepAssembler.Generate(request.RoleAssignments) : string.Empty;
+        var mainEmission = MainBicepAssembler.Generate(
+            normalizedModules,
+            request.ResourceGroups,
+            request.NamingContext,
+            request.RoleAssignments,
+            request.AppSettings,
+            request.ExistingResourceReferences,
+            (request.ProjectTags, request.ConfigTags));
 
         var environmentParameterFiles = ParameterFileAssembler.GenerateEnvironmentParameterFiles(
-            normalizedModules, environments, resources, appSettings);
+            normalizedModules,
+            request.Environments,
+            request.Resources,
+            request.AppSettings);
 
         var moduleFiles = BuildModuleFiles(normalizedModules);
-        AddRoleAssignmentModuleFiles(moduleFiles, roleAssignments);
-        AddKeyVaultSecretsModuleIfNeeded(moduleFiles, appSettings);
+        AddRoleAssignmentModuleFiles(moduleFiles, request.RoleAssignments);
+        AddKeyVaultSecretsModuleIfNeeded(moduleFiles, request.AppSettings);
 
         return new GenerationResult
         {
             MainBicep = mainEmission.Content,
             TypesBicep = typesBicep,
             FunctionsBicep = functionsBicep,
-            RoleAssignments = roleAssignments,
+            RoleAssignments = request.RoleAssignments,
             ConstantsBicep = constantsBicep,
             EnvironmentParameterFiles = environmentParameterFiles,
             ModuleFiles = moduleFiles,

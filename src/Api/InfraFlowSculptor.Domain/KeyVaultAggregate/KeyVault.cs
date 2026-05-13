@@ -69,8 +69,7 @@ public sealed class KeyVault : AzureResource
         bool enablePurgeProtection,
         bool enableSoftDelete)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
 
         if (IsExisting)
             return;

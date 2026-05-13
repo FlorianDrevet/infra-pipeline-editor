@@ -32,8 +32,7 @@ public sealed class ContainerRegistry : AzureResource
     /// <param name="location">The new Azure region.</param>
     public void Update(Name name, Location location)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
     }
 
     /// <summary>

@@ -3,6 +3,7 @@ using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
+using InfraFlowSculptor.Domain.ProjectAggregate.Events;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
@@ -116,7 +117,11 @@ public sealed class Project : AggregateRoot<ProjectId>
     /// The caller is automatically added as Owner.
     /// </summary>
     public static Project Create(Name name, string? description, UserId ownerId)
-        => new(ProjectId.CreateUnique(), name, description, ownerId);
+    {
+        var project = new Project(ProjectId.CreateUnique(), name, description, ownerId);
+        project.AddDomainEvent(new ProjectCreatedDomainEvent(project.Id));
+        return project;
+    }
 
     /// <summary>EF Core constructor.</summary>
     public Project() { }
@@ -490,13 +495,11 @@ public sealed class Project : AggregateRoot<ProjectId>
 
     /// <summary>
     /// Returns <see langword="true"/> when a single project-level "generate all" operation is unambiguous,
-    /// i.e. the project layout owns its repos (AllInOne or SplitInfraCode). MultiRepo always returns <see langword="false"/>
+    /// i.e. the project layout owns its repositories. MultiRepo always returns <see langword="false"/>
     /// because each configuration owns its own repositories.
     /// </summary>
-    /// <param name="configs">Reserved for future heuristics. Currently unused.</param>
-    public bool CanGenerateAllFromProjectLevel(IReadOnlyCollection<InfrastructureConfig> configs)
+    public bool CanGenerateAllFromProjectLevel()
     {
-        ArgumentNullException.ThrowIfNull(configs);
         return LayoutPreset.Value != LayoutPresetEnum.MultiRepo;
     }
 

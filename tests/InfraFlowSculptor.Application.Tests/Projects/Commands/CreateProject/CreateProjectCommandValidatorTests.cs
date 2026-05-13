@@ -56,10 +56,10 @@ public sealed class CreateProjectCommandValidatorTests
     }
 
     [Fact]
-    public void Given_NameLongerThan100Characters_When_Validate_Then_FailsOnName()
+    public void Given_NameLongerThan80Characters_When_Validate_Then_FailsOnName()
     {
         // Arrange
-        var name = new string('A', 101);
+        var name = new string('A', 81);
         var command = new CreateProjectCommand(name, ValidDescription);
 
         // Act

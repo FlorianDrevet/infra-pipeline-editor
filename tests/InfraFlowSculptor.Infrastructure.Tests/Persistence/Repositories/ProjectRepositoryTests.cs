@@ -4,6 +4,7 @@ using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
@@ -108,6 +109,55 @@ public sealed class ProjectRepositoryTests : IDisposable
         // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(project.Id);
+    }
+
+    [Fact]
+    public async Task Given_StoredProject_When_GetByIdWithMembersReadOnlyAsync_Then_ReturnsDetachedProject_Async()
+    {
+        // Arrange
+        var project = NewProject();
+        await _context.Projects.AddAsync(project);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetByIdWithMembersReadOnlyAsync(project.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(project.Id);
+        _context.Entry(result).State.Should().Be(EntityState.Detached);
+    }
+
+    [Fact]
+    public async Task Given_StoredProjects_When_GetAllAsyncWithCancellationToken_Then_ReturnsAll_Async()
+    {
+        // Arrange
+        var firstProject = NewProject();
+        var secondProject = NewProject();
+        await _context.Projects.AddRangeAsync(firstProject, secondProject);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetAllAsync(CancellationToken.None);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().Contain(project => project.Id == firstProject.Id);
+        result.Should().Contain(project => project.Id == secondProject.Id);
+    }
+
+    [Fact]
+    public async Task Given_CancelledToken_When_GetAllAsyncWithCancellationToken_Then_ThrowsOperationCanceledException_Async()
+    {
+        // Arrange
+        using var cancellationTokenSource = new CancellationTokenSource();
+        await cancellationTokenSource.CancelAsync();
+
+        // Act
+        Func<Task> act = async () => await _sut.GetAllAsync(cancellationTokenSource.Token);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Fact(Skip = UserJoinSkipReason)]

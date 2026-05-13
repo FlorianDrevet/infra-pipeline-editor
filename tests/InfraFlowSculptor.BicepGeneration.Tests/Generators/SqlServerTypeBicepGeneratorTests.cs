@@ -16,7 +16,7 @@ public sealed class SqlServerTypeBicepGeneratorTests
     {
         ResourceId = Guid.NewGuid(),
         Name = "my-sql",
-        Type = AzureResourceTypes.ArmTypes.SqlServer,
+        Type = AzureResourceTypes.ArmTypes.SqlServerType,
         ResourceGroupName = "rg-test",
         ResourceAbbreviation = "sql",
         Properties = properties ?? new Dictionary<string, string>(),
@@ -33,7 +33,7 @@ public sealed class SqlServerTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.SqlServer);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.SqlServerType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.SqlServer);
     }
 
@@ -210,10 +210,10 @@ public sealed class SqlServerTypeBicepGeneratorTests
     // ── Outputs ──
 
     [Fact]
-    public void Given_Resource_When_GenerateSpec_Then_HasTwoOutputs()
+    public void Given_Resource_When_GenerateSpec_Then_HasThreeOutputs()
     {
         var spec = _sut.GenerateSpec(CreateResource());
-        spec.Outputs.Should().HaveCount(2);
+        spec.Outputs.Should().HaveCount(3);
     }
 
     [Fact]
@@ -236,6 +236,17 @@ public sealed class SqlServerTypeBicepGeneratorTests
         output.Type.Should().Be(BicepType.String);
         output.Expression.Should().BeOfType<BicepRawExpression>()
             .Which.RawBicep.Should().Be("sqlServer.properties.fullyQualifiedDomainName");
+    }
+
+    [Fact]
+    public void Given_Resource_When_GenerateSpec_Then_OutputConnectionStringIsCorrect()
+    {
+        var spec = _sut.GenerateSpec(CreateResource());
+
+        var output = spec.Outputs.Should().Contain(o => o.Name == "connectionString").Subject;
+        output.Type.Should().Be(BicepType.String);
+        output.Expression.Should().BeOfType<BicepRawExpression>()
+            .Which.RawBicep.Should().Be("'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Authentication=Active Directory Default;'");
     }
 
     // ── Exported types ──
@@ -355,6 +366,7 @@ public sealed class SqlServerTypeBicepGeneratorTests
         bicep.Should().Contain("publicNetworkAccess: 'Enabled'");
         bicep.Should().Contain("output id string = sqlServer.id");
         bicep.Should().Contain("output fullyQualifiedDomainName string = sqlServer.properties.fullyQualifiedDomainName");
+        bicep.Should().Contain("output connectionString string = 'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Authentication=Active Directory Default;'");
     }
 
     [Fact]

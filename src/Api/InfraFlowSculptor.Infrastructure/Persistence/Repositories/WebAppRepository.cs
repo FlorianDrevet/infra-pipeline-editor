@@ -14,9 +14,21 @@ public class WebAppRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<WebApp?> GetByIdAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await Context.Set<WebApp>()
+            .Include(x => x.DependsOn)
+            .Include(x => x.EnvironmentSettings)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public override async Task<WebApp?> GetByIdReadOnlyAsync(
+        ValueObject id,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<WebApp>()
+            .AsNoTracking()
             .Include(x => x.DependsOn)
             .Include(x => x.EnvironmentSettings)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);

@@ -40,5 +40,6 @@ public class UpdateProjectEnvironmentRequest
     public string? AzureResourceManagerConnection { get; init; }
 
     /// <summary>Full replacement list of Azure tags for this environment.</summary>
+    [MaxCollectionCount(TagRequestConstraints.MaxTagCount)]
     public IReadOnlyList<TagRequest> Tags { get; init; } = [];
 }

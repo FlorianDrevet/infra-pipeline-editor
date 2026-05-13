@@ -7,6 +7,19 @@ namespace InfraFlowSculptor.BicepGeneration.Tests.Helpers;
 public sealed class BicepFormattingHelperTests
 {
     [Theory]
+    [InlineData("my-env", "myEnv")]
+    [InlineData("My_ENV value", "myEnvValue")]
+    [InlineData("", "unknown")]
+    public void Given_RawObjectKey_When_Sanitizing_Then_ReturnsCanonicalCamelCase(string key, string expected)
+    {
+        // Act
+        var result = BicepFormattingHelper.SanitizeBicepKey(key);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
     [InlineData("storageAccount")]
     [InlineData("_sharedType")]
     [InlineData("key1")]
@@ -35,20 +48,10 @@ public sealed class BicepFormattingHelperTests
     [Theory]
     [InlineData("storageAccount", ".storageAccount")]
     [InlineData("_sharedType", "._sharedType")]
-    public void Given_ValidBicepPropertyName_When_FormattingPropertyAccess_Then_ReturnsDotNotation(string propertyName, string expected)
-    {
-        // Act
-        var result = BicepFormattingHelper.FormatBicepPropertyAccess(propertyName);
-
-        // Assert
-        result.Should().Be(expected);
-    }
-
-    [Theory]
     [InlineData("jwt-secret", "['jwt-secret']")]
     [InlineData("startup command", "['startup command']")]
     [InlineData("o'clock", "['o\\'clock']")]
-    public void Given_InvalidBicepPropertyName_When_FormattingPropertyAccess_Then_ReturnsBracketNotation(string propertyName, string expected)
+    public void Given_BicepPropertyName_When_FormattingPropertyAccess_Then_ReturnsExpectedNotation(string propertyName, string expected)
     {
         // Act
         var result = BicepFormattingHelper.FormatBicepPropertyAccess(propertyName);

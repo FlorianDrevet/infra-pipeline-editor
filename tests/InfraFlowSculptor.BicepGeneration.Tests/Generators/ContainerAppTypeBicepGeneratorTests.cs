@@ -17,7 +17,7 @@ public sealed class ContainerAppTypeBicepGeneratorTests
         {
             ResourceId = Guid.NewGuid(),
             Name = "my-app",
-            Type = AzureResourceTypes.ArmTypes.ContainerApp,
+            Type = AzureResourceTypes.ArmTypes.ContainerAppType,
             ResourceGroupName = "rg-test",
             ResourceAbbreviation = "ca",
             Properties = new Dictionary<string, string>(),
@@ -30,7 +30,7 @@ public sealed class ContainerAppTypeBicepGeneratorTests
         {
             ResourceId = Guid.NewGuid(),
             Name = "my-app",
-            Type = AzureResourceTypes.ArmTypes.ContainerApp,
+            Type = AzureResourceTypes.ArmTypes.ContainerAppType,
             ResourceGroupName = "rg-test",
             ResourceAbbreviation = "ca",
             Properties = new Dictionary<string, string>
@@ -47,7 +47,7 @@ public sealed class ContainerAppTypeBicepGeneratorTests
         {
             ResourceId = Guid.NewGuid(),
             Name = "my-app",
-            Type = AzureResourceTypes.ArmTypes.ContainerApp,
+            Type = AzureResourceTypes.ArmTypes.ContainerAppType,
             ResourceGroupName = "rg-test",
             ResourceAbbreviation = "ca",
             Properties = new Dictionary<string, string>
@@ -63,7 +63,7 @@ public sealed class ContainerAppTypeBicepGeneratorTests
         {
             ResourceId = Guid.NewGuid(),
             Name = "my-app",
-            Type = AzureResourceTypes.ArmTypes.ContainerApp,
+            Type = AzureResourceTypes.ArmTypes.ContainerAppType,
             ResourceGroupName = "rg-test",
             ResourceAbbreviation = "ca",
             Properties = new Dictionary<string, string>
@@ -85,7 +85,7 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.ContainerApp);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.ContainerAppType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.ContainerApp);
     }
 

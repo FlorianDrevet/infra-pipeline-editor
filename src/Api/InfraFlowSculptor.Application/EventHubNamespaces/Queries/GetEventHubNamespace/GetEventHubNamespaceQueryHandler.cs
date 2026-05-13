@@ -20,11 +20,11 @@ public class GetEventHubNamespaceQueryHandler(
         GetEventHubNamespaceQuery query,
         CancellationToken cancellationToken)
     {
-        var eh = await eventHubNamespaceRepository.GetByIdAsync(query.Id, cancellationToken);
+        var eh = await eventHubNamespaceRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (eh is null)
             return Errors.EventHubNamespace.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(eh.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(eh.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.EventHubNamespace.NotFoundError(query.Id);
 

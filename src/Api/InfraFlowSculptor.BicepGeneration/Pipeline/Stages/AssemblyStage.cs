@@ -22,17 +22,6 @@ public sealed class AssemblyStage : IBicepGenerationStage
         var request = context.Request;
         var modules = context.WorkItems.Select(w => w.Module).ToList();
 
-        context.Result = BicepAssembler.Assemble(
-            modules,
-            request.ResourceGroups,
-            request.Environments,
-            request.EnvironmentNames,
-            request.Resources,
-            request.NamingContext,
-            request.RoleAssignments,
-            request.AppSettings,
-            request.ExistingResourceReferences,
-            request.ProjectTags,
-            request.ConfigTags);
+        context.Result = BicepAssembler.Assemble(modules, request);
     }
 }

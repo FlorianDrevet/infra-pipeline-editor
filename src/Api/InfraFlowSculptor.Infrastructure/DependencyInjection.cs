@@ -14,6 +14,7 @@ using Microsoft.Extensions.Options;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Infrastructure.Auth;
+using InfraFlowSculptor.Infrastructure.DomainEvents;
 using InfraFlowSculptor.Infrastructure.Extensions;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
@@ -30,6 +31,7 @@ using System.Text.Json;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using InfraFlowSculptor.Application.Common.Interfaces.DomainEvents;
 
 namespace InfraFlowSculptor.Infrastructure;
 
@@ -60,6 +62,7 @@ public static class DependencyInjection
             .AddObservability(builderConfiguration, hostEnvironment)
             .AddDefaultHealthChecks();
 
+        services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         services.AddMigration<ProjectDbContext>();

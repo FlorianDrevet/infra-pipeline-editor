@@ -42,6 +42,16 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
     {
     }
 
+    /// <inheritdoc />
+    public async Task<ResourceGroup?> GetByIdReadOnlyAsync(
+        ResourceGroupId id,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<ResourceGroup>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+    }
+
     public override async Task<ResourceGroup?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await Context.Set<ResourceGroup>()

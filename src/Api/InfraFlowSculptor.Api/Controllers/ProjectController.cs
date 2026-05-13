@@ -1,4 +1,4 @@
-﻿using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInfraConfigLayoutMode;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddInfraConfigRepository;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateInfraConfigRepository;
@@ -64,11 +64,15 @@ using InfraFlowSculptor.Api.Common;
 using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Api.RateLimiting;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoint definitions for the Project feature.</summary>
 public static class ProjectController
 {
+    private const string ZipContentType = "application/zip";
+
     /// <summary>Registers the Project endpoints on the application builder.</summary>
     public static IApplicationBuilder UseProjectController(this IApplicationBuilder builder)
     {
@@ -113,7 +117,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListMyProjects")
+                .WithName(ProjectRouteNames.ListMyProjects)
                 .WithSummary("List my Projects")
                 .WithDescription("Returns all Projects the current user is a member of.")
                 .Produces<IReadOnlyList<ProjectResponse>>(StatusCodes.Status200OK)
@@ -134,7 +138,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetProject")
+                .WithName(ProjectRouteNames.GetProject)
                 .WithSummary("Get a Project")
                 .WithDescription("Returns the full details of a single Project, including members.")
                 .Produces<ProjectResponse>(StatusCodes.Status200OK)
@@ -156,7 +160,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateProject")
+                .WithName(ProjectRouteNames.CreateProject)
                 .WithSummary("Create a Project")
                 .WithDescription("Creates a new Project. The current user is automatically added as Owner.")
                 .Produces<ProjectResponse>(StatusCodes.Status201Created)
@@ -178,7 +182,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateProjectWithSetup")
+                .WithName(ProjectRouteNames.CreateProjectWithSetup)
                 .WithSummary("Create a Project with setup")
                 .WithDescription("Creates a new Project and applies the wizard layout, environments, and repository slots in a single operation.")
                 .Produces<ProjectResponse>(StatusCodes.Status201Created)
@@ -205,7 +209,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListProjectConfigs")
+                .WithName(ProjectRouteNames.ListProjectConfigs)
                 .WithSummary("List configurations for a project")
                 .WithDescription("Returns all Infrastructure Configurations belonging to the specified Project.")
                 .Produces<IReadOnlyList<InfrastructureConfigResponse>>(StatusCodes.Status200OK)
@@ -233,7 +237,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListProjectUsers")
+                .WithName(ProjectRouteNames.ListProjectUsers)
                 .WithSummary("List registered users")
                 .WithDescription("Returns all registered users available for project membership assignment.")
                 .Produces<IReadOnlyList<UserResponse>>(StatusCodes.Status200OK)
@@ -259,7 +263,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddProjectMember")
+                .WithName(ProjectRouteNames.AddProjectMember)
                 .WithSummary("Add a member to a project")
                 .WithDescription("Adds a user to a Project with the specified role. Requires Owner access.")
                 .Produces<ProjectResponse>(StatusCodes.Status200OK)
@@ -286,7 +290,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateProjectMemberRole")
+                .WithName(ProjectRouteNames.UpdateProjectMemberRole)
                 .WithSummary("Update a project member's role")
                 .WithDescription("Changes the role assigned to a member of a Project. Requires Owner access.")
                 .Produces<ProjectResponse>(StatusCodes.Status200OK)
@@ -308,7 +312,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveProjectMember")
+                .WithName(ProjectRouteNames.RemoveProjectMember)
                 .WithSummary("Remove a member from a project")
                 .WithDescription("Removes a user from a Project. Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -348,7 +352,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddProjectEnvironment")
+                .WithName(ProjectRouteNames.AddProjectEnvironment)
                 .WithSummary("Add an environment to a project")
                 .WithDescription("Adds a new project-level environment definition. Requires Owner or Contributor access.")
                 .Produces<EnvironmentDefinitionResponse>(StatusCodes.Status201Created)
@@ -381,7 +385,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateProjectEnvironment")
+                .WithName(ProjectRouteNames.UpdateProjectEnvironment)
                 .WithSummary("Update a project environment")
                 .WithDescription("Updates all fields of an existing project-level environment definition. Requires Owner or Contributor access.")
                 .Produces<EnvironmentDefinitionResponse>(StatusCodes.Status200OK)
@@ -404,7 +408,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveProjectEnvironment")
+                .WithName(ProjectRouteNames.RemoveProjectEnvironment)
                 .WithSummary("Remove a project environment")
                 .WithDescription("Removes a project-level environment definition. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -431,7 +435,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SetProjectDefaultNamingTemplate")
+                .WithName(ProjectRouteNames.SetProjectDefaultNamingTemplate)
                 .WithSummary("Set the project default naming template")
                 .WithDescription("Sets or clears the default naming template at the project level. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -455,7 +459,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SetProjectResourceNamingTemplate")
+                .WithName(ProjectRouteNames.SetProjectResourceNamingTemplate)
                 .WithSummary("Set a per-resource-type naming template")
                 .WithDescription("Creates or replaces a naming template for a specific Azure resource type at the project level. Requires Owner or Contributor access.")
                 .Produces<ResourceNamingTemplateResponse>(StatusCodes.Status200OK)
@@ -478,7 +482,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveProjectResourceNamingTemplate")
+                .WithName(ProjectRouteNames.RemoveProjectResourceNamingTemplate)
                 .WithSummary("Remove a per-resource-type naming template")
                 .WithDescription("Removes a per-resource-type naming template from the project. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -503,7 +507,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SetProjectResourceAbbreviation")
+                .WithName(ProjectRouteNames.SetProjectResourceAbbreviation)
                 .WithSummary("Set a per-resource-type abbreviation override")
                 .WithDescription("Creates or replaces the abbreviation for a specific Azure resource type at the project level. Must be lowercase alphanumeric, max 10 characters. Requires Owner or Contributor access.")
                 .Produces<ResourceAbbreviationOverrideResponse>(StatusCodes.Status200OK)
@@ -526,7 +530,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveProjectResourceAbbreviation")
+                .WithName(ProjectRouteNames.RemoveProjectResourceAbbreviation)
                 .WithSummary("Remove a per-resource-type abbreviation override")
                 .WithDescription("Removes the abbreviation override for a specific Azure resource type from the project. The catalog default will be used instead. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -552,7 +556,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SetProjectTags")
+                .WithName(ProjectRouteNames.SetProjectTags)
                 .WithSummary("Set project-level tags")
                 .WithDescription("Replaces all project-level default tags with the provided set. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -574,7 +578,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteProject")
+                .WithName(ProjectRouteNames.DeleteProject)
                 .WithSummary("Delete a project")
                 .WithDescription("Permanently deletes a project and all its data. Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -601,7 +605,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ValidateRecentItems")
+                .WithName(ProjectRouteNames.ValidateRecentItems)
                 .WithSummary("Validate recently viewed items")
                 .WithDescription("Filters a list of recently viewed items, returning only those the current user still has access to with fresh data.")
                 .Produces<IReadOnlyList<RecentItemResponse>>(StatusCodes.Status200OK)
@@ -623,7 +627,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("TestGitConnection")
+                .WithName(ProjectRouteNames.TestGitConnection)
                 .WithSummary("Test Git repository connection")
                 .WithDescription("Tests the connection to the configured Git repository using the stored token. Requires Owner or Contributor access.")
                 .Produces<TestGitConnectionResponse>(StatusCodes.Status200OK)
@@ -646,7 +650,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListGitBranches")
+                .WithName(ProjectRouteNames.ListGitBranches)
                 .WithSummary("List Git repository branches")
                 .WithDescription("Lists all branches in the configured Git repository. Requires read access to the project.")
                 .Produces<IReadOnlyList<GitBranchResponse>>(StatusCodes.Status200OK)
@@ -673,7 +677,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListCodeRepoBranches")
+                .WithName(ProjectRouteNames.ListCodeRepoBranches)
                 .WithSummary("List code repository branches")
                 .WithDescription("Lists all branches in the application-code Git repository. Requires read access to the project.")
                 .Produces<IReadOnlyList<GitBranchResponse>>(StatusCodes.Status200OK)
@@ -700,7 +704,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SearchCodeRepoFiles")
+                .WithName(ProjectRouteNames.SearchCodeRepoFiles)
                 .WithSummary("Search files in code repository")
                 .WithDescription("Searches for files matching a filename pattern in the application-code Git repository on a specific branch. Requires read access to the project.")
                 .Produces<IReadOnlyList<GitFileResponse>>(StatusCodes.Status200OK)
@@ -728,7 +732,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListProjectResources")
+                .WithName(ProjectRouteNames.ListProjectResources)
                 .WithSummary("List all resources across configurations")
                 .WithDescription("Returns all Azure resources across all infrastructure configurations in the project. Used for cross-config resource reference selection.")
                 .Produces<IReadOnlyList<ProjectResourceResponse>>(StatusCodes.Status200OK)
@@ -753,7 +757,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SetProjectAgentPool")
+                .WithName(ProjectRouteNames.SetProjectAgentPool)
                 .WithSummary("Set or clear the agent pool for pipeline generation")
                 .WithDescription("Sets the self-hosted agent pool name used in generated pipelines. Send null or empty to revert to the Microsoft-hosted pool (vmImage: ubuntu-latest). Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -787,7 +791,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddProjectRepository")
+                .WithName(ProjectRouteNames.AddProjectRepository)
                 .WithSummary("Add a project-level Git repository declaration")
                 .WithDescription("Declares a new Git repository at the project level. Each repository has a project-scoped alias and one or more content kinds (Infrastructure, ApplicationCode, Pipelines). Requires Owner access.")
                 .Produces(StatusCodes.Status201Created)
@@ -816,7 +820,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateProjectRepository")
+                .WithName(ProjectRouteNames.UpdateProjectRepository)
                 .WithSummary("Update a project-level Git repository declaration")
                 .WithDescription("Updates an existing project repository (alias is immutable). Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -840,7 +844,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveProjectRepository")
+                .WithName(ProjectRouteNames.RemoveProjectRepository)
                 .WithSummary("Remove a project-level Git repository declaration")
                 .WithDescription("Removes a project repository. Returns 409 Conflict if the repository is still referenced by an infrastructure configuration binding. Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -864,7 +868,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SetProjectLayoutPreset")
+                .WithName(ProjectRouteNames.SetProjectLayoutPreset)
                 .WithSummary("Set the project layout preset")
                 .WithDescription("Updates the project layout preset. Valid values: AllInOne, SplitInfraCode, MultiRepo. Switching to MultiRepo auto-clears project repositories. Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -890,7 +894,7 @@ public static class ProjectController
                         var result = await mediator.Send(command);
                         return result.Match(_ => Results.NoContent(), errors => errors.Result());
                     })
-                .WithName("SetInfraConfigLayoutMode")
+                .WithName(ProjectRouteNames.SetInfraConfigLayoutMode)
                 .WithSummary("Set or clear the per-configuration layout mode")
                 .WithDescription("Sets the layout mode (AllInOne or SplitInfraCode) for the configuration. Only meaningful when the parent project layout is MultiRepo. Switching mode clears existing config-level repositories. Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -916,7 +920,7 @@ public static class ProjectController
                             id => Results.Created($"/projects/{projectId}/configs/{configId}/repositories/{id.Value}", new { id = id.Value.ToString() }),
                             errors => errors.Result());
                     })
-                .WithName("AddInfraConfigRepository")
+                .WithName(ProjectRouteNames.AddInfraConfigRepository)
                 .WithSummary("Declare a Git repository on an InfrastructureConfig (MultiRepo only)")
                 .WithDescription("Adds a Git repository to the configuration. Allowed only when the parent project layout is MultiRepo and the configuration has a layout mode set. Requires Owner access.")
                 .Produces(StatusCodes.Status201Created)
@@ -940,7 +944,7 @@ public static class ProjectController
                         var result = await mediator.Send(command);
                         return result.Match(_ => Results.NoContent(), errors => errors.Result());
                     })
-                .WithName("UpdateInfraConfigRepository")
+                .WithName(ProjectRouteNames.UpdateInfraConfigRepository)
                 .WithSummary("Update an InfraConfig repository")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -958,7 +962,7 @@ public static class ProjectController
                         var result = await mediator.Send(command);
                         return result.Match(_ => Results.NoContent(), errors => errors.Result());
                     })
-                .WithName("RemoveInfraConfigRepository")
+                .WithName(ProjectRouteNames.RemoveInfraConfigRepository)
                 .WithSummary("Delete an InfraConfig repository")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -988,8 +992,8 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
-                .WithName("GenerateProjectBicep")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(ProjectRouteNames.GenerateProjectBicep)
                 .WithSummary("Generate Bicep files for the entire project (mono-repo)")
                 .WithDescription("Generates Bicep files for all configurations in the project, organized as a mono-repo with a shared Common folder and per-config deployment folders.")
                 .Produces<GenerateProjectBicepResponse>(StatusCodes.Status201Created)
@@ -1006,16 +1010,16 @@ public static class ProjectController
                         return result.Match(
                             value => Results.File(
                                 value.ZipContent,
-                                "application/zip",
+                                ZipContentType,
                                 value.FileName),
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
-                .WithName("DownloadProjectBicep")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(ProjectRouteNames.DownloadProjectBicep)
                 .WithSummary("Download generated Bicep files for a project")
                 .WithDescription("Downloads the latest generated mono-repo Bicep files for the given project as a ZIP archive.")
-                .Produces(StatusCodes.Status200OK, contentType: "application/zip")
+                .Produces(StatusCodes.Status200OK, contentType: ZipContentType)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
@@ -1035,7 +1039,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetProjectBicepFileContent")
+                .WithName(ProjectRouteNames.GetProjectBicepFileContent)
                 .WithSummary("Get generated Bicep file content for a project")
                 .WithDescription("Reads the latest generated mono-repo Bicep file content for the given project and relative file path.")
                 .Produces(StatusCodes.Status200OK)
@@ -1062,8 +1066,8 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
-                .WithName("PushProjectBicepToGit")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(ProjectRouteNames.PushProjectBicepToGit)
                 .WithSummary("Push project-level Bicep files to Git (mono-repo)")
                 .WithDescription("Pushes the latest project-level generated Bicep files to the configured Git repository. Used in MonoRepo mode.")
                 .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
@@ -1097,8 +1101,8 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
-                .WithName("GenerateProjectPipeline")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(ProjectRouteNames.GenerateProjectPipeline)
                 .WithSummary("Generate pipeline files for the entire project (mono-repo)")
                 .WithDescription("Generates Azure DevOps pipeline YAML files for all configurations in the project.")
                 .Produces<GenerateProjectPipelineResponse>(StatusCodes.Status201Created)
@@ -1115,16 +1119,16 @@ public static class ProjectController
                         return result.Match(
                             value => Results.File(
                                 value.ZipContent,
-                                "application/zip",
+                                ZipContentType,
                                 value.FileName),
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
-                .WithName("DownloadProjectPipeline")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(ProjectRouteNames.DownloadProjectPipeline)
                 .WithSummary("Download generated pipeline files for a project")
                 .WithDescription("Downloads the latest generated mono-repo pipeline files for the given project as a ZIP archive.")
-                .Produces(StatusCodes.Status200OK, contentType: "application/zip")
+                .Produces(StatusCodes.Status200OK, contentType: ZipContentType)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
@@ -1144,7 +1148,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetProjectPipelineFileContent")
+                .WithName(ProjectRouteNames.GetProjectPipelineFileContent)
                 .WithSummary("Get generated pipeline file content for a project")
                 .WithDescription("Reads the latest generated mono-repo pipeline file content for the given project and relative file path.")
                 .Produces(StatusCodes.Status200OK)
@@ -1171,8 +1175,8 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
-                .WithName("PushProjectPipelineToGit")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(ProjectRouteNames.PushProjectPipelineToGit)
                 .WithSummary("Push project-level pipeline files to Git (mono-repo)")
                 .WithDescription("Pushes the latest project-level generated pipeline files to the configured Git repository. Used in MonoRepo mode.")
                 .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
@@ -1199,8 +1203,8 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
-                .WithName("GenerateProjectBootstrapPipeline")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(ProjectRouteNames.GenerateProjectBootstrapPipeline)
                 .WithSummary("Generate the Azure DevOps bootstrap pipeline for a project")
                 .WithDescription("Generates bootstrap.pipeline.yml â€” an idempotent Azure DevOps pipeline that provisions pipeline definitions, variable groups and authorizations via az devops CLI.")
                 .Produces<GenerateProjectBootstrapPipelineResponse>(StatusCodes.Status201Created)
@@ -1218,13 +1222,13 @@ public static class ProjectController
                         return result.Match(
                             value => Results.File(
                                 value.ZipContent,
-                                "application/zip",
+                                ZipContentType,
                                 value.FileName),
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
-                .WithName("DownloadProjectBootstrapPipeline")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(ProjectRouteNames.DownloadProjectBootstrapPipeline)
                 .WithSummary("Download the latest bootstrap pipeline as a ZIP archive")
                 .WithDescription("Returns a ZIP archive containing the latest generated bootstrap.pipeline.yml for the given project.")
                 .Produces<FileContentResult>(StatusCodes.Status200OK)
@@ -1249,7 +1253,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetProjectBootstrapPipelineFileContent")
+                .WithName(ProjectRouteNames.GetProjectBootstrapPipelineFileContent)
                 .WithSummary("Get generated bootstrap pipeline file content for a project")
                 .WithDescription("Reads the latest generated bootstrap pipeline file content for the given project and relative file path.")
                 .Produces(StatusCodes.Status200OK)
@@ -1274,8 +1278,8 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
-                .WithName("PushProjectBootstrapPipelineToGit")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(ProjectRouteNames.PushProjectBootstrapPipelineToGit)
                 .WithSummary("Push the bootstrap pipeline file to Git (Azure DevOps)")
                 .WithDescription("Pushes the latest generated bootstrap.pipeline.yml to the configured Git repository.")
                 .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
@@ -1300,7 +1304,8 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("PushProjectGeneratedArtifactsToGit")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(ProjectRouteNames.PushProjectGeneratedArtifactsToGit)
                 .WithSummary("Push generated project artifacts to Git in a single commit (mono-repo)")
                 .WithDescription("Pushes the latest project-level generated Bicep, pipeline, and bootstrap pipeline files to the configured Git repository in one provider call and one commit.")
                 .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
@@ -1349,7 +1354,8 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("PushProjectArtifactsToMultiRepo")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(ProjectRouteNames.PushProjectArtifactsToMultiRepo)
                 .WithSummary("Push project artifacts to one or two repositories (SplitInfraCode multi push)")
                 .WithDescription("Pushes the latest project-level generated artifacts to the requested infrastructure-flagged repository (Bicep + infra pipeline + bootstrap), the requested application-code repository (app pipeline files), or both in independent commits. Per-repo errors are reported in the response, not as HTTP errors.")
                 .Produces<PushMultiRepoArtifactsResponse>(StatusCodes.Status200OK)
@@ -1380,7 +1386,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListProjectPipelineVariableGroups")
+                .WithName(ProjectRouteNames.ListProjectPipelineVariableGroups)
                 .WithSummary("List project-level pipeline variable groups")
                 .WithDescription("Returns all Azure DevOps Variable Groups (Libraries) configured at project level, shared across all configurations.")
                 .Produces<IReadOnlyList<ProjectPipelineVariableGroupResponse>>(StatusCodes.Status200OK)
@@ -1405,7 +1411,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddProjectPipelineVariableGroup")
+                .WithName(ProjectRouteNames.AddProjectPipelineVariableGroup)
                 .WithSummary("Add a project-level pipeline variable group")
                 .WithDescription("Adds an Azure DevOps Variable Group (Library) reference to the project, shared across all configurations for pipeline generation.")
                 .Produces<ProjectPipelineVariableGroupResponse>(StatusCodes.Status201Created)
@@ -1426,7 +1432,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveProjectPipelineVariableGroup")
+                .WithName(ProjectRouteNames.RemoveProjectPipelineVariableGroup)
                 .WithSummary("Remove a project-level pipeline variable group")
                 .WithDescription("Removes a variable group from the project.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -1435,4 +1441,5 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status403Forbidden);
     }
 }
+
 

@@ -18,7 +18,7 @@ public sealed class ProjectEnvironmentDefinition : Entity<ProjectEnvironmentDefi
     public ProjectId ProjectId { get; set; } = null!;
 
     /// <summary>Navigation property to the parent project.</summary>
-    public Project Project { get; set; } = null!;
+    public Project? Project { get; set; }
 
     /// <summary>Gets the environment display name (e.g. "Development", "Staging", "Production").</summary>
     public required Name Name { get; set; }

@@ -96,8 +96,8 @@ internal static class AppReleasePipelineBuilder
                 sb.AppendLine("        variableGroups:");
                 foreach (var group in request.PipelineVariableGroups)
                 {
-                    var resolvedName = group.GroupName.Replace("{env}", envKey, StringComparison.OrdinalIgnoreCase);
-                    sb.AppendLine($"          - '{AppNamingHelper.EscapeForSingleQuotedYaml(resolvedName)}'");
+                    var resolvedName = PipelineVariableGroupNameHelper.ResolveYamlScalar(group.GroupName, envKey);
+                    sb.AppendLine($"          - {resolvedName}");
                 }
             }
             else

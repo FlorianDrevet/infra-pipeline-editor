@@ -14,6 +14,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 public static class RoleAssignmentController
@@ -46,7 +48,7 @@ public static class RoleAssignmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListRoleAssignments")
+                .WithName(RoleAssignmentRouteNames.ListRoleAssignments)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
@@ -75,7 +77,7 @@ public static class RoleAssignmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListAvailableRoleDefinitions")
+                .WithName(RoleAssignmentRouteNames.ListAvailableRoleDefinitions)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
@@ -100,7 +102,7 @@ public static class RoleAssignmentController
                             {
                                 var response = mapper.Map<RoleAssignmentResponse>(assignment);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "ListRoleAssignments",
+                                    routeName: RoleAssignmentRouteNames.ListRoleAssignments,
                                     routeValues: new { resourceId = resourceId },
                                     value: response
                                 );
@@ -108,7 +110,7 @@ public static class RoleAssignmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddRoleAssignment")
+                .WithName(RoleAssignmentRouteNames.AddRoleAssignment)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
@@ -135,7 +137,7 @@ public static class RoleAssignmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveRoleAssignment")
+                .WithName(RoleAssignmentRouteNames.RemoveRoleAssignment)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
@@ -165,7 +167,7 @@ public static class RoleAssignmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AnalyzeRoleAssignmentImpact")
+                .WithName(RoleAssignmentRouteNames.AnalyzeRoleAssignmentImpact)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
@@ -196,7 +198,7 @@ public static class RoleAssignmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateRoleAssignmentIdentity")
+                .WithName(RoleAssignmentRouteNames.UpdateRoleAssignmentIdentity)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
@@ -223,7 +225,7 @@ public static class RoleAssignmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AssignIdentityToResource")
+                .WithName(RoleAssignmentRouteNames.AssignIdentityToResource)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
@@ -246,7 +248,7 @@ public static class RoleAssignmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UnassignIdentityFromResource")
+                .WithName(RoleAssignmentRouteNames.UnassignIdentityFromResource)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
@@ -260,4 +262,5 @@ public static class RoleAssignmentController
         });
     }
 }
+
 

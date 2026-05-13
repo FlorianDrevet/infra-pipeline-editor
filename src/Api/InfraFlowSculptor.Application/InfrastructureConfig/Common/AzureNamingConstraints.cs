@@ -20,6 +20,11 @@ public sealed record AzureNamingConstraint(
 /// </summary>
 public static class AzureNamingConstraints
 {
+    private const string AlphanumericAndHyphensPattern = "[^a-zA-Z0-9\\-]";
+    private const string AlphanumericAndHyphensDescription = "alphanumeric characters and hyphens";
+    private const string LowercaseAlphanumericAndHyphensPattern = "[^a-z0-9\\-]";
+    private const string LowercaseAlphanumericAndHyphensDescription = "lowercase alphanumeric characters and hyphens";
+
     private static readonly Dictionary<string, AzureNamingConstraint> Constraints = new(StringComparer.OrdinalIgnoreCase)
     {
         [AzureResourceTypes.ContainerRegistry] = new(
@@ -38,14 +43,14 @@ public static class AzureNamingConstraints
 
         [AzureResourceTypes.KeyVault] = new(
             AzureResourceTypes.KeyVault,
-            new Regex("[^a-zA-Z0-9\\-]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
-            "alphanumeric characters and hyphens",
+            new Regex(AlphanumericAndHyphensPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
+            AlphanumericAndHyphensDescription,
             3, 24),
 
         [AzureResourceTypes.SqlServer] = new(
             AzureResourceTypes.SqlServer,
-            new Regex("[^a-z0-9\\-]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
-            "lowercase alphanumeric characters and hyphens",
+            new Regex(LowercaseAlphanumericAndHyphensPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
+            LowercaseAlphanumericAndHyphensDescription,
             1, 63),
 
         [AzureResourceTypes.SqlDatabase] = new(
@@ -56,32 +61,32 @@ public static class AzureNamingConstraints
 
         [AzureResourceTypes.CosmosDb] = new(
             AzureResourceTypes.CosmosDb,
-            new Regex("[^a-z0-9\\-]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
-            "lowercase alphanumeric characters and hyphens",
+            new Regex(LowercaseAlphanumericAndHyphensPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
+            LowercaseAlphanumericAndHyphensDescription,
             3, 44),
 
         [AzureResourceTypes.RedisCache] = new(
             AzureResourceTypes.RedisCache,
-            new Regex("[^a-zA-Z0-9\\-]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
-            "alphanumeric characters and hyphens",
+            new Regex(AlphanumericAndHyphensPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
+            AlphanumericAndHyphensDescription,
             1, 63),
 
         [AzureResourceTypes.ServiceBusNamespace] = new(
             AzureResourceTypes.ServiceBusNamespace,
-            new Regex("[^a-zA-Z0-9\\-]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
-            "alphanumeric characters and hyphens",
+            new Regex(AlphanumericAndHyphensPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
+            AlphanumericAndHyphensDescription,
             6, 50),
 
         [AzureResourceTypes.EventHubNamespace] = new(
             AzureResourceTypes.EventHubNamespace,
-            new Regex("[^a-zA-Z0-9\\-]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
-            "alphanumeric characters and hyphens",
+            new Regex(AlphanumericAndHyphensPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
+            AlphanumericAndHyphensDescription,
             6, 50),
 
         [AzureResourceTypes.LogAnalyticsWorkspace] = new(
             AzureResourceTypes.LogAnalyticsWorkspace,
-            new Regex("[^a-zA-Z0-9\\-]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
-            "alphanumeric characters and hyphens",
+            new Regex(AlphanumericAndHyphensPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
+            AlphanumericAndHyphensDescription,
             4, 63),
 
         [AzureResourceTypes.ApplicationInsights] = new(
@@ -92,20 +97,20 @@ public static class AzureNamingConstraints
 
         [AzureResourceTypes.AppServicePlan] = new(
             AzureResourceTypes.AppServicePlan,
-            new Regex("[^a-zA-Z0-9\\-]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
-            "alphanumeric characters and hyphens",
+            new Regex(AlphanumericAndHyphensPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
+            AlphanumericAndHyphensDescription,
             1, 40),
 
         [AzureResourceTypes.WebApp] = new(
             AzureResourceTypes.WebApp,
-            new Regex("[^a-zA-Z0-9\\-]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
-            "alphanumeric characters and hyphens",
+            new Regex(AlphanumericAndHyphensPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
+            AlphanumericAndHyphensDescription,
             2, 60),
 
         [AzureResourceTypes.FunctionApp] = new(
             AzureResourceTypes.FunctionApp,
-            new Regex("[^a-zA-Z0-9\\-]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
-            "alphanumeric characters and hyphens",
+            new Regex(AlphanumericAndHyphensPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
+            AlphanumericAndHyphensDescription,
             2, 60),
 
         [AzureResourceTypes.UserAssignedIdentity] = new(
@@ -122,14 +127,14 @@ public static class AzureNamingConstraints
 
         [AzureResourceTypes.ContainerAppEnvironment] = new(
             AzureResourceTypes.ContainerAppEnvironment,
-            new Regex("[^a-z0-9\\-]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
-            "lowercase alphanumeric characters and hyphens",
+            new Regex(LowercaseAlphanumericAndHyphensPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
+            LowercaseAlphanumericAndHyphensDescription,
             2, 32),
 
         [AzureResourceTypes.ContainerApp] = new(
             AzureResourceTypes.ContainerApp,
-            new Regex("[^a-z0-9\\-]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
-            "lowercase alphanumeric characters and hyphens",
+            new Regex(LowercaseAlphanumericAndHyphensPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250)),
+            LowercaseAlphanumericAndHyphensDescription,
             2, 32),
 
         [AzureResourceTypes.ResourceGroup] = new(

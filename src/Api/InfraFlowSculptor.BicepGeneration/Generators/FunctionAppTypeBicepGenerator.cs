@@ -36,8 +36,8 @@ public sealed class FunctionAppTypeBicepGenerator
   private const string LinuxFxVersionVariableName = "linuxFxVersion";
   private const string FunctionAppResourceSymbol = "functionApp";
   private const string HostNameBindingsResourceName = "hostNameBindings";
-  private const string FunctionAppArmType = "Microsoft.Web/sites@2023-12-01";
-  private const string HostNameBindingsArmType = "Microsoft.Web/sites/hostNameBindings@2023-12-01";
+  private const string FunctionAppArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.WebAppArmType;
+  private const string HostNameBindingsArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.HostNameBindingsArmType;
   private const string CodeDeploymentMode = "Code";
   private const string ContainerDeploymentMode = "Container";
   private const string DefaultRuntimeStack = "DOTNET";
@@ -93,7 +93,7 @@ public sealed class FunctionAppTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.FunctionApp;
+        => AzureResourceTypes.ArmTypes.FunctionAppType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.FunctionApp;
@@ -253,7 +253,7 @@ public sealed class FunctionAppTypeBicepGenerator
                     new BicepReference(AcrUserManagedIdentityIdParameterName),
                     new BicepRawExpression(NullExpression))));
         }
-        else if (isContainer && useAdminCredentials)
+              else if (useAdminCredentials)
         {
             siteConfigProps.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsParameterName,
                 new BicepBoolLiteral(false)));
@@ -327,22 +327,25 @@ public sealed class FunctionAppTypeBicepGenerator
         var useAdminCredentials = isContainer
             && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
 
-        var moduleFileName = isContainer
-            ? useAdminCredentials
-            ? AdminCredentialsModuleFileName
-            : ManagedIdentityModuleFileName
-          : ModuleName;
+        var moduleFileName = ModuleName;
+        var moduleBicepContent = FunctionAppCodeModuleTemplate;
+
+        if (isContainer)
+        {
+            moduleFileName = useAdminCredentials
+                ? AdminCredentialsModuleFileName
+                : ManagedIdentityModuleFileName;
+            moduleBicepContent = useAdminCredentials
+                ? FunctionAppContainerAdminCredentialsModuleTemplate
+                : FunctionAppContainerManagedIdentityModuleTemplate;
+        }
 
         return new GeneratedTypeModule
         {
           ModuleName = ModuleName,
             ModuleFileName = moduleFileName,
           ModuleFolderName = ModuleFolderName,
-            ModuleBicepContent = isContainer
-                ? useAdminCredentials
-                    ? FunctionAppContainerAdminCredentialsModuleTemplate
-                    : FunctionAppContainerManagedIdentityModuleTemplate
-                : FunctionAppCodeModuleTemplate,
+            ModuleBicepContent = moduleBicepContent,
             ModuleTypesBicepContent = FunctionAppTypesTemplate,
             ResourceTypeName = ResourceTypeName,
           SecureParameters = isContainer && useAdminCredentials ? [AcrPasswordParameterName] : [],
@@ -363,7 +366,7 @@ public sealed class FunctionAppTypeBicepGenerator
         type DeploymentMode = 'Code' | 'Container'
         """;
 
-    private const string FunctionAppCodeModuleTemplate = """
+    private static readonly string FunctionAppCodeModuleTemplate = $$"""
         import { RuntimeStack, WorkerRuntime } from './types.bicep'
 
         @description('Azure region for the Function App')
@@ -395,7 +398,7 @@ public sealed class FunctionAppTypeBicepGenerator
           ? (contains(runtimeVersion, 'isolated') ? 'dotnet-isolated' : 'dotnet')
           : toLower(runtimeStack)
 
-        resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
+        resource functionApp '{{FunctionAppArmType}}' = {
           name: name
           location: location
           kind: 'functionapp'
@@ -420,7 +423,7 @@ public sealed class FunctionAppTypeBicepGenerator
           }
         }
 
-        resource hostNameBindings 'Microsoft.Web/sites/hostNameBindings@2023-12-01' = [for domain in customDomains: {
+        resource hostNameBindings '{{HostNameBindingsArmType}}' = [for domain in customDomains: {
           parent: functionApp
           name: domain.domainName
           properties: {
@@ -443,7 +446,7 @@ public sealed class FunctionAppTypeBicepGenerator
         output customDomainVerificationId string = functionApp.properties.customDomainVerificationId
         """;
 
-    private const string FunctionAppContainerManagedIdentityModuleTemplate = """
+    private static readonly string FunctionAppContainerManagedIdentityModuleTemplate = $$"""
         import { RuntimeStack, WorkerRuntime } from './types.bicep'
 
         @description('Azure region for the Function App')
@@ -490,7 +493,7 @@ public sealed class FunctionAppTypeBicepGenerator
           ? (contains(runtimeVersion, 'isolated') ? 'dotnet-isolated' : 'dotnet')
           : toLower(runtimeStack)
 
-        resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
+        resource functionApp '{{FunctionAppArmType}}' = {
           name: name
           location: location
           kind: 'functionapp,linux,container'
@@ -517,7 +520,7 @@ public sealed class FunctionAppTypeBicepGenerator
           }
         }
 
-        resource hostNameBindings 'Microsoft.Web/sites/hostNameBindings@2023-12-01' = [for domain in customDomains: {
+        resource hostNameBindings '{{HostNameBindingsArmType}}' = [for domain in customDomains: {
           parent: functionApp
           name: domain.domainName
           properties: {
@@ -540,7 +543,7 @@ public sealed class FunctionAppTypeBicepGenerator
         output customDomainVerificationId string = functionApp.properties.customDomainVerificationId
         """;
 
-    private const string FunctionAppContainerAdminCredentialsModuleTemplate = """
+    private static readonly string FunctionAppContainerAdminCredentialsModuleTemplate = $$"""
         import { RuntimeStack, WorkerRuntime } from './types.bicep'
 
         @description('Azure region for the Function App')
@@ -586,7 +589,7 @@ public sealed class FunctionAppTypeBicepGenerator
           : toLower(runtimeStack)
         var acrUsername = split(acrLoginServer, '.')[0]
 
-        resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
+        resource functionApp '{{FunctionAppArmType}}' = {
           name: name
           location: location
           kind: 'functionapp,linux,container'
@@ -624,7 +627,7 @@ public sealed class FunctionAppTypeBicepGenerator
           }
         }
 
-        resource hostNameBindings 'Microsoft.Web/sites/hostNameBindings@2023-12-01' = [for domain in customDomains: {
+        resource hostNameBindings '{{HostNameBindingsArmType}}' = [for domain in customDomains: {
           parent: functionApp
           name: domain.domainName
           properties: {

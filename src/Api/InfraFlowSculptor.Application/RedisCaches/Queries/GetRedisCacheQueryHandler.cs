@@ -17,11 +17,11 @@ public class GetRedisCacheQueryHandler(
 {
     public async Task<ErrorOr<RedisCacheResult>> Handle(GetRedisCacheQuery query, CancellationToken cancellationToken)
     {
-        var redisCache = await redisCacheRepository.GetByIdAsync(query.Id, cancellationToken);
+        var redisCache = await redisCacheRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (redisCache is null)
             return Errors.RedisCache.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(redisCache.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(redisCache.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.RedisCache.NotFoundError(query.Id);
 

@@ -18,12 +18,12 @@ public class ListAvailableRoleDefinitionsQueryHandler(
         ListAvailableRoleDefinitionsQuery request,
         CancellationToken cancellationToken)
     {
-        var resource = await azureResourceRepository.GetByIdAsync(request.ResourceId, cancellationToken);
+        var resource = await azureResourceRepository.GetByIdReadOnlyAsync(request.ResourceId, cancellationToken);
 
         if (resource is null)
             return Errors.RoleAssignment.SourceResourceNotFound(request.ResourceId);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(
             resource.ResourceGroupId, cancellationToken);
 
         if (resourceGroup is null)

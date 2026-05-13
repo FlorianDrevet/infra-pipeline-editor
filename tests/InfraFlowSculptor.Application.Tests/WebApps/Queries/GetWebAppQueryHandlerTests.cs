@@ -64,7 +64,7 @@ public sealed class GetWebAppQueryHandlerTests
     public async Task Given_WebAppNotFound_When_Handle_Then_ReturnsNotFoundAsync()
     {
         // Arrange
-        _webAppRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _webAppRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns((WebApp?)null);
 
         // Act
@@ -79,9 +79,9 @@ public sealed class GetWebAppQueryHandlerTests
     public async Task Given_ReadAccessGranted_When_Handle_Then_MapsResultAsync()
     {
         // Arrange
-        _webAppRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _webAppRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(_webApp);
-        _resourceGroupRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _resourceGroupRepository.GetByIdReadOnlyAsync(_resourceGroup.Id, Arg.Any<CancellationToken>())
             .Returns(_resourceGroup);
         _accessService.VerifyReadAccessAsync(_config.Id, Arg.Any<CancellationToken>())
             .Returns(_config);

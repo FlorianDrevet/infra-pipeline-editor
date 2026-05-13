@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoints for the Container Registry resource.</summary>
@@ -40,7 +42,7 @@ public static class ContainerRegistryController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetContainerRegistry")
+                .WithName(ContainerRegistryRouteNames.GetContainerRegistry)
                 .WithSummary("Get a Container Registry")
                 .WithDescription("Returns the full details of a single Azure Container Registry resource.")
                 .Produces<ContainerRegistryResponse>(StatusCodes.Status200OK)
@@ -59,7 +61,7 @@ public static class ContainerRegistryController
                             {
                                 var response = mapper.Map<ContainerRegistryResponse>(cr);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetContainerRegistry",
+                                    routeName: ContainerRegistryRouteNames.GetContainerRegistry,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -67,7 +69,7 @@ public static class ContainerRegistryController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateContainerRegistry")
+                .WithName(ContainerRegistryRouteNames.CreateContainerRegistry)
                 .WithSummary("Create a Container Registry")
                 .WithDescription("Creates a new Azure Container Registry resource inside the specified Resource Group.")
                 .Produces<ContainerRegistryResponse>(StatusCodes.Status201Created)
@@ -91,7 +93,7 @@ public static class ContainerRegistryController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateContainerRegistry")
+                .WithName(ContainerRegistryRouteNames.UpdateContainerRegistry)
                 .WithSummary("Update a Container Registry")
                 .WithDescription("Replaces all mutable properties of an existing Container Registry.")
                 .Produces<ContainerRegistryResponse>(StatusCodes.Status200OK)
@@ -111,7 +113,7 @@ public static class ContainerRegistryController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteContainerRegistry")
+                .WithName(ContainerRegistryRouteNames.DeleteContainerRegistry)
                 .WithSummary("Delete a Container Registry")
                 .WithDescription("Permanently deletes an Azure Container Registry resource.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -137,7 +139,7 @@ public static class ContainerRegistryController
                             access => Results.Ok(mapper.Map<CheckAcrPullAccessResponse>(access)),
                             errors => errors.Result());
                     })
-                .WithName("CheckAcrPullAccess")
+                .WithName(ContainerRegistryRouteNames.CheckAcrPullAccess)
                 .WithSummary("Check ACR Pull access")
                 .WithDescription("Checks whether a compute resource has the AcrPull role assignment on the specified Container Registry.")
                 .Produces<CheckAcrPullAccessResponse>(StatusCodes.Status200OK)
@@ -147,3 +149,4 @@ public static class ContainerRegistryController
         });
     }
 }
+

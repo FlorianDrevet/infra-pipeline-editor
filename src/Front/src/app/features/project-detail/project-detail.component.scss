@@ -9,6 +9,14 @@
 
 :host {
   display: block;
+  --project-surface-header: color-mix(in srgb, var(--ifs-surface-1) 84%, var(--ifs-brand-700));
+  --project-surface-panel: color-mix(in srgb, var(--ifs-surface-1) 88%, var(--ifs-brand-700));
+  --project-surface-hover: color-mix(in srgb, var(--ifs-surface-2) 78%, var(--ifs-brand-700));
+  --project-surface-active: color-mix(in srgb, var(--ifs-surface-2) 64%, var(--ifs-brand-600));
+  --project-pill-surface: color-mix(in srgb, var(--ifs-surface-3) 72%, var(--ifs-brand-600));
+  --project-pill-active: color-mix(in srgb, var(--ifs-surface-2) 52%, var(--ifs-accent-500));
+  --project-border-accent: color-mix(in srgb, var(--ifs-border-subtle) 58%, var(--ifs-accent-500));
+  --project-border-strong: color-mix(in srgb, var(--ifs-border-strong) 54%, var(--ifs-accent-500));
 }
 
 // ─── Layout ─────────────────────────────────────────────────────────────────
@@ -31,9 +39,11 @@
   gap: var(--ifs-space-12);
   padding: var(--ifs-space-20) var(--ifs-space-24);
   background: var(--ifs-surface-1);
-  border: 1px solid var(--ifs-border-subtle);
+  background: var(--project-surface-header);
+  border: 1px solid var(--project-border-accent);
   border-radius: var(--ifs-radius-md);
   color: var(--ifs-text-primary);
+  box-shadow: var(--ifs-shadow-sm);
 }
 
 .detail-header__nav {
@@ -41,6 +51,8 @@
   justify-content: space-between;
   align-items: center;
   gap: var(--ifs-space-8);
+  padding-bottom: var(--ifs-space-12);
+  border-bottom: 1px solid var(--project-border-accent);
 }
 
 .detail-header__info {
@@ -50,10 +62,11 @@
 
   h1 {
     margin: 0;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 600;
     line-height: 1.2;
     color: var(--ifs-text-primary);
+    letter-spacing: -0.01em;
   }
 }
 
@@ -62,15 +75,22 @@
   font-size: 13px;
   color: var(--ifs-text-secondary);
   line-height: 1.5;
+  max-width: 62ch;
 }
 
 .detail-header__id {
   margin: 0;
+  width: fit-content;
+  padding: 4px 10px;
   font-size: 12px;
-  color: var(--ifs-text-muted);
+  color: var(--ifs-text-secondary);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-variant-numeric: tabular-nums;
   word-break: break-all;
+  border-radius: var(--ifs-radius-pill);
+  background: var(--ifs-surface-2);
+  background: var(--project-pill-surface);
+  border: 1px solid var(--project-border-accent);
 }
 
 .eyebrow {
@@ -80,8 +100,9 @@
   padding: 2px 8px;
   border-radius: var(--ifs-radius-sm);
   background: var(--ifs-surface-3);
-  border: 1px solid var(--ifs-border-subtle);
-  color: var(--ifs-text-secondary);
+  background: var(--project-pill-surface);
+  border: 1px solid var(--project-border-accent);
+  color: var(--ifs-accent-400);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -97,8 +118,9 @@
   height: 32px;
   padding: 0 var(--ifs-space-12);
   border-radius: var(--ifs-radius-md);
-  border: 1px solid var(--ifs-border-strong);
+  border: 1px solid var(--project-border-accent);
   background: var(--ifs-surface-2);
+  background: var(--project-surface-panel);
   color: var(--ifs-text-primary);
   font-family: inherit;
   font-size: 13px;
@@ -109,10 +131,14 @@
   transition:
     background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
     border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard),
     color var(--ifs-duration-fast) var(--ifs-ease-standard);
+  box-shadow: var(--ifs-shadow-sm);
 
   &:hover {
-    background: var(--ifs-surface-3);
+    background: var(--project-surface-hover);
+    border-color: var(--project-border-strong);
+    box-shadow: var(--ifs-shadow-md);
   }
 
   &:focus-visible {
@@ -136,12 +162,14 @@
 .ghost-button {
   @extend %detail-btn;
   background: transparent;
-  border-color: var(--ifs-border-subtle);
+  border-color: var(--project-border-accent);
   color: var(--ifs-text-secondary);
+  box-shadow: none;
 
   &:hover {
-    background: var(--ifs-surface-2);
+    background: var(--project-surface-hover);
     color: var(--ifs-text-primary);
+    box-shadow: var(--ifs-shadow-sm);
   }
 }
 
@@ -166,6 +194,9 @@
 .add-btn,
 .add-env-btn {
   @extend %detail-btn;
+  background: var(--ifs-surface-2);
+  background: var(--project-surface-hover);
+  border-color: var(--project-border-strong);
 
   &__icon {
     font-size: 16px;
@@ -178,11 +209,13 @@
 .push-btn {
   @extend %detail-btn;
   background: var(--ifs-surface-3);
+  background: var(--project-surface-active);
+  border-color: var(--project-border-strong);
 
   &:hover {
-    background: var(--ifs-surface-2);
+    background: color-mix(in srgb, var(--project-surface-active) 74%, var(--ifs-accent-500));
     border-color: var(--ifs-accent-500);
-    color: var(--ifs-accent-500);
+    color: var(--ifs-text-primary);
   }
 
   &__icon {
@@ -223,8 +256,9 @@
 
 .template-action-btn--add,
 .template-action-btn--inline {
-  color: var(--ifs-accent-500);
-  border-color: var(--ifs-border-subtle);
+  color: var(--ifs-accent-400);
+  border-color: var(--project-border-accent);
+  background: var(--project-surface-hover);
 }
 
 // ─── State cards ────────────────────────────────────────────────────────────
@@ -287,13 +321,16 @@
 .project-tabs,
 .generation-tabs {
   background: var(--ifs-surface-1);
-  border: 1px solid var(--ifs-border-subtle);
+  background: var(--project-surface-panel);
+  border: 1px solid var(--project-border-accent);
   border-radius: var(--ifs-radius-md);
   overflow: hidden;
+  box-shadow: var(--ifs-shadow-sm);
 
   ::ng-deep .mat-mdc-tab-header {
-    border-bottom: 1px solid var(--ifs-border-subtle);
+    border-bottom: 1px solid var(--project-border-accent);
     background: var(--ifs-surface-2);
+    background: color-mix(in srgb, var(--ifs-surface-2) 82%, var(--ifs-brand-700));
     padding: 0 var(--ifs-space-8);
   }
 
@@ -302,6 +339,15 @@
     padding: 0 var(--ifs-space-12);
     height: 40px;
     opacity: 1;
+    margin-top: var(--ifs-space-6);
+    border-radius: var(--ifs-radius-md) var(--ifs-radius-md) 0 0;
+    transition:
+      background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+      box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
+  }
+
+  ::ng-deep .mat-mdc-tab:hover {
+    background: var(--project-surface-hover);
   }
 
   ::ng-deep .mdc-tab__text-label {
@@ -311,9 +357,29 @@
     color: var(--ifs-text-secondary);
     font-weight: 500;
     font-size: 13px;
+    transition: color var(--ifs-duration-fast) var(--ifs-ease-standard);
+  }
+
+  ::ng-deep .mat-mdc-tab:hover .mdc-tab__text-label {
+    color: var(--ifs-text-primary);
   }
 
   ::ng-deep .mdc-tab--active .mdc-tab__text-label {
+    color: var(--ifs-text-primary);
+  }
+
+  ::ng-deep .mdc-tab--active {
+    background: var(--project-surface-active);
+    box-shadow: inset 0 0 0 1px var(--project-border-accent);
+  }
+
+  ::ng-deep .mdc-tab--active .tab-icon {
+    color: var(--ifs-accent-400);
+  }
+
+  ::ng-deep .mdc-tab--active .tab-count {
+    background: var(--project-pill-active);
+    border-color: var(--project-border-strong);
     color: var(--ifs-text-primary);
   }
 
@@ -343,7 +409,8 @@
   padding: 0 var(--ifs-space-6);
   border-radius: var(--ifs-radius-pill);
   background: var(--ifs-surface-3);
-  border: 1px solid var(--ifs-border-subtle);
+  background: var(--project-pill-surface);
+  border: 1px solid var(--project-border-accent);
   color: var(--ifs-text-secondary);
   font-size: 11px;
   font-weight: 600;
@@ -387,8 +454,10 @@
   gap: var(--ifs-space-12);
   padding: var(--ifs-space-16);
   background: var(--ifs-surface-1);
-  border: 1px solid var(--ifs-border-subtle);
+  background: var(--project-surface-panel);
+  border: 1px solid var(--project-border-accent);
   border-radius: var(--ifs-radius-md);
+  box-shadow: var(--ifs-shadow-sm);
 }
 
 .generation-panel--collapsed {
@@ -412,7 +481,8 @@
 
 .bicep-terminal {
   background: var(--ifs-bg);
-  border: 1px solid var(--ifs-border-subtle);
+  background: color-mix(in srgb, var(--ifs-bg) 88%, var(--ifs-brand-700));
+  border: 1px solid var(--project-border-accent);
   border-radius: var(--ifs-radius-md);
   overflow: hidden;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -425,7 +495,8 @@
   gap: var(--ifs-space-6);
   padding: var(--ifs-space-6) var(--ifs-space-12);
   background: var(--ifs-surface-2);
-  border-bottom: 1px solid var(--ifs-border-subtle);
+  background: var(--project-surface-hover);
+  border-bottom: 1px solid var(--project-border-accent);
 }
 
 .bicep-terminal__bar-title {
@@ -493,10 +564,15 @@
   gap: var(--ifs-space-8);
   padding: var(--ifs-space-16);
   background: var(--ifs-surface-1);
-  border: 1px solid var(--ifs-border-subtle);
+  background: var(--project-surface-panel);
+  border: 1px solid var(--project-border-accent);
   border-radius: var(--ifs-radius-md);
   color: var(--ifs-text-primary);
-  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard);
+  box-shadow: var(--ifs-shadow-sm);
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
 }
 
 .config-list,
@@ -515,7 +591,9 @@
   text-decoration: none;
 
   &:hover {
-    background: var(--ifs-surface-2);
+    background: var(--project-surface-hover);
+    border-color: var(--project-border-strong);
+    box-shadow: var(--ifs-shadow-md);
   }
 
   &__header {
@@ -541,7 +619,7 @@
   &__meta {
     display: flex;
     gap: var(--ifs-space-8);
-    color: var(--ifs-text-muted);
+    color: var(--ifs-text-secondary);
     font-size: 12px;
   }
 
@@ -557,6 +635,7 @@
     font-size: 18px;
     width: 18px;
     height: 18px;
+    transition: color var(--ifs-duration-fast) var(--ifs-ease-standard);
   }
 
   &__delete-btn {
@@ -571,6 +650,10 @@
       background: var(--ifs-danger-bg);
       border-color: var(--ifs-danger);
     }
+  }
+
+  &:hover &__arrow {
+    color: var(--ifs-accent-400);
   }
 }
 
@@ -686,7 +769,8 @@
     height: 20px;
     padding: 0 var(--ifs-space-6);
     border-radius: var(--ifs-radius-pill);
-    background: var(--ifs-surface-3);
+    background: var(--project-pill-surface);
+    border: 1px solid var(--project-border-accent);
     color: var(--ifs-text-secondary);
     font-size: 11px;
     font-weight: 600;

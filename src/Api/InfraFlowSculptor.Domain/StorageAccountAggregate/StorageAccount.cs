@@ -6,6 +6,7 @@ using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
+using System.Collections.ObjectModel;
 
 namespace InfraFlowSculptor.Domain.StorageAccountAggregate;
 
@@ -15,6 +16,9 @@ namespace InfraFlowSculptor.Domain.StorageAccountAggregate;
 /// </summary>
 public sealed class StorageAccount : AzureResource
 {
+    private static readonly CorsServiceType BlobCorsServiceType = new(CorsServiceType.Service.Blob);
+    private static readonly CorsServiceType TableCorsServiceType = new(CorsServiceType.Service.Table);
+
     private readonly List<BlobContainer> _blobContainers = [];
 
     /// <summary>Gets the blob containers in this storage account.</summary>
@@ -31,17 +35,28 @@ public sealed class StorageAccount : AzureResource
     public IReadOnlyList<StorageTable> Tables => _tables.AsReadOnly();
 
     private readonly List<CorsRule> _corsRules = [];
+    private readonly List<CorsRule> _blobCorsRules = [];
+    private readonly List<CorsRule> _tableCorsRules = [];
+    private readonly ReadOnlyCollection<CorsRule> _blobCorsRulesView;
+    private readonly ReadOnlyCollection<CorsRule> _tableCorsRulesView;
+    private bool _areFilteredCorsRuleViewsDirty = true;
 
     /// <summary>Gets all CORS rules (both Blob and Table service types).</summary>
     public IReadOnlyList<CorsRule> AllCorsRules => _corsRules.AsReadOnly();
 
     /// <summary>Gets CORS rules applicable to the Blob service.</summary>
-    public IReadOnlyList<CorsRule> GetBlobCorsRules() =>
-        _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Blob)).ToList();
+    public IReadOnlyList<CorsRule> GetBlobCorsRules()
+    {
+        EnsureFilteredCorsRuleViews();
+        return _blobCorsRulesView;
+    }
 
     /// <summary>Gets CORS rules applicable to the Table service.</summary>
-    public IReadOnlyList<CorsRule> GetTableCorsRules() =>
-        _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Table)).ToList();
+    public IReadOnlyList<CorsRule> GetTableCorsRules()
+    {
+        EnsureFilteredCorsRuleViews();
+        return _tableCorsRulesView;
+    }
 
     private readonly List<BlobLifecycleRule> _lifecycleRules = [];
 
@@ -73,6 +88,8 @@ public sealed class StorageAccount : AzureResource
 
     private StorageAccount()
     {
+        _blobCorsRulesView = _blobCorsRules.AsReadOnly();
+        _tableCorsRulesView = _tableCorsRules.AsReadOnly();
     }
 
     /// <summary>
@@ -141,8 +158,7 @@ public sealed class StorageAccount : AzureResource
         bool enableHttpsTrafficOnly,
         StorageAccountTlsVersion minimumTlsVersion)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
 
         if (IsExisting)
             return;
@@ -256,6 +272,33 @@ public sealed class StorageAccount : AzureResource
                 rule.ExposedHeaders,
                 rule.MaxAgeInSeconds));
         }
+
+        _areFilteredCorsRuleViewsDirty = true;
+    }
+
+    private void EnsureFilteredCorsRuleViews()
+    {
+        if (!_areFilteredCorsRuleViewsDirty)
+            return;
+
+        _blobCorsRules.Clear();
+        _tableCorsRules.Clear();
+
+        foreach (var rule in _corsRules)
+        {
+            if (rule.ServiceType == BlobCorsServiceType)
+            {
+                _blobCorsRules.Add(rule);
+                continue;
+            }
+
+            if (rule.ServiceType == TableCorsServiceType)
+            {
+                _tableCorsRules.Add(rule);
+            }
+        }
+
+        _areFilteredCorsRuleViewsDirty = false;
     }
 
     /// <summary>Creates a new Storage Account with resource-level configuration.</summary>

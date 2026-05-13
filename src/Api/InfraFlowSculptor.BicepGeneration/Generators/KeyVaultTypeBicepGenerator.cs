@@ -19,7 +19,7 @@ public sealed class KeyVaultTypeBicepGenerator
     private const string SkuNameTypeName = "SkuName";
     private const string SkuParameterName = "sku";
     private const string ResourceSymbol = "kv";
-    private const string KeyVaultArmType = "Microsoft.KeyVault/vaults@2023-07-01";
+    private const string KeyVaultArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.KeyVaultArmType;
     private const string DefaultSkuName = "standard";
     private const string SkuFamilyValue = "A";
     private const string TenantIdExpression = "subscription().tenantId";
@@ -39,7 +39,7 @@ public sealed class KeyVaultTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.KeyVault;
+        => AzureResourceTypes.ArmTypes.KeyVaultType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.KeyVault;
@@ -140,7 +140,7 @@ public sealed class KeyVaultTypeBicepGenerator
             @description('SKU of the Key Vault')
             param sku SkuName = 'standard'
 
-            resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
+            resource kv '{{KeyVaultArmType}}' = {
               name: name
               location: location
               properties: {

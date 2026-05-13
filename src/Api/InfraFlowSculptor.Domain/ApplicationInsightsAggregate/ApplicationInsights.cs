@@ -36,8 +36,7 @@ public sealed class ApplicationInsights : AzureResource
     /// <param name="logAnalyticsWorkspaceId">The identifier of the linked Log Analytics Workspace.</param>
     public void Update(Name name, Location location, AzureResourceId logAnalyticsWorkspaceId)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
 
         if (IsExisting)
             return;

@@ -37,8 +37,7 @@ public sealed class SqlDatabase : AzureResource
         AzureResourceId sqlServerId,
         string collation)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
 
         if (IsExisting)
             return;

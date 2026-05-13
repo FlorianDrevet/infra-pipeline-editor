@@ -12,11 +12,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
-public static class KeyVaultControllerController
+public static class KeyVaultController
 {
-    public static IApplicationBuilder UseKeyVaultControllerController(this IApplicationBuilder builder)
+    public static IApplicationBuilder UseKeyVaultController(this IApplicationBuilder builder)
     {
         return builder.UseEndpoints(endpoints =>
         {
@@ -38,7 +40,7 @@ public static class KeyVaultControllerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetKeyVault")
+                .WithName(KeyVaultRouteNames.GetKeyVault)
                 .WithSummary("Get a Key Vault")
                 .WithDescription("Returns the full details of a single Azure Key Vault resource.")
                 .Produces<KeyVaultResponse>(StatusCodes.Status200OK)
@@ -57,7 +59,7 @@ public static class KeyVaultControllerController
                             {
                                 var response = mapper.Map<KeyVaultResponse>(keyVault);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetKeyVault",
+                                    routeName: KeyVaultRouteNames.GetKeyVault,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -65,7 +67,7 @@ public static class KeyVaultControllerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateKeyVault")
+                .WithName(KeyVaultRouteNames.CreateKeyVault)
                 .WithSummary("Create a Key Vault")
                 .WithDescription("Creates a new Azure Key Vault resource inside the specified Resource Group. Requires Owner or Contributor access.")
                 .Produces<KeyVaultResponse>(StatusCodes.Status201Created)
@@ -89,7 +91,7 @@ public static class KeyVaultControllerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateKeyVault")
+                .WithName(KeyVaultRouteNames.UpdateKeyVault)
                 .WithSummary("Update a Key Vault")
                 .WithDescription("Replaces all mutable properties of an existing Key Vault. Requires Owner or Contributor access.")
                 .Produces<KeyVaultResponse>(StatusCodes.Status200OK)
@@ -109,7 +111,7 @@ public static class KeyVaultControllerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteKeyVault")
+                .WithName(KeyVaultRouteNames.DeleteKeyVault)
                 .WithSummary("Delete a Key Vault")
                 .WithDescription("Permanently deletes an Azure Key Vault resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -119,3 +121,4 @@ public static class KeyVaultControllerController
         });
     }
 }
+

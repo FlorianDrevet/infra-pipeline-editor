@@ -36,8 +36,8 @@ public sealed class AppSettingsAnalysisStageTests
         // Arrange
         var resources = new[]
         {
-            CreateResource("my-kv", AzureResourceTypes.ArmTypes.KeyVault),
-            CreateResource("my-webapp", AzureResourceTypes.ArmTypes.WebApp),
+            CreateResource("my-kv", AzureResourceTypes.ArmTypes.KeyVaultType),
+            CreateResource("my-webapp", AzureResourceTypes.ArmTypes.WebAppType),
         };
         var appSettings = new[]
         {
@@ -68,8 +68,8 @@ public sealed class AppSettingsAnalysisStageTests
         // Arrange
         var resources = new[]
         {
-            CreateResource("my-sql", AzureResourceTypes.ArmTypes.SqlServer),
-            CreateResource("my-webapp", AzureResourceTypes.ArmTypes.WebApp),
+            CreateResource("my-sql", AzureResourceTypes.ArmTypes.SqlServerType),
+            CreateResource("my-webapp", AzureResourceTypes.ArmTypes.WebAppType),
         };
         var appSettings = new[]
         {
@@ -100,7 +100,7 @@ public sealed class AppSettingsAnalysisStageTests
         // Arrange
         var resources = new[]
         {
-            CreateResource("my-webapp", AzureResourceTypes.ArmTypes.WebApp),
+            CreateResource("my-webapp", AzureResourceTypes.ArmTypes.WebAppType),
         };
         var appSettings = new[]
         {
@@ -127,8 +127,8 @@ public sealed class AppSettingsAnalysisStageTests
         // Arrange
         var resources = new[]
         {
-            CreateResource("my-kv", AzureResourceTypes.ArmTypes.KeyVault),
-            CreateResource("my-webapp", AzureResourceTypes.ArmTypes.WebApp),
+            CreateResource("my-kv", AzureResourceTypes.ArmTypes.KeyVaultType),
+            CreateResource("my-webapp", AzureResourceTypes.ArmTypes.WebAppType),
         };
         var appSettings = new[]
         {
@@ -149,7 +149,7 @@ public sealed class AppSettingsAnalysisStageTests
 
         // Assert
         context.AppSettings.ComputeArmTypesWithAppSettings
-            .Should().Contain(AzureResourceTypes.ArmTypes.WebApp);
+            .Should().Contain(AzureResourceTypes.ArmTypes.WebAppType);
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public sealed class AppSettingsAnalysisStageTests
         // Arrange — target is a Key Vault (not a compute type)
         var resources = new[]
         {
-            CreateResource("my-kv", AzureResourceTypes.ArmTypes.KeyVault),
+            CreateResource("my-kv", AzureResourceTypes.ArmTypes.KeyVaultType),
         };
         var appSettings = new[]
         {
@@ -184,8 +184,8 @@ public sealed class AppSettingsAnalysisStageTests
         // Arrange
         var resources = new[]
         {
-            CreateResource("my-kv", AzureResourceTypes.ArmTypes.KeyVault),
-            CreateResource("my-webapp", AzureResourceTypes.ArmTypes.WebApp),
+            CreateResource("my-kv", AzureResourceTypes.ArmTypes.KeyVaultType),
+            CreateResource("my-webapp", AzureResourceTypes.ArmTypes.WebAppType),
         };
         var appSettings = new[]
         {

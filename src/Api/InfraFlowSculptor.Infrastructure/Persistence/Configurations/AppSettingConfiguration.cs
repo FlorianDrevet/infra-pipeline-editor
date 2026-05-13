@@ -64,7 +64,9 @@ public sealed class AppSettingConfiguration : IEntityTypeConfiguration<AppSettin
             .WithMany()
             .HasForeignKey(s => s.SourceResourceId)
             .IsRequired(false)
-            .OnDelete(DeleteBehavior.Cascade);
+            // Deleting a referenced source resource should invalidate the mapping,
+            // not delete the app setting itself.
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne<AzureResource>()
             .WithMany()

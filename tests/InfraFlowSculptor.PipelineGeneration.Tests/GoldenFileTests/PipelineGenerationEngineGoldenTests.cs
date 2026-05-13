@@ -1,3 +1,4 @@
+using FluentAssertions;
 using InfraFlowSculptor.PipelineGeneration.Tests.Common;
 using InfraFlowSculptor.PipelineGeneration.Tests.Fixtures;
 
@@ -21,7 +22,8 @@ public sealed class PipelineGenerationEngineGoldenTests
         var result = _sut.Generate(request, "core", isMonoRepo: false);
 
         // Assert
-        GoldenFileAssertion.AssertDictionaryMatches(result.TemplateFiles, "Engine/standalone-default");
+        result.IsError.Should().BeFalse();
+        GoldenFileAssertion.AssertDictionaryMatches(result.Value.TemplateFiles, "Engine/standalone-default");
     }
 
     [Fact]
@@ -34,7 +36,8 @@ public sealed class PipelineGenerationEngineGoldenTests
         var result = _sut.Generate(request, "core", isMonoRepo: true);
 
         // Assert
-        GoldenFileAssertion.AssertDictionaryMatches(result.TemplateFiles, "Engine/monorepo-default");
+        result.IsError.Should().BeFalse();
+        GoldenFileAssertion.AssertDictionaryMatches(result.Value.TemplateFiles, "Engine/monorepo-default");
     }
 
     [Fact]
@@ -47,7 +50,8 @@ public sealed class PipelineGenerationEngineGoldenTests
         var result = _sut.Generate(request, "core", isMonoRepo: false);
 
         // Assert
-        GoldenFileAssertion.AssertDictionaryMatches(result.TemplateFiles, "Engine/standalone-with-vargroups");
+        result.IsError.Should().BeFalse();
+        GoldenFileAssertion.AssertDictionaryMatches(result.Value.TemplateFiles, "Engine/standalone-with-vargroups");
     }
 
     [Fact]

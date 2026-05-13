@@ -1,3 +1,4 @@
+using ErrorOr;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Tests.TestDoubles;
@@ -7,7 +8,7 @@ namespace InfraFlowSculptor.PipelineGeneration.Tests;
 public sealed class AppPipelineGenerationEngineValidationTests
 {
     [Fact]
-    public void Given_InvalidDeploymentMode_When_Generate_Then_ThrowsArgumentExceptionWithKnownValuesInMessage()
+    public void Given_InvalidDeploymentMode_When_Generate_Then_ReturnsValidationErrorWithKnownValuesInMessage()
     {
         // Arrange
         var sut = new AppPipelineGenerationEngine([]);
@@ -20,19 +21,19 @@ public sealed class AppPipelineGenerationEngineValidationTests
         };
 
         // Act
-        var act = () => sut.Generate(request);
+        var result = sut.Generate(request);
 
         // Assert
-        act.Should()
-            .Throw<ArgumentException>()
-            .Where(ex => ex.ParamName == nameof(request.DeploymentMode))
-            .Where(ex => ex.Message.Contains("Hybrid"))
-            .Where(ex => ex.Message.Contains(DeploymentModes.Code))
-            .Where(ex => ex.Message.Contains(DeploymentModes.Container));
+        result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.Validation);
+        result.FirstError.Code.Should().Be("Generation.InvalidDeploymentMode");
+        result.FirstError.Description.Should().Contain("Hybrid");
+        result.FirstError.Description.Should().Contain(DeploymentModes.Code);
+        result.FirstError.Description.Should().Contain(DeploymentModes.Container);
     }
 
     [Fact]
-    public void Given_KnownDeploymentModeButNoMatchingGenerator_When_Generate_Then_ThrowsInvalidOperationException()
+    public void Given_KnownDeploymentModeButNoMatchingGenerator_When_Generate_Then_ReturnsValidationError()
     {
         // Arrange
         var sut = new AppPipelineGenerationEngine([]);
@@ -45,12 +46,14 @@ public sealed class AppPipelineGenerationEngineValidationTests
         };
 
         // Act
-        var act = () => sut.Generate(request);
+    var result = sut.Generate(request);
 
         // Assert
-        act.Should()
-            .Throw<InvalidOperationException>()
-            .WithMessage("*WebApp*Code*");
+    result.IsError.Should().BeTrue();
+    result.FirstError.Type.Should().Be(ErrorType.Validation);
+    result.FirstError.Code.Should().Be("Generation.MissingAppPipelineGenerator");
+    result.FirstError.Description.Should().Contain("WebApp");
+    result.FirstError.Description.Should().Contain(DeploymentModes.Code);
     }
 
     [Fact]
@@ -76,9 +79,10 @@ public sealed class AppPipelineGenerationEngineValidationTests
         var result = sut.Generate(request);
 
         // Assert
+        result.IsError.Should().BeFalse();
         matchingGenerator.InvocationCount.Should().Be(1);
         unrelatedGenerator.InvocationCount.Should().Be(0);
         matchingGenerator.LastRequest.Should().BeSameAs(request);
-        result.Files.Should().ContainKey("stub.yml");
+        result.Value.Files.Should().ContainKey("stub.yml");
     }
 }

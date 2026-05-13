@@ -26,17 +26,6 @@
 				"--non-interactive"
 			]
 		},
-		"io.github.github/github-mcp-server": {
-			"type": "stdio",
-			"command": "npx",
-			"args": [
-				"-y",
-				"@modelcontextprotocol/server-github@0.33.0"
-			],
-			"env": {
-				"GITHUB_PERSONAL_ACCESS_TOKEN": "${input:token}"
-			}
-		},
 		"gitnexus": {
 			"type": "stdio",
 			"command": "cmd",
@@ -51,7 +40,7 @@
 			"command": "npx",
 			"args": [
 				"-y",
-				"@azure-devops/mcp@1.0.0",
+				"@azure-devops/mcp@latest",
 				"${input:ado_org}",
 				"-d",
 				"${input:ado_domain}"

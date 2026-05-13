@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Domain.Common.Errors;
@@ -25,24 +26,19 @@ public sealed class GetProjectBootstrapPipelineFileContentQueryHandler(
         if (accessResult.IsError)
             return accessResult.Errors;
 
-        var prefix = $"bootstrap/project/{query.ProjectId}/";
-        var allBlobs = await blobService.ListBlobsAsync(prefix);
+        var contentResult = await BlobDownloadHelper.GetLatestBlobContentAsync(
+            blobService,
+            blobPrefix: $"bootstrap/project/{query.ProjectId}/",
+            prefixSegmentCount: 4,
+            notFoundErrorFactory: Errors.Project.BootstrapFilesNotFoundError,
+            entityId: query.ProjectId,
+            options: new BlobDownloadHelper.LatestBlobContentOptions(
+                Errors.Project.BootstrapFileNotFoundError,
+                query.FilePath,
+                [query.FilePath]));
+        if (contentResult.IsError)
+            return contentResult.Errors;
 
-        if (allBlobs.Count == 0)
-            return Errors.Project.BootstrapFilesNotFoundError(query.ProjectId);
-
-        var latestPrefix = allBlobs
-            .Select(blobName => string.Join('/', blobName.Split('/').Take(4)))
-            .Distinct()
-            .OrderDescending()
-            .First();
-
-        var blobName = $"{latestPrefix}/{query.FilePath}";
-        var content = await blobService.DownloadContentAsync(blobName);
-
-        if (content is null)
-            return Errors.Project.BootstrapFileNotFoundError(query.FilePath);
-
-        return new GetProjectBootstrapPipelineFileContentResult(content);
+        return new GetProjectBootstrapPipelineFileContentResult(contentResult.Value);
     }
 }

@@ -46,10 +46,19 @@ $custom-theme: mat.define-theme((
     min-height: 100vh !important;
     height: 100% !important;
   }
+
+  body,
+  .mat-app-background {
+    background-color: var(--ifs-bg);
+    background-image: var(--ifs-app-backdrop);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    color: var(--ifs-text-primary);
+  }
+
   body {
     @apply m-0 p-0 flex flex-col;
-    background: var(--ifs-bg);
-    color: var(--ifs-text-primary);
   }
 }
 
@@ -274,6 +283,6 @@ $custom-theme: mat.define-theme((
 
 // --- Text selection ---
 ::selection {
-  background: rgba(58, 163, 201, 0.30);
+  background: rgba(70, 181, 255, 0.32);
   color: var(--ifs-text-on-brand);
 }

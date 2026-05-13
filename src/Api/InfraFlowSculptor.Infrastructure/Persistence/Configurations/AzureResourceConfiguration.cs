@@ -13,6 +13,8 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 
 public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource>
 {
+    private const int AzureResourceNameMaxLength = 260;
+
     public void Configure(EntityTypeBuilder<AzureResource> builder)
     {
         ConfigureUsersTable(builder);
@@ -31,11 +33,12 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
         
         builder.Property(x => x.Name)
             .IsRequired()
-            .HasConversion(new SingleValueConverter<Name, string>());
+            .HasConversion(new SingleValueConverter<Name, string>())
+            .HasMaxLength(AzureResourceNameMaxLength);
 
         builder.Property(x => x.CustomNameOverride)
             .IsRequired(false)
-            .HasMaxLength(260);
+            .HasMaxLength(AzureResourceNameMaxLength);
 
         builder.Property(x => x.IsExisting)
             .IsRequired()

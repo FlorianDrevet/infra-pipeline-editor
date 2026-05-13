@@ -10,6 +10,7 @@ namespace InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 public interface IStorageAccountRepository : IRepository<StorageAccount>
 {
     Task<StorageAccount?> GetByIdWithSubResourcesAsync(AzureResourceId id, CancellationToken cancellationToken = default);
+    Task<StorageAccount?> GetByIdWithSubResourcesReadOnlyAsync(AzureResourceId id, CancellationToken cancellationToken = default);
     Task<List<StorageAccount>> GetByResourceGroupIdAsync(ResourceGroupId resourceGroupId, CancellationToken cancellationToken = default);
 
     Task<BlobContainer> AddBlobContainerAsync(BlobContainer container);

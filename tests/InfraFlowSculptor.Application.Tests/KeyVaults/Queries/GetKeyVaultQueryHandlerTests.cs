@@ -53,7 +53,7 @@ public sealed class GetKeyVaultQueryHandlerTests
     public async Task Given_KeyVaultNotFound_When_Handle_Then_ReturnsNotFoundAsync()
     {
         // Arrange
-        _keyVaultRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _keyVaultRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns((KeyVault?)null);
 
         // Act
@@ -68,9 +68,9 @@ public sealed class GetKeyVaultQueryHandlerTests
     public async Task Given_ReadAccessDenied_When_Handle_Then_ReturnsNotFoundToHideExistenceAsync()
     {
         // Arrange
-        _keyVaultRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _keyVaultRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(_keyVault);
-        _resourceGroupRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _resourceGroupRepository.GetByIdReadOnlyAsync(_keyVault.ResourceGroupId, Arg.Any<CancellationToken>())
             .Returns(_resourceGroup);
         _accessService.VerifyReadAccessAsync(_config.Id, Arg.Any<CancellationToken>())
             .Returns(Errors.InfrastructureConfig.ForbiddenError());
@@ -81,15 +81,19 @@ public sealed class GetKeyVaultQueryHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
+        await _resourceGroupRepository.Received(1)
+            .GetByIdReadOnlyAsync(_keyVault.ResourceGroupId, Arg.Any<CancellationToken>());
+        await _resourceGroupRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Given_ReadAccessGranted_When_Handle_Then_MapsResultAsync()
     {
         // Arrange
-        _keyVaultRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _keyVaultRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(_keyVault);
-        _resourceGroupRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _resourceGroupRepository.GetByIdReadOnlyAsync(_keyVault.ResourceGroupId, Arg.Any<CancellationToken>())
             .Returns(_resourceGroup);
         _accessService.VerifyReadAccessAsync(_config.Id, Arg.Any<CancellationToken>())
             .Returns(_config);
@@ -100,5 +104,9 @@ public sealed class GetKeyVaultQueryHandlerTests
         // Assert
         result.IsError.Should().BeFalse();
         _mapper.Received(1).Map<KeyVaultResult>(_keyVault);
+        await _resourceGroupRepository.Received(1)
+            .GetByIdReadOnlyAsync(_keyVault.ResourceGroupId, Arg.Any<CancellationToken>());
+        await _resourceGroupRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
     }
 }

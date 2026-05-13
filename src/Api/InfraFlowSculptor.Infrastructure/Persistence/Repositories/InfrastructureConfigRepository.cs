@@ -16,6 +16,16 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
     {
     }
 
+    public async Task<InfrastructureConfig?> GetByIdReadOnlyAsync(
+        InfrastructureConfigId id,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.InfrastructureConfigs
+            .AsNoTracking()
+            .Include(c => c.Repositories)
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+    }
+
     /// <summary>Override to eagerly load the per-config Repositories collection (MultiRepo layout).</summary>
     public override async Task<InfrastructureConfig?> GetByIdAsync(
         Domain.Common.Models.ValueObject id, CancellationToken cancellationToken = default)
@@ -31,6 +41,14 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
     public async Task<InfrastructureConfig?> GetByIdWithMembersAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default)
     {
         return await Context.InfrastructureConfigs
+            .Include(c => c.CrossConfigReferences)
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+    }
+
+    public async Task<InfrastructureConfig?> GetByIdWithMembersReadOnlyAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default)
+    {
+        return await Context.InfrastructureConfigs
+            .AsNoTracking()
             .Include(c => c.CrossConfigReferences)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
@@ -68,6 +86,23 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
         return await Context.InfrastructureConfigs
             .AsNoTracking()
             .Where(c => Context.ProjectMembers.Any(pm => pm.ProjectId == c.ProjectId && pm.UserId == userId))
+            .Select(c => new InfraConfigSummary(c.Id.Value, c.Name.Value))
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<InfraConfigSummary>> GetConfigSummariesByIdsAsync(
+        IReadOnlyList<InfrastructureConfigId> ids,
+        CancellationToken cancellationToken = default)
+    {
+        if (ids.Count == 0)
+            return [];
+
+        var distinctIds = ids.Distinct().ToList();
+
+        return await Context.InfrastructureConfigs
+            .AsNoTracking()
+            .Where(c => distinctIds.Contains(c.Id))
             .Select(c => new InfraConfigSummary(c.Id.Value, c.Name.Value))
             .ToListAsync(cancellationToken);
     }

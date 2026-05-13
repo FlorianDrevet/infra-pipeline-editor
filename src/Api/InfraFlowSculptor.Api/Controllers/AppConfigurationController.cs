@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoints for the App Configuration resource.</summary>
@@ -39,7 +41,7 @@ public static class AppConfigurationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetAppConfiguration")
+                .WithName(AppConfigurationRouteNames.GetAppConfiguration)
                 .WithSummary("Get an App Configuration")
                 .WithDescription("Returns the full details of a single Azure App Configuration resource.")
                 .Produces<AppConfigurationResponse>(StatusCodes.Status200OK)
@@ -58,7 +60,7 @@ public static class AppConfigurationController
                             {
                                 var response = mapper.Map<AppConfigurationResponse>(appConfiguration);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetAppConfiguration",
+                                    routeName: AppConfigurationRouteNames.GetAppConfiguration,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -66,7 +68,7 @@ public static class AppConfigurationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateAppConfiguration")
+                .WithName(AppConfigurationRouteNames.CreateAppConfiguration)
                 .WithSummary("Create an App Configuration")
                 .WithDescription("Creates a new Azure App Configuration resource inside the specified Resource Group. Requires Owner or Contributor access.")
                 .Produces<AppConfigurationResponse>(StatusCodes.Status201Created)
@@ -90,7 +92,7 @@ public static class AppConfigurationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateAppConfiguration")
+                .WithName(AppConfigurationRouteNames.UpdateAppConfiguration)
                 .WithSummary("Update an App Configuration")
                 .WithDescription("Replaces all mutable properties of an existing App Configuration. Requires Owner or Contributor access.")
                 .Produces<AppConfigurationResponse>(StatusCodes.Status200OK)
@@ -110,7 +112,7 @@ public static class AppConfigurationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteAppConfiguration")
+                .WithName(AppConfigurationRouteNames.DeleteAppConfiguration)
                 .WithSummary("Delete an App Configuration")
                 .WithDescription("Permanently deletes an Azure App Configuration resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -120,3 +122,4 @@ public static class AppConfigurationController
         });
     }
 }
+

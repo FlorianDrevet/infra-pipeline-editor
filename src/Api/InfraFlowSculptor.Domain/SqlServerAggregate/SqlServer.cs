@@ -33,8 +33,7 @@ public sealed class SqlServer : AzureResource
     /// <summary>Updates the mutable properties of this SQL Server.</summary>
     public void Update(Name name, Location location, SqlServerVersion version, string administratorLogin)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
 
         if (IsExisting)
             return;

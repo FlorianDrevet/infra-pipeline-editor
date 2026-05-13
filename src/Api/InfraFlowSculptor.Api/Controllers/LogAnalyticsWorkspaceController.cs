@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+using InfraFlowSculptor.Api.Controllers.Common;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoints for the Log Analytics Workspace resource.</summary>
@@ -41,7 +44,7 @@ public static class LogAnalyticsWorkspaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetLogAnalyticsWorkspace")
+                .WithName(LogAnalyticsWorkspaceRouteNames.GetLogAnalyticsWorkspace)
                 .WithSummary("Get a Log Analytics Workspace")
                 .WithDescription("Returns the full details of a single Azure Log Analytics Workspace resource.")
                 .Produces<LogAnalyticsWorkspaceResponse>(StatusCodes.Status200OK)
@@ -60,7 +63,7 @@ public static class LogAnalyticsWorkspaceController
                             {
                                 var response = mapper.Map<LogAnalyticsWorkspaceResponse>(law);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetLogAnalyticsWorkspace",
+                                    routeName: LogAnalyticsWorkspaceRouteNames.GetLogAnalyticsWorkspace,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -68,7 +71,7 @@ public static class LogAnalyticsWorkspaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateLogAnalyticsWorkspace")
+                .WithName(LogAnalyticsWorkspaceRouteNames.CreateLogAnalyticsWorkspace)
                 .WithSummary("Create a Log Analytics Workspace")
                 .WithDescription("Creates a new Azure Log Analytics Workspace resource inside the specified Resource Group.")
                 .Produces<LogAnalyticsWorkspaceResponse>(StatusCodes.Status201Created)
@@ -92,7 +95,7 @@ public static class LogAnalyticsWorkspaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateLogAnalyticsWorkspace")
+                .WithName(LogAnalyticsWorkspaceRouteNames.UpdateLogAnalyticsWorkspace)
                 .WithSummary("Update a Log Analytics Workspace")
                 .WithDescription("Replaces all mutable properties of an existing Log Analytics Workspace.")
                 .Produces<LogAnalyticsWorkspaceResponse>(StatusCodes.Status200OK)
@@ -112,7 +115,7 @@ public static class LogAnalyticsWorkspaceController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteLogAnalyticsWorkspace")
+                .WithName(LogAnalyticsWorkspaceRouteNames.DeleteLogAnalyticsWorkspace)
                 .WithSummary("Delete a Log Analytics Workspace")
                 .WithDescription("Permanently deletes an Azure Log Analytics Workspace resource.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -120,24 +123,10 @@ public static class LogAnalyticsWorkspaceController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            group.MapGet("/{id:guid}/dependents",
-                    async ([FromRoute] Guid id, IMediator mediator) =>
-                    {
-                        var query = new GetDependentResourcesQuery(new AzureResourceId(id));
-                        var result = await mediator.Send(query);
-
-                        return result.Match(
-                            dependents => Results.Ok(dependents.Select(d =>
-                                new DependentResourceResponse(d.Id.ToString(), d.Name, d.ResourceType)).ToList()),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("GetLogAnalyticsWorkspaceDependents")
-                .WithSummary("Get dependent resources")
-                .WithDescription("Returns all resources that depend on this Log Analytics Workspace and would be deleted alongside it.")
-                .Produces<List<DependentResourceResponse>>(StatusCodes.Status200OK)
-                .ProducesProblem(StatusCodes.Status401Unauthorized)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
+            group.MapDependentResourcesEndpoint(
+                LogAnalyticsWorkspaceRouteNames.GetLogAnalyticsWorkspaceDependents,
+                "Log Analytics Workspace");
         });
     }
 }
+

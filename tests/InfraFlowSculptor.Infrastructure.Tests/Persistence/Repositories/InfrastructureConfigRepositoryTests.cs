@@ -1,9 +1,11 @@
 using FluentAssertions;
+using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
@@ -110,6 +112,40 @@ public sealed class InfrastructureConfigRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task Given_StoredConfig_When_GetByIdWithMembersReadOnlyAsync_Then_ReturnsDetachedConfig_Async()
+    {
+        // Arrange
+        var config = InfrastructureConfig.Create(new Name(ConfigName), ProjectId.CreateUnique());
+        await _context.InfrastructureConfigs.AddAsync(config);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetByIdWithMembersReadOnlyAsync(config.Id, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(config.Id);
+        _context.Entry(result).State.Should().Be(EntityState.Detached);
+    }
+
+    [Fact]
+    public async Task Given_StoredConfig_When_GetByIdReadOnlyAsync_Then_ReturnsDetachedConfig_Async()
+    {
+        // Arrange
+        var config = InfrastructureConfig.Create(new Name(ConfigName), ProjectId.CreateUnique());
+        await _context.InfrastructureConfigs.AddAsync(config);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetByIdReadOnlyAsync(config.Id, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(config.Id);
+        _context.Entry(result).State.Should().Be(EntityState.Detached);
+    }
+
+    [Fact]
     public async Task Given_StoredConfigsForProject_When_GetByProjectIdAsync_Then_ReturnsOnlyMatching_Async()
     {
         // Arrange
@@ -143,5 +179,37 @@ public sealed class InfrastructureConfigRepositoryTests : IDisposable
         // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(config.Id);
+    }
+
+    [Fact]
+    public async Task Given_StoredConfigs_When_GetConfigSummariesByIdsAsync_Then_ReturnsOnlyRequestedSummaries_Async()
+    {
+        // Arrange
+        var projectId = ProjectId.CreateUnique();
+        var first = InfrastructureConfig.Create(new Name(ConfigName), projectId);
+        var second = InfrastructureConfig.Create(new Name(OtherConfigName), projectId);
+        var unrelated = InfrastructureConfig.Create(new Name("shared-test"), ProjectId.CreateUnique());
+
+        await _context.InfrastructureConfigs.AddRangeAsync(first, second, unrelated);
+        await _context.SaveChangesAsync();
+
+        var requestedIds = new List<InfrastructureConfigId>
+        {
+            first.Id,
+            second.Id,
+            first.Id,
+        };
+
+        // Act
+        var result = await _sut.GetConfigSummariesByIdsAsync(requestedIds);
+
+        // Assert
+        result.Should().BeEquivalentTo(
+            new[]
+            {
+                new InfraConfigSummary(first.Id.Value, first.Name.Value),
+                new InfraConfigSummary(second.Id.Value, second.Name.Value),
+            },
+            options => options.WithoutStrictOrdering());
     }
 }

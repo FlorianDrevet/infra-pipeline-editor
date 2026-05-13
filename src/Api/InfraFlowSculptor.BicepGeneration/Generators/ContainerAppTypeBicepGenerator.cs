@@ -47,7 +47,7 @@ public sealed class ContainerAppTypeBicepGenerator
     private const string CustomDomainBindingsVariableName = "customDomainBindings";
     private const string AcrUsernameVariableName = "acrUsername";
     private const string AcrPasswordSecretNameVariableName = "acrPasswordSecretName";
-    private const string ContainerAppArmType = "Microsoft.App/containerApps@2024-03-01";
+    private const string ContainerAppArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.ContainerAppArmType;
     private const string DefaultContainerImage = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest";
     private const string DefaultContainerCpuCores = "0.25";
     private const string DefaultContainerMemoryGi = "0.5Gi";
@@ -319,7 +319,7 @@ public sealed class ContainerAppTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.ContainerApp;
+        => AzureResourceTypes.ArmTypes.ContainerAppType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.ContainerApp;
@@ -381,22 +381,28 @@ public sealed class ContainerAppTypeBicepGenerator
           parameters = parameters with { CustomDomains = [] };
         }
 
-        var moduleFileName = hasAcr
-            ? useAdminCredentials
-                ? AdminCredentialsModuleFileName
-                : ManagedIdentityModuleFileName
-            : ModuleName;
+        var moduleFileName = ModuleName;
+        if (hasAcr)
+        {
+          moduleFileName = useAdminCredentials
+            ? AdminCredentialsModuleFileName
+            : ManagedIdentityModuleFileName;
+        }
+
+        var moduleBicepContent = ContainerAppModuleTemplate;
+        if (hasAcr)
+        {
+          moduleBicepContent = useAdminCredentials
+            ? ContainerAppWithAcrAdminCredentialsModuleTemplate
+            : ContainerAppWithAcrManagedIdentityModuleTemplate;
+        }
 
         return new GeneratedTypeModule
         {
             ModuleName = ModuleName,
             ModuleFileName = moduleFileName,
             ModuleFolderName = ModuleFolderName,
-            ModuleBicepContent = hasAcr
-                ? useAdminCredentials
-                    ? ContainerAppWithAcrAdminCredentialsModuleTemplate
-                    : ContainerAppWithAcrManagedIdentityModuleTemplate
-                : ContainerAppModuleTemplate,
+          ModuleBicepContent = moduleBicepContent,
             ModuleTypesBicepContent = ContainerAppTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = BicepParameterModelConverter.ToDictionary(parameters),
@@ -495,7 +501,7 @@ public sealed class ContainerAppTypeBicepGenerator
         }
         """;
 
-    private const string ContainerAppModuleTemplate = """
+    private static readonly string ContainerAppModuleTemplate = $$"""
         import { ContainerRuntimeConfig, ScalingConfig, IngressConfig, HealthProbeConfig } from './types.bicep'
 
         @description('Azure region for the Container App')
@@ -527,7 +533,7 @@ public sealed class ContainerAppTypeBicepGenerator
           bindingType: domain.bindingType
         }]
 
-        resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+        resource containerApp '{{ContainerAppArmType}}' = {
           name: name
           location: location
           properties: {
@@ -592,7 +598,7 @@ public sealed class ContainerAppTypeBicepGenerator
         output latestRevisionFqdn string = containerApp.properties.latestRevisionFqdn
         """;
 
-    private const string ContainerAppWithAcrManagedIdentityModuleTemplate = """
+    private static readonly string ContainerAppWithAcrManagedIdentityModuleTemplate = $$"""
         import { ContainerRuntimeConfig, ScalingConfig, IngressConfig, HealthProbeConfig } from './types.bicep'
 
         @description('Azure region for the Container App')
@@ -630,7 +636,7 @@ public sealed class ContainerAppTypeBicepGenerator
           bindingType: domain.bindingType
         }]
 
-        resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+        resource containerApp '{{ContainerAppArmType}}' = {
           name: name
           location: location
           properties: {
@@ -701,7 +707,7 @@ public sealed class ContainerAppTypeBicepGenerator
         output latestRevisionFqdn string = containerApp.properties.latestRevisionFqdn
         """;
 
-    private const string ContainerAppWithAcrAdminCredentialsModuleTemplate = """
+    private static readonly string ContainerAppWithAcrAdminCredentialsModuleTemplate = $$"""
         import { ContainerRuntimeConfig, ScalingConfig, IngressConfig, HealthProbeConfig } from './types.bicep'
 
         @description('Azure region for the Container App')
@@ -742,7 +748,7 @@ public sealed class ContainerAppTypeBicepGenerator
         var acrUsername = split(acrLoginServer, '.')[0]
         var acrPasswordSecretName = 'acr-password'
 
-        resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+        resource containerApp '{{ContainerAppArmType}}' = {
           name: name
           location: location
           properties: {

@@ -1,4 +1,5 @@
 using InfraFlowSculptor.GenerationCore;
+using InfraFlowSculptor.BicepGeneration.Constants;
 
 namespace InfraFlowSculptor.BicepGeneration.Helpers;
 
@@ -83,49 +84,30 @@ internal static class ResourceTypeMetadata
     /// Returns the API version to use for <c>existing</c> resource declarations by ARM resource type.
     /// </summary>
     internal static string GetExistingResourceApiVersion(string armResourceType) =>
-        armResourceType switch
-        {
-            "Microsoft.KeyVault/vaults" => "2023-07-01",
-            "Microsoft.Cache/Redis" => "2024-03-01",
-            "Microsoft.Storage/storageAccounts" => "2023-05-01",
-            "Microsoft.Web/serverfarms" => "2023-12-01",
-            "Microsoft.Web/sites" => "2023-12-01",
-            "Microsoft.Web/sites/functionapp" => "2023-12-01",
-            "Microsoft.ManagedIdentity/userAssignedIdentities" => "2023-01-31",
-            "Microsoft.AppConfiguration/configurationStores" => "2023-03-01",
-            "Microsoft.App/managedEnvironments" => "2024-03-01",
-            "Microsoft.App/containerApps" => "2024-03-01",
-            "Microsoft.OperationalInsights/workspaces" => "2023-09-01",
-            "Microsoft.Insights/components" => "2020-02-02",
-            "Microsoft.DocumentDB/databaseAccounts" => "2024-05-15",
-            "Microsoft.Sql/servers" => "2023-08-01-preview",
-            "Microsoft.Sql/servers/databases" => "2023-08-01-preview",
-            "Microsoft.ServiceBus/namespaces" => "2022-10-01-preview",
-            _ => "2023-01-01"
-        };
+        BicepArmTypeCatalog.GetExistingResourceApiVersion(armResourceType);
 
     internal static string GetBaseModuleName(string resourceType)
     {
         return resourceType switch
         {
-            AzureResourceTypes.ArmTypes.KeyVault => "keyVault",
-            AzureResourceTypes.ArmTypes.RedisCache => "redisCache",
-            AzureResourceTypes.ArmTypes.StorageAccount => "storageAccount",
-            AzureResourceTypes.ArmTypes.AppServicePlan => "appServicePlan",
-            AzureResourceTypes.ArmTypes.WebApp => "webApp",
-            AzureResourceTypes.ArmTypes.FunctionApp => "functionApp",
-            AzureResourceTypes.ArmTypes.UserAssignedIdentity => "userAssignedIdentity",
-            AzureResourceTypes.ArmTypes.AppConfiguration => "appConfiguration",
-            AzureResourceTypes.ArmTypes.ContainerAppEnvironment => "containerAppEnvironment",
-            AzureResourceTypes.ArmTypes.ContainerApp => "containerApp",
-            AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace => "logAnalyticsWorkspace",
-            AzureResourceTypes.ArmTypes.ApplicationInsights => "applicationInsights",
-            AzureResourceTypes.ArmTypes.CosmosDb => "cosmosDb",
-            AzureResourceTypes.ArmTypes.SqlServer => "sqlServer",
-            AzureResourceTypes.ArmTypes.SqlDatabase => "sqlDatabase",
-            AzureResourceTypes.ArmTypes.ServiceBusNamespace => "serviceBusNamespace",
-            AzureResourceTypes.ArmTypes.ContainerRegistry => "containerRegistry",
-            AzureResourceTypes.ArmTypes.EventHubNamespace => "eventHubNamespace",
+            AzureResourceTypes.ArmTypes.KeyVaultType => "keyVault",
+            AzureResourceTypes.ArmTypes.RedisCacheType => "redisCache",
+            AzureResourceTypes.ArmTypes.StorageAccountType => "storageAccount",
+            AzureResourceTypes.ArmTypes.AppServicePlanType => "appServicePlan",
+            AzureResourceTypes.ArmTypes.WebAppType => "webApp",
+            AzureResourceTypes.ArmTypes.FunctionAppType => "functionApp",
+            AzureResourceTypes.ArmTypes.UserAssignedIdentityType => "userAssignedIdentity",
+            AzureResourceTypes.ArmTypes.AppConfigurationType => "appConfiguration",
+            AzureResourceTypes.ArmTypes.ContainerAppEnvironmentType => "containerAppEnvironment",
+            AzureResourceTypes.ArmTypes.ContainerAppType => "containerApp",
+            AzureResourceTypes.ArmTypes.LogAnalyticsWorkspaceType => "logAnalyticsWorkspace",
+            AzureResourceTypes.ArmTypes.ApplicationInsightsType => "applicationInsights",
+            AzureResourceTypes.ArmTypes.CosmosDbType => "cosmosDb",
+            AzureResourceTypes.ArmTypes.SqlServerType => "sqlServer",
+            AzureResourceTypes.ArmTypes.SqlDatabaseType => "sqlDatabase",
+            AzureResourceTypes.ArmTypes.ServiceBusNamespaceType => "serviceBusNamespace",
+            AzureResourceTypes.ArmTypes.ContainerRegistryType => "containerRegistry",
+            AzureResourceTypes.ArmTypes.EventHubNamespaceType => "eventHubNamespace",
             _ => "unknown"
         };
     }

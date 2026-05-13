@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+using InfraFlowSculptor.Api.Controllers.Common;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>Minimal API endpoint definitions for the App Service Plan feature.</summary>
@@ -41,7 +44,7 @@ public static class AppServicePlanController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetAppServicePlan")
+                .WithName(AppServicePlanRouteNames.GetAppServicePlan)
                 .WithSummary("Get an App Service Plan")
                 .WithDescription("Returns the full details of a single Azure App Service Plan resource.")
                 .Produces<AppServicePlanResponse>(StatusCodes.Status200OK)
@@ -60,7 +63,7 @@ public static class AppServicePlanController
                             {
                                 var response = mapper.Map<AppServicePlanResponse>(plan);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "GetAppServicePlan",
+                                    routeName: AppServicePlanRouteNames.GetAppServicePlan,
                                     routeValues: new { id = response.Id },
                                     value: response
                                 );
@@ -68,7 +71,7 @@ public static class AppServicePlanController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateAppServicePlan")
+                .WithName(AppServicePlanRouteNames.CreateAppServicePlan)
                 .WithSummary("Create an App Service Plan")
                 .WithDescription("Creates a new Azure App Service Plan resource. Requires Owner or Contributor access.")
                 .Produces<AppServicePlanResponse>(StatusCodes.Status201Created)
@@ -92,7 +95,7 @@ public static class AppServicePlanController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateAppServicePlan")
+                .WithName(AppServicePlanRouteNames.UpdateAppServicePlan)
                 .WithSummary("Update an App Service Plan")
                 .WithDescription("Replaces all mutable properties of an existing App Service Plan. Requires Owner or Contributor access.")
                 .Produces<AppServicePlanResponse>(StatusCodes.Status200OK)
@@ -112,7 +115,7 @@ public static class AppServicePlanController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteAppServicePlan")
+                .WithName(AppServicePlanRouteNames.DeleteAppServicePlan)
                 .WithSummary("Delete an App Service Plan")
                 .WithDescription("Permanently deletes an Azure App Service Plan resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
@@ -120,24 +123,10 @@ public static class AppServicePlanController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            group.MapGet("/{id:guid}/dependents",
-                    async ([FromRoute] Guid id, IMediator mediator) =>
-                    {
-                        var query = new GetDependentResourcesQuery(new AzureResourceId(id));
-                        var result = await mediator.Send(query);
-
-                        return result.Match(
-                            dependents => Results.Ok(dependents.Select(d =>
-                                new DependentResourceResponse(d.Id.ToString(), d.Name, d.ResourceType)).ToList()),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("GetAppServicePlanDependents")
-                .WithSummary("Get dependent resources")
-                .WithDescription("Returns all resources that depend on this App Service Plan and would be deleted alongside it.")
-                .Produces<List<DependentResourceResponse>>(StatusCodes.Status200OK)
-                .ProducesProblem(StatusCodes.Status401Unauthorized)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
+            group.MapDependentResourcesEndpoint(
+                AppServicePlanRouteNames.GetAppServicePlanDependents,
+                "App Service Plan");
         });
     }
 }
+

@@ -15,45 +15,48 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
     {
     }
 
-    public override async Task<StorageAccount?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
+    public override async Task<StorageAccount?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
-        return await Context.Set<StorageAccount>()
-            .Include(s => s.DependsOn)
-            .Include(s => s.EnvironmentSettings)
-            .Include(s => s.BlobContainers)
-            .Include(s => s.AllCorsRules)
-            .Include(s => s.LifecycleRules)
-            .Include(s => s.Queues)
-            .Include(s => s.Tables)
+        return await WithSubResources(Context.Set<StorageAccount>())
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+    }
+
+    public override async Task<StorageAccount?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken = default)
+    {
+        return await WithSubResources(Context.Set<StorageAccount>().AsNoTracking())
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
     public async Task<StorageAccount?> GetByIdWithSubResourcesAsync(AzureResourceId id, CancellationToken cancellationToken = default)
     {
-        return await Context.Set<StorageAccount>()
-            .Include(s => s.DependsOn)
-            .Include(s => s.EnvironmentSettings)
-            .Include(s => s.BlobContainers)
-            .Include(s => s.AllCorsRules)
-            .Include(s => s.LifecycleRules)
-            .Include(s => s.Queues)
-            .Include(s => s.Tables)
+        return await WithSubResources(Context.Set<StorageAccount>())
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+    }
+
+    public async Task<StorageAccount?> GetByIdWithSubResourcesReadOnlyAsync(AzureResourceId id, CancellationToken cancellationToken = default)
+    {
+        return await WithSubResources(Context.Set<StorageAccount>().AsNoTracking())
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
     public async Task<List<StorageAccount>> GetByResourceGroupIdAsync(ResourceGroupId resourceGroupId, CancellationToken cancellationToken = default)
     {
-        return await Context.Set<StorageAccount>()
+        return await WithSubResources(Context.Set<StorageAccount>())
+            .Where(s => s.ResourceGroupId == resourceGroupId)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    private static IQueryable<StorageAccount> WithSubResources(IQueryable<StorageAccount> query)
+    {
+        return query
             .Include(s => s.DependsOn)
             .Include(s => s.EnvironmentSettings)
             .Include(s => s.BlobContainers)
             .Include(s => s.AllCorsRules)
             .Include(s => s.LifecycleRules)
             .Include(s => s.Queues)
-            .Include(s => s.Tables)
-            .Where(s => s.ResourceGroupId == resourceGroupId)
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+            .Include(s => s.Tables);
     }
 
     public Task<BlobContainer> AddBlobContainerAsync(BlobContainer container)

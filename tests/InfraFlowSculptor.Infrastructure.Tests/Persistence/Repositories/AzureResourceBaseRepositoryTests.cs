@@ -70,6 +70,77 @@ public sealed class AzureResourceBaseRepositoryTests
             value => value.EnvironmentName == ProductionEnvironmentName && value.Value == ProductionValue);
     }
 
+    [Fact]
+    public async Task Given_StoredResource_When_GetByIdReadOnlyAsync_Then_ReturnsDetachedResource_Async()
+    {
+        // Arrange
+        var databaseRoot = new InMemoryDatabaseRoot();
+        var databaseName = $"test_{Guid.NewGuid()}";
+        var resource = CreateWebApp();
+
+        await using (var seedContext = CreateContext(databaseName, databaseRoot))
+        {
+            await seedContext.AzureResources.AddAsync(resource);
+            await seedContext.SaveChangesAsync();
+        }
+
+        AzureResource? result;
+
+        // Act
+        await using (var queryContext = CreateContext(databaseName, databaseRoot))
+        {
+            var sut = new AzureResourceBaseRepository(queryContext);
+            result = await sut.GetByIdReadOnlyAsync(resource.Id, CancellationToken.None);
+            queryContext.Entry(result!).State.Should().Be(EntityState.Detached);
+        }
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(resource.Id);
+    }
+
+    [Fact]
+    public async Task Given_StaticAppSettingWithEnvironmentValues_When_GetByIdWithRoleAssignmentsAndAppSettingsReadOnlyAsync_Then_LoadsEnvironmentValuesAndReturnsDetached_Async()
+    {
+        // Arrange
+        var databaseRoot = new InMemoryDatabaseRoot();
+        var databaseName = $"test_{Guid.NewGuid()}";
+        var resource = CreateWebApp();
+        resource.AddRoleAssignment(
+            AzureResourceId.CreateUnique(),
+            new ManagedIdentityType(ManagedIdentityType.IdentityTypeEnum.SystemAssigned),
+            "role-definition-id");
+        resource.AddStaticAppSetting(
+            StaticAppSettingName,
+            new Dictionary<string, string>
+            {
+                [DevelopmentEnvironmentName] = DevelopmentValue,
+                [ProductionEnvironmentName] = ProductionValue,
+            });
+
+        await using (var seedContext = CreateContext(databaseName, databaseRoot))
+        {
+            await seedContext.AzureResources.AddAsync(resource);
+            await seedContext.SaveChangesAsync();
+        }
+
+        AzureResource? result;
+
+        // Act
+        await using (var queryContext = CreateContext(databaseName, databaseRoot))
+        {
+            var sut = new AzureResourceBaseRepository(queryContext);
+            result = await sut.GetByIdWithRoleAssignmentsAndAppSettingsReadOnlyAsync(resource.Id, CancellationToken.None);
+            queryContext.Entry(result!).State.Should().Be(EntityState.Detached);
+        }
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.RoleAssignments.Should().ContainSingle();
+        result.AppSettings.Should().ContainSingle();
+        result.AppSettings.Single().EnvironmentValues.Should().HaveCount(2);
+    }
+
     private static ProjectDbContext CreateContext(string databaseName, InMemoryDatabaseRoot databaseRoot)
     {
         var options = new DbContextOptionsBuilder<ProjectDbContext>()

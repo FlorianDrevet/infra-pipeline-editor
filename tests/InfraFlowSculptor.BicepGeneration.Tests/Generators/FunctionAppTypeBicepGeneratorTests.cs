@@ -23,7 +23,7 @@ public sealed class FunctionAppTypeBicepGeneratorTests
         {
             ResourceId = Guid.NewGuid(),
             Name = "my-func",
-            Type = AzureResourceTypes.ArmTypes.FunctionApp,
+            Type = AzureResourceTypes.ArmTypes.FunctionAppType,
             ResourceGroupName = "rg-test",
             ResourceAbbreviation = "func",
             Properties = props,
@@ -67,7 +67,7 @@ public sealed class FunctionAppTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.FunctionApp);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.FunctionAppType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.FunctionApp);
     }
 

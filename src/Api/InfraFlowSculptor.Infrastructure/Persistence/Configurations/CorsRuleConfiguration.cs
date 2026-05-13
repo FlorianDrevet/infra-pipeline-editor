@@ -9,6 +9,8 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 
 public class CorsRuleConfiguration : IEntityTypeConfiguration<CorsRule>
 {
+    private const string TextArrayColumnType = "text[]";
+
     public void Configure(EntityTypeBuilder<CorsRule> builder)
     {
         builder.ToTable("StorageAccountCorsRules");
@@ -27,20 +29,28 @@ public class CorsRuleConfiguration : IEntityTypeConfiguration<CorsRule>
             .HasConversion(new EnumValueConverter<CorsServiceType, CorsServiceType.Service>())
             .IsRequired();
 
-        builder.Property(cr => cr.AllowedOrigins)
-            .HasColumnType("text[]")
+        builder.Property<List<string>>("_allowedOrigins")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasColumnName(nameof(CorsRule.AllowedOrigins))
+            .HasColumnType(TextArrayColumnType)
             .IsRequired();
 
-        builder.Property(cr => cr.AllowedMethods)
-            .HasColumnType("text[]")
+        builder.Property<List<string>>("_allowedMethods")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasColumnName(nameof(CorsRule.AllowedMethods))
+            .HasColumnType(TextArrayColumnType)
             .IsRequired();
 
-        builder.Property(cr => cr.AllowedHeaders)
-            .HasColumnType("text[]")
+        builder.Property<List<string>>("_allowedHeaders")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasColumnName(nameof(CorsRule.AllowedHeaders))
+            .HasColumnType(TextArrayColumnType)
             .IsRequired();
 
-        builder.Property(cr => cr.ExposedHeaders)
-            .HasColumnType("text[]")
+        builder.Property<List<string>>("_exposedHeaders")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasColumnName(nameof(CorsRule.ExposedHeaders))
+            .HasColumnType(TextArrayColumnType)
             .IsRequired();
 
         builder.Property(cr => cr.MaxAgeInSeconds)

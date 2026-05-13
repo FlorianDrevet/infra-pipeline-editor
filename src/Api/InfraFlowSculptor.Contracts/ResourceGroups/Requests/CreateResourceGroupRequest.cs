@@ -12,7 +12,7 @@ public class CreateResourceGroupRequest
     public required Guid InfraConfigId { get; init; }
 
     /// <summary>Display name for the Resource Group.</summary>
-    [Required] public required string Name { get; init; }
+    [Required, StringLength(90)] public required string Name { get; init; }
 
     /// <summary>Azure region where the Resource Group will be created (e.g. "westeurope").</summary>
     [Required, EnumValidation(typeof(Location.LocationEnum))]

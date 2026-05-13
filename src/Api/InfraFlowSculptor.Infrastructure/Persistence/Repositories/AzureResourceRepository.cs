@@ -19,4 +19,12 @@ public class AzureResourceRepository<TEntity>: BaseRepository<TEntity, ProjectDb
             .Include(r => r.DependsOn)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
+
+        public override async Task<TEntity?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken = default)
+        {
+            return await Context.Set<TEntity>()
+                .AsNoTracking()
+                .Include(r => r.DependsOn)
+                .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+        }
 }

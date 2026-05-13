@@ -44,7 +44,7 @@ public sealed class GetResourceGroupQueryHandlerTests
     public async Task Given_ResourceGroupNotFound_When_Handle_Then_ReturnsNotFoundAsync()
     {
         // Arrange
-        _repository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _repository.GetByIdReadOnlyAsync(Arg.Any<ResourceGroupId>(), Arg.Any<CancellationToken>())
             .Returns((DomainResourceGroup?)null);
         var query = new GetResourceGroupQuery(_resourceGroup.Id);
 
@@ -60,7 +60,7 @@ public sealed class GetResourceGroupQueryHandlerTests
     public async Task Given_ReadAccessDenied_When_Handle_Then_ReturnsNotFoundToHideExistenceAsync()
     {
         // Arrange
-        _repository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _repository.GetByIdReadOnlyAsync(Arg.Any<ResourceGroupId>(), Arg.Any<CancellationToken>())
             .Returns(_resourceGroup);
         _accessService.VerifyReadAccessAsync(_config.Id, Arg.Any<CancellationToken>())
             .Returns(Errors.InfrastructureConfig.ForbiddenError());
@@ -78,7 +78,7 @@ public sealed class GetResourceGroupQueryHandlerTests
     public async Task Given_ReadAccessGranted_When_Handle_Then_ReturnsMappedResultAsync()
     {
         // Arrange
-        _repository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+        _repository.GetByIdReadOnlyAsync(Arg.Any<ResourceGroupId>(), Arg.Any<CancellationToken>())
             .Returns(_resourceGroup);
         _accessService.VerifyReadAccessAsync(_config.Id, Arg.Any<CancellationToken>())
             .Returns(_config);
@@ -97,5 +97,9 @@ public sealed class GetResourceGroupQueryHandlerTests
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().BeSameAs(expectedDto);
+        await _repository.Received(1)
+            .GetByIdReadOnlyAsync(query.Id, Arg.Any<CancellationToken>());
+        await _repository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
     }
 }

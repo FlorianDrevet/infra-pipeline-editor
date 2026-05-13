@@ -9,6 +9,8 @@ using InfraFlowSculptor.Contracts.Imports.Requests;
 using InfraFlowSculptor.Contracts.Imports.Responses;
 using MediatR;
 
+using InfraFlowSculptor.Api.Controllers.Constants;
+
 namespace InfraFlowSculptor.Api.Controllers;
 
 /// <summary>
@@ -38,7 +40,7 @@ public static class ImportController
                             value => Results.Ok(ToResponse(value)),
                             errors => errors.Result());
                     })
-                .WithName("PreviewIacImport")
+                .WithName(ImportRouteNames.PreviewIacImport)
                 .Produces<PreviewIacImportResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -67,7 +69,7 @@ public static class ImportController
                             value => Results.Ok(ToResponse(value)),
                             errors => errors.Result());
                     })
-                .WithName("ApplyImportPreview")
+                .WithName(ImportRouteNames.ApplyImportPreview)
                 .Produces<ApplyImportPreviewResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)

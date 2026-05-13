@@ -105,6 +105,15 @@ public sealed record GeneratedTypeModule
         new Dictionary<string, (string Name, string ResourceTypeName)>();
 
     /// <summary>
+    /// Maps a Bicep parameter name in this module to a parent resource module output that should be passed.
+    /// Example: <c>"acrLoginServer" → ("infraflowsculptor", "ContainerRegistry", "loginServer")</c>
+    /// generates <c>acrLoginServer: containerRegistryInfraflowsculptorModule.outputs.loginServer</c>
+    /// in <c>main.bicep</c>.
+    /// </summary>
+    public IReadOnlyDictionary<string, (string Name, string ResourceTypeName, string OutputName)> ParentModuleOutputReferences { get; init; } =
+        new Dictionary<string, (string Name, string ResourceTypeName, string OutputName)>();
+
+    /// <summary>
     /// Maps a Bicep parameter name in this module to the logical name of a cross-configuration
     /// existing resource whose <c>.id</c> property should be passed.
     /// Example: <c>"logAnalyticsWorkspaceId" → "ifs"</c> generates
@@ -112,6 +121,16 @@ public sealed record GeneratedTypeModule
     /// </summary>
     public IReadOnlyDictionary<string, string> ExistingResourceIdReferences { get; init; } =
         new Dictionary<string, string>();
+
+    /// <summary>
+    /// Maps a Bicep parameter name in this module to the logical name and property path of a
+    /// cross-configuration existing resource whose property value should be passed.
+    /// Example: <c>"acrLoginServer" → ("infraflowsculptor", "properties.loginServer")</c>
+    /// generates <c>acrLoginServer: existing_infraflowsculptor.properties.loginServer</c>
+    /// in <c>main.bicep</c>.
+    /// </summary>
+    public IReadOnlyDictionary<string, (string ResourceName, string PropertyPath)> ExistingResourcePropertyReferences { get; init; } =
+        new Dictionary<string, (string ResourceName, string PropertyPath)>();
 
     private static string NormalizePrimaryModuleFileName(string moduleFileName)
     {

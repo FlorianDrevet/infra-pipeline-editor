@@ -66,6 +66,203 @@ public sealed class ParentReferenceResolutionStageTests
     }
 
     [Fact]
+    public void Given_ContainerAppWithInConfigContainerRegistry_When_Execute_Then_ComputesAcrLoginServerFromParentModuleOutput()
+    {
+        // Arrange
+        var containerRegistryId = Guid.NewGuid();
+        var containerAppResource = new ResourceDefinition
+        {
+            ResourceId = Guid.NewGuid(),
+            Name = "ifs-frontend",
+            Type = AzureResourceTypes.ArmTypes.ContainerAppType,
+            Properties = new Dictionary<string, string>
+            {
+                ["containerRegistryId"] = containerRegistryId.ToString(),
+            },
+        };
+
+        var context = new BicepGenerationContext
+        {
+            Request = new GenerationRequest
+            {
+                Resources =
+                [
+                    containerAppResource,
+                    new ResourceDefinition
+                    {
+                        ResourceId = containerRegistryId,
+                        Name = "infraflowsculptor",
+                        Type = AzureResourceTypes.ArmTypes.ContainerRegistryType,
+                    },
+                ],
+            },
+            ResourceIdToInfo = new Dictionary<Guid, (string Name, string ResourceTypeName)>
+            {
+                [containerRegistryId] = ("infraflowsculptor", AzureResourceTypes.ContainerRegistry),
+            },
+        };
+
+        context.WorkItems.Add(new ModuleWorkItem
+        {
+            Resource = containerAppResource,
+            Module = new GeneratedTypeModule
+            {
+                Parameters = new Dictionary<string, object>
+                {
+                    ["acrLoginServer"] = string.Empty,
+                    ["acrManagedIdentityClientId"] = string.Empty,
+                },
+            },
+            Spec = CreateMinimalSpec(),
+        });
+
+        // Act
+        _sut.Execute(context);
+
+        // Assert
+        var module = context.WorkItems[0].Module;
+        module.ParentModuleOutputReferences.Should().ContainKey("acrLoginServer");
+        module.ParentModuleOutputReferences["acrLoginServer"].Name.Should().Be("infraflowsculptor");
+        module.ParentModuleOutputReferences["acrLoginServer"].ResourceTypeName.Should().Be(AzureResourceTypes.ContainerRegistry);
+        module.ParentModuleOutputReferences["acrLoginServer"].OutputName.Should().Be("loginServer");
+        module.Parameters.Should().NotContainKey("acrLoginServer");
+        module.Parameters.Should().ContainKey("acrManagedIdentityClientId");
+    }
+
+    [Fact]
+    public void Given_ContainerAppWithCrossConfigContainerRegistry_When_Execute_Then_ComputesAcrLoginServerFromExistingResourceProperty()
+    {
+        // Arrange
+        var containerAppResource = new ResourceDefinition
+        {
+            ResourceId = Guid.NewGuid(),
+            Name = "ifs-frontend",
+            Type = AzureResourceTypes.ArmTypes.ContainerAppType,
+            Properties = new Dictionary<string, string>
+            {
+                ["containerRegistryId"] = Guid.NewGuid().ToString(),
+            },
+        };
+
+        var context = new BicepGenerationContext
+        {
+            Request = new GenerationRequest
+            {
+                Resources = [containerAppResource],
+                ExistingResourceReferences =
+                [
+                    new ExistingResourceReference
+                    {
+                        ResourceName = "infraflowsculptor",
+                        ResourceTypeName = AzureResourceTypes.ContainerRegistry,
+                        ResourceType = AzureResourceTypes.ArmTypes.ContainerRegistryType,
+                        ResourceGroupName = "ifs-core",
+                        ResourceAbbreviation = "acr",
+                    },
+                ],
+            },
+            ResourceIdToInfo = [],
+        };
+
+        context.WorkItems.Add(new ModuleWorkItem
+        {
+            Resource = containerAppResource,
+            Module = new GeneratedTypeModule
+            {
+                Parameters = new Dictionary<string, object>
+                {
+                    ["acrLoginServer"] = string.Empty,
+                    ["acrManagedIdentityClientId"] = string.Empty,
+                },
+            },
+            Spec = CreateMinimalSpec(),
+        });
+
+        // Act
+        _sut.Execute(context);
+
+        // Assert
+        var module = context.WorkItems[0].Module;
+        module.ExistingResourcePropertyReferences.Should().ContainKey("acrLoginServer");
+        module.ExistingResourcePropertyReferences["acrLoginServer"].ResourceName.Should().Be("infraflowsculptor");
+        module.ExistingResourcePropertyReferences["acrLoginServer"].PropertyPath.Should().Be("properties.loginServer");
+        module.Parameters.Should().NotContainKey("acrLoginServer");
+        module.Parameters.Should().ContainKey("acrManagedIdentityClientId");
+    }
+
+    [Fact]
+    public void Given_ContainerAppWithMultipleExistingContainerRegistries_When_Execute_Then_UsesMatchingTargetResourceIdForAcrLoginServer()
+    {
+        // Arrange
+        var firstContainerRegistryId = Guid.NewGuid();
+        var secondContainerRegistryId = Guid.NewGuid();
+
+        var containerAppResource = new ResourceDefinition
+        {
+            ResourceId = Guid.NewGuid(),
+            Name = "ifs-worker",
+            Type = AzureResourceTypes.ArmTypes.ContainerAppType,
+            Properties = new Dictionary<string, string>
+            {
+                ["containerRegistryId"] = secondContainerRegistryId.ToString(),
+            },
+        };
+
+        var context = new BicepGenerationContext
+        {
+            Request = new GenerationRequest
+            {
+                Resources = [containerAppResource],
+                ExistingResourceReferences =
+                [
+                    new ExistingResourceReference
+                    {
+                        ResourceName = "acr-primary",
+                        ResourceTypeName = AzureResourceTypes.ContainerRegistry,
+                        ResourceType = AzureResourceTypes.ArmTypes.ContainerRegistryType,
+                        ResourceGroupName = "rg-primary",
+                        ResourceAbbreviation = "acr",
+                        TargetResourceId = firstContainerRegistryId,
+                    },
+                    new ExistingResourceReference
+                    {
+                        ResourceName = "acr-secondary",
+                        ResourceTypeName = AzureResourceTypes.ContainerRegistry,
+                        ResourceType = AzureResourceTypes.ArmTypes.ContainerRegistryType,
+                        ResourceGroupName = "rg-secondary",
+                        ResourceAbbreviation = "acr",
+                        TargetResourceId = secondContainerRegistryId,
+                    },
+                ],
+            },
+            ResourceIdToInfo = [],
+        };
+
+        context.WorkItems.Add(new ModuleWorkItem
+        {
+            Resource = containerAppResource,
+            Module = new GeneratedTypeModule
+            {
+                Parameters = new Dictionary<string, object>
+                {
+                    ["acrLoginServer"] = string.Empty,
+                    ["acrManagedIdentityClientId"] = string.Empty,
+                },
+            },
+            Spec = CreateMinimalSpec(),
+        });
+
+        // Act
+        _sut.Execute(context);
+
+        // Assert
+        var module = context.WorkItems[0].Module;
+        module.ExistingResourcePropertyReferences.Should().ContainKey("acrLoginServer");
+        module.ExistingResourcePropertyReferences["acrLoginServer"].ResourceName.Should().Be("acr-secondary");
+        module.ExistingResourcePropertyReferences["acrLoginServer"].PropertyPath.Should().Be("properties.loginServer");
+    }
+
+    [Fact]
     public void Given_ResourceWithSqlServerId_When_Execute_Then_ParentModuleNameRefResolved()
     {
         // Arrange

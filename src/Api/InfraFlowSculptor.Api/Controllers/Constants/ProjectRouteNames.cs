@@ -1,0 +1,56 @@
+namespace InfraFlowSculptor.Api.Controllers.Constants;
+
+internal static class ProjectRouteNames
+{
+    internal const string ListMyProjects = nameof(ListMyProjects);
+    internal const string GetProject = nameof(GetProject);
+    internal const string CreateProject = nameof(CreateProject);
+    internal const string CreateProjectWithSetup = nameof(CreateProjectWithSetup);
+    internal const string ListProjectConfigs = nameof(ListProjectConfigs);
+    internal const string ListProjectUsers = nameof(ListProjectUsers);
+    internal const string AddProjectMember = nameof(AddProjectMember);
+    internal const string UpdateProjectMemberRole = nameof(UpdateProjectMemberRole);
+    internal const string RemoveProjectMember = nameof(RemoveProjectMember);
+    internal const string AddProjectEnvironment = nameof(AddProjectEnvironment);
+    internal const string UpdateProjectEnvironment = nameof(UpdateProjectEnvironment);
+    internal const string RemoveProjectEnvironment = nameof(RemoveProjectEnvironment);
+    internal const string SetProjectDefaultNamingTemplate = nameof(SetProjectDefaultNamingTemplate);
+    internal const string SetProjectResourceNamingTemplate = nameof(SetProjectResourceNamingTemplate);
+    internal const string RemoveProjectResourceNamingTemplate = nameof(RemoveProjectResourceNamingTemplate);
+    internal const string SetProjectResourceAbbreviation = nameof(SetProjectResourceAbbreviation);
+    internal const string RemoveProjectResourceAbbreviation = nameof(RemoveProjectResourceAbbreviation);
+    internal const string SetProjectTags = nameof(SetProjectTags);
+    internal const string DeleteProject = nameof(DeleteProject);
+    internal const string ValidateRecentItems = nameof(ValidateRecentItems);
+    internal const string TestGitConnection = nameof(TestGitConnection);
+    internal const string ListGitBranches = nameof(ListGitBranches);
+    internal const string ListCodeRepoBranches = nameof(ListCodeRepoBranches);
+    internal const string SearchCodeRepoFiles = nameof(SearchCodeRepoFiles);
+    internal const string ListProjectResources = nameof(ListProjectResources);
+    internal const string SetProjectAgentPool = nameof(SetProjectAgentPool);
+    internal const string AddProjectRepository = nameof(AddProjectRepository);
+    internal const string UpdateProjectRepository = nameof(UpdateProjectRepository);
+    internal const string RemoveProjectRepository = nameof(RemoveProjectRepository);
+    internal const string SetProjectLayoutPreset = nameof(SetProjectLayoutPreset);
+    internal const string SetInfraConfigLayoutMode = nameof(SetInfraConfigLayoutMode);
+    internal const string AddInfraConfigRepository = nameof(AddInfraConfigRepository);
+    internal const string UpdateInfraConfigRepository = nameof(UpdateInfraConfigRepository);
+    internal const string RemoveInfraConfigRepository = nameof(RemoveInfraConfigRepository);
+    internal const string GenerateProjectBicep = nameof(GenerateProjectBicep);
+    internal const string DownloadProjectBicep = nameof(DownloadProjectBicep);
+    internal const string GetProjectBicepFileContent = nameof(GetProjectBicepFileContent);
+    internal const string PushProjectBicepToGit = nameof(PushProjectBicepToGit);
+    internal const string GenerateProjectPipeline = nameof(GenerateProjectPipeline);
+    internal const string DownloadProjectPipeline = nameof(DownloadProjectPipeline);
+    internal const string GetProjectPipelineFileContent = nameof(GetProjectPipelineFileContent);
+    internal const string PushProjectPipelineToGit = nameof(PushProjectPipelineToGit);
+    internal const string GenerateProjectBootstrapPipeline = nameof(GenerateProjectBootstrapPipeline);
+    internal const string DownloadProjectBootstrapPipeline = nameof(DownloadProjectBootstrapPipeline);
+    internal const string GetProjectBootstrapPipelineFileContent = nameof(GetProjectBootstrapPipelineFileContent);
+    internal const string PushProjectBootstrapPipelineToGit = nameof(PushProjectBootstrapPipelineToGit);
+    internal const string PushProjectGeneratedArtifactsToGit = nameof(PushProjectGeneratedArtifactsToGit);
+    internal const string PushProjectArtifactsToMultiRepo = nameof(PushProjectArtifactsToMultiRepo);
+    internal const string ListProjectPipelineVariableGroups = nameof(ListProjectPipelineVariableGroups);
+    internal const string AddProjectPipelineVariableGroup = nameof(AddProjectPipelineVariableGroup);
+    internal const string RemoveProjectPipelineVariableGroup = nameof(RemoveProjectPipelineVariableGroup);
+}

@@ -13,9 +13,21 @@ public class SqlServerRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<SqlServer?> GetByIdAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await Context.Set<SqlServer>()
+            .Include(x => x.DependsOn)
+            .Include(x => x.EnvironmentSettings)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public override async Task<SqlServer?> GetByIdReadOnlyAsync(
+        ValueObject id,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<SqlServer>()
+            .AsNoTracking()
             .Include(x => x.DependsOn)
             .Include(x => x.EnvironmentSettings)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);

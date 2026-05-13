@@ -4,10 +4,14 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Commands.PushBicepToGit
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetBicepFileContent;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
+using InfraFlowSculptor.Api.Common;
+using InfraFlowSculptor.Api.RateLimiting;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
+
+using InfraFlowSculptor.Api.Controllers.Constants;
 
 namespace InfraFlowSculptor.Api.Controllers;
 
@@ -35,7 +39,8 @@ public static class BicepGenerationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GenerateBicep")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(BicepGenerationRouteNames.GenerateBicep)
                 .Produces<GenerateBicepResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -55,7 +60,8 @@ public static class BicepGenerationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DownloadBicep")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(BicepGenerationRouteNames.DownloadBicep)
                 .Produces(StatusCodes.Status200OK, contentType: "application/zip")
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
@@ -63,7 +69,12 @@ public static class BicepGenerationController
             group.MapGet("/{configId:guid}/files/{*filePath}",
                     async (Guid configId, string filePath, IMediator mediator) =>
                     {
-                        var query = new GetBicepFileContentQuery(configId, filePath);
+                        if (!SafeRelativePath.TryNormalize(filePath, out var safePath))
+                        {
+                            return Results.BadRequest(new { message = "Invalid file path." });
+                        }
+
+                        var query = new GetBicepFileContentQuery(configId, safePath);
                         var result = await mediator.Send(query);
 
                         return result.Match(
@@ -71,7 +82,7 @@ public static class BicepGenerationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetBicepFileContent")
+                .WithName(BicepGenerationRouteNames.GetBicepFileContent)
                 .Produces(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
@@ -90,7 +101,8 @@ public static class BicepGenerationController
                             errors => errors.Result()
                         );
                     })
-                .WithName("PushBicepToGit")
+                .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+                .WithName(BicepGenerationRouteNames.PushBicepToGit)
                 .WithSummary("Push generated Bicep files to Git")
                 .WithDescription("Pushes the latest generated Bicep files to the configured Git repository, creating or updating the specified branch.")
                 .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
@@ -100,3 +112,4 @@ public static class BicepGenerationController
         });
     }
 }
+

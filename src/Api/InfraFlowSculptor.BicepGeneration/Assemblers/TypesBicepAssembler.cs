@@ -9,6 +9,8 @@ namespace InfraFlowSculptor.BicepGeneration.Assemblers;
 /// </summary>
 internal static class TypesBicepAssembler
 {
+    private const string ExportDecorator = "@export()";
+
     /// <summary>
     /// Generates the <c>types.bicep</c> content for the given environments and optional RBAC type.
     /// </summary>
@@ -19,21 +21,21 @@ internal static class TypesBicepAssembler
         // ── EnvironmentName union type ──────────────────────────────────────
         if (environments.Count > 0)
         {
-            sb.AppendLine("@export()");
+            sb.AppendLine(ExportDecorator);
             sb.Append("type EnvironmentName = ");
             sb.AppendJoin(" | ", environments.Select(e => $"'{BicepFormattingHelper.SanitizeBicepKey(e.Name)}'"));
             sb.AppendLine();
         }
         else
         {
-            sb.AppendLine("@export()");
+            sb.AppendLine(ExportDecorator);
             sb.AppendLine("type EnvironmentName = string");
         }
 
         sb.AppendLine();
 
         // ── EnvironmentVariables object type ────────────────────────────────
-        sb.AppendLine("@export()");
+        sb.AppendLine(ExportDecorator);
         sb.AppendLine("type EnvironmentVariables = {");
         sb.AppendLine("  envName: string");
         sb.AppendLine("  envShort: string");
@@ -45,7 +47,7 @@ internal static class TypesBicepAssembler
         sb.AppendLine();
 
         // ── environments variable map ───────────────────────────────────────
-        sb.AppendLine("@export()");
+        sb.AppendLine(ExportDecorator);
         sb.AppendLine("var environments = {");
         foreach (var env in environments)
         {
@@ -75,7 +77,7 @@ internal static class TypesBicepAssembler
         {
             sb.AppendLine();
             sb.AppendLine("@description('Rbac Role Type')");
-            sb.AppendLine("@export()");
+            sb.AppendLine(ExportDecorator);
             sb.AppendLine("type RbacRoleType = {");
             sb.AppendLine("  @description('Identifier of the role')");
             sb.AppendLine("  id: string");

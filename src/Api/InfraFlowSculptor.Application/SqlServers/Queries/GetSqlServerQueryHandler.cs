@@ -21,11 +21,11 @@ public class GetSqlServerQueryHandler(
         GetSqlServerQuery query,
         CancellationToken cancellationToken)
     {
-        var server = await sqlServerRepository.GetByIdAsync(query.Id, cancellationToken);
+        var server = await sqlServerRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (server is null)
             return Errors.SqlServer.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(server.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(server.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.SqlServer.NotFoundError(query.Id);
 

@@ -18,9 +18,20 @@ public sealed class EnumValidation : ValidationAttribute
     
     public override bool IsValid(object? value)
     {
-        return value == null ||
-               // Utiliser [Required] pour valider null
-               Enum.IsDefined(_enumType, value);
+        if (value is null)
+        {
+            // Utiliser [Required] pour valider null.
+            return true;
+        }
+
+        if (value is string rawValue)
+        {
+            return Array.Exists(
+                Enum.GetNames(_enumType),
+                enumName => string.Equals(enumName, rawValue, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return Enum.IsDefined(_enumType, value);
     }
     
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)

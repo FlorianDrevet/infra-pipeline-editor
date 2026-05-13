@@ -59,7 +59,7 @@ public sealed class AppSettingsTransformerTests
     {
         var spec = WebAppSpec();
 
-        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.WebApp);
+        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.WebAppType);
 
         result.Parameters.Should().Contain(p => p.Name == "appSettings");
     }
@@ -69,7 +69,7 @@ public sealed class AppSettingsTransformerTests
     {
         var spec = ContainerAppSpec();
 
-        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.ContainerApp);
+        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.ContainerAppType);
 
         result.Parameters.Should().Contain(p => p.Name == "envVars");
     }
@@ -79,7 +79,7 @@ public sealed class AppSettingsTransformerTests
     {
         var spec = WebAppSpec();
 
-        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.WebApp);
+        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.WebAppType);
 
         var param = result.Parameters.First(p => p.Name == "appSettings");
         param.Type.Should().Be(BicepType.Array);
@@ -88,9 +88,9 @@ public sealed class AppSettingsTransformerTests
     [Fact]
     public void Given_SpecWithExistingAppSettingsParam_When_WithAppSettings_Then_DoesNotDuplicate()
     {
-        var spec = WebAppSpec().WithAppSettings(AzureResourceTypes.ArmTypes.WebApp);
+        var spec = WebAppSpec().WithAppSettings(AzureResourceTypes.ArmTypes.WebAppType);
 
-        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.WebApp);
+        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.WebAppType);
 
         result.Parameters.Count(p => p.Name == "appSettings").Should().Be(1);
     }
@@ -100,7 +100,7 @@ public sealed class AppSettingsTransformerTests
     {
         var spec = ContainerAppSpec();
 
-        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.ContainerApp);
+        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.ContainerAppType);
 
         // Navigate: properties → template → containers[0] → env
         var props = result.Resource.Body.First(p => p.Key == "properties").Value as BicepObjectExpression;
@@ -117,9 +117,9 @@ public sealed class AppSettingsTransformerTests
     [Fact]
     public void Given_ContainerAppSpecWithExistingEnvVars_When_WithAppSettings_Then_DoesNotDuplicate()
     {
-        var spec = ContainerAppSpec().WithAppSettings(AzureResourceTypes.ArmTypes.ContainerApp);
+        var spec = ContainerAppSpec().WithAppSettings(AzureResourceTypes.ArmTypes.ContainerAppType);
 
-        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.ContainerApp);
+        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.ContainerAppType);
 
         result.Parameters.Count(p => p.Name == "envVars").Should().Be(1);
     }
@@ -146,7 +146,7 @@ public sealed class AppSettingsTransformerTests
             },
         };
 
-        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.WebApp);
+        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.WebAppType);
 
         var properties = (BicepObjectExpression)result.Resource.Body.First(property => property.Key == "properties").Value;
         var siteConfig = (BicepObjectExpression)properties.Properties.First(property => property.Key == "siteConfig").Value;

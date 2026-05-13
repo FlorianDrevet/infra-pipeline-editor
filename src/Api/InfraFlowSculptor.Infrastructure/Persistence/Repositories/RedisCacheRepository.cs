@@ -13,9 +13,18 @@ public class RedisCacheRepository : AzureResourceRepository<RedisCache>, IRedisC
     {
     }
 
-    public override async Task<RedisCache?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
+    public override async Task<RedisCache?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await Context.Set<RedisCache>()
+            .Include(rc => rc.DependsOn)
+            .Include(rc => rc.EnvironmentSettings)
+            .FirstOrDefaultAsync(rc => rc.Id == id, cancellationToken);
+    }
+
+    public override async Task<RedisCache?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<RedisCache>()
+            .AsNoTracking()
             .Include(rc => rc.DependsOn)
             .Include(rc => rc.EnvironmentSettings)
             .FirstOrDefaultAsync(rc => rc.Id == id, cancellationToken);

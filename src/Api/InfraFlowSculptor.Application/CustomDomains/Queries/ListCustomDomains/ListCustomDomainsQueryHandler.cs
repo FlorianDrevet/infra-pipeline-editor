@@ -24,7 +24,7 @@ public sealed class ListCustomDomainsQueryHandler(
         if (resource is null)
             return Errors.CustomDomain.ResourceNotFound(request.ResourceId);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(
             resource.ResourceGroupId, cancellationToken);
 
         if (resourceGroup is null)

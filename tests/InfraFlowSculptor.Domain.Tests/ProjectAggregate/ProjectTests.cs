@@ -1,5 +1,6 @@
 using FluentAssertions;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.ProjectAggregate.Events;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -34,6 +35,22 @@ public sealed class ProjectTests
         var owner = sut.Members.Single();
         owner.UserId.Should().Be(ownerId);
         owner.Role.Value.Should().Be(Role.RoleEnum.Owner);
+    }
+
+    [Fact]
+    public void Given_FactoryArguments_When_Create_Then_RaisesProjectCreatedDomainEvent()
+    {
+        // Arrange
+        var ownerId = UserId.CreateUnique();
+        var name = new Name(DefaultProjectName);
+
+        // Act
+        var sut = Project.Create(name, "A demo project", ownerId);
+
+        // Assert
+        var domainEvent = sut.DomainEvents.Should().ContainSingle().Which;
+        domainEvent.Should().BeOfType<ProjectCreatedDomainEvent>();
+        domainEvent.As<ProjectCreatedDomainEvent>().ProjectId.Should().Be(sut.Id);
     }
 
     // ─── Members ───────────────────────────────────────────────────────────

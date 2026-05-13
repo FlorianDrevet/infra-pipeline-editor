@@ -7,13 +7,20 @@ namespace InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 public interface IAzureResourceRepository
 {
     Task<AzureResource?> GetByIdAsync(AzureResourceId id, CancellationToken cancellationToken = default);
+    Task<AzureResource?> GetByIdReadOnlyAsync(AzureResourceId id, CancellationToken cancellationToken = default);
     Task<AzureResource?> GetByIdWithRoleAssignmentsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
+    Task<AzureResource?> GetByIdWithRoleAssignmentsReadOnlyAsync(AzureResourceId id, CancellationToken cancellationToken = default);
     Task<AzureResource?> GetByIdWithAppSettingsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Returns a resource with both its role assignments and app settings loaded.
     /// </summary>
     Task<AzureResource?> GetByIdWithRoleAssignmentsAndAppSettingsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns a detached resource with both its role assignments and app settings loaded.
+    /// </summary>
+    Task<AzureResource?> GetByIdWithRoleAssignmentsAndAppSettingsReadOnlyAsync(AzureResourceId id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Returns a resource with its secure parameter mappings loaded.

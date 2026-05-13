@@ -13,6 +13,9 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 public sealed class InfrastructureConfigConfiguration
     : IEntityTypeConfiguration<InfrastructureConfig>
 {
+    private const int InfrastructureConfigNameMaxLength = 100;
+    private const int NamingTemplateMaxLength = 500;
+
     public void Configure(EntityTypeBuilder<InfrastructureConfig> builder)
     {
         builder.ToTable("InfrastructureConfigs");
@@ -22,12 +25,14 @@ public sealed class InfrastructureConfigConfiguration
         builder.ConfigureAggregateRootId<InfrastructureConfig, InfrastructureConfigId>();
 
         builder.Property(x => x.Name)
-            .HasConversion(new SingleValueConverter<Name, string>());
+            .HasConversion(new SingleValueConverter<Name, string>())
+            .HasMaxLength(InfrastructureConfigNameMaxLength);
 
         builder.Property(x => x.DefaultNamingTemplate)
 #pragma warning disable CS8620 // Nullability mismatch — EF Core handles null conversion internally
             .HasConversion(new SingleValueConverter<NamingTemplate, string>())
 #pragma warning restore CS8620
+            .HasMaxLength(NamingTemplateMaxLength)
             .IsRequired(false);
 
         // ========================

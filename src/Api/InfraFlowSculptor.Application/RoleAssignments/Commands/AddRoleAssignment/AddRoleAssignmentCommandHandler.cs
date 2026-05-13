@@ -58,9 +58,21 @@ public sealed class AddRoleAssignmentCommandHandler(
         var updated = await azureResourceRepository.UpdateAsync(sourceResource, cancellationToken);
 
         var assignment = updated.RoleAssignments
-            .First(r => r.TargetResourceId == request.TargetResourceId
-                        && r.RoleDefinitionId == request.RoleDefinitionId
-                        && r.ManagedIdentityType.Value == managedIdentityType.Value);
+                             .FirstOrDefault(r => r.TargetResourceId == request.TargetResourceId
+                                                  && r.RoleDefinitionId == request.RoleDefinitionId
+                                                  && r.ManagedIdentityType.Value == managedIdentityType.Value)
+                         ?? sourceResource.RoleAssignments
+                             .FirstOrDefault(r => r.TargetResourceId == request.TargetResourceId
+                                                  && r.RoleDefinitionId == request.RoleDefinitionId
+                                                  && r.ManagedIdentityType.Value == managedIdentityType.Value);
+
+        if (assignment is null)
+        {
+            return Errors.RoleAssignment.CreatedAssignmentNotFound(
+                sourceResource.Id,
+                request.TargetResourceId,
+                request.RoleDefinitionId);
+        }
 
         return new RoleAssignmentResult(
             assignment.Id,

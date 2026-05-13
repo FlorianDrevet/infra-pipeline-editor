@@ -24,7 +24,7 @@ public sealed class WebAppTypeBicepGeneratorTests
         {
             ResourceId = Guid.NewGuid(),
             Name = "my-webapp",
-            Type = AzureResourceTypes.ArmTypes.WebApp,
+            Type = AzureResourceTypes.ArmTypes.WebAppType,
             ResourceGroupName = "rg-test",
             ResourceAbbreviation = "app",
             Properties = props,
@@ -83,7 +83,7 @@ public sealed class WebAppTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.WebApp);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.WebAppType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.WebApp);
     }
 

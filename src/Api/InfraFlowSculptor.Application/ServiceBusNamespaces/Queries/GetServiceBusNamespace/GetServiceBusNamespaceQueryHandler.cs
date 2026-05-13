@@ -24,11 +24,11 @@ public class GetServiceBusNamespaceQueryHandler(
         GetServiceBusNamespaceQuery query,
         CancellationToken cancellationToken)
     {
-        var sb = await serviceBusNamespaceRepository.GetByIdAsync(query.Id, cancellationToken);
+        var sb = await serviceBusNamespaceRepository.GetByIdReadOnlyAsync(query.Id, cancellationToken);
         if (sb is null)
             return Errors.ServiceBusNamespace.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(sb.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(sb.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.ServiceBusNamespace.NotFoundError(query.Id);
 

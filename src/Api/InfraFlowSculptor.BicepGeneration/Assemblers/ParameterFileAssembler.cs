@@ -144,7 +144,7 @@ internal static class ParameterFileAssembler
 
         foreach (var module in modules)
         {
-            foreach (var (key, value) in module.Parameters)
+            foreach (var (key, value) in module.Parameters.Where(parameter => !IsDerivedParameter(module, parameter.Key)))
             {
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} = {BicepFormattingHelper.SerializeToBicep(value)}");
             }
@@ -188,6 +188,15 @@ internal static class ParameterFileAssembler
         }
 
         return sb.ToString();
+    }
+
+    private static bool IsDerivedParameter(GeneratedTypeModule module, string parameterName)
+    {
+        return module.ParentModuleIdReferences.ContainsKey(parameterName)
+            || module.ParentModuleNameReferences.ContainsKey(parameterName)
+            || module.ParentModuleOutputReferences.ContainsKey(parameterName)
+            || module.ExistingResourceIdReferences.ContainsKey(parameterName)
+            || module.ExistingResourcePropertyReferences.ContainsKey(parameterName);
     }
 
     /// <summary>

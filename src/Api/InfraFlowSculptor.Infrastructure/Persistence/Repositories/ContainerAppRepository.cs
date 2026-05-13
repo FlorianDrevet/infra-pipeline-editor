@@ -13,9 +13,21 @@ public sealed class ContainerAppRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<ContainerApp?> GetByIdAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await Context.Set<ContainerApp>()
+            .Include(x => x.DependsOn)
+            .Include(x => x.EnvironmentSettings)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public override async Task<ContainerApp?> GetByIdReadOnlyAsync(
+        ValueObject id,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<ContainerApp>()
+            .AsNoTracking()
             .Include(x => x.DependsOn)
             .Include(x => x.EnvironmentSettings)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);

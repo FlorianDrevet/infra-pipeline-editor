@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Domain.Common.Errors;
 using ErrorOr;
@@ -13,25 +14,19 @@ public sealed class GetBicepFileContentQueryHandler(IBlobService blobService)
         GetBicepFileContentQuery query,
         CancellationToken cancellationToken)
     {
-        var prefix = $"bicep/{query.InfrastructureConfigId}/";
-        var allBlobs = await blobService.ListBlobsAsync(prefix);
+        var contentResult = await BlobDownloadHelper.GetLatestBlobContentAsync(
+            blobService,
+            blobPrefix: $"bicep/{query.InfrastructureConfigId}/",
+            prefixSegmentCount: 3,
+            notFoundErrorFactory: Errors.InfrastructureConfig.BicepFilesNotFoundError,
+            entityId: query.InfrastructureConfigId,
+            options: new BlobDownloadHelper.LatestBlobContentOptions(
+                Errors.InfrastructureConfig.BicepFileNotFoundError,
+                query.FilePath,
+                [query.FilePath]));
+        if (contentResult.IsError)
+            return contentResult.Errors;
 
-        if (allBlobs.Count == 0)
-            return Errors.InfrastructureConfig.BicepFilesNotFoundError(query.InfrastructureConfigId);
-
-        // Find the latest timestamp folder
-        var latestPrefix = allBlobs
-            .Select(b => string.Join('/', b.Split('/').Take(3)))
-            .Distinct()
-            .OrderDescending()
-            .First();
-
-        var blobName = $"{latestPrefix}/{query.FilePath}";
-        var content = await blobService.DownloadContentAsync(blobName);
-
-        if (content is null)
-            return Errors.InfrastructureConfig.BicepFileNotFoundError(query.FilePath);
-
-        return new GetBicepFileContentResult(content);
+        return new GetBicepFileContentResult(contentResult.Value);
     }
 }

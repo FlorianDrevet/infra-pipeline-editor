@@ -92,6 +92,12 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 - Default GitHub repository for this project is `FlorianDrevet/infra-pipeline-editor` unless the user explicitly names another repository.
 - Audit issue workflows use reports under `audits/` (for example `audits/audit-14-04-2026`) together with `scripts/sync-audit-issues.ps1`; on 2026-04-15, 66 findings were recreated as GitHub issues and the `phase:*` / `severity:*` label mojibake was cleaned up.
 
+## Audit Triage Canonical Source [2026-05-12]
+
+- `audits/triage-2026-05-12.md` is the current canonical backlog for the 2026-04 audit follow-up.
+- The triage reduced open issues from 117 to 58 by closing duplicates, obsolete findings, and misguided findings, and split the remaining work into 4 lanes: Quick wins, Security, DB+Perf, and Architecture.
+- Likely close-as-not-planned or false-positive candidates currently called out there: `DDD-009`, `API-002`, `INFRA-001`, and `INFRA-002`.
+
 ## Parallel Worktree Workflow [2026-04-30]
 
 - Recommended isolation unit for concurrent Copilot work is `1 feature = 1 branch = 1 git worktree = 1 VS Code window = 1 PR`.
@@ -123,6 +129,7 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 - Verified large-repo caveat: `graphify-out/graph.json` and `GRAPH_REPORT.md` are generated successfully on this repo, but `graph.html` may fail with "Graph has ... nodes - too large for HTML viz"; agents should treat HTML output as optional.
 - Controlled VS Code integration rule: prefer `python -m graphify copilot install` over `graphify vscode install` for this repository. `vscode install` appends a generic `## graphify` section to `.github/copilot-instructions.md`, while this repo already has a stronger custom orchestration for memory, GitNexus, Graphify, and agents.
 - 2026-04-29 validation: the Graphify user skill is installed at `%USERPROFILE%\.copilot\skills\graphify\SKILL.md`, and the Python user Scripts directory is now present on the user PATH so `graphify --help` works directly in terminal.
+- 2026-05-12 validation: `.graphifyignore` excludes `MEMORY.md` and `.github/memory/`, but does not exclude the `ifs/` Obsidian vault. Graphify can index Obsidian notes kept under `ifs/`, while the current agent memory remains outside the Graphify corpus unless the ignore rules are changed.
 
 ## CQRS Skill [2026-04-29]
 

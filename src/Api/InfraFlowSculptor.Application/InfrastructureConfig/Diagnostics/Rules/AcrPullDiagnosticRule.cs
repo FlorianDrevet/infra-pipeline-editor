@@ -23,9 +23,9 @@ public sealed class AcrPullDiagnosticRule : IDiagnosticRule
     /// <summary>ARM resource types considered as container-capable compute resources.</summary>
     private static readonly HashSet<string> ContainerComputeTypes = new(StringComparer.OrdinalIgnoreCase)
     {
-        AzureResourceTypes.ArmTypes.WebApp,
-        AzureResourceTypes.ArmTypes.FunctionApp,
-        AzureResourceTypes.ArmTypes.ContainerApp,
+        AzureResourceTypes.ArmTypes.WebAppType,
+        AzureResourceTypes.ArmTypes.FunctionAppType,
+        AzureResourceTypes.ArmTypes.ContainerAppType,
     };
 
     /// <inheritdoc />

@@ -16,11 +16,30 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
+    public async Task<AzureResource?> GetByIdReadOnlyAsync(
+        AzureResourceId id,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.AzureResources
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+    }
+
     public async Task<AzureResource?> GetByIdWithRoleAssignmentsAsync(
         AzureResourceId id,
         CancellationToken cancellationToken = default)
     {
         return await context.AzureResources
+            .Include(r => r.RoleAssignments)
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+    }
+
+    public async Task<AzureResource?> GetByIdWithRoleAssignmentsReadOnlyAsync(
+        AzureResourceId id,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.AzureResources
+            .AsNoTracking()
             .Include(r => r.RoleAssignments)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
@@ -40,6 +59,18 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
         CancellationToken cancellationToken = default)
     {
         return await context.AzureResources
+            .Include(r => r.RoleAssignments)
+            .Include(r => r.AppSettings)
+                .ThenInclude(s => s.EnvironmentValues)
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+    }
+
+    public async Task<AzureResource?> GetByIdWithRoleAssignmentsAndAppSettingsReadOnlyAsync(
+        AzureResourceId id,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.AzureResources
+            .AsNoTracking()
             .Include(r => r.RoleAssignments)
             .Include(r => r.AppSettings)
                 .ThenInclude(s => s.EnvironmentValues)

@@ -1,5 +1,7 @@
+using ErrorOr;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.Pipeline;
+using InfraFlowSculptor.GenerationCore.Errors;
 using InfraFlowSculptor.GenerationCore.Models;
 
 namespace InfraFlowSculptor.BicepGeneration;
@@ -17,6 +19,11 @@ namespace InfraFlowSculptor.BicepGeneration;
 /// </remarks>
 public sealed class BicepGenerationEngine
 {
+    private const string MissingBicepGeneratorMessagePrefix = "No Bicep generator registered for resource '";
+    private const string UnsupportedRoleAssignmentModuleMessagePrefix = "Role assignment module not supported for resource type '";
+    private const string UnsupportedRoleAssignmentResourceTypeMessagePrefix = "Resource type '";
+    private const string InvalidKeyVaultSecretNameMessagePrefix = "Key Vault secret name '";
+
     private readonly BicepGenerationPipeline _pipeline;
 
     /// <summary>
@@ -32,11 +39,22 @@ public sealed class BicepGenerationEngine
     /// Generates the Bicep files for a single infrastructure configuration. Unused module
     /// outputs are pruned by the pipeline's <see cref="Pipeline.Stages.IrOutputPruningStage"/>.
     /// </summary>
-    public GenerationResult Generate(GenerationRequest request)
+    public ErrorOr<GenerationResult> Generate(GenerationRequest request)
     {
-        var context = RunPipeline(request, skipOutputPruning: false);
-        return context.Result
-            ?? throw new InvalidOperationException("Pipeline assembly stage did not produce a generation result.");
+        try
+        {
+            var context = RunPipeline(request, skipOutputPruning: false);
+            return context.Result
+                ?? throw new InvalidOperationException("Pipeline assembly stage did not produce a generation result.");
+        }
+        catch (NotSupportedException exception) when (TryMapExpectedException(exception, out var error))
+        {
+            return error;
+        }
+        catch (InvalidOperationException exception) when (TryMapExpectedException(exception, out var error))
+        {
+            return error;
+        }
     }
 
     /// <summary>
@@ -45,34 +63,45 @@ public sealed class BicepGenerationEngine
     /// common folder and per-configuration folders. Unused outputs in shared modules are
     /// pruned using the union of references from every per-configuration <c>main.bicep</c>.
     /// </summary>
-    public MonoRepoGenerationResult GenerateMonoRepo(MonoRepoGenerationRequest request)
+    public ErrorOr<MonoRepoGenerationResult> GenerateMonoRepo(MonoRepoGenerationRequest request)
     {
-        var perConfigResults = new Dictionary<string, GenerationResult>();
-        var perConfigContexts = new Dictionary<string, BicepGenerationContext>();
-        var hasAnyRoleAssignments = false;
-
-        foreach (var (configName, configRequest) in request.ConfigRequests)
+        try
         {
-            var context = RunPipeline(configRequest, skipOutputPruning: true);
-            perConfigResults[configName] = context.Result
-                ?? throw new InvalidOperationException(
-                    $"Pipeline assembly stage did not produce a generation result for configuration '{configName}'.");
-            perConfigContexts[configName] = context;
+            var perConfigResults = new Dictionary<string, GenerationResult>();
+            var perConfigContexts = new Dictionary<string, BicepGenerationContext>();
+            var hasAnyRoleAssignments = false;
 
-            if (configRequest.RoleAssignments.Count > 0)
-                hasAnyRoleAssignments = true;
+            foreach (var (configName, configRequest) in request.ConfigRequests)
+            {
+                var context = RunPipeline(configRequest, skipOutputPruning: true);
+                perConfigResults[configName] = context.Result
+                    ?? throw new InvalidOperationException(
+                        $"Pipeline assembly stage did not produce a generation result for configuration '{configName}'.");
+                perConfigContexts[configName] = context;
+
+                if (configRequest.RoleAssignments.Count > 0)
+                    hasAnyRoleAssignments = true;
+            }
+
+            var monoResult = MonoRepoBicepAssembler.Assemble(
+                perConfigResults,
+                request.NamingContext,
+                request.Environments,
+                hasAnyRoleAssignments,
+                request.FlattenShared);
+
+            IrMonoRepoOutputPruner.Prune(monoResult, perConfigResults, perConfigContexts);
+
+            return monoResult;
         }
-
-        var monoResult = MonoRepoBicepAssembler.Assemble(
-            perConfigResults,
-            request.NamingContext,
-            request.Environments,
-            hasAnyRoleAssignments,
-            request.FlattenShared);
-
-        IrMonoRepoOutputPruner.Prune(monoResult, perConfigResults, perConfigContexts);
-
-        return monoResult;
+        catch (NotSupportedException exception) when (TryMapExpectedException(exception, out var error))
+        {
+            return error;
+        }
+        catch (InvalidOperationException exception) when (TryMapExpectedException(exception, out var error))
+        {
+            return error;
+        }
     }
 
     private BicepGenerationContext RunPipeline(GenerationRequest request, bool skipOutputPruning)
@@ -84,5 +113,31 @@ public sealed class BicepGenerationEngine
         };
         _pipeline.Execute(context);
         return context;
+    }
+
+    private static bool TryMapExpectedException(Exception exception, out Error error)
+    {
+        switch (exception)
+        {
+            case NotSupportedException notSupportedException when notSupportedException.Message.StartsWith(MissingBicepGeneratorMessagePrefix, StringComparison.Ordinal):
+                error = GenerationErrors.UnsupportedBicepResourceType(notSupportedException.Message);
+                return true;
+
+            case NotSupportedException notSupportedException when notSupportedException.Message.StartsWith(UnsupportedRoleAssignmentModuleMessagePrefix, StringComparison.Ordinal):
+                error = GenerationErrors.UnsupportedBicepFeature(notSupportedException.Message);
+                return true;
+
+            case NotSupportedException notSupportedException when notSupportedException.Message.StartsWith(UnsupportedRoleAssignmentResourceTypeMessagePrefix, StringComparison.Ordinal):
+                error = GenerationErrors.UnsupportedBicepFeature(notSupportedException.Message);
+                return true;
+
+            case InvalidOperationException invalidOperationException when invalidOperationException.Message.StartsWith(InvalidKeyVaultSecretNameMessagePrefix, StringComparison.Ordinal):
+                error = GenerationErrors.InvalidBicepConfiguration(invalidOperationException.Message);
+                return true;
+
+            default:
+                error = default;
+                return false;
+        }
     }
 }

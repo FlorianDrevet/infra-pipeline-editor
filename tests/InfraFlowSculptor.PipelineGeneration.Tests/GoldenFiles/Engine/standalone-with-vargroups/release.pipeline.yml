@@ -23,7 +23,7 @@ stages:
         variables:
           - template: variables/${{ environment }}.yml
           - template: variables/vars.yml
-          - group: ifs-shared-dev
+          - group: 'ifs-shared-dev'
 
         jobs:
           - template: ../.azuredevops/jobs/deploy.job.yml

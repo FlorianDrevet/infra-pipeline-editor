@@ -16,7 +16,7 @@ public sealed class KeyVaultTypeBicepGeneratorTests
     {
         ResourceId = Guid.NewGuid(),
         Name = "my-kv",
-        Type = AzureResourceTypes.ArmTypes.KeyVault,
+        Type = AzureResourceTypes.ArmTypes.KeyVaultType,
         ResourceGroupName = "rg-test",
         ResourceAbbreviation = "kv",
         Sku = "Standard",
@@ -34,7 +34,7 @@ public sealed class KeyVaultTypeBicepGeneratorTests
     [Fact]
     public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
     {
-        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.KeyVault);
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.KeyVaultType);
         _sut.ResourceTypeName.Should().Be(AzureResourceTypes.KeyVault);
     }
 

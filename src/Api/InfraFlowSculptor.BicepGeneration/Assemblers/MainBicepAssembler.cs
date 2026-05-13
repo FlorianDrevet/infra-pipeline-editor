@@ -3,6 +3,7 @@ using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.StorageAccount;
+using InfraFlowSculptor.BicepGeneration.Constants;
 using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Assemblers;
@@ -12,6 +13,8 @@ namespace InfraFlowSculptor.BicepGeneration.Assemblers;
 /// </summary>
 internal static class MainBicepAssembler
 {
+    private const string IdOutputName = "id";
+
     /// <summary>
     /// Generates the <c>main.bicep</c> content for the given modules and deployment context.
     /// Returns both the generated text and the map of module outputs referenced during emission,
@@ -25,8 +28,7 @@ internal static class MainBicepAssembler
         IReadOnlyList<RoleAssignmentDefinition> roleAssignments,
         IReadOnlyList<AppSettingDefinition> appSettings,
         IReadOnlyList<ExistingResourceReference> existingResourceReferences,
-        IReadOnlyDictionary<string, string>? projectTags = null,
-        IReadOnlyDictionary<string, string>? configTags = null)
+        (IReadOnlyDictionary<string, string>? ProjectTags, IReadOnlyDictionary<string, string>? ConfigTags) tagSets = default)
     {
         var sb = new StringBuilder();
         var tracker = new OutputUsageTracker();
@@ -102,7 +104,7 @@ internal static class MainBicepAssembler
         sb.AppendLine();
 
         // â”€â”€ Tags merging (project â†’ config â†’ environment) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        AppendTagsMergingBlock(sb, projectTags, configTags);
+        AppendTagsMergingBlock(sb, tagSets.ProjectTags, tagSets.ConfigTags);
 
         // â”€â”€ Resource group declarations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         AppendResourceGroupDeclarations(sb, resourceGroups, namingContext);
@@ -145,7 +147,9 @@ internal static class MainBicepAssembler
             return generatedModules
                 .Where(module => module.ParameterTypeOverrides.Count > 0)
                 .SelectMany(module => module.ParameterTypeOverrides
-                    .Where(parameterTypeOverride => module.Parameters.ContainsKey(parameterTypeOverride.Key))
+                    .Where(parameterTypeOverride =>
+                        module.Parameters.ContainsKey(parameterTypeOverride.Key)
+                        && !IsDerivedParameter(module, parameterTypeOverride.Key))
                     .Select(parameterTypeOverride => (module.ModuleFolderName, TypeName: parameterTypeOverride.Value)))
                 .Distinct()
                 .ToList();
@@ -219,7 +223,7 @@ internal static class MainBicepAssembler
     {
         foreach (var module in modules)
         {
-            foreach (var (key, value) in module.Parameters)
+            foreach (var (key, value) in GetDeclaredParameters(module))
             {
                 var bicepType = module.ParameterTypeOverrides.TryGetValue(key, out var customType)
                     ? ResolveImportedTypeName(importedModuleTypeNames, module.ModuleFolderName, customType)
@@ -329,7 +333,7 @@ internal static class MainBicepAssembler
             var nameExpr = BicepNamingHelper.BuildNamingExpression(
                 rg.Name, rg.ResourceAbbreviation, "ResourceGroup", namingContext);
 
-            sb.AppendLine($"resource {rgSymbol} 'Microsoft.Resources/resourceGroups@2024-07-01' = {{");
+            sb.AppendLine($"resource {rgSymbol} '{BicepArmTypeCatalog.ResourceGroupsArmType}' = {{");
             sb.AppendLine($"  name: {nameExpr}");
             sb.AppendLine("  location: env.location");
             sb.AppendLine("  tags: tags");
@@ -363,7 +367,7 @@ internal static class MainBicepAssembler
             var extRgSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRgName)}";
             var nameExprRg = BicepNamingHelper.BuildNamingExpression(extRgName, "rg", "ResourceGroup", namingContext);
 
-            sb.AppendLine($"resource {extRgSymbol} 'Microsoft.Resources/resourceGroups@2024-07-01' existing = {{");
+            sb.AppendLine($"resource {extRgSymbol} '{BicepArmTypeCatalog.ResourceGroupsArmType}' existing = {{");
             sb.AppendLine($"  name: {nameExprRg}");
             sb.AppendLine("}");
             sb.AppendLine();
@@ -602,7 +606,9 @@ internal static class MainBicepAssembler
         AppendModuleScalarParameters(sb, module);
         AppendModuleSecureParameters(sb, module);
         AppendModuleParentIdReferences(sb, tracker, module, modules);
+        AppendModuleParentOutputReferences(sb, tracker, module, modules);
         AppendModuleExistingResourceIdReferences(sb, module);
+        AppendModuleExistingResourcePropertyReferences(sb, module);
         AppendModuleParentNameReferences(sb, module, modules, namingContext);
         AppendModuleIdentityParameters(sb, tracker, module, modules, uaiBySourceResource);
         AppendModuleAppSettingsBlock(sb, tracker, module, modules, appSettingsByTarget);
@@ -619,7 +625,7 @@ internal static class MainBicepAssembler
 
     private static void AppendModuleScalarParameters(StringBuilder sb, GeneratedTypeModule module)
     {
-        foreach (var paramKey in module.Parameters.Keys)
+        foreach (var paramKey in GetDeclaredParameters(module).Select(parameter => parameter.Key))
         {
             sb.AppendLine($"    {paramKey}: {module.ModuleName}{BicepFormattingHelper.Capitalize(paramKey)}");
         }
@@ -648,8 +654,30 @@ internal static class MainBicepAssembler
                 continue;
 
             var parentSymbol = $"{parentModule.ModuleName}Module";
-            tracker.RegisterUsage(parentSymbol, "id");
-            sb.AppendLine($"    {paramName}: {parentSymbol}.outputs.id");
+            tracker.RegisterUsage(parentSymbol, IdOutputName);
+            sb.AppendLine($"    {paramName}: {parentSymbol}.outputs.{IdOutputName}");
+        }
+    }
+
+    private static void AppendModuleParentOutputReferences(
+        StringBuilder sb,
+        OutputUsageTracker tracker,
+        GeneratedTypeModule module,
+        IReadOnlyCollection<GeneratedTypeModule> modules)
+    {
+        foreach (var (paramName, (parentLogicalName, parentResourceType, outputName)) in module.ParentModuleOutputReferences)
+        {
+            var parentModule = modules.FirstOrDefault(candidate =>
+                candidate.LogicalResourceName.Equals(parentLogicalName, StringComparison.OrdinalIgnoreCase)
+                && candidate.ResourceTypeName.Equals(parentResourceType, StringComparison.OrdinalIgnoreCase));
+            if (parentModule is null)
+            {
+                continue;
+            }
+
+            var parentSymbol = $"{parentModule.ModuleName}Module";
+            tracker.RegisterUsage(parentSymbol, outputName);
+            sb.AppendLine($"    {paramName}: {parentSymbol}.outputs.{outputName}");
         }
     }
 
@@ -659,6 +687,15 @@ internal static class MainBicepAssembler
         {
             var existingSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(existingResourceName)}";
             sb.AppendLine($"    {paramName}: {existingSymbol}.id");
+        }
+    }
+
+    private static void AppendModuleExistingResourcePropertyReferences(StringBuilder sb, GeneratedTypeModule module)
+    {
+        foreach (var (paramName, (resourceName, propertyPath)) in module.ExistingResourcePropertyReferences)
+        {
+            var existingSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(resourceName)}";
+            sb.AppendLine($"    {paramName}: {existingSymbol}.{propertyPath}");
         }
     }
 
@@ -756,6 +793,20 @@ internal static class MainBicepAssembler
             throw new InvalidOperationException(
                 $"Key Vault secret name '{setting.SecretName}' for resource '{setting.TargetResourceName}' is invalid. {KeyVaultSecretNameRules.ValidationMessage}");
         }
+    }
+
+    private static IEnumerable<KeyValuePair<string, object>> GetDeclaredParameters(GeneratedTypeModule module)
+    {
+        return module.Parameters.Where(parameter => !IsDerivedParameter(module, parameter.Key));
+    }
+
+    private static bool IsDerivedParameter(GeneratedTypeModule module, string parameterName)
+    {
+        return module.ParentModuleIdReferences.ContainsKey(parameterName)
+            || module.ParentModuleNameReferences.ContainsKey(parameterName)
+            || module.ParentModuleOutputReferences.ContainsKey(parameterName)
+            || module.ExistingResourceIdReferences.ContainsKey(parameterName)
+            || module.ExistingResourcePropertyReferences.ContainsKey(parameterName);
     }
 
     private static bool RequiresKeyVaultSecretValidation(AppSettingDefinition setting)

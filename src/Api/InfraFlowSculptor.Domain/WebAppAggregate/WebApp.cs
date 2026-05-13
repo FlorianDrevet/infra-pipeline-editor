@@ -81,8 +81,7 @@ public sealed class WebApp : AzureResource
         string? buildCommand,
         string? applicationName)
     {
-        Name = name;
-        Location = location;
+        SetNameAndLocation(name, location);
 
         if (IsExisting)
             return;

@@ -28,7 +28,7 @@ public sealed class RedisCacheTypeBicepGenerator
     private const string MinimumTlsVersionParameterName = "minimumTlsVersion";
     private const string DisableAccessKeyAuthenticationParameterName = "disableAccessKeyAuthentication";
     private const string AadEnabledParameterName = "aadEnabled";
-    private const string RedisArmType = "Microsoft.Cache/Redis@2023-08-01";
+    private const string RedisArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.RedisCacheArmType;
     private const string AadEnabledConfigurationKey = "'aad-enabled'";
     private const string DefaultSkuName = "Basic";
     private const string DefaultSkuFamily = "C";
@@ -51,7 +51,7 @@ public sealed class RedisCacheTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceType
-        => AzureResourceTypes.ArmTypes.RedisCache;
+        => AzureResourceTypes.ArmTypes.RedisCacheType;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.RedisCache;
@@ -153,7 +153,7 @@ public sealed class RedisCacheTypeBicepGenerator
         type TlsVersion = '1.0' | '1.1' | '1.2'
         """;
 
-    private const string RedisCacheModuleTemplate = """
+    private static readonly string RedisCacheModuleTemplate = $$"""
         import { SkuName, SkuFamily, TlsVersion } from './types.bicep'
 
         @description('Azure region for the Redis Cache')
@@ -186,7 +186,7 @@ public sealed class RedisCacheTypeBicepGenerator
         @description('Whether Microsoft Entra ID (AAD) authentication is enabled')
         param aadEnabled bool = false
 
-        resource redis 'Microsoft.Cache/Redis@2023-08-01' = {
+        resource redis '{{RedisArmType}}' = {
           name: name
           location: location
           properties: {

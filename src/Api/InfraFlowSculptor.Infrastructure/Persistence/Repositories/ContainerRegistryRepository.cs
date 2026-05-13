@@ -15,9 +15,21 @@ public sealed class ContainerRegistryRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<ContainerRegistry?> GetByIdAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await Context.Set<ContainerRegistry>()
+            .Include(x => x.DependsOn)
+            .Include(x => x.EnvironmentSettings)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public override async Task<ContainerRegistry?> GetByIdReadOnlyAsync(
+        ValueObject id,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<ContainerRegistry>()
+            .AsNoTracking()
             .Include(x => x.DependsOn)
             .Include(x => x.EnvironmentSettings)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);

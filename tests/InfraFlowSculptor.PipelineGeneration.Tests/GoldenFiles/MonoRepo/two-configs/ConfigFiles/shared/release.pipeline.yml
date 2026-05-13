@@ -21,7 +21,7 @@ stages:
       - stage: "Deploy_${{ environment }}"
         displayName: "Deploy ${{ environment }}"
         variables:
-          - group: ifs-shared-dev
+          - group: 'ifs-shared-dev'
 
         jobs:
           - template: ../Common/jobs/deploy.job.yml
