@@ -65,6 +65,7 @@ import { saveAs } from 'file-saver';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { PageContextService } from '../../shared/services/page-context.service';
+import { SidebarContextService } from '../../core/layouts/sidebar/sidebar-context.service';
 import {
   ProjectPipelineVariableGroupResponse,
   ProjectResponse,
@@ -185,6 +186,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
   private readonly pageContextService = inject(PageContextService);
+  private readonly sidebarContextService = inject(SidebarContextService);
 
   protected readonly config = signal<InfrastructureConfigResponse | null>(null);
   protected readonly project = signal<ProjectResponse | null>(null);
@@ -715,6 +717,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
       ]);
       this.config.set(config);
       this.resourceGroups.set(resourceGroups);
+      this.sidebarContextService.setConfigContext(config.id, config.name, config.projectId);
 
       // Phase 2 — secondary data + auto-expand first RG (all independent, fire in parallel)
       const projectPromise = config.projectId
@@ -749,6 +752,11 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
         name: config.name,
         type: 'config',
       });
+
+      // Auto-trigger generation if redirected from /config/:id/generate
+      if (this.route.snapshot.queryParamMap.get('generate') === 'true') {
+        void this.generateAll();
+      }
     } catch {
       this.loadError.set('CONFIG_DETAIL.ERROR.LOAD_FAILED');
     } finally {

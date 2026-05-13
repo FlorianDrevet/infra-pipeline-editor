@@ -1,5 +1,8 @@
 <div
   class="ds-tree-node"
+  role="treeitem"
+  [attr.aria-expanded]="hasChildren ? expanded : null"
+  [attr.aria-selected]="isSelected"
 >
   <div
     class="ds-tree-node__row"
@@ -44,7 +47,7 @@
   </div>
 
   @if (hasChildren && expanded) {
-    <div class="ds-tree-node__children">
+    <div class="ds-tree-node__children" role="group">
       @for (child of node.children; track trackChild($index, child)) {
         <app-ds-tree-node
           [node]="child"

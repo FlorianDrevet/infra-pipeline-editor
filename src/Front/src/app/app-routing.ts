@@ -31,10 +31,24 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'projects/:id/generate',
+        loadComponent: () =>
+          import('./features/project-detail/generation-board/generation-board.component').then(
+            (m) => m.GenerationBoardComponent
+          ),
+      },
+      {
         path: 'config/:id',
         loadComponent: () =>
           import('./features/config-detail/config-detail.component').then(
             (m) => m.ConfigDetailComponent
+          ),
+      },
+      {
+        path: 'config/:id/generate',
+        loadComponent: () =>
+          import('./features/config-detail/config-generation/config-generation.component').then(
+            (m) => m.ConfigGenerationComponent
           ),
       },
       {

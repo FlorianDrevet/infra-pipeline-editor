@@ -16,21 +16,168 @@
   </header>
 
   <nav class="sidebar__nav" [attr.aria-label]="'SIDEBAR.NAV_ARIA' | translate">
-    <ul class="sidebar__list">
-      @for (item of items; track item.id) {
+    <!-- Back button for contextual modes -->
+    @if (contextState().backLink) {
+      <a class="sidebar__back" [routerLink]="contextState().backLink">
+        <mat-icon class="sidebar__back-icon" aria-hidden="true">arrow_back</mat-icon>
+        <span class="sidebar__back-label">{{ contextState().backLabel! | translate }}</span>
+      </a>
+    }
+
+    <!-- Context title for project/config modes -->
+    @if (contextState().contextTitle) {
+      <div class="sidebar__context-title">
+        <span class="sidebar__context-text">{{ contextState().contextTitle }}</span>
+      </div>
+    }
+
+    <!-- Global mode -->
+    @if (mode() === 'global') {
+      <ul class="sidebar__list">
+        @for (item of globalItems(); track item.id) {
+          <li class="sidebar__item">
+            <a
+              class="sidebar__link"
+              [routerLink]="item.routerLink"
+              routerLinkActive="sidebar__link--active"
+              [routerLinkActiveOptions]="{ exact: !!item.exact }"
+              [attr.title]="collapsed() ? (item.labelKey | translate) : null"
+            >
+              <mat-icon class="sidebar__icon" aria-hidden="true">{{ item.icon }}</mat-icon>
+              <span class="sidebar__label">{{ item.labelKey | translate }}</span>
+            </a>
+          </li>
+        }
         <li class="sidebar__item">
           <a
             class="sidebar__link"
-            [routerLink]="item.routerLink"
-            routerLinkActive="sidebar__link--active"
-            [routerLinkActiveOptions]="{ exact: !!item.exact }"
-            [attr.title]="collapsed() ? (item.labelKey | translate) : null"
+            href="https://docs.infraflowsculptor.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            [attr.title]="collapsed() ? ('SIDEBAR.DOCS' | translate) : null"
           >
-            <mat-icon class="sidebar__icon" aria-hidden="true">{{ item.icon }}</mat-icon>
-            <span class="sidebar__label">{{ item.labelKey | translate }}</span>
+            <mat-icon class="sidebar__icon" aria-hidden="true">description</mat-icon>
+            <span class="sidebar__label">{{ 'SIDEBAR.DOCS' | translate }}</span>
+            <mat-icon class="sidebar__external-icon" aria-hidden="true">open_in_new</mat-icon>
           </a>
         </li>
+      </ul>
+
+      <!-- Favorites section -->
+      @if (favoriteIds().length > 0) {
+        <div class="sidebar__section">
+          <span class="sidebar__section-label">{{ 'SIDEBAR.FAVORITES' | translate }}</span>
+        </div>
+        <ul class="sidebar__list">
+          @for (fav of recentItems().slice(0, 4); track fav.id) {
+            @if (favoriteIds().includes(fav.id)) {
+              <li class="sidebar__item">
+                <a
+                  class="sidebar__link"
+                  [routerLink]="fav.type === 'project' ? ['/projects', fav.id] : ['/config', fav.id]"
+                  [attr.title]="collapsed() ? fav.name : null"
+                >
+                  <mat-icon class="sidebar__icon" aria-hidden="true">star</mat-icon>
+                  <span class="sidebar__label">{{ fav.name }}</span>
+                </a>
+              </li>
+            }
+          }
+        </ul>
       }
-    </ul>
+
+      <!-- Recent section -->
+      @if (recentItems().length > 0) {
+        <div class="sidebar__section">
+          <span class="sidebar__section-label">{{ 'SIDEBAR.RECENT' | translate }}</span>
+        </div>
+        <ul class="sidebar__list">
+          @for (item of recentItems().slice(0, 5); track item.id) {
+            <li class="sidebar__item">
+              <a
+                class="sidebar__link"
+                [routerLink]="item.type === 'project' ? ['/projects', item.id] : ['/config', item.id]"
+                [attr.title]="collapsed() ? item.name : null"
+              >
+                <mat-icon class="sidebar__icon" aria-hidden="true">{{ item.type === 'project' ? 'folder' : 'settings' }}</mat-icon>
+                <span class="sidebar__label">{{ item.name }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    }
+
+    <!-- Project/Config contextual mode -->
+    @if (mode() !== 'global') {
+      <!-- Define section -->
+      @if (defineItems().length > 0) {
+        <div class="sidebar__section">
+          <span class="sidebar__section-label">{{ 'SIDEBAR.SECTION.DEFINE' | translate }}</span>
+        </div>
+        <ul class="sidebar__list">
+          @for (item of defineItems(); track item.id) {
+            <li class="sidebar__item">
+              <a
+                class="sidebar__link"
+                [routerLink]="item.routerLink"
+                routerLinkActive="sidebar__link--active"
+                [routerLinkActiveOptions]="{ exact: !!item.exact }"
+                [attr.title]="collapsed() ? (item.labelKey | translate) : null"
+              >
+                <mat-icon class="sidebar__icon" aria-hidden="true">{{ item.icon }}</mat-icon>
+                <span class="sidebar__label">{{ item.labelKey | translate }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+
+      <!-- Generate section -->
+      @if (generateItems().length > 0) {
+        <div class="sidebar__section">
+          <span class="sidebar__section-label">{{ 'SIDEBAR.SECTION.GENERATE' | translate }}</span>
+        </div>
+        <ul class="sidebar__list">
+          @for (item of generateItems(); track item.id) {
+            <li class="sidebar__item">
+              <a
+                class="sidebar__link"
+                [routerLink]="item.routerLink"
+                routerLinkActive="sidebar__link--active"
+                [routerLinkActiveOptions]="{ exact: !!item.exact }"
+                [attr.title]="collapsed() ? (item.labelKey | translate) : null"
+              >
+                <mat-icon class="sidebar__icon" aria-hidden="true">{{ item.icon }}</mat-icon>
+                <span class="sidebar__label">{{ item.labelKey | translate }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+
+      <!-- Manage section -->
+      @if (manageItems().length > 0) {
+        <div class="sidebar__section">
+          <span class="sidebar__section-label">{{ 'SIDEBAR.SECTION.MANAGE' | translate }}</span>
+        </div>
+        <ul class="sidebar__list">
+          @for (item of manageItems(); track item.id) {
+            <li class="sidebar__item">
+              <a
+                class="sidebar__link"
+                [routerLink]="item.routerLink"
+                routerLinkActive="sidebar__link--active"
+                [routerLinkActiveOptions]="{ exact: !!item.exact }"
+                [attr.title]="collapsed() ? (item.labelKey | translate) : null"
+              >
+                <mat-icon class="sidebar__icon" aria-hidden="true">{{ item.icon }}</mat-icon>
+                <span class="sidebar__label">{{ item.labelKey | translate }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    }
   </nav>
 </aside>

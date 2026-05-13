@@ -1,5 +1,6 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthenticationService } from '../../../shared/services/authentication.service';
@@ -8,6 +9,7 @@ import { MicrosoftGraphProfilePhotoService } from '../../../shared/services/micr
 import { MsalAuthService } from '../../../shared/services/msal-auth.service';
 import { PageContextService } from '../../../shared/services/page-context.service';
 import { DsIconButtonComponent } from '../../../shared/components/ds/ds-icon-button/ds-icon-button.component';
+import { SearchDialogComponent } from '../search-dialog/search-dialog.component';
 
 const BlobUrlPrefix = 'blob:';
 
@@ -25,6 +27,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   private readonly msalAuthService = inject(MsalAuthService);
   private readonly router = inject(Router);
   private readonly pageContextService = inject(PageContextService);
+  private readonly dialog = inject(MatDialog);
 
   protected readonly isLoggingOut = signal(false);
   protected readonly userName = signal('');
@@ -78,6 +81,27 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   protected changeLanguage(language: AppLanguage): void {
     this.languageService.setLanguage(language);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  protected onKeydown(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+      event.preventDefault();
+      this.openSearch();
+    }
+  }
+
+  protected openSearch(): void {
+    this.dialog.open(SearchDialogComponent, {
+      width: '580px',
+      maxHeight: '500px',
+      panelClass: 'search-dialog-panel',
+      autoFocus: true,
+    });
+  }
+
+  protected quickCreate(): void {
+    void this.router.navigate(['/projects'], { queryParams: { create: true } });
   }
 
   private async loadUserProfilePhoto(): Promise<void> {

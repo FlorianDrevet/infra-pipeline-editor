@@ -16,9 +16,18 @@
     "LOGGING_OUT": "Signing out...",
     "LOGOUT": "Sign out",
     "SETTINGS": "Settings",
+    "SKIP_TO_CONTENT": "Skip to main content",
+    "QUICK_CREATE": "Create new",
+    "QUICK_CREATE_ARIA": "Quick create menu",
+    "HELP_ARIA": "Help and documentation",
     "BREADCRUMB": {
       "PROJECTS": "Projects"
     }
+  },
+  "SEARCH": {
+    "PLACEHOLDER": "Search projects, configurations...",
+    "ARIA_LABEL": "Open search (Ctrl+K)",
+    "NO_RESULTS": "No results found"
   },
   "SIDEBAR": {
     "BRAND_ARIA": "Open InfraFlowSculptor home page",
@@ -28,7 +37,32 @@
     "HOME": "Home",
     "PROJECTS": "Projects",
     "SETTINGS": "Settings",
-    "DOCS": "Docs"
+    "DOCS": "Docs",
+    "FAVORITES": "Favorites",
+    "RECENT": "Recent",
+    "BACK_PROJECTS": "Back to projects",
+    "BACK_PROJECT": "Back to project",
+    "SECTION": {
+      "DEFINE": "Define",
+      "GENERATE": "Generate",
+      "MANAGE": "Manage"
+    },
+    "PROJECT": {
+      "CONFIGURATIONS": "Configurations",
+      "ENVIRONMENTS": "Environments",
+      "NAMING": "Naming Templates",
+      "VARIABLES": "Pipeline Variables",
+      "GENERATION": "Generation",
+      "MEMBERS": "Members",
+      "GIT": "Git Repositories",
+      "SETTINGS": "Settings"
+    },
+    "CONFIG": {
+      "RESOURCES": "Resource Groups",
+      "TAGS": "Tags",
+      "NAMING": "Naming Templates",
+      "GENERATION": "Generation"
+    }
   },
   "FOOTER": {
     "BRAND_DESCRIPTION": "Infrastructure as Data, Bicep as Code. Secure workspace for Azure platform teams.",
@@ -39,7 +73,11 @@
     "STATUS_BAR_ARIA": "Application status bar",
     "VERSION_ARIA": "Application version",
     "ENV_ARIA": "Environment name",
-    "DOCS": "Docs"
+    "LEGAL_NAV_ARIA": "Legal and documentation links",
+    "DOCS": "Docs",
+    "TERMS": "Terms",
+    "PRIVACY": "Privacy",
+    "STATUS": "Status"
   },
   "ANNOTATION": {
     "ACTIVATE": "Enable annotation",
@@ -76,6 +114,7 @@
     },
     "STATS": {
       "PROJECTS": "Projects",
+      "CONFIGS": "Configurations",
       "MEMBERS": "Members"
     },
     "ACTIONS": {
@@ -752,7 +791,13 @@
       "TAB_PIPELINE": "Pipeline",
       "COLLAPSE": "Collapse generation results",
       "EXPAND": "Expand generation results",
-      "CLOSE": "Close generation results"
+      "CLOSE": "Close generation results",
+      "PAGE_TITLE": "Generation",
+      "PAGE_SUBTITLE": "Generate Bicep and pipeline artifacts for this configuration",
+      "EMPTY_BICEP": "No Bicep artifacts generated yet. Click below to start.",
+      "RUN_BICEP": "Generate Bicep",
+      "EMPTY_PIPELINE": "No pipeline artifacts generated yet. Click below to start.",
+      "RUN_PIPELINE": "Generate Pipeline"
     },
     "GENERATE_ALL": {
       "BUTTON": "Generate",
@@ -917,6 +962,7 @@
     },
     "BOARD": {
       "LOADING": "Loading repository topology...",
+      "REGION_LABEL": "Generation board",
       "EMPTY_TITLE": "No repositories configured",
       "EMPTY_DESC": "Configure project-level repositories first to generate artifacts by repository.",
       "MIXED_WARNING_TITLE": "Generation is split across multiple repositories",
@@ -2226,6 +2272,11 @@
   "SETTINGS": {
     "TITLE": "Settings",
     "SUBTITLE": "Manage your account settings",
+    "PREFERENCES": {
+      "TITLE": "Preferences",
+      "SUBTITLE": "Customize your workspace experience",
+      "LANGUAGE": "Language"
+    },
     "PAT_SECTION_TITLE": "Personal Access Tokens",
     "PAT_SECTION_DESCRIPTION": "Personal access tokens are used to authenticate MCP (Model Context Protocol) clients. Create a token and configure it in your MCP client.",
     "CREATE_TOKEN": "Create Token",

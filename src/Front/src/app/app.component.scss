@@ -9,6 +9,27 @@
   --ifs-sidebar-width: 240px;
 }
 
+// Skip-to-content link — visible only on :focus for keyboard users.
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--ifs-space-16);
+  z-index: 9999;
+  padding: var(--ifs-space-8) var(--ifs-space-16);
+  background: var(--ifs-surface-2);
+  color: var(--ifs-text-primary);
+  border: 1px solid var(--ifs-border-strong);
+  border-radius: var(--ifs-radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top var(--ifs-duration-fast) var(--ifs-ease-standard);
+
+  &:focus {
+    top: var(--ifs-space-8);
+  }
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: var(--ifs-sidebar-width) 1fr;

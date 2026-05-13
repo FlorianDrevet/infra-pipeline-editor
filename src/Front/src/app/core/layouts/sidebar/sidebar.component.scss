@@ -72,6 +72,68 @@
   overflow-x: hidden;
 }
 
+.sidebar__back {
+  display: flex;
+  align-items: center;
+  gap: var(--ifs-space-8);
+  padding: var(--ifs-space-4) var(--ifs-space-12);
+  margin-bottom: var(--ifs-space-4);
+  color: var(--ifs-text-secondary);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--ifs-radius-sm);
+  transition: color var(--ifs-duration-fast) var(--ifs-ease-standard);
+}
+
+.sidebar__back:hover {
+  color: var(--ifs-text-primary);
+}
+
+.sidebar__back:focus-visible {
+  outline: none;
+  box-shadow: var(--ifs-focus-ring);
+}
+
+.sidebar__back-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
+
+.sidebar__back-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__context-title {
+  padding: var(--ifs-space-4) var(--ifs-space-12);
+  margin-bottom: var(--ifs-space-8);
+}
+
+.sidebar__context-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ifs-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.sidebar__section {
+  padding: var(--ifs-space-12) var(--ifs-space-12) var(--ifs-space-4);
+}
+
+.sidebar__section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ifs-text-muted);
+}
+
 .sidebar__list {
   list-style: none;
   margin: 0;
@@ -145,9 +207,23 @@
   text-overflow: ellipsis;
 }
 
+.sidebar__external-icon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+  line-height: 14px;
+  margin-left: auto;
+  color: var(--ifs-text-muted);
+}
+
 // Collapsed state — icons only, brand reduced to dot, labels hidden.
 :host(.sidebar--collapsed) .sidebar__label,
-:host(.sidebar--collapsed) .sidebar__brand-mark {
+:host(.sidebar--collapsed) .sidebar__brand-mark,
+:host(.sidebar--collapsed) .sidebar__external-icon,
+:host(.sidebar--collapsed) .sidebar__back-label,
+:host(.sidebar--collapsed) .sidebar__context-title,
+:host(.sidebar--collapsed) .sidebar__section {
   display: none;
 }
 

@@ -7,7 +7,7 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -65,8 +65,13 @@ export class GenerationBoardComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly translate = inject(TranslateService);
+  private readonly route = inject(ActivatedRoute);
 
-  readonly projectId = input.required<string>();
+  readonly projectId = input<string>();
+
+  private resolvedProjectId(): string {
+    return this.projectId() || this.route.snapshot.paramMap.get('id') || '';
+  }
 
   protected readonly project = signal<ProjectResponse | null>(null);
   protected readonly configs = signal<InfrastructureConfigResponse[]>([]);
@@ -127,9 +132,10 @@ export class GenerationBoardComponent implements OnInit {
   private async load(): Promise<void> {
     this.isLoading.set(true);
     try {
+      const id = this.resolvedProjectId();
       const [project, configs] = await Promise.all([
-        this.projectService.getProject(this.projectId()),
-        this.projectService.getProjectConfigs(this.projectId()),
+        this.projectService.getProject(id),
+        this.projectService.getProjectConfigs(id),
       ]);
       this.project.set(project);
       this.configs.set(configs);

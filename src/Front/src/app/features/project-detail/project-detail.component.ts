@@ -32,6 +32,7 @@ import {
 } from '../../shared/components/ds';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { PageContextService } from '../../shared/services/page-context.service';
+import { SidebarContextService } from '../../core/layouts/sidebar/sidebar-context.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import {
   EditAbbreviationDialogComponent,
@@ -144,6 +145,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   private readonly snackBar = inject(MatSnackBar);
   private readonly translate = inject(TranslateService);
   private readonly pageContextService = inject(PageContextService);
+  private readonly sidebarContextService = inject(SidebarContextService);
 
   protected readonly project = signal<ProjectResponse | null>(null);
   private readonly breadcrumbEffect = effect(() => {
@@ -344,6 +346,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       this.availableUsers.set(users);
       this.agentPoolName.set(project.agentPoolName);
       this.useCustomPool.set(project.agentPoolName != null);
+      this.sidebarContextService.setProjectContext(project.id, project.name);
       this.recentlyViewedService.trackView({
         id: project.id,
         name: project.name,

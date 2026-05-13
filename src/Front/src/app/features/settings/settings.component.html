@@ -12,6 +12,42 @@
     </app-ds-alert>
   }
 
+  <!-- ── Preferences ─────────────────────────────────────── -->
+  <app-ds-card>
+    <app-ds-section-header
+      [title]="'SETTINGS.PREFERENCES.TITLE' | translate"
+      [subtitle]="'SETTINGS.PREFERENCES.SUBTITLE' | translate"
+      icon="tune">
+    </app-ds-section-header>
+
+    <div class="preferences-grid">
+      <div class="preference-item">
+        <div class="preference-item__label">
+          <mat-icon>language</mat-icon>
+          <span>{{ 'SETTINGS.PREFERENCES.LANGUAGE' | translate }}</span>
+        </div>
+        <div class="preference-item__control">
+          <button
+            type="button"
+            class="lang-btn"
+            [class.lang-btn--active]="currentLanguage() === 'fr'"
+            (click)="languageService.setLanguage('fr')">
+            FR
+          </button>
+          <button
+            type="button"
+            class="lang-btn"
+            [class.lang-btn--active]="currentLanguage() === 'en'"
+            (click)="languageService.setLanguage('en')">
+            EN
+          </button>
+        </div>
+      </div>
+    </div>
+  </app-ds-card>
+
+  <!-- ── Personal Access Tokens ──────────────────────────── -->
+
   <app-ds-card>
     <app-ds-section-header
       [title]="'SETTINGS.PAT_SECTION_TITLE' | translate"

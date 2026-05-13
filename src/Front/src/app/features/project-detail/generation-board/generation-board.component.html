@@ -1,6 +1,6 @@
-<div class="board">
+<div class="board" role="region" [attr.aria-label]="'PROJECT_DETAIL.BOARD.REGION_LABEL' | translate">
   @if (isLoading()) {
-    <div class="board__loading">
+    <div class="board__loading" aria-live="polite">
       <mat-spinner diameter="32"></mat-spinner>
       <p>{{ 'PROJECT_DETAIL.BOARD.LOADING' | translate }}</p>
     </div>

@@ -1,4 +1,8 @@
 <footer class="status-bar" [attr.aria-label]="'FOOTER.STATUS_BAR_ARIA' | translate">
+  <span class="status-bar__item status-bar__item--copyright">
+    © {{ currentYear }} InfraFlowSculptor
+  </span>
+  <span class="status-bar__sep" aria-hidden="true">·</span>
   <span class="status-bar__item status-bar__item--version" [attr.aria-label]="'FOOTER.VERSION_ARIA' | translate">
     v{{ version }}
   </span>
@@ -7,8 +11,22 @@
     {{ envName }}
   </span>
   <span class="status-bar__spacer"></span>
-  <a class="status-bar__link" [href]="docsUrl" target="_blank" rel="noopener noreferrer">
-    {{ 'FOOTER.DOCS' | translate }}
-  </a>
+  <nav class="status-bar__links" [attr.aria-label]="'FOOTER.LEGAL_NAV_ARIA' | translate">
+    <a class="status-bar__link" [href]="termsUrl" target="_blank" rel="noopener noreferrer">
+      {{ 'FOOTER.TERMS' | translate }}
+    </a>
+    <span class="status-bar__sep" aria-hidden="true">·</span>
+    <a class="status-bar__link" [href]="privacyUrl" target="_blank" rel="noopener noreferrer">
+      {{ 'FOOTER.PRIVACY' | translate }}
+    </a>
+    <span class="status-bar__sep" aria-hidden="true">·</span>
+    <a class="status-bar__link" [href]="docsUrl" target="_blank" rel="noopener noreferrer">
+      {{ 'FOOTER.DOCS' | translate }}
+    </a>
+    <span class="status-bar__sep" aria-hidden="true">·</span>
+    <a class="status-bar__link" [href]="statusUrl" target="_blank" rel="noopener noreferrer">
+      {{ 'FOOTER.STATUS' | translate }}
+    </a>
+  </nav>
 </footer>
 

@@ -5,15 +5,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { DsIconButtonComponent } from '../../../shared/components/ds/ds-icon-button/ds-icon-button.component';
 import { SidebarStateService } from './sidebar-state.service';
-import { SidebarNavItem } from './sidebar.types';
-
-const NavItems: readonly SidebarNavItem[] = [
-  { id: 'home', icon: 'home', labelKey: 'SIDEBAR.HOME', routerLink: '/', exact: true },
-  { id: 'projects', icon: 'folder', labelKey: 'SIDEBAR.PROJECTS', routerLink: '/projects', exact: false },
-  { id: 'settings', icon: 'settings', labelKey: 'SIDEBAR.SETTINGS', routerLink: '/settings', exact: false },
-  // NOTE: route `/docs` is currently a placeholder; pending confirmation it may become an external link.
-  { id: 'docs', icon: 'description', labelKey: 'SIDEBAR.DOCS', routerLink: '/docs', exact: false },
-];
+import { SidebarContextService } from './sidebar-context.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -29,14 +21,31 @@ const NavItems: readonly SidebarNavItem[] = [
 })
 export class SidebarComponent {
   private readonly state = inject(SidebarStateService);
+  private readonly context = inject(SidebarContextService);
 
-  protected readonly items = NavItems;
   protected readonly collapsed = this.state.collapsed;
   protected readonly width = this.state.width;
+  protected readonly contextState = this.context.contextState;
+  protected readonly mode = this.context.mode;
+  protected readonly favoriteIds = this.context.favoriteIds;
+  protected readonly recentItems = this.context.recentItems;
 
   protected readonly toggleIcon = computed(() => (this.collapsed() ? 'chevron_right' : 'chevron_left'));
   protected readonly toggleAriaLabelKey = computed(() =>
     this.collapsed() ? 'SIDEBAR.EXPAND_ARIA' : 'SIDEBAR.COLLAPSE_ARIA'
+  );
+
+  protected readonly defineItems = computed(() =>
+    this.contextState().items.filter((i) => i.section === 'define')
+  );
+  protected readonly generateItems = computed(() =>
+    this.contextState().items.filter((i) => i.section === 'generate')
+  );
+  protected readonly manageItems = computed(() =>
+    this.contextState().items.filter((i) => i.section === 'manage')
+  );
+  protected readonly globalItems = computed(() =>
+    this.contextState().items.filter((i) => !i.section)
   );
 
   protected onToggle(): void {

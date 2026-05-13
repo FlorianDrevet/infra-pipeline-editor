@@ -16,9 +16,18 @@
     "LOGGING_OUT": "Deconnexion...",
     "LOGOUT": "Se deconnecter",
     "SETTINGS": "Paramètres",
+    "SKIP_TO_CONTENT": "Aller au contenu principal",
+    "QUICK_CREATE": "Créer",
+    "QUICK_CREATE_ARIA": "Menu de création rapide",
+    "HELP_ARIA": "Aide et documentation",
     "BREADCRUMB": {
       "PROJECTS": "Projets"
     }
+  },
+  "SEARCH": {
+    "PLACEHOLDER": "Rechercher projets, configurations...",
+    "ARIA_LABEL": "Ouvrir la recherche (Ctrl+K)",
+    "NO_RESULTS": "Aucun résultat trouvé"
   },
   "SIDEBAR": {
     "BRAND_ARIA": "Ouvrir la page d'accueil InfraFlowSculptor",
@@ -28,7 +37,32 @@
     "HOME": "Accueil",
     "PROJECTS": "Projets",
     "SETTINGS": "Paramètres",
-    "DOCS": "Docs"
+    "DOCS": "Docs",
+    "FAVORITES": "Favoris",
+    "RECENT": "Récents",
+    "BACK_PROJECTS": "Retour aux projets",
+    "BACK_PROJECT": "Retour au projet",
+    "SECTION": {
+      "DEFINE": "Définir",
+      "GENERATE": "Générer",
+      "MANAGE": "Gérer"
+    },
+    "PROJECT": {
+      "CONFIGURATIONS": "Configurations",
+      "ENVIRONMENTS": "Environnements",
+      "NAMING": "Modèles de nommage",
+      "VARIABLES": "Variables pipeline",
+      "GENERATION": "Génération",
+      "MEMBERS": "Membres",
+      "GIT": "Dépôts Git",
+      "SETTINGS": "Paramètres"
+    },
+    "CONFIG": {
+      "RESOURCES": "Groupes de ressources",
+      "TAGS": "Tags",
+      "NAMING": "Modèles de nommage",
+      "GENERATION": "Génération"
+    }
   },
   "FOOTER": {
     "BRAND_DESCRIPTION": "Infrastructure as Data, Bicep as Code. Espace securise pour les equipes plateforme Azure.",
@@ -39,7 +73,11 @@
     "STATUS_BAR_ARIA": "Barre d'état de l'application",
     "VERSION_ARIA": "Version de l'application",
     "ENV_ARIA": "Nom de l'environnement",
-    "DOCS": "Docs"
+    "LEGAL_NAV_ARIA": "Liens juridiques et documentation",
+    "DOCS": "Docs",
+    "TERMS": "CGU",
+    "PRIVACY": "Confidentialité",
+    "STATUS": "Statut"
   },
   "ANNOTATION": {
     "ACTIVATE": "Activer l'annotation",
@@ -76,6 +114,7 @@
     },
     "STATS": {
       "PROJECTS": "Projets",
+      "CONFIGS": "Configurations",
       "MEMBERS": "Membres"
     },
     "ACTIONS": {
@@ -751,7 +790,13 @@
       "TAB_PIPELINE": "Pipeline",
       "COLLAPSE": "Replier les résultats de génération",
       "EXPAND": "Déplier les résultats de génération",
-      "CLOSE": "Fermer les résultats de génération"
+      "CLOSE": "Fermer les résultats de génération",
+      "PAGE_TITLE": "Génération",
+      "PAGE_SUBTITLE": "Générez les artefacts Bicep et pipeline pour cette configuration",
+      "EMPTY_BICEP": "Aucun artefact Bicep généré. Cliquez ci-dessous pour commencer.",
+      "RUN_BICEP": "Générer Bicep",
+      "EMPTY_PIPELINE": "Aucun artefact pipeline généré. Cliquez ci-dessous pour commencer.",
+      "RUN_PIPELINE": "Générer le pipeline"
     },
     "GENERATE_ALL": {
       "BUTTON": "Générer",
@@ -899,6 +944,7 @@
     },
     "BOARD": {
       "LOADING": "Chargement de la topologie des dépôts...",
+      "REGION_LABEL": "Panneau de génération",
       "EMPTY_TITLE": "Aucun dépôt configuré",
       "EMPTY_DESC": "Configurez d'abord les dépôts au niveau projet pour générer les artefacts par dépôt.",
       "MIXED_WARNING_TITLE": "La génération est répartie sur plusieurs dépôts",
@@ -2217,6 +2263,11 @@
   "SETTINGS": {
     "TITLE": "Paramètres",
     "SUBTITLE": "Gérer les paramètres de votre compte",
+    "PREFERENCES": {
+      "TITLE": "Préférences",
+      "SUBTITLE": "Personnalisez votre expérience",
+      "LANGUAGE": "Langue"
+    },
     "PAT_SECTION_TITLE": "Jetons d'accès personnels",
     "PAT_SECTION_DESCRIPTION": "Les jetons d'accès personnels sont utilisés pour authentifier les clients MCP (Model Context Protocol). Créez un jeton et configurez-le dans votre client MCP.",
     "CREATE_TOKEN": "Créer un jeton",
