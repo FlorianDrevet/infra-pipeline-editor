@@ -9,6 +9,9 @@ public sealed class ExistingResourceReference
     /// <summary>Logical name of the referenced resource.</summary>
     public string ResourceName { get; init; } = string.Empty;
 
+    /// <summary>Domain identifier of the referenced target resource when it is known.</summary>
+    public Guid? TargetResourceId { get; init; }
+
     /// <summary>Simple type name (e.g. "KeyVault", "LogAnalyticsWorkspace").</summary>
     public string ResourceTypeName { get; init; } = string.Empty;
 

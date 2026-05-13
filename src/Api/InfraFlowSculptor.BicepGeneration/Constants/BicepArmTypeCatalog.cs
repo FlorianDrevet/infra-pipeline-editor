@@ -94,6 +94,8 @@ internal static class BicepArmTypeCatalog
             AzureResourceTypes.ArmTypes.SqlServerType => SqlServerApiVersion,
             AzureResourceTypes.ArmTypes.SqlDatabaseType => SqlDatabaseApiVersion,
             AzureResourceTypes.ArmTypes.ServiceBusNamespaceType => ServiceBusNamespaceApiVersion,
+            AzureResourceTypes.ArmTypes.ContainerRegistryType => ContainerRegistryApiVersion,
+            AzureResourceTypes.ArmTypes.EventHubNamespaceType => EventHubNamespaceApiVersion,
             _ => DefaultExistingResourceApiVersion,
         };
 }

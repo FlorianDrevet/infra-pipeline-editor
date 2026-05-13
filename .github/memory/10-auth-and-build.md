@@ -74,6 +74,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - CI/release split remains build-once then promote.
 - Container delivery uses immutable tags and optional Trivy/Syft scans.
 - `AppPipelineBuilderCommon` still contains removable dead inline YAML helpers; it is cleanup-only debt.
+- `PipelineGenerationEngine` must map only known validation-style `InvalidOperationException` prefixes to `ErrorOr` validation errors (currently the variable-group-name guard). Unexpected `InvalidOperationException` instances must bubble so handlers/global error handling treat them as internal failures instead of `Generation.InvalidInfrastructurePipelineConfiguration` user errors.
 
 ## Windows PowerShell & Bootstrap ADO Notes
 

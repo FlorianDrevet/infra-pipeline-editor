@@ -150,8 +150,8 @@ public sealed class PipelineGenerationEngine
             return true;
         }
 
-        error = GenerationErrors.InvalidInfrastructurePipelineConfiguration(exception.Message);
-        return true;
+        error = default;
+        return false;
     }
 
 

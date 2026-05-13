@@ -1,6 +1,7 @@
 using ErrorOr;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
+using InfraFlowSculptor.PipelineGeneration.Infra;
 using InfraFlowSculptor.PipelineGeneration.Generators;
 using InfraFlowSculptor.PipelineGeneration.Generators.App;
 using InfraFlowSculptor.PipelineGeneration.Tests.Fixtures;
@@ -79,5 +80,37 @@ public sealed class PipelineVariableGroupSecurityTests
         result.Value.TemplateFiles["release.pipeline.yml"]
             .Should()
             .Contain("- group: 'ifs-shared-${{ environment }}'");
+    }
+
+    [Fact]
+    public void Given_UnexpectedInvalidOperationException_When_GenerateInfraPipeline_Then_RethrowsInsteadOfReturningValidationError()
+    {
+        // Arrange
+        var sut = new PipelineGenerationEngine(new InfraPipeline([new ThrowingInfraPipelineStage("Unexpected pipeline failure")])) ;
+        var request = GenerationRequestFixtures.StandardStandalone();
+
+        // Act
+        var act = () => sut.Generate(request, "core");
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("Unexpected pipeline failure");
+    }
+
+    private sealed class ThrowingInfraPipelineStage : IInfraPipelineStage
+    {
+        private readonly string _message;
+
+        public ThrowingInfraPipelineStage(string message)
+        {
+            _message = message;
+        }
+
+        public int Order => 0;
+
+        public void Execute(InfraPipelineContext context)
+        {
+            throw new InvalidOperationException(_message);
+        }
     }
 }

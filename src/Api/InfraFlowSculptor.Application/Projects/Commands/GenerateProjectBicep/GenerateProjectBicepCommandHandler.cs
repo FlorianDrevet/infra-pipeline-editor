@@ -132,6 +132,7 @@ public sealed class GenerateProjectBicepCommandHandler(
                     inferredReferences.Add(new ExistingResourceReference
                     {
                         ResourceName = crossConfigResource.ResourceName,
+                        TargetResourceId = crossConfigResource.ResourceId,
                         ResourceTypeName = crossConfigResource.ResourceTypeName,
                         ResourceType = crossConfigResource.ResourceType,
                         ResourceGroupName = crossConfigResource.ResourceGroupName,
@@ -165,6 +166,7 @@ public sealed class GenerateProjectBicepCommandHandler(
                 {
                     var resourceTypeName = GenerationRequestBuilder.GetResourceTypeName(resource.ResourceType);
                     resourceLookup[resource.Id] = new CrossConfigResourceDescriptor(
+                        ResourceId: resource.Id,
                         ConfigKey: configKey,
                         ConfigName: config.Name,
                         ResourceName: resource.Name,
@@ -223,6 +225,7 @@ public sealed class GenerateProjectBicepCommandHandler(
     }
 
     private sealed record CrossConfigResourceDescriptor(
+        Guid ResourceId,
         string ConfigKey,
         string ConfigName,
         string ResourceName,

@@ -191,6 +191,78 @@ public sealed class ParentReferenceResolutionStageTests
     }
 
     [Fact]
+    public void Given_ContainerAppWithMultipleExistingContainerRegistries_When_Execute_Then_UsesMatchingTargetResourceIdForAcrLoginServer()
+    {
+        // Arrange
+        var firstContainerRegistryId = Guid.NewGuid();
+        var secondContainerRegistryId = Guid.NewGuid();
+
+        var containerAppResource = new ResourceDefinition
+        {
+            ResourceId = Guid.NewGuid(),
+            Name = "ifs-worker",
+            Type = AzureResourceTypes.ArmTypes.ContainerAppType,
+            Properties = new Dictionary<string, string>
+            {
+                ["containerRegistryId"] = secondContainerRegistryId.ToString(),
+            },
+        };
+
+        var context = new BicepGenerationContext
+        {
+            Request = new GenerationRequest
+            {
+                Resources = [containerAppResource],
+                ExistingResourceReferences =
+                [
+                    new ExistingResourceReference
+                    {
+                        ResourceName = "acr-primary",
+                        ResourceTypeName = AzureResourceTypes.ContainerRegistry,
+                        ResourceType = AzureResourceTypes.ArmTypes.ContainerRegistryType,
+                        ResourceGroupName = "rg-primary",
+                        ResourceAbbreviation = "acr",
+                        TargetResourceId = firstContainerRegistryId,
+                    },
+                    new ExistingResourceReference
+                    {
+                        ResourceName = "acr-secondary",
+                        ResourceTypeName = AzureResourceTypes.ContainerRegistry,
+                        ResourceType = AzureResourceTypes.ArmTypes.ContainerRegistryType,
+                        ResourceGroupName = "rg-secondary",
+                        ResourceAbbreviation = "acr",
+                        TargetResourceId = secondContainerRegistryId,
+                    },
+                ],
+            },
+            ResourceIdToInfo = [],
+        };
+
+        context.WorkItems.Add(new ModuleWorkItem
+        {
+            Resource = containerAppResource,
+            Module = new GeneratedTypeModule
+            {
+                Parameters = new Dictionary<string, object>
+                {
+                    ["acrLoginServer"] = string.Empty,
+                    ["acrManagedIdentityClientId"] = string.Empty,
+                },
+            },
+            Spec = CreateMinimalSpec(),
+        });
+
+        // Act
+        _sut.Execute(context);
+
+        // Assert
+        var module = context.WorkItems[0].Module;
+        module.ExistingResourcePropertyReferences.Should().ContainKey("acrLoginServer");
+        module.ExistingResourcePropertyReferences["acrLoginServer"].ResourceName.Should().Be("acr-secondary");
+        module.ExistingResourcePropertyReferences["acrLoginServer"].PropertyPath.Should().Be("properties.loginServer");
+    }
+
+    [Fact]
     public void Given_ResourceWithSqlServerId_When_Execute_Then_ParentModuleNameRefResolved()
     {
         // Arrange

@@ -15,7 +15,7 @@ namespace InfraFlowSculptor.Application.Tests.Projects.Common.Generation;
 public sealed class ProjectPipelineAggregatorTests
 {
     [Fact]
-    public async Task Given_InfraPipelineGenerationFails_When_GenerateAsync_Then_ReturnsErrorWithoutGeneratingAppPipelinesAsync()
+    public async Task Given_InfraPipelineGenerationThrowsUnexpectedInvalidOperation_When_GenerateAsync_Then_RethrowsWithoutGeneratingAppPipelinesAsync()
     {
         // Arrange
         var configPipelineGenerationService = Substitute.For<IConfigPipelineGenerationService>();
@@ -38,7 +38,7 @@ public sealed class ProjectPipelineAggregatorTests
             configPipelineGenerationService);
 
         // Act
-        var result = await sut.GenerateAsync(
+        var act = async () => await sut.GenerateAsync(
             [config],
             Array.Empty<ProjectPipelineVariableGroup>(),
             agentPoolName: null,
@@ -47,7 +47,8 @@ public sealed class ProjectPipelineAggregatorTests
             CancellationToken.None);
 
         // Assert
-        result.IsError.Should().BeTrue();
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("broken pipeline");
         await configPipelineGenerationService.DidNotReceive()
             .GenerateAppPipelinesAsync(
                 Arg.Any<InfrastructureConfigReadModel>(),

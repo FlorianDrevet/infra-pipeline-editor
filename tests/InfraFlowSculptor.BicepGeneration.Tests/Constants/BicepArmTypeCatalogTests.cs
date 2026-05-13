@@ -27,6 +27,12 @@ public sealed class BicepArmTypeCatalogTests
         ResourceTypeMetadata.GetExistingResourceApiVersion(AzureResourceTypes.ArmTypes.SqlServerType)
             .Should().Be(BicepArmTypeCatalog.SqlServerApiVersion);
 
+        ResourceTypeMetadata.GetExistingResourceApiVersion(AzureResourceTypes.ArmTypes.ContainerRegistryType)
+            .Should().Be(BicepArmTypeCatalog.ContainerRegistryApiVersion);
+
+        ResourceTypeMetadata.GetExistingResourceApiVersion(AzureResourceTypes.ArmTypes.EventHubNamespaceType)
+            .Should().Be(BicepArmTypeCatalog.EventHubNamespaceApiVersion);
+
         RoleAssignmentModuleTemplates.GetMetadata(AzureResourceTypes.ContainerRegistry)!
             .ApiVersion.Should().Be(BicepArmTypeCatalog.ContainerRegistryApiVersion);
 

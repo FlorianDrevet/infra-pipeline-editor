@@ -141,6 +141,7 @@ internal static class GenerationRequestBuilder
                 return new ExistingResourceReference
                 {
                     ResourceName = ccRef.TargetResourceName,
+                    TargetResourceId = ccRef.TargetResourceId,
                     ResourceTypeName = targetTypeName,
                     ResourceType = ccRef.TargetResourceType,
                     ResourceGroupName = ccRef.TargetResourceGroupName,
@@ -159,6 +160,7 @@ internal static class GenerationRequestBuilder
                     return new ExistingResourceReference
                     {
                         ResourceName = r.Name,
+                        TargetResourceId = r.Id,
                         ResourceTypeName = typeName,
                         ResourceType = r.ResourceType,
                         ResourceGroupName = rg.Name,

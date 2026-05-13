@@ -136,9 +136,15 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
             return;
         }
 
+        Guid? containerRegistryId = null;
         if (resource.Properties.TryGetValue(ContainerRegistryIdPropertyName, out var containerRegistryIdValue)
-            && Guid.TryParse(containerRegistryIdValue, out var containerRegistryId)
-            && context.ResourceIdToInfo.TryGetValue(containerRegistryId, out var containerRegistryInfo)
+            && Guid.TryParse(containerRegistryIdValue, out var parsedContainerRegistryId))
+        {
+            containerRegistryId = parsedContainerRegistryId;
+        }
+
+        if (containerRegistryId is Guid resolvedContainerRegistryId
+            && context.ResourceIdToInfo.TryGetValue(resolvedContainerRegistryId, out var containerRegistryInfo)
             && string.Equals(containerRegistryInfo.ResourceTypeName, AzureResourceTypes.ContainerRegistry, StringComparison.OrdinalIgnoreCase))
         {
             parentModuleOutputRefs[AcrLoginServerParameterName] =
@@ -146,8 +152,18 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
             return;
         }
 
-        var existingContainerRegistry = context.Request.ExistingResourceReferences.FirstOrDefault(reference =>
-            reference.ResourceType.Equals(AzureResourceTypes.ArmTypes.ContainerRegistryType, StringComparison.OrdinalIgnoreCase));
+        var existingContainerRegistries = context.Request.ExistingResourceReferences
+            .Where(reference => reference.ResourceType.Equals(AzureResourceTypes.ArmTypes.ContainerRegistryType, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        var existingContainerRegistry = containerRegistryId is Guid existingContainerRegistryId
+            ? existingContainerRegistries.FirstOrDefault(reference => reference.TargetResourceId == existingContainerRegistryId)
+            : null;
+
+        if (existingContainerRegistry is null && existingContainerRegistries.Count == 1)
+        {
+            existingContainerRegistry = existingContainerRegistries[0];
+        }
 
         if (existingContainerRegistry is null)
         {

@@ -161,7 +161,8 @@ public sealed class GenerateProjectBicepCommandHandlerTests
             reference.ResourceName == "infraflowsculptor"
             && reference.ResourceGroupName == "ifs-core"
             && reference.ResourceType == AzureResourceTypes.ArmTypes.ContainerRegistryType
-            && reference.SourceConfigName == "Core");
+            && reference.SourceConfigName == "Core"
+            && reference.TargetResourceId == containerRegistryId);
     }
 
     private static InfrastructureConfigReadModel BuildConfigReadModel(
