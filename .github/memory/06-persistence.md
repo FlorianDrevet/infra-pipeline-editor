@@ -52,6 +52,8 @@
 - `ResourceGroupRepository.GetByIdReadOnlyAsync(...)` is the standard lookup when a query only needs group metadata or `InfraConfigId`; pure read handlers for resource groups, Key Vault, Redis, Storage, App Configuration, and compute resources follow this pattern.
 - Generic `IRepository.GetByIdReadOnlyAsync(...)`, specialized `AzureResourceRepository<TEntity>.GetByIdReadOnlyAsync(...)`, and polymorphic `IAzureResourceRepository` read-only variants cover simple detail queries plus RBAC read paths.
 - `ListCrossConfigReferencesQueryHandler` and `ListAppConfigurationKeysQueryHandler` are the reference follow-ups for detached infra-config/resource-group reads.
+- The DB-003 closure slice extends the same detached-read rule beyond query handlers to pure read helper services: `AppPipelineRequestFactory` and `ApplicationFolderNameResolver` now use `GetByIdReadOnlyAsync(...)` because they only enrich generation/download flows and never mutate loaded aggregates.
+- The remaining read-model follow-ups now also include `GetDependentResourcesQueryHandler`, `ListAppSettingsQueryHandler`, `CheckKeyVaultAccessQueryHandler`, `GetAvailableOutputsQueryHandler`, `CheckAcrPullAccessQueryHandler`, `ListCustomDomainsQueryHandler`, `GetSecureParameterMappingsQueryHandler`, `SearchCodeRepoFilesQueryHandler`, and `ListCodeRepoBranchesQueryHandler`; they are the current reference set for swapping tracked read calls to detached variants without touching write/owner paths.
 - `StorageAccountAccessHelper` routes read flows through `GetByIdWithSubResourcesReadOnlyAsync(...)`.
 - `PersonalAccessTokenRepository.GetByTokenHashAsync(...)` is the deliberate exception: it stays tracked because PAT auth updates `LastUsedAt`.
 

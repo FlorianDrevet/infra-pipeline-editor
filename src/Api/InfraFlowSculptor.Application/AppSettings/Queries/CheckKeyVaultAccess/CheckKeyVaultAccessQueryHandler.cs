@@ -17,7 +17,7 @@ public sealed class CheckKeyVaultAccessQueryHandler(
         CheckKeyVaultAccessQuery request,
         CancellationToken cancellationToken)
     {
-        var resource = await azureResourceRepository.GetByIdWithRoleAssignmentsAsync(
+        var resource = await azureResourceRepository.GetByIdWithRoleAssignmentsReadOnlyAsync(
             request.ResourceId, cancellationToken);
 
         if (resource is null)

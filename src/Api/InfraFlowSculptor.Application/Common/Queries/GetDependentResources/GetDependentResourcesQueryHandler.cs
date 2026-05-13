@@ -29,18 +29,18 @@ public sealed class GetDependentResourcesQueryHandler(
         CancellationToken cancellationToken)
     {
         // Try to find the parent resource and determine its type
-        AzureResource? parent = await logAnalyticsWorkspaceRepository.GetByIdAsync(request.Id, cancellationToken);
+        AzureResource? parent = await logAnalyticsWorkspaceRepository.GetByIdReadOnlyAsync(request.Id, cancellationToken);
         var parentType = AzureResourceTypes.LogAnalyticsWorkspace;
 
         if (parent is null)
         {
-            parent = await appServicePlanRepository.GetByIdAsync(request.Id, cancellationToken);
+            parent = await appServicePlanRepository.GetByIdReadOnlyAsync(request.Id, cancellationToken);
             parentType = AzureResourceTypes.AppServicePlan;
         }
 
         if (parent is null)
         {
-            parent = await sqlServerRepository.GetByIdAsync(request.Id, cancellationToken);
+            parent = await sqlServerRepository.GetByIdReadOnlyAsync(request.Id, cancellationToken);
             parentType = AzureResourceTypes.SqlServer;
         }
 
@@ -48,7 +48,7 @@ public sealed class GetDependentResourcesQueryHandler(
             return new List<DependentResourceResult>();
 
         // Verify read access
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(parent.ResourceGroupId, cancellationToken);
+        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(parent.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return new List<DependentResourceResult>();
 

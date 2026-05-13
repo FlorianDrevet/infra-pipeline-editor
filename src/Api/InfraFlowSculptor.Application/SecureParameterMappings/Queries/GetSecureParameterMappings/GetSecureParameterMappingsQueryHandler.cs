@@ -37,7 +37,7 @@ public sealed class GetSecureParameterMappingsQueryHandler(
 
         if (vgIds.Count > 0)
         {
-            var resourceGroup = await resourceGroupRepository.GetByIdAsync(
+            var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(
                 resource.ResourceGroupId, cancellationToken);
 
             if (resourceGroup is not null)

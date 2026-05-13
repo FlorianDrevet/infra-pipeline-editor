@@ -17,7 +17,7 @@ public sealed class GetAvailableOutputsQueryHandler(
         GetAvailableOutputsQuery request,
         CancellationToken cancellationToken)
     {
-        var resource = await azureResourceRepository.GetByIdAsync(
+        var resource = await azureResourceRepository.GetByIdReadOnlyAsync(
             request.ResourceId, cancellationToken);
 
         if (resource is null)

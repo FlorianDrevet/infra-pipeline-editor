@@ -33,7 +33,7 @@ public sealed class ListCodeRepoBranchesQueryHandler(
         Domain.InfrastructureConfigAggregate.InfrastructureConfig? config = null;
         if (query.ConfigId is not null)
         {
-            config = await infraConfigRepository.GetByIdAsync(query.ConfigId, cancellationToken);
+            config = await infraConfigRepository.GetByIdReadOnlyAsync(query.ConfigId, cancellationToken);
             if (config is null)
                 return Errors.InfrastructureConfig.NotFoundError(query.ConfigId);
         }

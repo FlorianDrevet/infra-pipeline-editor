@@ -1,6 +1,7 @@
 using FluentAssertions;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Services;
+using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
@@ -62,9 +63,9 @@ public sealed class AppPipelineRequestFactoryTests
             AzureResourceId.CreateUnique(),
             containerRegistryId: registry.Id,
             acrAuthMode: null);
-        _containerAppRepository.GetByIdAsync(containerApp.Id, Arg.Any<CancellationToken>())
+        _containerAppRepository.GetByIdReadOnlyAsync(containerApp.Id, Arg.Any<CancellationToken>())
             .Returns(containerApp);
-        _containerRegistryRepository.GetByIdAsync(registry.Id, Arg.Any<CancellationToken>())
+        _containerRegistryRepository.GetByIdReadOnlyAsync(registry.Id, Arg.Any<CancellationToken>())
             .Returns(registry);
 
         // Act
@@ -78,6 +79,14 @@ public sealed class AppPipelineRequestFactoryTests
         result!.ResourceName.Should().Be(containerApp.Name.Value);
         result.ResourceType.Should().Be(AzureResourceTypes.ContainerApp);
         result.ContainerRegistryName.Should().Be(registry.Name.Value);
+        await _containerAppRepository.Received(1)
+            .GetByIdReadOnlyAsync(containerApp.Id, Arg.Any<CancellationToken>());
+        await _containerRegistryRepository.Received(1)
+            .GetByIdReadOnlyAsync(registry.Id, Arg.Any<CancellationToken>());
+        await _containerAppRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
+        await _containerRegistryRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -97,7 +106,7 @@ public sealed class AppPipelineRequestFactoryTests
             containerRegistryId: null,
             acrAuthMode: null,
             dockerImageName: null);
-        _webAppRepository.GetByIdAsync(webApp.Id, Arg.Any<CancellationToken>())
+        _webAppRepository.GetByIdReadOnlyAsync(webApp.Id, Arg.Any<CancellationToken>())
             .Returns(webApp);
 
         // Act
@@ -112,6 +121,10 @@ public sealed class AppPipelineRequestFactoryTests
         result.DeploymentMode.Should().Be(DeploymentMode.DeploymentModeType.Code.ToString());
         result.RuntimeVersion.Should().Be("8.0");
         result.ContainerRegistryName.Should().BeNull();
+        await _webAppRepository.Received(1)
+            .GetByIdReadOnlyAsync(webApp.Id, Arg.Any<CancellationToken>());
+        await _webAppRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -130,7 +143,7 @@ public sealed class AppPipelineRequestFactoryTests
             containerRegistryId: null,
             acrAuthMode: null,
             dockerImageName: null);
-        _functionAppRepository.GetByIdAsync(functionApp.Id, Arg.Any<CancellationToken>())
+        _functionAppRepository.GetByIdReadOnlyAsync(functionApp.Id, Arg.Any<CancellationToken>())
             .Returns(functionApp);
 
         // Act
@@ -145,6 +158,10 @@ public sealed class AppPipelineRequestFactoryTests
         result.DeploymentMode.Should().Be(DeploymentMode.DeploymentModeType.Code.ToString());
         result.RuntimeVersion.Should().Be("8.0");
         result.ContainerRegistryName.Should().BeNull();
+        await _functionAppRepository.Received(1)
+            .GetByIdReadOnlyAsync(functionApp.Id, Arg.Any<CancellationToken>());
+        await _functionAppRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -159,10 +176,16 @@ public sealed class AppPipelineRequestFactoryTests
         // Assert
         result.Should().BeNull();
         await _containerAppRepository.DidNotReceive()
-            .GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>());
+            .GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
         await _webAppRepository.DidNotReceive()
-            .GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>());
+            .GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
         await _functionAppRepository.DidNotReceive()
-            .GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>());
+            .GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
+        await _containerAppRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
+        await _webAppRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
+        await _functionAppRepository.DidNotReceive()
+            .GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
     }
 }

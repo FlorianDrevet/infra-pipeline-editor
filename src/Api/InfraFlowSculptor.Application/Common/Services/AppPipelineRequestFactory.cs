@@ -39,7 +39,7 @@ public sealed class AppPipelineRequestFactory(
         AzureResourceId resourceId,
         CancellationToken cancellationToken)
     {
-        var containerApp = await containerAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false);
+        var containerApp = await containerAppRepository.GetByIdReadOnlyAsync(resourceId, cancellationToken).ConfigureAwait(false);
         if (containerApp is null)
             return null;
 
@@ -66,7 +66,7 @@ public sealed class AppPipelineRequestFactory(
         AzureResourceId resourceId,
         CancellationToken cancellationToken)
     {
-        var webApp = await webAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false);
+        var webApp = await webAppRepository.GetByIdReadOnlyAsync(resourceId, cancellationToken).ConfigureAwait(false);
         if (webApp is null)
             return null;
 
@@ -97,7 +97,7 @@ public sealed class AppPipelineRequestFactory(
         AzureResourceId resourceId,
         CancellationToken cancellationToken)
     {
-        var functionApp = await functionAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false);
+        var functionApp = await functionAppRepository.GetByIdReadOnlyAsync(resourceId, cancellationToken).ConfigureAwait(false);
         if (functionApp is null)
             return null;
 
@@ -131,7 +131,7 @@ public sealed class AppPipelineRequestFactory(
         if (containerRegistryId is null)
             return null;
 
-        var containerRegistry = await containerRegistryRepository.GetByIdAsync(containerRegistryId, cancellationToken)
+        var containerRegistry = await containerRegistryRepository.GetByIdReadOnlyAsync(containerRegistryId, cancellationToken)
             .ConfigureAwait(false);
 
         return containerRegistry?.Name.Value;

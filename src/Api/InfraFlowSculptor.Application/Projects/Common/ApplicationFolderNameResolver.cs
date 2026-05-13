@@ -21,13 +21,13 @@ internal sealed class ApplicationFolderNameResolver(
         return resource.ResourceType switch
         {
             AzureResourceTypes.ArmTypes.ContainerAppType =>
-                (await containerAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
+                (await containerAppRepository.GetByIdReadOnlyAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
                 ?? resource.Name,
             AzureResourceTypes.ArmTypes.WebAppType =>
-                (await webAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
+                (await webAppRepository.GetByIdReadOnlyAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
                 ?? resource.Name,
             AzureResourceTypes.ArmTypes.FunctionAppType =>
-                (await functionAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
+                (await functionAppRepository.GetByIdReadOnlyAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
                 ?? resource.Name,
             _ => resource.Name,
         };
