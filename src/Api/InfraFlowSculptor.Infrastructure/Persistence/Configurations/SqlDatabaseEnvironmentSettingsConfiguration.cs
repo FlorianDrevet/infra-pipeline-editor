@@ -11,6 +11,8 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 public class SqlDatabaseEnvironmentSettingsConfiguration
     : IEntityTypeConfiguration<SqlDatabaseEnvironmentSettings>
 {
+    private const int EnvironmentNameMaxLength = 100;
+
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<SqlDatabaseEnvironmentSettings> builder)
     {
@@ -26,7 +28,8 @@ public class SqlDatabaseEnvironmentSettingsConfiguration
             .IsRequired();
 
         builder.Property(x => x.EnvironmentName)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(EnvironmentNameMaxLength);
 
         builder.Property(x => x.Sku)
             .HasConversion(

@@ -16,7 +16,12 @@
 - `ResourceGroup.Name` = `90`; `AzureResource.Name` / `CustomNameOverride` = `260`.
 - `ParameterDefinition.Name` = `100`; `Type` = `20`; `DefaultValue` = `500`.
 - `ProjectResourceNamingTemplate.Template` and `ResourceNamingTemplate.Template` = `500`.
+- `BlobContainer.Name`, `StorageQueue.Name`, and `StorageTable.Name` = `63`; `RoleAssignment.RoleDefinitionId` = `36`.
+- `FunctionApp.RuntimeVersion` / `WebApp.RuntimeVersion` = `20`; `FunctionApp.DockerImageName` / `WebApp.DockerImageName` = `512`.
+- `AppServicePlanEnvironmentSettings.EnvironmentName`, `FunctionAppEnvironmentSettings.EnvironmentName`, `WebAppEnvironmentSettings.EnvironmentName`, `SqlServerEnvironmentSettings.EnvironmentName`, and `SqlDatabaseEnvironmentSettings.EnvironmentName` = `100`.
+- `FunctionAppEnvironmentSettings.DockerImageTag` and `WebAppEnvironmentSettings.DockerImageTag` = `128`.
 - When a persistence cap is introduced, align the request contract and validator in the same change set. The current reference slices are `CreateProject`, `CreateInfrastructureConfig`, and `CreateResourceGroup`.
+- `CoreStringLengthConfigurationTests` is now the DB-001 guardrail for every persisted `string` column in the EF model. It intentionally excludes keyless views and model-side `string` properties converted to non-string provider columns (for example `InputOutputLink` persisted as integers) [2026-05-13].
 
 ## Model Conventions
 - For index coverage verification, use a relational provider (`Npgsql`) rather than the InMemory provider; `IndexCoverageConfigurationTests` is the reference test.
@@ -32,7 +37,7 @@
 ## Repository Pattern
 - Repository interfaces live in Application; implementations live in Infrastructure.
 - `BaseRepository<T, TContext>` owns the common tracked and read-only key lookups, plus `AddAsync`, `UpdateAsync`, and `DeleteAsync`.
-- `IRepository<T>.GetAllAsync(...)` now keeps the original includes-only signature and also exposes an additive token-aware overload `GetAllAsync(CancellationToken, params includes)`. `BaseRepository` routes the legacy overload to the token-aware path and passes the token to `ToListAsync(cancellationToken)`. Keep `IUserRepository` as the deliberate specialized exception with its own explicit token-aware signature.
+- `IRepository<T>.GetAllAsync(...)` now keeps the original includes-only signature and also exposes an additive token-aware overload `GetAllAsync(CancellationToken, params includes)`. `BaseRepository` routes the legacy overload to the token-aware path, applies `AsNoTracking()` before includes, and passes the token to `ToListAsync(cancellationToken)` so default list reads stay detached. Keep `IUserRepository` as the deliberate specialized exception with its own explicit token-aware signature [2026-05-13].
 - APP-012 closure decision: keep eager-loading contracts explicit (`GetByIdWithXAsync(...)`, `GetByContainedXIdAsync(...)`, read-only variants) and do not widen `IRepository<>` with a generic includes callback API. The explicit repository surface is the documented convention for this codebase [2026-05-13].
 - `UserProvisioningService` is the current reference when an HTTP/auth boundary needs an atomic persistence-side existence check: it lives in Infrastructure, implements an Application interface, and uses PostgreSQL `INSERT ... ON CONFLICT ("EntraId") DO NOTHING` against the `User` table before reusing the persisted `Id` [2026-05-13].
 - In EF LINQ, compare whole value objects (`x.Id == id`), never `x.Id.Value == id.Value`.

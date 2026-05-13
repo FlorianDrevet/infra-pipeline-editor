@@ -9,6 +9,8 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 
 public class StorageTableConfiguration : IEntityTypeConfiguration<StorageTable>
 {
+    private const int StorageTableNameMaxLength = 63;
+
     public void Configure(EntityTypeBuilder<StorageTable> builder)
     {
         builder.ToTable("StorageTables");
@@ -24,6 +26,7 @@ public class StorageTableConfiguration : IEntityTypeConfiguration<StorageTable>
             .IsRequired();
 
         builder.Property(t => t.Name)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(StorageTableNameMaxLength);
     }
 }

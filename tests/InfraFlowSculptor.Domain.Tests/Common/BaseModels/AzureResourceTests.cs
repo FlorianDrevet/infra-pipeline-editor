@@ -110,11 +110,40 @@ public sealed class AzureResourceTests
         sut.CustomNameOverride.Should().BeNull();
     }
 
+    [Fact]
+    public void Given_AzureResourceCollections_When_TryingToMutateThroughReturnedViews_Then_Throws()
+    {
+        // Arrange
+        var sut = CreateValidKeyVault();
+
+        // Act
+        Action mutateParameterUsages = () => TryMutateReturnedCollection(sut.ParameterUsages);
+        Action mutateInputs = () => TryMutateReturnedCollection(sut.Inputs);
+        Action mutateOutputs = () => TryMutateReturnedCollection(sut.Outputs);
+
+        // Assert
+        mutateParameterUsages.Should().Throw<Exception>()
+            .Where(exception => exception.GetType() == typeof(InvalidCastException) || exception.GetType() == typeof(NotSupportedException));
+        mutateInputs.Should().Throw<Exception>()
+            .Where(exception => exception.GetType() == typeof(InvalidCastException) || exception.GetType() == typeof(NotSupportedException));
+        mutateOutputs.Should().Throw<Exception>()
+            .Where(exception => exception.GetType() == typeof(InvalidCastException) || exception.GetType() == typeof(NotSupportedException));
+    }
+
     private static KeyVault CreateValidKeyVault()
     {
         return KeyVault.Create(
             ResourceGroupId.CreateUnique(),
             new Name(DefaultName),
             new Location(Location.LocationEnum.WestEurope));
+    }
+
+    private static void TryMutateReturnedCollection<T>(IReadOnlyCollection<T> collection)
+        where T : class
+    {
+        var mutableCollection = collection as ICollection<T>
+            ?? throw new InvalidCastException("Collection does not expose a mutable ICollection<T>.");
+
+        mutableCollection.Add(default!);
     }
 }

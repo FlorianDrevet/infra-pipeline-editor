@@ -30,7 +30,7 @@ public sealed class User : AggregateRoot<UserId>
     }
 
     /// <summary>EF Core constructor.</summary>
-    public User()
+    private User()
     {
     }
 }

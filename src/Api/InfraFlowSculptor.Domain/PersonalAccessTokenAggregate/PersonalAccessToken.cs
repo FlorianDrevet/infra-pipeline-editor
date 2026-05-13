@@ -117,7 +117,7 @@ public sealed class PersonalAccessToken : AggregateRoot<PersonalAccessTokenId>
     }
 
     /// <summary>EF Core constructor.</summary>
-    public PersonalAccessToken() { }
+    private PersonalAccessToken() { }
 
     private static string GenerateToken()
     {

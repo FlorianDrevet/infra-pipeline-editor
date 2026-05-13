@@ -64,7 +64,7 @@ public sealed class Project : AggregateRoot<ProjectId>
     private readonly List<Tag> _tags = [];
 
     /// <summary>Gets the project-level default tags applied to all resources.</summary>
-    public IReadOnlyCollection<Tag> Tags => _tags;
+    public IReadOnlyCollection<Tag> Tags => _tags.AsReadOnly();
 
     /// <summary>Replaces all project-level tags with the provided collection.</summary>
     public void SetTags(IEnumerable<Tag> tags)
@@ -124,7 +124,7 @@ public sealed class Project : AggregateRoot<ProjectId>
     }
 
     /// <summary>EF Core constructor.</summary>
-    public Project() { }
+    private Project() { }
 
     // â”€â”€â”€ Member Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

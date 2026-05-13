@@ -12,6 +12,9 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 /// <summary>EF Core configuration for the <see cref="WebApp"/> aggregate.</summary>
 public class WebAppConfiguration : IEntityTypeConfiguration<WebApp>
 {
+    private const int RuntimeVersionMaxLength = 20;
+    private const int DockerImageNameMaxLength = 512;
+
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<WebApp> builder)
     {
@@ -35,7 +38,8 @@ public class WebAppConfiguration : IEntityTypeConfiguration<WebApp>
                     Enum.Parse<WebAppRuntimeStack.WebAppRuntimeStackEnum>(v)));
 
         builder.Property(x => x.RuntimeVersion)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(RuntimeVersionMaxLength);
 
         builder.Property(x => x.AlwaysOn);
 
@@ -62,6 +66,7 @@ public class WebAppConfiguration : IEntityTypeConfiguration<WebApp>
             .IsRequired(false);
 
         builder.Property(x => x.DockerImageName)
+            .HasMaxLength(DockerImageNameMaxLength)
             .IsRequired(false);
 
         builder.Property(x => x.DockerfilePath)

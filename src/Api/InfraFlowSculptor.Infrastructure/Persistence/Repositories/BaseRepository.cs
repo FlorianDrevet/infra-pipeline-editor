@@ -79,7 +79,7 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
         CancellationToken cancellationToken = default,
         params Expression<Func<TEntity, object>>[] includes)
     {
-        IQueryable<TEntity> query = Context.Set<TEntity>();
+        IQueryable<TEntity> query = Context.Set<TEntity>().AsNoTracking();
 
         foreach (var include in includes)
         {

@@ -125,17 +125,17 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     private readonly List<ResourceParameterUsage> _parameterUsages = [];
 
     /// <summary>Gets the parameter usages assigned to this resource.</summary>
-    public IReadOnlyCollection<ResourceParameterUsage> ParameterUsages => _parameterUsages;
+    public IReadOnlyCollection<ResourceParameterUsage> ParameterUsages => _parameterUsages.AsReadOnly();
 
     private readonly List<InputOutputLink> _inputs = [];
 
     /// <summary>Gets the input links from other resources to this resource.</summary>
-    public IReadOnlyCollection<InputOutputLink> Inputs => _inputs;
+    public IReadOnlyCollection<InputOutputLink> Inputs => _inputs.AsReadOnly();
 
     private readonly List<InputOutputLink> _outputs = [];
 
     /// <summary>Gets the output links from this resource to other resources.</summary>
-    public IReadOnlyCollection<InputOutputLink> Outputs => _outputs;
+    public IReadOnlyCollection<InputOutputLink> Outputs => _outputs.AsReadOnly();
 
     private readonly List<RoleAssignment> _roleAssignments = [];
     public IReadOnlyCollection<RoleAssignment> RoleAssignments => _roleAssignments.AsReadOnly();

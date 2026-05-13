@@ -9,6 +9,8 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 
 public sealed class RoleAssignmentConfiguration : IEntityTypeConfiguration<RoleAssignment>
 {
+    private const int RoleDefinitionIdMaxLength = 36;
+
     public void Configure(EntityTypeBuilder<RoleAssignment> builder)
     {
         builder.ToTable("RoleAssignments");
@@ -32,7 +34,8 @@ public sealed class RoleAssignmentConfiguration : IEntityTypeConfiguration<RoleA
             .IsRequired();
 
         builder.Property(r => r.RoleDefinitionId)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(RoleDefinitionIdMaxLength);
 
         builder.Property(r => r.UserAssignedIdentityId)
             .HasConversion(

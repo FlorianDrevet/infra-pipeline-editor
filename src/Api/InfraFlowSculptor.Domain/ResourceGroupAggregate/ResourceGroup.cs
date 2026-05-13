@@ -83,7 +83,7 @@ public sealed class ResourceGroup : AggregateRoot<ResourceGroupId>
     }
 
     /// <summary>EF Core constructor.</summary>
-    public ResourceGroup()
+    private ResourceGroup()
     {
     }
 }

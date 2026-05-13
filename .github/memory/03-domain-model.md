@@ -94,6 +94,7 @@ These reusable entity types are owned by multiple aggregates:
 - `AzureResource.SetNameAndLocation(...)` is the shared helper for the common `Name` + `Location` mutation path; concrete Azure-resource `Update(...)` methods delegate this shared part to the base while keeping their resource-specific assignments local [2026-05-13].
 - `AzureResource.AddDependency(...)` now enforces same-resource-group dependencies and rejects cyclic graphs; self-dependency still throws and duplicate dependencies remain a no-op [2026-05-12].
 - `CorsRule` now keeps its string collections behind read-only views backed by private lists, and `StorageAccount.GetBlobCorsRules()` / `GetTableCorsRules()` reuse cached filtered views instead of recomputing `Where(...).ToList()` on every access [2026-05-12].
+- Concrete aggregate roots now follow the DOM-006 convention: expose a public static `Create(...)` factory and keep the EF parameterless constructor non-public. `AggregateFactoryConventionTests` guards this for every concrete `AggregateRoot<>` except the `AzureResource` base template; `PersonalAccessToken.Create(...)` remains allowed to return `(Token, PlainTextToken)` because the plaintext secret only exists at creation time [2026-05-13].
 
 ## Domain Code Quality Rules [2026-03-30]
 

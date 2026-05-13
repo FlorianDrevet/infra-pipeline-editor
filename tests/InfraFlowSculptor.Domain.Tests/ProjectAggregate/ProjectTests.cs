@@ -208,6 +208,21 @@ public sealed class ProjectTests
         sut.DefaultNamingTemplate.Should().BeNull();
     }
 
+    [Fact]
+    public void Given_TagsView_When_TryingToMutateReturnedCollection_Then_Throws()
+    {
+        // Arrange
+        var sut = CreateValidProject();
+        sut.SetTags([new Tag("env", "dev")]);
+
+        // Act
+        Action mutateTags = () => TryMutateReturnedCollection(sut.Tags);
+
+        // Assert
+        mutateTags.Should().Throw<Exception>()
+            .Where(exception => exception.GetType() == typeof(InvalidCastException) || exception.GetType() == typeof(NotSupportedException));
+    }
+
     // ─── Environment Definitions Ordering ──────────────────────────────────
 
     [Fact]
@@ -329,6 +344,15 @@ public sealed class ProjectTests
 
     private static Project CreateValidProject()
         => Project.Create(new Name(DefaultProjectName), description: null, UserId.CreateUnique());
+
+    private static void TryMutateReturnedCollection<T>(IReadOnlyCollection<T> collection)
+        where T : class
+    {
+        var mutableCollection = collection as ICollection<T>
+            ?? throw new InvalidCastException("Collection does not expose a mutable ICollection<T>.");
+
+        mutableCollection.Add(default!);
+    }
 
     private static EnvironmentDefinitionData BuildEnvData(int order, string name)
         => new(
