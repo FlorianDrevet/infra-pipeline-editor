@@ -89,6 +89,7 @@ These reusable entity types are owned by multiple aggregates:
 - `Project.Members` is `IReadOnlyCollection<ProjectMember>` — mutated via `AddMember()`, `ChangeRole()`, `RemoveMember()`.
 - `InfrastructureConfig` has a `ProjectId` FK. Access checks resolved via **project membership** — `IInfraConfigAccessService`.
 - `AzureResource` inheritance uses EF Core **TPT**: `HasBaseType<AzureResource>().ToTable("...")`.
+- `AzureResource` no longer exposes public setters for `ResourceGroupId`, `ResourceGroup`, `Name`, `Location`, or `CustomNameOverride`; the shared mutation surface is now `Rename(...)`, `MoveToResourceGroup(...)`, `OverrideName(...)`, `ClearNameOverride()`, plus the protected `SetNameAndLocation(...)` / `SetLocation(...)` helpers for derived aggregates [2026-05-13].
 - EF navigations that may legitimately be absent outside an eager-loaded query should be nullable in the domain model. The current reference cases are `AzureResource.ResourceGroup`, `ProjectEnvironmentDefinition.Project`, and `ProjectMember.Project` [2026-05-13].
 - `AzureResource.SetNameAndLocation(...)` is the shared helper for the common `Name` + `Location` mutation path; concrete Azure-resource `Update(...)` methods delegate this shared part to the base while keeping their resource-specific assignments local [2026-05-13].
 - `AzureResource.AddDependency(...)` now enforces same-resource-group dependencies and rejects cyclic graphs; self-dependency still throws and duplicate dependencies remain a no-op [2026-05-12].

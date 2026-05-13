@@ -48,7 +48,8 @@ public sealed class ResourceConfigurationTools
         ISender mediator,
         [Description("The resource ID (GUID).")] string resourceId,
         [Description("The resource type (e.g. 'KeyVault', 'ContainerApp', 'SqlDatabase').")] string resourceType,
-        [Description("JSON array of per-environment config entries. Each entry must have 'environmentName' plus type-specific fields.")] string environmentSettings)
+        [Description("JSON array of per-environment config entries. Each entry must have 'environmentName' plus type-specific fields.")] string environmentSettings,
+        CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
@@ -59,20 +60,20 @@ public sealed class ResourceConfigurationTools
 
         return resourceType switch
         {
-            AzureResourceTypes.KeyVault => await UpdateKeyVaultAsync(mediator, azureResourceId, environmentSettings),
-            AzureResourceTypes.ContainerApp => await UpdateContainerAppAsync(mediator, azureResourceId, environmentSettings),
-            AzureResourceTypes.StorageAccount => await UpdateStorageAccountAsync(mediator, azureResourceId, environmentSettings),
-            AzureResourceTypes.SqlServer => await UpdateSqlServerAsync(mediator, azureResourceId, environmentSettings),
-            AzureResourceTypes.SqlDatabase => await UpdateSqlDatabaseAsync(mediator, azureResourceId, environmentSettings),
-            AzureResourceTypes.ContainerRegistry => await UpdateContainerRegistryAsync(mediator, azureResourceId, environmentSettings),
-            AzureResourceTypes.AppServicePlan => await UpdateAppServicePlanAsync(mediator, azureResourceId, environmentSettings),
+            AzureResourceTypes.KeyVault => await UpdateKeyVaultAsync(mediator, azureResourceId, environmentSettings, cancellationToken),
+            AzureResourceTypes.ContainerApp => await UpdateContainerAppAsync(mediator, azureResourceId, environmentSettings, cancellationToken),
+            AzureResourceTypes.StorageAccount => await UpdateStorageAccountAsync(mediator, azureResourceId, environmentSettings, cancellationToken),
+            AzureResourceTypes.SqlServer => await UpdateSqlServerAsync(mediator, azureResourceId, environmentSettings, cancellationToken),
+            AzureResourceTypes.SqlDatabase => await UpdateSqlDatabaseAsync(mediator, azureResourceId, environmentSettings, cancellationToken),
+            AzureResourceTypes.ContainerRegistry => await UpdateContainerRegistryAsync(mediator, azureResourceId, environmentSettings, cancellationToken),
+            AzureResourceTypes.AppServicePlan => await UpdateAppServicePlanAsync(mediator, azureResourceId, environmentSettings, cancellationToken),
             _ => McpJsonDefaults.Error("unsupported_resource_type", $"Resource type '{resourceType}' does not support environment settings via this tool."),
         };
     }
 
-    private static async Task<string> UpdateKeyVaultAsync(ISender mediator, AzureResourceId id, string settingsJson)
+    private static async Task<string> UpdateKeyVaultAsync(ISender mediator, AzureResourceId id, string settingsJson, CancellationToken cancellationToken)
     {
-        var current = await mediator.Send(new GetKeyVaultQuery(id));
+        var current = await mediator.Send(new GetKeyVaultQuery(id), cancellationToken);
         if (current.IsError)
             return McpJsonDefaults.Error("resource_not_found", string.Join("; ", current.Errors.Select(e => e.Description)));
 
@@ -89,15 +90,15 @@ public sealed class ResourceConfigurationTools
             current.Value.EnablePurgeProtection, current.Value.EnableSoftDelete,
             envConfigData);
 
-        var result = await mediator.Send(command);
+        var result = await mediator.Send(command, cancellationToken);
         return result.Match(
             _ => SuccessResponse("KeyVault", envConfigData.Count),
             errors => McpJsonDefaults.Error("update_failed", string.Join("; ", errors.Select(e => e.Description))));
     }
 
-    private static async Task<string> UpdateContainerAppAsync(ISender mediator, AzureResourceId id, string settingsJson)
+    private static async Task<string> UpdateContainerAppAsync(ISender mediator, AzureResourceId id, string settingsJson, CancellationToken cancellationToken)
     {
-        var current = await mediator.Send(new GetContainerAppQuery(id));
+        var current = await mediator.Send(new GetContainerAppQuery(id), cancellationToken);
         if (current.IsError)
             return McpJsonDefaults.Error("resource_not_found", string.Join("; ", current.Errors.Select(e => e.Description)));
 
@@ -122,15 +123,15 @@ public sealed class ResourceConfigurationTools
             current.Value.ApplicationName,
             envConfigData);
 
-        var result = await mediator.Send(command);
+        var result = await mediator.Send(command, cancellationToken);
         return result.Match(
             _ => SuccessResponse("ContainerApp", envConfigData.Count),
             errors => McpJsonDefaults.Error("update_failed", string.Join("; ", errors.Select(e => e.Description))));
     }
 
-    private static async Task<string> UpdateStorageAccountAsync(ISender mediator, AzureResourceId id, string settingsJson)
+    private static async Task<string> UpdateStorageAccountAsync(ISender mediator, AzureResourceId id, string settingsJson, CancellationToken cancellationToken)
     {
-        var current = await mediator.Send(new GetStorageAccountQuery(id));
+        var current = await mediator.Send(new GetStorageAccountQuery(id), cancellationToken);
         if (current.IsError)
             return McpJsonDefaults.Error("resource_not_found", string.Join("; ", current.Errors.Select(e => e.Description)));
 
@@ -147,15 +148,15 @@ public sealed class ResourceConfigurationTools
             current.Value.MinimumTlsVersion,
             envConfigData);
 
-        var result = await mediator.Send(command);
+        var result = await mediator.Send(command, cancellationToken);
         return result.Match(
             _ => SuccessResponse("StorageAccount", envConfigData.Count),
             errors => McpJsonDefaults.Error("update_failed", string.Join("; ", errors.Select(e => e.Description))));
     }
 
-    private static async Task<string> UpdateSqlServerAsync(ISender mediator, AzureResourceId id, string settingsJson)
+    private static async Task<string> UpdateSqlServerAsync(ISender mediator, AzureResourceId id, string settingsJson, CancellationToken cancellationToken)
     {
-        var current = await mediator.Send(new GetSqlServerQuery(id));
+        var current = await mediator.Send(new GetSqlServerQuery(id), cancellationToken);
         if (current.IsError)
             return McpJsonDefaults.Error("resource_not_found", string.Join("; ", current.Errors.Select(e => e.Description)));
 
@@ -170,15 +171,15 @@ public sealed class ResourceConfigurationTools
             current.Value.Version, current.Value.AdministratorLogin,
             envConfigData);
 
-        var result = await mediator.Send(command);
+        var result = await mediator.Send(command, cancellationToken);
         return result.Match(
             _ => SuccessResponse("SqlServer", envConfigData.Count),
             errors => McpJsonDefaults.Error("update_failed", string.Join("; ", errors.Select(e => e.Description))));
     }
 
-    private static async Task<string> UpdateSqlDatabaseAsync(ISender mediator, AzureResourceId id, string settingsJson)
+    private static async Task<string> UpdateSqlDatabaseAsync(ISender mediator, AzureResourceId id, string settingsJson, CancellationToken cancellationToken)
     {
-        var current = await mediator.Send(new GetSqlDatabaseQuery(id));
+        var current = await mediator.Send(new GetSqlDatabaseQuery(id), cancellationToken);
         if (current.IsError)
             return McpJsonDefaults.Error("resource_not_found", string.Join("; ", current.Errors.Select(e => e.Description)));
 
@@ -194,15 +195,15 @@ public sealed class ResourceConfigurationTools
             current.Value.Collation,
             envConfigData);
 
-        var result = await mediator.Send(command);
+        var result = await mediator.Send(command, cancellationToken);
         return result.Match(
             _ => SuccessResponse("SqlDatabase", envConfigData.Count),
             errors => McpJsonDefaults.Error("update_failed", string.Join("; ", errors.Select(e => e.Description))));
     }
 
-    private static async Task<string> UpdateContainerRegistryAsync(ISender mediator, AzureResourceId id, string settingsJson)
+    private static async Task<string> UpdateContainerRegistryAsync(ISender mediator, AzureResourceId id, string settingsJson, CancellationToken cancellationToken)
     {
-        var current = await mediator.Send(new GetContainerRegistryQuery(id));
+        var current = await mediator.Send(new GetContainerRegistryQuery(id), cancellationToken);
         if (current.IsError)
             return McpJsonDefaults.Error("resource_not_found", string.Join("; ", current.Errors.Select(e => e.Description)));
 
@@ -217,15 +218,15 @@ public sealed class ResourceConfigurationTools
             id, current.Value.Name, current.Value.Location,
             envConfigData);
 
-        var result = await mediator.Send(command);
+        var result = await mediator.Send(command, cancellationToken);
         return result.Match(
             _ => SuccessResponse("ContainerRegistry", envConfigData.Count),
             errors => McpJsonDefaults.Error("update_failed", string.Join("; ", errors.Select(e => e.Description))));
     }
 
-    private static async Task<string> UpdateAppServicePlanAsync(ISender mediator, AzureResourceId id, string settingsJson)
+    private static async Task<string> UpdateAppServicePlanAsync(ISender mediator, AzureResourceId id, string settingsJson, CancellationToken cancellationToken)
     {
-        var current = await mediator.Send(new GetAppServicePlanQuery(id));
+        var current = await mediator.Send(new GetAppServicePlanQuery(id), cancellationToken);
         if (current.IsError)
             return McpJsonDefaults.Error("resource_not_found", string.Join("; ", current.Errors.Select(e => e.Description)));
 
@@ -240,7 +241,7 @@ public sealed class ResourceConfigurationTools
             current.Value.OsType,
             envConfigData);
 
-        var result = await mediator.Send(command);
+        var result = await mediator.Send(command, cancellationToken);
         return result.Match(
             _ => SuccessResponse("AppServicePlan", envConfigData.Count),
             errors => McpJsonDefaults.Error("update_failed", string.Join("; ", errors.Select(e => e.Description))));

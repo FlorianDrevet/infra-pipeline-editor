@@ -1,6 +1,7 @@
 using System.Text.Json;
 using ErrorOr;
 using InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.CreateContainerAppEnvironment;
+using System.Reflection;
 using InfraFlowSculptor.Application.ContainerAppEnvironments.Common;
 using InfraFlowSculptor.Application.ContainerApps.Commands.CreateContainerApp;
 using InfraFlowSculptor.Application.ContainerApps.Common;
@@ -327,5 +328,56 @@ public sealed class ProjectCreationToolsTests
                 command.Name.Value == "retail-api"
                 && command.ContainerAppEnvironmentId == containerAppEnvironmentId.Value),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateProjectFromDraft_When_CancellationTokenProvided_Then_PropagatesItToMediatorAsync()
+    {
+        // Arrange
+        const string draftId = "draft_ct";
+        var draft = new ProjectCreationDraft
+        {
+            DraftId = draftId,
+            Status = DraftStatus.ReadyToCreate,
+            Intent = new DraftProjectIntent
+            {
+                ProjectName = "RetailApi",
+                LayoutPreset = LayoutPresetEnum.AllInOne,
+            },
+        };
+        _draftService.GetDraft(draftId).Returns(draft);
+
+        var projectResult = new ProjectResult(
+            new ProjectId(Guid.NewGuid()),
+            new Name("RetailApi"),
+            Description: null,
+            Members: [],
+            EnvironmentDefinitions: [],
+            DefaultNamingTemplate: null,
+            ResourceNamingTemplates: [],
+            ResourceAbbreviations: [],
+            Tags: [],
+            LayoutPreset: "AllInOne");
+
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var expectedCancellationToken = cancellationTokenSource.Token;
+
+        _mediator.Send(Arg.Any<IRequest<ErrorOr<ProjectResult>>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<ProjectResult>>(projectResult));
+
+        var method = typeof(ProjectCreationTools).GetMethod(
+            nameof(ProjectCreationTools.CreateProjectFromDraft),
+            BindingFlags.Public | BindingFlags.Static,
+            new[] { typeof(IProjectDraftService), typeof(ISender), typeof(string), typeof(CancellationToken) });
+
+        // Act
+        method.Should().NotBeNull();
+        var task = (Task<string>)method!.Invoke(null, new object[] { _draftService, _mediator, draftId, expectedCancellationToken })!;
+        await task;
+
+        // Assert
+        await _mediator.Received(1).Send(
+            Arg.Any<IRequest<ErrorOr<ProjectResult>>>(),
+            Arg.Is<CancellationToken>(cancellationToken => cancellationToken == expectedCancellationToken));
     }
 }

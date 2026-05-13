@@ -68,7 +68,8 @@ public sealed class IacImportTools
         [Description("Project name for the new project.")] string projectName,
         [Description("Layout preset (AllInOne, SplitInfraCode, MultiRepo).")] string layoutPreset,
         [Description("Optional JSON array of environment definitions.")] string? environments = null,
-        [Description("Optional list of source resource names to include. If null, all mapped resources are imported.")] string? resourceFilter = null)
+        [Description("Optional list of source resource names to include. If null, all mapped resources are imported.")] string? resourceFilter = null,
+        CancellationToken cancellationToken = default)
     {
         var preview = previewService.GetPreview(previewId);
         if (preview is null)
@@ -85,7 +86,7 @@ public sealed class IacImportTools
             envItems,
             filter);
 
-        var result = await mediator.Send(command);
+        var result = await mediator.Send(command, cancellationToken);
 
         if (result.IsError)
         {

@@ -25,6 +25,12 @@ result.Match(
 );
 ```
 
+## Global Error Handling [2026-05-13]
+
+- `Errors/ErrorHandling.cs` now emits a `traceId` extension on `ProblemDetails` for unhandled exceptions.
+- The emitted value prefers `Activity.Current?.Id` and falls back to `HttpContext.TraceIdentifier`.
+- Focused regression coverage lives in `tests/InfraFlowSculptor.Api.Tests/Security/ErrorHandlingTests.cs`.
+
 ## Request Body Limits [2026-05-12]
 
 - `Program.cs` now registers `AddApiRequestLimits(builder.Configuration)`.

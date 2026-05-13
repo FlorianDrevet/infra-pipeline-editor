@@ -24,7 +24,8 @@ public sealed class BicepGenerationTools
     [Description("Generates Bicep infrastructure-as-code files for an existing project. Returns a summary of generated files.")]
     public static async Task<string> GenerateProjectBicep(
         ISender mediator,
-        [Description("The project ID (GUID format).")] string projectId)
+        [Description("The project ID (GUID format). ")] string projectId,
+        CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(projectId, out var guid))
         {
@@ -32,7 +33,7 @@ public sealed class BicepGenerationTools
         }
 
         var command = new GenerateProjectBicepCommand(new ProjectId(guid));
-        var result = await mediator.Send(command);
+        var result = await mediator.Send(command, cancellationToken);
 
         if (result.IsError)
         {

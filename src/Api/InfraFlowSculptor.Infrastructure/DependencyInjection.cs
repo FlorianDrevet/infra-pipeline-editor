@@ -70,6 +70,7 @@ public static class DependencyInjection
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         
         services.AddScoped<ICurrentUser, CurrentUser>();
+        services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         services.AddHttpContextAccessor();
 
         services.AddSingleton<IAzureNameAvailabilityChecker, DnsNameAvailabilityChecker>();

@@ -35,7 +35,8 @@ public sealed class NamingTools
     public static async Task<string> SetProjectNamingTemplate(
         ISender mediator,
         [Description("The project ID (GUID).")] string projectId,
-        [Description("The naming template string with placeholders. Pass null or empty to clear.")] string? template)
+        [Description("The naming template string with placeholders. Pass null or empty to clear.")] string? template,
+        CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(projectId, out var id))
         {
@@ -43,7 +44,7 @@ public sealed class NamingTools
         }
 
         var command = new SetProjectDefaultNamingTemplateCommand(new ProjectId(id), template);
-        var result = await mediator.Send(command);
+    var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
             _ => JsonSerializer.Serialize(new { status = "success", message = "Default naming template updated." }, McpJsonDefaults.SerializerOptions),
@@ -62,7 +63,8 @@ public sealed class NamingTools
         ISender mediator,
         [Description("The project ID (GUID).")] string projectId,
         [Description("The resource type (e.g. 'KeyVault', 'ContainerApp', 'SqlServer').")] string resourceType,
-        [Description("The naming template string with placeholders.")] string template)
+        [Description("The naming template string with placeholders.")] string template,
+        CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(projectId, out var id))
         {
@@ -70,7 +72,7 @@ public sealed class NamingTools
         }
 
         var command = new SetProjectResourceNamingTemplateCommand(new ProjectId(id), resourceType, template);
-        var result = await mediator.Send(command);
+    var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
             tpl => JsonSerializer.Serialize(new { status = "success", resourceType, template }, McpJsonDefaults.SerializerOptions),
@@ -85,7 +87,8 @@ public sealed class NamingTools
     public static async Task<string> RemoveProjectResourceNamingTemplate(
         ISender mediator,
         [Description("The project ID (GUID).")] string projectId,
-        [Description("The resource type to remove the override for.")] string resourceType)
+        [Description("The resource type to remove the override for.")] string resourceType,
+        CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(projectId, out var id))
         {
@@ -93,7 +96,7 @@ public sealed class NamingTools
         }
 
         var command = new RemoveProjectResourceNamingTemplateCommand(new ProjectId(id), resourceType);
-        var result = await mediator.Send(command);
+    var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
             _ => JsonSerializer.Serialize(new { status = "success", message = $"Naming template override for '{resourceType}' removed." }, McpJsonDefaults.SerializerOptions),
@@ -112,7 +115,8 @@ public sealed class NamingTools
         ISender mediator,
         [Description("The project ID (GUID).")] string projectId,
         [Description("The resource type (e.g. 'KeyVault', 'ContainerApp').")] string resourceType,
-        [Description("The abbreviation string (lowercase alphanumeric, max 10 chars).")] string abbreviation)
+        [Description("The abbreviation string (lowercase alphanumeric, max 10 chars). ")] string abbreviation,
+        CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(projectId, out var id))
         {
@@ -120,7 +124,7 @@ public sealed class NamingTools
         }
 
         var command = new SetProjectResourceAbbreviationCommand(new ProjectId(id), resourceType, abbreviation);
-        var result = await mediator.Send(command);
+    var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
             _ => JsonSerializer.Serialize(new { status = "success", resourceType, abbreviation }, McpJsonDefaults.SerializerOptions),
@@ -135,7 +139,8 @@ public sealed class NamingTools
     public static async Task<string> RemoveProjectResourceAbbreviation(
         ISender mediator,
         [Description("The project ID (GUID).")] string projectId,
-        [Description("The resource type to remove the abbreviation override for.")] string resourceType)
+        [Description("The resource type to remove the abbreviation override for.")] string resourceType,
+        CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(projectId, out var id))
         {
@@ -143,7 +148,7 @@ public sealed class NamingTools
         }
 
         var command = new RemoveProjectResourceAbbreviationCommand(new ProjectId(id), resourceType);
-        var result = await mediator.Send(command);
+    var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
             _ => JsonSerializer.Serialize(new { status = "success", message = $"Abbreviation override for '{resourceType}' removed." }, McpJsonDefaults.SerializerOptions),

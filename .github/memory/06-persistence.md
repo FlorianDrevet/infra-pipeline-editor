@@ -34,6 +34,7 @@
 - `BaseRepository<T, TContext>` owns the common tracked and read-only key lookups, plus `AddAsync`, `UpdateAsync`, and `DeleteAsync`.
 - `IRepository<T>.GetAllAsync(...)` now keeps the original includes-only signature and also exposes an additive token-aware overload `GetAllAsync(CancellationToken, params includes)`. `BaseRepository` routes the legacy overload to the token-aware path and passes the token to `ToListAsync(cancellationToken)`. Keep `IUserRepository` as the deliberate specialized exception with its own explicit token-aware signature.
 - APP-012 closure decision: keep eager-loading contracts explicit (`GetByIdWithXAsync(...)`, `GetByContainedXIdAsync(...)`, read-only variants) and do not widen `IRepository<>` with a generic includes callback API. The explicit repository surface is the documented convention for this codebase [2026-05-13].
+- `UserProvisioningService` is the current reference when an HTTP/auth boundary needs an atomic persistence-side existence check: it lives in Infrastructure, implements an Application interface, and uses PostgreSQL `INSERT ... ON CONFLICT ("EntraId") DO NOTHING` against the `User` table before reusing the persisted `Id` [2026-05-13].
 - In EF LINQ, compare whole value objects (`x.Id == id`), never `x.Id.Value == id.Value`.
 - `StorageAccountRepository` is the DB-007 reference for duplicated eager-loading graphs: keep the shared include chain in a private `WithSubResources(...)` helper.
 

@@ -2,6 +2,7 @@ using System.Text.Json;
 using ErrorOr;
 using FluentAssertions;
 using InfraFlowSculptor.Application.Imports.Commands.ApplyImportPreview;
+using System.Reflection;
 using InfraFlowSculptor.Application.Imports.Common.Analysis;
 using InfraFlowSculptor.Application.Imports.Common.Constants;
 using InfraFlowSculptor.Application.Imports.Common.Creation;
@@ -227,5 +228,60 @@ public sealed class IacImportToolsTests
         var doc = JsonDocument.Parse(json);
         doc.RootElement.GetProperty("error").GetString().Should().Be("creation_failed");
         _previewService.DidNotReceive().RemovePreview("preview_abc12345");
+    }
+
+    [Fact]
+    public async Task ApplyImportPreview_When_CancellationTokenProvided_Then_PropagatesItToMediatorAsync()
+    {
+        // Arrange
+        const string previewId = "preview_ct";
+        var preview = new ImportPreview
+        {
+            PreviewId = previewId,
+            Analysis = new ImportPreviewAnalysisResult
+            {
+                SourceFormat = IacSourceFormat.ArmJson,
+                Resources = [],
+                Dependencies = [],
+                Metadata = new Dictionary<string, string>(),
+                Gaps = [],
+                UnsupportedResources = [],
+                Summary = "summary",
+            },
+        };
+        _previewService.GetPreview(previewId).Returns(preview);
+
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var expectedCancellationToken = cancellationTokenSource.Token;
+
+        _mediator.Send(Arg.Any<ApplyImportPreviewCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<ApplyImportPreviewResult>>(new ApplyImportPreviewResult
+            {
+                Status = "applied",
+                ProjectId = Guid.NewGuid().ToString(),
+                ProjectName = "MyProject",
+                InfrastructureConfigId = Guid.NewGuid().ToString(),
+                ResourceGroupId = Guid.NewGuid().ToString(),
+                CreatedResources = [],
+                SkippedResources = [],
+                NextSuggestedActions = [],
+            }));
+
+        var method = typeof(IacImportTools).GetMethod(
+            nameof(IacImportTools.ApplyImportPreview),
+            BindingFlags.Public | BindingFlags.Static,
+            new[] { typeof(IImportPreviewService), typeof(ISender), typeof(string), typeof(string), typeof(string), typeof(string), typeof(string), typeof(CancellationToken) });
+
+        // Act
+        method.Should().NotBeNull();
+        var task = (Task<string>)method!.Invoke(
+            null,
+            new object?[] { _previewService, _mediator, previewId, "MyProject", "AllInOne", null, null, expectedCancellationToken })!;
+        await task;
+
+        // Assert
+        await _mediator.Received(1).Send(
+            Arg.Any<ApplyImportPreviewCommand>(),
+            Arg.Is<CancellationToken>(cancellationToken => cancellationToken == expectedCancellationToken));
     }
 }

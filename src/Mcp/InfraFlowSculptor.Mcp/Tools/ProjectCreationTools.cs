@@ -33,7 +33,8 @@ public sealed class ProjectCreationTools
     public static async Task<string> CreateProjectFromDraft(
         IProjectDraftService draftService,
         ISender mediator,
-        [Description("The draft ID of the completed draft.")] string draftId)
+        [Description("The draft ID of the completed draft.")] string draftId,
+        CancellationToken cancellationToken = default)
     {
         var draft = draftService.GetDraft(draftId);
         if (draft is null)
@@ -47,7 +48,7 @@ public sealed class ProjectCreationTools
         }
 
         var command = BuildCommand(draft.Intent);
-        var result = await mediator.Send(command);
+    var result = await mediator.Send(command, cancellationToken);
 
         if (result.IsError)
         {
@@ -65,7 +66,7 @@ public sealed class ProjectCreationTools
         if (resourceInputs.Count > 0)
         {
             var infraResult = await ProjectSetupOrchestrator.CreateInfrastructureAsync(
-                mediator, projectId, projectName, primaryLocation);
+                mediator, projectId, projectName, primaryLocation, cancellationToken);
 
             if (infraResult.IsError)
             {
@@ -89,7 +90,7 @@ public sealed class ProjectCreationTools
 
             var (configId, rgId) = infraResult.Value;
             var (created, skipped) = await ProjectSetupOrchestrator.CreateResourcesAsync(
-                mediator, rgId, resourceInputs);
+                mediator, rgId, resourceInputs, cancellationToken);
 
             draftService.RemoveDraft(draftId);
             return JsonSerializer.Serialize(new

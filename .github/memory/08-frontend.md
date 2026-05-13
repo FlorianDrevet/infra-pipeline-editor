@@ -28,6 +28,7 @@
 - `resource-edit` dialog keys stay under `RESOURCE_EDIT.*`; missing nested keys render raw labels
 - `DeploymentConfigComponent` resolves ACR labels through `RESOURCE_EDIT.FIELDS.*`; missing `ACR_AUTH_MODE*` keys in one locale break the shared ACR UI
 - Multi-repo project screens consume `PROJECT_DETAIL.LAYOUT.*`; `GenerationBoardComponent` reads labels from `PROJECT_DETAIL.BOARD.*`, not `CONFIG_DETAIL.BOARD.*`
+- The standalone route `/projects/:id/generate` now uses a centered DS page layout: `app-ds-page-header` hero, summary metric cards, DS repository cards, and dark-token-only styling. Avoid `rgba(0,0,0,...)` text/border colors in this slice because the page lives inside the dark shell and those values make metadata effectively invisible.
 - The PowerShell source-vs-dictionary scan still reports `_`-suffixed dynamic prefixes such as `HOME.RECENT.TYPE_`; those are not true missing leaves
 
 ## Auth & Frontend Services

@@ -134,6 +134,7 @@ npm run typecheck
 
 ```pwsh
 dotnet test .\InfraFlowSculptor.slnx
+.\scripts\test-coverage.ps1
 ```
 
 ### Construire uniquement l'API

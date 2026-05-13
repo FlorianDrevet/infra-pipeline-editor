@@ -2,6 +2,7 @@ using System.Text.Json;
 using ErrorOr;
 using FluentAssertions;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBicep;
+using System.Reflection;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Mcp.Tools;
 using MediatR;
@@ -124,5 +125,36 @@ public sealed class BicepGenerationToolsTests
         var doc = JsonDocument.Parse(json);
         // 2 common + 1 config-a + 2 config-b = 5
         doc.RootElement.GetProperty("totalFileCount").GetInt32().Should().Be(5);
+    }
+
+    [Fact]
+    public async Task GenerateProjectBicep_When_CancellationTokenProvided_Then_PropagatesItToMediatorAsync()
+    {
+        // Arrange
+        var guid = Guid.NewGuid();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var expectedCancellationToken = cancellationTokenSource.Token;
+        var result = new GenerateProjectBicepResult(
+            new Dictionary<string, Uri>(),
+            new Dictionary<string, IReadOnlyDictionary<string, Uri>>());
+
+        _mediator
+            .Send(Arg.Any<IRequest<ErrorOr<GenerateProjectBicepResult>>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<GenerateProjectBicepResult>>(result));
+
+        var method = typeof(BicepGenerationTools).GetMethod(
+            nameof(BicepGenerationTools.GenerateProjectBicep),
+            BindingFlags.Public | BindingFlags.Static,
+            new[] { typeof(ISender), typeof(string), typeof(CancellationToken) });
+
+        // Act
+        method.Should().NotBeNull();
+        var task = (Task<string>)method!.Invoke(null, new object[] { _mediator, guid.ToString(), expectedCancellationToken })!;
+        await task;
+
+        // Assert
+        await _mediator.Received(1).Send(
+            Arg.Any<IRequest<ErrorOr<GenerateProjectBicepResult>>>(),
+            Arg.Is<CancellationToken>(cancellationToken => cancellationToken == expectedCancellationToken));
     }
 }

@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application;
+using InfraFlowSculptor.Api.RateLimiting;
 using InfraFlowSculptor.Mcp.DependencyInjection;
 using InfraFlowSculptor.Infrastructure;
 using InfraFlowSculptor.Mcp.Common;
@@ -38,18 +39,20 @@ builder.Services
     .AddMcpMappings()
     .AddApplication()
     .AddInfrastructure(builder.Configuration, builder.Environment, includeAuthentication: false)
-    .AddPatAuthentication();
+    .AddPatAuthentication()
+    .AddRateLimiting();
 
 var app = builder.Build();
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseMcpHttpPipeline();
 
 app.MapHealthChecks("/health").AllowAnonymous();
 app.MapHealthChecks("/alive", new HealthCheckOptions
 {
     Predicate = registration => registration.Tags.Contains("live")
 }).AllowAnonymous();
-app.MapMcp(mcpOptions.Route).RequireAuthorization();
+app.MapMcp(mcpOptions.Route)
+    .RequireAuthorization()
+    .RequireRateLimiting(RateLimitingPolicyNames.Expensive);
 
 await app.RunAsync();

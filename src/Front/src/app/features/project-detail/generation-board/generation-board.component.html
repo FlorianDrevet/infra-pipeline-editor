@@ -1,114 +1,232 @@
-<div class="board" role="region" [attr.aria-label]="'PROJECT_DETAIL.BOARD.REGION_LABEL' | translate">
+<section class="board" [attr.aria-label]="'PROJECT_DETAIL.BOARD.REGION_LABEL' | translate">
+  <div class="board__hero">
+    <app-ds-page-header
+      [title]="'PROJECT_DETAIL.BOARD.PAGE_TITLE' | translate"
+      [subtitle]="'PROJECT_DETAIL.BOARD.PAGE_SUBTITLE' | translate: {
+        projectName: (project()?.name ?? ('PROJECT_DETAIL.BOARD.PROJECT_PLACEHOLDER' | translate)),
+        layout: (layoutPresetLabelKey() | translate)
+      }"
+      icon="rocket_launch"
+      variant="gradient">
+      <div ds-page-breadcrumbs class="board__breadcrumbs">
+        <a [routerLink]="['/projects']">{{ 'PROJECTS.TITLE' | translate }}</a>
+        <mat-icon aria-hidden="true">chevron_right</mat-icon>
+        @if (project()?.id) {
+          <a [routerLink]="['/projects', project()!.id]">{{ project()!.name }}</a>
+        } @else {
+          <span>{{ 'PROJECT_DETAIL.BOARD.PROJECT_PLACEHOLDER' | translate }}</span>
+        }
+        <mat-icon aria-hidden="true">chevron_right</mat-icon>
+        <span>{{ 'PROJECT_DETAIL.BOARD.BREADCRUMB_CURRENT' | translate }}</span>
+      </div>
+
+      <div ds-page-actions class="board__actions">
+        <app-ds-button variant="secondary" icon="arrow_back" (clicked)="openProjectDetail()">
+          {{ 'PROJECT_DETAIL.BOARD.OPEN_PROJECT' | translate }}
+        </app-ds-button>
+
+        @if (!isLoading() && canGenerateProject()) {
+          <app-ds-button variant="primary" icon="rocket_launch" (clicked)="onGenerateAll()">
+            {{ 'PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS' | translate }}
+          </app-ds-button>
+        }
+      </div>
+    </app-ds-page-header>
+
+    @if (!isLoading()) {
+      <div class="board__summary-grid">
+        <div class="summary-card summary-card--layout">
+          <mat-icon class="summary-card__icon" aria-hidden="true">account_tree</mat-icon>
+          <span class="summary-card__label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_LAYOUT' | translate }}</span>
+          <strong class="summary-card__value">{{ layoutPresetLabelKey() | translate }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <mat-icon class="summary-card__icon" aria-hidden="true">inventory_2</mat-icon>
+          <span class="summary-card__label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_REPOSITORIES' | translate }}</span>
+          <strong class="summary-card__value">{{ repositoryCount() }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <mat-icon class="summary-card__icon" aria-hidden="true">tune</mat-icon>
+          <span class="summary-card__label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_CONFIGS' | translate }}</span>
+          <strong class="summary-card__value">{{ totalConfigCount() }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <mat-icon class="summary-card__icon" aria-hidden="true">folder</mat-icon>
+          <span class="summary-card__label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCE_GROUPS' | translate }}</span>
+          <strong class="summary-card__value">{{ totalResourceGroupCount() }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <mat-icon class="summary-card__icon" aria-hidden="true">widgets</mat-icon>
+          <span class="summary-card__label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCES' | translate }}</span>
+          <strong class="summary-card__value">{{ totalResourceCount() }}</strong>
+        </div>
+      </div>
+    }
+  </div>
+
   @if (isLoading()) {
-    <div class="board__loading" aria-live="polite">
-      <mat-spinner diameter="32"></mat-spinner>
-      <p>{{ 'PROJECT_DETAIL.BOARD.LOADING' | translate }}</p>
-    </div>
+    <app-ds-card>
+      <div class="board-state board-state--loading" aria-live="polite">
+        <mat-spinner diameter="32"></mat-spinner>
+        <div>
+          <strong>{{ 'PROJECT_DETAIL.BOARD.LOADING' | translate }}</strong>
+        </div>
+      </div>
+    </app-ds-card>
   } @else if (topology() === 'empty') {
-    <div class="empty-state">
-      <mat-icon class="empty-state__icon">folder_off</mat-icon>
-      <h3>{{ 'PROJECT_DETAIL.BOARD.EMPTY_TITLE' | translate }}</h3>
-      <p>{{ 'PROJECT_DETAIL.BOARD.EMPTY_DESC' | translate }}</p>
-    </div>
+    <app-ds-card>
+      <app-ds-empty-state
+        [icon]="hasProjectLevelRepositories() ? 'layers_clear' : 'folder_off'"
+        [title]="(hasProjectLevelRepositories()
+          ? 'PROJECT_DETAIL.BOARD.EMPTY_CONFIGS_TITLE'
+          : 'PROJECT_DETAIL.BOARD.EMPTY_TITLE') | translate"
+        [description]="(hasProjectLevelRepositories()
+          ? 'PROJECT_DETAIL.BOARD.EMPTY_CONFIGS_DESC'
+          : 'PROJECT_DETAIL.BOARD.EMPTY_DESC') | translate">
+        <div actions>
+          <app-ds-button variant="secondary" icon="arrow_back" (clicked)="openProjectDetail()">
+            {{ 'PROJECT_DETAIL.BOARD.OPEN_PROJECT' | translate }}
+          </app-ds-button>
+        </div>
+      </app-ds-empty-state>
+    </app-ds-card>
   } @else {
     @if (topology() === 'mixed') {
-      <mat-card class="mixed-banner">
-        <mat-card-content class="mixed-banner__content">
-          <mat-icon class="mixed-banner__icon">warning_amber</mat-icon>
-          <div>
-            <h4 class="mixed-banner__title">
-              {{ 'PROJECT_DETAIL.BOARD.MIXED_WARNING_TITLE' | translate }}
-            </h4>
-            <p class="mixed-banner__desc">
-              {{ 'PROJECT_DETAIL.BOARD.MIXED_WARNING_DESC' | translate }}
-            </p>
+      <app-ds-card class="board-banner">
+        <div class="board-banner__content">
+          <mat-icon class="board-banner__icon" aria-hidden="true">warning_amber</mat-icon>
+          <div class="board-banner__text">
+            <h2>{{ 'PROJECT_DETAIL.BOARD.MIXED_WARNING_TITLE' | translate }}</h2>
+            <p>{{ 'PROJECT_DETAIL.BOARD.MIXED_WARNING_DESC' | translate }}</p>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </app-ds-card>
     }
 
-    <div class="repo-grid">
-      @for (group of groupedByAlias(); track group.alias) {
-        <mat-card class="repo-card">
-          <mat-card-header class="repo-card__header">
-            <mat-card-title class="repo-card__title">
-              <mat-icon class="repo-card__title-icon">folder_open</mat-icon>
-              @if (group.repo) {
-                <span>{{ group.repo.alias }}</span>
-              } @else {
-                <span>{{ 'PROJECT_DETAIL.BOARD.DEFAULT_REPO_LABEL' | translate }}</span>
-                <mat-chip class="repo-card__legacy-chip" disableRipple>
-                  {{ 'PROJECT_DETAIL.BOARD.LEGACY_BADGE' | translate }}
-                </mat-chip>
-              }
-            </mat-card-title>
-            @if (group.repo) {
-              <mat-card-subtitle>{{ group.repo.providerType }}</mat-card-subtitle>
-            }
-          </mat-card-header>
+    <app-ds-card class="board__repositories-card" padding="lg">
+      <app-ds-section-header
+        [title]="'PROJECT_DETAIL.BOARD.REPOSITORIES_TITLE' | translate"
+        [subtitle]="'PROJECT_DETAIL.BOARD.REPOSITORIES_SUBTITLE' | translate: { count: repositoryCount() }"
+        icon="inventory_2"
+        [divider]="true">
+      </app-ds-section-header>
 
-          <mat-card-content class="repo-card__content">
-            @if (group.repo) {
-              <div class="repo-card__row">
-                <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
-                <a
-                  class="repo-card__link"
-                  [href]="group.repo.repositoryUrl"
-                  target="_blank"
-                  rel="noopener">
-                  {{ group.repo.owner }}/{{ group.repo.repositoryName }}
-                </a>
-              </div>
-              <div class="repo-card__row">
-                <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
-                <strong>{{ group.repo.defaultBranch }}</strong>
-              </div>
-              @if (group.repo.contentKinds.length > 0) {
-                <div class="repo-card__chips">
-                  @for (kind of group.repo.contentKinds; track kind) {
-                    <mat-chip disableRipple>
-                      {{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}
-                    </mat-chip>
-                  }
-                </div>
-              }
-            }
-
-            <div class="config-list">
-              @for (config of group.configs; track config.id) {
-                <div class="config-row">
-                  <div class="config-row__info">
-                    <mat-icon class="config-row__icon">settings</mat-icon>
-                    <span class="config-row__name">{{ config.name }}</span>
+      <div class="repo-grid" [class.repo-grid--single]="topology() === 'single'">
+        @for (group of groupedByAlias(); track group.alias) {
+          <app-ds-card class="repo-card" variant="outlined" padding="lg">
+            <div ds-card-header class="repo-card__header">
+              <div class="repo-card__heading">
+                <div class="repo-card__identity">
+                  <div class="repo-card__avatar">
+                    <mat-icon aria-hidden="true">folder_open</mat-icon>
                   </div>
+                  <div class="repo-card__identity-text">
+                    <h3 class="repo-card__title">
+                      {{ group.repo?.alias ?? ('PROJECT_DETAIL.BOARD.DEFAULT_REPO_LABEL' | translate) }}
+                    </h3>
+                    <p class="repo-card__subtitle">
+                      @if (group.repo) {
+                        {{ group.repo.owner }}/{{ group.repo.repositoryName }}
+                      } @else {
+                        {{ 'PROJECT_DETAIL.BOARD.LEGACY_REPOSITORY_DESC' | translate }}
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                @if (group.repo) {
+                  <app-ds-chip size="sm" variant="info" icon="source">
+                    {{ group.repo.providerType }}
+                  </app-ds-chip>
+                } @else {
+                  <app-ds-chip size="sm" variant="warning" icon="history">
+                    {{ 'PROJECT_DETAIL.BOARD.LEGACY_BADGE' | translate }}
+                  </app-ds-chip>
+                }
+              </div>
+
+              <div class="repo-card__metrics">
+                <div class="repo-card__metric">
+                  <span class="repo-card__metric-label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_CONFIGS' | translate }}</span>
+                  <strong>{{ group.configs.length }}</strong>
+                </div>
+                <div class="repo-card__metric">
+                  <span class="repo-card__metric-label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCE_GROUPS' | translate }}</span>
+                  <strong>{{ group.resourceGroupCount }}</strong>
+                </div>
+                <div class="repo-card__metric">
+                  <span class="repo-card__metric-label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCES' | translate }}</span>
+                  <strong>{{ group.resourceCount }}</strong>
+                </div>
+              </div>
+            </div>
+
+            @if (group.repo) {
+              <div class="repo-card__details">
+                <div class="repo-card__detail-row">
+                  <span class="repo-card__detail-label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
                   <a
-                    mat-stroked-button
-                    color="primary"
-                    [routerLink]="['/config', config.id]">
-                    <mat-icon>play_arrow</mat-icon>
-                    {{ 'PROJECT_DETAIL.BOARD.CONFIG_GENERATE' | translate }}
+                    class="repo-card__link"
+                    [href]="group.repo.repositoryUrl"
+                    target="_blank"
+                    rel="noopener">
+                    {{ group.repo.owner }}/{{ group.repo.repositoryName }}
                   </a>
                 </div>
-              }
-            </div>
-          </mat-card-content>
 
-          @if (topology() === 'single' && canGenerateAll()) {
-            <mat-card-actions align="end" class="repo-card__actions">
-              <app-ds-button
-                variant="primary"
-                icon="rocket_launch"
-                (clicked)="onGenerateAll()"
-                [disabled]="!project()?.repositories?.length"
-                [matTooltip]="!project()?.repositories?.length
-                  ? ('PROJECT_DETAIL.BOARD.NO_GIT_CONFIG' | translate)
-                  : ''">
-                {{ 'PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS' | translate }}
-              </app-ds-button>
-            </mat-card-actions>
-          }
-        </mat-card>
-      }
-    </div>
+                <div class="repo-card__detail-row">
+                  <span class="repo-card__detail-label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
+                  <strong class="repo-card__detail-value">{{ group.repo.defaultBranch }}</strong>
+                </div>
+
+                @if (group.repo.contentKinds.length > 0) {
+                  <div class="repo-card__kind-list">
+                    @for (kind of group.repo.contentKinds; track kind) {
+                      <app-ds-chip size="sm" variant="accent" icon="deployed_code">
+                        {{ ('PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind) | translate }}
+                      </app-ds-chip>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            <div class="repo-card__configs">
+              <span class="repo-card__configs-title">{{ 'PROJECT_DETAIL.BOARD.CONFIG_LIST_TITLE' | translate }}</span>
+
+              <div class="config-list">
+                @for (config of group.configs; track config.id) {
+                  <div class="config-row">
+                    <div class="config-row__info">
+                      <div class="config-row__name-line">
+                        <mat-icon class="config-row__icon" aria-hidden="true">settings</mat-icon>
+                        <span class="config-row__name">{{ config.name }}</span>
+                      </div>
+
+                      <div class="config-row__meta">
+                        <span>{{ 'PROJECT_DETAIL.BOARD.CONFIG_RESOURCE_GROUPS' | translate: { count: config.resourceGroupCount } }}</span>
+                        <span>{{ 'PROJECT_DETAIL.BOARD.CONFIG_RESOURCES' | translate: { count: config.resourceCount } }}</span>
+                      </div>
+                    </div>
+
+                    <app-ds-button
+                      variant="secondary"
+                      size="sm"
+                      icon="arrow_forward"
+                      (clicked)="openConfiguration(config.id)">
+                      {{ 'PROJECT_DETAIL.BOARD.CONFIG_GENERATE' | translate }}
+                    </app-ds-button>
+                  </div>
+                }
+              </div>
+            </div>
+          </app-ds-card>
+        }
+      </div>
+    </app-ds-card>
   }
-</div>
+</section>

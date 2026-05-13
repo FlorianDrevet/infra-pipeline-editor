@@ -1,7 +1,5 @@
-using InfraFlowSculptor.Domain.UserAggregate;
+using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
-using InfraFlowSculptor.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 
 namespace InfraFlowSculptor.Api.Common;
@@ -19,8 +17,8 @@ public sealed class UserProvisioningMiddleware(RequestDelegate next)
     /// Processes the HTTP request, provisioning the user if authenticated and not yet persisted.
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
-    /// <param name="dbContext">The scoped database context.</param>
-    public async Task InvokeAsync(HttpContext context, ProjectDbContext dbContext)
+    /// <param name="userProvisioningService">The application service responsible for provisioning users.</param>
+    public async Task InvokeAsync(HttpContext context, IUserProvisioningService userProvisioningService)
     {
         if (context.User.Identity?.IsAuthenticated == true)
         {
@@ -28,19 +26,14 @@ public sealed class UserProvisioningMiddleware(RequestDelegate next)
             if (entraIdClaim is not null && Guid.TryParse(entraIdClaim, out var entraGuid))
             {
                 var entraId = new EntraId(entraGuid);
-                var user = await dbContext.Users
-                    .FirstOrDefaultAsync(u => u.EntraId == entraId, context.RequestAborted);
+                var nameClaim = context.User.FindFirst(ClaimConstants.Name)?.Value ?? string.Empty;
+                var (firstName, lastName) = ParseName(nameClaim);
+                var userId = await userProvisioningService.EnsureProvisionedAsync(
+                    entraId,
+                    new Name(firstName, lastName),
+                    context.RequestAborted);
 
-                if (user is null)
-                {
-                    var nameClaim = context.User.FindFirst(ClaimConstants.Name)?.Value ?? string.Empty;
-                    var (firstName, lastName) = ParseName(nameClaim);
-                    user = User.Create(entraId, new Name(firstName, lastName));
-                    await dbContext.Users.AddAsync(user, context.RequestAborted);
-                    await dbContext.SaveChangesAsync(context.RequestAborted);
-                }
-
-                context.Items[UserIdItemKey] = user.Id;
+                context.Items[UserIdItemKey] = userId;
             }
         }
 
