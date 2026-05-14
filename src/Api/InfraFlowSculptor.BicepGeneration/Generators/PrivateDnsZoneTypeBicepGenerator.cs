@@ -18,6 +18,14 @@ public sealed class PrivateDnsZoneTypeBicepGenerator
     private const string ModuleFileName = "privateDnsZone";
     private const string VirtualNetworkLinksParameterName = "virtualNetworkLinks";
     private const string TagsParameterName = "tags";
+    private const string VirtualNetworkLinkConfigTypeName = "VirtualNetworkLinkConfig";
+    private const string VirtualNetworkLinkConfigTypeBody = """
+        {
+          name: string
+          vnetId: string
+          enableAutoRegistration: bool
+        }
+        """;
     private const string ResourceSymbol = "privateDnsZone";
     private const string LinkSymbol = "vnetLink";
     private const string PrivateDnsZoneArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.PrivateDnsZoneArmType;
@@ -41,8 +49,9 @@ public sealed class PrivateDnsZoneTypeBicepGenerator
     {
         return new BicepModuleBuilder()
             .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import(TypesImportPath, VirtualNetworkLinkConfigTypeName)
             .Param(NameParameterName, BicepType.String, "Private DNS zone name (e.g. privatelink.vaultcore.azure.net)")
-            .Param(VirtualNetworkLinksParameterName, BicepType.Array, "Virtual network links with vnetId and enableAutoRegistration",
+            .Param(VirtualNetworkLinksParameterName, BicepType.Custom(VirtualNetworkLinkConfigTypeName + "[]"), "Virtual network links with vnetId and enableAutoRegistration",
                 defaultValue: new BicepArrayExpression([]))
             .Param(TagsParameterName, BicepType.Object, "Resource tags",
                 defaultValue: BicepObjectExpression.Empty)
@@ -64,6 +73,9 @@ public sealed class PrivateDnsZoneTypeBicepGenerator
                 description: "The resource ID of the Private DNS Zone")
             .Output(NameOutputName, BicepType.String, new BicepRawExpression(ResourceNameExpression),
                 description: "The name of the Private DNS Zone")
+            .ExportedType(VirtualNetworkLinkConfigTypeName,
+                new BicepRawExpression(VirtualNetworkLinkConfigTypeBody),
+                description: "Virtual network link configuration for a Private DNS Zone")
             .Build();
     }
 
@@ -82,11 +94,13 @@ public sealed class PrivateDnsZoneTypeBicepGenerator
     }
 
     private static readonly string PrivateDnsZoneModuleTemplate = $$"""
+        import { VirtualNetworkLinkConfig } from './types.bicep'
+
         @description('Private DNS zone name (e.g. privatelink.vaultcore.azure.net)')
         param name string
 
         @description('Virtual network links with vnetId and enableAutoRegistration')
-        param virtualNetworkLinks array = []
+        param virtualNetworkLinks VirtualNetworkLinkConfig[] = []
 
         @description('Resource tags')
         param tags object = {}

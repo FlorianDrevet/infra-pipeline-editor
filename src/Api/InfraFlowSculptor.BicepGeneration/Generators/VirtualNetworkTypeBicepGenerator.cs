@@ -19,6 +19,17 @@ public sealed class VirtualNetworkTypeBicepGenerator
     private const string EnableDdosProtectionParameterName = "enableDdosProtection";
     private const string SubnetsParameterName = "subnets";
     private const string TagsParameterName = "tags";
+    private const string SubnetConfigTypeName = "SubnetConfig";
+    private const string SubnetConfigTypeBody = """
+        {
+          name: string
+          addressPrefix: string
+          delegation: string?
+          serviceEndpoints: string[]?
+          privateEndpointNetworkPolicies: string?
+          nsgId: string?
+        }
+        """;
     private const string ResourceSymbol = "virtualNetwork";
     private const string VirtualNetworkArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.VirtualNetworkArmType;
     private const string AddressSpacePropertyName = "addressSpace";
@@ -38,13 +49,14 @@ public sealed class VirtualNetworkTypeBicepGenerator
     {
         return new BicepModuleBuilder()
             .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import(TypesImportPath, SubnetConfigTypeName)
             .Param(LocationParameterName, BicepType.String, "Azure region for the Virtual Network")
             .Param(NameParameterName, BicepType.String, "Name of the Virtual Network")
             .Param(AddressPrefixesParameterName, BicepType.Array, "Address space prefixes (e.g. ['10.0.0.0/16'])",
                 defaultValue: new BicepArrayExpression([new BicepStringLiteral("10.0.0.0/16")]))
             .Param(EnableDdosProtectionParameterName, BicepType.Bool, "Whether DDoS protection is enabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param(SubnetsParameterName, BicepType.Array, "Subnet configurations",
+            .Param(SubnetsParameterName, BicepType.Custom(SubnetConfigTypeName + "[]"), "Subnet configurations",
                 defaultValue: new BicepArrayExpression([]))
             .Param(TagsParameterName, BicepType.Object, "Resource tags",
                 defaultValue: BicepObjectExpression.Empty)
@@ -61,6 +73,9 @@ public sealed class VirtualNetworkTypeBicepGenerator
                 description: "The resource ID of the Virtual Network")
             .Output(NameOutputName, BicepType.String, new BicepRawExpression(ResourceNameExpression),
                 description: "The name of the Virtual Network")
+            .ExportedType(SubnetConfigTypeName,
+                new BicepRawExpression(SubnetConfigTypeBody),
+                description: "Subnet configuration for a Virtual Network")
             .Build();
     }
 
@@ -79,6 +94,8 @@ public sealed class VirtualNetworkTypeBicepGenerator
     }
 
     private static readonly string VirtualNetworkModuleTemplate = $$"""
+        import { SubnetConfig } from './types.bicep'
+
         @description('Azure region for the Virtual Network')
         param location string
 
@@ -92,7 +109,7 @@ public sealed class VirtualNetworkTypeBicepGenerator
         param enableDdosProtection bool = false
 
         @description('Subnet configurations')
-        param subnets array = []
+        param subnets SubnetConfig[] = []
 
         @description('Resource tags')
         param tags object = {}

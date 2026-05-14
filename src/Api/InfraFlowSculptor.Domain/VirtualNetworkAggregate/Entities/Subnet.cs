@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -8,6 +9,10 @@ namespace InfraFlowSculptor.Domain.VirtualNetworkAggregate.Entities;
 /// <summary>Represents a subnet within an Azure Virtual Network.</summary>
 public sealed class Subnet : Entity<SubnetId>
 {
+    private static readonly Regex ServiceEndpointPattern = new(
+        @"^Microsoft\.[A-Za-z][A-Za-z0-9]*$",
+        RegexOptions.Compiled);
+
     /// <summary>Gets the parent virtual network identifier.</summary>
     public AzureResourceId VirtualNetworkId { get; private set; } = null!;
 
@@ -36,6 +41,7 @@ public sealed class Subnet : Entity<SubnetId>
         PrivateEndpointNetworkPolicy privateEndpointNetworkPolicies,
         AzureResourceId? nsgId)
     {
+        ValidateServiceEndpoints(serviceEndpoints);
         Name = name;
         Delegation = delegation;
         ServiceEndpoints = serviceEndpoints ?? [];
@@ -52,6 +58,7 @@ public sealed class Subnet : Entity<SubnetId>
         PrivateEndpointNetworkPolicy privateEndpointNetworkPolicies,
         AzureResourceId? nsgId)
     {
+        ValidateServiceEndpoints(serviceEndpoints);
         return new Subnet
         {
             Id = SubnetId.CreateUnique(),
@@ -62,5 +69,17 @@ public sealed class Subnet : Entity<SubnetId>
             PrivateEndpointNetworkPolicies = privateEndpointNetworkPolicies,
             NsgId = nsgId
         };
+    }
+
+    private static void ValidateServiceEndpoints(IReadOnlyList<string>? serviceEndpoints)
+    {
+        if (serviceEndpoints is null)
+            return;
+
+        foreach (var endpoint in serviceEndpoints)
+        {
+            if (!ServiceEndpointPattern.IsMatch(endpoint))
+                throw new ArgumentException($"Service endpoint '{endpoint}' must follow ARM resource provider format (e.g. Microsoft.Storage).");
+        }
     }
 }

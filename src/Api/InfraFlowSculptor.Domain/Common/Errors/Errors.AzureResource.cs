@@ -31,5 +31,11 @@ public static partial class Errors
             code: "AzureResource.PrivateDnsZoneNotFound",
             description: $"Private DNS Zone with ID '{dnsZoneId.Value}' was not found."
         );
+
+        /// <summary>Returned when a GroupId is not valid for the target resource type.</summary>
+        public static Error InvalidGroupId(string groupId, string resourceType) => Error.Validation(
+            code: "AzureResource.InvalidGroupId",
+            description: $"GroupId '{groupId}' is not valid for resource type '{resourceType}'."
+        );
     }
 }

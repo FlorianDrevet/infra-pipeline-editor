@@ -2,6 +2,7 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.PrivateEndpoints.Common;
+using InfraFlowSculptor.Domain.Common.Constants;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
 
@@ -26,6 +27,10 @@ public sealed class UpdatePrivateEndpointCommandHandler(
             resource.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return authResult.Errors;
+
+        if (PrivateEndpointGroupIdCatalog.GroupIdsByResourceType.TryGetValue(resource.ResourceType, out var validGroupIds)
+            && !validGroupIds.Contains(request.GroupId))
+            return Errors.AzureResource.InvalidGroupId(request.GroupId, resource.ResourceType);
 
         resource.UpdatePrivateEndpoint(
             request.ConfigId,

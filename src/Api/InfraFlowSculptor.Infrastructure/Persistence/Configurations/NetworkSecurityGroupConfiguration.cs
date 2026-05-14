@@ -62,5 +62,7 @@ public class NsgRuleConfiguration : IEntityTypeConfiguration<NsgRule>
         builder.Property(r => r.DestinationAddressPrefix).IsRequired().HasMaxLength(260);
         builder.Property(r => r.SourcePortRange).IsRequired().HasMaxLength(260);
         builder.Property(r => r.DestinationPortRange).IsRequired().HasMaxLength(260);
+
+        builder.HasIndex(r => new { r.NetworkSecurityGroupId, r.Priority, r.Direction }).IsUnique();
     }
 }

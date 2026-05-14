@@ -30,6 +30,11 @@ public sealed class CreateVirtualNetworkCommandValidator : AbstractValidator<Cre
                     .NotEmpty().WithMessage("Address space must not be empty.")
                     .Matches(@"^\d{1,3}(\.\d{1,3}){3}/\d{1,2}$")
                     .WithMessage("Address space must be in CIDR notation (e.g. 10.0.0.0/16).");
+
+                env.RuleForEach(e => e.DnsServers)
+                    .NotEmpty().WithMessage("DNS server must not be empty.")
+                    .Matches(@"^\d{1,3}(\.\d{1,3}){3}$")
+                    .WithMessage("DNS server must be a valid IPv4 address (e.g. 10.0.0.4).");
             });
     }
 }

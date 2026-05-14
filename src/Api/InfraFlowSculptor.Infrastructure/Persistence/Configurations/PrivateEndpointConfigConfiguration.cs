@@ -38,5 +38,7 @@ public class PrivateEndpointConfigConfiguration : IEntityTypeConfiguration<Priva
 
         builder.Property(p => p.CustomNetworkInterfaceName)
             .HasMaxLength(260);
+
+        builder.HasIndex(p => p.ResourceId);
     }
 }

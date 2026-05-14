@@ -187,5 +187,12 @@ internal static class AppCiPipelineBuilder
 
         if (request.EnableDependencyCache)
             sb.AppendLine($"    enableDependencyCache: true");
+
+        if (request.RunSmokeTests)
+        {
+            sb.AppendLine($"    runSmokeTests: true");
+            if (!string.IsNullOrWhiteSpace(request.SmokeTestCommand))
+                sb.AppendLine($"    smokeTestCommand: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.SmokeTestCommand)}'");
+        }
     }
 }

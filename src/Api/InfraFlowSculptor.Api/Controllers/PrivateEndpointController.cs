@@ -39,7 +39,8 @@ public static class PrivateEndpointController
                 .WithSummary("List private endpoint configurations")
                 .Produces<List<PrivateEndpointConfigResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status401Unauthorized);
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPost("",
                     async ([FromRoute] Guid resourceId, AddPrivateEndpointRequest request,
@@ -66,7 +67,8 @@ public static class PrivateEndpointController
                 .Produces<PrivateEndpointConfigResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status401Unauthorized);
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPut("/{peId:guid}",
                     async ([FromRoute] Guid resourceId, [FromRoute] Guid peId,
@@ -92,7 +94,8 @@ public static class PrivateEndpointController
                 .Produces<PrivateEndpointConfigResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status401Unauthorized);
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapDelete("/{peId:guid}",
                     async ([FromRoute] Guid resourceId, [FromRoute] Guid peId, IMediator mediator) =>
@@ -109,7 +112,8 @@ public static class PrivateEndpointController
                 .WithSummary("Remove a private endpoint")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status401Unauthorized);
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }
 }
