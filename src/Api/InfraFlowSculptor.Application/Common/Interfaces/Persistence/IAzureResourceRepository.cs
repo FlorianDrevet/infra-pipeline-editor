@@ -32,6 +32,16 @@ public interface IAzureResourceRepository
     /// </summary>
     Task<AzureResource?> GetByIdWithCustomDomainsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Returns a resource with its resource group and private endpoint configurations loaded.
+    /// </summary>
+    Task<AzureResource?> GetByIdWithPrivateEndpointsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns a detached resource with its resource group and private endpoint configurations loaded.
+    /// </summary>
+    Task<AzureResource?> GetByIdWithPrivateEndpointsReadOnlyAsync(AzureResourceId id, CancellationToken cancellationToken = default);
+
     Task<bool> ExistsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
     Task<AzureResource> UpdateAsync(AzureResource resource, CancellationToken cancellationToken = default);
 

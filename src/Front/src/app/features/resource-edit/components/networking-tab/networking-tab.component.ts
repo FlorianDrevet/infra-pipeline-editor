@@ -113,7 +113,7 @@ export class NetworkingTabComponent {
     const request: AddPrivateEndpointRequest = {
       subnetId: this.subnetId,
       groupId: this.groupId,
-      autoApproval: this.autoApproval || undefined,
+      autoApproval: this.autoApproval,
       privateDnsZoneId: this.privateDnsZoneId || undefined,
       customNetworkInterfaceName: this.customNicName || undefined,
     };

@@ -18,7 +18,7 @@ public sealed class AddPrivateEndpointCommandHandler(
         AddPrivateEndpointCommand request,
         CancellationToken cancellationToken)
     {
-        var resource = await resourceRepository.GetByIdAsync(request.ResourceId, cancellationToken);
+        var resource = await resourceRepository.GetByIdWithPrivateEndpointsAsync(request.ResourceId, cancellationToken);
         if (resource is null)
             return Errors.AzureResource.NotFound(request.ResourceId);
 

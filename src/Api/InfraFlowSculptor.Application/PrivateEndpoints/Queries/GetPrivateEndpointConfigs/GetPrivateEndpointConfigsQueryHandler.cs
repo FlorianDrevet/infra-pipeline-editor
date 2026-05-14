@@ -18,7 +18,7 @@ public sealed class GetPrivateEndpointConfigsQueryHandler(
         GetPrivateEndpointConfigsQuery request,
         CancellationToken cancellationToken)
     {
-        var resource = await resourceRepository.GetByIdAsync(request.ResourceId, cancellationToken);
+        var resource = await resourceRepository.GetByIdWithPrivateEndpointsReadOnlyAsync(request.ResourceId, cancellationToken);
         if (resource is null)
             return Errors.AzureResource.NotFound(request.ResourceId);
 
