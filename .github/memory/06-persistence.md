@@ -95,4 +95,5 @@
 ## Migrations
 - Schema changes still require a new EF migration under `src/Api/InfraFlowSculptor.Infrastructure/Migrations/`.
 - Current DB-001 / delete-behavior reference migrations: `20260512091902_AddCoreStringLengthConstraints`, `20260512095600_AddResourceGroupNameLengthConstraint`, `20260512121558_SetNullOnAppSettingSourceResource`, and `20260512140453_AddParameterDefinitionLengthConstraints`.
+- PostgreSQL view dependency pitfall [2026-05-14]: if a migration alters the type/length of a column projected by `vw_ResourceEnvironmentEntries`, PostgreSQL rejects the `ALTER COLUMN` until the view is dropped. The current reference fix is `20260514104001_SyncPendingModelChanges`, which drops and recreates `vw_ResourceEnvironmentEntries` inside both `Up` and `Down` around the affected `EnvironmentName` column alterations.
 - Do not squash a sub-range in the middle of the active EF Core migration chain. The DB-008 closure decision is now explicit: the only safe squash is a full baseline reset on an empty database, coordinated as release engineering, not a partial rewrite inside a feature branch with later migrations already layered on top.

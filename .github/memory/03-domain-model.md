@@ -25,6 +25,10 @@
 | `ServiceBusNamespace` | extends `AzureResource` | `ServiceBusNamespaceEnvironmentSettings` | TPT; sub-resources: Queue, TopicSubscription |
 | `EventHubNamespace` | extends `AzureResource` | `EventHubNamespaceEnvironmentSettings` | TPT; sub-resources: EventHub, ConsumerGroup |
 | `ContainerRegistry` | extends `AzureResource` | `ContainerRegistryEnvironmentSettings` | TPT; abbreviation `acr` |
+| `VirtualNetwork` | extends `AzureResource` | `Subnet`, `VirtualNetworkEnvironmentSettings` | TPT; abbreviation `vnet`; DDoS protection flag; Subnets own delegation, service endpoints, PE network policies, optional NSG FK |
+| `NetworkSecurityGroup` | extends `AzureResource` | `NsgRule` | TPT; abbreviation `nsg`; Rules have priority/direction/access/protocol/CIDR |
+| `PrivateDnsZone` | extends `AzureResource` | `VirtualNetworkLink` | TPT; abbreviation `pdnsz`; VNet links with auto-registration flag |
+| `FrontDoor` | extends `AzureResource` | `FrontDoorOrigin`, `FrontDoorEnvironmentSettings` | TPT; abbreviation `afd`; WAF policy flag; Origins with target resource, private link, weight/priority; per-env SKU (Standard/Premium) |
 | `PersonalAccessToken` | `PersonalAccessToken` | `TokenHash` (VO), `PersonalAccessTokenId` (VO) | PAT for MCP auth. `ifs_` prefix + SHA-256 hash stored, plaintext returned once. `UserId` FK. `Revoke()`, `RecordUsage()`, `IsValid()` methods. |
 | `User` | `User` | — | Azure AD user info |
 
@@ -40,6 +44,7 @@ These reusable entity types are owned by multiple aggregates:
 | `RoleAssignment` | RBAC role assignment on any AzureResource |
 | `CustomDomain` | Per-environment custom domain binding for ContainerApp, WebApp, FunctionApp |
 | `SecureParameterMapping` | Maps secure Bicep params to project pipeline variable groups |
+| `PrivateEndpointConfig` | PE configuration on any AzureResource: subnet, group ID, auto-approval, DNS zone, custom NIC name |
 
 ## AzureResource.AssignedUserAssignedIdentityId [2026-04-02]
 

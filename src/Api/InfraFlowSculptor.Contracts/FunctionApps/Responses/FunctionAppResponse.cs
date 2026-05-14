@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.FunctionApps.Requests;
 
 namespace InfraFlowSculptor.Contracts.FunctionApps.Responses;
@@ -19,6 +20,7 @@ namespace InfraFlowSculptor.Contracts.FunctionApps.Responses;
 /// <param name="SourceCodePath">Relative path to the source code folder.</param>
 /// <param name="BuildCommand">Optional custom build command.</param>
 /// <param name="ApplicationName">Optional user-friendly application name used in generated pipelines.</param>
+/// <param name="PipelineStepOptions">Optional pipeline step options for CI/CD generation.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
 /// <param name="IsExisting">Whether the resource references an already-existing Azure resource.</param>
 public record FunctionAppResponse(
@@ -38,6 +40,7 @@ public record FunctionAppResponse(
     string? SourceCodePath,
     string? BuildCommand,
     string? ApplicationName,
+    PipelineStepOptionsDto? PipelineStepOptions,
     IReadOnlyList<FunctionAppEnvironmentConfigResponse> EnvironmentSettings,
     bool IsExisting = false
 );

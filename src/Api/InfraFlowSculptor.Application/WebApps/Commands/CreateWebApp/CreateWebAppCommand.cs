@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.WebApps.Common;
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using ErrorOr;
@@ -25,5 +26,6 @@ public record CreateWebAppCommand(
     string? BuildCommand = null,
     string? ApplicationName = null,
     IReadOnlyList<WebAppEnvironmentConfigData>? EnvironmentSettings = null,
-    bool IsExisting = false
+    bool IsExisting = false,
+    PipelineStepOptionsDto? PipelineStepOptions = null
 ) : ICommand<WebAppResult>;

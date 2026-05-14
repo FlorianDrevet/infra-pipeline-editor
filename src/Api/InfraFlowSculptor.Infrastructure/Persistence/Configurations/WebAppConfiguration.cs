@@ -85,6 +85,8 @@ public class WebAppConfiguration : IEntityTypeConfiguration<WebApp>
             .HasMaxLength(200)
             .IsRequired(false);
 
+        builder.OwnsOne(x => x.PipelineStepOptions, AppPipelineStepOptionsConfiguration.Configure);
+
         builder.HasMany(x => x.EnvironmentSettings)
             .WithOne()
             .HasForeignKey(es => es.WebAppId)

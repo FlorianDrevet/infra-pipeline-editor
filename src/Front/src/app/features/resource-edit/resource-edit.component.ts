@@ -81,6 +81,9 @@ import { ResourceEditUsedBySectionComponent } from './sections/identity-access/r
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
+import { PipelineOptionsComponent } from './components/pipeline-options/pipeline-options.component';
+import { NetworkingTabComponent } from './components/networking-tab/networking-tab.component';
+import { PipelineStepOptions } from './models/pipeline-step-options.model';
 import {
   ResourceEditEnvironmentFormEntry,
   buildAppConfigurationEnvironmentSettings,
@@ -185,6 +188,8 @@ type CorsFieldKey = CorsListField | CorsMethodField | 'maxAgeInSeconds';
     DsTextFieldComponent,
     DockerfilePickerComponent,
     DsSelectComponent,
+    PipelineOptionsComponent,
+    NetworkingTabComponent,
   ],
   templateUrl: './resource-edit.component.html',
   styleUrl: './resource-edit.component.scss',
@@ -257,9 +262,18 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
   protected readonly isUserAssignedIdentity = computed(() => this.resourceType === 'UserAssignedIdentity');
+
+  private static readonly PE_SUPPORTED_TYPES = new Set<string>([
+    'KeyVault', 'StorageAccount', 'AppConfiguration', 'CosmosDb', 'SqlServer',
+    'RedisCache', 'ServiceBusNamespace', 'EventHubNamespace', 'ContainerRegistry',
+    'WebApp', 'FunctionApp', 'ApplicationInsights', 'LogAnalyticsWorkspace',
+  ]);
+  protected readonly supportsNetworking = computed(() => ResourceEditComponent.PE_SUPPORTED_TYPES.has(this.resourceType));
   protected readonly isExistingResource = computed(() => (this.resource() as { isExisting?: boolean } | null)?.isExisting === true);
 
   // ─── App Pipeline ───
+
+  protected readonly pipelineStepOptions = signal<PipelineStepOptions | null>(null);
 
   protected supportsAppPipeline(): boolean {
     return this.resourceType === 'WebApp'
@@ -805,6 +819,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.storageCorsRulesDraft.set(buildResult.storageCorsRulesDraft);
     this.storageTableCorsRulesDraft.set(buildResult.storageTableCorsRulesDraft);
     this.lifecycleRulesDraft.set(buildResult.lifecycleRulesDraft);
+
+    // Hydrate pipeline step options for compute resources
+    if (this.supportsAppPipeline()) {
+      const res = resource as { pipelineStepOptions?: PipelineStepOptions | null };
+      this.pipelineStepOptions.set(res.pipelineStepOptions ?? null);
+    }
   }
 
   private buildEnvForms(resource: ResourceData): void {
@@ -832,6 +852,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   /** User confirms the unavailable name is theirs and overrides the save block. */
   protected overrideNameAvailability(): void {
     this.nameAvailabilityOverridden.set(true);
+  }
+
+  protected onPipelineOptionsChanged(options: PipelineStepOptions): void {
+    this.pipelineStepOptions.set(options);
+    this.formsDirty.set(true);
   }
 
   private resolveAcrAuthMode(containerRegistryId: string | null | undefined, acrAuthMode: AcrAuthMode | null | undefined): AcrAuthMode | null {
@@ -948,6 +973,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             runtimeVersion: general.runtimeVersion,
             alwaysOn: general.alwaysOn,
             httpsOnly: general.httpsOnly,
+            pipelineStepOptions: this.pipelineStepOptions(),
             environmentSettings: buildWebAppEnvironmentSettings(envForms),
           });
           break;
@@ -972,6 +998,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             runtimeStack: general.runtimeStack,
             runtimeVersion: general.runtimeVersion,
             httpsOnly: general.httpsOnly,
+            pipelineStepOptions: this.pipelineStepOptions(),
             environmentSettings: buildFunctionAppEnvironmentSettings(envForms),
           });
           break;
@@ -1009,6 +1036,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             dockerImageName: general.dockerImageName || null,
             dockerfilePath: general.dockerfilePath || null,
             applicationName: general.applicationName || null,
+            pipelineStepOptions: this.pipelineStepOptions(),
             environmentSettings: buildContainerAppEnvironmentSettings(envForms),
           });
           break;

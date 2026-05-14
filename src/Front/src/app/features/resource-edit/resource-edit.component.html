@@ -1135,6 +1135,21 @@
       </mat-tab>
       }
 
+      <!-- Networking Tab (PE-supported resources only) -->
+      @if (supportsNetworking()) {
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">lan</mat-icon>
+          <span>{{ 'RESOURCE_EDIT.TABS.NETWORKING' | translate }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <app-networking-tab
+            [resourceId]="resource()!.id"
+            [resourceType]="resourceType" />
+        </div>
+      </mat-tab>
+      }
+
       <!-- Storage Services Tab (StorageAccount only) / App Configuration Tab (others) -->
       @if (isStorageAccount()) {
         <mat-tab>
@@ -1945,6 +1960,11 @@
                 </div>
               </div>
             </form>
+
+            <!-- Pipeline Step Options -->
+            <app-pipeline-options
+              [pipelineStepOptions]="pipelineStepOptions()"
+              (optionsChanged)="onPipelineOptionsChanged($event)" />
           </div>
         </mat-tab>
       }

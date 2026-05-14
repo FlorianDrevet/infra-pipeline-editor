@@ -1,0 +1,30 @@
+@use "scss/main" as *;
+
+:host {
+  display: block;
+}
+
+.pipeline-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-16);
+}
+
+.pipeline-options__description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ifs-text-secondary);
+  line-height: 1.5;
+}
+
+.pipeline-options__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--ifs-space-12);
+}
+
+.card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-10);
+}

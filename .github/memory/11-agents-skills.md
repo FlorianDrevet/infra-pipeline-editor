@@ -92,11 +92,11 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 - Default GitHub repository for this project is `FlorianDrevet/infra-pipeline-editor` unless the user explicitly names another repository.
 - Audit issue workflows use reports under `audits/` (for example `audits/audit-14-04-2026`) together with `scripts/sync-audit-issues.ps1`; on 2026-04-15, 66 findings were recreated as GitHub issues and the `phase:*` / `severity:*` label mojibake was cleaned up.
 
-## Audit Triage Canonical Source [2026-05-12]
+## Audit Triage Canonical Source [2026-05-13]
 
-- `audits/triage-2026-05-12.md` is the current canonical backlog for the 2026-04 audit follow-up.
-- The triage reduced open issues from 117 to 58 by closing duplicates, obsolete findings, and misguided findings, and split the remaining work into 4 lanes: Quick wins, Security, DB+Perf, and Architecture.
-- Likely close-as-not-planned or false-positive candidates currently called out there: `DDD-009`, `API-002`, `INFRA-001`, and `INFRA-002`.
+- `audits/triage-2026-05-13.md` is now the canonical local backlog for the 2026-05 audit wave, backed by `audits/correction-plan-13-05-2026.md`.
+- Current durable status after the latest resync: all P1/P2 issues are closed, P3 was requalified/resynchronized, wave P4 closed the targeted guardrail slice, and `13` issues remain open.
+- Treat the older `audits/triage-2026-05-12.md` file as historical context for the previous audit cycle, not as the active source of truth for current remediation tracking.
 
 ## Parallel Worktree Workflow [2026-04-30]
 

@@ -61,6 +61,32 @@ public sealed class UpdateContainerAppCommandHandler(
                     .Select(ec => (ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod, ec.ReadinessProbePath, ec.ReadinessProbePort, ec.LivenessProbePath, ec.LivenessProbePort, ec.StartupProbePath, ec.StartupProbePort))
                     .ToList());
 
+        if (request.PipelineStepOptions is { } opts)
+        {
+            containerApp.PipelineStepOptions.Update(
+                opts.RunUnitTests,
+                opts.TestCommand,
+                opts.TestFramework,
+                opts.TestResultsFormat,
+                opts.TestResultsPath,
+                opts.PublishTestResults,
+                opts.PublishCodeCoverage,
+                opts.CoverageTool,
+                opts.CoverageReportPath,
+                opts.RunSonarAnalysis,
+                opts.SonarProjectKey,
+                opts.SonarOrganization,
+                opts.SonarServiceConnection,
+                opts.RunLinting,
+                opts.LintCommand,
+                opts.RunDependencyScan,
+                opts.DependencyScanTool,
+                opts.RunBuildValidation,
+                opts.EnableDependencyCache,
+                opts.RunSmokeTests,
+                opts.SmokeTestCommand);
+        }
+
         var updated = await containerAppRepository.UpdateAsync(containerApp);
 
         return mapper.Map<ContainerAppResult>(updated);

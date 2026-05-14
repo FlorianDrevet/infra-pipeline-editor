@@ -1,0 +1,186 @@
+<div class="pipeline-options">
+  <p class="pipeline-options__description">
+    {{ 'RESOURCE_EDIT.PIPELINE_OPTIONS.DESCRIPTION' | translate }}
+  </p>
+
+  <div class="pipeline-options__grid">
+    <!-- ─── Tests ─── -->
+    <app-toggle-section-card
+      icon="science"
+      [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.TESTS.TITLE' | translate"
+      [subtitle]="'RESOURCE_EDIT.PIPELINE_OPTIONS.TESTS.SUBTITLE' | translate"
+      [enabled]="runUnitTests()"
+      accentColor="#1565c0"
+      (enabledChange)="patch({ runUnitTests: $event })">
+      <div class="card-fields">
+        <app-ds-text-field
+          [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.TESTS.TEST_COMMAND' | translate"
+          [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.TESTS.TEST_COMMAND_HINT' | translate"
+          placeholder="dotnet test"
+          [ngModel]="options().testCommand ?? ''"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="patch({ testCommand: $event || undefined })" />
+        <app-ds-text-field
+          [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.TESTS.TEST_FRAMEWORK' | translate"
+          placeholder="xUnit"
+          [ngModel]="options().testFramework ?? ''"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="patch({ testFramework: $event || undefined })" />
+        <app-ds-select
+          [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.TESTS.RESULTS_FORMAT' | translate"
+          [options]="testResultsFormatOptions"
+          [clearable]="true"
+          [ngModel]="options().testResultsFormat ?? null"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="patch({ testResultsFormat: $event || undefined })" />
+        <app-ds-text-field
+          [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.TESTS.RESULTS_PATH' | translate"
+          [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.TESTS.RESULTS_PATH_HINT' | translate"
+          placeholder="**/TestResults/*.trx"
+          [ngModel]="options().testResultsPath ?? ''"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="patch({ testResultsPath: $event || undefined })" />
+        <app-toggle-section-card
+          icon="publish"
+          [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.TESTS.PUBLISH_RESULTS' | translate"
+          [enabled]="options().publishTestResults"
+          accentColor="#2e7d32"
+          (enabledChange)="patch({ publishTestResults: $event })">
+        </app-toggle-section-card>
+      </div>
+    </app-toggle-section-card>
+
+    <!-- ─── Coverage ─── -->
+    <app-toggle-section-card
+      icon="bar_chart"
+      [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.COVERAGE.TITLE' | translate"
+      [subtitle]="'RESOURCE_EDIT.PIPELINE_OPTIONS.COVERAGE.SUBTITLE' | translate"
+      [enabled]="publishCodeCoverage()"
+      accentColor="#6a1b9a"
+      (enabledChange)="patch({ publishCodeCoverage: $event })">
+      <div class="card-fields">
+        <app-ds-select
+          [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.COVERAGE.TOOL' | translate"
+          [options]="coverageToolOptions"
+          [clearable]="true"
+          [ngModel]="options().coverageTool ?? null"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="patch({ coverageTool: $event || undefined })" />
+        <app-ds-text-field
+          [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.COVERAGE.REPORT_PATH' | translate"
+          [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.COVERAGE.REPORT_PATH_HINT' | translate"
+          placeholder="**/coverage.cobertura.xml"
+          [ngModel]="options().coverageReportPath ?? ''"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="patch({ coverageReportPath: $event || undefined })" />
+      </div>
+    </app-toggle-section-card>
+
+    <!-- ─── Sonar ─── -->
+    <app-toggle-section-card
+      icon="security"
+      [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.SONAR.TITLE' | translate"
+      [subtitle]="'RESOURCE_EDIT.PIPELINE_OPTIONS.SONAR.SUBTITLE' | translate"
+      [enabled]="runSonarAnalysis()"
+      accentColor="#e65100"
+      (enabledChange)="patch({ runSonarAnalysis: $event })">
+      <div class="card-fields">
+        <app-ds-text-field
+          [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.SONAR.PROJECT_KEY' | translate"
+          placeholder="my-project-key"
+          [ngModel]="options().sonarProjectKey ?? ''"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="patch({ sonarProjectKey: $event || undefined })" />
+        <app-ds-text-field
+          [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.SONAR.ORGANIZATION' | translate"
+          placeholder="my-org"
+          [ngModel]="options().sonarOrganization ?? ''"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="patch({ sonarOrganization: $event || undefined })" />
+        <app-ds-text-field
+          [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.SONAR.SERVICE_CONNECTION' | translate"
+          [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.SONAR.SERVICE_CONNECTION_HINT' | translate"
+          [ngModel]="options().sonarServiceConnection ?? ''"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="patch({ sonarServiceConnection: $event || undefined })" />
+      </div>
+    </app-toggle-section-card>
+
+    <!-- ─── Linting ─── -->
+    <app-toggle-section-card
+      icon="rule"
+      [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.LINTING.TITLE' | translate"
+      [subtitle]="'RESOURCE_EDIT.PIPELINE_OPTIONS.LINTING.SUBTITLE' | translate"
+      [enabled]="runLinting()"
+      accentColor="#00838f"
+      (enabledChange)="patch({ runLinting: $event })">
+      <div class="card-fields">
+        <app-ds-text-field
+          [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.LINTING.COMMAND' | translate"
+          [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.LINTING.COMMAND_HINT' | translate"
+          placeholder="npm run lint"
+          [ngModel]="options().lintCommand ?? ''"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="patch({ lintCommand: $event || undefined })" />
+      </div>
+    </app-toggle-section-card>
+
+    <!-- ─── Security ─── -->
+    <app-toggle-section-card
+      icon="shield"
+      [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.SECURITY.TITLE' | translate"
+      [subtitle]="'RESOURCE_EDIT.PIPELINE_OPTIONS.SECURITY.SUBTITLE' | translate"
+      [enabled]="runDependencyScan()"
+      accentColor="#c62828"
+      (enabledChange)="patch({ runDependencyScan: $event })">
+      <div class="card-fields">
+        <app-ds-select
+          [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.SECURITY.TOOL' | translate"
+          [options]="dependencyScanToolOptions"
+          [clearable]="true"
+          [ngModel]="options().dependencyScanTool ?? null"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="patch({ dependencyScanTool: $event || undefined })" />
+      </div>
+    </app-toggle-section-card>
+
+    <!-- ─── Build ─── -->
+    <app-toggle-section-card
+      icon="build"
+      [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.BUILD.TITLE' | translate"
+      [subtitle]="'RESOURCE_EDIT.PIPELINE_OPTIONS.BUILD.SUBTITLE' | translate"
+      [enabled]="runBuildValidation()"
+      accentColor="#4527a0"
+      (enabledChange)="patch({ runBuildValidation: $event })">
+    </app-toggle-section-card>
+
+    <!-- ─── Cache ─── -->
+    <app-toggle-section-card
+      icon="cached"
+      [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.CACHE.TITLE' | translate"
+      [subtitle]="'RESOURCE_EDIT.PIPELINE_OPTIONS.CACHE.SUBTITLE' | translate"
+      [enabled]="enableDependencyCache()"
+      accentColor="#558b2f"
+      (enabledChange)="patch({ enableDependencyCache: $event })">
+    </app-toggle-section-card>
+
+    <!-- ─── Post-deploy ─── -->
+    <app-toggle-section-card
+      icon="verified"
+      [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.POST_DEPLOY.TITLE' | translate"
+      [subtitle]="'RESOURCE_EDIT.PIPELINE_OPTIONS.POST_DEPLOY.SUBTITLE' | translate"
+      [enabled]="runSmokeTests()"
+      accentColor="#ad1457"
+      (enabledChange)="patch({ runSmokeTests: $event })">
+      <div class="card-fields">
+        <app-ds-text-field
+          [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.POST_DEPLOY.COMMAND' | translate"
+          [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.POST_DEPLOY.COMMAND_HINT' | translate"
+          placeholder="npm run smoke"
+          [ngModel]="options().smokeTestCommand ?? ''"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="patch({ smokeTestCommand: $event || undefined })" />
+      </div>
+    </app-toggle-section-card>
+  </div>
+</div>

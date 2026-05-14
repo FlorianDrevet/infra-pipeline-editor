@@ -504,6 +504,7 @@
       "CATEGORY_SECURITY": "Security & Identity",
       "CATEGORY_MONITORING": "Monitoring & Configuration",
       "CATEGORY_MESSAGING": "Messaging",
+      "CATEGORY_NETWORKING": "Networking",
       "ADD_DIALOG_TITLE": "Choose resource type",
       "ADD_DIALOG_TITLE_KeyVault": "New Key Vault",
       "ADD_DIALOG_TITLE_RedisCache": "New Redis Cache",
@@ -523,6 +524,10 @@
       "ADD_DIALOG_TITLE_ServiceBusNamespace": "New Service Bus Namespace",
       "ADD_DIALOG_TITLE_EventHubNamespace": "New Event Hub Namespace",
       "ADD_DIALOG_TITLE_ContainerRegistry": "New Container Registry",
+      "ADD_DIALOG_TITLE_VirtualNetwork": "New Virtual Network",
+      "ADD_DIALOG_TITLE_NetworkSecurityGroup": "New Network Security Group",
+      "ADD_DIALOG_TITLE_PrivateDnsZone": "New Private DNS Zone",
+      "ADD_DIALOG_TITLE_FrontDoor": "New Front Door",
       "ADD_ERROR": "Failed to create the resource.",
       "FORM": {
         "NAME": "Name",
@@ -1505,6 +1510,7 @@
       "USED_BY": "Used By",
       "CONFIG_KEYS": "Configuration Keys",
       "APP_PIPELINE": "Application Pipeline",
+      "NETWORKING": "Networking",
       "WARNING_MISSING_ROLE": "A required role assignment is missing",
       "WARNING_MISSING_ENV_CONFIG": "Some environments have no configuration"
     },
@@ -1526,6 +1532,76 @@
       "NO_DOCKERFILES_FOUND": "No Dockerfile found on this branch",
       "LOADING_BRANCHES": "Loading branches…",
       "LOADING_FILES": "Searching for Dockerfiles…"
+    },
+    "NETWORKING": {
+      "TITLE": "Networking",
+      "PRIVATE_ENDPOINTS": "Private Endpoints",
+      "ADD_PE": "Add Private Endpoint",
+      "NO_PE": "No private endpoints configured",
+      "SUBNET": "Subnet",
+      "GROUP_ID": "Group ID",
+      "AUTO_APPROVAL": "Auto-approval",
+      "DNS_ZONE": "Private DNS Zone",
+      "CUSTOM_NIC": "Custom NIC Name",
+      "REMOVE_PE": "Remove",
+      "CONFIRM_REMOVE": "Remove this private endpoint?",
+      "CANCEL": "Cancel",
+      "NOT_SUPPORTED": "This resource type does not support private endpoints.",
+      "LOAD_ERROR": "Unable to load private endpoints. Please try again."
+    },
+    "PIPELINE_OPTIONS": {
+      "DESCRIPTION": "Configure optional pipeline steps such as tests, code analysis, linting, and post-deploy validation.",
+      "TESTS": {
+        "TITLE": "Unit Tests",
+        "SUBTITLE": "Run unit tests during the pipeline",
+        "TEST_COMMAND": "Test command",
+        "TEST_COMMAND_HINT": "Custom test command (e.g., dotnet test, npm test)",
+        "TEST_FRAMEWORK": "Test framework",
+        "RESULTS_FORMAT": "Results format",
+        "RESULTS_PATH": "Results path",
+        "RESULTS_PATH_HINT": "Glob pattern for test result files (e.g., **/TestResults/*.trx)",
+        "PUBLISH_RESULTS": "Publish test results"
+      },
+      "COVERAGE": {
+        "TITLE": "Code Coverage",
+        "SUBTITLE": "Publish code coverage reports",
+        "TOOL": "Coverage tool",
+        "REPORT_PATH": "Report path",
+        "REPORT_PATH_HINT": "Glob pattern for coverage report files"
+      },
+      "SONAR": {
+        "TITLE": "SonarQube / SonarCloud",
+        "SUBTITLE": "Run static code analysis",
+        "PROJECT_KEY": "Project key",
+        "ORGANIZATION": "Organization",
+        "SERVICE_CONNECTION": "Service connection",
+        "SERVICE_CONNECTION_HINT": "Azure DevOps service connection name for SonarQube"
+      },
+      "LINTING": {
+        "TITLE": "Linting",
+        "SUBTITLE": "Run code linting rules",
+        "COMMAND": "Lint command",
+        "COMMAND_HINT": "Custom lint command (e.g., npm run lint, dotnet format)"
+      },
+      "SECURITY": {
+        "TITLE": "Dependency Scan",
+        "SUBTITLE": "Scan dependencies for vulnerabilities",
+        "TOOL": "Scanning tool"
+      },
+      "BUILD": {
+        "TITLE": "Build Validation",
+        "SUBTITLE": "Run an explicit build validation step"
+      },
+      "CACHE": {
+        "TITLE": "Dependency Cache",
+        "SUBTITLE": "Cache dependencies to speed up builds"
+      },
+      "POST_DEPLOY": {
+        "TITLE": "Smoke Tests",
+        "SUBTITLE": "Run smoke tests after deployment",
+        "COMMAND": "Smoke test command",
+        "COMMAND_HINT": "Command to run after deployment (e.g., npm run smoke)"
+      }
     },
     "GENERAL": {
       "IDENTITY": "Identity",

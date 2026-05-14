@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.ValidationAttributes;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.WebAppAggregate.ValueObjects;
@@ -65,6 +66,9 @@ public abstract class WebAppRequestBase
     /// <summary>User-friendly application name displayed in Azure DevOps pipeline runs.</summary>
     [MaxLength(200)]
     public string? ApplicationName { get; init; }
+
+    /// <summary>Optional pipeline step options for CI/CD generation.</summary>
+    public PipelineStepOptionsDto? PipelineStepOptions { get; init; }
 
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<WebAppEnvironmentConfigEntry>? EnvironmentSettings { get; init; }

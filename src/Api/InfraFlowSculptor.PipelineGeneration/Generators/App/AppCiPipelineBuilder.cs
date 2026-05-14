@@ -47,6 +47,7 @@ internal static class AppCiPipelineBuilder
         sb.AppendLine($"    enableSecurityScans: {(request.EnableSecurityScans ? "true" : "false")}");
         sb.AppendLine($"    promotionStrategy: '{request.PromotionStrategy}'");
         sb.AppendLine($"    buildSourceEnvVariablesPath: '{AppNamingHelper.EscapeForSingleQuotedYaml(buildSourceEnvVariablesPath)}'");
+        AppendPipelineStepOptionsParameters(sb, request);
         AppendVariableGroupsParameter(sb, buildSourceEnvKey, request);
         AppendAgentPoolParameter(sb, request.AgentPoolName);
 
@@ -75,6 +76,7 @@ internal static class AppCiPipelineBuilder
         sb.AppendLine($"    buildCommand: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.BuildCommand ?? string.Empty)}'");
         sb.AppendLine($"    promotionStrategy: '{request.PromotionStrategy}'");
         sb.AppendLine($"    resourceType: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.ResourceType)}'");
+        AppendPipelineStepOptionsParameters(sb, request);
         AppendAgentPoolParameter(sb, request.AgentPoolName);
 
         return sb.ToString();
@@ -127,5 +129,63 @@ internal static class AppCiPipelineBuilder
         {
             sb.AppendLine($"    agentPoolName: '{AppNamingHelper.EscapeForSingleQuotedYaml(agentPoolName)}'");
         }
+    }
+
+    private static void AppendPipelineStepOptionsParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (request.RunUnitTests)
+        {
+            sb.AppendLine($"    runUnitTests: true");
+            if (!string.IsNullOrWhiteSpace(request.TestCommand))
+                sb.AppendLine($"    testCommand: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.TestCommand)}'");
+            if (!string.IsNullOrWhiteSpace(request.TestFramework))
+                sb.AppendLine($"    testFramework: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.TestFramework)}'");
+            if (!string.IsNullOrWhiteSpace(request.TestResultsFormat))
+                sb.AppendLine($"    testResultsFormat: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.TestResultsFormat)}'");
+            if (!string.IsNullOrWhiteSpace(request.TestResultsPath))
+                sb.AppendLine($"    testResultsPath: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.TestResultsPath)}'");
+            if (request.PublishTestResults)
+                sb.AppendLine($"    publishTestResults: true");
+        }
+
+        if (request.PublishCodeCoverage)
+        {
+            sb.AppendLine($"    publishCodeCoverage: true");
+            if (!string.IsNullOrWhiteSpace(request.CoverageTool))
+                sb.AppendLine($"    coverageTool: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.CoverageTool)}'");
+            if (!string.IsNullOrWhiteSpace(request.CoverageReportPath))
+                sb.AppendLine($"    coverageReportPath: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.CoverageReportPath)}'");
+        }
+
+        if (request.RunSonarAnalysis)
+        {
+            sb.AppendLine($"    runSonarAnalysis: true");
+            if (!string.IsNullOrWhiteSpace(request.SonarProjectKey))
+                sb.AppendLine($"    sonarProjectKey: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.SonarProjectKey)}'");
+            if (!string.IsNullOrWhiteSpace(request.SonarOrganization))
+                sb.AppendLine($"    sonarOrganization: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.SonarOrganization)}'");
+            if (!string.IsNullOrWhiteSpace(request.SonarServiceConnection))
+                sb.AppendLine($"    sonarServiceConnection: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.SonarServiceConnection)}'");
+        }
+
+        if (request.RunLinting)
+        {
+            sb.AppendLine($"    runLinting: true");
+            if (!string.IsNullOrWhiteSpace(request.LintCommand))
+                sb.AppendLine($"    lintCommand: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.LintCommand)}'");
+        }
+
+        if (request.RunDependencyScan)
+        {
+            sb.AppendLine($"    runDependencyScan: true");
+            if (!string.IsNullOrWhiteSpace(request.DependencyScanTool))
+                sb.AppendLine($"    dependencyScanTool: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.DependencyScanTool)}'");
+        }
+
+        if (request.RunBuildValidation)
+            sb.AppendLine($"    runBuildValidation: true");
+
+        if (request.EnableDependencyCache)
+            sb.AppendLine($"    enableDependencyCache: true");
     }
 }

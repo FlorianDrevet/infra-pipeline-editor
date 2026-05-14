@@ -13,6 +13,12 @@
 - `features/` — feature pages (lazy-loaded)
 - `environments/` — API base URLs
 
+## Shell Navigation [2026-05-13]
+- The app shell now has a true global vs contextual sidebar split via `SidebarContextService`: global mode exposes top-level navigation plus docs/favorites/recent items, while project/config modes group links into `Define`, `Generate`, and `Manage` sections.
+- `SidebarStateService` persists the collapsed state in `localStorage` key `ifs.sidebar.collapsed` and mirrors the live shell width through CSS variable `--ifs-sidebar-width` (`240px` expanded, `56px` collapsed).
+- `PageContextService` is the shared breadcrumb contract between feature pages and the top navigation bar; pages own the current breadcrumb and must clear it when leaving their context.
+- The footer status bar now exposes version, environment, and legal/docs/status links; keep those links as shell-level concerns rather than scattering them across feature pages.
+
 ## Containerization & Build
 - `src/Front/Dockerfile` builds with `node:22-alpine`, injects `API_URL` into `environment.ts`, uses a BuildKit cache on `/root/.npm`, and serves the production build from `nginx:1.29-alpine` with a `/` healthcheck
 - `src/Front/nginx.conf` listens on `8080`, gzips JS/CSS/JSON/SVG/XML, serves hashed assets with 1-year `immutable` cache, and falls back to `index.html` for Angular routing

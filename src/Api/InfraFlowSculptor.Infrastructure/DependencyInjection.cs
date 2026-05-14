@@ -104,6 +104,10 @@ public static class DependencyInjection
         services.AddScoped<IServiceBusNamespaceRepository, ServiceBusNamespaceRepository>();
         services.AddScoped<IContainerRegistryRepository, ContainerRegistryRepository>();
         services.AddScoped<IEventHubNamespaceRepository, EventHubNamespaceRepository>();
+        services.AddScoped<IVirtualNetworkRepository, VirtualNetworkRepository>();
+        services.AddScoped<INetworkSecurityGroupRepository, NetworkSecurityGroupRepository>();
+        services.AddScoped<IPrivateDnsZoneRepository, PrivateDnsZoneRepository>();
+        services.AddScoped<IFrontDoorRepository, FrontDoorRepository>();
         services.AddScoped<IInfrastructureConfigReadRepository, InfrastructureConfigReadRepository>();
         services.AddScoped<IPersonalAccessTokenRepository, PersonalAccessTokenRepository>();
 

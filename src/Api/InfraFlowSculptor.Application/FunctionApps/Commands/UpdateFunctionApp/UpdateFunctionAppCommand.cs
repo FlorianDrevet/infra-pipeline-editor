@@ -1,6 +1,7 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.FunctionApps.Common;
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 
@@ -23,5 +24,6 @@ public record UpdateFunctionAppCommand(
     string? SourceCodePath = null,
     string? BuildCommand = null,
     string? ApplicationName = null,
-    IReadOnlyList<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyList<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null,
+    PipelineStepOptionsDto? PipelineStepOptions = null
 ) : ICommand<FunctionAppResult>;

@@ -79,6 +79,32 @@ public class CreateWebAppCommandHandler(
 
         var saved = await webAppRepository.AddAsync(webApp);
 
+        if (request.PipelineStepOptions is { } opts)
+        {
+            webApp.PipelineStepOptions.Update(
+                opts.RunUnitTests,
+                opts.TestCommand,
+                opts.TestFramework,
+                opts.TestResultsFormat,
+                opts.TestResultsPath,
+                opts.PublishTestResults,
+                opts.PublishCodeCoverage,
+                opts.CoverageTool,
+                opts.CoverageReportPath,
+                opts.RunSonarAnalysis,
+                opts.SonarProjectKey,
+                opts.SonarOrganization,
+                opts.SonarServiceConnection,
+                opts.RunLinting,
+                opts.LintCommand,
+                opts.RunDependencyScan,
+                opts.DependencyScanTool,
+                opts.RunBuildValidation,
+                opts.EnableDependencyCache,
+                opts.RunSmokeTests,
+                opts.SmokeTestCommand);
+        }
+
         return mapper.Map<WebAppResult>(saved);
     }
 }

@@ -68,6 +68,32 @@ public sealed class UpdateFunctionAppCommandHandler(
                         ec.DockerImageTag))
                     .ToList());
 
+        if (request.PipelineStepOptions is { } opts)
+        {
+            functionApp.PipelineStepOptions.Update(
+                opts.RunUnitTests,
+                opts.TestCommand,
+                opts.TestFramework,
+                opts.TestResultsFormat,
+                opts.TestResultsPath,
+                opts.PublishTestResults,
+                opts.PublishCodeCoverage,
+                opts.CoverageTool,
+                opts.CoverageReportPath,
+                opts.RunSonarAnalysis,
+                opts.SonarProjectKey,
+                opts.SonarOrganization,
+                opts.SonarServiceConnection,
+                opts.RunLinting,
+                opts.LintCommand,
+                opts.RunDependencyScan,
+                opts.DependencyScanTool,
+                opts.RunBuildValidation,
+                opts.EnableDependencyCache,
+                opts.RunSmokeTests,
+                opts.SmokeTestCommand);
+        }
+
         var updated = await functionAppRepository.UpdateAsync(functionApp);
 
         return mapper.Map<FunctionAppResult>(updated);

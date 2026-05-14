@@ -1,5 +1,5 @@
 Contracts response DTO public shape snapshot
-Count: 86
+Count: 98
 
 Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
 Type: AppConfigurationKeyResponse
@@ -126,7 +126,7 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.ContainerApps.Responses
 Type: ContainerAppResponse
 Constructors:
-  ContainerAppResponse(string Id, string ResourceGroupId, string Name, string Location, string ContainerAppEnvironmentId, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, string? DockerfilePath, string? ApplicationName, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Requests.ContainerAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+  ContainerAppResponse(string Id, string ResourceGroupId, string Name, string Location, string ContainerAppEnvironmentId, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, string? DockerfilePath, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Requests.ContainerAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
 Properties:
   AcrAuthMode: string?
   ApplicationName: string?
@@ -139,6 +139,7 @@ Properties:
   IsExisting: bool
   Location: string
   Name: string
+  PipelineStepOptions: InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto?
   ResourceGroupId: string
 
 Namespace: InfraFlowSculptor.Contracts.ContainerRegistries.Responses
@@ -220,10 +221,44 @@ Properties:
   Id: string
   Name: string
 
+Namespace: InfraFlowSculptor.Contracts.FrontDoors.Responses
+Type: FrontDoorEnvironmentConfigResponse
+Constructors:
+  FrontDoorEnvironmentConfigResponse(string EnvironmentName, string Sku)
+Properties:
+  EnvironmentName: string
+  Sku: string
+
+Namespace: InfraFlowSculptor.Contracts.FrontDoors.Responses
+Type: FrontDoorOriginResponse
+Constructors:
+  FrontDoorOriginResponse(string Id, string TargetResourceId, string? HostName, bool PrivateLinkEnabled, int Weight, int Priority)
+Properties:
+  HostName: string?
+  Id: string
+  Priority: int
+  PrivateLinkEnabled: bool
+  TargetResourceId: string
+  Weight: int
+
+Namespace: InfraFlowSculptor.Contracts.FrontDoors.Responses
+Type: FrontDoorResponse
+Constructors:
+  FrontDoorResponse(string Id, string ResourceGroupId, string Name, string Location, bool WafPolicyEnabled, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorOriginResponse> Origins, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  Origins: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorOriginResponse>
+  ResourceGroupId: string
+  WafPolicyEnabled: bool
+
 Namespace: InfraFlowSculptor.Contracts.FunctionApps.Responses
 Type: FunctionAppResponse
 Constructors:
-  FunctionAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FunctionApps.Requests.FunctionAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+  FunctionAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FunctionApps.Requests.FunctionAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
 Properties:
   AcrAuthMode: string?
   AppServicePlanId: string
@@ -239,6 +274,7 @@ Properties:
   IsExisting: bool
   Location: string
   Name: string
+  PipelineStepOptions: InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto?
   ResourceGroupId: string
   RuntimeStack: string
   RuntimeVersion: string
@@ -548,6 +584,34 @@ Properties:
   Name: string
   ResourceGroupId: string
 
+Namespace: InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses
+Type: NetworkSecurityGroupResponse
+Constructors:
+  NetworkSecurityGroupResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses.NsgRuleResponse> SecurityRules, bool IsExisting)
+Properties:
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+  SecurityRules: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses.NsgRuleResponse>
+
+Namespace: InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses
+Type: NsgRuleResponse
+Constructors:
+  NsgRuleResponse(string Id, string Name, int Priority, string Direction, string Access, string Protocol, string SourceAddressPrefix, string DestinationAddressPrefix, string SourcePortRange, string DestinationPortRange)
+Properties:
+  Access: string
+  DestinationAddressPrefix: string
+  DestinationPortRange: string
+  Direction: string
+  Id: string
+  Name: string
+  Priority: int
+  Protocol: string
+  SourceAddressPrefix: string
+  SourcePortRange: string
+
 Namespace: InfraFlowSculptor.Contracts.PersonalAccessTokens.Responses
 Type: CreatedPersonalAccessTokenResponse
 Constructors:
@@ -568,6 +632,48 @@ Properties:
   LastUsedAt: System.DateTime?
   Name: string
   TokenPrefix: string
+
+Namespace: InfraFlowSculptor.Contracts.PrivateDnsZones.Responses
+Type: PrivateDnsZoneResponse
+Constructors:
+  PrivateDnsZoneResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.PrivateDnsZones.Responses.VirtualNetworkLinkResponse> VirtualNetworkLinks, bool IsExisting)
+Properties:
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+  VirtualNetworkLinks: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.PrivateDnsZones.Responses.VirtualNetworkLinkResponse>
+
+Namespace: InfraFlowSculptor.Contracts.PrivateDnsZones.Responses
+Type: VirtualNetworkLinkResponse
+Constructors:
+  VirtualNetworkLinkResponse(string Id, string VirtualNetworkId, bool EnableAutoRegistration)
+Properties:
+  EnableAutoRegistration: bool
+  Id: string
+  VirtualNetworkId: string
+
+Namespace: InfraFlowSculptor.Contracts.PrivateEndpoints.Responses
+Type: AvailableGroupIdsResponse
+Constructors:
+  AvailableGroupIdsResponse(string ResourceType, System.Collections.Generic.IReadOnlyList<string> GroupIds)
+Properties:
+  GroupIds: System.Collections.Generic.IReadOnlyList<string>
+  ResourceType: string
+
+Namespace: InfraFlowSculptor.Contracts.PrivateEndpoints.Responses
+Type: PrivateEndpointConfigResponse
+Constructors:
+  PrivateEndpointConfigResponse(string Id, string ResourceId, string SubnetId, string GroupId, bool AutoApproval, string? PrivateDnsZoneId, string? CustomNetworkInterfaceName)
+Properties:
+  AutoApproval: bool
+  CustomNetworkInterfaceName: string?
+  GroupId: string
+  Id: string
+  PrivateDnsZoneId: string?
+  ResourceId: string
+  SubnetId: string
 
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
 Type: GenerateProjectBicepResponse
@@ -1014,10 +1120,45 @@ Properties:
   Name: string
   ResourceGroupId: string
 
+Namespace: InfraFlowSculptor.Contracts.VirtualNetworks.Responses
+Type: SubnetResponse
+Constructors:
+  SubnetResponse(string Id, string Name, string? Delegation, System.Collections.Generic.IReadOnlyList<string>? ServiceEndpoints, string PrivateEndpointNetworkPolicies, string? NsgId)
+Properties:
+  Delegation: string?
+  Id: string
+  Name: string
+  NsgId: string?
+  PrivateEndpointNetworkPolicies: string
+  ServiceEndpoints: System.Collections.Generic.IReadOnlyList<string>?
+
+Namespace: InfraFlowSculptor.Contracts.VirtualNetworks.Responses
+Type: VirtualNetworkEnvironmentConfigResponse
+Constructors:
+  VirtualNetworkEnvironmentConfigResponse(string EnvironmentName, System.Collections.Generic.IReadOnlyList<string> AddressSpaces, System.Collections.Generic.IReadOnlyList<string>? DnsServers)
+Properties:
+  AddressSpaces: System.Collections.Generic.IReadOnlyList<string>
+  DnsServers: System.Collections.Generic.IReadOnlyList<string>?
+  EnvironmentName: string
+
+Namespace: InfraFlowSculptor.Contracts.VirtualNetworks.Responses
+Type: VirtualNetworkResponse
+Constructors:
+  VirtualNetworkResponse(string Id, string ResourceGroupId, string Name, string Location, bool EnableDdosProtection, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.VirtualNetworks.Responses.SubnetResponse> Subnets, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.VirtualNetworks.Responses.VirtualNetworkEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  EnableDdosProtection: bool
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.VirtualNetworks.Responses.VirtualNetworkEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+  Subnets: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.VirtualNetworks.Responses.SubnetResponse>
+
 Namespace: InfraFlowSculptor.Contracts.WebApps.Responses
 Type: WebAppResponse
 Constructors:
-  WebAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool AlwaysOn, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.WebApps.Requests.WebAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+  WebAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool AlwaysOn, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.WebApps.Requests.WebAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
 Properties:
   AcrAuthMode: string?
   AlwaysOn: bool
@@ -1034,6 +1175,7 @@ Properties:
   IsExisting: bool
   Location: string
   Name: string
+  PipelineStepOptions: InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto?
   ResourceGroupId: string
   RuntimeStack: string
   RuntimeVersion: string

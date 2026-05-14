@@ -1,6 +1,7 @@
 using InfraFlowSculptor.Application.FunctionApps.Commands.CreateFunctionApp;
 using InfraFlowSculptor.Application.FunctionApps.Commands.UpdateFunctionApp;
 using InfraFlowSculptor.Application.FunctionApps.Common;
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.FunctionApps.Requests;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -42,7 +43,8 @@ public sealed class FunctionAppMappingConfig : IRegister
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new FunctionAppEnvironmentConfigData(
-                        ec.EnvironmentName, ec.HttpsOnly, ec.MaxInstanceCount, ec.DockerImageTag)).ToList()));
+                        ec.EnvironmentName, ec.HttpsOnly, ec.MaxInstanceCount, ec.DockerImageTag)).ToList(),
+                src.Request.PipelineStepOptions));
 
         config.NewConfig<FunctionApp, FunctionAppResult>()
             .Map(dest => dest.EnvironmentSettings,
@@ -51,6 +53,7 @@ public sealed class FunctionAppMappingConfig : IRegister
                     es.HttpsOnly,
                     es.MaxInstanceCount,
                     es.DockerImageTag)).ToList())
+            .Map(dest => dest.PipelineStepOptions, src => src.PipelineStepOptions.Adapt<PipelineStepOptionsDto>())
             .Map(dest => dest.RuntimeStack, src => src.RuntimeStack.Value.ToString())
             .Map(dest => dest.AppServicePlanId, src => src.AppServicePlanId.Value)
             .Map(dest => dest.DeploymentMode, src => src.DeploymentMode.Value.ToString())

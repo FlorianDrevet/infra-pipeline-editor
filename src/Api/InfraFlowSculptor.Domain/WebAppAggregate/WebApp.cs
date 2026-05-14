@@ -56,6 +56,9 @@ public sealed class WebApp : AzureResource
     /// <summary>Gets the user-friendly application name displayed in Azure DevOps pipeline runs.</summary>
     public string? ApplicationName { get; private set; }
 
+    /// <summary>Gets the configurable CI/CD pipeline step options for this Web App.</summary>
+    public AppPipelineStepOptions PipelineStepOptions { get; private set; } = new();
+
     protected override IReadOnlyCollection<ParameterUsage> AllowedParameterUsages
         => Array.Empty<ParameterUsage>();
 
@@ -99,6 +102,13 @@ public sealed class WebApp : AzureResource
         SourceCodePath = sourceCodePath;
         BuildCommand = buildCommand;
         ApplicationName = applicationName;
+    }
+
+    /// <summary>Sets the pipeline step options for this Web App.</summary>
+    public void SetPipelineStepOptions(AppPipelineStepOptions options)
+    {
+        if (IsExisting) return;
+        PipelineStepOptions = options ?? throw new ArgumentNullException(nameof(options));
     }
 
     /// <summary>

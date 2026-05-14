@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.ContainerApps.Common;
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using ErrorOr;
@@ -18,5 +19,6 @@ public record CreateContainerAppCommand(
     string? DockerfilePath = null,
     string? ApplicationName = null,
     IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null,
-    bool IsExisting = false
+    bool IsExisting = false,
+    PipelineStepOptionsDto? PipelineStepOptions = null
 ) : ICommand<ContainerAppResult>;

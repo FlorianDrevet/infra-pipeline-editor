@@ -20,6 +20,10 @@ export enum ResourceTypeEnum {
   ServiceBusNamespace = 'ServiceBusNamespace',
   EventHubNamespace = 'EventHubNamespace',
   ContainerRegistry = 'ContainerRegistry',
+  VirtualNetwork = 'VirtualNetwork',
+  NetworkSecurityGroup = 'NetworkSecurityGroup',
+  PrivateDnsZone = 'PrivateDnsZone',
+  FrontDoor = 'FrontDoor',
 }
 
 /**
@@ -52,6 +56,10 @@ export const RESOURCE_TYPE_ICONS: Readonly<Record<string, string>> = {
   ServiceBusNamespace: 'swap_horiz',
   EventHubNamespace: 'swap_vert',
   ContainerRegistry: 'inventory_2',
+  VirtualNetwork: 'lan',
+  NetworkSecurityGroup: 'shield',
+  PrivateDnsZone: 'dns',
+  FrontDoor: 'door_front',
 };
 
 export interface ResourceTypeCategory {
@@ -112,6 +120,16 @@ export const RESOURCE_TYPE_CATEGORIES: ResourceTypeCategory[] = [
       ResourceTypeEnum.AppConfiguration,
     ],
   },
+  {
+    labelKey: 'CONFIG_DETAIL.RESOURCES.CATEGORY_NETWORKING',
+    icon: 'lan',
+    types: [
+      ResourceTypeEnum.VirtualNetwork,
+      ResourceTypeEnum.NetworkSecurityGroup,
+      ResourceTypeEnum.PrivateDnsZone,
+      ResourceTypeEnum.FrontDoor,
+    ],
+  },
 ];
 
 /**
@@ -137,6 +155,10 @@ export const RESOURCE_TYPE_ABBREVIATIONS: Readonly<Record<string, string>> = {
   ServiceBusNamespace: 'sb',
   EventHubNamespace: 'evhns',
   ContainerRegistry: 'acr',
+  VirtualNetwork: 'vnet',
+  NetworkSecurityGroup: 'nsg',
+  PrivateDnsZone: 'pdnsz',
+  FrontDoor: 'afd',
 };
 
 /**

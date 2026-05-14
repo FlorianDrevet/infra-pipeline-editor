@@ -171,7 +171,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("EnvironmentName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Sku")
                         .HasColumnType("text");
@@ -416,7 +417,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("RoleDefinitionId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
 
                     b.Property<Guid>("SourceResourceId")
                         .HasColumnType("uuid");
@@ -783,11 +785,13 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("DockerImageTag")
-                        .HasColumnType("text");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("EnvironmentName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<Guid>("FunctionAppId")
                         .HasColumnType("uuid");
@@ -1425,7 +1429,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("EnvironmentName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int?>("MaxSizeGb")
                         .HasColumnType("integer");
@@ -1453,7 +1458,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("EnvironmentName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("MinimalTlsVersion")
                         .HasMaxLength(10)
@@ -1476,7 +1482,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(63)
+                        .HasColumnType("character varying(63)");
 
                     b.Property<string>("PublicAccess")
                         .IsRequired()
@@ -1524,22 +1531,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.PrimitiveCollection<List<string>>("AllowedHeaders")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.PrimitiveCollection<List<string>>("AllowedMethods")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.PrimitiveCollection<List<string>>("AllowedOrigins")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.PrimitiveCollection<List<string>>("ExposedHeaders")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
                     b.Property<int>("MaxAgeInSeconds")
                         .HasColumnType("integer");
 
@@ -1549,6 +1540,26 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<Guid>("StorageAccountId")
                         .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<List<string>>("_allowedHeaders")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("AllowedHeaders");
+
+                    b.PrimitiveCollection<List<string>>("_allowedMethods")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("AllowedMethods");
+
+                    b.PrimitiveCollection<List<string>>("_allowedOrigins")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("AllowedOrigins");
+
+                    b.PrimitiveCollection<List<string>>("_exposedHeaders")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("ExposedHeaders");
 
                     b.HasKey("Id");
 
@@ -1588,7 +1599,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(63)
+                        .HasColumnType("character varying(63)");
 
                     b.Property<Guid>("StorageAccountId")
                         .HasColumnType("uuid");
@@ -1607,7 +1619,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(63)
+                        .HasColumnType("character varying(63)");
 
                     b.Property<Guid>("StorageAccountId")
                         .HasColumnType("uuid");
@@ -1657,11 +1670,13 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("DockerImageTag")
-                        .HasColumnType("text");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("EnvironmentName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool?>("HttpsOnly")
                         .HasColumnType("boolean");
@@ -1822,7 +1837,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("DockerImageName")
-                        .HasColumnType("text");
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
                     b.Property<string>("DockerfilePath")
                         .HasMaxLength(500)
@@ -1837,7 +1853,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("RuntimeVersion")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("SourceCodePath")
                         .HasMaxLength(500)
@@ -2005,7 +2022,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("DockerImageName")
-                        .HasColumnType("text");
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
                     b.Property<string>("DockerfilePath")
                         .HasMaxLength(500)
@@ -2020,7 +2038,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("RuntimeVersion")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("SourceCodePath")
                         .HasMaxLength(500)

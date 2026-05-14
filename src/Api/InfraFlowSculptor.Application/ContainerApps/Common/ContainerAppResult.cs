@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
@@ -18,6 +19,7 @@ public record ContainerAppResult(
     string? DockerImageName,
     string? DockerfilePath,
     string? ApplicationName,
+    PipelineStepOptionsDto? PipelineStepOptions,
     IReadOnlyList<ContainerAppEnvironmentConfigData> EnvironmentSettings,
     bool IsExisting = false
 );
