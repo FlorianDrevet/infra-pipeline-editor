@@ -17,6 +17,20 @@ public sealed class NetworkSecurityGroupTypeBicepGenerator
     private const string ModuleFileName = "networkSecurityGroup";
     private const string SecurityRulesParameterName = "securityRules";
     private const string TagsParameterName = "tags";
+    private const string SecurityRuleConfigTypeName = "SecurityRuleConfig";
+    private const string SecurityRuleConfigTypeBody = """
+        {
+          name: string
+          priority: int
+          direction: string
+          access: string
+          protocol: string
+          sourceAddressPrefix: string
+          destinationAddressPrefix: string
+          sourcePortRange: string
+          destinationPortRange: string
+        }
+        """;
     private const string ResourceSymbol = "nsg";
     private const string NetworkSecurityGroupArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.NetworkSecurityGroupArmType;
     private const string ResourceIdExpression = ResourceSymbol + ".id";
@@ -35,9 +49,10 @@ public sealed class NetworkSecurityGroupTypeBicepGenerator
     {
         return new BicepModuleBuilder()
             .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import(TypesImportPath, SecurityRuleConfigTypeName)
             .Param(LocationParameterName, BicepType.String, "Azure region for the Network Security Group")
             .Param(NameParameterName, BicepType.String, "Name of the Network Security Group")
-            .Param(SecurityRulesParameterName, BicepType.Array, "Security rules for the NSG",
+            .Param(SecurityRulesParameterName, BicepType.Custom(SecurityRuleConfigTypeName + "[]"), "Security rules for the NSG",
                 defaultValue: new BicepArrayExpression([]))
             .Param(TagsParameterName, BicepType.Object, "Resource tags",
                 defaultValue: BicepObjectExpression.Empty)
@@ -51,6 +66,9 @@ public sealed class NetworkSecurityGroupTypeBicepGenerator
                 description: "The resource ID of the Network Security Group")
             .Output(NameOutputName, BicepType.String, new BicepRawExpression(ResourceNameExpression),
                 description: "The name of the Network Security Group")
+            .ExportedType(SecurityRuleConfigTypeName,
+                new BicepRawExpression(SecurityRuleConfigTypeBody),
+                description: "Security rule configuration for a Network Security Group")
             .Build();
     }
 
@@ -69,6 +87,8 @@ public sealed class NetworkSecurityGroupTypeBicepGenerator
     }
 
     private static readonly string NsgModuleTemplate = $$"""
+        import { SecurityRuleConfig } from './types.bicep'
+
         @description('Azure region for the Network Security Group')
         param location string
 
@@ -76,7 +96,7 @@ public sealed class NetworkSecurityGroupTypeBicepGenerator
         param name string
 
         @description('Security rules for the NSG')
-        param securityRules array = []
+        param securityRules SecurityRuleConfig[] = []
 
         @description('Resource tags')
         param tags object = {}

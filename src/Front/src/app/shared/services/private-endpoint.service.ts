@@ -4,6 +4,7 @@ import { MethodEnum } from '../enums/method.enum';
 import {
   AddPrivateEndpointRequest,
   PrivateEndpointConfigResponse,
+  UpdatePrivateEndpointRequest,
 } from '../interfaces/private-endpoint.interface';
 
 @Injectable({
@@ -27,7 +28,7 @@ export class PrivateEndpointService {
     );
   }
 
-  update(resourceId: string, peId: string, request: AddPrivateEndpointRequest): Promise<PrivateEndpointConfigResponse> {
+  update(resourceId: string, peId: string, request: UpdatePrivateEndpointRequest): Promise<PrivateEndpointConfigResponse> {
     return this.axios.request$<PrivateEndpointConfigResponse>(
       MethodEnum.PUT,
       `/resources/${resourceId}/private-endpoints/${peId}`,

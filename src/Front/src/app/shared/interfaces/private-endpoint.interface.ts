@@ -19,3 +19,11 @@ export interface AddPrivateEndpointRequest {
   privateDnsZoneId?: string;
   customNetworkInterfaceName?: string;
 }
+
+export interface UpdatePrivateEndpointRequest {
+  subnetId: string;
+  groupId: string;
+  autoApproval?: boolean;
+  privateDnsZoneId?: string;
+  customNetworkInterfaceName?: string;
+}

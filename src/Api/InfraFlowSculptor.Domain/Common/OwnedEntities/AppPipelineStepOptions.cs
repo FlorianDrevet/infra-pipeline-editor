@@ -1,4 +1,4 @@
-namespace InfraFlowSculptor.Domain.Common.ValueObjects;
+namespace InfraFlowSculptor.Domain.Common.OwnedEntities;
 
 /// <summary>
 /// Configurable pipeline step options for a compute resource's CI/CD pipeline.

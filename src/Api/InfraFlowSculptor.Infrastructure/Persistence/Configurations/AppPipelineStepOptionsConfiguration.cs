@@ -1,4 +1,4 @@
-using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.Common.OwnedEntities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
