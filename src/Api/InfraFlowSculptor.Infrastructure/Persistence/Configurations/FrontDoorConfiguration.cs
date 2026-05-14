@@ -91,5 +91,8 @@ public class FrontDoorEnvironmentSettingsConfiguration : IEntityTypeConfiguratio
         builder.Property(es => es.Sku)
             .HasConversion(new EnumValueConverter<FrontDoorSku, FrontDoorSku.SkuEnum>())
             .IsRequired();
+
+        builder.HasIndex(es => new { es.FrontDoorId, es.EnvironmentName })
+            .IsUnique();
     }
 }

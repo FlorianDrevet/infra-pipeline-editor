@@ -10,6 +10,8 @@ namespace InfraFlowSculptor.Application.PrivateEndpoints.Commands.AddPrivateEndp
 /// <summary>Handler for adding a private endpoint to an Azure resource.</summary>
 public sealed class AddPrivateEndpointCommandHandler(
     IAzureResourceRepository resourceRepository,
+    IVirtualNetworkRepository virtualNetworkRepository,
+    IPrivateDnsZoneRepository privateDnsZoneRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper) : ICommandHandler<AddPrivateEndpointCommand, PrivateEndpointConfigResult>
 {
@@ -26,6 +28,16 @@ public sealed class AddPrivateEndpointCommandHandler(
             resource.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return authResult.Errors;
+
+        if (!await virtualNetworkRepository.SubnetExistsAsync(request.SubnetId, cancellationToken))
+            return Errors.AzureResource.SubnetNotFound(request.SubnetId);
+
+        if (request.PrivateDnsZoneId is not null)
+        {
+            var dnsZone = await privateDnsZoneRepository.GetByIdReadOnlyAsync(request.PrivateDnsZoneId, cancellationToken);
+            if (dnsZone is null)
+                return Errors.AzureResource.PrivateDnsZoneNotFound(request.PrivateDnsZoneId);
+        }
 
         var config = resource.AddPrivateEndpoint(
             request.SubnetId,

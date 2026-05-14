@@ -1547,7 +1547,8 @@
       "CONFIRM_REMOVE": "Remove this private endpoint?",
       "CANCEL": "Cancel",
       "NOT_SUPPORTED": "This resource type does not support private endpoints.",
-      "LOAD_ERROR": "Unable to load private endpoints. Please try again."
+      "LOAD_ERROR": "Unable to load private endpoints. Please try again.",
+      "REMOVE_ERROR": "Unable to remove private endpoint. Please try again."
     },
     "PIPELINE_OPTIONS": {
       "DESCRIPTION": "Configure optional pipeline steps such as tests, code analysis, linting, and post-deploy validation.",

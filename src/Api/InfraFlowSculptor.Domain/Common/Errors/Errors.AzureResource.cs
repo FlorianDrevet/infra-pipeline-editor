@@ -19,5 +19,17 @@ public static partial class Errors
             code: "AzureResource.CannotModifyExistingResource",
             description: "Deployment configuration cannot be modified on an existing resource that is not managed by this project."
         );
+
+        /// <summary>Returned when a subnet referenced by a private endpoint does not exist.</summary>
+        public static Error SubnetNotFound(AzureResourceId subnetId) => Error.NotFound(
+            code: "AzureResource.SubnetNotFound",
+            description: $"Subnet with ID '{subnetId.Value}' was not found."
+        );
+
+        /// <summary>Returned when a Private DNS Zone referenced by a private endpoint does not exist.</summary>
+        public static Error PrivateDnsZoneNotFound(AzureResourceId dnsZoneId) => Error.NotFound(
+            code: "AzureResource.PrivateDnsZoneNotFound",
+            description: $"Private DNS Zone with ID '{dnsZoneId.Value}' was not found."
+        );
     }
 }

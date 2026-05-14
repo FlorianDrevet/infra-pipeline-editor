@@ -102,5 +102,8 @@ public class VirtualNetworkEnvironmentSettingsConfiguration : IEntityTypeConfigu
 
         builder.Property(es => es.DnsServers)
             .HasColumnType("jsonb");
+
+        builder.HasIndex(es => new { es.VirtualNetworkId, es.EnvironmentName })
+            .IsUnique();
     }
 }

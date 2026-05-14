@@ -44,6 +44,9 @@ public sealed class NsgRule : Entity<NsgRuleId>
         string name, int priority, NsgDirection direction, NsgAccess access, NsgProtocol protocol,
         string sourceAddressPrefix, string destinationAddressPrefix, string sourcePortRange, string destinationPortRange)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(priority, 100);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(priority, 4096);
+
         Name = name;
         Priority = priority;
         Direction = direction;
@@ -60,6 +63,9 @@ public sealed class NsgRule : Entity<NsgRuleId>
         AzureResourceId nsgId, string name, int priority, NsgDirection direction, NsgAccess access, NsgProtocol protocol,
         string sourceAddressPrefix, string destinationAddressPrefix, string sourcePortRange, string destinationPortRange)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(priority, 100);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(priority, 4096);
+
         return new NsgRule
         {
             Id = NsgRuleId.CreateUnique(),

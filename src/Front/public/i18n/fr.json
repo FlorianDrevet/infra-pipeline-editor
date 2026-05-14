@@ -1538,7 +1538,8 @@
       "CONFIRM_REMOVE": "Supprimer ce point de terminaison priv\u00e9 ?",
       "CANCEL": "Annuler",
       "NOT_SUPPORTED": "Ce type de ressource ne prend pas en charge les points de terminaison priv\u00e9s.",
-      "LOAD_ERROR": "Impossible de charger les points de terminaison priv\u00e9s. Veuillez r\u00e9essayer."
+      "LOAD_ERROR": "Impossible de charger les points de terminaison priv\u00e9s. Veuillez r\u00e9essayer.",
+      "REMOVE_ERROR": "Impossible de supprimer le point de terminaison priv\u00e9. Veuillez r\u00e9essayer."
     },
     "PIPELINE_OPTIONS": {
       "DESCRIPTION": "Configurez les étapes optionnelles du pipeline : tests, analyse de code, linting et validation post-déploiement.",

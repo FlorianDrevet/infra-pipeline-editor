@@ -4,8 +4,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PrivateEndpointService } from '../../../../shared/services/private-endpoint.service';
 import { PrivateEndpointConfigResponse, AddPrivateEndpointRequest } from '../../../../shared/interfaces/private-endpoint.interface';
 import { DsTextFieldComponent, DsToggleComponent } from '../../../../shared/components/ds';
@@ -48,6 +49,8 @@ const PE_SUPPORTED_TYPES = new Set<string>([
 })
 export class NetworkingTabComponent {
   private readonly peService = inject(PrivateEndpointService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly translate = inject(TranslateService);
 
   /** Resource ID to load private endpoints for. */
   readonly resourceId = input.required<string>();
@@ -137,7 +140,11 @@ export class NetworkingTabComponent {
       await this.peService.remove(this.resourceId(), peId);
       this.endpoints.update(list => list.filter(e => e.id !== peId));
     } catch {
-      // Silently fail — user can retry
+      this.snackBar.open(
+        this.translate.instant('RESOURCE_EDIT.NETWORKING.REMOVE_ERROR') as string,
+        '✕',
+        { duration: 5000, panelClass: 'error-snackbar' }
+      );
     } finally {
       this.pendingDeleteId.set(null);
     }

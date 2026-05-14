@@ -30,6 +30,11 @@ public sealed class FrontDoorOrigin : Entity<FrontDoorOriginId>
     /// <summary>Updates origin properties.</summary>
     public void Update(string? hostName, bool privateLinkEnabled, int weight, int priority)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(weight, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(weight, 1000);
+        ArgumentOutOfRangeException.ThrowIfLessThan(priority, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(priority, 5);
+
         HostName = hostName;
         PrivateLinkEnabled = privateLinkEnabled;
         Weight = weight;
@@ -39,6 +44,11 @@ public sealed class FrontDoorOrigin : Entity<FrontDoorOriginId>
     /// <summary>Creates a new origin.</summary>
     internal static FrontDoorOrigin Create(AzureResourceId frontDoorId, AzureResourceId targetResourceId, string? hostName, bool privateLinkEnabled, int weight, int priority)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(weight, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(weight, 1000);
+        ArgumentOutOfRangeException.ThrowIfLessThan(priority, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(priority, 5);
+
         return new FrontDoorOrigin
         {
             Id = FrontDoorOriginId.CreateUnique(),
