@@ -36,7 +36,7 @@ if ($null -eq $bicepCommand) {
 
 foreach ($generatedBicepFile in $generatedBicepFiles) {
     Write-Host "Validating $($generatedBicepFile.FullName)"
-    & $bicepCommand.Source build --file $generatedBicepFile.FullName | Out-Null
+    & $bicepCommand.Source build $generatedBicepFile.FullName | Out-Null
 }
 
 Write-Host "Validated $($generatedBicepFiles.Count) generated .bicep files under '$outputPath'."
