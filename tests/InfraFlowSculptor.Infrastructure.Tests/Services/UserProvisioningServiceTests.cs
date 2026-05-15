@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using InfraFlowSculptor.Infrastructure.Persistence;
@@ -106,6 +107,7 @@ file sealed class RecordingDbConnection(object? executeScalarResult, ConnectionS
 
     public int CloseAsyncCalls { get; private set; }
 
+    [AllowNull]
     public override string ConnectionString { get; set; } = "Host=localhost;Database=user_provisioning_tests;Username=test;Password=test";
 
     public override string Database => "user_provisioning_tests";
@@ -162,6 +164,7 @@ file sealed class RecordingDbCommand(DbConnection connection, object? executeSca
 
     public IReadOnlyList<DbParameter> RecordedParameters => parameters.Items;
 
+    [AllowNull]
     public override string CommandText { get; set; } = string.Empty;
 
     public override int CommandTimeout { get; set; }
@@ -220,8 +223,10 @@ file sealed class RecordingDbParameter : DbParameter
 
     public override bool IsNullable { get; set; }
 
+    [AllowNull]
     public override string ParameterName { get; set; } = string.Empty;
 
+    [AllowNull]
     public override string SourceColumn { get; set; } = string.Empty;
 
     public override object? Value { get; set; }
