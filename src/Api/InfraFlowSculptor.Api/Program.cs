@@ -3,6 +3,7 @@ using InfraFlowSculptor.Api.Common;
 using InfraFlowSculptor.Api.Controllers;
 using InfraFlowSculptor.Application;
 using InfraFlowSculptor.Infrastructure;
+using InfraFlowSculptor.WebDefaults.Security;
 using InfraFlowSculptor.Api.Configuration;
 using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Api.Options;
@@ -15,10 +16,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddApiCors(builder.Configuration);
 builder.Services.AddApiRequestLimits(builder.Configuration);
 
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("IsAdmin", policy => policy.RequireRole("Admin")); 
-
 builder.Services
+    .AddApiAuthorization()
     .AddPresentation()
     .AddApplication()
     .AddInfrastructure(builder.Configuration, builder.Environment)
@@ -86,15 +85,16 @@ app.UsePersonalAccessTokenController();
 app.UseAppSettingController();
 app.UseSecureParameterMappingController();
 app.UseCustomDomainController();
+app.UseVirtualNetworkController();
+app.UseNetworkSecurityGroupController();
+app.UsePrivateDnsZoneController();
+app.UseFrontDoorController();
+app.UsePrivateEndpointController();
 app.UseImportController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();
 
 // Health checks
-app.MapHealthChecks("/health");
-app.MapHealthChecks("/alive", new HealthCheckOptions
-{
-    Predicate = r => r.Tags.Contains("live")
-});
+app.MapApiHealthChecks();
 
 await app.RunAsync();

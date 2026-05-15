@@ -26,16 +26,39 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     public string ResourceType { get; private set; } = string.Empty;
 
     /// <summary>Gets the parent resource group identifier.</summary>
-    public required ResourceGroupId ResourceGroupId { get; set; }
+    public ResourceGroupId ResourceGroupId { get; protected set; } = null!;
 
     /// <summary>Navigation property to the parent resource group.</summary>
-    public ResourceGroup? ResourceGroup { get; set; }
+    public ResourceGroup? ResourceGroup { get; protected set; }
 
     /// <summary>Gets the display name of the resource.</summary>
-    public required Name Name { get; set; }
+    public Name Name { get; protected set; } = null!;
 
     /// <summary>Gets the Azure region where the resource is deployed.</summary>
-    public required Location Location { get; set; }
+    public Location Location { get; protected set; } = null!;
+
+    /// <summary>
+    /// Renames the resource.
+    /// </summary>
+    /// <param name="name">The new resource name.</param>
+    public void Rename(Name name)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+
+        Name = name;
+    }
+
+    /// <summary>
+    /// Moves the resource to another resource group.
+    /// </summary>
+    /// <param name="resourceGroupId">The destination resource group identifier.</param>
+    public void MoveToResourceGroup(ResourceGroupId resourceGroupId)
+    {
+        ArgumentNullException.ThrowIfNull(resourceGroupId);
+
+        ResourceGroupId = resourceGroupId;
+        ResourceGroup = null;
+    }
 
     /// <summary>
     /// Sets the shared resource display name and Azure region.
@@ -44,7 +67,18 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// <param name="location">The new Azure region.</param>
     protected void SetNameAndLocation(Name name, Location location)
     {
-        Name = name;
+        Rename(name);
+        SetLocation(location);
+    }
+
+    /// <summary>
+    /// Sets the Azure region where the resource is deployed.
+    /// </summary>
+    /// <param name="location">The new Azure region.</param>
+    protected void SetLocation(Location location)
+    {
+        ArgumentNullException.ThrowIfNull(location);
+
         Location = location;
     }
 
@@ -52,7 +86,26 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// When set, overrides any naming template and uses this value as the resolved resource name.
     /// Set this at resource creation time when the user explicitly provides a full name.
     /// </summary>
-    public string? CustomNameOverride { get; set; }
+    public string? CustomNameOverride { get; protected set; }
+
+    /// <summary>
+    /// Overrides the generated resource name with an explicit value.
+    /// </summary>
+    /// <param name="customNameOverride">The explicit name to use.</param>
+    public void OverrideName(string customNameOverride)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(customNameOverride);
+
+        CustomNameOverride = customNameOverride.Trim();
+    }
+
+    /// <summary>
+    /// Clears the explicit resource name override.
+    /// </summary>
+    public void ClearNameOverride()
+    {
+        CustomNameOverride = null;
+    }
 
     /// <summary>
     /// Gets whether this resource already exists in Azure and is not managed (deployed) by this project.
@@ -72,17 +125,17 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     private readonly List<ResourceParameterUsage> _parameterUsages = [];
 
     /// <summary>Gets the parameter usages assigned to this resource.</summary>
-    public IReadOnlyCollection<ResourceParameterUsage> ParameterUsages => _parameterUsages;
+    public IReadOnlyCollection<ResourceParameterUsage> ParameterUsages => _parameterUsages.AsReadOnly();
 
     private readonly List<InputOutputLink> _inputs = [];
 
     /// <summary>Gets the input links from other resources to this resource.</summary>
-    public IReadOnlyCollection<InputOutputLink> Inputs => _inputs;
+    public IReadOnlyCollection<InputOutputLink> Inputs => _inputs.AsReadOnly();
 
     private readonly List<InputOutputLink> _outputs = [];
 
     /// <summary>Gets the output links from this resource to other resources.</summary>
-    public IReadOnlyCollection<InputOutputLink> Outputs => _outputs;
+    public IReadOnlyCollection<InputOutputLink> Outputs => _outputs.AsReadOnly();
 
     private readonly List<RoleAssignment> _roleAssignments = [];
     public IReadOnlyCollection<RoleAssignment> RoleAssignments => _roleAssignments.AsReadOnly();
@@ -100,6 +153,46 @@ public class AzureResource : AggregateRoot<AzureResourceId>
 
     /// <summary>Gets the custom domain bindings configured on this resource.</summary>
     public IReadOnlyCollection<CustomDomain> CustomDomains => _customDomains.AsReadOnly();
+
+    private readonly List<PrivateEndpointConfig> _privateEndpointConfigs = [];
+
+    /// <summary>Gets the private endpoint configurations attached to this resource.</summary>
+    public IReadOnlyCollection<PrivateEndpointConfig> PrivateEndpointConfigs => _privateEndpointConfigs.AsReadOnly();
+
+    /// <summary>Adds a private endpoint configuration to this resource.</summary>
+    public PrivateEndpointConfig AddPrivateEndpoint(
+        AzureResourceId subnetId,
+        string groupId,
+        bool autoApproval,
+        AzureResourceId? privateDnsZoneId,
+        string? customNetworkInterfaceName)
+    {
+        var config = PrivateEndpointConfig.Create(Id, subnetId, groupId, autoApproval, privateDnsZoneId, customNetworkInterfaceName);
+        _privateEndpointConfigs.Add(config);
+        return config;
+    }
+
+    /// <summary>Removes a private endpoint configuration.</summary>
+    public void RemovePrivateEndpoint(PrivateEndpointConfigId configId)
+    {
+        var config = _privateEndpointConfigs.FirstOrDefault(c => c.Id == configId)
+            ?? throw new InvalidOperationException($"Private endpoint config '{configId.Value}' not found.");
+        _privateEndpointConfigs.Remove(config);
+    }
+
+    /// <summary>Updates an existing private endpoint configuration.</summary>
+    public void UpdatePrivateEndpoint(
+        PrivateEndpointConfigId configId,
+        AzureResourceId subnetId,
+        string groupId,
+        bool autoApproval,
+        AzureResourceId? privateDnsZoneId,
+        string? customNetworkInterfaceName)
+    {
+        var config = _privateEndpointConfigs.FirstOrDefault(c => c.Id == configId)
+            ?? throw new InvalidOperationException($"Private endpoint config '{configId.Value}' not found.");
+        config.Update(subnetId, groupId, autoApproval, privateDnsZoneId, customNetworkInterfaceName);
+    }
 
     /// <summary>Gets the optional User-Assigned Identity explicitly attached to this resource.</summary>
     public AzureResourceId? AssignedUserAssignedIdentityId { get; private set; }

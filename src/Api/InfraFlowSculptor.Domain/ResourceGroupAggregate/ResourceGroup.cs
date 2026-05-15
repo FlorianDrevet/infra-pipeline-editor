@@ -39,6 +39,11 @@ public sealed class ResourceGroup : AggregateRoot<ResourceGroupId>
         InfraConfigId = infraConfigId;
         Location = location;
     }
+
+    /// <summary>EF Core constructor.</summary>
+    private ResourceGroup()
+    {
+    }
     
     /// <summary>Creates a new <see cref="ResourceGroup"/> with a generated identifier.</summary>
     public static ResourceGroup Create(Name name, InfrastructureConfigId infraConfigId, Location location)
@@ -80,10 +85,5 @@ public sealed class ResourceGroup : AggregateRoot<ResourceGroupId>
 
         _resources.Remove(resource);
         return Result.Success;
-    }
-
-    /// <summary>EF Core constructor.</summary>
-    public ResourceGroup()
-    {
     }
 }

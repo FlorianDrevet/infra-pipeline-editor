@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.ContainerApps.Requests;
 
 namespace InfraFlowSculptor.Contracts.ContainerApps.Responses;
@@ -14,6 +15,7 @@ public record ContainerAppResponse(
     string? DockerImageName,
     string? DockerfilePath,
     string? ApplicationName,
+    PipelineStepOptionsDto? PipelineStepOptions,
     IReadOnlyList<ContainerAppEnvironmentConfigResponse> EnvironmentSettings,
 
     bool IsExisting = false

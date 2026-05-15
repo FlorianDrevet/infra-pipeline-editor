@@ -1,6 +1,7 @@
 using InfraFlowSculptor.Application.ContainerApps.Commands.CreateContainerApp;
 using InfraFlowSculptor.Application.ContainerApps.Commands.UpdateContainerApp;
 using InfraFlowSculptor.Application.ContainerApps.Common;
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.ContainerApps.Requests;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -36,7 +37,8 @@ public sealed class ContainerAppMappingConfig : IRegister
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new ContainerAppEnvironmentConfigData(
-                        ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod, ec.ReadinessProbePath, ec.ReadinessProbePort, ec.LivenessProbePath, ec.LivenessProbePort, ec.StartupProbePath, ec.StartupProbePort)).ToList()));
+                        ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod, ec.ReadinessProbePath, ec.ReadinessProbePort, ec.LivenessProbePath, ec.LivenessProbePort, ec.StartupProbePath, ec.StartupProbePort)).ToList(),
+                src.Request.PipelineStepOptions));
 
         config.NewConfig<ContainerApp, ContainerAppResult>()
             .Map(dest => dest.EnvironmentSettings,
@@ -56,6 +58,7 @@ public sealed class ContainerAppMappingConfig : IRegister
                     es.LivenessProbePort,
                     es.StartupProbePath,
                     es.StartupProbePort)).ToList())
+            .Map(dest => dest.PipelineStepOptions, src => src.PipelineStepOptions.Adapt<PipelineStepOptionsDto>())
             .Map(dest => dest.ContainerAppEnvironmentId, src => src.ContainerAppEnvironmentId.Value)
                     .Map(dest => dest.ContainerRegistryId, src => src.ContainerRegistryId != null ? src.ContainerRegistryId.Value : (Guid?)null)
                     .Map(dest => dest.AcrAuthMode, src => src.AcrAuthMode != null ? src.AcrAuthMode.Value.ToString() : null);

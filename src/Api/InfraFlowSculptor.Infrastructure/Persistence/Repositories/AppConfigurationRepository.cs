@@ -21,11 +21,7 @@ public sealed class AppConfigurationRepository : AzureResourceRepository<AppConf
     /// <inheritdoc />
     public override async Task<AppConfiguration?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
     {
-        return await Context.Set<AppConfiguration>()
-            .Include(ac => ac.DependsOn)
-            .Include(ac => ac.EnvironmentSettings)
-            .Include(ac => ac.ConfigurationKeys)
-                .ThenInclude(ck => ck.EnvironmentValues)
+        return await WithSubResources(Context.Set<AppConfiguration>())
             .FirstOrDefaultAsync(ac => ac.Id == id, cancellationToken);
     }
 
@@ -34,11 +30,7 @@ public sealed class AppConfigurationRepository : AzureResourceRepository<AppConf
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<AppConfiguration>()
-            .Include(ac => ac.DependsOn)
-            .Include(ac => ac.EnvironmentSettings)
-            .Include(ac => ac.ConfigurationKeys)
-                .ThenInclude(ck => ck.EnvironmentValues)
+        return await WithSubResources(Context.Set<AppConfiguration>())
             .Where(ac => ac.ResourceGroupId == resourceGroupId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -49,9 +41,7 @@ public sealed class AppConfigurationRepository : AzureResourceRepository<AppConf
         AzureResourceId id,
         CancellationToken cancellationToken)
     {
-        return await Context.Set<AppConfiguration>()
-            .Include(ac => ac.ConfigurationKeys)
-                .ThenInclude(ck => ck.EnvironmentValues)
+        return await WithConfigurationKeys(Context.Set<AppConfiguration>())
             .FirstOrDefaultAsync(ac => ac.Id == id, cancellationToken);
     }
 
@@ -60,10 +50,22 @@ public sealed class AppConfigurationRepository : AzureResourceRepository<AppConf
         AzureResourceId id,
         CancellationToken cancellationToken)
     {
-        return await Context.Set<AppConfiguration>()
-            .Include(ac => ac.ConfigurationKeys)
-                .ThenInclude(ck => ck.EnvironmentValues)
+        return await WithConfigurationKeys(Context.Set<AppConfiguration>())
             .Include(ac => ac.RoleAssignments)
             .FirstOrDefaultAsync(ac => ac.Id == id, cancellationToken);
+    }
+
+    private static IQueryable<AppConfiguration> WithSubResources(IQueryable<AppConfiguration> query)
+    {
+        return WithConfigurationKeys(query)
+            .Include(ac => ac.DependsOn)
+            .Include(ac => ac.EnvironmentSettings);
+    }
+
+    private static IQueryable<AppConfiguration> WithConfigurationKeys(IQueryable<AppConfiguration> query)
+    {
+        return query
+            .Include(ac => ac.ConfigurationKeys)
+                .ThenInclude(ck => ck.EnvironmentValues);
     }
 }

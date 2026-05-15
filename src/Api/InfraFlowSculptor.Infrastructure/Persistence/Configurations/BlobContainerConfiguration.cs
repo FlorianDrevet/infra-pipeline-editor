@@ -9,6 +9,8 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 
 public class BlobContainerConfiguration : IEntityTypeConfiguration<BlobContainer>
 {
+    private const int BlobContainerNameMaxLength = 63;
+
     public void Configure(EntityTypeBuilder<BlobContainer> builder)
     {
         builder.ToTable("BlobContainers");
@@ -24,7 +26,8 @@ public class BlobContainerConfiguration : IEntityTypeConfiguration<BlobContainer
             .IsRequired();
 
         builder.Property(bc => bc.Name)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(BlobContainerNameMaxLength);
 
         builder.Property(bc => bc.PublicAccess)
             .IsRequired()

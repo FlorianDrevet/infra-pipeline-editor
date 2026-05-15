@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.ContainerApps.Common;
@@ -60,6 +61,11 @@ public sealed class UpdateContainerAppCommandHandler(
                 request.EnvironmentSettings
                     .Select(ec => (ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod, ec.ReadinessProbePath, ec.ReadinessProbePort, ec.LivenessProbePath, ec.LivenessProbePort, ec.StartupProbePath, ec.StartupProbePort))
                     .ToList());
+
+        if (request.PipelineStepOptions is { } opts)
+        {
+            containerApp.PipelineStepOptions.Update(PipelineStepOptionsDataMapper.ToDomainData(opts));
+        }
 
         var updated = await containerAppRepository.UpdateAsync(containerApp);
 

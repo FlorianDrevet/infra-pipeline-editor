@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
+import { LanguageService } from '../../shared/services/language.service';
 
 import {
   DsPageHeaderComponent,
@@ -39,12 +40,14 @@ import { CreatePatDialogComponent } from './create-pat-dialog/create-pat-dialog.
 export class SettingsComponent implements OnInit {
   private readonly patService = inject(PersonalAccessTokenService);
   private readonly dialog = inject(MatDialog);
+  protected readonly languageService = inject(LanguageService);
 
   protected readonly tokens = signal<PersonalAccessTokenResponse[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly errorKey = signal('');
 
   protected readonly hasTokens = computed(() => this.tokens().length > 0);
+  protected readonly currentLanguage = this.languageService.currentLanguage;
 
   async ngOnInit(): Promise<void> {
     await this.loadTokens();

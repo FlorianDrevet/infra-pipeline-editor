@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.FunctionApps.Common;
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using ErrorOr;
@@ -24,5 +25,6 @@ public record CreateFunctionAppCommand(
     string? BuildCommand = null,
     string? ApplicationName = null,
     IReadOnlyList<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null,
-    bool IsExisting = false
+    bool IsExisting = false,
+    PipelineStepOptionsDto? PipelineStepOptions = null
 ) : ICommand<FunctionAppResult>;

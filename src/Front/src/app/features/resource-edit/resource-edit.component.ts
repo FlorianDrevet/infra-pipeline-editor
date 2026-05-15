@@ -10,7 +10,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -23,22 +22,22 @@ import { ProjectService } from '../../shared/services/project.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RoleAssignmentService } from '../../shared/services/role-assignment.service';
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
-import { KeyVaultResponse, KeyVaultEnvironmentConfigEntry } from '../../shared/interfaces/key-vault.interface';
-import { RedisCacheResponse, RedisCacheEnvironmentConfigEntry } from '../../shared/interfaces/redis-cache.interface';
-import { StorageAccountResponse, StorageAccountEnvironmentConfigEntry, BlobContainerResponse, StorageQueueResponse, StorageTableResponse, CorsRuleEntry, CorsRuleResponse, BlobLifecycleRuleEntry } from '../../shared/interfaces/storage-account.interface';
-import { AppServicePlanResponse, AppServicePlanEnvironmentConfigEntry } from '../../shared/interfaces/app-service-plan.interface';
-import { WebAppResponse, WebAppEnvironmentConfigEntry } from '../../shared/interfaces/web-app.interface';
-import { FunctionAppResponse, FunctionAppEnvironmentConfigEntry } from '../../shared/interfaces/function-app.interface';
-import { AppConfigurationResponse, AppConfigurationEnvironmentConfigEntry } from '../../shared/interfaces/app-configuration.interface';
-import { ContainerAppEnvironmentResponse, ContainerAppEnvironmentEnvironmentConfigEntry } from '../../shared/interfaces/container-app-environment.interface';
-import { ContainerAppResponse, ContainerAppEnvironmentConfigEntry } from '../../shared/interfaces/container-app.interface';
-import { LogAnalyticsWorkspaceResponse, LogAnalyticsWorkspaceEnvironmentConfigEntry } from '../../shared/interfaces/log-analytics-workspace.interface';
-import { ApplicationInsightsResponse, ApplicationInsightsEnvironmentConfigEntry } from '../../shared/interfaces/application-insights.interface';
-import { CosmosDbResponse, CosmosDbEnvironmentConfigEntry } from '../../shared/interfaces/cosmos-db.interface';
-import { ServiceBusNamespaceResponse, ServiceBusNamespaceEnvironmentConfigEntry } from '../../shared/interfaces/service-bus-namespace.interface';
-import { AcrAuthMode, ContainerRegistryResponse, ContainerRegistryEnvironmentConfigEntry } from '../../shared/interfaces/container-registry.interface';
-import { SqlServerResponse, SqlServerEnvironmentConfigEntry } from '../../shared/interfaces/sql-server.interface';
-import { SqlDatabaseResponse, SqlDatabaseEnvironmentConfigEntry } from '../../shared/interfaces/sql-database.interface';
+import { KeyVaultResponse } from '../../shared/interfaces/key-vault.interface';
+import { RedisCacheResponse } from '../../shared/interfaces/redis-cache.interface';
+import { StorageAccountResponse, BlobContainerResponse, StorageQueueResponse, StorageTableResponse, CorsRuleEntry, BlobLifecycleRuleEntry } from '../../shared/interfaces/storage-account.interface';
+import { AppServicePlanResponse } from '../../shared/interfaces/app-service-plan.interface';
+import { WebAppResponse } from '../../shared/interfaces/web-app.interface';
+import { FunctionAppResponse } from '../../shared/interfaces/function-app.interface';
+import { AppConfigurationResponse } from '../../shared/interfaces/app-configuration.interface';
+import { ContainerAppEnvironmentResponse } from '../../shared/interfaces/container-app-environment.interface';
+import { ContainerAppResponse } from '../../shared/interfaces/container-app.interface';
+import { LogAnalyticsWorkspaceResponse } from '../../shared/interfaces/log-analytics-workspace.interface';
+import { ApplicationInsightsResponse } from '../../shared/interfaces/application-insights.interface';
+import { CosmosDbResponse } from '../../shared/interfaces/cosmos-db.interface';
+import { ServiceBusNamespaceResponse } from '../../shared/interfaces/service-bus-namespace.interface';
+import { AcrAuthMode, ContainerRegistryResponse } from '../../shared/interfaces/container-registry.interface';
+import { SqlServerResponse } from '../../shared/interfaces/sql-server.interface';
+import { SqlDatabaseResponse } from '../../shared/interfaces/sql-database.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
@@ -58,52 +57,98 @@ import { NameAvailabilityService } from '../../shared/services/name-availability
 import { EnvironmentNameAvailabilityResponseItem } from '../../shared/interfaces/name-availability.interface';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
-import { RoleAssignmentResponse, AzureRoleDefinitionResponse, IdentityRoleAssignmentResponse, RoleAssignmentImpactResponse } from '../../shared/interfaces/role-assignment.interface';
-import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
-import { RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
+import { RESOURCE_TYPE_ICONS } from '../../shared/resource-metadata/resource-type.metadata';
 import { LOCATION_OPTIONS } from '../../shared/enums/location.enum';
-import { OS_TYPE_OPTIONS } from '../config-detail/enums/os-type.enum';
-import { RUNTIME_STACK_OPTIONS } from '../config-detail/enums/runtime-stack.enum';
-import { FUNCTION_APP_RUNTIME_STACK_OPTIONS } from '../config-detail/enums/function-app-runtime-stack.enum';
-import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service-plan-sku.enum';
-import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData, AddRoleAssignmentDialogResult } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
-import { AddAppSettingDialogComponent, AddAppSettingDialogData } from './add-app-setting-dialog/add-app-setting-dialog.component';
-import { ImportAppSettingsDialogComponent, ImportAppSettingsDialogData } from './import-app-settings-dialog/import-app-settings-dialog.component';
-import { EditStaticAppSettingDialogComponent, EditStaticAppSettingDialogData } from './edit-static-app-setting-dialog/edit-static-app-setting-dialog.component';
-import { AppSettingService } from '../../shared/services/app-setting.service';
+import { OS_TYPE_OPTIONS } from '../../shared/resource-metadata/os-type.metadata';
+import { RUNTIME_STACK_OPTIONS } from '../../shared/resource-metadata/runtime-stack.metadata';
+import { FUNCTION_APP_RUNTIME_STACK_OPTIONS } from '../../shared/resource-metadata/function-app-runtime-stack.metadata';
+import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../../shared/resource-metadata/app-service-plan-sku.metadata';
 import { SecureParameterMappingService } from '../../shared/services/secure-parameter-mapping.service';
 import { SecureParameterMappingResponse } from '../../shared/interfaces/secure-parameter-mapping.interface';
-import { AppSettingResponse } from '../../shared/interfaces/app-setting.interface';
-import { AppConfigurationKeyService } from './services/app-configuration-key.service';
-import { AppConfigurationKeyResponse } from './models/app-configuration-key.interface';
-import { AddAppConfigKeyDialogComponent, AddAppConfigKeyDialogData } from './add-app-config-key-dialog/add-app-config-key-dialog.component';
-import { RoleAssignmentImpactDialogComponent, RoleAssignmentImpactDialogData } from './role-assignment-impact-dialog/role-assignment-impact-dialog.component';
 import { CreateUaiDialogComponent } from './create-uai-dialog/create-uai-dialog.component';
-import { CustomDomainService } from '../../shared/services/custom-domain.service';
-import { CustomDomainResponse, AddCustomDomainRequest } from '../../shared/interfaces/custom-domain.interface';
 import { PageContextService } from '../../shared/services/page-context.service';
-import { AddCustomDomainDialogComponent, AddCustomDomainDialogData } from './add-custom-domain-dialog/add-custom-domain-dialog.component';
-import { CompactSelectComponent } from '../../shared/components/compact-select/compact-select.component';
 import { DeploymentConfigComponent } from '../../shared/components/deployment-config/deployment-config.component';
+import { ResourceEditAppSettingsSectionComponent } from './sections/app-settings/resource-edit-app-settings-section.component';
+import { createResourceEditAppSettingsSectionController } from './sections/app-settings/resource-edit-app-settings-section.controller';
+import { ResourceEditConfigKeysSectionComponent } from './sections/config-keys/resource-edit-config-keys-section.component';
+import { createResourceEditConfigKeysSectionController } from './sections/config-keys/resource-edit-config-keys-section.controller';
+import { ResourceEditCustomDomainsSectionComponent } from './sections/custom-domains/resource-edit-custom-domains-section.component';
+import { createResourceEditCustomDomainsSectionController } from './sections/custom-domains/resource-edit-custom-domains-section.controller';
+import { createResourceEditIdentityAccessSectionController } from './sections/identity-access/resource-edit-identity-access-section.controller';
+import { ResourceEditGrantedRightsSectionComponent } from './sections/identity-access/resource-edit-granted-rights-section.component';
+import { ResourceEditRoleAssignmentsSectionComponent } from './sections/identity-access/resource-edit-role-assignments-section.component';
+import { ResourceEditUsedBySectionComponent } from './sections/identity-access/resource-edit-used-by-section.component';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
-
-const ADD_APP_SETTING_DIALOG_PANEL_CLASS = 'ifs-add-app-setting-dialog';
-const IMPORT_APP_SETTINGS_DIALOG_PANEL_CLASS = 'ifs-import-app-settings-dialog';
-
-/** Key Vault missing role entry for the KV access warning banner */
-interface KvMissingRoleEntry {
-  keyVaultResourceId: string;
-  keyVaultName: string;
-  missingRoleName: string | null;
-  missingRoleDefinitionId: string | null;
-  affectedSettingsCount: number;
-  checking: boolean;
-  assigning: boolean;
-  selectedIdentityType: 'UserAssigned' | 'SystemAssigned';
-  selectedUaiId: string | null;
-}
+import { PipelineOptionsComponent } from './components/pipeline-options/pipeline-options.component';
+import { NetworkingTabComponent } from './components/networking-tab/networking-tab.component';
+import { PipelineStepOptions } from './models/pipeline-step-options.model';
+import {
+  ResourceEditEnvironmentFormEntry,
+  buildAppConfigurationEnvironmentSettings,
+  buildAppServicePlanEnvironmentSettings,
+  buildApplicationInsightsEnvironmentSettings,
+  buildBlobLifecycleRules,
+  buildContainerAppEnvironmentResourceSettings,
+  buildContainerAppEnvironmentSettings,
+  buildContainerRegistryEnvironmentSettings,
+  buildCosmosDbEnvironmentSettings,
+  buildFunctionAppEnvironmentSettings,
+  buildKeyVaultEnvironmentSettings,
+  buildLogAnalyticsWorkspaceEnvironmentSettings,
+  buildRedisCacheEnvironmentSettings,
+  buildServiceBusNamespaceEnvironmentSettings,
+  buildSqlDatabaseEnvironmentSettings,
+  buildSqlServerEnvironmentSettings,
+  buildStorageAccountCorsRules,
+  buildStorageAccountEnvironmentSettings,
+  buildWebAppEnvironmentSettings,
+  toNullableNumber,
+} from './helpers/resource-edit-environment-settings.helpers';
+import { buildResourceEditEnvironmentForms, buildResourceEditGeneralForm } from './helpers/resource-edit-form-builders.helpers';
+import {
+  buildCorsErrorKey,
+  normalizeCorsHeader,
+  normalizeCorsOrigin,
+  validateCorsHeader,
+  validateCorsOrigin,
+  validateStorageCorsRules,
+} from './helpers/resource-edit-storage-cors.helpers';
+import {
+  ACR_PUBLIC_NETWORK_OPTIONS,
+  ACR_SKU_OPTIONS,
+  AI_INGESTION_MODE_OPTIONS,
+  AI_RETENTION_OPTIONS,
+  APP_CONFIGURATION_PUBLIC_NETWORK_OPTIONS,
+  APP_CONFIGURATION_SKU_OPTIONS,
+  CA_MEMORY_OPTIONS,
+  CA_TRANSPORT_OPTIONS,
+  CA_CPU_OPTIONS,
+  CAE_SKU_OPTIONS,
+  CAE_WORKLOAD_PROFILE_OPTIONS,
+  COSMOS_API_TYPE_OPTIONS,
+  COSMOS_BACKUP_POLICY_OPTIONS,
+  COSMOS_CONSISTENCY_LEVEL_OPTIONS,
+  FUNCTIONAPP_RUNTIME_VERSION_MAP,
+  KEY_VAULT_SKU_OPTIONS,
+  LAW_SKU_OPTIONS,
+  REDIS_EVICTION_OPTIONS,
+  REDIS_SKU_OPTIONS,
+  REDIS_TLS_OPTIONS,
+  REDIS_VERSION_OPTIONS,
+  SQL_MIN_TLS_OPTIONS,
+  SQL_SERVER_VERSION_OPTIONS,
+  STORAGE_ACCESS_TIER_OPTIONS,
+  STORAGE_CORS_ALLOWED_HEADER_SUGGESTIONS,
+  STORAGE_CORS_EXPOSED_HEADER_SUGGESTIONS,
+  STORAGE_CORS_MAX_AGE_PRESETS,
+  STORAGE_CORS_METHOD_OPTIONS,
+  STORAGE_KIND_OPTIONS,
+  STORAGE_SKU_OPTIONS,
+  STORAGE_TLS_OPTIONS,
+  WEBAPP_RUNTIME_VERSION_MAP,
+} from './resource-edit.constants';
 
 /** Union type for any loaded resource */
 type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse | SqlServerResponse | SqlDatabaseResponse;
@@ -112,208 +157,6 @@ type CorsServiceKey = 'blob' | 'table';
 type CorsListField = 'allowedOrigins' | 'allowedHeaders' | 'exposedHeaders';
 type CorsMethodField = 'allowedMethods';
 type CorsFieldKey = CorsListField | CorsMethodField | 'maxAgeInSeconds';
-
-/** SKU options per resource type */
-const KEY_VAULT_SKU_OPTIONS = [
-  { label: 'Standard', value: 'Standard' },
-  { label: 'Premium', value: 'Premium' },
-];
-
-const REDIS_SKU_OPTIONS = [
-  { label: 'Basic', value: 'Basic' },
-  { label: 'Standard', value: 'Standard' },
-  { label: 'Premium', value: 'Premium' },
-];
-
-const REDIS_TLS_OPTIONS = [
-  { label: 'TLS 1.0', value: 'Tls10' },
-  { label: 'TLS 1.1', value: 'Tls11' },
-  { label: 'TLS 1.2', value: 'Tls12' },
-];
-
-const REDIS_EVICTION_OPTIONS = [
-  { label: 'NoEviction', value: 'NoEviction' },
-  { label: 'AllKeysLru', value: 'AllKeysLru' },
-  { label: 'VolatileLru', value: 'VolatileLru' },
-  { label: 'AllKeysRandom', value: 'AllKeysRandom' },
-  { label: 'VolatileRandom', value: 'VolatileRandom' },
-  { label: 'VolatileTtl', value: 'VolatileTtl' },
-  { label: 'AllKeysLfu', value: 'AllKeysLfu' },
-  { label: 'VolatileLfu', value: 'VolatileLfu' },
-];
-
-const REDIS_VERSION_OPTIONS = [
-  { label: 'Redis 4', value: 4 },
-  { label: 'Redis 6', value: 6 },
-];
-
-const STORAGE_SKU_OPTIONS = [
-  { label: 'Standard_LRS', value: 'Standard_LRS' },
-  { label: 'Standard_GRS', value: 'Standard_GRS' },
-  { label: 'Standard_RAGRS', value: 'Standard_RAGRS' },
-  { label: 'Standard_ZRS', value: 'Standard_ZRS' },
-  { label: 'Premium_LRS', value: 'Premium_LRS' },
-  { label: 'Premium_ZRS', value: 'Premium_ZRS' },
-];
-
-const STORAGE_KIND_OPTIONS = [
-  { label: 'StorageV2', value: 'StorageV2' },
-  { label: 'BlobStorage', value: 'BlobStorage' },
-  { label: 'BlockBlobStorage', value: 'BlockBlobStorage' },
-];
-
-const STORAGE_ACCESS_TIER_OPTIONS = [
-  { label: 'Hot', value: 'Hot' },
-  { label: 'Cool', value: 'Cool' },
-];
-
-const STORAGE_TLS_OPTIONS = [
-  { label: 'TLS 1.0', value: 'Tls10' },
-  { label: 'TLS 1.1', value: 'Tls11' },
-  { label: 'TLS 1.2', value: 'Tls12' },
-];
-
-const STORAGE_CORS_METHOD_OPTIONS = ['DELETE', 'GET', 'HEAD', 'MERGE', 'OPTIONS', 'PATCH', 'POST', 'PUT'];
-const STORAGE_CORS_ALLOWED_HEADER_SUGGESTIONS = ['authorization', 'content-type', 'x-ms-*', 'x-ms-meta*', 'x-ms-client-request-id'];
-const STORAGE_CORS_EXPOSED_HEADER_SUGGESTIONS = ['content-type', 'etag', 'x-ms-*', 'x-ms-meta*', 'x-ms-request-id'];
-const STORAGE_CORS_MAX_AGE_PRESETS = [300, 3600, 86400];
-const CORS_HEADER_SPECIAL_CHARACTERS = "!#$%&'*+.^_`|~-";
-
-const APP_CONFIGURATION_SKU_OPTIONS = [
-  { label: 'Free', value: 'Free' },
-  { label: 'Standard', value: 'Standard' },
-];
-
-const APP_CONFIGURATION_PUBLIC_NETWORK_OPTIONS = [
-  { label: 'Enabled', value: 'Enabled' },
-  { label: 'Disabled', value: 'Disabled' },
-];
-
-const CAE_SKU_OPTIONS = [
-  { label: 'Consumption', value: 'Consumption' },
-  { label: 'Premium', value: 'Premium' },
-];
-
-const CAE_WORKLOAD_PROFILE_OPTIONS = [
-  { label: 'Consumption', value: 'Consumption' },
-  { label: 'D4', value: 'D4' },
-  { label: 'D8', value: 'D8' },
-  { label: 'D16', value: 'D16' },
-  { label: 'D32', value: 'D32' },
-  { label: 'E4', value: 'E4' },
-  { label: 'E8', value: 'E8' },
-  { label: 'E16', value: 'E16' },
-  { label: 'E32', value: 'E32' },
-];
-
-const CA_CPU_OPTIONS = [
-  { label: '0.25', value: '0.25' },
-  { label: '0.5', value: '0.5' },
-  { label: '1.0', value: '1.0' },
-  { label: '2.0', value: '2.0' },
-  { label: '4.0', value: '4.0' },
-];
-
-const CA_MEMORY_OPTIONS = [
-  { label: '0.5 Gi', value: '0.5Gi' },
-  { label: '1.0 Gi', value: '1.0Gi' },
-  { label: '2.0 Gi', value: '2.0Gi' },
-  { label: '4.0 Gi', value: '4.0Gi' },
-  { label: '8.0 Gi', value: '8.0Gi' },
-];
-
-const CA_TRANSPORT_OPTIONS = [
-  { label: 'Auto', value: 'auto' },
-  { label: 'HTTP', value: 'http' },
-  { label: 'HTTP/2', value: 'http2' },
-  { label: 'TCP', value: 'tcp' },
-];
-
-const LAW_SKU_OPTIONS = [
-  { label: 'Free', value: 'Free' },
-  { label: 'PerGB2018', value: 'PerGB2018' },
-  { label: 'PerNode', value: 'PerNode' },
-  { label: 'Premium', value: 'Premium' },
-  { label: 'Standard', value: 'Standard' },
-  { label: 'Standalone', value: 'Standalone' },
-  { label: 'Capacity Reservation', value: 'CapacityReservation' },
-];
-
-const AI_RETENTION_OPTIONS = [
-  { label: '30 days', value: 30 },
-  { label: '60 days', value: 60 },
-  { label: '90 days', value: 90 },
-  { label: '120 days', value: 120 },
-  { label: '180 days', value: 180 },
-  { label: '270 days', value: 270 },
-  { label: '365 days', value: 365 },
-  { label: '550 days', value: 550 },
-  { label: '730 days', value: 730 },
-];
-
-const AI_INGESTION_MODE_OPTIONS = [
-  { label: 'Application Insights', value: 'ApplicationInsights' },
-  { label: 'Log Analytics', value: 'LogAnalytics' },
-  { label: 'App Insights + Diagnostic Settings', value: 'ApplicationInsightsWithDiagnosticSettings' },
-];
-
-const COSMOS_API_TYPE_OPTIONS = [
-  { label: 'SQL (NoSQL)', value: 'SQL' },
-  { label: 'MongoDB', value: 'MongoDB' },
-  { label: 'Cassandra', value: 'Cassandra' },
-  { label: 'Table', value: 'Table' },
-  { label: 'Gremlin', value: 'Gremlin' },
-];
-
-const COSMOS_CONSISTENCY_LEVEL_OPTIONS = [
-  { label: 'Eventual', value: 'Eventual' },
-  { label: 'Consistent Prefix', value: 'ConsistentPrefix' },
-  { label: 'Session', value: 'Session' },
-  { label: 'Bounded Staleness', value: 'BoundedStaleness' },
-  { label: 'Strong', value: 'Strong' },
-];
-
-const COSMOS_BACKUP_POLICY_OPTIONS = [
-  { label: 'Periodic', value: 'Periodic' },
-  { label: 'Continuous', value: 'Continuous' },
-];
-
-const ACR_SKU_OPTIONS = [
-  { label: 'Basic', value: 'Basic' },
-  { label: 'Standard', value: 'Standard' },
-  { label: 'Premium', value: 'Premium' },
-];
-
-const ACR_PUBLIC_NETWORK_OPTIONS = [
-  { label: 'Enabled', value: 'Enabled' },
-  { label: 'Disabled', value: 'Disabled' },
-];
-
-const SQL_SERVER_VERSION_OPTIONS = [
-  { label: '12.0', value: 'V12' },
-];
-
-const SQL_MIN_TLS_OPTIONS = [
-  { label: 'TLS 1.0', value: '1.0' },
-  { label: 'TLS 1.1', value: '1.1' },
-  { label: 'TLS 1.2', value: '1.2' },
-];
-
-const WEBAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
-  DotNet: ['10', '9', '8'],
-  Node: ['22-lts', '20-lts'],
-  Python: ['3.13', '3.12', '3.11', '3.10'],
-  Java: ['21', '17', '11'],
-  Php: ['8.4', '8.3', '8.2'],
-};
-
-const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
-  DotNet: ['10-isolated', '9-isolated', '8-isolated', '8-in-process'],
-  Node: ['22', '20'],
-  Python: ['3.12', '3.11', '3.10'],
-  Java: ['21', '17', '11'],
-  PowerShell: ['7.4', '7.2'],
-};
 
 @Component({
   selector: 'app-resource-edit',
@@ -331,16 +174,22 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
     DsToggleComponent,
     MatTabsModule,
     MatTooltipModule,
-    MatMenuModule,
     MatButtonToggleModule,
     MatExpansionModule,
-    CompactSelectComponent,
     DeploymentConfigComponent,
+    ResourceEditAppSettingsSectionComponent,
+    ResourceEditConfigKeysSectionComponent,
+    ResourceEditCustomDomainsSectionComponent,
+    ResourceEditGrantedRightsSectionComponent,
+    ResourceEditRoleAssignmentsSectionComponent,
+    ResourceEditUsedBySectionComponent,
     ToggleSectionCardComponent,
     DsButtonComponent,
     DsTextFieldComponent,
     DockerfilePickerComponent,
     DsSelectComponent,
+    PipelineOptionsComponent,
+    NetworkingTabComponent,
   ],
   templateUrl: './resource-edit.component.html',
   styleUrl: './resource-edit.component.scss',
@@ -372,11 +221,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthenticationService);
   private readonly roleAssignmentService = inject(RoleAssignmentService);
   private readonly resourceGroupService = inject(ResourceGroupService);
-  private readonly appSettingService = inject(AppSettingService);
   private readonly secureParamMappingService = inject(SecureParameterMappingService);
-  private readonly configKeyService = inject(AppConfigurationKeyService);
   private readonly nameAvailabilityService = inject(NameAvailabilityService);
-  private readonly customDomainService = inject(CustomDomainService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
   private readonly pageContextService = inject(PageContextService);
@@ -390,6 +236,10 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly resource = signal<ResourceData | null>(null);
   protected readonly config = signal<InfrastructureConfigResponse | null>(null);
   protected readonly project = signal<ProjectResponse | null>(null);
+  protected readonly customDomainsSection = createResourceEditCustomDomainsSectionController({
+    getResourceId: () => this.resourceId,
+    getEnvironments: () => this.environments(),
+  });
   protected readonly isLoading = signal(false);
   protected readonly isSaving = signal(false);
   protected readonly loadError = signal('');
@@ -412,9 +262,18 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
   protected readonly isUserAssignedIdentity = computed(() => this.resourceType === 'UserAssignedIdentity');
+
+  private static readonly PE_SUPPORTED_TYPES = new Set<string>([
+    'KeyVault', 'StorageAccount', 'AppConfiguration', 'CosmosDb', 'SqlServer',
+    'RedisCache', 'ServiceBusNamespace', 'EventHubNamespace', 'ContainerRegistry',
+    'WebApp', 'FunctionApp', 'ApplicationInsights', 'LogAnalyticsWorkspace',
+  ]);
+  protected readonly supportsNetworking = computed(() => ResourceEditComponent.PE_SUPPORTED_TYPES.has(this.resourceType));
   protected readonly isExistingResource = computed(() => (this.resource() as { isExisting?: boolean } | null)?.isExisting === true);
 
   // ─── App Pipeline ───
+
+  protected readonly pipelineStepOptions = signal<PipelineStepOptions | null>(null);
 
   protected supportsAppPipeline(): boolean {
     return this.resourceType === 'WebApp'
@@ -457,47 +316,20 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly corsExposedHeaderSuggestions = STORAGE_CORS_EXPOSED_HEADER_SUGGESTIONS;
   protected readonly corsMaxAgePresets = STORAGE_CORS_MAX_AGE_PRESETS;
 
-  // ─── Role Assignments ───
-  protected readonly roleAssignments = signal<RoleAssignmentResponse[]>([]);
-  protected readonly roleAssignmentsLoading = signal(false);
-  protected readonly roleAssignmentsError = signal('');
-  protected readonly allResources = signal<AzureResourceResponse[]>([]);
-  protected readonly availableRoleDefs = signal<AzureRoleDefinitionResponse[]>([]);
-
-  protected readonly availableUserAssignedIdentities = computed(() =>
-    this.allResources().filter(r => r.resourceType === 'UserAssignedIdentity')
-  );
-
-  protected readonly uaiOptionsForSelect = computed(() =>
-    this.availableUserAssignedIdentities().map(uai => ({ value: uai.id, label: uai.name }))
-  );
-
-  /** The currently assigned UAI id and name, from the backend wrapper */
-  protected readonly assignedIdentityId = signal<string | null>(null);
-  protected readonly assignedIdentityName = signal<string | null>(null);
-
-  protected readonly assignedUai = computed(() => {
-    const id = this.assignedIdentityId();
-    const name = this.assignedIdentityName();
-    if (!id) return null;
-    return { identityId: id, identityName: name ?? id };
+  // ─── Identity Access ───
+  protected readonly identityAccessSection = createResourceEditIdentityAccessSectionController({
+    getConfigId: () => this.configId,
+    getConfig: () => this.config(),
+    getResourceId: () => this.resourceId,
+    getResource: () => this.resource(),
+    isUserAssignedIdentity: () => this.isUserAssignedIdentity(),
+    isAcrEnabled: () => this.isAcrEnabled(),
+    checkAcrPullAccess: () => this.checkAcrPullAccess(),
+    supportsAppSettings: () => this.supportsAppSettings(),
+    reloadAppSettings: () => this.appSettingsSection.load(),
+    supportsConfigKeys: () => this.supportsConfigKeys(),
+    reloadConfigKeys: () => this.configKeysSection.load(),
   });
-
-  /** UAIs available for switching (excludes the currently assigned one) */
-  protected readonly switchableIdentities = computed(() => {
-    const assigned = this.assignedUai();
-    const all = this.availableUserAssignedIdentities();
-    if (!assigned) return all;
-    return all.filter(r => r.id !== assigned.identityId);
-  });
-
-  protected readonly availableContainerRegistries = computed(() =>
-    this.allResources().filter(r => r.resourceType === 'ContainerRegistry')
-  );
-
-  protected readonly availableLogAnalyticsWorkspaces = computed(() =>
-    this.allResources().filter(r => r.resourceType === 'LogAnalyticsWorkspace')
-  );
 
   // ─── Deployment Mode (WebApp / FunctionApp) ───
   protected readonly deploymentMode = signal<'Code' | 'Container'>('Code');
@@ -594,10 +426,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   // ─── Tab Warning Badges ───
   protected readonly generalTabHasWarning = computed(() => this.isSaveBlockedByAcr() || this.isSaveBlockedByNameAvailability());
 
-  protected readonly appSettingsTabHasWarning = computed(() => this.kvMissingRoleEntries().length > 0);
-
-  protected readonly configKeysTabHasWarning = computed(() => this.configKeyKvMissingRoleEntries().length > 0);
-
   protected readonly environmentsTabHasWarning = computed(() => {
     const forms = this.envForms();
     if (forms.length === 0) return false;
@@ -607,179 +435,63 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     });
   });
 
-  /** Role assignments grouped by identity: system-assigned flat + per-UAI collapsible groups */
-  protected readonly groupedRoleAssignments = computed(() => {
-    const all = this.roleAssignments();
-    const systemAssigned: RoleAssignmentResponse[] = [];
-    const uaiMap = new Map<string, { identityId: string; identityName: string; assignments: RoleAssignmentResponse[] }>();
-
-    // Ensure the explicitly assigned UAI always appears as a group, even with 0 RAs
-    const assigned = this.assignedUai();
-    if (assigned) {
-      uaiMap.set(assigned.identityId, {
-        identityId: assigned.identityId,
-        identityName: assigned.identityName,
-        assignments: [],
-      });
-    }
-
-    for (const ra of all) {
-      if (ra.managedIdentityType === 'UserAssigned' && ra.userAssignedIdentityId) {
-        const existing = uaiMap.get(ra.userAssignedIdentityId);
-        if (existing) {
-          existing.assignments.push(ra);
-        } else {
-          uaiMap.set(ra.userAssignedIdentityId, {
-            identityId: ra.userAssignedIdentityId,
-            identityName: this.resolveIdentityName(ra.userAssignedIdentityId),
-            assignments: [ra],
-          });
-        }
-      } else {
-        systemAssigned.push(ra);
-      }
-    }
-    return { systemAssigned, uaiGroups: [...uaiMap.values()] };
-  });
-
-  protected readonly expandedUaiIds = signal<Set<string>>(new Set());
-
-  protected toggleUaiExpand(identityId: string): void {
-    this.expandedUaiIds.update(set => {
-      const next = new Set(set);
-      if (next.has(identityId)) {
-        next.delete(identityId);
-      } else {
-        next.add(identityId);
-      }
-      return next;
-    });
-  }
-
-  protected isUaiExpanded(identityId: string): boolean {
-    return this.expandedUaiIds().has(identityId);
-  }
-
-  // ─── Identity Granted Role Assignments (UAI only) ───
-  protected readonly identityRoleAssignments = signal<IdentityRoleAssignmentResponse[]>([]);
-  protected readonly identityRoleAssignmentsLoading = signal(false);
-  protected readonly identityRoleAssignmentsError = signal('');
-
-  /** Resources that use this UAI, grouped by source resource (excludes the UAI itself) */
-  protected readonly usedByResources = computed(() => {
-    const assignments = this.identityRoleAssignments();
-    const grouped = new Map<string, { sourceResourceId: string; sourceResourceName: string; sourceResourceType: string; assignments: IdentityRoleAssignmentResponse[] }>();
-    for (const ra of assignments) {
-      // Skip assignments where the UAI is both source and identity (self-owned grants)
-      if (ra.sourceResourceId === this.resourceId) continue;
-      const existing = grouped.get(ra.sourceResourceId);
-      if (existing) {
-        existing.assignments.push(ra);
-      } else {
-        grouped.set(ra.sourceResourceId, {
-          sourceResourceId: ra.sourceResourceId,
-          sourceResourceName: ra.sourceResourceName,
-          sourceResourceType: ra.sourceResourceType,
-          assignments: [ra],
-        });
-      }
-    }
-    return [...grouped.values()];
-  });
-
   // ─── App Settings ───
-  protected readonly appSettings = signal<AppSettingResponse[]>([]);
-  protected readonly appSettingsLoading = signal(false);
-  protected readonly appSettingsError = signal('');
   protected readonly supportsAppSettings = computed(() =>
     ['WebApp', 'FunctionApp', 'ContainerApp'].includes(this.resourceType)
   );
 
   // ─── Custom Domains ───
-  protected readonly customDomains = signal<CustomDomainResponse[]>([]);
-  protected readonly customDomainsLoading = signal(false);
-  protected readonly customDomainsError = signal('');
   protected readonly supportsCustomDomains = computed(() =>
     ['WebApp', 'FunctionApp', 'ContainerApp'].includes(this.resourceType)
   );
-  protected customDomainsForEnv(envName: string): CustomDomainResponse[] {
-    return this.customDomains().filter(d => d.environmentName === envName);
-  }
-
-  /** App settings grouped by category for sectioned display */
-  protected readonly appSettingsGrouped = computed(() => {
-    const all = this.appSettings();
-
-    // 1. Variable Groups (including VG+KV secret combos) grouped by VG
-    const byVg = new Map<string, { vgName: string; vgId: string; settings: AppSettingResponse[] }>();
-    // 2. Output references
-    const outputs: AppSettingResponse[] = [];
-    // 3. Static values (including pure KV references without VG)
-    const statics: AppSettingResponse[] = [];
-
-    for (const s of all) {
-      if (s.isViaVariableGroup && s.variableGroupId) {
-        const vgId = s.variableGroupId;
-        if (!byVg.has(vgId)) {
-          byVg.set(vgId, { vgName: s.variableGroupName ?? vgId, vgId, settings: [] });
-        }
-        byVg.get(vgId)!.settings.push(s);
-      } else if (s.isOutputReference) {
-        outputs.push(s);
-      } else {
-        statics.push(s);
+  protected readonly appSettingsSection = createResourceEditAppSettingsSectionController({
+    getResourceId: () => this.resourceId,
+    getResourceName: () => this.resource()?.name ?? '',
+    getResourceType: () => this.resourceType,
+    getProjectId: () => this.config()?.projectId ?? '',
+    getEnvironments: () => this.environments(),
+    getAllResources: () => this.identityAccessSection.allResources(),
+    getAssignedUai: () => this.identityAccessSection.assignedUai(),
+    getUaiOptions: () => this.identityAccessSection.uaiOptions(),
+    getResourceContext: () => {
+      const resource = this.resource();
+      if (!resource) {
+        return null;
       }
-    }
 
-    return {
-      byVg: [...byVg.values()],
-      outputs,
-      statics,
-    };
+      return {
+        resourceGroupId: resource.resourceGroupId ?? '',
+        location: resource.location ?? 'EastUS2',
+      };
+    },
+    getDeploymentMode: () => (this.generalForm?.get('deploymentMode')?.value as string | null | undefined) ?? this.deploymentMode(),
+    getRuntimeStack: () => (this.generalForm?.get('runtimeStack')?.value as string | null | undefined) ?? null,
+    reloadRoleAssignments: () => this.identityAccessSection.loadRoleAssignments(),
+    reloadAllResources: () => this.identityAccessSection.loadAllResources(),
   });
-
-  protected readonly appSettingsSectionCount = computed(() => {
-    const g = this.appSettingsGrouped();
-    let n = 0;
-    if (g.byVg.length > 0) n++;
-    if (g.outputs.length > 0) n++;
-    if (g.statics.length > 0) n++;
-    return n;
-  });
-
-  // ─── Key Vault Access Check (App Settings) ───
-  protected readonly kvMissingRoleEntries = signal<KvMissingRoleEntry[]>([]);
-  protected readonly kvMissingRoleChecking = signal(false);
 
   // ─── Configuration Keys (AppConfiguration) ───
-  protected readonly configKeys = signal<AppConfigurationKeyResponse[]>([]);
-  protected readonly configKeysLoading = signal(false);
-  protected readonly configKeysError = signal('');
   protected readonly supportsConfigKeys = computed(() => this.resourceType === 'AppConfiguration');
-  protected readonly configKeyKvMissingRoleEntries = signal<KvMissingRoleEntry[]>([]);
-  protected readonly configKeyKvMissingRoleChecking = signal(false);
-
-  protected readonly configKeysGrouped = computed(() => {
-    const all = this.configKeys();
-    const byVg = new Map<string, { vgName: string; vgId: string; keys: AppConfigurationKeyResponse[] }>();
-    const outputs: AppConfigurationKeyResponse[] = [];
-    const statics: AppConfigurationKeyResponse[] = [];
-
-    for (const k of all) {
-      if (k.isViaVariableGroup && k.variableGroupId) {
-        const vgId = k.variableGroupId;
-        if (!byVg.has(vgId)) {
-          byVg.set(vgId, { vgName: k.variableGroupName ?? vgId, vgId, keys: [] });
-        }
-        byVg.get(vgId)!.keys.push(k);
-      } else if (k.isOutputReference) {
-        outputs.push(k);
-      } else {
-        statics.push(k);
+  protected readonly configKeysSection = createResourceEditConfigKeysSectionController({
+    getResourceId: () => this.resourceId,
+    getProjectId: () => this.config()?.projectId ?? '',
+    getEnvironments: () => this.environments(),
+    getAllResources: () => this.identityAccessSection.allResources(),
+    getAssignedUai: () => this.identityAccessSection.assignedUai(),
+    getUaiOptions: () => this.identityAccessSection.uaiOptions(),
+    getResourceContext: () => {
+      const resource = this.resource();
+      if (!resource) {
+        return null;
       }
-    }
 
-    return { byVg: [...byVg.values()], outputs, statics };
+      return {
+        resourceGroupId: resource.resourceGroupId ?? '',
+        location: resource.location ?? 'EastUS2',
+      };
+    },
+    reloadRoleAssignments: () => this.identityAccessSection.loadRoleAssignments(),
+    reloadAllResources: () => this.identityAccessSection.loadAllResources(),
   });
 
   // ─── Options ───
@@ -838,7 +550,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   /** SQL Server options computed from allResources for SqlDatabase picker */
   protected readonly sqlServerOptionsForSelect = computed<DsSelectOption[]>(() =>
-    this.allResources()
+    this.identityAccessSection.allResources()
       .filter(r => r.resourceType === 'SqlServer')
       .map(r => ({ value: r.id, label: r.name })),
   );
@@ -846,7 +558,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   /** Log Analytics Workspace options with explicit None entry */
   protected readonly lawOptionsForSelect = computed<DsSelectOption[]>(() => [
     { value: null, label: this.translate.instant('RESOURCE_EDIT.GENERAL.NONE') },
-    ...this.availableLogAnalyticsWorkspaces().map(law => ({ value: law.id, label: law.name })),
+    ...this.identityAccessSection.availableLogAnalyticsWorkspaces().map(law => ({ value: law.id, label: law.name })),
   ]);
 
   /** Variable Group options for the SQL password selector, with a sentinel "create new" entry. */
@@ -895,7 +607,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   // ─── Forms ───
   protected generalForm!: FormGroup;
-  protected envForms = signal<{ envName: string; form: FormGroup }[]>([]);
+  protected envForms = signal<ResourceEditEnvironmentFormEntry[]>([]);
 
   // ─── Environments ───
   protected readonly environments = computed<EnvironmentDefinitionResponse[]>(() => {
@@ -959,7 +671,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.pageContextService.setBreadcrumb(segments);
   });
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     this.configId = this.route.snapshot.paramMap.get('configId') ?? '';
     this.resourceType = this.route.snapshot.paramMap.get('resourceType') ?? '';
     this.resourceId = this.route.snapshot.paramMap.get('resourceId') ?? '';
@@ -980,7 +692,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       }
     }
 
-    await this.loadData();
+    void this.loadData();
   }
 
   private async loadData(): Promise<void> {
@@ -1016,23 +728,34 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       }
 
       // Load role assignments and sibling resources in background (non-blocking)
-      this.loadRoleAssignments();
-      this.loadAllResources();
+      void this.identityAccessSection.loadRoleAssignments();
+      void this.identityAccessSection.loadAllResources();
       if (this.supportsAppSettings()) {
-        this.loadAppSettings();
+        void this.appSettingsSection.load();
       }
       if (this.supportsCustomDomains()) {
-        this.loadCustomDomains();
+        void this.customDomainsSection.load();
       }
       if (this.supportsConfigKeys()) {
-        this.loadConfigKeys();
+        void this.configKeysSection.load();
       }
       if (this.isUserAssignedIdentity()) {
-        this.loadIdentityRoleAssignments();
+        void this.identityAccessSection.loadIdentityRoleAssignments();
       }
       if (this.resourceType === 'SqlServer') {
         this.loadSecureParamMappings();
       }
+
+    // Initialize runtime version options for WebApp/FunctionApp
+    if (this.resourceType === 'WebApp') {
+      const stack = this.generalForm.get('runtimeStack')?.value;
+      this.runtimeVersionOptions.set(WEBAPP_RUNTIME_VERSION_MAP[stack] ?? []);
+    } else if (this.resourceType === 'FunctionApp') {
+      const stack = this.generalForm.get('runtimeStack')?.value;
+      this.runtimeVersionOptions.set(FUNCTIONAPP_RUNTIME_VERSION_MAP[stack] ?? []);
+    } else {
+      this.runtimeVersionOptions.set([]);
+    }
     } catch {
       this.loadError.set('RESOURCE_EDIT.ERROR.LOAD_FAILED');
     } finally {
@@ -1077,153 +800,37 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       case 'SqlDatabase':
         return this.sqlDatabaseService.getById(this.resourceId);
       default:
-        throw new Error(`Unknown resource type: ${this.resourceType}`);
+        throw new Error(`Unsupported resource type: ${this.resourceType}`);
     }
   }
 
   private buildGeneralForm(resource: ResourceData): void {
-    const base: Record<string, unknown[]> = {
-      name: [resource.name, [Validators.required, Validators.maxLength(80)]],
-      location: [resource.location, [Validators.required]],
-    };
+    const buildResult = buildResourceEditGeneralForm({
+      fb: this.fb,
+      resourceType: this.resourceType,
+      resource,
+      resolveAcrAuthMode: (containerRegistryId, acrAuthMode) => this.resolveAcrAuthMode(containerRegistryId, acrAuthMode),
+    });
 
-    this.acrAccessChecking.set(false);
-    this.resetAcrPullAccessState();
-    this.selectedContainerRegistryId.set(null);
-    this.acrAuthMode.set(null);
+    this.generalForm = buildResult.form;
+    this.deploymentMode.set(buildResult.deploymentMode);
+    this.selectedContainerRegistryId.set(buildResult.selectedContainerRegistryId);
+    this.setAcrAuthMode(buildResult.acrAuthMode);
+    this.storageCorsRulesDraft.set(buildResult.storageCorsRulesDraft);
+    this.storageTableCorsRulesDraft.set(buildResult.storageTableCorsRulesDraft);
+    this.lifecycleRulesDraft.set(buildResult.lifecycleRulesDraft);
 
-    if (this.resourceType === 'KeyVault') {
-      const kv = resource as KeyVaultResponse;
-      base['enableRbacAuthorization'] = [kv.enableRbacAuthorization];
-      base['enabledForDeployment'] = [kv.enabledForDeployment];
-      base['enabledForDiskEncryption'] = [kv.enabledForDiskEncryption];
-      base['enabledForTemplateDeployment'] = [kv.enabledForTemplateDeployment];
-      base['enablePurgeProtection'] = [kv.enablePurgeProtection];
-      base['enableSoftDelete'] = [kv.enableSoftDelete];
-    } else if (this.resourceType === 'AppServicePlan') {
-      const asp = resource as AppServicePlanResponse;
-      base['osType'] = [asp.osType, [Validators.required]];
-    } else if (this.resourceType === 'WebApp') {
-      const wa = resource as WebAppResponse;
-      const resolvedAcrAuthMode = this.resolveAcrAuthMode(wa.containerRegistryId ?? null, wa.acrAuthMode ?? null);
-      base['appServicePlanId'] = [wa.appServicePlanId];
-      base['deploymentMode'] = [wa.deploymentMode || 'Code'];
-      base['containerRegistryId'] = [wa.containerRegistryId ?? null];
-      base['acrAuthMode'] = [resolvedAcrAuthMode];
-      base['dockerImageName'] = [wa.dockerImageName ?? null];
-      base['runtimeStack'] = [wa.runtimeStack, [Validators.required]];
-      base['runtimeVersion'] = [wa.runtimeVersion];
-      base['alwaysOn'] = [wa.alwaysOn];
-      base['httpsOnly'] = [wa.httpsOnly];
-      base['dockerfilePath'] = [wa.dockerfilePath ?? ''];
-      base['sourceCodePath'] = [wa.sourceCodePath ?? ''];
-      base['buildCommand'] = [wa.buildCommand ?? ''];
-      base['applicationName'] = [wa.applicationName ?? ''];
-      this.deploymentMode.set((wa.deploymentMode as 'Code' | 'Container') || 'Code');
-      this.selectedContainerRegistryId.set(wa.containerRegistryId ?? null);
-      this.acrAuthMode.set(resolvedAcrAuthMode);
-    } else if (this.resourceType === 'FunctionApp') {
-      const fa = resource as FunctionAppResponse;
-      const resolvedAcrAuthMode = this.resolveAcrAuthMode(fa.containerRegistryId ?? null, fa.acrAuthMode ?? null);
-      base['appServicePlanId'] = [fa.appServicePlanId];
-      base['deploymentMode'] = [fa.deploymentMode || 'Code'];
-      base['containerRegistryId'] = [fa.containerRegistryId ?? null];
-      base['acrAuthMode'] = [resolvedAcrAuthMode];
-      base['dockerImageName'] = [fa.dockerImageName ?? null];
-      base['runtimeStack'] = [fa.runtimeStack, [Validators.required]];
-      base['runtimeVersion'] = [fa.runtimeVersion];
-      base['httpsOnly'] = [fa.httpsOnly];
-      base['dockerfilePath'] = [fa.dockerfilePath ?? ''];
-      base['sourceCodePath'] = [fa.sourceCodePath ?? ''];
-      base['buildCommand'] = [fa.buildCommand ?? ''];
-      base['applicationName'] = [fa.applicationName ?? ''];
-      this.deploymentMode.set((fa.deploymentMode as 'Code' | 'Container') || 'Code');
-      this.selectedContainerRegistryId.set(fa.containerRegistryId ?? null);
-      this.acrAuthMode.set(resolvedAcrAuthMode);
-    } else if (this.resourceType === 'StorageAccount') {
-      const sa = resource as StorageAccountResponse;
-      base['kind'] = [sa.kind, [Validators.required]];
-      base['accessTier'] = [sa.accessTier, [Validators.required]];
-      base['allowBlobPublicAccess'] = [sa.allowBlobPublicAccess];
-      base['enableHttpsTrafficOnly'] = [sa.enableHttpsTrafficOnly];
-      base['minimumTlsVersion'] = [sa.minimumTlsVersion, [Validators.required]];
-      this.storageCorsRulesDraft.set((sa.corsRules ?? []).map(rule => ({
-        allowedOrigins: [...rule.allowedOrigins],
-        allowedMethods: [...rule.allowedMethods],
-        allowedHeaders: [...rule.allowedHeaders],
-        exposedHeaders: [...rule.exposedHeaders],
-        maxAgeInSeconds: rule.maxAgeInSeconds,
-      })));
-      this.storageTableCorsRulesDraft.set((sa.tableCorsRules ?? []).map(rule => ({
-        allowedOrigins: [...rule.allowedOrigins],
-        allowedMethods: [...rule.allowedMethods],
-        allowedHeaders: [...rule.allowedHeaders],
-        exposedHeaders: [...rule.exposedHeaders],
-        maxAgeInSeconds: rule.maxAgeInSeconds,
-      })));
-      this.lifecycleRulesDraft.set((sa.lifecycleRules ?? []).map(rule => ({
-        ruleName: rule.ruleName,
-        containerNames: [...rule.containerNames],
-        timeToLiveInDays: rule.timeToLiveInDays,
-      })));
-    } else if (this.resourceType === 'ContainerApp') {
-      const ca = resource as ContainerAppResponse;
-      const resolvedAcrAuthMode = this.resolveAcrAuthMode(ca.containerRegistryId ?? null, ca.acrAuthMode ?? null);
-      base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
-      base['containerRegistryId'] = [ca.containerRegistryId ?? null];
-      base['acrAuthMode'] = [resolvedAcrAuthMode];
-      base['dockerImageName'] = [ca.dockerImageName ?? null];
-      base['dockerfilePath'] = [ca.dockerfilePath ?? ''];
-      base['applicationName'] = [ca.applicationName ?? ''];
-      this.selectedContainerRegistryId.set(ca.containerRegistryId ?? null);
-      this.acrAuthMode.set(resolvedAcrAuthMode);
-    } else if (this.resourceType === 'ContainerAppEnvironment') {
-      const cae = resource as ContainerAppEnvironmentResponse;
-      base['logAnalyticsWorkspaceId'] = [cae.logAnalyticsWorkspaceId ?? null];
-    } else if (this.resourceType === 'ApplicationInsights') {
-      const ai = resource as ApplicationInsightsResponse;
-      base['logAnalyticsWorkspaceId'] = [ai.logAnalyticsWorkspaceId];
-    } else if (this.resourceType === 'RedisCache') {
-      const rc = resource as RedisCacheResponse;
-      base['redisVersion'] = [rc.redisVersion, [Validators.required]];
-      base['enableNonSslPort'] = [rc.enableNonSslPort];
-      base['minimumTlsVersion'] = [rc.minimumTlsVersion, [Validators.required]];
-      base['disableAccessKeyAuthentication'] = [rc.disableAccessKeyAuthentication];
-      base['enableAadAuth'] = [rc.enableAadAuth];
-    } else if (this.resourceType === 'SqlServer') {
-      const sql = resource as SqlServerResponse;
-      base['version'] = [sql.version, [Validators.required]];
-      base['administratorLogin'] = [sql.administratorLogin, [Validators.required]];
-    } else if (this.resourceType === 'SqlDatabase') {
-      const db = resource as SqlDatabaseResponse;
-      base['sqlServerId'] = [db.sqlServerId, [Validators.required]];
-      base['collation'] = [db.collation];
-    }
-
-    this.generalForm = this.fb.group(base);
-
-    // Initialize runtime version options for WebApp/FunctionApp
-    if (this.resourceType === 'WebApp') {
-      const stack = this.generalForm.get('runtimeStack')?.value;
-      this.runtimeVersionOptions.set(WEBAPP_RUNTIME_VERSION_MAP[stack] ?? []);
-    } else if (this.resourceType === 'FunctionApp') {
-      const stack = this.generalForm.get('runtimeStack')?.value;
-      this.runtimeVersionOptions.set(FUNCTIONAPP_RUNTIME_VERSION_MAP[stack] ?? []);
+    // Hydrate pipeline step options for compute resources
+    if (this.supportsAppPipeline()) {
+      const res = resource as { pipelineStepOptions?: PipelineStepOptions | null };
+      this.pipelineStepOptions.set(res.pipelineStepOptions ?? null);
     }
   }
 
   private buildEnvForms(resource: ResourceData): void {
-    const envs = this.environments();
-    const forms: { envName: string; form: FormGroup }[] = [];
-
-    for (const env of envs) {
-      forms.push({
-        envName: env.name,
-        form: this.buildSingleEnvForm(resource, env.name),
-      });
-    }
-
-    this.envForms.set(forms);
+    this.envForms.set(
+      buildResourceEditEnvironmentForms(this.fb, this.resourceType, resource, this.environments()),
+    );
   }
 
   protected onProbeToggle(envIndex: number, probeType: 'readiness' | 'liveness' | 'startup', enabled: boolean): void {
@@ -1242,180 +849,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     });
   }
 
-  private buildSingleEnvForm(resource: ResourceData, envName: string): FormGroup {
-    switch (this.resourceType) {
-      case 'KeyVault': {
-        const kv = resource as KeyVaultResponse;
-        const settings = kv.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-        });
-      }
-      case 'RedisCache': {
-        const rc = resource as RedisCacheResponse;
-        const settings = rc.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          capacity: [settings?.capacity ?? null],
-          maxMemoryPolicy: [settings?.maxMemoryPolicy ?? null],
-        });
-      }
-      case 'StorageAccount': {
-        const sa = resource as StorageAccountResponse;
-        const settings = sa.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-        });
-      }
-      case 'AppServicePlan': {
-        const asp = resource as AppServicePlanResponse;
-        const settings = asp.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          capacity: [settings?.capacity ?? null],
-        });
-      }
-      case 'WebApp': {
-        const wa = resource as WebAppResponse;
-        const settings = wa.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          alwaysOn: [settings?.alwaysOn ?? null],
-          httpsOnly: [settings?.httpsOnly ?? null],
-          dockerImageTag: [settings?.dockerImageTag ?? null],
-        });
-      }
-      case 'FunctionApp': {
-        const fa = resource as FunctionAppResponse;
-        const settings = fa.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          httpsOnly: [settings?.httpsOnly ?? null],
-          maxInstanceCount: [settings?.maxInstanceCount ?? null],
-          dockerImageTag: [settings?.dockerImageTag ?? null],
-        });
-      }
-      case 'AppConfiguration': {
-        const ac = resource as AppConfigurationResponse;
-        const settings = ac.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          softDeleteRetentionInDays: [settings?.softDeleteRetentionInDays ?? null],
-          purgeProtectionEnabled: [settings?.purgeProtectionEnabled ?? null],
-          disableLocalAuth: [settings?.disableLocalAuth ?? null],
-          publicNetworkAccess: [settings?.publicNetworkAccess ?? null],
-        });
-      }
-      case 'ContainerAppEnvironment': {
-        const cae = resource as ContainerAppEnvironmentResponse;
-        const settings = cae.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          workloadProfileType: [settings?.workloadProfileType ?? null],
-          internalLoadBalancerEnabled: [settings?.internalLoadBalancerEnabled ?? null],
-          zoneRedundancyEnabled: [settings?.zoneRedundancyEnabled ?? null],
-        });
-      }
-      case 'ContainerApp': {
-        const ca = resource as ContainerAppResponse;
-        const settings = ca.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          cpuCores: [settings?.cpuCores ?? null],
-          memoryGi: [settings?.memoryGi ?? null],
-          minReplicas: [settings?.minReplicas ?? null],
-          maxReplicas: [settings?.maxReplicas ?? null],
-          ingressEnabled: [settings?.ingressEnabled ?? null],
-          ingressTargetPort: [settings?.ingressTargetPort ?? null],
-          ingressExternal: [settings?.ingressExternal ?? null],
-          transportMethod: [settings?.transportMethod ?? null],
-          readinessProbeEnabled: [!!(settings?.readinessProbePath)],
-          readinessProbePath: [settings?.readinessProbePath ?? null],
-          readinessProbePort: [settings?.readinessProbePort ?? null],
-          livenessProbeEnabled: [!!(settings?.livenessProbePath)],
-          livenessProbePath: [settings?.livenessProbePath ?? null],
-          livenessProbePort: [settings?.livenessProbePort ?? null],
-          startupProbeEnabled: [!!(settings?.startupProbePath)],
-          startupProbePath: [settings?.startupProbePath ?? null],
-          startupProbePort: [settings?.startupProbePort ?? null],
-        });
-      }
-      case 'LogAnalyticsWorkspace': {
-        const law = resource as LogAnalyticsWorkspaceResponse;
-        const settings = law.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          retentionInDays: [settings?.retentionInDays ?? null],
-          dailyQuotaGb: [settings?.dailyQuotaGb ?? null],
-        });
-      }
-      case 'ApplicationInsights': {
-        const ai = resource as ApplicationInsightsResponse;
-        const settings = ai.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          samplingPercentage: [settings?.samplingPercentage ?? null],
-          retentionInDays: [settings?.retentionInDays ?? null],
-          disableIpMasking: [settings?.disableIpMasking ?? null],
-          disableLocalAuth: [settings?.disableLocalAuth ?? null],
-          ingestionMode: [settings?.ingestionMode ?? null],
-        });
-      }
-      case 'CosmosDb': {
-        const cosmosDb = resource as CosmosDbResponse;
-        const settings = cosmosDb.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          databaseApiType: [settings?.databaseApiType ?? null],
-          consistencyLevel: [settings?.consistencyLevel ?? null],
-          maxStalenessPrefix: [settings?.maxStalenessPrefix ?? null],
-          maxIntervalInSeconds: [settings?.maxIntervalInSeconds ?? null],
-          enableAutomaticFailover: [settings?.enableAutomaticFailover ?? null],
-          enableMultipleWriteLocations: [settings?.enableMultipleWriteLocations ?? null],
-          backupPolicyType: [settings?.backupPolicyType ?? null],
-          enableFreeTier: [settings?.enableFreeTier ?? null],
-        });
-      }
-      case 'ServiceBusNamespace': {
-        const sb = resource as ServiceBusNamespaceResponse;
-        const settings = sb.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          capacity: [settings?.capacity ?? null],
-          zoneRedundant: [settings?.zoneRedundant ?? null],
-          disableLocalAuth: [settings?.disableLocalAuth ?? null],
-          minimumTlsVersion: [settings?.minimumTlsVersion ?? null],
-        });
-      }
-      case 'ContainerRegistry': {
-        const cr = resource as ContainerRegistryResponse;
-        const settings = cr.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          adminUserEnabled: [settings?.adminUserEnabled ?? null],
-          publicNetworkAccess: [settings?.publicNetworkAccess ?? null],
-          zoneRedundancy: [settings?.zoneRedundancy ?? null],
-        });
-      }
-      case 'SqlServer': {
-        const sql = resource as SqlServerResponse;
-        const settings = sql.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          minimalTlsVersion: [settings?.minimalTlsVersion ?? null],
-        });
-      }
-      case 'SqlDatabase': {
-        const db = resource as SqlDatabaseResponse;
-        const settings = db.environmentSettings?.find(s => s.environmentName === envName);
-        return this.fb.group({
-          sku: [settings?.sku ?? null],
-          maxSizeGb: [settings?.maxSizeGb ?? null],
-          zoneRedundant: [settings?.zoneRedundant ?? null],
-        });
-      }
-      default:
-        return this.fb.group({});
-    }
-  }
-
   /** User confirms the unavailable name is theirs and overrides the save block. */
   protected overrideNameAvailability(): void {
     this.nameAvailabilityOverridden.set(true);
+  }
+
+  protected onPipelineOptionsChanged(options: PipelineStepOptions): void {
+    this.pipelineStepOptions.set(options);
+    this.formsDirty.set(true);
   }
 
   private resolveAcrAuthMode(containerRegistryId: string | null | undefined, acrAuthMode: AcrAuthMode | null | undefined): AcrAuthMode | null {
@@ -1453,6 +894,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.saveSuccess.set(false);
 
     const general = this.generalForm.getRawValue();
+    const envForms = this.envForms();
 
     try {
       switch (this.resourceType) {
@@ -1466,19 +908,19 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             enabledForTemplateDeployment: general.enabledForTemplateDeployment,
             enablePurgeProtection: general.enablePurgeProtection,
             enableSoftDelete: general.enableSoftDelete,
-            environmentSettings: this.buildKeyVaultEnvSettings(),
+            environmentSettings: buildKeyVaultEnvironmentSettings(envForms),
           });
           break;
         case 'RedisCache':
           await this.redisCacheService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            redisVersion: general.redisVersion != null ? Number(general.redisVersion) : null,
+            redisVersion: toNullableNumber(general.redisVersion),
             enableNonSslPort: general.enableNonSslPort ?? false,
             minimumTlsVersion: general.minimumTlsVersion || null,
             disableAccessKeyAuthentication: general.disableAccessKeyAuthentication ?? false,
             enableAadAuth: general.enableAadAuth ?? false,
-            environmentSettings: this.buildRedisCacheEnvSettings(),
+            environmentSettings: buildRedisCacheEnvironmentSettings(envForms),
           });
           break;
         case 'StorageAccount':
@@ -1496,10 +938,10 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             allowBlobPublicAccess: general.allowBlobPublicAccess ?? false,
             enableHttpsTrafficOnly: general.enableHttpsTrafficOnly ?? true,
             minimumTlsVersion: general.minimumTlsVersion,
-            corsRules: this.buildStorageAccountCorsRules(),
-            tableCorsRules: this.buildStorageAccountTableCorsRules(),
-            lifecycleRules: this.buildLifecycleRules(),
-            environmentSettings: this.buildStorageAccountEnvSettings(),
+            corsRules: buildStorageAccountCorsRules(this.storageCorsRulesDraft()),
+            tableCorsRules: buildStorageAccountCorsRules(this.storageTableCorsRulesDraft()),
+            lifecycleRules: buildBlobLifecycleRules(this.lifecycleRulesDraft()),
+            environmentSettings: buildStorageAccountEnvironmentSettings(envForms),
           });
           break;
         case 'AppServicePlan':
@@ -1507,7 +949,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             name: general.name,
             location: general.location,
             osType: general.osType,
-            environmentSettings: this.buildAppServicePlanEnvSettings(),
+            environmentSettings: buildAppServicePlanEnvironmentSettings(envForms),
           });
           break;
         case 'WebApp': {
@@ -1531,7 +973,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             runtimeVersion: general.runtimeVersion,
             alwaysOn: general.alwaysOn,
             httpsOnly: general.httpsOnly,
-            environmentSettings: this.buildWebAppEnvSettings(),
+            pipelineStepOptions: this.pipelineStepOptions(),
+            environmentSettings: buildWebAppEnvironmentSettings(envForms),
           });
           break;
         }
@@ -1555,7 +998,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             runtimeStack: general.runtimeStack,
             runtimeVersion: general.runtimeVersion,
             httpsOnly: general.httpsOnly,
-            environmentSettings: this.buildFunctionAppEnvSettings(),
+            pipelineStepOptions: this.pipelineStepOptions(),
+            environmentSettings: buildFunctionAppEnvironmentSettings(envForms),
           });
           break;
         }
@@ -1569,7 +1013,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           await this.appConfigurationService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            environmentSettings: this.buildAppConfigurationEnvSettings(),
+            environmentSettings: buildAppConfigurationEnvironmentSettings(envForms),
           });
           break;
         case 'ContainerAppEnvironment':
@@ -1577,7 +1021,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             name: general.name,
             location: general.location,
             logAnalyticsWorkspaceId: general.logAnalyticsWorkspaceId || null,
-            environmentSettings: this.buildContainerAppEnvironmentEnvSettings(),
+            environmentSettings: buildContainerAppEnvironmentResourceSettings(envForms),
           });
           break;
         case 'ContainerApp': {
@@ -1592,7 +1036,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             dockerImageName: general.dockerImageName || null,
             dockerfilePath: general.dockerfilePath || null,
             applicationName: general.applicationName || null,
-            environmentSettings: this.buildContainerAppEnvSettings(),
+            pipelineStepOptions: this.pipelineStepOptions(),
+            environmentSettings: buildContainerAppEnvironmentSettings(envForms),
           });
           break;
         }
@@ -1600,7 +1045,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           await this.logAnalyticsWorkspaceService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            environmentSettings: this.buildLogAnalyticsWorkspaceEnvSettings(),
+            environmentSettings: buildLogAnalyticsWorkspaceEnvironmentSettings(envForms),
           });
           break;
         case 'ApplicationInsights':
@@ -1608,28 +1053,28 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             name: general.name,
             location: general.location,
             logAnalyticsWorkspaceId: general.logAnalyticsWorkspaceId,
-            environmentSettings: this.buildApplicationInsightsEnvSettings(),
+            environmentSettings: buildApplicationInsightsEnvironmentSettings(envForms),
           });
           break;
         case 'CosmosDb':
           await this.cosmosDbService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            environmentSettings: this.buildCosmosDbEnvSettings(),
+            environmentSettings: buildCosmosDbEnvironmentSettings(envForms),
           });
           break;
         case 'ServiceBusNamespace':
           await this.serviceBusNamespaceService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            environmentSettings: this.buildServiceBusNamespaceEnvSettings(),
+            environmentSettings: buildServiceBusNamespaceEnvironmentSettings(envForms),
           });
           break;
         case 'ContainerRegistry':
           await this.containerRegistryService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            environmentSettings: this.buildContainerRegistryEnvSettings(),
+            environmentSettings: buildContainerRegistryEnvironmentSettings(envForms),
           });
           break;
         case 'SqlServer':
@@ -1638,7 +1083,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             location: general.location,
             version: general.version,
             administratorLogin: general.administratorLogin,
-            environmentSettings: this.buildSqlServerEnvSettings(),
+            environmentSettings: buildSqlServerEnvironmentSettings(envForms),
           });
           break;
         case 'SqlDatabase':
@@ -1647,7 +1092,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             location: general.location,
             sqlServerId: general.sqlServerId,
             collation: general.collation ?? 'SQL_Latin1_General_CP1_CI_AS',
-            environmentSettings: this.buildSqlDatabaseEnvSettings(),
+            environmentSettings: buildSqlDatabaseEnvironmentSettings(envForms),
           });
           break;
       }
@@ -1853,7 +1298,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         userAssignedIdentityId: uaiId,
       });
       await this.checkAcrPullAccess(acrId);
-      await this.loadRoleAssignments();
+      await this.identityAccessSection.loadRoleAssignments();
     } catch {
       // Error handled silently; the UI will still show the missing role
     } finally {
@@ -1874,7 +1319,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(async (result: UserAssignedIdentityResponse | undefined) => {
       if (!result) return;
-      await this.loadAllResources();
+      await this.identityAccessSection.loadAllResources();
       this.acrSelectedUaiId.set(result.id);
     });
   }
@@ -1968,782 +1413,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       this.saveError.set('RESOURCE_EDIT.ERROR.DELETE_FAILED');
       this.isSaving.set(false);
     }
-  }
-
-  // ─── Role Assignment methods ───
-
-  private async loadRoleAssignments(): Promise<void> {
-    this.roleAssignmentsLoading.set(true);
-    this.roleAssignmentsError.set('');
-    try {
-      const result = await this.roleAssignmentService.getByResourceId(this.resourceId);
-      this.roleAssignments.set(result.roleAssignments);
-      this.assignedIdentityId.set(result.assignedUserAssignedIdentityId);
-      this.assignedIdentityName.set(result.assignedUserAssignedIdentityName);
-
-      const assignedUserAssignedIdentityId = result.assignedUserAssignedIdentityId;
-      if (assignedUserAssignedIdentityId) {
-        this.expandedUaiIds.update(current => {
-          if (current.has(assignedUserAssignedIdentityId)) {
-            return current;
-          }
-
-          const next = new Set(current);
-          next.add(assignedUserAssignedIdentityId);
-          return next;
-        });
-      }
-
-      // Load role definitions for all unique target resource ids to resolve role names
-      const targetIds = [...new Set(result.roleAssignments.map(a => a.targetResourceId))];
-      const allDefs: AzureRoleDefinitionResponse[] = [];
-      for (const targetId of targetIds) {
-        try {
-          const defs = await this.roleAssignmentService.getAvailableRoleDefinitions(targetId);
-          allDefs.push(...defs);
-        } catch {
-          // Non-blocking
-        }
-      }
-      // Deduplicate by id
-      const deduped = allDefs.filter((d, i, arr) => arr.findIndex(x => x.id === d.id) === i);
-      this.availableRoleDefs.set(deduped);
-    } catch {
-      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.LOAD_ERROR');
-    } finally {
-      this.roleAssignmentsLoading.set(false);
-    }
-  }
-
-  private async loadAllResources(): Promise<void> {
-    try {
-      const rgs = await this.infraConfigService.getResourceGroups(this.configId);
-      const resourcePromises = rgs.map(rg => this.resourceGroupService.getResources(rg.id));
-      const results = await Promise.all(resourcePromises);
-      const localResources = results.flat().filter(r => r.id !== this.resourceId);
-
-      // Also load cross-config resources from the same project
-      const projectId = this.config()?.projectId;
-      if (projectId) {
-        try {
-          const projectResources = await this.projectService.getProjectResources(projectId);
-          const localIds = new Set(localResources.map(r => r.id));
-          const crossConfig = projectResources
-            .filter(pr => pr.configId !== this.configId && !localIds.has(pr.resourceId) && pr.resourceId !== this.resourceId)
-            .map(pr => ({
-              id: pr.resourceId,
-              resourceType: pr.resourceType,
-              name: `${pr.resourceName} (${pr.configName})`,
-              location: '',
-            } as AzureResourceResponse));
-          this.allResources.set([...localResources, ...crossConfig]);
-        } catch {
-          this.allResources.set(localResources);
-        }
-      } else {
-        this.allResources.set(localResources);
-      }
-    } catch {
-      this.allResources.set([]);
-    }
-  }
-
-  protected resolveTargetName(targetResourceId: string): string {
-    const res = this.allResources().find(r => r.id === targetResourceId);
-    return res?.name ?? targetResourceId;
-  }
-
-  protected resolveTargetType(targetResourceId: string): string {
-    const res = this.allResources().find(r => r.id === targetResourceId);
-    return res?.resourceType ?? '';
-  }
-
-  protected resolveRoleName(roleDefinitionId: string): string {
-    const def = this.availableRoleDefs().find(d => d.id === roleDefinitionId);
-    return def?.name ?? roleDefinitionId;
-  }
-
-  protected resolveRoleDocUrl(roleDefinitionId: string): string {
-    const def = this.availableRoleDefs().find(d => d.id === roleDefinitionId);
-    return def?.documentationUrl ?? '';
-  }
-
-  protected roleRequiresUserAssignedIdentity(roleDefinitionId: string): boolean {
-    return this.availableRoleDefs().find(d => d.id === roleDefinitionId)?.requiresUserAssignedIdentity ?? false;
-  }
-
-  protected resolveIdentityName(identityId: string): string {
-    const res = this.allResources().find(r => r.id === identityId);
-    if (res) return res.name;
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identityId);
-    return isUuid ? `⚠ ${identityId.substring(0, 8)}…` : identityId;
-  }
-
-  protected async switchToSystemAssigned(assignment: RoleAssignmentResponse): Promise<void> {
-    this.roleAssignmentsError.set('');
-    try {
-      const updated = await this.roleAssignmentService.updateIdentity(
-        this.resourceId,
-        assignment.id,
-        { managedIdentityType: 'SystemAssigned' }
-      );
-      this.roleAssignments.update(list =>
-        list.map(ra => ra.id === updated.id ? updated : ra)
-      );
-    } catch {
-      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.UPDATE_IDENTITY_ERROR');
-    }
-  }
-
-  protected async switchToUserAssignedIdentity(assignment: RoleAssignmentResponse, identityId: string): Promise<void> {
-    this.roleAssignmentsError.set('');
-    try {
-      const updated = await this.roleAssignmentService.updateIdentity(
-        this.resourceId,
-        assignment.id,
-        { managedIdentityType: 'UserAssigned', userAssignedIdentityId: identityId }
-      );
-      this.roleAssignments.update(list =>
-        list.map(ra => ra.id === updated.id ? updated : ra)
-      );
-    } catch {
-      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.UPDATE_IDENTITY_ERROR');
-    }
-  }
-
-  protected openAddRoleAssignmentDialog(): void {
-    const baseData = {
-      sourceResourceId: this.resourceId,
-      currentResourceName: this.resource()?.name ?? '',
-      siblingResources: this.allResources(),
-      resourceGroupId: this.resource()?.resourceGroupId ?? '',
-      configLocation: this.resource()?.location ?? 'EastUS2',
-    };
-
-    const assignedUai = this.assignedUai();
-    const data: AddRoleAssignmentDialogData = this.isUserAssignedIdentity()
-      ? {
-          ...baseData,
-          isFromUserAssignedIdentity: true,
-          userAssignedIdentityId: this.resourceId,
-          userAssignedIdentityName: this.resource()?.name ?? '',
-        }
-      : {
-          ...baseData,
-          ...(assignedUai ? {
-            assignedUserAssignedIdentityId: assignedUai.identityId,
-            assignedUserAssignedIdentityName: assignedUai.identityName,
-          } : {}),
-        };
-
-    const dialogRef = this.dialog.open(AddRoleAssignmentDialogComponent, {
-      data,
-      width: '520px',
-      maxHeight: '85vh',
-    });
-
-    dialogRef.afterClosed().subscribe(async (dialogResult?: AddRoleAssignmentDialogResult) => {
-      if (dialogResult) {
-        const result = dialogResult.roleAssignment;
-        // Immediately add any newly created identities so names resolve without delay
-        if (dialogResult.createdIdentities.length > 0) {
-          this.allResources.update(list => {
-            const existingIds = new Set(list.map(r => r.id));
-            const newOnes = dialogResult.createdIdentities.filter(ci => !existingIds.has(ci.id));
-            return newOnes.length > 0 ? [...list, ...newOnes] : list;
-          });
-        }
-        if (this.isUserAssignedIdentity()) {
-          this.loadIdentityRoleAssignments();
-        } else {
-          this.roleAssignments.update(list => [...list, result]);
-          this.loadRoleAssignments();
-          if (this.supportsAppSettings()) {
-            this.loadAppSettings();
-          }
-          if (this.supportsConfigKeys()) {
-            this.loadConfigKeys();
-          }
-        }
-        if (result.userAssignedIdentityId && !this.allResources().some(r => r.id === result.userAssignedIdentityId)) {
-          await this.loadAllResources();
-        }
-      }
-    });
-  }
-
-  protected async assignUaiToResource(identityId: string): Promise<void> {
-    this.roleAssignmentsError.set('');
-    try {
-      await this.roleAssignmentService.assignIdentity(this.resourceId, identityId);
-      await this.loadRoleAssignments();
-    } catch {
-      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.UPDATE_IDENTITY_ERROR');
-    }
-  }
-
-  protected openUnassignUaiDialog(uai: { identityId: string; identityName: string }): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        titleKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_TITLE',
-        messageKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_MESSAGE',
-        messageParams: { identity: uai.identityName },
-        confirmKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_CONFIRM',
-        cancelKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_CANCEL',
-      } satisfies ConfirmDialogData,
-      width: '480px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-      await this.unassignUaiFromResource(uai);
-    });
-  }
-
-  private async unassignUaiFromResource(uai: { identityId: string; identityName: string }): Promise<void> {
-    this.roleAssignmentsError.set('');
-    try {
-      await this.roleAssignmentService.unassignIdentity(this.resourceId);
-      await this.loadRoleAssignments();
-    } catch {
-      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_ERROR');
-    }
-  }
-
-  private async checkUaiUsageAndProposeDelete(identityId: string, identityName: string): Promise<void> {
-    try {
-      const grants = await this.userAssignedIdentityService.getGrantedRoleAssignments(identityId);
-      const usedByOthers = grants.some(ra => ra.sourceResourceId !== identityId);
-      if (usedByOthers) return;
-
-      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-        data: {
-          titleKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DELETE_UNUSED_UAI_TITLE',
-          messageKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DELETE_UNUSED_UAI_MESSAGE',
-          messageParams: { identity: identityName },
-          confirmKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DELETE_UNUSED_UAI_CONFIRM',
-          cancelKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DELETE_UNUSED_UAI_CANCEL',
-        } satisfies ConfirmDialogData,
-        width: '480px',
-      });
-
-      dialogRef.afterClosed().subscribe(async (deleteConfirmed?: boolean) => {
-        if (!deleteConfirmed) return;
-        try {
-          await this.userAssignedIdentityService.delete(identityId);
-          this.allResources.update(list => list.filter(r => r.id !== identityId));
-        } catch {
-          this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.DELETE_UAI_ERROR');
-        }
-      });
-    } catch {
-      // Silently fail the usage check — unassign already succeeded
-    }
-  }
-
-  protected async openRemoveRoleAssignmentDialog(assignment: RoleAssignmentResponse): Promise<void> {
-    const roleName = this.resolveRoleName(assignment.roleDefinitionId);
-    const targetName = this.resolveTargetName(assignment.targetResourceId);
-
-    let impactResult: RoleAssignmentImpactResponse;
-    try {
-      impactResult = await this.roleAssignmentService.analyzeImpact(this.resourceId, assignment.id);
-    } catch {
-      // Impact analysis failed — fall back to a simple confirmation dialog
-      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-        data: {
-          titleKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_TITLE',
-          messageKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_MESSAGE',
-          messageParams: { role: roleName, target: targetName },
-          confirmKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_YES',
-          cancelKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_CANCEL',
-        } satisfies ConfirmDialogData,
-        width: '420px',
-      });
-      dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-        if (!confirmed) return;
-        await this.removeRoleAssignment(assignment.id);
-      });
-      return;
-    }
-
-    const filteredImpacts = impactResult.impacts.filter(i => i.impactType !== 'LastRoleToTarget');
-    if (filteredImpacts.length === 0) {
-      await this.removeRoleAssignment(assignment.id);
-      return;
-    }
-
-    const dialogRef = this.dialog.open(RoleAssignmentImpactDialogComponent, {
-      data: {
-        roleName,
-        targetResourceName: targetName,
-        impactResult,
-      } satisfies RoleAssignmentImpactDialogData,
-      width: '520px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-      await this.removeRoleAssignment(assignment.id);
-    });
-  }
-
-  private async removeRoleAssignment(roleAssignmentId: string): Promise<void> {
-    this.roleAssignmentsError.set('');
-    try {
-      await this.roleAssignmentService.remove(this.resourceId, roleAssignmentId);
-      this.roleAssignments.update(list => list.filter(ra => ra.id !== roleAssignmentId));
-      if (this.isAcrEnabled()) {
-        await this.checkAcrPullAccess();
-      }
-      if (this.supportsAppSettings()) {
-        this.loadAppSettings();
-      }
-      if (this.supportsConfigKeys()) {
-        this.loadConfigKeys();
-      }
-    } catch {
-      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_ERROR');
-    }
-  }
-
-  // ─── Identity Granted Role Assignments (UAI) ───
-
-  private async loadIdentityRoleAssignments(): Promise<void> {
-    this.identityRoleAssignmentsLoading.set(true);
-    this.identityRoleAssignmentsError.set('');
-    try {
-      const assignments = await this.userAssignedIdentityService.getGrantedRoleAssignments(this.resourceId);
-      this.identityRoleAssignments.set(assignments);
-    } catch {
-      this.identityRoleAssignmentsError.set('RESOURCE_EDIT.GRANTED_RIGHTS.LOAD_ERROR');
-    } finally {
-      this.identityRoleAssignmentsLoading.set(false);
-    }
-  }
-
-  protected openUnlinkResourceFromIdentityDialog(group: { sourceResourceId: string; sourceResourceName: string; sourceResourceType: string; assignments: IdentityRoleAssignmentResponse[] }): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        titleKey: 'RESOURCE_EDIT.USED_BY.UNLINK_RESOURCE_TITLE',
-        messageKey: 'RESOURCE_EDIT.USED_BY.UNLINK_RESOURCE_MESSAGE',
-        messageParams: { resource: group.sourceResourceName },
-        confirmKey: 'RESOURCE_EDIT.USED_BY.UNLINK_YES',
-        cancelKey: 'RESOURCE_EDIT.USED_BY.UNLINK_CANCEL',
-      } satisfies ConfirmDialogData,
-      width: '420px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-      await this.unlinkAllAssignmentsForResource(group);
-    });
-  }
-
-  private async unlinkAllAssignmentsForResource(group: { sourceResourceId: string; assignments: IdentityRoleAssignmentResponse[] }): Promise<void> {
-    this.identityRoleAssignmentsError.set('');
-    try {
-      await this.userAssignedIdentityService.unlinkResource(this.resourceId, group.sourceResourceId);
-      await this.loadIdentityRoleAssignments();
-    } catch {
-      this.identityRoleAssignmentsError.set('RESOURCE_EDIT.USED_BY.UNLINK_ERROR');
-    }
-  }
-
-  // ─── App Settings ───
-
-  private async loadAppSettings(): Promise<void> {
-    this.appSettingsLoading.set(true);
-    this.appSettingsError.set('');
-    try {
-      const settings = await this.appSettingService.getByResourceId(this.resourceId);
-      this.appSettings.set(settings);
-      this.checkKvAccessForAppSettings(settings);
-    } catch {
-      this.appSettingsError.set('RESOURCE_EDIT.APP_SETTINGS.LOAD_ERROR');
-    } finally {
-      this.appSettingsLoading.set(false);
-    }
-  }
-
-  private async checkKvAccessForAppSettings(settings: AppSettingResponse[]): Promise<void> {
-    const missingByKv = new Map<string, AppSettingResponse[]>();
-    for (const s of settings) {
-      if (s.isKeyVaultReference && s.keyVaultResourceId && s.hasKeyVaultAccess === false) {
-        const existing = missingByKv.get(s.keyVaultResourceId);
-        if (existing) {
-          existing.push(s);
-        } else {
-          missingByKv.set(s.keyVaultResourceId, [s]);
-        }
-      }
-    }
-
-    if (missingByKv.size === 0) {
-      this.kvMissingRoleEntries.set([]);
-      return;
-    }
-
-    const uaiOptions = this.uaiOptionsForSelect();
-    const assigned = this.assignedUai();
-    const singleUaiId = assigned ? assigned.identityId : (uaiOptions.length === 1 ? uaiOptions[0].value : null);
-    const entries: KvMissingRoleEntry[] = [...missingByKv.entries()].map(([kvId, affected]) => ({
-      keyVaultResourceId: kvId,
-      keyVaultName: this.resolveSourceName(kvId),
-      missingRoleName: null,
-      missingRoleDefinitionId: null,
-      affectedSettingsCount: affected.length,
-      checking: true,
-      assigning: false,
-      selectedIdentityType: 'UserAssigned' as const,
-      selectedUaiId: singleUaiId,
-    }));
-    this.kvMissingRoleEntries.set(entries);
-    this.kvMissingRoleChecking.set(true);
-
-    for (const entry of entries) {
-      try {
-        const result = await this.appSettingService.checkKeyVaultAccess(this.resourceId, entry.keyVaultResourceId);
-        this.kvMissingRoleEntries.update(list =>
-          list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId
-            ? { ...e, missingRoleName: result.missingRoleName ?? null, missingRoleDefinitionId: result.missingRoleDefinitionId ?? null, checking: false }
-            : e
-          )
-        );
-      } catch {
-        this.kvMissingRoleEntries.update(list =>
-          list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId ? { ...e, checking: false } : e)
-        );
-      }
-    }
-    this.kvMissingRoleChecking.set(false);
-  }
-
-  protected async assignKvRole(entry: KvMissingRoleEntry): Promise<void> {
-    this.kvMissingRoleEntries.update(list =>
-      list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId ? { ...e, assigning: true } : e)
-    );
-    try {
-      await this.roleAssignmentService.add(this.resourceId, {
-        targetResourceId: entry.keyVaultResourceId,
-        managedIdentityType: entry.selectedIdentityType,
-        roleDefinitionId: entry.missingRoleDefinitionId!,
-        userAssignedIdentityId: entry.selectedIdentityType === 'UserAssigned' ? (this.assignedUai()?.identityId ?? entry.selectedUaiId!) : undefined,
-      });
-      await this.loadAppSettings();
-      await this.loadRoleAssignments();
-    } catch {
-      this.kvMissingRoleEntries.update(list =>
-        list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId ? { ...e, assigning: false } : e)
-      );
-    }
-  }
-
-  protected setKvEntryIdentityType(kvId: string, type: 'UserAssigned' | 'SystemAssigned'): void {
-    this.kvMissingRoleEntries.update(list =>
-      list.map(e => e.keyVaultResourceId === kvId ? { ...e, selectedIdentityType: type, selectedUaiId: type === 'SystemAssigned' ? null : e.selectedUaiId } : e)
-    );
-  }
-
-  protected setKvEntryUaiId(kvId: string, uaiId: string | null): void {
-    this.kvMissingRoleEntries.update(list =>
-      list.map(e => e.keyVaultResourceId === kvId ? { ...e, selectedUaiId: uaiId } : e)
-    );
-  }
-
-  protected createNewUaiForKvEntry(kvId: string): void {
-    const res = this.resource();
-    if (!res) return;
-    const resourceGroupId = res.resourceGroupId ?? '';
-    const location = res.location ?? 'EastUS2';
-
-    const dialogRef = this.dialog.open(CreateUaiDialogComponent, {
-      data: { resourceGroupId, location },
-      width: '420px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (result: UserAssignedIdentityResponse | undefined) => {
-      if (!result) return;
-      await this.loadAllResources();
-      this.setKvEntryUaiId(kvId, result.id);
-    });
-  }
-
-  protected resolveSourceName(sourceResourceId: string): string {
-    const res = this.allResources().find(r => r.id === sourceResourceId);
-    return res?.name ?? sourceResourceId;
-  }
-
-  protected resolveSourceType(sourceResourceId: string): string {
-    const res = this.allResources().find(r => r.id === sourceResourceId);
-    return res?.resourceType ?? '';
-  }
-
-  protected openAddAppSettingDialog(): void {
-    const dialogRef = this.dialog.open(AddAppSettingDialogComponent, {
-      data: {
-        resourceId: this.resourceId,
-        currentResourceName: this.resource()?.name ?? '',
-        siblingResources: this.allResources(),
-        environments: this.environments().map(e => ({ name: e.name })),
-        projectId: this.config()?.projectId ?? '',
-      } satisfies AddAppSettingDialogData,
-      width: '520px',
-      maxHeight: '85vh',
-      panelClass: ADD_APP_SETTING_DIALOG_PANEL_CLASS,
-    });
-
-    dialogRef.afterClosed().subscribe((result?: AppSettingResponse) => {
-      if (result) {
-        this.appSettings.update(list => [...list, result]);
-      }
-    });
-  }
-
-  protected openImportAppSettingsDialog(): void {
-    const dialogRef = this.dialog.open(ImportAppSettingsDialogComponent, {
-      data: {
-        resourceId: this.resourceId,
-        currentResourceName: this.resource()?.name ?? '',
-        siblingResources: this.allResources(),
-        environments: this.environments().map(e => ({ name: e.name })),
-        projectId: this.config()?.projectId ?? '',
-        existingSettingNames: this.appSettings().map(s => s.name),
-        resourceType: this.resourceType,
-        deploymentMode: (this.generalForm.get('deploymentMode')?.value as string | null | undefined) ?? this.deploymentMode(),
-        runtimeStack: (this.generalForm.get('runtimeStack')?.value as string | null | undefined) ?? null,
-      } satisfies ImportAppSettingsDialogData,
-      width: '780px',
-      maxHeight: '85vh',
-      panelClass: IMPORT_APP_SETTINGS_DIALOG_PANEL_CLASS,
-    });
-
-    dialogRef.afterClosed().subscribe((result?: AppSettingResponse[]) => {
-      if (result?.length) {
-        this.appSettings.update(list => [...list, ...result]);
-      }
-    });
-  }
-
-  protected openRemoveAppSettingDialog(setting: AppSettingResponse): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        titleKey: 'RESOURCE_EDIT.APP_SETTINGS.REMOVE_TITLE',
-        messageKey: 'RESOURCE_EDIT.APP_SETTINGS.REMOVE_MESSAGE',
-        messageParams: { name: setting.name },
-        confirmKey: 'RESOURCE_EDIT.APP_SETTINGS.REMOVE_YES',
-        cancelKey: 'RESOURCE_EDIT.APP_SETTINGS.REMOVE_CANCEL',
-      } satisfies ConfirmDialogData,
-      width: '420px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-      await this.removeAppSetting(setting.id);
-    });
-  }
-
-  protected openEditStaticAppSettingDialog(setting: AppSettingResponse): void {
-    const dialogRef = this.dialog.open(EditStaticAppSettingDialogComponent, {
-      data: {
-        resourceId: this.resourceId,
-        appSettingId: setting.id,
-        currentName: setting.name,
-        currentEnvironmentValues: setting.environmentValues ?? {},
-        environments: this.environments().map(e => ({ name: e.name })),
-      } satisfies EditStaticAppSettingDialogData,
-      width: '480px',
-      maxHeight: '80vh',
-    });
-
-    dialogRef.afterClosed().subscribe((result?: AppSettingResponse) => {
-      if (result) {
-        this.appSettings.update(list => list.map(s => s.id === result.id ? result : s));
-      }
-    });
-  }
-
-  private async removeAppSetting(appSettingId: string): Promise<void> {
-    this.appSettingsError.set('');
-    try {
-      await this.appSettingService.remove(this.resourceId, appSettingId);
-      this.appSettings.update(list => list.filter(s => s.id !== appSettingId));
-    } catch {
-      this.appSettingsError.set('RESOURCE_EDIT.APP_SETTINGS.REMOVE_ERROR');
-    }
-  }
-
-  // ─── Configuration Keys ───
-
-  private async loadConfigKeys(): Promise<void> {
-    this.configKeysLoading.set(true);
-    this.configKeysError.set('');
-    try {
-      const keys = await this.configKeyService.list(this.resourceId);
-      this.configKeys.set(keys);
-      this.checkKvAccessForConfigKeys(keys);
-    } catch {
-      this.configKeysError.set('RESOURCE_EDIT.CONFIG_KEYS.LOAD_ERROR');
-    } finally {
-      this.configKeysLoading.set(false);
-    }
-  }
-
-  private async checkKvAccessForConfigKeys(keys: AppConfigurationKeyResponse[]): Promise<void> {
-    const missingByKv = new Map<string, AppConfigurationKeyResponse[]>();
-    for (const k of keys) {
-      if (k.isKeyVaultReference && k.keyVaultResourceId && k.hasKeyVaultAccess === false) {
-        const existing = missingByKv.get(k.keyVaultResourceId);
-        if (existing) {
-          existing.push(k);
-        } else {
-          missingByKv.set(k.keyVaultResourceId, [k]);
-        }
-      }
-    }
-
-    if (missingByKv.size === 0) {
-      this.configKeyKvMissingRoleEntries.set([]);
-      return;
-    }
-
-    const uaiOptions = this.uaiOptionsForSelect();
-    const assigned = this.assignedUai();
-    const singleUaiId = assigned ? assigned.identityId : (uaiOptions.length === 1 ? uaiOptions[0].value : null);
-    const entries: KvMissingRoleEntry[] = [...missingByKv.entries()].map(([kvId, affected]) => ({
-      keyVaultResourceId: kvId,
-      keyVaultName: this.resolveSourceName(kvId),
-      missingRoleName: null,
-      missingRoleDefinitionId: null,
-      affectedSettingsCount: affected.length,
-      checking: true,
-      assigning: false,
-      selectedIdentityType: 'UserAssigned' as const,
-      selectedUaiId: singleUaiId,
-    }));
-    this.configKeyKvMissingRoleEntries.set(entries);
-    this.configKeyKvMissingRoleChecking.set(true);
-
-    for (const entry of entries) {
-      try {
-        const result = await this.appSettingService.checkKeyVaultAccess(this.resourceId, entry.keyVaultResourceId);
-        this.configKeyKvMissingRoleEntries.update(list =>
-          list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId
-            ? { ...e, missingRoleName: result.missingRoleName ?? null, missingRoleDefinitionId: result.missingRoleDefinitionId ?? null, checking: false }
-            : e
-          )
-        );
-      } catch {
-        this.configKeyKvMissingRoleEntries.update(list =>
-          list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId ? { ...e, checking: false } : e)
-        );
-      }
-    }
-    this.configKeyKvMissingRoleChecking.set(false);
-  }
-
-  protected async assignConfigKeyKvRole(entry: KvMissingRoleEntry): Promise<void> {
-    this.configKeyKvMissingRoleEntries.update(list =>
-      list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId ? { ...e, assigning: true } : e)
-    );
-    try {
-      await this.roleAssignmentService.add(this.resourceId, {
-        targetResourceId: entry.keyVaultResourceId,
-        managedIdentityType: entry.selectedIdentityType,
-        roleDefinitionId: entry.missingRoleDefinitionId!,
-        userAssignedIdentityId: entry.selectedIdentityType === 'UserAssigned' ? (this.assignedUai()?.identityId ?? entry.selectedUaiId!) : undefined,
-      });
-      await this.loadConfigKeys();
-      await this.loadRoleAssignments();
-    } catch {
-      this.configKeyKvMissingRoleEntries.update(list =>
-        list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId ? { ...e, assigning: false } : e)
-      );
-    }
-  }
-
-  protected setConfigKeyKvEntryIdentityType(kvId: string, type: 'UserAssigned' | 'SystemAssigned'): void {
-    this.configKeyKvMissingRoleEntries.update(list =>
-      list.map(e => e.keyVaultResourceId === kvId ? { ...e, selectedIdentityType: type, selectedUaiId: type === 'SystemAssigned' ? null : e.selectedUaiId } : e)
-    );
-  }
-
-  protected setConfigKeyKvEntryUaiId(kvId: string, uaiId: string | null): void {
-    this.configKeyKvMissingRoleEntries.update(list =>
-      list.map(e => e.keyVaultResourceId === kvId ? { ...e, selectedUaiId: uaiId } : e)
-    );
-  }
-
-  protected createNewUaiForConfigKeyKvEntry(kvId: string): void {
-    const res = this.resource();
-    if (!res) return;
-    const resourceGroupId = res.resourceGroupId ?? '';
-    const location = res.location ?? 'EastUS2';
-
-    const dialogRef = this.dialog.open(CreateUaiDialogComponent, {
-      data: { resourceGroupId, location },
-      width: '420px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (result: UserAssignedIdentityResponse | undefined) => {
-      if (!result) return;
-      await this.loadAllResources();
-      this.setConfigKeyKvEntryUaiId(kvId, result.id);
-    });
-  }
-
-  protected openAddConfigKeyDialog(): void {
-    const dialogRef = this.dialog.open(AddAppConfigKeyDialogComponent, {
-      data: {
-        appConfigurationId: this.resourceId,
-        siblingResources: this.allResources(),
-        environments: this.environments().map(e => ({ name: e.name })),
-        projectId: this.config()?.projectId ?? '',
-      } satisfies AddAppConfigKeyDialogData,
-      width: '520px',
-      maxHeight: '85vh',
-    });
-
-    dialogRef.afterClosed().subscribe((result?: AppConfigurationKeyResponse) => {
-      if (result) {
-        this.configKeys.update(list => [...list, result]);
-      }
-    });
-  }
-
-  protected openRemoveConfigKeyDialog(configKey: AppConfigurationKeyResponse): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        titleKey: 'RESOURCE_EDIT.CONFIG_KEYS.REMOVE_TITLE',
-        messageKey: 'RESOURCE_EDIT.CONFIG_KEYS.REMOVE_MESSAGE',
-        messageParams: { name: configKey.key },
-        confirmKey: 'RESOURCE_EDIT.CONFIG_KEYS.REMOVE_YES',
-        cancelKey: 'RESOURCE_EDIT.CONFIG_KEYS.REMOVE_CANCEL',
-      } satisfies ConfirmDialogData,
-      width: '420px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-      await this.removeConfigKey(configKey.id);
-    });
-  }
-
-  private async removeConfigKey(configKeyId: string): Promise<void> {
-    this.configKeysError.set('');
-    try {
-      await this.configKeyService.remove(this.resourceId, configKeyId);
-      this.configKeys.update(list => list.filter(k => k.id !== configKeyId));
-    } catch {
-      this.configKeysError.set('RESOURCE_EDIT.CONFIG_KEYS.REMOVE_ERROR');
-    }
-  }
-
-  protected getConfigKeyType(key: AppConfigurationKeyResponse): string {
-    if (key.isOutputReference) return 'RESOURCE_EDIT.CONFIG_KEYS.TYPE_OUTPUT';
-    if (key.isKeyVaultReference) return 'RESOURCE_EDIT.CONFIG_KEYS.TYPE_KV';
-    if (key.isViaVariableGroup) return 'RESOURCE_EDIT.CONFIG_KEYS.TYPE_VG';
-    return 'RESOURCE_EDIT.CONFIG_KEYS.TYPE_STATIC';
   }
 
   // ─── Storage Services ───
@@ -2926,7 +1595,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   protected corsFieldError(service: CorsServiceKey, index: number, field: CorsFieldKey): string {
-    return this.corsFieldErrors()[this.buildCorsErrorKey(service, index, field)] ?? '';
+    return this.corsFieldErrors()[buildCorsErrorKey(service, index, field)] ?? '';
   }
 
   protected corsHeaderSuggestions(field: 'allowedHeaders' | 'exposedHeaders'): readonly string[] {
@@ -3060,65 +1729,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ─── Environment settings builders ───
-
-  private buildKeyVaultEnvSettings(): KeyVaultEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => ({
-      environmentName: ef.envName,
-      sku: ef.form.getRawValue().sku || null,
-    }));
-  }
-
-  private buildRedisCacheEnvSettings(): RedisCacheEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        capacity: raw.capacity != null ? Number(raw.capacity) : null,
-        maxMemoryPolicy: raw.maxMemoryPolicy || null,
-      };
-    });
-  }
-
-  private buildStorageAccountEnvSettings(): StorageAccountEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-      };
-    });
-  }
-
-  private buildStorageAccountCorsRules(): CorsRuleEntry[] {
-    return this.storageCorsRulesDraft().map(rule => ({
-      allowedOrigins: [...rule.allowedOrigins],
-      allowedMethods: [...rule.allowedMethods],
-      allowedHeaders: [...rule.allowedHeaders],
-      exposedHeaders: [...rule.exposedHeaders],
-      maxAgeInSeconds: rule.maxAgeInSeconds,
-    }));
-  }
-
-  private buildStorageAccountTableCorsRules(): CorsRuleEntry[] {
-    return this.storageTableCorsRulesDraft().map(rule => ({
-      allowedOrigins: [...rule.allowedOrigins],
-      allowedMethods: [...rule.allowedMethods],
-      allowedHeaders: [...rule.allowedHeaders],
-      exposedHeaders: [...rule.exposedHeaders],
-      maxAgeInSeconds: rule.maxAgeInSeconds,
-    }));
-  }
-
-  private buildLifecycleRules(): BlobLifecycleRuleEntry[] {
-    return this.lifecycleRulesDraft().map(rule => ({
-      ruleName: rule.ruleName,
-      containerNames: [...rule.containerNames],
-      timeToLiveInDays: rule.timeToLiveInDays,
-    }));
-  }
-
   private addCorsRuleFor(service: CorsServiceKey): void {
     this.updateCorsRules(service, rules => [
       ...rules,
@@ -3141,12 +1751,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   private addCorsRuleValueFor(service: CorsServiceKey, index: number, field: CorsListField, value: string): void {
     const normalized = field === 'allowedOrigins'
-      ? this.normalizeCorsOrigin(value)
-      : this.normalizeCorsHeader(value);
+      ? normalizeCorsOrigin(value)
+      : normalizeCorsHeader(value);
 
     const validationError = field === 'allowedOrigins'
-      ? this.validateCorsOrigin(value)
-      : this.validateCorsHeader(value, field);
+      ? validateCorsOrigin(value)
+      : validateCorsHeader(value);
 
     if (validationError) {
       this.setCorsFieldError(service, index, field, validationError);
@@ -3250,248 +1860,25 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   private validateAllStorageCorsRules(): boolean {
-    let isValid = true;
-    this.corsFieldErrors.set({});
-
-    for (const service of ['blob', 'table'] as const) {
-      this.corsRulesFor(service).forEach((rule, index) => {
-        if (rule.allowedOrigins.length === 0) {
-          this.setCorsFieldError(service, index, 'allowedOrigins', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_ORIGIN_REQUIRED');
-          isValid = false;
-        }
-
-        if (rule.allowedMethods.length === 0) {
-          this.setCorsFieldError(service, index, 'allowedMethods', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_METHOD_REQUIRED');
-          isValid = false;
-        }
-
-        if (!Number.isInteger(rule.maxAgeInSeconds) || rule.maxAgeInSeconds < 0) {
-          this.setCorsFieldError(service, index, 'maxAgeInSeconds', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_MAX_AGE');
-          isValid = false;
-        }
-
-        for (const origin of rule.allowedOrigins) {
-          if (this.validateCorsOrigin(origin)) {
-            this.setCorsFieldError(service, index, 'allowedOrigins', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_ORIGIN');
-            isValid = false;
-            break;
-          }
-        }
-
-        for (const field of ['allowedHeaders', 'exposedHeaders'] as const) {
-          for (const header of rule[field]) {
-            const headerError = this.validateCorsHeader(header, field);
-            if (headerError) {
-              this.setCorsFieldError(service, index, field, headerError);
-              isValid = false;
-              break;
-            }
-          }
-        }
-      });
-    }
-
-    return isValid;
-  }
-
-  private validateCorsOrigin(value: string): string {
-    const normalized = value.trim();
-    if (!normalized) {
-      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_EMPTY_VALUE';
-    }
-
-    if (normalized.length > 256) {
-      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_TOO_LONG';
-    }
-
-    if (normalized === '*') {
-      return '';
-    }
-
-    const withoutTrailingSlash = this.trimTrailingSlashes(normalized);
-    if (withoutTrailingSlash.includes('*.')) {
-      return this.isValidWildcardCorsOrigin(withoutTrailingSlash)
-        ? ''
-        : 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_ORIGIN';
-    }
-
-    try {
-      const url = new URL(withoutTrailingSlash);
-      const isHttp = url.protocol === 'http:' || url.protocol === 'https:';
-      const hasNoPath = url.pathname === '' || url.pathname === '/';
-      const noSearch = !url.search;
-      const noHash = !url.hash;
-      return isHttp && hasNoPath && noSearch && noHash
-        ? ''
-        : 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_ORIGIN';
-    } catch {
-      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_ORIGIN';
-    }
-  }
-
-  private normalizeCorsOrigin(value: string): string {
-    const normalized = this.trimTrailingSlashes(value.trim());
-    if (normalized === '*' || normalized.includes('*.')) {
-      return normalized.toLowerCase();
-    }
-
-    try {
-      const url = new URL(normalized);
-      return `${url.protocol}//${url.host}`.toLowerCase();
-    } catch {
-      return normalized;
-    }
-  }
-
-  private validateCorsHeader(value: string, _field: 'allowedHeaders' | 'exposedHeaders'): string {
-    const normalized = value.trim();
-    if (!normalized) {
-      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_EMPTY_VALUE';
-    }
-
-    if (normalized.length > 256) {
-      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_TOO_LONG';
-    }
-
-    if (!this.isValidCorsHeaderValue(normalized)) {
-      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_HEADER';
-    }
-
-    return '';
-  }
-
-  private trimTrailingSlashes(value: string): string {
-    let endIndex = value.length;
-    while (endIndex > 0 && value[endIndex - 1] === '/') {
-      endIndex--;
-    }
-
-    return endIndex === value.length
-      ? value
-      : value.slice(0, endIndex);
-  }
-
-  private isValidWildcardCorsOrigin(value: string): boolean {
-    const schemeSeparatorIndex = value.indexOf('://');
-    if (schemeSeparatorIndex <= 0) {
-      return false;
-    }
-
-    const protocol = value.slice(0, schemeSeparatorIndex).toLowerCase();
-    if (protocol !== 'http' && protocol !== 'https') {
-      return false;
-    }
-
-    const hostAndPort = value.slice(schemeSeparatorIndex + 3);
-    if (!hostAndPort.startsWith('*.') || hostAndPort.includes('/') || hostAndPort.includes('?') || hostAndPort.includes('#')) {
-      return false;
-    }
-
-    const wildcardHostAndPort = hostAndPort.slice(2);
-    if (!wildcardHostAndPort || wildcardHostAndPort.includes('*')) {
-      return false;
-    }
-
-    const hostAndPortParts = this.splitCorsHostAndPort(wildcardHostAndPort);
-    if (!hostAndPortParts) {
-      return false;
-    }
-
-    return this.isValidCorsDomain(hostAndPortParts.host)
-      && (hostAndPortParts.port === null || this.isValidCorsPort(hostAndPortParts.port));
-  }
-
-  private splitCorsHostAndPort(value: string): { host: string; port: string | null } | null {
-    const firstSeparatorIndex = value.indexOf(':');
-    if (firstSeparatorIndex < 0) {
-      return { host: value, port: null };
-    }
-
-    if (firstSeparatorIndex !== value.lastIndexOf(':')) {
-      return null;
-    }
-
-    const host = value.slice(0, firstSeparatorIndex);
-    const port = value.slice(firstSeparatorIndex + 1);
-    if (!host || !port) {
-      return null;
-    }
-
-    return { host, port };
-  }
-
-  private isValidCorsPort(value: string): boolean {
-    if (value.length === 0 || value.length > 5) {
-      return false;
-    }
-
-    for (const character of value) {
-      if (character < '0' || character > '9') {
-        return false;
-      }
-    }
-
-    const portNumber = Number(value);
-    return Number.isInteger(portNumber) && portNumber >= 1 && portNumber <= 65535;
-  }
-
-  private isValidCorsDomain(value: string): boolean {
-    const labels = value.split('.');
-    return labels.length > 0
-      && labels.every((label) => label.length > 0 && this.isValidCorsDomainLabel(label));
-  }
-
-  private isValidCorsDomainLabel(value: string): boolean {
-    for (const character of value) {
-      if (!this.isAsciiAlphaNumericCharacter(character) && character !== '-') {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  private isValidCorsHeaderValue(value: string): boolean {
-    for (const character of value) {
-      if (!this.isValidCorsHeaderCharacter(character)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  private isValidCorsHeaderCharacter(character: string): boolean {
-    return this.isAsciiAlphaNumericCharacter(character)
-      || CORS_HEADER_SPECIAL_CHARACTERS.includes(character);
-  }
-
-  private isAsciiAlphaNumericCharacter(character: string): boolean {
-    const code = character.charCodeAt(0);
-    return (code >= 48 && code <= 57)
-      || (code >= 65 && code <= 90)
-      || (code >= 97 && code <= 122);
-  }
-
-  private normalizeCorsHeader(value: string): string {
-    return value.trim().toLowerCase();
-  }
-
-  private buildCorsErrorKey(service: CorsServiceKey, index: number, field: CorsFieldKey): string {
-    return `${service}:${index}:${field}`;
+    const validationResult = validateStorageCorsRules(
+      this.storageCorsRulesDraft(),
+      this.storageTableCorsRulesDraft(),
+    );
+    this.corsFieldErrors.set(validationResult.errors);
+    return validationResult.isValid;
   }
 
   private setCorsFieldError(service: CorsServiceKey, index: number, field: CorsFieldKey, errorKey: string): void {
     this.corsFieldErrors.update(errors => ({
       ...errors,
-      [this.buildCorsErrorKey(service, index, field)]: errorKey,
+      [buildCorsErrorKey(service, index, field)]: errorKey,
     }));
   }
 
   private clearCorsFieldError(service: CorsServiceKey, index: number, field: CorsFieldKey): void {
     this.corsFieldErrors.update(errors => {
       const updated = { ...errors };
-      delete updated[this.buildCorsErrorKey(service, index, field)];
+      delete updated[buildCorsErrorKey(service, index, field)];
       return updated;
     });
   }
@@ -3500,183 +1887,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.corsFieldErrors.update(errors => Object.fromEntries(
       Object.entries(errors).filter(([key]) => !key.startsWith(`${service}:${index}:`))
     ));
-  }
-
-  private buildAppServicePlanEnvSettings(): AppServicePlanEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        capacity: raw.capacity != null ? Number(raw.capacity) : null,
-      };
-    });
-  }
-
-  private buildWebAppEnvSettings(): WebAppEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        alwaysOn: raw.alwaysOn ?? null,
-        httpsOnly: raw.httpsOnly ?? null,
-        dockerImageTag: raw.dockerImageTag || null,
-      };
-    });
-  }
-
-  private buildFunctionAppEnvSettings(): FunctionAppEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        httpsOnly: raw.httpsOnly ?? null,
-        maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
-        dockerImageTag: raw.dockerImageTag || null,
-      };
-    });
-  }
-
-  private buildAppConfigurationEnvSettings(): AppConfigurationEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        softDeleteRetentionInDays: raw.softDeleteRetentionInDays != null ? Number(raw.softDeleteRetentionInDays) : null,
-        purgeProtectionEnabled: raw.purgeProtectionEnabled ?? null,
-        disableLocalAuth: raw.disableLocalAuth ?? null,
-        publicNetworkAccess: raw.publicNetworkAccess || null,
-      };
-    });
-  }
-
-  private buildContainerAppEnvironmentEnvSettings(): ContainerAppEnvironmentEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        workloadProfileType: raw.workloadProfileType || null,
-        internalLoadBalancerEnabled: raw.internalLoadBalancerEnabled ?? null,
-        zoneRedundancyEnabled: raw.zoneRedundancyEnabled ?? null,
-      };
-    });
-  }
-
-  private buildContainerAppEnvSettings(): ContainerAppEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        cpuCores: raw.cpuCores || null,
-        memoryGi: raw.memoryGi || null,
-        minReplicas: raw.minReplicas != null ? Number(raw.minReplicas) : null,
-        maxReplicas: raw.maxReplicas != null ? Number(raw.maxReplicas) : null,
-        ingressEnabled: raw.ingressEnabled ?? null,
-        ingressTargetPort: raw.ingressTargetPort != null ? Number(raw.ingressTargetPort) : null,
-        ingressExternal: raw.ingressExternal ?? null,
-        transportMethod: raw.transportMethod || null,
-        readinessProbePath: raw.readinessProbePath || null,
-        readinessProbePort: raw.readinessProbePort != null ? Number(raw.readinessProbePort) : null,
-        livenessProbePath: raw.livenessProbePath || null,
-        livenessProbePort: raw.livenessProbePort != null ? Number(raw.livenessProbePort) : null,
-        startupProbePath: raw.startupProbePath || null,
-        startupProbePort: raw.startupProbePort != null ? Number(raw.startupProbePort) : null,
-      };
-    });
-  }
-
-  private buildLogAnalyticsWorkspaceEnvSettings(): LogAnalyticsWorkspaceEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        retentionInDays: raw.retentionInDays != null ? Number(raw.retentionInDays) : null,
-        dailyQuotaGb: raw.dailyQuotaGb != null ? Number(raw.dailyQuotaGb) : null,
-      };
-    });
-  }
-
-  private buildApplicationInsightsEnvSettings(): ApplicationInsightsEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        samplingPercentage: raw.samplingPercentage != null ? Number(raw.samplingPercentage) : null,
-        retentionInDays: raw.retentionInDays != null ? Number(raw.retentionInDays) : null,
-        disableIpMasking: raw.disableIpMasking ?? null,
-        disableLocalAuth: raw.disableLocalAuth ?? null,
-        ingestionMode: raw.ingestionMode || null,
-      };
-    });
-  }
-
-  private buildCosmosDbEnvSettings(): CosmosDbEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        databaseApiType: raw.databaseApiType || null,
-        consistencyLevel: raw.consistencyLevel || null,
-        maxStalenessPrefix: raw.maxStalenessPrefix != null ? Number(raw.maxStalenessPrefix) : null,
-        maxIntervalInSeconds: raw.maxIntervalInSeconds != null ? Number(raw.maxIntervalInSeconds) : null,
-        enableAutomaticFailover: raw.enableAutomaticFailover ?? null,
-        enableMultipleWriteLocations: raw.enableMultipleWriteLocations ?? null,
-        backupPolicyType: raw.backupPolicyType || null,
-        enableFreeTier: raw.enableFreeTier ?? null,
-      };
-    });
-  }
-
-  private buildServiceBusNamespaceEnvSettings(): ServiceBusNamespaceEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        capacity: raw.capacity != null ? Number(raw.capacity) : null,
-        zoneRedundant: raw.zoneRedundant ?? null,
-        disableLocalAuth: raw.disableLocalAuth ?? null,
-        minimumTlsVersion: raw.minimumTlsVersion || null,
-      };
-    });
-  }
-
-  private buildContainerRegistryEnvSettings(): ContainerRegistryEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        adminUserEnabled: raw.adminUserEnabled ?? null,
-        publicNetworkAccess: raw.publicNetworkAccess || null,
-        zoneRedundancy: raw.zoneRedundancy ?? null,
-      };
-    });
-  }
-
-  private buildSqlServerEnvSettings(): SqlServerEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        minimalTlsVersion: raw.minimalTlsVersion || null,
-      };
-    });
-  }
-
-  private buildSqlDatabaseEnvSettings(): SqlDatabaseEnvironmentConfigEntry[] {
-    return this.envForms().map(ef => {
-      const raw = ef.form.getRawValue();
-      return {
-        environmentName: ef.envName,
-        sku: raw.sku || null,
-        maxSizeGb: raw.maxSizeGb != null ? Number(raw.maxSizeGb) : null,
-        zoneRedundant: raw.zoneRedundant ?? null,
-      };
-    });
   }
 
   // ─── Secure Parameter Mappings (SqlServer password config) ───
@@ -3767,72 +1977,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     } finally {
       this.passwordSaving.set(false);
     }
-  }
-
-  // ─── Custom Domains ───
-
-  private async loadCustomDomains(): Promise<void> {
-    this.customDomainsLoading.set(true);
-    this.customDomainsError.set('');
-    try {
-      const domains = await this.customDomainService.getByResourceId(this.resourceId);
-      this.customDomains.set(domains);
-    } catch {
-      this.customDomainsError.set('RESOURCE_EDIT.CUSTOM_DOMAINS.LOAD_ERROR');
-    } finally {
-      this.customDomainsLoading.set(false);
-    }
-  }
-
-  protected openAddCustomDomainDialog(preselectedEnv?: string): void {
-    const environments = this.environments();
-    const data: AddCustomDomainDialogData = {
-      environments,
-      existingDomains: this.customDomains(),
-      preselectedEnvironment: preselectedEnv,
-    };
-    const dialogRef = this.dialog.open(AddCustomDomainDialogComponent, {
-      width: '520px',
-      data,
-    });
-    dialogRef.afterClosed().subscribe(async (result: AddCustomDomainRequest | null) => {
-      if (!result) return;
-      this.customDomainsLoading.set(true);
-      this.customDomainsError.set('');
-      try {
-        await this.customDomainService.add(this.resourceId, result);
-        await this.loadCustomDomains();
-      } catch {
-        this.customDomainsError.set('RESOURCE_EDIT.CUSTOM_DOMAINS.ADD_ERROR');
-      } finally {
-        this.customDomainsLoading.set(false);
-      }
-    });
-  }
-
-  protected removeCustomDomain(domain: CustomDomainResponse): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        titleKey: 'RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_CONFIRM_TITLE',
-        messageKey: 'RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_CONFIRM_MESSAGE',
-        messageParams: { domain: domain.domainName },
-        confirmKey: 'COMMON.DELETE',
-        cancelKey: 'COMMON.CANCEL',
-      } as ConfirmDialogData,
-    });
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-      this.customDomainsLoading.set(true);
-      this.customDomainsError.set('');
-      try {
-        await this.customDomainService.remove(this.resourceId, domain.id);
-        this.customDomains.update(list => list.filter(d => d.id !== domain.id));
-      } catch {
-        this.customDomainsError.set('RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_ERROR');
-      } finally {
-        this.customDomainsLoading.set(false);
-      }
-    });
   }
 
 }

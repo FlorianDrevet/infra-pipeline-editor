@@ -14,6 +14,10 @@ namespace InfraFlowSculptor.Mcp.Tools;
 [McpServerToolType]
 public sealed class ProjectDraftTools
 {
+    private const string DraftLimitReachedErrorCode = "draft_limit_reached";
+    private const string DraftNotFoundErrorCode = "draft_not_found";
+    private const string InvalidOverridesErrorCode = "invalid_overrides";
+
     private ProjectDraftTools() { }
 
     /// <summary>
@@ -27,8 +31,15 @@ public sealed class ProjectDraftTools
         IProjectDraftService draftService,
         [Description("The raw user request in natural language.")] string userPrompt)
     {
-        var draft = draftService.CreateDraftFromPrompt(userPrompt);
-        return SerializeDraft(draft);
+        try
+        {
+            var draft = draftService.CreateDraftFromPrompt(userPrompt);
+            return SerializeDraft(draft);
+        }
+        catch (ProjectDraftLimitExceededException exception)
+        {
+            return McpJsonDefaults.Error(DraftLimitReachedErrorCode, exception.Message);
+        }
     }
 
     /// <summary>
@@ -52,7 +63,7 @@ public sealed class ProjectDraftTools
             }
             catch (JsonException ex)
             {
-                return McpJsonDefaults.Error("invalid_overrides", $"Failed to parse overrides: {ex.Message}");
+                return McpJsonDefaults.Error(InvalidOverridesErrorCode, $"Failed to parse overrides: {ex.Message}");
             }
         }
 
@@ -60,9 +71,7 @@ public sealed class ProjectDraftTools
 
         if (draft is null)
         {
-            return JsonSerializer.Serialize(
-                new { error = "draft_not_found", message = $"No draft with id '{draftId}' was found." },
-                McpJsonDefaults.SerializerOptions);
+            return McpJsonDefaults.Error(DraftNotFoundErrorCode, $"No draft with id '{draftId}' was found.");
         }
 
         return SerializeDraft(draft);

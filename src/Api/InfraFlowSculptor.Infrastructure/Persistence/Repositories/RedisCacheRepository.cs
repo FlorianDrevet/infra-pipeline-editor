@@ -1,9 +1,8 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using Microsoft.EntityFrameworkCore;
 using InfraFlowSculptor.Domain.Common.Models;
-using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 
@@ -15,28 +14,28 @@ public class RedisCacheRepository : AzureResourceRepository<RedisCache>, IRedisC
 
     public override async Task<RedisCache?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
-        return await Context.Set<RedisCache>()
-            .Include(rc => rc.DependsOn)
-            .Include(rc => rc.EnvironmentSettings)
+        return await WithSubResources(Context.Set<RedisCache>())
             .FirstOrDefaultAsync(rc => rc.Id == id, cancellationToken);
     }
 
     public override async Task<RedisCache?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
-        return await Context.Set<RedisCache>()
-            .AsNoTracking()
-            .Include(rc => rc.DependsOn)
-            .Include(rc => rc.EnvironmentSettings)
+        return await WithSubResources(Context.Set<RedisCache>().AsNoTracking())
             .FirstOrDefaultAsync(rc => rc.Id == id, cancellationToken);
     }
 
     public async Task<List<RedisCache>> GetByResourceGroupIdAsync(ResourceGroupId resourceGroupId, CancellationToken cancellationToken = default)
     {
-        return await Context.Set<RedisCache>()
-            .Include(rc => rc.DependsOn)
-            .Include(rc => rc.EnvironmentSettings)
+        return await WithSubResources(Context.Set<RedisCache>())
             .Where(rc => rc.ResourceGroupId == resourceGroupId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    private static IQueryable<RedisCache> WithSubResources(IQueryable<RedisCache> query)
+    {
+        return query
+            .Include(rc => rc.DependsOn)
+            .Include(rc => rc.EnvironmentSettings);
     }
 }

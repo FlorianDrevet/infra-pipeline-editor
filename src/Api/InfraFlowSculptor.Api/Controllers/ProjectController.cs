@@ -976,10 +976,10 @@ public static class ProjectController
             // â”€â”€ Project-level Bicep Generation (mono-repo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             group.MapPost("/{projectId:guid}/generate-bicep",
-                    async ([FromRoute] Guid projectId, IMediator mediator) =>
+                    async ([FromRoute] Guid projectId, IMediator mediator, CancellationToken cancellationToken) =>
                     {
                         var command = new GenerateProjectBicepCommand(new ProjectId(projectId));
-                        var result = await mediator.Send(command);
+                        var result = await mediator.Send(command, cancellationToken);
 
                         return result.Match(
                             value =>

@@ -17,9 +17,7 @@ public sealed class LogAnalyticsWorkspaceRepository(ProjectDbContext context)
         ValueObject id,
         CancellationToken cancellationToken)
     {
-        return await Context.Set<LogAnalyticsWorkspace>()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<LogAnalyticsWorkspace>())
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
@@ -28,11 +26,16 @@ public sealed class LogAnalyticsWorkspaceRepository(ProjectDbContext context)
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<LogAnalyticsWorkspace>()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<LogAnalyticsWorkspace>())
             .Where(x => x.ResourceGroupId == resourceGroupId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    private static IQueryable<LogAnalyticsWorkspace> WithSubResources(IQueryable<LogAnalyticsWorkspace> query)
+    {
+        return query
+            .Include(x => x.DependsOn)
+            .Include(x => x.EnvironmentSettings);
     }
 }

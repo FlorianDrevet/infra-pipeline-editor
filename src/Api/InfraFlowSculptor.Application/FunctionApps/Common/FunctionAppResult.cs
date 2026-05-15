@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
@@ -22,6 +23,7 @@ public record FunctionAppResult(
     string? SourceCodePath,
     string? BuildCommand,
     string? ApplicationName,
+    PipelineStepOptionsDto? PipelineStepOptions,
     IReadOnlyList<FunctionAppEnvironmentConfigData> EnvironmentSettings,
     bool IsExisting = false
 );

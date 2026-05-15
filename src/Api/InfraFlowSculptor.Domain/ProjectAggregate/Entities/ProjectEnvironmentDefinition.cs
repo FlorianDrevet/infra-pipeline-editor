@@ -50,7 +50,7 @@ public sealed class ProjectEnvironmentDefinition : Entity<ProjectEnvironmentDefi
     private readonly List<Tag> _tags = [];
 
     /// <summary>Gets the Azure resource tags for this environment.</summary>
-    public IReadOnlyCollection<Tag> Tags => _tags;
+    public IReadOnlyCollection<Tag> Tags => _tags.AsReadOnly();
 
     /// <summary>Replaces all tags with the provided collection.</summary>
     public void SetTags(IEnumerable<Tag> tags)

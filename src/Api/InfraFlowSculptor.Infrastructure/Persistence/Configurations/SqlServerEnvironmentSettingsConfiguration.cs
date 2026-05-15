@@ -11,6 +11,8 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 public class SqlServerEnvironmentSettingsConfiguration
     : IEntityTypeConfiguration<SqlServerEnvironmentSettings>
 {
+    private const int EnvironmentNameMaxLength = 100;
+
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<SqlServerEnvironmentSettings> builder)
     {
@@ -26,7 +28,8 @@ public class SqlServerEnvironmentSettingsConfiguration
             .IsRequired();
 
         builder.Property(x => x.EnvironmentName)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(EnvironmentNameMaxLength);
 
         builder.Property(x => x.MinimalTlsVersion)
             .HasMaxLength(10);

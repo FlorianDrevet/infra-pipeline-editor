@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
-import { RESOURCE_TYPE_OPTIONS } from '../../config-detail/enums/resource-type.enum';
+import { RESOURCE_TYPE_OPTIONS } from '../../../shared/resource-metadata/resource-type.metadata';
 
 export type ProjectNamingTemplateDialogMode = 'default' | 'resource';
 

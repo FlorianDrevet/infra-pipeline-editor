@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
@@ -119,6 +120,15 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
 
         builder.Navigation(r => r.CustomDomains)
             .HasField("_customDomains")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(r => r.PrivateEndpointConfigs)
+            .WithOne()
+            .HasForeignKey(pe => pe.ResourceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(r => r.PrivateEndpointConfigs)
+            .HasField("_privateEndpointConfigs")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

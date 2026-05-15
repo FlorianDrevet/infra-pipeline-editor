@@ -20,11 +20,7 @@ public sealed class ServiceBusNamespaceRepository : AzureResourceRepository<Serv
     /// <inheritdoc />
     public override async Task<ServiceBusNamespace?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
     {
-        return await Context.Set<ServiceBusNamespace>()
-            .Include(sb => sb.DependsOn)
-            .Include(sb => sb.EnvironmentSettings)
-            .Include(sb => sb.Queues)
-            .Include(sb => sb.TopicSubscriptions)
+        return await WithSubResources(Context.Set<ServiceBusNamespace>())
             .FirstOrDefaultAsync(sb => sb.Id == id, cancellationToken);
     }
 
@@ -33,13 +29,18 @@ public sealed class ServiceBusNamespaceRepository : AzureResourceRepository<Serv
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<ServiceBusNamespace>()
-            .Include(sb => sb.DependsOn)
-            .Include(sb => sb.EnvironmentSettings)
-            .Include(sb => sb.Queues)
-            .Include(sb => sb.TopicSubscriptions)
+        return await WithSubResources(Context.Set<ServiceBusNamespace>())
             .Where(sb => sb.ResourceGroupId == resourceGroupId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    private static IQueryable<ServiceBusNamespace> WithSubResources(IQueryable<ServiceBusNamespace> query)
+    {
+        return query
+            .Include(sb => sb.DependsOn)
+            .Include(sb => sb.EnvironmentSettings)
+            .Include(sb => sb.Queues)
+            .Include(sb => sb.TopicSubscriptions);
     }
 }

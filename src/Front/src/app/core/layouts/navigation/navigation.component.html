@@ -26,6 +26,40 @@
 
   <div class="topbar__spacer"></div>
 
+  <!-- Search (Ctrl+K) -->
+  <button
+    class="topbar__search-trigger"
+    type="button"
+    (click)="openSearch()"
+    [attr.aria-label]="'SEARCH.ARIA_LABEL' | translate"
+  >
+    <mat-icon class="topbar__search-trigger-icon" aria-hidden="true">search</mat-icon>
+    <span class="topbar__search-trigger-text">{{ 'SEARCH.PLACEHOLDER' | translate }}</span>
+    <kbd class="topbar__search-trigger-shortcut">Ctrl+K</kbd>
+  </button>
+
+  <!-- Quick Create -->
+  <app-ds-icon-button
+    class="topbar__quick-create"
+    size="sm"
+    variant="accent"
+    icon="add"
+    [ariaLabel]="'NAV.QUICK_CREATE_ARIA' | translate"
+    [tooltip]="'NAV.QUICK_CREATE' | translate"
+    (clicked)="quickCreate()"
+  ></app-ds-icon-button>
+
+  <!-- Help -->
+  <a
+    class="topbar__help"
+    href="https://docs.infraflowsculptor.dev"
+    target="_blank"
+    rel="noopener noreferrer"
+    [attr.aria-label]="'NAV.HELP_ARIA' | translate"
+  >
+    <mat-icon class="topbar__help-icon">help_outline</mat-icon>
+  </a>
+
   <div class="language-switch" role="group" [attr.aria-label]="'NAV.LANGUAGE_SELECTOR_ARIA' | translate">
     @for (language of availableLanguages; track language.code) {
       <button

@@ -16,9 +16,7 @@ public sealed class ApplicationInsightsRepository(ProjectDbContext context)
         ValueObject id,
         CancellationToken cancellationToken)
     {
-        return await Context.Set<ApplicationInsights>()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<ApplicationInsights>())
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
@@ -27,9 +25,7 @@ public sealed class ApplicationInsightsRepository(ProjectDbContext context)
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<ApplicationInsights>()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<ApplicationInsights>())
             .Where(x => x.ResourceGroupId == resourceGroupId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -44,5 +40,12 @@ public sealed class ApplicationInsightsRepository(ProjectDbContext context)
             .Where(x => x.LogAnalyticsWorkspaceId == logAnalyticsWorkspaceId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    private static IQueryable<ApplicationInsights> WithSubResources(IQueryable<ApplicationInsights> query)
+    {
+        return query
+            .Include(x => x.DependsOn)
+            .Include(x => x.EnvironmentSettings);
     }
 }

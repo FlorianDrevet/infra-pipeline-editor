@@ -23,14 +23,14 @@ public sealed class User : AggregateRoot<UserId>
         Name = name;
     }
 
+    /// <summary>EF Core constructor.</summary>
+    private User()
+    {
+    }
+
     /// <summary>Creates a new <see cref="User"/> with a generated identifier.</summary>
     public static User Create(EntraId entraId, Name name)
     {
         return new User(UserId.CreateUnique(), entraId, name);
-    }
-
-    /// <summary>EF Core constructor.</summary>
-    public User()
-    {
     }
 }

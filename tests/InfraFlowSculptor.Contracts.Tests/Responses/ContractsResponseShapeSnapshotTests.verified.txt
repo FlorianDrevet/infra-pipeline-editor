@@ -1,0 +1,1182 @@
+Contracts response DTO public shape snapshot
+Count: 98
+
+Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
+Type: AppConfigurationKeyResponse
+Constructors:
+  AppConfigurationKeyResponse(string Id, string AppConfigurationId, string Key, string? Label, System.Collections.Generic.Dictionary<string, string>? EnvironmentValues, string? SourceResourceId, string? SourceOutputName, bool IsOutputReference, string? KeyVaultResourceId, string? SecretName, bool IsKeyVaultReference, bool? HasKeyVaultAccess, string? SecretValueAssignment, string? VariableGroupId, string? PipelineVariableName, string? VariableGroupName, bool IsViaVariableGroup)
+Properties:
+  AppConfigurationId: string
+  EnvironmentValues: System.Collections.Generic.Dictionary<string, string>?
+  HasKeyVaultAccess: bool?
+  Id: string
+  IsKeyVaultReference: bool
+  IsOutputReference: bool
+  IsViaVariableGroup: bool
+  Key: string
+  KeyVaultResourceId: string?
+  Label: string?
+  PipelineVariableName: string?
+  SecretName: string?
+  SecretValueAssignment: string?
+  SourceOutputName: string?
+  SourceResourceId: string?
+  VariableGroupId: string?
+  VariableGroupName: string?
+
+Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
+Type: AppConfigurationResponse
+Constructors:
+  AppConfigurationResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.AppConfigurations.Requests.AppConfigurationEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.AppConfigurations.Requests.AppConfigurationEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+
+Namespace: InfraFlowSculptor.Contracts.AppServicePlans.Responses
+Type: AppServicePlanResponse
+Constructors:
+  AppServicePlanResponse(string Id, string ResourceGroupId, string Name, string Location, string OsType, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.AppServicePlans.Requests.AppServicePlanEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.AppServicePlans.Requests.AppServicePlanEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  OsType: string
+  ResourceGroupId: string
+
+Namespace: InfraFlowSculptor.Contracts.AppSettings.Responses
+Type: AppSettingResponse
+Constructors:
+  AppSettingResponse(string Id, string ResourceId, string Name, System.Collections.Generic.Dictionary<string, string>? EnvironmentValues, string? SourceResourceId, string? SourceOutputName, bool IsOutputReference, string? KeyVaultResourceId, string? SecretName, bool IsKeyVaultReference, bool? HasKeyVaultAccess, string? SecretValueAssignment, string? VariableGroupId, string? PipelineVariableName, string? VariableGroupName, bool IsViaVariableGroup)
+Properties:
+  EnvironmentValues: System.Collections.Generic.Dictionary<string, string>?
+  HasKeyVaultAccess: bool?
+  Id: string
+  IsKeyVaultReference: bool
+  IsOutputReference: bool
+  IsViaVariableGroup: bool
+  KeyVaultResourceId: string?
+  Name: string
+  PipelineVariableName: string?
+  ResourceId: string
+  SecretName: string?
+  SecretValueAssignment: string?
+  SourceOutputName: string?
+  SourceResourceId: string?
+  VariableGroupId: string?
+  VariableGroupName: string?
+
+Namespace: InfraFlowSculptor.Contracts.AppSettings.Responses
+Type: AvailableOutputsResponse
+Constructors:
+  AvailableOutputsResponse(string ResourceTypeName, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.AppSettings.Responses.OutputDefinitionResponse> Outputs)
+Properties:
+  Outputs: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.AppSettings.Responses.OutputDefinitionResponse>
+  ResourceTypeName: string
+
+Namespace: InfraFlowSculptor.Contracts.AppSettings.Responses
+Type: CheckKeyVaultAccessResponse
+Constructors:
+  CheckKeyVaultAccessResponse(bool HasAccess, string? MissingRoleDefinitionId, string? MissingRoleName)
+Properties:
+  HasAccess: bool
+  MissingRoleDefinitionId: string?
+  MissingRoleName: string?
+
+Namespace: InfraFlowSculptor.Contracts.AppSettings.Responses
+Type: OutputDefinitionResponse
+Constructors:
+  OutputDefinitionResponse(string Name, string Description, bool IsSensitive)
+Properties:
+  Description: string
+  IsSensitive: bool
+  Name: string
+
+Namespace: InfraFlowSculptor.Contracts.ApplicationInsights.Responses
+Type: ApplicationInsightsResponse
+Constructors:
+  ApplicationInsightsResponse(string Id, string ResourceGroupId, string Name, string Location, string LogAnalyticsWorkspaceId, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ApplicationInsights.Requests.ApplicationInsightsEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ApplicationInsights.Requests.ApplicationInsightsEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  LogAnalyticsWorkspaceId: string
+  Name: string
+  ResourceGroupId: string
+
+Namespace: InfraFlowSculptor.Contracts.ContainerAppEnvironments.Responses
+Type: ContainerAppEnvironmentResponse
+Constructors:
+  ContainerAppEnvironmentResponse(string Id, string ResourceGroupId, string Name, string Location, string? LogAnalyticsWorkspaceId, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerAppEnvironments.Requests.ContainerAppEnvironmentEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerAppEnvironments.Requests.ContainerAppEnvironmentEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  LogAnalyticsWorkspaceId: string?
+  Name: string
+  ResourceGroupId: string
+
+Namespace: InfraFlowSculptor.Contracts.ContainerApps.Responses
+Type: ContainerAppResponse
+Constructors:
+  ContainerAppResponse(string Id, string ResourceGroupId, string Name, string Location, string ContainerAppEnvironmentId, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, string? DockerfilePath, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Requests.ContainerAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  AcrAuthMode: string?
+  ApplicationName: string?
+  ContainerAppEnvironmentId: string
+  ContainerRegistryId: string?
+  DockerImageName: string?
+  DockerfilePath: string?
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Requests.ContainerAppEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  PipelineStepOptions: InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto?
+  ResourceGroupId: string
+
+Namespace: InfraFlowSculptor.Contracts.ContainerRegistries.Responses
+Type: CheckAcrPullAccessResponse
+Constructors:
+  CheckAcrPullAccessResponse(bool HasAccess, string? MissingRoleDefinitionId, string? MissingRoleName, string? AssignedUserAssignedIdentityId, string? AssignedUserAssignedIdentityName, bool HasUserAssignedIdentity, string? AcrAuthMode)
+Properties:
+  AcrAuthMode: string?
+  AssignedUserAssignedIdentityId: string?
+  AssignedUserAssignedIdentityName: string?
+  HasAccess: bool
+  HasUserAssignedIdentity: bool
+  MissingRoleDefinitionId: string?
+  MissingRoleName: string?
+
+Namespace: InfraFlowSculptor.Contracts.ContainerRegistries.Responses
+Type: ContainerRegistryResponse
+Constructors:
+  ContainerRegistryResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerRegistries.Requests.ContainerRegistryEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerRegistries.Requests.ContainerRegistryEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+
+Namespace: InfraFlowSculptor.Contracts.CosmosDbs.Responses
+Type: CosmosDbResponse
+Constructors:
+  CosmosDbResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.CosmosDbs.Requests.CosmosDbEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.CosmosDbs.Requests.CosmosDbEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+
+Namespace: InfraFlowSculptor.Contracts.CustomDomains.Responses
+Type: CustomDomainResponse
+Constructors:
+  CustomDomainResponse(string Id, string ResourceId, string EnvironmentName, string DomainName, string BindingType)
+Properties:
+  BindingType: string
+  DomainName: string
+  EnvironmentName: string
+  Id: string
+  ResourceId: string
+
+Namespace: InfraFlowSculptor.Contracts.EventHubNamespaces.Responses
+Type: EventHubConsumerGroupResponse
+Constructors:
+  EventHubConsumerGroupResponse(string Id, string EventHubName, string ConsumerGroupName, bool IsExisting)
+Properties:
+  ConsumerGroupName: string
+  EventHubName: string
+  Id: string
+  IsExisting: bool
+
+Namespace: InfraFlowSculptor.Contracts.EventHubNamespaces.Responses
+Type: EventHubNamespaceResponse
+Constructors:
+  EventHubNamespaceResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.EventHubNamespaces.Requests.EventHubNamespaceEnvironmentConfigResponse> EnvironmentSettings, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.EventHubNamespaces.Responses.EventHubResponse> EventHubs, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.EventHubNamespaces.Responses.EventHubConsumerGroupResponse> ConsumerGroups)
+Properties:
+  ConsumerGroups: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.EventHubNamespaces.Responses.EventHubConsumerGroupResponse>
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.EventHubNamespaces.Requests.EventHubNamespaceEnvironmentConfigResponse>
+  EventHubs: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.EventHubNamespaces.Responses.EventHubResponse>
+  Id: string
+  Location: string
+  Name: string
+  ResourceGroupId: string
+
+Namespace: InfraFlowSculptor.Contracts.EventHubNamespaces.Responses
+Type: EventHubResponse
+Constructors:
+  EventHubResponse(string Id, string Name)
+Properties:
+  Id: string
+  Name: string
+
+Namespace: InfraFlowSculptor.Contracts.FrontDoors.Responses
+Type: FrontDoorEnvironmentConfigResponse
+Constructors:
+  FrontDoorEnvironmentConfigResponse(string EnvironmentName, string Sku)
+Properties:
+  EnvironmentName: string
+  Sku: string
+
+Namespace: InfraFlowSculptor.Contracts.FrontDoors.Responses
+Type: FrontDoorOriginResponse
+Constructors:
+  FrontDoorOriginResponse(string Id, string TargetResourceId, string? HostName, bool PrivateLinkEnabled, int Weight, int Priority)
+Properties:
+  HostName: string?
+  Id: string
+  Priority: int
+  PrivateLinkEnabled: bool
+  TargetResourceId: string
+  Weight: int
+
+Namespace: InfraFlowSculptor.Contracts.FrontDoors.Responses
+Type: FrontDoorResponse
+Constructors:
+  FrontDoorResponse(string Id, string ResourceGroupId, string Name, string Location, bool WafPolicyEnabled, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorOriginResponse> Origins, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  Origins: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorOriginResponse>
+  ResourceGroupId: string
+  WafPolicyEnabled: bool
+
+Namespace: InfraFlowSculptor.Contracts.FunctionApps.Responses
+Type: FunctionAppResponse
+Constructors:
+  FunctionAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FunctionApps.Requests.FunctionAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  AcrAuthMode: string?
+  AppServicePlanId: string
+  ApplicationName: string?
+  BuildCommand: string?
+  ContainerRegistryId: string?
+  DeploymentMode: string
+  DockerImageName: string?
+  DockerfilePath: string?
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FunctionApps.Requests.FunctionAppEnvironmentConfigResponse>
+  HttpsOnly: bool
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  PipelineStepOptions: InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto?
+  ResourceGroupId: string
+  RuntimeStack: string
+  RuntimeVersion: string
+  SourceCodePath: string?
+
+Namespace: InfraFlowSculptor.Contracts.Imports.Responses
+Type: ApplyImportPreviewCreatedResourceResponseItem
+Constructors:
+  ApplyImportPreviewCreatedResourceResponseItem(string ResourceType, string ResourceId, string Name)
+Properties:
+  Name: string
+  ResourceId: string
+  ResourceType: string
+
+Namespace: InfraFlowSculptor.Contracts.Imports.Responses
+Type: ApplyImportPreviewResponse
+Constructors:
+  ApplyImportPreviewResponse(string Status, string ProjectId, string ProjectName, string? InfrastructureConfigId, string? ResourceGroupId, string? InfrastructureError, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Imports.Responses.ApplyImportPreviewCreatedResourceResponseItem> CreatedResources, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Imports.Responses.ApplyImportPreviewSkippedResourceResponseItem> SkippedResources, System.Collections.Generic.IReadOnlyList<string> NextSuggestedActions)
+Properties:
+  CreatedResources: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Imports.Responses.ApplyImportPreviewCreatedResourceResponseItem>
+  InfrastructureConfigId: string?
+  InfrastructureError: string?
+  NextSuggestedActions: System.Collections.Generic.IReadOnlyList<string>
+  ProjectId: string
+  ProjectName: string
+  ResourceGroupId: string?
+  SkippedResources: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Imports.Responses.ApplyImportPreviewSkippedResourceResponseItem>
+  Status: string
+
+Namespace: InfraFlowSculptor.Contracts.Imports.Responses
+Type: ApplyImportPreviewSkippedResourceResponseItem
+Constructors:
+  ApplyImportPreviewSkippedResourceResponseItem(string ResourceType, string Name, string Reason)
+Properties:
+  Name: string
+  Reason: string
+  ResourceType: string
+
+Namespace: InfraFlowSculptor.Contracts.Imports.Responses
+Type: PreviewIacImportDependencyResponseItem
+Constructors:
+  PreviewIacImportDependencyResponseItem(string FromResourceName, string ToResourceName, string DependencyType)
+Properties:
+  DependencyType: string
+  FromResourceName: string
+  ToResourceName: string
+
+Namespace: InfraFlowSculptor.Contracts.Imports.Responses
+Type: PreviewIacImportGapResponseItem
+Constructors:
+  PreviewIacImportGapResponseItem(string Severity, string Category, string Message, string? SourceResourceName)
+Properties:
+  Category: string
+  Message: string
+  Severity: string
+  SourceResourceName: string?
+
+Namespace: InfraFlowSculptor.Contracts.Imports.Responses
+Type: PreviewIacImportMappedResourceResponseItem
+Constructors:
+  PreviewIacImportMappedResourceResponseItem(string SourceType, string SourceName, string MappedResourceType, string MappedName, string Confidence, System.Collections.Generic.IReadOnlyDictionary<string, object?> ExtractedProperties, System.Collections.Generic.IReadOnlyList<string> UnmappedProperties)
+Properties:
+  Confidence: string
+  ExtractedProperties: System.Collections.Generic.IReadOnlyDictionary<string, object?>
+  MappedName: string
+  MappedResourceType: string
+  SourceName: string
+  SourceType: string
+  UnmappedProperties: System.Collections.Generic.IReadOnlyList<string>
+
+Namespace: InfraFlowSculptor.Contracts.Imports.Responses
+Type: PreviewIacImportResponse
+Constructors:
+  PreviewIacImportResponse(string SourceFormat, int ParsedResourceCount, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Imports.Responses.PreviewIacImportMappedResourceResponseItem> MappedResources, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Imports.Responses.PreviewIacImportGapResponseItem> Gaps, System.Collections.Generic.IReadOnlyList<string> UnsupportedResources, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Imports.Responses.PreviewIacImportDependencyResponseItem> Dependencies, System.Collections.Generic.IReadOnlyDictionary<string, string> Metadata, string Summary)
+Properties:
+  Dependencies: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Imports.Responses.PreviewIacImportDependencyResponseItem>
+  Gaps: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Imports.Responses.PreviewIacImportGapResponseItem>
+  MappedResources: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Imports.Responses.PreviewIacImportMappedResourceResponseItem>
+  Metadata: System.Collections.Generic.IReadOnlyDictionary<string, string>
+  ParsedResourceCount: int
+  SourceFormat: string
+  Summary: string
+  UnsupportedResources: System.Collections.Generic.IReadOnlyList<string>
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: CheckResourceNameAvailabilityResponse
+Constructors:
+  CheckResourceNameAvailabilityResponse(string ResourceType, string RawName, bool Supported, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.EnvironmentNameAvailabilityResponseItem> Environments)
+Properties:
+  Environments: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.EnvironmentNameAvailabilityResponseItem>
+  RawName: string
+  ResourceType: string
+  Supported: bool
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: ConfigDiagnosticsResponse
+Constructors:
+  ConfigDiagnosticsResponse(System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceDiagnosticResponse> Diagnostics)
+Properties:
+  Diagnostics: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceDiagnosticResponse>
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: CrossConfigReferenceResponse
+Constructors:
+  CrossConfigReferenceResponse(string ReferenceId, string TargetConfigId, string TargetConfigName, string TargetResourceId, string TargetResourceName, string TargetResourceType, string TargetResourceGroupName)
+Properties:
+  ReferenceId: string
+  TargetConfigId: string
+  TargetConfigName: string
+  TargetResourceGroupName: string
+  TargetResourceId: string
+  TargetResourceName: string
+  TargetResourceType: string
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: EnvironmentDefinitionResponse
+Constructors:
+  EnvironmentDefinitionResponse(string Id, string Name, string ShortName, string Prefix, string Suffix, string Location, string SubscriptionId, int Order, bool RequiresApproval, string? AzureResourceManagerConnection, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.TagResponse> Tags)
+Properties:
+  AzureResourceManagerConnection: string?
+  Id: string
+  Location: string
+  Name: string
+  Order: int
+  Prefix: string
+  RequiresApproval: bool
+  ShortName: string
+  SubscriptionId: string
+  Suffix: string
+  Tags: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.TagResponse>
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: EnvironmentNameAvailabilityResponseItem
+Constructors:
+  EnvironmentNameAvailabilityResponseItem(string EnvironmentName, string EnvironmentShortName, string SubscriptionId, string GeneratedName, string AppliedTemplate, string Status, string? Reason, string? Message)
+Properties:
+  AppliedTemplate: string
+  EnvironmentName: string
+  EnvironmentShortName: string
+  GeneratedName: string
+  Message: string?
+  Reason: string?
+  Status: string
+  SubscriptionId: string
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: GenerateBicepResponse
+Constructors:
+  GenerateBicepResponse(System.Uri MainBicepUri, System.Uri? ConstantsBicepUri, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> ParameterFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> ModuleUris, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceDiagnosticResponse> Warnings)
+Properties:
+  ConstantsBicepUri: System.Uri?
+  MainBicepUri: System.Uri
+  ModuleUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+  ParameterFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+  Warnings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceDiagnosticResponse>
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: GeneratePipelineResponse
+Constructors:
+  GeneratePipelineResponse(System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> FileUris)
+Properties:
+  FileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: IncomingCrossConfigReferenceResponse
+Constructors:
+  IncomingCrossConfigReferenceResponse(string ReferenceId, string SourceConfigId, string SourceConfigName, string SourceResourceId, string SourceResourceName, string SourceResourceType, string SourceResourceGroupName, string TargetResourceId, string TargetResourceName, string TargetResourceType)
+Properties:
+  ReferenceId: string
+  SourceConfigId: string
+  SourceConfigName: string
+  SourceResourceGroupName: string
+  SourceResourceId: string
+  SourceResourceName: string
+  SourceResourceType: string
+  TargetResourceId: string
+  TargetResourceName: string
+  TargetResourceType: string
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: InfraConfigRepositoryResponse
+Constructors:
+  InfraConfigRepositoryResponse(string Id, string Alias, string ProviderType, string RepositoryUrl, string Owner, string RepositoryName, string DefaultBranch, System.Collections.Generic.IReadOnlyList<string> ContentKinds)
+Properties:
+  Alias: string
+  ContentKinds: System.Collections.Generic.IReadOnlyList<string>
+  DefaultBranch: string
+  Id: string
+  Owner: string
+  ProviderType: string
+  RepositoryName: string
+  RepositoryUrl: string
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: InfrastructureConfigResponse
+Constructors:
+  InfrastructureConfigResponse(string Id, string Name, string ProjectId, string? DefaultNamingTemplate, bool UseProjectNamingConventions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceNamingTemplateResponse> ResourceNamingTemplates, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceAbbreviationOverrideResponse> ResourceAbbreviationOverrides, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.TagResponse> Tags, int ResourceGroupCount, int ResourceCount, int CrossConfigReferenceCount, string? LayoutMode, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.InfraConfigRepositoryResponse>? Repositories)
+Properties:
+  CrossConfigReferenceCount: int
+  DefaultNamingTemplate: string?
+  Id: string
+  LayoutMode: string?
+  Name: string
+  ProjectId: string
+  Repositories: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.InfraConfigRepositoryResponse>?
+  ResourceAbbreviationOverrides: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceAbbreviationOverrideResponse>
+  ResourceCount: int
+  ResourceGroupCount: int
+  ResourceNamingTemplates: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceNamingTemplateResponse>
+  Tags: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.TagResponse>
+  UseProjectNamingConventions: bool
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: PushBicepToGitResponse
+Constructors:
+  PushBicepToGitResponse(string BranchName, string BranchUrl, string CommitSha, int FileCount)
+Properties:
+  BranchName: string
+  BranchUrl: string
+  CommitSha: string
+  FileCount: int
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: PushPipelineToGitResponse
+Constructors:
+  PushPipelineToGitResponse(string BranchName, string BranchUrl, string CommitSha, int FileCount)
+Properties:
+  BranchName: string
+  BranchUrl: string
+  CommitSha: string
+  FileCount: int
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: ResourceAbbreviationOverrideResponse
+Constructors:
+  ResourceAbbreviationOverrideResponse(string Id, string ResourceType, string Abbreviation)
+Properties:
+  Abbreviation: string
+  Id: string
+  ResourceType: string
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: ResourceDiagnosticResponse
+Constructors:
+  ResourceDiagnosticResponse(string ResourceId, string ResourceName, string ResourceType, string Severity, string RuleCode, string TargetResourceName)
+Properties:
+  ResourceId: string
+  ResourceName: string
+  ResourceType: string
+  RuleCode: string
+  Severity: string
+  TargetResourceName: string
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: ResourceNamingTemplateResponse
+Constructors:
+  ResourceNamingTemplateResponse(string Id, string ResourceType, string Template)
+Properties:
+  Id: string
+  ResourceType: string
+  Template: string
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: TagResponse
+Constructors:
+  TagResponse(string Name, string Value)
+Properties:
+  Name: string
+  Value: string
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: UserResponse
+Constructors:
+  UserResponse(string Id, string FirstName, string LastName)
+Properties:
+  FirstName: string
+  Id: string
+  LastName: string
+
+Namespace: InfraFlowSculptor.Contracts.KeyVaults.Responses
+Type: KeyVaultResponse
+Constructors:
+  KeyVaultResponse(string Id, string ResourceGroupId, string Name, string Location, bool EnableRbacAuthorization, bool EnabledForDeployment, bool EnabledForDiskEncryption, bool EnabledForTemplateDeployment, bool EnablePurgeProtection, bool EnableSoftDelete, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.KeyVaults.Requests.KeyVaultEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  EnablePurgeProtection: bool
+  EnableRbacAuthorization: bool
+  EnableSoftDelete: bool
+  EnabledForDeployment: bool
+  EnabledForDiskEncryption: bool
+  EnabledForTemplateDeployment: bool
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.KeyVaults.Requests.KeyVaultEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+
+Namespace: InfraFlowSculptor.Contracts.LogAnalyticsWorkspaces.Responses
+Type: LogAnalyticsWorkspaceResponse
+Constructors:
+  LogAnalyticsWorkspaceResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.LogAnalyticsWorkspaces.Requests.LogAnalyticsWorkspaceEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.LogAnalyticsWorkspaces.Requests.LogAnalyticsWorkspaceEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+
+Namespace: InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses
+Type: NetworkSecurityGroupResponse
+Constructors:
+  NetworkSecurityGroupResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses.NsgRuleResponse> SecurityRules, bool IsExisting)
+Properties:
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+  SecurityRules: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses.NsgRuleResponse>
+
+Namespace: InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses
+Type: NsgRuleResponse
+Constructors:
+  NsgRuleResponse(string Id, string Name, int Priority, string Direction, string Access, string Protocol, string SourceAddressPrefix, string DestinationAddressPrefix, string SourcePortRange, string DestinationPortRange)
+Properties:
+  Access: string
+  DestinationAddressPrefix: string
+  DestinationPortRange: string
+  Direction: string
+  Id: string
+  Name: string
+  Priority: int
+  Protocol: string
+  SourceAddressPrefix: string
+  SourcePortRange: string
+
+Namespace: InfraFlowSculptor.Contracts.PersonalAccessTokens.Responses
+Type: CreatedPersonalAccessTokenResponse
+Constructors:
+  CreatedPersonalAccessTokenResponse(InfraFlowSculptor.Contracts.PersonalAccessTokens.Responses.PersonalAccessTokenResponse Token, string PlainTextToken)
+Properties:
+  PlainTextToken: string
+  Token: InfraFlowSculptor.Contracts.PersonalAccessTokens.Responses.PersonalAccessTokenResponse
+
+Namespace: InfraFlowSculptor.Contracts.PersonalAccessTokens.Responses
+Type: PersonalAccessTokenResponse
+Constructors:
+  PersonalAccessTokenResponse(string Id, string Name, string TokenPrefix, System.DateTime? ExpiresAt, System.DateTime CreatedAt, System.DateTime? LastUsedAt, bool IsRevoked)
+Properties:
+  CreatedAt: System.DateTime
+  ExpiresAt: System.DateTime?
+  Id: string
+  IsRevoked: bool
+  LastUsedAt: System.DateTime?
+  Name: string
+  TokenPrefix: string
+
+Namespace: InfraFlowSculptor.Contracts.PrivateDnsZones.Responses
+Type: PrivateDnsZoneResponse
+Constructors:
+  PrivateDnsZoneResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.PrivateDnsZones.Responses.VirtualNetworkLinkResponse> VirtualNetworkLinks, bool IsExisting)
+Properties:
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+  VirtualNetworkLinks: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.PrivateDnsZones.Responses.VirtualNetworkLinkResponse>
+
+Namespace: InfraFlowSculptor.Contracts.PrivateDnsZones.Responses
+Type: VirtualNetworkLinkResponse
+Constructors:
+  VirtualNetworkLinkResponse(string Id, string VirtualNetworkId, bool EnableAutoRegistration)
+Properties:
+  EnableAutoRegistration: bool
+  Id: string
+  VirtualNetworkId: string
+
+Namespace: InfraFlowSculptor.Contracts.PrivateEndpoints.Responses
+Type: AvailableGroupIdsResponse
+Constructors:
+  AvailableGroupIdsResponse(string ResourceType, System.Collections.Generic.IReadOnlyList<string> GroupIds)
+Properties:
+  GroupIds: System.Collections.Generic.IReadOnlyList<string>
+  ResourceType: string
+
+Namespace: InfraFlowSculptor.Contracts.PrivateEndpoints.Responses
+Type: PrivateEndpointConfigResponse
+Constructors:
+  PrivateEndpointConfigResponse(string Id, string ResourceId, string SubnetId, string GroupId, bool AutoApproval, string? PrivateDnsZoneId, string? CustomNetworkInterfaceName)
+Properties:
+  AutoApproval: bool
+  CustomNetworkInterfaceName: string?
+  GroupId: string
+  Id: string
+  PrivateDnsZoneId: string?
+  ResourceId: string
+  SubnetId: string
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: GenerateProjectBicepResponse
+Constructors:
+  GenerateProjectBicepResponse(System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> CommonFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>> ConfigFileUris)
+Properties:
+  CommonFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+  ConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>>
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: GenerateProjectBootstrapPipelineResponse
+Constructors:
+  GenerateProjectBootstrapPipelineResponse(System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> FileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> InfraFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> AppFileUris)
+Properties:
+  AppFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+  FileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+  InfraFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: GenerateProjectPipelineResponse
+Constructors:
+  GenerateProjectPipelineResponse(System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> CommonFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>> ConfigFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> InfraCommonFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> AppCommonFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>> InfraConfigFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>> AppConfigFileUris)
+Properties:
+  AppCommonFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+  AppConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>>
+  CommonFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+  ConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>>
+  InfraCommonFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+  InfraConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>>
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: GitBranchResponse
+Constructors:
+  GitBranchResponse(string Name, bool IsProtected)
+Properties:
+  IsProtected: bool
+  Name: string
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: GitFileResponse
+Constructors:
+  GitFileResponse(string Path, string Name)
+Properties:
+  Name: string
+  Path: string
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: PipelineVariableUsageResponse
+Constructors:
+  PipelineVariableUsageResponse(string PipelineVariableName, string AppSettingName, string ResourceName, string ResourceType, string ConfigName)
+Properties:
+  AppSettingName: string
+  ConfigName: string
+  PipelineVariableName: string
+  ResourceName: string
+  ResourceType: string
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: ProjectMemberResponse
+Constructors:
+  ProjectMemberResponse(string Id, string UserId, string EntraId, string Role, string FirstName, string LastName)
+Properties:
+  EntraId: string
+  FirstName: string
+  Id: string
+  LastName: string
+  Role: string
+  UserId: string
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: ProjectPipelineVariableGroupResponse
+Constructors:
+  ProjectPipelineVariableGroupResponse(string Id, string GroupName, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.PipelineVariableUsageResponse> Variables)
+Properties:
+  GroupName: string
+  Id: string
+  Variables: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.PipelineVariableUsageResponse>
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: ProjectRepositoryResponse
+Constructors:
+  ProjectRepositoryResponse(string Id, string Alias, string? ProviderType, string? RepositoryUrl, string? Owner, string? RepositoryName, string? DefaultBranch, bool IsConfigured, System.Collections.Generic.IReadOnlyList<string> ContentKinds)
+Properties:
+  Alias: string
+  ContentKinds: System.Collections.Generic.IReadOnlyList<string>
+  DefaultBranch: string?
+  Id: string
+  IsConfigured: bool
+  Owner: string?
+  ProviderType: string?
+  RepositoryName: string?
+  RepositoryUrl: string?
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: ProjectResourceResponse
+Constructors:
+  ProjectResourceResponse(string ResourceId, string ResourceName, string ResourceType, string ResourceGroupName, string ConfigId, string ConfigName)
+Properties:
+  ConfigId: string
+  ConfigName: string
+  ResourceGroupName: string
+  ResourceId: string
+  ResourceName: string
+  ResourceType: string
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: ProjectResponse
+Constructors:
+  ProjectResponse(string Id, string Name, string? Description, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.ProjectMemberResponse> Members, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.EnvironmentDefinitionResponse> EnvironmentDefinitions, string? DefaultNamingTemplate, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceNamingTemplateResponse> ResourceNamingTemplates, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceAbbreviationOverrideResponse> ResourceAbbreviations, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.TagResponse> Tags, string? AgentPoolName, System.Collections.Generic.IReadOnlyList<string>? UsedResourceTypes, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.ProjectRepositoryResponse>? Repositories, string? LayoutPreset)
+Properties:
+  AgentPoolName: string?
+  DefaultNamingTemplate: string?
+  Description: string?
+  EnvironmentDefinitions: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.EnvironmentDefinitionResponse>
+  Id: string
+  LayoutPreset: string?
+  Members: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.ProjectMemberResponse>
+  Name: string
+  Repositories: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.ProjectRepositoryResponse>?
+  ResourceAbbreviations: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceAbbreviationOverrideResponse>
+  ResourceNamingTemplates: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceNamingTemplateResponse>
+  Tags: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.TagResponse>
+  UsedResourceTypes: System.Collections.Generic.IReadOnlyList<string>?
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: PushMultiRepoArtifactsResponse
+Constructors:
+  PushMultiRepoArtifactsResponse(System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.RepoPushResultResponse> Results)
+Properties:
+  Results: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.RepoPushResultResponse>
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: RecentItemResponse
+Constructors:
+  RecentItemResponse(string Id, string Name, string Type, string? Description)
+Properties:
+  Description: string?
+  Id: string
+  Name: string
+  Type: string
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: RepoPushResultResponse
+Constructors:
+  RepoPushResultResponse(string Alias, bool Success, string? BranchUrl, string? CommitSha, int FileCount, string? ErrorCode, string? ErrorDescription)
+Properties:
+  Alias: string
+  BranchUrl: string?
+  CommitSha: string?
+  ErrorCode: string?
+  ErrorDescription: string?
+  FileCount: int
+  Success: bool
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: TestGitConnectionResponse
+Constructors:
+  TestGitConnectionResponse(bool Success, string? RepositoryFullName, string? DefaultBranch, string? ErrorMessage)
+Properties:
+  DefaultBranch: string?
+  ErrorMessage: string?
+  RepositoryFullName: string?
+  Success: bool
+
+Namespace: InfraFlowSculptor.Contracts.RedisCaches.Responses
+Type: RedisCacheResponse
+Constructors:
+  RedisCacheResponse(string Id, string ResourceGroupId, string Name, string Location, int? RedisVersion, bool EnableNonSslPort, string? MinimumTlsVersion, bool DisableAccessKeyAuthentication, bool EnableAadAuth, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.RedisCaches.Requests.RedisCacheEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  DisableAccessKeyAuthentication: bool
+  EnableAadAuth: bool
+  EnableNonSslPort: bool
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.RedisCaches.Requests.RedisCacheEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  MinimumTlsVersion: string?
+  Name: string
+  RedisVersion: int?
+  ResourceGroupId: string
+
+Namespace: InfraFlowSculptor.Contracts.ResourceGroups.Responses
+Type: AzureResourceResponse
+Constructors:
+  AzureResourceResponse(string Id, string ResourceType, string Name, string Location, string? ParentResourceId, System.Collections.Generic.IReadOnlyList<string>? ConfiguredEnvironments, bool IsExisting, InfraFlowSculptor.Contracts.ResourceGroups.Responses.StorageAccountSubResourcesResponse? StorageSubResources)
+Properties:
+  ConfiguredEnvironments: System.Collections.Generic.IReadOnlyList<string>?
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ParentResourceId: string?
+  ResourceType: string
+  StorageSubResources: InfraFlowSculptor.Contracts.ResourceGroups.Responses.StorageAccountSubResourcesResponse?
+
+Namespace: InfraFlowSculptor.Contracts.ResourceGroups.Responses
+Type: ResourceGroupResponse
+Constructors:
+  ResourceGroupResponse(string Id, string InfraConfigId, string Name, string Location)
+Properties:
+  Id: string
+  InfraConfigId: string
+  Location: string
+  Name: string
+
+Namespace: InfraFlowSculptor.Contracts.ResourceGroups.Responses
+Type: StorageAccountSubResourcesResponse
+Constructors:
+  StorageAccountSubResourcesResponse(System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.BlobContainerResponse> BlobContainers, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.StorageQueueResponse> Queues, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.StorageTableResponse> Tables)
+Properties:
+  BlobContainers: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.BlobContainerResponse>
+  Queues: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.StorageQueueResponse>
+  Tables: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.StorageTableResponse>
+
+Namespace: InfraFlowSculptor.Contracts.RoleAssignments.Responses
+Type: AzureRoleDefinitionResponse
+Constructors:
+  AzureRoleDefinitionResponse(string Id, string Name, string Description, string DocumentationUrl, bool RequiresUserAssignedIdentity)
+Properties:
+  Description: string
+  DocumentationUrl: string
+  Id: string
+  Name: string
+  RequiresUserAssignedIdentity: bool
+
+Namespace: InfraFlowSculptor.Contracts.RoleAssignments.Responses
+Type: IdentityRoleAssignmentResponse
+Constructors:
+  IdentityRoleAssignmentResponse(string Id, string SourceResourceId, string SourceResourceName, string SourceResourceType, string TargetResourceId, string TargetResourceName, string TargetResourceType, string RoleDefinitionId, string RoleName)
+Properties:
+  Id: string
+  RoleDefinitionId: string
+  RoleName: string
+  SourceResourceId: string
+  SourceResourceName: string
+  SourceResourceType: string
+  TargetResourceId: string
+  TargetResourceName: string
+  TargetResourceType: string
+
+Namespace: InfraFlowSculptor.Contracts.RoleAssignments.Responses
+Type: RoleAssignmentImpactItemResponse
+Constructors:
+  RoleAssignmentImpactItemResponse(string AffectedResourceId, string AffectedResourceName, string AffectedResourceType, string TargetResourceId, string TargetResourceName, string TargetResourceType, string ImpactType, string Description, string Severity, int? AffectedSettingsCount)
+Properties:
+  AffectedResourceId: string
+  AffectedResourceName: string
+  AffectedResourceType: string
+  AffectedSettingsCount: int?
+  Description: string
+  ImpactType: string
+  Severity: string
+  TargetResourceId: string
+  TargetResourceName: string
+  TargetResourceType: string
+
+Namespace: InfraFlowSculptor.Contracts.RoleAssignments.Responses
+Type: RoleAssignmentImpactResponse
+Constructors:
+  RoleAssignmentImpactResponse(bool HasImpact, System.Collections.Generic.List<InfraFlowSculptor.Contracts.RoleAssignments.Responses.RoleAssignmentImpactItemResponse> Impacts)
+Properties:
+  HasImpact: bool
+  Impacts: System.Collections.Generic.List<InfraFlowSculptor.Contracts.RoleAssignments.Responses.RoleAssignmentImpactItemResponse>
+
+Namespace: InfraFlowSculptor.Contracts.RoleAssignments.Responses
+Type: RoleAssignmentResponse
+Constructors:
+  RoleAssignmentResponse(string Id, string SourceResourceId, string TargetResourceId, string ManagedIdentityType, string RoleDefinitionId, string? UserAssignedIdentityId)
+Properties:
+  Id: string
+  ManagedIdentityType: string
+  RoleDefinitionId: string
+  SourceResourceId: string
+  TargetResourceId: string
+  UserAssignedIdentityId: string?
+
+Namespace: InfraFlowSculptor.Contracts.RoleAssignments.Responses
+Type: RoleAssignmentsWithIdentityResponse
+Constructors:
+  RoleAssignmentsWithIdentityResponse(string? AssignedUserAssignedIdentityId, string? AssignedUserAssignedIdentityName, System.Collections.Generic.List<InfraFlowSculptor.Contracts.RoleAssignments.Responses.RoleAssignmentResponse> RoleAssignments)
+Properties:
+  AssignedUserAssignedIdentityId: string?
+  AssignedUserAssignedIdentityName: string?
+  RoleAssignments: System.Collections.Generic.List<InfraFlowSculptor.Contracts.RoleAssignments.Responses.RoleAssignmentResponse>
+
+Namespace: InfraFlowSculptor.Contracts.SecureParameterMappings.Responses
+Type: SecureParameterMappingResponse
+Constructors:
+  SecureParameterMappingResponse(string Id, string SecureParameterName, string? VariableGroupId, string? VariableGroupName, string? PipelineVariableName)
+Properties:
+  Id: string
+  PipelineVariableName: string?
+  SecureParameterName: string
+  VariableGroupId: string?
+  VariableGroupName: string?
+
+Namespace: InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses
+Type: ServiceBusNamespaceEnvironmentConfigResponse
+Constructors:
+  ServiceBusNamespaceEnvironmentConfigResponse(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion, bool IsExisting)
+Properties:
+  Capacity: int?
+  DisableLocalAuth: bool?
+  EnvironmentName: string
+  IsExisting: bool
+  MinimumTlsVersion: string?
+  Sku: string?
+  ZoneRedundant: bool?
+
+Namespace: InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses
+Type: ServiceBusNamespaceResponse
+Constructors:
+  ServiceBusNamespaceResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses.ServiceBusNamespaceEnvironmentConfigResponse> EnvironmentSettings, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses.ServiceBusQueueResponse> Queues, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses.ServiceBusTopicSubscriptionResponse> TopicSubscriptions)
+Properties:
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses.ServiceBusNamespaceEnvironmentConfigResponse>
+  Id: string
+  Location: string
+  Name: string
+  Queues: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses.ServiceBusQueueResponse>
+  ResourceGroupId: string
+  TopicSubscriptions: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses.ServiceBusTopicSubscriptionResponse>
+
+Namespace: InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses
+Type: ServiceBusQueueResponse
+Constructors:
+  ServiceBusQueueResponse(string Id, string Name)
+Properties:
+  Id: string
+  Name: string
+
+Namespace: InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses
+Type: ServiceBusTopicSubscriptionResponse
+Constructors:
+  ServiceBusTopicSubscriptionResponse(string Id, string TopicName, string SubscriptionName)
+Properties:
+  Id: string
+  SubscriptionName: string
+  TopicName: string
+
+Namespace: InfraFlowSculptor.Contracts.SqlDatabases.Responses
+Type: SqlDatabaseResponse
+Constructors:
+  SqlDatabaseResponse(string Id, string ResourceGroupId, string Name, string Location, string SqlServerId, string Collation, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.SqlDatabases.Requests.SqlDatabaseEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  Collation: string
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.SqlDatabases.Requests.SqlDatabaseEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+  SqlServerId: string
+
+Namespace: InfraFlowSculptor.Contracts.SqlServers.Responses
+Type: SqlServerResponse
+Constructors:
+  SqlServerResponse(string Id, string ResourceGroupId, string Name, string Location, string Version, string AdministratorLogin, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.SqlServers.Requests.SqlServerEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  AdministratorLogin: string
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.SqlServers.Requests.SqlServerEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+  Version: string
+
+Namespace: InfraFlowSculptor.Contracts.StorageAccounts.Responses
+Type: BlobContainerResponse
+Constructors:
+  BlobContainerResponse(string Id, string Name, string PublicAccess)
+Properties:
+  Id: string
+  Name: string
+  PublicAccess: string
+
+Namespace: InfraFlowSculptor.Contracts.StorageAccounts.Responses
+Type: BlobLifecycleRuleResponse
+Constructors:
+  BlobLifecycleRuleResponse(string RuleName, System.Collections.Generic.IReadOnlyList<string> ContainerNames, int TimeToLiveInDays)
+Properties:
+  ContainerNames: System.Collections.Generic.IReadOnlyList<string>
+  RuleName: string
+  TimeToLiveInDays: int
+
+Namespace: InfraFlowSculptor.Contracts.StorageAccounts.Responses
+Type: CorsRuleResponse
+Constructors:
+  CorsRuleResponse(System.Collections.Generic.IReadOnlyList<string> AllowedOrigins, System.Collections.Generic.IReadOnlyList<string> AllowedMethods, System.Collections.Generic.IReadOnlyList<string> AllowedHeaders, System.Collections.Generic.IReadOnlyList<string> ExposedHeaders, int MaxAgeInSeconds)
+Properties:
+  AllowedHeaders: System.Collections.Generic.IReadOnlyList<string>
+  AllowedMethods: System.Collections.Generic.IReadOnlyList<string>
+  AllowedOrigins: System.Collections.Generic.IReadOnlyList<string>
+  ExposedHeaders: System.Collections.Generic.IReadOnlyList<string>
+  MaxAgeInSeconds: int
+
+Namespace: InfraFlowSculptor.Contracts.StorageAccounts.Responses
+Type: StorageAccountResponse
+Constructors:
+  StorageAccountResponse(string Id, string ResourceGroupId, string Name, string Location, string Kind, string AccessTier, bool AllowBlobPublicAccess, bool EnableHttpsTrafficOnly, string MinimumTlsVersion, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.CorsRuleResponse> CorsRules, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.CorsRuleResponse> TableCorsRules, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.BlobContainerResponse> BlobContainers, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.StorageQueueResponse> Queues, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.StorageTableResponse> Tables, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Requests.StorageAccountEnvironmentConfigResponse> EnvironmentSettings, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.BlobLifecycleRuleResponse> LifecycleRules, bool IsExisting)
+Properties:
+  AccessTier: string
+  AllowBlobPublicAccess: bool
+  BlobContainers: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.BlobContainerResponse>
+  CorsRules: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.CorsRuleResponse>
+  EnableHttpsTrafficOnly: bool
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Requests.StorageAccountEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Kind: string
+  LifecycleRules: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.BlobLifecycleRuleResponse>
+  Location: string
+  MinimumTlsVersion: string
+  Name: string
+  Queues: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.StorageQueueResponse>
+  ResourceGroupId: string
+  TableCorsRules: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.CorsRuleResponse>
+  Tables: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.StorageAccounts.Responses.StorageTableResponse>
+
+Namespace: InfraFlowSculptor.Contracts.StorageAccounts.Responses
+Type: StorageQueueResponse
+Constructors:
+  StorageQueueResponse(string Id, string Name)
+Properties:
+  Id: string
+  Name: string
+
+Namespace: InfraFlowSculptor.Contracts.StorageAccounts.Responses
+Type: StorageTableResponse
+Constructors:
+  StorageTableResponse(string Id, string Name)
+Properties:
+  Id: string
+  Name: string
+
+Namespace: InfraFlowSculptor.Contracts.UserAssignedIdentities.Responses
+Type: UserAssignedIdentityResponse
+Constructors:
+  UserAssignedIdentityResponse(string Id, string ResourceGroupId, string Name, string Location, bool IsExisting)
+Properties:
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+
+Namespace: InfraFlowSculptor.Contracts.VirtualNetworks.Responses
+Type: SubnetResponse
+Constructors:
+  SubnetResponse(string Id, string Name, string? Delegation, System.Collections.Generic.IReadOnlyList<string>? ServiceEndpoints, string PrivateEndpointNetworkPolicies, string? NsgId)
+Properties:
+  Delegation: string?
+  Id: string
+  Name: string
+  NsgId: string?
+  PrivateEndpointNetworkPolicies: string
+  ServiceEndpoints: System.Collections.Generic.IReadOnlyList<string>?
+
+Namespace: InfraFlowSculptor.Contracts.VirtualNetworks.Responses
+Type: VirtualNetworkEnvironmentConfigResponse
+Constructors:
+  VirtualNetworkEnvironmentConfigResponse(string EnvironmentName, System.Collections.Generic.IReadOnlyList<string> AddressSpaces, System.Collections.Generic.IReadOnlyList<string>? DnsServers)
+Properties:
+  AddressSpaces: System.Collections.Generic.IReadOnlyList<string>
+  DnsServers: System.Collections.Generic.IReadOnlyList<string>?
+  EnvironmentName: string
+
+Namespace: InfraFlowSculptor.Contracts.VirtualNetworks.Responses
+Type: VirtualNetworkResponse
+Constructors:
+  VirtualNetworkResponse(string Id, string ResourceGroupId, string Name, string Location, bool EnableDdosProtection, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.VirtualNetworks.Responses.SubnetResponse> Subnets, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.VirtualNetworks.Responses.VirtualNetworkEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  EnableDdosProtection: bool
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.VirtualNetworks.Responses.VirtualNetworkEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+  Subnets: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.VirtualNetworks.Responses.SubnetResponse>
+
+Namespace: InfraFlowSculptor.Contracts.WebApps.Responses
+Type: WebAppResponse
+Constructors:
+  WebAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool AlwaysOn, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.WebApps.Requests.WebAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  AcrAuthMode: string?
+  AlwaysOn: bool
+  AppServicePlanId: string
+  ApplicationName: string?
+  BuildCommand: string?
+  ContainerRegistryId: string?
+  DeploymentMode: string
+  DockerImageName: string?
+  DockerfilePath: string?
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.WebApps.Requests.WebAppEnvironmentConfigResponse>
+  HttpsOnly: bool
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  PipelineStepOptions: InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto?
+  ResourceGroupId: string
+  RuntimeStack: string
+  RuntimeVersion: string
+  SourceCodePath: string?

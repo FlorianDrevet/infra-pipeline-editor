@@ -25,10 +25,10 @@ public static class BicepGenerationController
                 .WithTags("Generate Bicep");
 
             group.MapPost("",
-                    async (GenerateBicepRequest request, IMediator mediator, IMapper mapper) =>
+                    async (GenerateBicepRequest request, IMediator mediator, IMapper mapper, CancellationToken cancellationToken) =>
                     {
                         var command = new GenerateBicepCommand(request.InfrastructureConfigId);
-                        var result = await mediator.Send(command);
+                        var result = await mediator.Send(command, cancellationToken);
 
                         return result.Match(
                             value =>

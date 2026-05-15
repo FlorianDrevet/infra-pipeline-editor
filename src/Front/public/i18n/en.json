@@ -16,9 +16,18 @@
     "LOGGING_OUT": "Signing out...",
     "LOGOUT": "Sign out",
     "SETTINGS": "Settings",
+    "SKIP_TO_CONTENT": "Skip to main content",
+    "QUICK_CREATE": "Create new",
+    "QUICK_CREATE_ARIA": "Quick create menu",
+    "HELP_ARIA": "Help and documentation",
     "BREADCRUMB": {
       "PROJECTS": "Projects"
     }
+  },
+  "SEARCH": {
+    "PLACEHOLDER": "Search projects, configurations...",
+    "ARIA_LABEL": "Open search (Ctrl+K)",
+    "NO_RESULTS": "No results found"
   },
   "SIDEBAR": {
     "BRAND_ARIA": "Open InfraFlowSculptor home page",
@@ -28,7 +37,32 @@
     "HOME": "Home",
     "PROJECTS": "Projects",
     "SETTINGS": "Settings",
-    "DOCS": "Docs"
+    "DOCS": "Docs",
+    "FAVORITES": "Favorites",
+    "RECENT": "Recent",
+    "BACK_PROJECTS": "Back to projects",
+    "BACK_PROJECT": "Back to project",
+    "SECTION": {
+      "DEFINE": "Define",
+      "GENERATE": "Generate",
+      "MANAGE": "Manage"
+    },
+    "PROJECT": {
+      "CONFIGURATIONS": "Configurations",
+      "ENVIRONMENTS": "Environments",
+      "NAMING": "Naming Templates",
+      "VARIABLES": "Pipeline Variables",
+      "GENERATION": "Generation",
+      "MEMBERS": "Members",
+      "GIT": "Git Repositories",
+      "SETTINGS": "Settings"
+    },
+    "CONFIG": {
+      "RESOURCES": "Resource Groups",
+      "TAGS": "Tags",
+      "NAMING": "Naming Templates",
+      "GENERATION": "Generation"
+    }
   },
   "FOOTER": {
     "BRAND_DESCRIPTION": "Infrastructure as Data, Bicep as Code. Secure workspace for Azure platform teams.",
@@ -39,7 +73,11 @@
     "STATUS_BAR_ARIA": "Application status bar",
     "VERSION_ARIA": "Application version",
     "ENV_ARIA": "Environment name",
-    "DOCS": "Docs"
+    "LEGAL_NAV_ARIA": "Legal and documentation links",
+    "DOCS": "Docs",
+    "TERMS": "Terms",
+    "PRIVACY": "Privacy",
+    "STATUS": "Status"
   },
   "ANNOTATION": {
     "ACTIVATE": "Enable annotation",
@@ -76,6 +114,7 @@
     },
     "STATS": {
       "PROJECTS": "Projects",
+      "CONFIGS": "Configurations",
       "MEMBERS": "Members"
     },
     "ACTIONS": {
@@ -465,6 +504,7 @@
       "CATEGORY_SECURITY": "Security & Identity",
       "CATEGORY_MONITORING": "Monitoring & Configuration",
       "CATEGORY_MESSAGING": "Messaging",
+      "CATEGORY_NETWORKING": "Networking",
       "ADD_DIALOG_TITLE": "Choose resource type",
       "ADD_DIALOG_TITLE_KeyVault": "New Key Vault",
       "ADD_DIALOG_TITLE_RedisCache": "New Redis Cache",
@@ -484,6 +524,10 @@
       "ADD_DIALOG_TITLE_ServiceBusNamespace": "New Service Bus Namespace",
       "ADD_DIALOG_TITLE_EventHubNamespace": "New Event Hub Namespace",
       "ADD_DIALOG_TITLE_ContainerRegistry": "New Container Registry",
+      "ADD_DIALOG_TITLE_VirtualNetwork": "New Virtual Network",
+      "ADD_DIALOG_TITLE_NetworkSecurityGroup": "New Network Security Group",
+      "ADD_DIALOG_TITLE_PrivateDnsZone": "New Private DNS Zone",
+      "ADD_DIALOG_TITLE_FrontDoor": "New Front Door",
       "ADD_ERROR": "Failed to create the resource.",
       "FORM": {
         "NAME": "Name",
@@ -752,7 +796,13 @@
       "TAB_PIPELINE": "Pipeline",
       "COLLAPSE": "Collapse generation results",
       "EXPAND": "Expand generation results",
-      "CLOSE": "Close generation results"
+      "CLOSE": "Close generation results",
+      "PAGE_TITLE": "Generation",
+      "PAGE_SUBTITLE": "Generate Bicep and pipeline artifacts for this configuration",
+      "EMPTY_BICEP": "No Bicep artifacts generated yet. Click below to start.",
+      "RUN_BICEP": "Generate Bicep",
+      "EMPTY_PIPELINE": "No pipeline artifacts generated yet. Click below to start.",
+      "RUN_PIPELINE": "Generate Pipeline"
     },
     "GENERATE_ALL": {
       "BUTTON": "Generate",
@@ -917,12 +967,32 @@
     },
     "BOARD": {
       "LOADING": "Loading repository topology...",
+      "REGION_LABEL": "Generation board",
+      "PAGE_TITLE": "Generate project artifacts",
+      "PAGE_SUBTITLE": "Review the repository targets for {{projectName}} and launch generation with the {{layout}} layout.",
+      "PROJECT_PLACEHOLDER": "Current project",
+      "BREADCRUMB_CURRENT": "Generate",
+      "OPEN_PROJECT": "Open project",
+      "LAYOUT_PRESET_UNKNOWN": "Unknown layout",
+      "SUMMARY_LAYOUT": "Repository layout",
+      "SUMMARY_REPOSITORIES": "Repositories",
+      "SUMMARY_CONFIGS": "Configurations",
+      "SUMMARY_RESOURCE_GROUPS": "Resource groups",
+      "SUMMARY_RESOURCES": "Resources",
       "EMPTY_TITLE": "No repositories configured",
       "EMPTY_DESC": "Configure project-level repositories first to generate artifacts by repository.",
+      "EMPTY_CONFIGS_TITLE": "No configurations to generate yet",
+      "EMPTY_CONFIGS_DESC": "This project already has repositories, but no infrastructure configuration is mapped to them yet.",
       "MIXED_WARNING_TITLE": "Generation is split across multiple repositories",
       "MIXED_WARNING_DESC": "This project spans multiple target repositories. Open a configuration to generate or push artifacts repository by repository.",
+      "REPOSITORIES_TITLE": "Repository targets",
+      "REPOSITORIES_SUBTITLE": "Artifacts are currently grouped into {{count}} repository target(s).",
       "DEFAULT_REPO_LABEL": "Default repository",
+      "LEGACY_REPOSITORY_DESC": "Repository inferred from legacy configuration",
       "LEGACY_BADGE": "Legacy",
+      "CONFIG_LIST_TITLE": "Configurations in this repository",
+      "CONFIG_RESOURCE_GROUPS": "{{count}} resource groups",
+      "CONFIG_RESOURCES": "{{count}} resources",
       "CONFIG_GENERATE": "Open configuration",
       "GENERATE_ALL_CONFIGS": "Generate all configurations",
       "NO_GIT_CONFIG": "No project-level repository is configured.",
@@ -1440,6 +1510,7 @@
       "USED_BY": "Used By",
       "CONFIG_KEYS": "Configuration Keys",
       "APP_PIPELINE": "Application Pipeline",
+      "NETWORKING": "Networking",
       "WARNING_MISSING_ROLE": "A required role assignment is missing",
       "WARNING_MISSING_ENV_CONFIG": "Some environments have no configuration"
     },
@@ -1461,6 +1532,77 @@
       "NO_DOCKERFILES_FOUND": "No Dockerfile found on this branch",
       "LOADING_BRANCHES": "Loading branches…",
       "LOADING_FILES": "Searching for Dockerfiles…"
+    },
+    "NETWORKING": {
+      "TITLE": "Networking",
+      "PRIVATE_ENDPOINTS": "Private Endpoints",
+      "ADD_PE": "Add Private Endpoint",
+      "NO_PE": "No private endpoints configured",
+      "SUBNET": "Subnet",
+      "GROUP_ID": "Group ID",
+      "AUTO_APPROVAL": "Auto-approval",
+      "DNS_ZONE": "Private DNS Zone",
+      "CUSTOM_NIC": "Custom NIC Name",
+      "REMOVE_PE": "Remove",
+      "CONFIRM_REMOVE": "Remove this private endpoint?",
+      "CANCEL": "Cancel",
+      "NOT_SUPPORTED": "This resource type does not support private endpoints.",
+      "LOAD_ERROR": "Unable to load private endpoints. Please try again.",
+      "REMOVE_ERROR": "Unable to remove private endpoint. Please try again."
+    },
+    "PIPELINE_OPTIONS": {
+      "DESCRIPTION": "Configure optional pipeline steps such as tests, code analysis, linting, and post-deploy validation.",
+      "TESTS": {
+        "TITLE": "Unit Tests",
+        "SUBTITLE": "Run unit tests during the pipeline",
+        "TEST_COMMAND": "Test command",
+        "TEST_COMMAND_HINT": "Custom test command (e.g., dotnet test, npm test)",
+        "TEST_FRAMEWORK": "Test framework",
+        "RESULTS_FORMAT": "Results format",
+        "RESULTS_PATH": "Results path",
+        "RESULTS_PATH_HINT": "Glob pattern for test result files (e.g., **/TestResults/*.trx)",
+        "PUBLISH_RESULTS": "Publish test results"
+      },
+      "COVERAGE": {
+        "TITLE": "Code Coverage",
+        "SUBTITLE": "Publish code coverage reports",
+        "TOOL": "Coverage tool",
+        "REPORT_PATH": "Report path",
+        "REPORT_PATH_HINT": "Glob pattern for coverage report files"
+      },
+      "SONAR": {
+        "TITLE": "SonarQube / SonarCloud",
+        "SUBTITLE": "Run static code analysis",
+        "PROJECT_KEY": "Project key",
+        "ORGANIZATION": "Organization",
+        "SERVICE_CONNECTION": "Service connection",
+        "SERVICE_CONNECTION_HINT": "Azure DevOps service connection name for SonarQube"
+      },
+      "LINTING": {
+        "TITLE": "Linting",
+        "SUBTITLE": "Run code linting rules",
+        "COMMAND": "Lint command",
+        "COMMAND_HINT": "Custom lint command (e.g., npm run lint, dotnet format)"
+      },
+      "SECURITY": {
+        "TITLE": "Dependency Scan",
+        "SUBTITLE": "Scan dependencies for vulnerabilities",
+        "TOOL": "Scanning tool"
+      },
+      "BUILD": {
+        "TITLE": "Build Validation",
+        "SUBTITLE": "Run an explicit build validation step"
+      },
+      "CACHE": {
+        "TITLE": "Dependency Cache",
+        "SUBTITLE": "Cache dependencies to speed up builds"
+      },
+      "POST_DEPLOY": {
+        "TITLE": "Smoke Tests",
+        "SUBTITLE": "Run smoke tests after deployment",
+        "COMMAND": "Smoke test command",
+        "COMMAND_HINT": "Command to run after deployment (e.g., npm run smoke)"
+      }
     },
     "GENERAL": {
       "IDENTITY": "Identity",
@@ -2226,6 +2368,11 @@
   "SETTINGS": {
     "TITLE": "Settings",
     "SUBTITLE": "Manage your account settings",
+    "PREFERENCES": {
+      "TITLE": "Preferences",
+      "SUBTITLE": "Customize your workspace experience",
+      "LANGUAGE": "Language"
+    },
     "PAT_SECTION_TITLE": "Personal Access Tokens",
     "PAT_SECTION_DESCRIPTION": "Personal access tokens are used to authenticate MCP (Model Context Protocol) clients. Create a token and configure it in your MCP client.",
     "CREATE_TOKEN": "Create Token",

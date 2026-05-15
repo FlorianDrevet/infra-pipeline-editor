@@ -26,6 +26,9 @@
   <Folder Name="/src/Mcp/">
     <Project Path="src/Mcp/InfraFlowSculptor.Mcp/InfraFlowSculptor.Mcp.csproj" />
   </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/InfraFlowSculptor.WebDefaults/InfraFlowSculptor.WebDefaults.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/InfraFlowSculptor.Application.Tests/InfraFlowSculptor.Application.Tests.csproj" />
     <Project Path="tests/InfraFlowSculptor.Api.Tests/InfraFlowSculptor.Api.Tests.csproj" />

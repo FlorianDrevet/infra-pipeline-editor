@@ -1,4 +1,5 @@
 import { AcrAuthMode } from './container-registry.interface';
+import { PipelineStepOptions } from '../../features/resource-edit/models/pipeline-step-options.model';
 
 // ─── Environment Settings ────────────────────────────────────────────────────
 
@@ -36,6 +37,7 @@ export interface FunctionAppResponse {
   runtimeVersion: string;
   httpsOnly: boolean;
   applicationName: string | null;
+  pipelineStepOptions?: PipelineStepOptions | null;
   environmentSettings: FunctionAppEnvironmentConfigResponse[];
   isExisting?: boolean;
 }
@@ -58,6 +60,7 @@ export interface CreateFunctionAppRequest {
   runtimeVersion: string;
   httpsOnly: boolean;
   applicationName?: string | null;
+  pipelineStepOptions?: PipelineStepOptions | null;
   environmentSettings?: FunctionAppEnvironmentConfigEntry[];
   isExisting?: boolean;
 }
@@ -77,5 +80,6 @@ export interface UpdateFunctionAppRequest {
   runtimeVersion: string;
   httpsOnly: boolean;
   applicationName?: string | null;
+  pipelineStepOptions?: PipelineStepOptions | null;
   environmentSettings?: FunctionAppEnvironmentConfigEntry[];
 }

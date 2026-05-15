@@ -473,7 +473,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 kv.Id.Value,
                 kv.Name.Value,
                 MapLocation(kv.Location),
-                "Microsoft.KeyVault/vaults",
+                AzureResourceTypes.ArmTypes.KeyVaultType,
                 new Dictionary<string, string>
                 {
                     ["enableRbacAuthorization"] = kv.EnableRbacAuthorization.ToString().ToLower(),
@@ -491,7 +491,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 rc.Id.Value,
                 rc.Name.Value,
                 MapLocation(rc.Location),
-                "Microsoft.Cache/Redis",
+                AzureResourceTypes.ArmTypes.RedisCacheType,
                 new Dictionary<string, string>(),
                 rcSettings
                     .Where(es => es.RedisCacheId == rc.Id)
@@ -501,7 +501,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 sa.Id.Value,
                 sa.Name.Value,
                 MapLocation(sa.Location),
-                "Microsoft.Storage/storageAccounts",
+                AzureResourceTypes.ArmTypes.StorageAccountType,
                 new Dictionary<string, string>
                 {
                     ["kind"] = sa.Kind.Value.ToString(),
@@ -567,7 +567,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 asp.Id.Value,
                 asp.Name.Value,
                 MapLocation(asp.Location),
-                "Microsoft.Web/serverfarms",
+                AzureResourceTypes.ArmTypes.AppServicePlanType,
                 new Dictionary<string, string>
                 {
                     ["osType"] = asp.OsType.Value.ToString()
@@ -580,7 +580,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 wa.Id.Value,
                 wa.Name.Value,
                 MapLocation(wa.Location),
-                "Microsoft.Web/sites",
+                AzureResourceTypes.ArmTypes.WebAppType,
                 new Dictionary<string, string>
                 {
                     ["runtimeStack"] = wa.RuntimeStack.Value.ToString().ToLower(),
@@ -601,7 +601,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 fa.Id.Value,
                 fa.Name.Value,
                 MapLocation(fa.Location),
-                "Microsoft.Web/sites/functionapp",
+                AzureResourceTypes.ArmTypes.FunctionAppType,
                 new Dictionary<string, string>
                 {
                     ["runtimeStack"] = fa.RuntimeStack.Value.ToString().ToLower(),
@@ -621,14 +621,14 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 uai.Id.Value,
                 uai.Name.Value,
                 MapLocation(uai.Location),
-                "Microsoft.ManagedIdentity/userAssignedIdentities",
+                AzureResourceTypes.ArmTypes.UserAssignedIdentityType,
                 new Dictionary<string, string>(),
                 new List<ResourceEnvironmentConfigReadModel>()),
             AppConfiguration ac => new AzureResourceReadModel(
                 ac.Id.Value,
                 ac.Name.Value,
                 MapLocation(ac.Location),
-                "Microsoft.AppConfiguration/configurationStores",
+                AzureResourceTypes.ArmTypes.AppConfigurationType,
                 new Dictionary<string, string>(),
                 acSettings
                     .Where(es => es.AppConfigurationId == ac.Id)
@@ -638,7 +638,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 cae.Id.Value,
                 cae.Name.Value,
                 MapLocation(cae.Location),
-                "Microsoft.App/managedEnvironments",
+                AzureResourceTypes.ArmTypes.ContainerAppEnvironmentType,
                 cae.LogAnalyticsWorkspaceId is not null
                     ? new Dictionary<string, string> { ["logAnalyticsWorkspaceId"] = cae.LogAnalyticsWorkspaceId.Value.ToString() }
                     : new Dictionary<string, string>(),
@@ -650,7 +650,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 ca.Id.Value,
                 ca.Name.Value,
                 MapLocation(ca.Location),
-                "Microsoft.App/containerApps",
+                AzureResourceTypes.ArmTypes.ContainerAppType,
                 new Dictionary<string, string>
                 {
                     ["containerAppEnvironmentId"] = ca.ContainerAppEnvironmentId.Value.ToString(),
@@ -666,7 +666,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 law.Id.Value,
                 law.Name.Value,
                 MapLocation(law.Location),
-                "Microsoft.OperationalInsights/workspaces",
+                AzureResourceTypes.ArmTypes.LogAnalyticsWorkspaceType,
                 new Dictionary<string, string>(),
                 lawSettings
                     .Where(es => es.LogAnalyticsWorkspaceId == law.Id)
@@ -676,7 +676,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 ai.Id.Value,
                 ai.Name.Value,
                 MapLocation(ai.Location),
-                "Microsoft.Insights/components",
+                AzureResourceTypes.ArmTypes.ApplicationInsightsType,
                 new Dictionary<string, string>
                 {
                     ["logAnalyticsWorkspaceId"] = ai.LogAnalyticsWorkspaceId.Value.ToString()
@@ -689,7 +689,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 cosmos.Id.Value,
                 cosmos.Name.Value,
                 MapLocation(cosmos.Location),
-                "Microsoft.DocumentDB/databaseAccounts",
+                AzureResourceTypes.ArmTypes.CosmosDbType,
                 new Dictionary<string, string>(),
                 cosmosSettings
                     .Where(es => es.CosmosDbId == cosmos.Id)
@@ -699,7 +699,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 sqlServer.Id.Value,
                 sqlServer.Name.Value,
                 MapLocation(sqlServer.Location),
-                "Microsoft.Sql/servers",
+                AzureResourceTypes.ArmTypes.SqlServerType,
                 new Dictionary<string, string>
                 {
                     ["version"] = sqlServer.Version.Value.ToString(),
@@ -713,7 +713,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 sqlDb.Id.Value,
                 sqlDb.Name.Value,
                 MapLocation(sqlDb.Location),
-                "Microsoft.Sql/servers/databases",
+                AzureResourceTypes.ArmTypes.SqlDatabaseType,
                 new Dictionary<string, string>
                 {
                     ["sqlServerId"] = sqlDb.SqlServerId.Value.ToString(),
@@ -727,7 +727,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 sb.Id.Value,
                 sb.Name.Value,
                 MapLocation(sb.Location),
-                "Microsoft.ServiceBus/namespaces",
+                AzureResourceTypes.ArmTypes.ServiceBusNamespaceType,
                 new Dictionary<string, string>(),
                 sbSettings
                     .Where(es => es.ServiceBusNamespaceId == sb.Id)
@@ -737,7 +737,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 cr.Id.Value,
                 cr.Name.Value,
                 MapLocation(cr.Location),
-                "Microsoft.ContainerRegistry/registries",
+                AzureResourceTypes.ArmTypes.ContainerRegistryType,
                 new Dictionary<string, string>(),
                 crSettings
                     .Where(es => es.ContainerRegistryId == cr.Id)
@@ -747,7 +747,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 eh.Id.Value,
                 eh.Name.Value,
                 MapLocation(eh.Location),
-                "Microsoft.EventHub/namespaces",
+                AzureResourceTypes.ArmTypes.EventHubNamespaceType,
                 new Dictionary<string, string>(),
                 ehSettings
                     .Where(es => es.EventHubNamespaceId == eh.Id)

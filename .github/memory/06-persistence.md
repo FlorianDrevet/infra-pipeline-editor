@@ -16,7 +16,18 @@
 - `ResourceGroup.Name` = `90`; `AzureResource.Name` / `CustomNameOverride` = `260`.
 - `ParameterDefinition.Name` = `100`; `Type` = `20`; `DefaultValue` = `500`.
 - `ProjectResourceNamingTemplate.Template` and `ResourceNamingTemplate.Template` = `500`.
+- `BlobContainer.Name`, `StorageQueue.Name`, and `StorageTable.Name` = `63`; `RoleAssignment.RoleDefinitionId` = `36`.
+- `FunctionApp.RuntimeVersion` / `WebApp.RuntimeVersion` = `20`; `FunctionApp.DockerImageName` / `WebApp.DockerImageName` = `512`.
+- `AppServicePlanEnvironmentSettings.EnvironmentName`, `FunctionAppEnvironmentSettings.EnvironmentName`, `WebAppEnvironmentSettings.EnvironmentName`, `SqlServerEnvironmentSettings.EnvironmentName`, and `SqlDatabaseEnvironmentSettings.EnvironmentName` = `100`.
+- `FunctionAppEnvironmentSettings.DockerImageTag` and `WebAppEnvironmentSettings.DockerImageTag` = `128`.
 - When a persistence cap is introduced, align the request contract and validator in the same change set. The current reference slices are `CreateProject`, `CreateInfrastructureConfig`, and `CreateResourceGroup`.
+- `CoreStringLengthConfigurationTests` is now the DB-001 guardrail for every persisted `string` column in the EF model. It intentionally excludes keyless views and model-side `string` properties converted to non-string provider columns (for example `InputOutputLink` persisted as integers) [2026-05-13].
+
+## Networking Persistence Follow-ups [2026-05-15]
+- `NetworkSecurityGroupConfiguration` now treats the tightened networking lengths as canonical: CIDR prefixes cap at `100`, and source/destination port ranges cap at `50` instead of the old generic `260` fallback.
+- `VirtualNetworkEnvironmentSettings` and `FrontDoorEnvironmentSettings` now enforce uniqueness per `(Resource, EnvironmentName)` pair at the database boundary.
+- `PrivateEndpointConfig` is indexed by `ResourceId` for the per-resource private-endpoint read path.
+- `NsgRule` now enforces unique `(NetworkSecurityGroupId, Priority, Direction)` so conflicting rule priorities are blocked by both domain validation and persistence.
 
 ## Model Conventions
 - For index coverage verification, use a relational provider (`Npgsql`) rather than the InMemory provider; `IndexCoverageConfigurationTests` is the reference test.
@@ -28,14 +39,17 @@
 - `IdValueConverter<TId>` and `NullableIdValueConverter<TId>` map typed IDs to `Guid` / nullable `Guid`.
 - `SingleValueConverter<TValueObject, TPrimitive>` maps single-value objects.
 - `EnumValueConverter<TEnumValueObject, TEnum>` and `NullableEnumValueConverter<TEnumValueObject, TEnum>` map enum value objects.
+- DB-015 closure rule [2026-05-13]: reuse `NullableIdValueConverter<TId>` for nullable strongly typed identifiers instead of cloning local `Guid?` converters. The current reference usages are `ContainerAppConfiguration`, `ContainerAppEnvironmentConfiguration`, `FunctionAppConfiguration`, and `WebAppConfiguration`.
 
 ## Repository Pattern
 - Repository interfaces live in Application; implementations live in Infrastructure.
 - `BaseRepository<T, TContext>` owns the common tracked and read-only key lookups, plus `AddAsync`, `UpdateAsync`, and `DeleteAsync`.
-- `IRepository<T>.GetAllAsync(...)` now keeps the original includes-only signature and also exposes an additive token-aware overload `GetAllAsync(CancellationToken, params includes)`. `BaseRepository` routes the legacy overload to the token-aware path and passes the token to `ToListAsync(cancellationToken)`. Keep `IUserRepository` as the deliberate specialized exception with its own explicit token-aware signature.
+- `IRepository<T>.GetAllAsync(...)` now keeps the original includes-only signature and also exposes an additive token-aware overload `GetAllAsync(CancellationToken, params includes)`. `BaseRepository` routes the legacy overload to the token-aware path, applies `AsNoTracking()` before includes, and passes the token to `ToListAsync(cancellationToken)` so default list reads stay detached. Keep `IUserRepository` as the deliberate specialized exception with its own explicit token-aware signature [2026-05-13].
 - APP-012 closure decision: keep eager-loading contracts explicit (`GetByIdWithXAsync(...)`, `GetByContainedXIdAsync(...)`, read-only variants) and do not widen `IRepository<>` with a generic includes callback API. The explicit repository surface is the documented convention for this codebase [2026-05-13].
+- `UserProvisioningService` is the current reference when an HTTP/auth boundary needs an atomic persistence-side existence check: it lives in Infrastructure, implements an Application interface, and uses PostgreSQL `INSERT ... ON CONFLICT ("EntraId") DO NOTHING` against the `User` table before reusing the persisted `Id` [2026-05-13].
 - In EF LINQ, compare whole value objects (`x.Id == id`), never `x.Id.Value == id.Value`.
 - `StorageAccountRepository` is the DB-007 reference for duplicated eager-loading graphs: keep the shared include chain in a private `WithSubResources(...)` helper.
+- DB-007 follow-up [2026-05-13]: resource repositories with repeated eager-loading graphs now keep them repository-local behind private helpers instead of duplicating inline `Include(...)` chains or widening `IRepository<>`. `RepositoryIncludeHelperConventionTests` guards the touched set (`WebApp`, `FunctionApp`, `AppServicePlan`, `ApplicationInsights`, `KeyVault`, `LogAnalyticsWorkspace`, `ContainerApp`, `ContainerAppEnvironment`, `ContainerRegistry`, `CosmosDb`, `RedisCache`, `EventHubNamespace`, `ServiceBusNamespace`, `SqlServer`, `SqlDatabase`, `AppConfiguration`).
 
 ## FK Cascade / Delete Pitfalls [2026-04-04]
 - `Restrict` on cross-resource FKs is unsafe when parent deletes already cascade through `AzureResources`.
@@ -63,6 +77,7 @@
 ## Large Read-Model Mapping Contexts [2026-05-12]
 - When a private mapper starts needing many preloaded collections, group them into a dedicated local context object instead of widening the method signature.
 - `InfrastructureConfigReadRepository.ResourceMappingContext` is the current reference pattern.
+- `InfrastructureConfigReadRepository.MapResource(...)` must emit canonical `AzureResourceTypes.ArmTypes.*` values for read-model `ResourceType` fields. Do not reintroduce raw `Microsoft.*` ARM type strings in that mapper; keep the API read models aligned with `GenerationCore.AzureResourceTypes` [2026-05-13].
 - INFRA-003 closure rule: prefer targeted summary methods, read repositories, and local read models over a generic projections/DTO layer added to every repository [2026-05-13].
 
 ## Repository Naming And Layout Persistence
@@ -86,4 +101,6 @@
 ## Migrations
 - Schema changes still require a new EF migration under `src/Api/InfraFlowSculptor.Infrastructure/Migrations/`.
 - Current DB-001 / delete-behavior reference migrations: `20260512091902_AddCoreStringLengthConstraints`, `20260512095600_AddResourceGroupNameLengthConstraint`, `20260512121558_SetNullOnAppSettingSourceResource`, and `20260512140453_AddParameterDefinitionLengthConstraints`.
+- PostgreSQL view dependency pitfall [2026-05-14]: if a migration alters the type/length of a column projected by `vw_ResourceEnvironmentEntries`, PostgreSQL rejects the `ALTER COLUMN` until the view is dropped. The current reference fix is `20260514104001_SyncPendingModelChanges`, which drops and recreates `vw_ResourceEnvironmentEntries` inside both `Up` and `Down` around the affected `EnvironmentName` column alterations.
+- Pipeline step options migration pitfall [2026-05-15]: `AppPipelineStepOptions` is an owned entity on `WebApp`, `FunctionApp`, and `ContainerApp`. If the owned-entity mapping is added or refactored without a matching migration, both `infraflowsculptor-api` and `infraflowsculptor-mcp` fail during shared startup migration with `Microsoft.EntityFrameworkCore.Migrations.PendingModelChangesWarning`. The current reference fix is `20260515102033_AddPipelineStepOptionsOwnedEntity`, which adds the `PipelineStepOptions_*` columns to the three compute tables and refreshes `ProjectDbContextModelSnapshot`.
 - Do not squash a sub-range in the middle of the active EF Core migration chain. The DB-008 closure decision is now explicit: the only safe squash is a full baseline reset on an empty database, coordinated as release engineering, not a partial rewrite inside a feature branch with later migrations already layered on top.

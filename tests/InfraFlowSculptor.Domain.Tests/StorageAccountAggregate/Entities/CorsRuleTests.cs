@@ -2,11 +2,35 @@ using FluentAssertions;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
+using System.Reflection;
 
 namespace InfraFlowSculptor.Domain.Tests.StorageAccountAggregate.Entities;
 
 public sealed class CorsRuleTests
 {
+    [Fact]
+    public void Given_CorsRuleType_When_InspectingEfConstructor_Then_ParameterlessConstructorIsNonPrivateAndInitializesReadOnlyCollections()
+    {
+        // Arrange
+        var constructor = typeof(CorsRule).GetConstructor(
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+            binder: null,
+            types: Type.EmptyTypes,
+            modifiers: null);
+
+        // Act
+        var sut = constructor?.Invoke(null) as CorsRule;
+
+        // Assert
+        constructor.Should().NotBeNull();
+        constructor!.IsPrivate.Should().BeFalse("the EF materialization constructor should not require a SuppressMessage attribute");
+        sut.Should().NotBeNull();
+        sut!.AllowedOrigins.Should().BeEmpty();
+        sut.AllowedMethods.Should().BeEmpty();
+        sut.AllowedHeaders.Should().BeEmpty();
+        sut.ExposedHeaders.Should().BeEmpty();
+    }
+
     [Fact]
     public void Given_FactoryArguments_When_Create_Then_InitializesProperties()
     {

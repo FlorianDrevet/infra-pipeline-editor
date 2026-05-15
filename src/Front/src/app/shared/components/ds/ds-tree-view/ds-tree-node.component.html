@@ -1,5 +1,8 @@
 <div
   class="ds-tree-node"
+  role="treeitem"
+  [attr.aria-expanded]="hasChildren ? expanded : null"
+  [attr.aria-selected]="isSelected"
 >
   <div
     class="ds-tree-node__row"

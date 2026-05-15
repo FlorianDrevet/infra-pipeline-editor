@@ -89,6 +89,23 @@ public sealed class InfrastructureConfigTests
         sut.Tags.Should().BeEquivalentTo(replacement);
     }
 
+    [Fact]
+    public void Given_CollectionViews_When_TryingToMutateReturnedCollections_Then_Throws()
+    {
+        // Arrange
+        var sut = CreateValidConfig();
+
+        // Act
+        Action mutateTags = () => TryMutateReturnedCollection(sut.Tags);
+        Action mutateParameterDefinitions = () => TryMutateReturnedCollection(sut.ParameterDefinitions);
+
+        // Assert
+        mutateTags.Should().Throw<Exception>()
+            .Where(exception => exception.GetType() == typeof(InvalidCastException) || exception.GetType() == typeof(NotSupportedException));
+        mutateParameterDefinitions.Should().Throw<Exception>()
+            .Where(exception => exception.GetType() == typeof(InvalidCastException) || exception.GetType() == typeof(NotSupportedException));
+    }
+
     // ─── Naming Convention ──────────────────────────────────────────────────
 
     [Fact]
@@ -626,5 +643,14 @@ public sealed class InfrastructureConfigTests
 
         // Assert
         result.IsError.Should().BeTrue();
+    }
+
+    private static void TryMutateReturnedCollection<T>(IReadOnlyCollection<T> collection)
+        where T : class
+    {
+        var mutableCollection = collection as ICollection<T>
+            ?? throw new InvalidCastException("Collection does not expose a mutable ICollection<T>.");
+
+        mutableCollection.Add(default!);
     }
 }

@@ -16,9 +16,7 @@ public class WebAppRepository(ProjectDbContext context)
         ValueObject id,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<WebApp>()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<WebApp>())
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
@@ -27,10 +25,7 @@ public class WebAppRepository(ProjectDbContext context)
         ValueObject id,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<WebApp>()
-            .AsNoTracking()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<WebApp>().AsNoTracking())
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
@@ -39,9 +34,7 @@ public class WebAppRepository(ProjectDbContext context)
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<WebApp>()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<WebApp>())
             .Where(x => x.ResourceGroupId == resourceGroupId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -56,5 +49,12 @@ public class WebAppRepository(ProjectDbContext context)
             .Where(x => x.AppServicePlanId == appServicePlanId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    private static IQueryable<WebApp> WithSubResources(IQueryable<WebApp> query)
+    {
+        return query
+            .Include(x => x.DependsOn)
+            .Include(x => x.EnvironmentSettings);
     }
 }

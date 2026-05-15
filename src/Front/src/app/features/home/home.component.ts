@@ -33,6 +33,15 @@ export class HomeComponent implements OnInit {
     this.projects().filter((p) => this.favoritesService.isFavorite(p.id))
   );
 
+  protected readonly totalConfigs = computed(() =>
+    this.projects().reduce((sum, p) => sum + p.environmentDefinitions.length, 0)
+  );
+
+  protected readonly totalMembers = computed(() => {
+    const uniqueIds = new Set(this.projects().flatMap((p) => p.members.map((m) => m.userId)));
+    return uniqueIds.size;
+  });
+
   public async ngOnInit(): Promise<void> {
     await Promise.all([
       this.loadProjects(),

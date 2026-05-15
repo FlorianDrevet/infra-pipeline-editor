@@ -15,7 +15,7 @@ import {
   AzureRoleDefinitionResponse,
   RoleAssignmentResponse,
 } from '../../../shared/interfaces/role-assignment.interface';
-import { RESOURCE_TYPE_ICONS } from '../../config-detail/enums/resource-type.enum';
+import { RESOURCE_TYPE_ICONS } from '../../../shared/resource-metadata/resource-type.metadata';
 
 export interface AddRoleAssignmentDialogResult {
   roleAssignment: RoleAssignmentResponse;

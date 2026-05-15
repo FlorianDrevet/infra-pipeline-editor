@@ -6,6 +6,7 @@ using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Imports;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Server;
 
 namespace InfraFlowSculptor.Mcp.Tools;
@@ -62,14 +63,19 @@ public sealed class IacImportTools
     [McpServerTool(Name = "apply_import_preview")]
     [Description("Applies a validated import preview to create a new project with the imported resources.")]
     public static async Task<string> ApplyImportPreview(
-        IImportPreviewService previewService,
-        ISender mediator,
+        IServiceProvider serviceProvider,
         [Description("The preview ID from preview_iac_import.")] string previewId,
         [Description("Project name for the new project.")] string projectName,
         [Description("Layout preset (AllInOne, SplitInfraCode, MultiRepo).")] string layoutPreset,
         [Description("Optional JSON array of environment definitions.")] string? environments = null,
-        [Description("Optional list of source resource names to include. If null, all mapped resources are imported.")] string? resourceFilter = null)
+        [Description("Optional list of source resource names to include. If null, all mapped resources are imported.")] string? resourceFilter = null,
+        CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(serviceProvider);
+
+        var previewService = serviceProvider.GetRequiredService<IImportPreviewService>();
+        var mediator = serviceProvider.GetRequiredService<ISender>();
+
         var preview = previewService.GetPreview(previewId);
         if (preview is null)
         {
@@ -85,7 +91,7 @@ public sealed class IacImportTools
             envItems,
             filter);
 
-        var result = await mediator.Send(command);
+        var result = await mediator.Send(command, cancellationToken);
 
         if (result.IsError)
         {

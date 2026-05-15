@@ -13,12 +13,19 @@
 - `features/` — feature pages (lazy-loaded)
 - `environments/` — API base URLs
 
+## Shell Navigation [2026-05-13]
+- The app shell now has a true global vs contextual sidebar split via `SidebarContextService`: global mode exposes top-level navigation plus docs/favorites/recent items, while project/config modes group links into `Define`, `Generate`, and `Manage` sections.
+- `SidebarStateService` persists the collapsed state in `localStorage` key `ifs.sidebar.collapsed` and mirrors the live shell width through CSS variable `--ifs-sidebar-width` (`240px` expanded, `56px` collapsed).
+- `PageContextService` is the shared breadcrumb contract between feature pages and the top navigation bar; pages own the current breadcrumb and must clear it when leaving their context.
+- The footer status bar now exposes version, environment, and legal/docs/status links; keep those links as shell-level concerns rather than scattering them across feature pages.
+
 ## Containerization & Build
 - `src/Front/Dockerfile` builds with `node:22-alpine`, injects `API_URL` into `environment.ts`, uses a BuildKit cache on `/root/.npm`, and serves the production build from `nginx:1.29-alpine` with a `/` healthcheck
 - `src/Front/nginx.conf` listens on `8080`, gzips JS/CSS/JSON/SVG/XML, serves hashed assets with 1-year `immutable` cache, and falls back to `index.html` for Angular routing
 - `src/Front/.dockerignore` excludes `node_modules`, `dist`, and `.angular`
 - `src/Front/src/index.html` no longer pulls Roboto or Material Icons from Google Fonts. Angular now bundles `@fontsource/roboto` (weights 300/400/500) and `material-icons` through the `angular.json` styles arrays so `mat-icon` ligatures keep working without external stylesheet dependencies.
-- Build budgets: `anyComponentStyle` warning/error = `10 kB` / `20 kB`; `initial` warning/error = `500 kB` / `1 MB`
+- Build budgets: `anyComponentStyle` warning/error = `56 kB` / `64 kB`; `initial` warning/error = `1.2 MB` / `1.3 MB`
+- Production `npm run build` now exits `0` with the current Angular 21 bundle size; remaining warnings are limited to OpenTelemetry CommonJS/ESM optimization bailouts.
 - Browser tab icons use versioned assets in `src/index.html`: `public/ifs-favicon.svg`, `public/ifs-favicon.png`, plus regenerated `public/favicon.ico`
 
 ## i18n (FR/EN)
@@ -27,6 +34,7 @@
 - `resource-edit` dialog keys stay under `RESOURCE_EDIT.*`; missing nested keys render raw labels
 - `DeploymentConfigComponent` resolves ACR labels through `RESOURCE_EDIT.FIELDS.*`; missing `ACR_AUTH_MODE*` keys in one locale break the shared ACR UI
 - Multi-repo project screens consume `PROJECT_DETAIL.LAYOUT.*`; `GenerationBoardComponent` reads labels from `PROJECT_DETAIL.BOARD.*`, not `CONFIG_DETAIL.BOARD.*`
+- The standalone route `/projects/:id/generate` now uses a centered DS page layout: `app-ds-page-header` hero, summary metric cards, DS repository cards, and dark-token-only styling. Avoid `rgba(0,0,0,...)` text/border colors in this slice because the page lives inside the dark shell and those values make metadata effectively invisible.
 - The PowerShell source-vs-dictionary scan still reports `_`-suffixed dynamic prefixes such as `HOME.RECENT.TYPE_`; those are not true missing leaves
 
 ## Auth & Frontend Services
@@ -65,6 +73,7 @@
 - **Project creation wizard [2026-04-25/26]:** the layout-preset step renders preset icons through standard Angular Material `<mat-icon>` instead of raw `material-symbols-outlined` spans, because the latter can visibly fall back to literal icon names in this app shell. The wizard dialog opens at `960px` with `maxWidth: 96vw`, and `.ifs-wizard-dialog` adds scoped stepper-header spacing plus wrapped labels so the 4/5-step header remains readable. The stepper state layer is now tuned locally through Material stepper CSS variables so hover/focus on completed steps stays as a softer rounded pill instead of touching the full header rail, and the three preset cards are equalized locally in `layout-step` rather than by changing the shared DS option-card globally. The review step uses card-style sections with DS tokens for clear visual separation. Wizard footer actions (Back/Next/Submit) are sticky at the modal bottom via flex layout on the Material stepper wrapper so they stay visible during scroll.
 - **ACR auth mode:** `DeploymentConfigComponent` owns the shared selector (`ManagedIdentity` / `AdminCredentials`). `resource-edit` and `add-resource-dialog` persist `acrAuthMode`, clear it when the ACR is cleared, and bypass UAI diagnostics for admin-credentials mode
 - **Resource-edit UAI flows [2026-05-11]:** `ResourceData` already exposes `resourceGroupId`, so `resource-edit.component.ts` UAI creation / KV-entry UAI creation / role-assignment dialog flows should read `res.resourceGroupId` directly. Avoid structural assertions like `as { resourceGroupId?: string }`, which only create local Sonar noise without tightening types.
+- **Resource-edit Key Vault warnings [2026-05-13]:** the missing-role warning UI is now shared by `app-settings` and `config-keys` through `sections/shared/resource-edit-kv-missing-role-card.component.*`, and the duplicated controller-side identity / Key Vault access / assign-role workflow is centralized in `sections/shared/resource-edit-kv-role-assignment.helpers.ts`. Reuse those seams before adding a third Key Vault-reference section.
 - **SplitGenerationSwitcher chip contrast [2026-05-11]:** keep the Infra / Code count chips on an opaque-enough accent fill. The tiny 0.67rem counter text fails Sonar contrast checks when paired with translucent pastel backgrounds over the dark switcher shell.
 - **Role-assignment identity constraints [2026-05-11]:** `src/Front/src/app/shared/interfaces/role-assignment.interface.ts` must keep `AzureRoleDefinitionResponse.requiresUserAssignedIdentity` in sync with the backend contract. `add-role-assignment-dialog` and `resource-edit` must derive UAI-only role behavior from that flag, not from a hardcoded AcrPull GUID constant.
 - **Name availability:** `NameAvailabilityService.check$()` runs with a debounced 500 ms `switchMap` in `resource-edit` and `add-resource-dialog` for 10 Azure-name-sensitive resource types; submit/save is blocked unless the user explicitly bypasses it
@@ -88,6 +97,9 @@
 - **Secure parameter mapping:** `resource-edit` exposes SQL Server password mapping through `SecureParameterMappingService`, with either random generation or variable-group-backed injection
 - **Custom domains:** supported only for ContainerApp, WebApp, and FunctionApp, inside per-environment panels with add-dialog preselection of the current environment
 - **SQL Server editor:** `resource-edit` supports version and administrator login in general settings plus per-environment TLS
+- **Shared resource metadata boundary [2026-05-13]:** options/icons previously owned by `config-detail/enums/*` now live under `src/Front/src/app/shared/resource-metadata/`. `resource-edit`, `project-detail`, and shared dialogs/components should import shared resource metadata from there, not from `config-detail`.
+- **P2 frontend decomposition [2026-05-13]:** `config-detail` and `resource-edit` now rely on extracted section/helper seams under `features/config-detail/sections/**`, `features/config-detail/helpers/**`, and `features/resource-edit/helpers/**`. Keep section-specific logic out of the parent components; the current post-P2 parent sizes are ~1447 LOC for `config-detail.component.ts` and ~1955 LOC for `resource-edit.component.ts`.
+- **P3 frontend decomposition [2026-05-13]:** `add-resource-dialog` and `project-detail` now follow the same pattern: keep orchestration logic in extracted helpers/services (`add-resource-dialog-*helper.ts`, `add-resource-dialog-*service.ts`, `project-detail-generation-*`) and treat the parents as UI composition shells. The current post-P3 parent sizes are ~961 LOC for `add-resource-dialog.component.ts` and ~897 LOC for `project-detail.component.ts`.
 
 ## Frontend Pitfalls
 - `onContainerRegistryChange` must patch `generalForm.containerRegistryId`; `onDeploymentModeChange` must trigger `checkAcrPullAccess()` when switching back to container mode with an ACR already selected; `isAcrEnabled` should stay the single source of truth

@@ -26,5 +26,6 @@
         <ProjectReference Include="..\InfraFlowSculptor.Contracts\InfraFlowSculptor.Contracts.csproj" />
         <ProjectReference Include="..\InfraFlowSculptor.Application\InfraFlowSculptor.Application.csproj" />
         <ProjectReference Include="..\InfraFlowSculptor.Infrastructure\InfraFlowSculptor.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\Shared\InfraFlowSculptor.WebDefaults\InfraFlowSculptor.WebDefaults.csproj" />
     </ItemGroup>
 </Project>

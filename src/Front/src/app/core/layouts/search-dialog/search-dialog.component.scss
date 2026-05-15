@@ -1,0 +1,113 @@
+.search-dialog {
+  width: 560px;
+  max-height: 480px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-dialog__input-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ifs-space-12);
+  padding: var(--ifs-space-12) var(--ifs-space-16);
+  border-bottom: 1px solid var(--ifs-border-subtle);
+}
+
+.search-dialog__search-icon {
+  color: var(--ifs-text-muted);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.search-dialog__input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  font-family: inherit;
+  background: transparent;
+  color: var(--ifs-text-primary);
+}
+
+.search-dialog__input::placeholder {
+  color: var(--ifs-text-muted);
+}
+
+.search-dialog__shortcut {
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: inherit;
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-sm);
+  color: var(--ifs-text-muted);
+  background: var(--ifs-surface-raised);
+}
+
+.search-dialog__results {
+  list-style: none;
+  margin: 0;
+  padding: var(--ifs-space-8) 0;
+  overflow-y: auto;
+  max-height: 380px;
+}
+
+.search-dialog__result {
+  display: flex;
+  align-items: center;
+  gap: var(--ifs-space-12);
+  padding: var(--ifs-space-8) var(--ifs-space-16);
+  cursor: pointer;
+  transition: background var(--ifs-duration-fast) var(--ifs-ease-standard);
+}
+
+.search-dialog__result--selected {
+  background: var(--ifs-surface-hover);
+}
+
+.search-dialog__result-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--ifs-text-muted);
+}
+
+.search-dialog__result-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.search-dialog__result-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ifs-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-dialog__result-desc {
+  font-size: 12px;
+  color: var(--ifs-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-dialog__result-type {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ifs-text-muted);
+  flex-shrink: 0;
+}
+
+.search-dialog__empty {
+  padding: var(--ifs-space-24);
+  text-align: center;
+  color: var(--ifs-text-muted);
+  font-size: 14px;
+}

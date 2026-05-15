@@ -1,0 +1,425 @@
+<div class="tab-content">
+  <div class="tab-content__toolbar">
+    @if (viewModel().canWrite) {
+      <button class="add-rg-btn" (click)="viewModel().onOpenAddResourceGroupDialog()">
+        <mat-icon class="add-rg-btn__icon">add_circle_outline</mat-icon>
+        {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.ADD' | translate }}
+      </button>
+    }
+
+    @if (viewModel().sortedEnvironments.length > 0) {
+      <app-ds-select
+        class="preview-env-select"
+        [label]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_ENV' | translate"
+        [options]="viewModel().previewEnvOptions"
+        [ngModel]="viewModel().previewEnvId"
+        (ngModelChange)="viewModel().onSetPreviewEnvId($event)" />
+    }
+  </div>
+
+  @if (viewModel().rgErrorKey) {
+    <p class="rg-error">{{ viewModel().rgErrorKey | translate }}</p>
+  }
+
+  @if (viewModel().resourceGroups.length > 0) {
+    <div class="rg-list">
+      @for (resourceGroup of viewModel().resourceGroups; track resourceGroup.id) {
+        <article class="rg-accordion" [class.rg-accordion--expanded]="viewModel().expandedRgId === resourceGroup.id">
+          <div class="rg-accordion__header">
+            <button
+              type="button"
+              class="rg-accordion__toggle"
+              [attr.aria-controls]="'rg-body-' + resourceGroup.id"
+              [attr.aria-expanded]="viewModel().expandedRgId === resourceGroup.id"
+              (click)="viewModel().onToggleRgExpand(resourceGroup.id)">
+              <mat-icon class="rg-accordion__chevron">expand_more</mat-icon>
+              <div class="rg-accordion__info">
+                <div class="rg-name-row">
+                  <strong>{{ resourceGroup.name }}</strong>
+                  @if (viewModel().resolveNamingPreview(resourceGroup.name, 'ResourceGroup'); as preview) {
+                    <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                      <mat-icon class="naming-preview__icon">label</mat-icon>
+                      {{ preview }}
+                    </span>
+                  }
+                </div>
+                <span class="rg-accordion__location">
+                  <mat-icon>location_on</mat-icon>
+                  {{ resourceGroup.location }}
+                </span>
+              </div>
+            </button>
+            @if (viewModel().canWrite) {
+              <button class="add-resource-btn add-resource-btn--inline" (click)="viewModel().onOpenAddResourceDialog(resourceGroup.id); $event.stopPropagation()">
+                <mat-icon class="add-resource-btn__icon">add_circle_outline</mat-icon>
+                {{ 'CONFIG_DETAIL.RESOURCES.ADD' | translate }}
+              </button>
+              <button
+                class="resource-action-btn resource-action-btn--delete"
+                [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE' | translate"
+                (click)="viewModel().onOpenDeleteResourceGroupDialog(resourceGroup); $event.stopPropagation()">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            }
+            <span class="rg-accordion__count">{{ viewModel().rgResources[resourceGroup.id]?.length ?? '…' }}</span>
+          </div>
+
+          @if (viewModel().expandedRgId === resourceGroup.id) {
+            <div class="rg-accordion__body" [attr.id]="'rg-body-' + resourceGroup.id">
+              @if (viewModel().rgResourcesLoading === resourceGroup.id) {
+                <div class="rg-resources-loading">
+                  <mat-spinner diameter="22"></mat-spinner>
+                  <span>{{ 'CONFIG_DETAIL.RESOURCES.LOADING' | translate }}</span>
+                </div>
+              } @else {
+                @if ((viewModel().rgResources[resourceGroup.id] || []).length > 0) {
+                  <div class="resource-list">
+                    @for (item of viewModel().getGroupedResources(resourceGroup.id); track item.resource.id) {
+                      @if (item.isParent && item.resource.resourceType === 'StorageAccount') {
+                        <div class="resource-parent-group" [class.resource-parent-group--expanded]="viewModel().isParentExpanded(item.resource.id)">
+                          <button class="resource-parent-header" (click)="viewModel().onToggleStorageParentExpand(item.resource.id)">
+                            <mat-icon class="resource-parent-header__chevron">expand_more</mat-icon>
+                            <mat-icon class="resource-item__icon">{{ viewModel().resourceTypeIcons[item.resource.resourceType] || 'widgets' }}</mat-icon>
+                            <div class="resource-item__info">
+                              <div class="resource-name-row">
+                                <strong>{{ item.resource.name }}</strong>
+                                <ng-container
+                                  [ngTemplateOutlet]="resourceIndicatorsTemplate"
+                                  [ngTemplateOutletContext]="{ resource: item.resource, showExisting: true }">
+                                </ng-container>
+                              </div>
+                              <span class="resource-item__type">{{ item.resource.resourceType }}</span>
+                            </div>
+                            <span class="resource-parent-header__count">
+                              @if (viewModel().storageDetailsLoading === item.resource.id) {
+                                …
+                              } @else {
+                                {{ viewModel().getStorageSubResourceCount(item.resource.id) }}
+                              }
+                            </span>
+                            <span class="resource-item__location">{{ item.resource.location }}</span>
+                            <div class="resource-item__actions">
+                              <a
+                                class="resource-action-btn resource-action-btn--edit"
+                                [routerLink]="['/config', viewModel().configId, 'resource', item.resource.resourceType, item.resource.id]"
+                                (click)="$event.stopPropagation()"
+                                [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
+                                <mat-icon>edit</mat-icon>
+                              </a>
+                              @if (viewModel().canWrite) {
+                                <button
+                                  class="resource-action-btn resource-action-btn--delete"
+                                  [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                  (click)="viewModel().onOpenDeleteResourceDialog(item.resource, resourceGroup.id); $event.stopPropagation()">
+                                  <mat-icon>delete_outline</mat-icon>
+                                </button>
+                              }
+                            </div>
+                          </button>
+                          @if (viewModel().isParentExpanded(item.resource.id)) {
+                            <div class="resource-children">
+                              @if (viewModel().storageDetailsLoading === item.resource.id) {
+                                <div class="rg-resources-loading">
+                                  <mat-spinner diameter="18"></mat-spinner>
+                                  <span>{{ 'CONFIG_DETAIL.RESOURCES.LOADING' | translate }}</span>
+                                </div>
+                              } @else if (viewModel().storageAccountDetails[item.resource.id]) {
+                                @if (viewModel().storageAccountDetails[item.resource.id]!.blobContainers.length > 0) {
+                                  <div class="storage-section">
+                                    <div class="storage-section__header">
+                                      <mat-icon class="storage-section__icon">folder</mat-icon>
+                                      <span class="storage-section__title">{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_BLOB_SECTION' | translate }}</span>
+                                      <span class="storage-section__count">{{ viewModel().storageAccountDetails[item.resource.id]!.blobContainers.length }}</span>
+                                    </div>
+                                    @for (blob of viewModel().storageAccountDetails[item.resource.id]!.blobContainers; track blob.id) {
+                                      <button class="storage-sub-item" (click)="viewModel().onNavigateToStorageTab(item.resource.id, 'blob_containers')">
+                                        <mat-icon class="storage-sub-item__icon">folder</mat-icon>
+                                        <span class="storage-sub-item__name">{{ blob.name }}</span>
+                                        <span class="storage-sub-item__badge">{{ viewModel().publicAccessI18nKey(blob.publicAccess) | translate }}</span>
+                                      </button>
+                                    }
+                                  </div>
+                                }
+                                @if (viewModel().storageAccountDetails[item.resource.id]!.queues.length > 0) {
+                                  <div class="storage-section">
+                                    <div class="storage-section__header">
+                                      <mat-icon class="storage-section__icon">queue</mat-icon>
+                                      <span class="storage-section__title">{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_QUEUE_SECTION' | translate }}</span>
+                                      <span class="storage-section__count">{{ viewModel().storageAccountDetails[item.resource.id]!.queues.length }}</span>
+                                    </div>
+                                    @for (queue of viewModel().storageAccountDetails[item.resource.id]!.queues; track queue.id) {
+                                      <button class="storage-sub-item" (click)="viewModel().onNavigateToStorageTab(item.resource.id, 'queues')">
+                                        <mat-icon class="storage-sub-item__icon">queue</mat-icon>
+                                        <span class="storage-sub-item__name">{{ queue.name }}</span>
+                                      </button>
+                                    }
+                                  </div>
+                                }
+                                @if (viewModel().storageAccountDetails[item.resource.id]!.tables.length > 0) {
+                                  <div class="storage-section">
+                                    <div class="storage-section__header">
+                                      <mat-icon class="storage-section__icon">table_chart</mat-icon>
+                                      <span class="storage-section__title">{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_TABLE_SECTION' | translate }}</span>
+                                      <span class="storage-section__count">{{ viewModel().storageAccountDetails[item.resource.id]!.tables.length }}</span>
+                                    </div>
+                                    @for (table of viewModel().storageAccountDetails[item.resource.id]!.tables; track table.id) {
+                                      <button class="storage-sub-item" (click)="viewModel().onNavigateToStorageTab(item.resource.id, 'tables')">
+                                        <mat-icon class="storage-sub-item__icon">table_chart</mat-icon>
+                                        <span class="storage-sub-item__name">{{ table.name }}</span>
+                                      </button>
+                                    }
+                                  </div>
+                                }
+                                @if (viewModel().storageAccountDetails[item.resource.id]!.blobContainers.length === 0 && viewModel().storageAccountDetails[item.resource.id]!.queues.length === 0 && viewModel().storageAccountDetails[item.resource.id]!.tables.length === 0) {
+                                  <div class="resource-children-empty">
+                                    <mat-icon>storage</mat-icon>
+                                    <span>{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_SUB_EMPTY' | translate }}</span>
+                                  </div>
+                                }
+                              } @else {
+                                <div class="resource-children-empty">
+                                  <mat-icon>storage</mat-icon>
+                                  <span>{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_SUB_EMPTY' | translate }}</span>
+                                </div>
+                              }
+                              @if (viewModel().canWrite) {
+                                <button class="add-child-resource-btn" (click)="viewModel().onOpenAddStorageSubResourceDialog(item.resource.id)">
+                                  <mat-icon class="add-child-resource-btn__icon">add_circle_outline</mat-icon>
+                                  {{ 'CONFIG_DETAIL.RESOURCES.ADD_STORAGE_SERVICE' | translate }}
+                                </button>
+                              }
+                            </div>
+                          }
+                        </div>
+                      } @else if (item.isParent) {
+                        <div class="resource-parent-group" [class.resource-parent-group--expanded]="viewModel().isParentExpanded(item.resource.id)" [class.resource-parent-group--cross-config]="!!item.crossConfigRef">
+                          <button class="resource-parent-header" (click)="viewModel().onToggleParentExpand(item.resource.id)">
+                            <mat-icon class="resource-parent-header__chevron">expand_more</mat-icon>
+                            <mat-icon class="resource-item__icon" [class.resource-item__icon--cross-config]="!!item.crossConfigRef">{{ viewModel().resourceTypeIcons[item.resource.resourceType] || 'widgets' }}</mat-icon>
+                            <div class="resource-item__info">
+                              <div class="resource-name-row">
+                                <strong>{{ item.resource.name }}</strong>
+                                @if (item.crossConfigRef) {
+                                  <a class="cross-config-badge" [routerLink]="['/config', item.crossConfigRef.targetConfigId]" [matTooltip]="'CONFIG_DETAIL.RESOURCES.NAVIGATE_TO_CONFIG' | translate" (click)="$event.stopPropagation()">
+                                    <mat-icon class="cross-config-badge__icon">open_in_new</mat-icon>
+                                    {{ item.crossConfigRef.targetConfigName }}
+                                  </a>
+                                } @else {
+                                  <ng-container
+                                    [ngTemplateOutlet]="resourceIndicatorsTemplate"
+                                    [ngTemplateOutletContext]="{ resource: item.resource, showExisting: true }">
+                                  </ng-container>
+                                }
+                              </div>
+                              <span class="resource-item__type">
+                                {{ item.resource.resourceType }}
+                                @if (item.crossConfigRef) {
+                                  · {{ item.crossConfigRef.targetResourceGroupName }}
+                                }
+                              </span>
+                            </div>
+                            <span class="resource-parent-header__count">{{ (item.children?.length ?? 0) + (item.incomingChildren?.length ?? 0) }}</span>
+                            @if (!item.crossConfigRef) {
+                              <span class="resource-item__location">{{ item.resource.location }}</span>
+                            }
+                            @if (!item.crossConfigRef) {
+                              <div class="resource-item__actions">
+                                <a
+                                  class="resource-action-btn resource-action-btn--edit"
+                                  [routerLink]="['/config', viewModel().configId, 'resource', item.resource.resourceType, item.resource.id]"
+                                  (click)="$event.stopPropagation()"
+                                  [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
+                                  <mat-icon>edit</mat-icon>
+                                </a>
+                                @if (viewModel().canWrite) {
+                                  <button
+                                    class="resource-action-btn resource-action-btn--delete"
+                                    [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                    (click)="viewModel().onOpenDeleteResourceDialog(item.resource, resourceGroup.id); $event.stopPropagation()">
+                                    <mat-icon>delete_outline</mat-icon>
+                                  </button>
+                                }
+                              </div>
+                            }
+                          </button>
+
+                          @if (viewModel().isParentExpanded(item.resource.id)) {
+                            <div class="resource-children">
+                              @if (item.children && item.children.length > 0) {
+                                @for (child of item.children; track child.id) {
+                                  <div class="resource-item resource-item--child">
+                                    <mat-icon class="resource-item__icon">{{ viewModel().resourceTypeIcons[child.resourceType] || 'widgets' }}</mat-icon>
+                                    <div class="resource-item__info">
+                                      <div class="resource-name-row">
+                                        <strong>{{ child.name }}</strong>
+                                        <ng-container
+                                          [ngTemplateOutlet]="resourceIndicatorsTemplate"
+                                          [ngTemplateOutletContext]="{ resource: child, showExisting: false }">
+                                        </ng-container>
+                                      </div>
+                                      <span class="resource-item__type">{{ child.resourceType }}</span>
+                                    </div>
+                                    <span class="resource-item__location">{{ child.location }}</span>
+                                    <div class="resource-item__actions">
+                                      <a class="resource-action-btn resource-action-btn--edit" [routerLink]="['/config', viewModel().configId, 'resource', child.resourceType, child.id]" [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
+                                        <mat-icon>edit</mat-icon>
+                                      </a>
+                                      @if (viewModel().canWrite) {
+                                        <button class="resource-action-btn resource-action-btn--delete" [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate" (click)="viewModel().onOpenDeleteResourceDialog(child, resourceGroup.id)">
+                                          <mat-icon>delete_outline</mat-icon>
+                                        </button>
+                                      }
+                                    </div>
+                                  </div>
+                                }
+                              }
+
+                              @if (item.incomingChildren && item.incomingChildren.length > 0) {
+                                @for (incomingChild of item.incomingChildren; track incomingChild.sourceResourceId) {
+                                  <div class="resource-item resource-item--child resource-item--cross-config">
+                                    <mat-icon class="resource-item__icon resource-item__icon--cross-config">{{ viewModel().resourceTypeIcons[incomingChild.sourceResourceType] || 'widgets' }}</mat-icon>
+                                    <div class="resource-item__info">
+                                      <div class="resource-name-row">
+                                        <strong>{{ incomingChild.sourceResourceName }}</strong>
+                                        <a class="cross-config-badge" [routerLink]="['/config', incomingChild.sourceConfigId]" [matTooltip]="'CONFIG_DETAIL.CROSS_CONFIG_REFS.FROM_CONFIG' | translate">
+                                          <mat-icon class="cross-config-badge__icon">link</mat-icon>
+                                          {{ incomingChild.sourceConfigName }}
+                                        </a>
+                                      </div>
+                                      <span class="resource-item__type">{{ incomingChild.sourceResourceType }} · {{ incomingChild.sourceResourceGroupName }}</span>
+                                    </div>
+                                  </div>
+                                }
+                              }
+
+                              @if (!item.children?.length && !item.incomingChildren?.length) {
+                                <div class="resource-children-empty">
+                                  <mat-icon>widgets</mat-icon>
+                                  <span>{{ 'CONFIG_DETAIL.RESOURCES.NO_CHILDREN' | translate }}</span>
+                                </div>
+                              }
+
+                              @if (viewModel().canWrite) {
+                                <button class="add-child-resource-btn" (click)="viewModel().onOpenAddChildResourceDialog(item.resource, resourceGroup.id)">
+                                  <mat-icon class="add-child-resource-btn__icon">add_circle_outline</mat-icon>
+                                  {{ 'CONFIG_DETAIL.RESOURCES.ADD_CHILD' | translate }}
+                                </button>
+                              }
+                            </div>
+                          }
+                        </div>
+                      } @else {
+                        <div class="resource-item">
+                          <mat-icon class="resource-item__icon">{{ viewModel().resourceTypeIcons[item.resource.resourceType] || 'widgets' }}</mat-icon>
+                          <div class="resource-item__info">
+                            <div class="resource-name-row">
+                              <strong>{{ item.resource.name }}</strong>
+                              <ng-container
+                                [ngTemplateOutlet]="resourceIndicatorsTemplate"
+                                [ngTemplateOutletContext]="{ resource: item.resource, showExisting: true }">
+                              </ng-container>
+                            </div>
+                            <span class="resource-item__type">{{ item.resource.resourceType }}</span>
+                          </div>
+                          <span class="resource-item__location">{{ item.resource.location }}</span>
+                          <div class="resource-item__actions">
+                            <a class="resource-action-btn resource-action-btn--edit" [routerLink]="['/config', viewModel().configId, 'resource', item.resource.resourceType, item.resource.id]" [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
+                              <mat-icon>edit</mat-icon>
+                            </a>
+                            @if (viewModel().canWrite) {
+                              <button class="resource-action-btn resource-action-btn--delete" [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate" (click)="viewModel().onOpenDeleteResourceDialog(item.resource, resourceGroup.id)">
+                                <mat-icon>delete_outline</mat-icon>
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      }
+                    }
+
+                    @if (viewModel().getUnparentedCrossConfigRefs(resourceGroup.id).length > 0) {
+                      <ng-container
+                        [ngTemplateOutlet]="crossConfigSectionTemplate"
+                        [ngTemplateOutletContext]="{ references: viewModel().getUnparentedCrossConfigRefs(resourceGroup.id) }">
+                      </ng-container>
+                    }
+                  </div>
+                } @else {
+                  <div class="rg-resources-empty">
+                    <mat-icon>widgets</mat-icon>
+                    <p>{{ 'CONFIG_DETAIL.RESOURCES.EMPTY' | translate }}</p>
+                  </div>
+
+                  @if (viewModel().getUnparentedCrossConfigRefs(resourceGroup.id).length > 0) {
+                    <div class="resource-list">
+                      <ng-container
+                        [ngTemplateOutlet]="crossConfigSectionTemplate"
+                        [ngTemplateOutletContext]="{ references: viewModel().getUnparentedCrossConfigRefs(resourceGroup.id) }">
+                      </ng-container>
+                    </div>
+                  }
+                }
+              }
+            </div>
+          }
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <mat-icon class="empty-state__icon">dns</mat-icon>
+      <p>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.EMPTY' | translate }}</p>
+      @if (viewModel().canWrite) {
+        <button class="add-rg-btn" (click)="viewModel().onOpenAddResourceGroupDialog()">
+          <mat-icon class="add-rg-btn__icon">add_circle_outline</mat-icon>
+          {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.ADD' | translate }}
+        </button>
+      }
+    </div>
+  }
+</div>
+
+<ng-template #resourceIndicatorsTemplate let-resource="resource" let-showExisting="showExisting">
+  @if (viewModel().resolveNamingPreview(resource.name, resource.resourceType); as preview) {
+    <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+      <mat-icon class="naming-preview__icon">label</mat-icon>
+      {{ preview }}
+    </span>
+  }
+  @let missingEnvironments = viewModel().getMissingEnvironments(resource);
+  @if (missingEnvironments.length > 0) {
+    <span class="missing-env-badge" [matTooltip]="('CONFIG_DETAIL.RESOURCES.MISSING_ENV_TOOLTIP' | translate) + ': ' + missingEnvironments.join(', ')">
+      <mat-icon class="missing-env-badge__icon">warning_amber</mat-icon>
+      {{ missingEnvironments.length }}
+    </span>
+  }
+  @if (viewModel().hasResourceDiagnostics(resource.id)) {
+    <app-diagnostic-popover [diagnostics]="viewModel().getResourceDiagnostics(resource.id)" />
+  }
+  @if (showExisting && resource.isExisting) {
+    <span class="existing-resource-badge">{{ 'RESOURCE_LIST.EXISTING_BADGE' | translate }}</span>
+  }
+</ng-template>
+
+<ng-template #crossConfigSectionTemplate let-references="references">
+  <div class="cross-config-section">
+    <div class="cross-config-section__header">
+      <mat-icon class="cross-config-section__icon">link</mat-icon>
+      <span>{{ 'CONFIG_DETAIL.RESOURCES.CROSS_CONFIG_SECTION' | translate }}</span>
+    </div>
+    @for (reference of references; track reference.referenceId) {
+      <div class="resource-item resource-item--cross-config">
+        <mat-icon class="resource-item__icon resource-item__icon--cross-config">{{ viewModel().resourceTypeIcons[reference.targetResourceType] || 'widgets' }}</mat-icon>
+        <div class="resource-item__info">
+          <div class="resource-name-row">
+            <strong>{{ reference.targetResourceName }}</strong>
+            <a class="cross-config-badge" [routerLink]="['/config', reference.targetConfigId]" [matTooltip]="'CONFIG_DETAIL.RESOURCES.NAVIGATE_TO_CONFIG' | translate">
+              <mat-icon class="cross-config-badge__icon">open_in_new</mat-icon>
+              {{ reference.targetConfigName }}
+            </a>
+          </div>
+          <span class="resource-item__type">{{ reference.targetResourceType }} · {{ reference.targetResourceGroupName }}</span>
+        </div>
+      </div>
+    }
+  </div>
+</ng-template>

@@ -11,6 +11,9 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 public sealed class FunctionAppEnvironmentSettingsConfiguration
     : IEntityTypeConfiguration<FunctionAppEnvironmentSettings>
 {
+    private const int EnvironmentNameMaxLength = 100;
+    private const int DockerImageTagMaxLength = 128;
+
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<FunctionAppEnvironmentSettings> builder)
     {
@@ -26,13 +29,15 @@ public sealed class FunctionAppEnvironmentSettingsConfiguration
             .IsRequired();
 
         builder.Property(x => x.EnvironmentName)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(EnvironmentNameMaxLength);
 
         builder.Property(x => x.HttpsOnly);
 
         builder.Property(x => x.MaxInstanceCount);
 
         builder.Property(x => x.DockerImageTag)
+            .HasMaxLength(DockerImageTagMaxLength)
             .IsRequired(false);
     }
 }

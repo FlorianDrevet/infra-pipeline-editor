@@ -15,6 +15,13 @@
 - **Workspace entrypoint:** `.vscode/mcp.json` uses the HTTP MCP server at `http://127.0.0.1:5258/mcp` with a PAT bearer header.
 - **Defaults:** `McpOptions` resolve to `http://127.0.0.1:5258` + `/mcp`; override via `Mcp:ListenUrl`, `MCP__LISTENURL`, and `Mcp:Route`.
 - **Primary doc:** `docs/architecture/mcp-integration.md`.
+- **Usage persistence throttling [2026-05-13]:** `PersonalAccessTokenAuthenticationHandler` no longer persists `LastUsedAt` on every authenticated request. It writes only when the elapsed interval exceeds `PersonalAccessTokenAuthenticationDefaults.UsagePersistenceInterval`, which is the current write-amplification guard for PAT auth.
+
+## API User Provisioning [2026-05-13]
+
+- `UserProvisioningMiddleware` no longer depends directly on `ProjectDbContext`; it now calls `IUserProvisioningService` from Application and still stores the resolved `UserId` in `HttpContext.Items["ProvisionedUserId"]` for `ICurrentUser`.
+- `UserProvisioningService` is implemented in Infrastructure and uses a PostgreSQL upsert (`ON CONFLICT ("EntraId") DO NOTHING`) on the `User` table to avoid the old check-then-insert race.
+- This slice is the current reference for removing API-layer persistence coupling without changing the downstream `CurrentUser` contract.
 
 ## Build & Run Commands
 
@@ -33,12 +40,23 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 
 - Active test projects under `tests/`: `Api`, `Application`, `BicepGeneration`, `Contracts`, `Domain`, `GenerationCore`, `Infrastructure`, `Mcp`, and `PipelineGeneration`.
 - `tests/InfraFlowSculptor.GenerationParity.Tests/` is only a placeholder folder; do not put regular unit tests there.
+- Shared coverage collection is now enabled for all test projects via `tests/Directory.Build.props` + `coverlet.collector`; use `dotnet test .\InfraFlowSculptor.slnx --collect:"XPlat Code Coverage"` or `.\scripts\test-coverage.ps1`.
 - `tmp/test-output-mcp/` is not ignored by the root `.gitignore`; generated MCP artefacts there can pollute branch diffs.
+
+## MCP Runtime Hardening [2026-05-13]
+
+- `src/Mcp/InfraFlowSculptor.Mcp/Program.cs` now reuses API rate limiting through `AddRateLimiting()` and the shared security headers middleware through `UseMcpHttpPipeline()`.
+- The MCP HTTP pipeline applies security headers, `UseHsts()` outside Development, `UseRateLimiter()`, and PAT auth/authorization in the same ordering constraints as the API.
+- `MapMcp(mcpOptions.Route)` now requires both authorization and the `RateLimitingPolicyNames.Expensive` policy.
+- Source-controlled MCP rate-limiting defaults live in `src/Mcp/InfraFlowSculptor.Mcp/appsettings.json`.
+- `ProjectDraftService` now enforces `ProjectDraftStorageOptions.MaxDraftCount` and the tool layer returns a structured limit error instead of allowing unbounded in-memory draft growth.
+- `UseMcpHttpPipeline()` logs a warning when `McpOptions.ListenUrl` uses plain HTTP outside Development; keep that guard on the shared pipeline rather than duplicating it in `Program.cs`.
 
 ## API Runtime Hardening [2026-04-23]
 
 - Security headers: `X-Frame-Options=DENY`, `X-Content-Type-Options=nosniff`, `Referrer-Policy=strict-origin-when-cross-origin`, restrictive `Permissions-Policy`, and `UseHsts()` outside Development.
 - Rate limiting binds typed options from `RateLimiting`, applies a global fixed-window limiter, keeps an `Expensive` policy for heavy generation/download/push routes, partitions authenticated traffic by stable user claims before remote IP, and emits `Retry-After` on `429`.
+- API health endpoints now have their own `HealthChecks` rate-limiting policy with a dedicated typed options bucket; keep health throttling separate from the broader `Expensive` generation routes.
 - Focused coverage lives in `tests/InfraFlowSculptor.Api.Tests/RateLimiting/RateLimitingTests.cs`.
 - `Program.cs` now binds request-body limits through `AddApiRequestLimits(builder.Configuration)`; default max body size is `52_428_800` bytes (50 MB).
 
@@ -100,4 +118,8 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 ## Sonar Notes
 
 - Accepted rule exceptions: duplicate strings in migrations (`S1192`) and a `new_duplicated_lines_density` quality-gate threshold of `3%`.
+- SonarCloud PR issue counts can lag behind the current workspace state; after a local fix wave, re-check the exact file contents before chasing the same finding again. On PR `#395`, the last `S1192` generator findings persisted remotely until the PR analysis reran, even though the raw literals were already reduced to single constant definitions locally.
+- Keep `sonar.cpd.exclusions` explicitly aligned with `tmp/**` / `**/tmp/**`; the broader `sonar.exclusions` entry alone did not reliably prevent scratch PowerShell remediation scripts under `tmp/` from surfacing in Sonar duplication metrics.
 - The 2026-04-28 remediation wave also standardized regex timeouts, hardened ZIP extraction guards, pinned GitHub Actions SHAs, and tightened Docker frontend build inputs.
+- On PR `#395`, the last open `S107` on `AppPipelineStepOptions.Update(...)` was closed by introducing a dedicated `AppPipelineStepOptionsData` shape in Domain and a single Application-side mapper from `PipelineStepOptionsDto`, instead of keeping a 21-argument mutator signature.
+- `VirtualNetworkAggregate.Entities.Subnet` now configures an explicit timeout on its compiled service-endpoint regex; this is the reference fix for Sonar hotspot `S6444` in Domain regex validators.

@@ -59,6 +59,11 @@ builder.AddJavaScriptApp("angular-frontend", "../../Front", "start:aspire")
 3. `DROP DATABASE IF EXISTS "infraDb"; CREATE DATABASE "infraDb";`
 4. Terminate connections first: `SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'infraDb' AND pid <> pg_backend_pid();`
 
+## Shared Auto-Migration Startup Trap [2026-05-14]
+- Both `infraflowsculptor-api` and `infraflowsculptor-mcp` run the same `ProjectDbContext` migration path during Aspire startup, so one bad EF migration drops both resources with the same .NET startup failure.
+- The concrete failure observed on 2026-05-14 was `PendingModelChangesWarning` first, then a PostgreSQL `0A000`/`42601` migration failure while applying `20260514104001_SyncPendingModelChanges` because `vw_ResourceEnvironmentEntries` depended on the `EnvironmentName` columns being altered.
+- The durable fix is not to relax EF warnings or disable migrations: add the missing migration, then drop/recreate `vw_ResourceEnvironmentEntries` inside that migration before/after the affected `ALTER COLUMN` statements. Once corrected, both API and MCP return to `Running` under Aspire.
+
 ## MCP Detection Trap [2026-04-20]
 - Aspire MCP tooling in this environment explicitly reports that tools require `aspire run` from the AppHost project directory; a plain `dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj` can start the dashboard and AppHost process without becoming MCP-detectable.
 - Observed locally with Aspire CLI `13.1.3` and repo Aspire packages `13.2.0`: `aspire run` starts `InfraFlowSculptor.AppHost` and the dashboard, but MCP `list_apphosts` / `list_resources` may still report `No Aspire AppHost is currently running`.

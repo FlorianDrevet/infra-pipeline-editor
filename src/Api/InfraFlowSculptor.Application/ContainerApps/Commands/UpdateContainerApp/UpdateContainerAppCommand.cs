@@ -1,6 +1,7 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.ContainerApps.Common;
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 
@@ -17,5 +18,6 @@ public record UpdateContainerAppCommand(
     string? DockerImageName = null,
     string? DockerfilePath = null,
     string? ApplicationName = null,
-    IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null,
+    PipelineStepOptionsDto? PipelineStepOptions = null
 ) : ICommand<ContainerAppResult>;

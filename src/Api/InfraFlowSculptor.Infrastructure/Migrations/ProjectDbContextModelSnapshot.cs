@@ -171,7 +171,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("EnvironmentName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Sku")
                         .HasColumnType("text");
@@ -405,6 +406,39 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("ResourceLinks", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.PrivateEndpointConfig", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AutoApproval")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("CustomNetworkInterfaceName")
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.Property<string>("GroupId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid?>("PrivateDnsZoneId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ResourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SubnetId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ResourceId");
+
+                    b.ToTable("PrivateEndpointConfigs", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.RoleAssignment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -416,7 +450,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("RoleDefinitionId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
 
                     b.Property<Guid>("SourceResourceId")
                         .HasColumnType("uuid");
@@ -777,17 +812,75 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("EventHubNamespaceEnvironmentSettings", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.Entities.FrontDoorEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("FrontDoorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Sku")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FrontDoorId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("FrontDoorEnvironmentSettings", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.Entities.FrontDoorOrigin", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FrontDoorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("HostName")
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("PrivateLinkEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("TargetResourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FrontDoorId");
+
+                    b.ToTable("FrontDoorOrigins", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.Entities.FunctionAppEnvironmentSettings", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
                     b.Property<string>("DockerImageTag")
-                        .HasColumnType("text");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("EnvironmentName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<Guid>("FunctionAppId")
                         .HasColumnType("uuid");
@@ -1058,6 +1151,62 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("LogAnalyticsWorkspaceEnvironmentSettings", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.Entities.NsgRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Access")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DestinationAddressPrefix")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("DestinationPortRange")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.Property<Guid>("NetworkSecurityGroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Protocol")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SourceAddressPrefix")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("SourcePortRange")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NetworkSecurityGroupId", "Priority", "Direction")
+                        .IsUnique();
+
+                    b.ToTable("NsgRules", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.PersonalAccessTokenAggregate.PersonalAccessToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1101,6 +1250,27 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PersonalAccessTokens", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.Entities.VirtualNetworkLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("EnableAutoRegistration")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("PrivateDnsZoneId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("VirtualNetworkId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PrivateDnsZoneId");
+
+                    b.ToTable("VirtualNetworkLinks", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectMember", b =>
@@ -1425,7 +1595,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("EnvironmentName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int?>("MaxSizeGb")
                         .HasColumnType("integer");
@@ -1453,7 +1624,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("EnvironmentName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("MinimalTlsVersion")
                         .HasMaxLength(10)
@@ -1476,7 +1648,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(63)
+                        .HasColumnType("character varying(63)");
 
                     b.Property<string>("PublicAccess")
                         .IsRequired()
@@ -1524,22 +1697,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.PrimitiveCollection<List<string>>("AllowedHeaders")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.PrimitiveCollection<List<string>>("AllowedMethods")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.PrimitiveCollection<List<string>>("AllowedOrigins")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.PrimitiveCollection<List<string>>("ExposedHeaders")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
                     b.Property<int>("MaxAgeInSeconds")
                         .HasColumnType("integer");
 
@@ -1549,6 +1706,26 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<Guid>("StorageAccountId")
                         .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<List<string>>("_allowedHeaders")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("AllowedHeaders");
+
+                    b.PrimitiveCollection<List<string>>("_allowedMethods")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("AllowedMethods");
+
+                    b.PrimitiveCollection<List<string>>("_allowedOrigins")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("AllowedOrigins");
+
+                    b.PrimitiveCollection<List<string>>("_exposedHeaders")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("ExposedHeaders");
 
                     b.HasKey("Id");
 
@@ -1588,7 +1765,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(63)
+                        .HasColumnType("character varying(63)");
 
                     b.Property<Guid>("StorageAccountId")
                         .HasColumnType("uuid");
@@ -1607,7 +1785,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(63)
+                        .HasColumnType("character varying(63)");
 
                     b.Property<Guid>("StorageAccountId")
                         .HasColumnType("uuid");
@@ -1648,6 +1827,68 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("User", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.VirtualNetworkAggregate.Entities.Subnet", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Delegation")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.Property<Guid?>("NsgId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PrivateEndpointNetworkPolicies")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.PrimitiveCollection<string>("ServiceEndpoints")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("VirtualNetworkId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VirtualNetworkId");
+
+                    b.ToTable("Subnets", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.VirtualNetworkAggregate.Entities.VirtualNetworkEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<string>("AddressSpaces")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.PrimitiveCollection<string>("DnsServers")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("VirtualNetworkId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VirtualNetworkId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("VirtualNetworkEnvironmentSettings", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.Entities.WebAppEnvironmentSettings", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1657,11 +1898,13 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("DockerImageTag")
-                        .HasColumnType("text");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("EnvironmentName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool?>("HttpsOnly")
                         .HasColumnType("boolean");
@@ -1796,6 +2039,16 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("EventHubNamespaces", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.FrontDoor", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.Property<bool>("WafPolicyEnabled")
+                        .HasColumnType("boolean");
+
+                    b.ToTable("FrontDoors", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", b =>
                 {
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
@@ -1822,7 +2075,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("DockerImageName")
-                        .HasColumnType("text");
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
                     b.Property<string>("DockerfilePath")
                         .HasMaxLength(500)
@@ -1837,7 +2091,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("RuntimeVersion")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("SourceCodePath")
                         .HasMaxLength(500)
@@ -1876,6 +2131,20 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
 
                     b.ToTable("LogAnalyticsWorkspaces", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.NetworkSecurityGroup", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.ToTable("NetworkSecurityGroups", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.PrivateDnsZone", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.ToTable("PrivateDnsZones", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.RedisCacheAggregate.RedisCache", b =>
@@ -1976,6 +2245,16 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("UserAssignedIdentities", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.VirtualNetworkAggregate.VirtualNetwork", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.Property<bool>("EnableDdosProtection")
+                        .HasColumnType("boolean");
+
+                    b.ToTable("VirtualNetworks", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", b =>
                 {
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
@@ -2005,7 +2284,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("DockerImageName")
-                        .HasColumnType("text");
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
                     b.Property<string>("DockerfilePath")
                         .HasMaxLength(500)
@@ -2020,7 +2300,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("RuntimeVersion")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("SourceCodePath")
                         .HasMaxLength(500)
@@ -2181,6 +2462,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("TargetResource");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.PrivateEndpointConfig", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithMany("PrivateEndpointConfigs")
+                        .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.RoleAssignment", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
@@ -2297,6 +2587,24 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.Entities.FrontDoorEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.FrontDoorAggregate.FrontDoor", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("FrontDoorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.Entities.FrontDoorOrigin", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.FrontDoorAggregate.FrontDoor", null)
+                        .WithMany("Origins")
+                        .HasForeignKey("FrontDoorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.Entities.FunctionAppEnvironmentSettings", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", null)
@@ -2402,6 +2710,24 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", null)
                         .WithMany("EnvironmentSettings")
                         .HasForeignKey("LogAnalyticsWorkspaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.Entities.NsgRule", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.NetworkSecurityGroup", null)
+                        .WithMany("SecurityRules")
+                        .HasForeignKey("NetworkSecurityGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.Entities.VirtualNetworkLink", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.PrivateDnsZone", null)
+                        .WithMany("VirtualNetworkLinks")
+                        .HasForeignKey("PrivateDnsZoneId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -2694,6 +3020,24 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.VirtualNetworkAggregate.Entities.Subnet", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.VirtualNetworkAggregate.VirtualNetwork", null)
+                        .WithMany("Subnets")
+                        .HasForeignKey("VirtualNetworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.VirtualNetworkAggregate.Entities.VirtualNetworkEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.VirtualNetworkAggregate.VirtualNetwork", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("VirtualNetworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.Entities.WebAppEnvironmentSettings", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", null)
@@ -2737,6 +3081,115 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasForeignKey("InfraFlowSculptor.Domain.ContainerAppAggregate.ContainerApp", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.OwnsOne("InfraFlowSculptor.Domain.Common.OwnedEntities.AppPipelineStepOptions", "PipelineStepOptions", b1 =>
+                        {
+                            b1.Property<Guid>("ContainerAppId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("CoverageReportPath")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("CoverageTool")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)");
+
+                            b1.Property<string>("DependencyScanTool")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<bool>("EnableDependencyCache")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<string>("LintCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<bool>("PublishCodeCoverage")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("PublishTestResults")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunBuildValidation")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunDependencyScan")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunLinting")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunSmokeTests")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunSonarAnalysis")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunUnitTests")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<string>("SmokeTestCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("SonarOrganization")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("SonarProjectKey")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("SonarServiceConnection")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("TestCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("TestFramework")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("TestResultsFormat")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)");
+
+                            b1.Property<string>("TestResultsPath")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.HasKey("ContainerAppId");
+
+                            b1.ToTable("ContainerApps");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ContainerAppId");
+                        });
+
+                    b.Navigation("PipelineStepOptions")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.ContainerAppEnvironment", b =>
@@ -2775,12 +3228,130 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.FrontDoor", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.FrontDoorAggregate.FrontDoor", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithOne()
                         .HasForeignKey("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("InfraFlowSculptor.Domain.Common.OwnedEntities.AppPipelineStepOptions", "PipelineStepOptions", b1 =>
+                        {
+                            b1.Property<Guid>("FunctionAppId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("CoverageReportPath")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("CoverageTool")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)");
+
+                            b1.Property<string>("DependencyScanTool")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<bool>("EnableDependencyCache")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<string>("LintCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<bool>("PublishCodeCoverage")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("PublishTestResults")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunBuildValidation")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunDependencyScan")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunLinting")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunSmokeTests")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunSonarAnalysis")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunUnitTests")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<string>("SmokeTestCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("SonarOrganization")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("SonarProjectKey")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("SonarServiceConnection")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("TestCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("TestFramework")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("TestResultsFormat")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)");
+
+                            b1.Property<string>("TestResultsPath")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.HasKey("FunctionAppId");
+
+                            b1.ToTable("FunctionApps");
+
+                            b1.WithOwner()
+                                .HasForeignKey("FunctionAppId");
+                        });
+
+                    b.Navigation("PipelineStepOptions")
                         .IsRequired();
                 });
 
@@ -2798,6 +3369,24 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithOne()
                         .HasForeignKey("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.NetworkSecurityGroup", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.NetworkSecurityGroup", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.PrivateDnsZone", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.PrivateDnsZone", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -2856,12 +3445,130 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.VirtualNetworkAggregate.VirtualNetwork", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.VirtualNetworkAggregate.VirtualNetwork", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithOne()
                         .HasForeignKey("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("InfraFlowSculptor.Domain.Common.OwnedEntities.AppPipelineStepOptions", "PipelineStepOptions", b1 =>
+                        {
+                            b1.Property<Guid>("WebAppId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("CoverageReportPath")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("CoverageTool")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)");
+
+                            b1.Property<string>("DependencyScanTool")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<bool>("EnableDependencyCache")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<string>("LintCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<bool>("PublishCodeCoverage")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("PublishTestResults")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunBuildValidation")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunDependencyScan")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunLinting")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunSmokeTests")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunSonarAnalysis")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<bool>("RunUnitTests")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false);
+
+                            b1.Property<string>("SmokeTestCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("SonarOrganization")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("SonarProjectKey")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("SonarServiceConnection")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("TestCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("TestFramework")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("TestResultsFormat")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)");
+
+                            b1.Property<string>("TestResultsPath")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.HasKey("WebAppId");
+
+                            b1.ToTable("WebApps");
+
+                            b1.WithOwner()
+                                .HasForeignKey("WebAppId");
+                        });
+
+                    b.Navigation("PipelineStepOptions")
                         .IsRequired();
                 });
 
@@ -2881,6 +3588,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("Outputs");
 
                     b.Navigation("ParameterUsages");
+
+                    b.Navigation("PrivateEndpointConfigs");
 
                     b.Navigation("RoleAssignments");
 
@@ -2971,6 +3680,13 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("EventHubs");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.FrontDoor", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+
+                    b.Navigation("Origins");
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", b =>
                 {
                     b.Navigation("EnvironmentSettings");
@@ -2984,6 +3700,16 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
             modelBuilder.Entity("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", b =>
                 {
                     b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.NetworkSecurityGroup", b =>
+                {
+                    b.Navigation("SecurityRules");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.PrivateDnsZone", b =>
+                {
+                    b.Navigation("VirtualNetworkLinks");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.RedisCacheAggregate.RedisCache", b =>
@@ -3023,6 +3749,13 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("Queues");
 
                     b.Navigation("Tables");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.VirtualNetworkAggregate.VirtualNetwork", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+
+                    b.Navigation("Subnets");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", b =>

@@ -60,4 +60,23 @@ public sealed class BicepGenerationEngineTests
         result.FirstError.Code.Should().Be("Generation.InvalidBicepConfiguration");
         result.FirstError.Description.Should().Be(errorMessage);
     }
+
+    [Fact]
+    public void Given_CancelledToken_When_Generate_Then_ThrowsOperationCanceledException()
+    {
+        // Arrange
+        var stage = Substitute.For<IBicepGenerationStage>();
+        stage.Order.Returns(100);
+
+        var sut = new BicepGenerationEngine(new BicepGenerationPipeline([stage]));
+        using var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.Cancel();
+
+        // Act
+        var act = () => sut.Generate(new GenerationRequest(), cancellationTokenSource.Token);
+
+        // Assert
+        act.Should().Throw<OperationCanceledException>();
+        stage.DidNotReceive().Execute(Arg.Any<BicepGenerationContext>());
+    }
 }

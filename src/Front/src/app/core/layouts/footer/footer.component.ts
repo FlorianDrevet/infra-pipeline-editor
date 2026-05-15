@@ -3,8 +3,6 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { environment } from '../../../../environments/environment';
 
-// NOTE: `version` is read from environment with a 'dev' fallback. Build-time injection will
-// later be wired through the Angular build system to expose the package.json version.
 const VersionFallback = 'dev';
 
 @Component({
@@ -17,6 +15,10 @@ const VersionFallback = 'dev';
 export class FooterComponent {
   protected readonly version = environment.version ?? VersionFallback;
   protected readonly envName = environment.name ?? (environment.production ? 'production' : 'development');
-  protected readonly docsUrl = 'https://aspire.dev';
+  protected readonly currentYear = new Date().getFullYear();
+  protected readonly docsUrl = 'https://docs.infraflowsculptor.dev';
+  protected readonly termsUrl = 'https://infraflowsculptor.dev/terms';
+  protected readonly privacyUrl = 'https://infraflowsculptor.dev/privacy';
+  protected readonly statusUrl = 'https://status.infraflowsculptor.dev';
 }
 

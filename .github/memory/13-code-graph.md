@@ -21,14 +21,14 @@ Ce dépôt utilise **deux graphes complémentaires** :
 ## Index status
 
 - **Repo indexé :** `infra-pipeline-editor`
-- **Workspace instruction snapshot [2026-05-13] :** 23 815 symbols, 100 016 relationships, 300 execution flows.
+- **Workspace instruction snapshot [2026-05-14] :** 24 772 symbols, 104 593 relationships, 300 execution flows.
 - **Règle pratique :** pour les noms partagés entre entités métier et classes d'erreur, fournir `file_path` à `gitnexus_context()` pour obtenir le bon symbole du premier coup.
 
 ## Symboles à haut risque (beaucoup de dépendants upstream)
 
 | Symbole | Type | Raison du risque |
 |---------|------|-----------------|
-| `AzureResource` | Base class (TPT) | 18 agrégats enfants héritent — tout changement cascade sur toutes les ressources |
+| `AzureResource` | Base class (TPT) | 22 agrégats enfants héritent — tout changement cascade sur toutes les ressources |
 | `IInfraConfigAccessService` | Interface | Utilisé par tous les handlers Resource pour la vérification d'accès |
 | `BlobDownloadHelper` | Class | Helper transversal des artefacts latest-prefix ; GitNexus impact [2026-05-13] : 429 symboles impactés, 33 dépendants directs, risque **CRITICAL** |
 | `BicepGenerationEngine` | Class (~88 lignes) | Façade mince mais point d'entrée central de la génération Bicep ; GitNexus impact [2026-05-13] : 397 symboles impactés, 4 dépendants directs, risque **CRITICAL** |
@@ -50,24 +50,27 @@ Ce dépôt utilise **deux graphes complémentaires** :
 | Création projet (wizard) | `ProjectController` → `CreateProjectWithSetupCommandHandler` → atomic Project + Layout + Envs + Repos |
 | Création projet MCP | `ProjectCreationTools.CreateProjectFromDraft` → `ProjectSetupOrchestrator` → `ResourceCommandFactory` / `ResourceCreationCoordinator` → handlers de création de ressources |
 | Import ARM (preview/apply) | `ImportController` ou `IacImportTools` → `PreviewIacImportQuery` / `ApplyImportPreviewCommand` → `IImportPreviewAnalyzer` / `ResourceCommandFactory` |
+| Privatization / networking | `VirtualNetworkController` / `NetworkSecurityGroupController` / `PrivateDnsZoneController` / `FrontDoorController` / `PrivateEndpointController` → handlers CQRS → repositories EF Core + générateurs Bicep networking |
 | CRUD Resource (pattern) | `{Resource}Controller` → MediatR → `{Action}{Resource}CommandHandler` → `I{Resource}Repository` → EF Core |
 
-## Counts — Verified snapshots [2026-04-30]
+## Counts — Verified snapshots [2026-05-15]
 
 | Métrique | Valeur | Requête |
 |----------|--------|---------|
-| AzureResource children | 18 | `(c)-[:EXTENDS]->(AzureResource)` |
-| AggregateRoot classes | 5 (Project, InfrastructureConfig, ResourceGroup, AzureResource, User) | `(c)-[:EXTENDS]->(AggregateRoot)` |
-| Total Entity/AggregateRoot | 46 | Includes all EnvironmentSettings, sub-entities, base entities |
-| Controllers | 31 | `Get-ChildItem .\src -Recurse -Filter *Controller.cs` (verified in repo on 2026-04-30) |
-| TypeBicepGenerators | 18 | Classes ending `BicepGenerator` |
-| AzureResourceTypes.All | 18 entries | In `GenerationCore/AzureResourceTypes.cs` |
+| AzureResource children | 22 | `Select-String 'sealed class .* : AzureResource'` (verified in repo on 2026-05-15) |
+| AggregateRoot classes | 6 (`Project`, `InfrastructureConfig`, `ResourceGroup`, `AzureResource`, `User`, `PersonalAccessToken`) | `Select-String ': AggregateRoot<'` (verified in repo on 2026-05-15) |
+| Total Entity/AggregateRoot | 59 concrete types (+ abstract `AggregateRoot<>` base) | `Select-String ': Entity<|: AggregateRoot<'` (verified in repo on 2026-05-15) |
+| Controllers | 36 | `Get-ChildItem .\src -Recurse -Filter *Controller.cs` (verified in repo on 2026-05-15) |
+| TypeBicepGenerators | 23 | `Get-ChildItem .\src\Api\InfraFlowSculptor.BicepGeneration\Generators -Filter *TypeBicepGenerator.cs` (verified in repo on 2026-05-15) |
+| AzureResourceTypes.All | 18 entries | Current `GenerationCore/AzureResourceTypes.cs` catalog snapshot on this branch [2026-05-15] |
 | Commands | ~110 | Files ending `Command.cs` in Application layer |
 | Queries | ~51 | Files ending `Query.cs` in Application layer |
 | Bicep generation tests | Active xUnit project | `tests/InfraFlowSculptor.BicepGeneration.Tests/` |
 | Pipeline generation tests | Active xUnit project | `tests/InfraFlowSculptor.PipelineGeneration.Tests/` |
 | MCP tests | Active xUnit project | `tests/InfraFlowSculptor.Mcp.Tests/` |
 | Checked-in test projects | 9 | `tests/**/*.csproj` (verified in repo on 2026-05-12) |
+
+- **Current branch caveat [2026-05-15] :** la hiérarchie Domain/API/BicepGeneration expose déjà `VirtualNetwork`, `NetworkSecurityGroup`, `PrivateDnsZone`, `FrontDoor` et le générateur `PrivateEndpointTypeBicepGenerator`, tandis que `GenerationCore.AzureResourceTypes.All` reste à 18 entrées. Pour les questions de surface ressource sur cette branche, préférer les counts Domain/API ci-dessus au simple catalogue `All`.
 
 ## Clusters fonctionnels principaux
 
@@ -79,4 +82,4 @@ Ce dépôt utilise **deux graphes complémentaires** :
 
 ---
 
-*Dernière mise à jour : 2026-05-13 — Dream consolidation*
+*Dernière mise à jour : 2026-05-15 — Dream consolidation*

@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.WebApps.Common;
@@ -67,6 +68,11 @@ public class UpdateWebAppCommandHandler(
                         ec.HttpsOnly,
                         ec.DockerImageTag))
                     .ToList());
+
+        if (request.PipelineStepOptions is { } opts)
+        {
+            webApp.PipelineStepOptions.Update(PipelineStepOptionsDataMapper.ToDomainData(opts));
+        }
 
         var updated = await webAppRepository.UpdateAsync(webApp);
 

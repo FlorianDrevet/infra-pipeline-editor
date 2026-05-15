@@ -1,0 +1,119 @@
+<div class="networking-tab">
+  @if (!supportsPe()) {
+    <div class="networking-tab__unsupported">
+      <mat-icon>info</mat-icon>
+      <span>{{ 'RESOURCE_EDIT.NETWORKING.NOT_SUPPORTED' | translate }}</span>
+    </div>
+  } @else {
+    <!-- Header -->
+    <div class="networking-tab__header">
+      <h3>{{ 'RESOURCE_EDIT.NETWORKING.PRIVATE_ENDPOINTS' | translate }}</h3>
+      <button mat-stroked-button (click)="toggleAddForm()" [disabled]="isSaving()">
+        <mat-icon>{{ showAddForm() ? 'close' : 'add' }}</mat-icon>
+        {{ (showAddForm() ? 'RESOURCE_EDIT.NETWORKING.CANCEL' : 'RESOURCE_EDIT.NETWORKING.ADD_PE') | translate }}
+      </button>
+    </div>
+
+    <!-- Add Form (inline) -->
+    @if (showAddForm()) {
+      <mat-card class="networking-tab__add-form">
+        <mat-card-content>
+          <div class="add-form-grid">
+            <div class="add-form-field">
+              <label class="add-form-label" for="pe-subnet-id">{{ 'RESOURCE_EDIT.NETWORKING.SUBNET' | translate }}</label>
+              <input id="pe-subnet-id" class="add-form-input" [(ngModel)]="subnetId" placeholder="subnet-id" />
+            </div>
+            <div class="add-form-field">
+              <label class="add-form-label" for="pe-group-id">{{ 'RESOURCE_EDIT.NETWORKING.GROUP_ID' | translate }}</label>
+              <input id="pe-group-id" class="add-form-input" [(ngModel)]="groupId" placeholder="e.g. vault, blob, sites" />
+            </div>
+            <div class="add-form-field">
+              <label class="add-form-label" for="pe-dns-zone">{{ 'RESOURCE_EDIT.NETWORKING.DNS_ZONE' | translate }}</label>
+              <input id="pe-dns-zone" class="add-form-input" [(ngModel)]="privateDnsZoneId" placeholder="optional" />
+            </div>
+            <div class="add-form-field">
+              <label class="add-form-label" for="pe-custom-nic">{{ 'RESOURCE_EDIT.NETWORKING.CUSTOM_NIC' | translate }}</label>
+              <input id="pe-custom-nic" class="add-form-input" [(ngModel)]="customNicName" placeholder="optional" />
+            </div>
+            <div class="add-form-field add-form-field--toggle">
+              <label class="add-form-label" for="pe-auto-approval">{{ 'RESOURCE_EDIT.NETWORKING.AUTO_APPROVAL' | translate }}</label>
+              <app-ds-toggle id="pe-auto-approval" [(ngModel)]="autoApproval" [label]="'RESOURCE_EDIT.NETWORKING.AUTO_APPROVAL' | translate"></app-ds-toggle>
+            </div>
+          </div>
+          <div class="add-form-actions">
+            <button mat-flat-button color="primary" (click)="submitAdd()" [disabled]="isSaving() || !subnetId || !groupId">
+              @if (isSaving()) {
+                <mat-spinner diameter="16"></mat-spinner>
+              }
+              {{ 'RESOURCE_EDIT.NETWORKING.ADD_PE' | translate }}
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <!-- Loading state -->
+    @if (isLoading()) {
+      <div class="networking-tab__loading">
+        <mat-spinner diameter="24"></mat-spinner>
+      </div>
+    } @else if (loadError()) {
+      <div class="networking-tab__error">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ loadError() | translate }}</span>
+      </div>
+    } @else if (endpoints().length === 0) {
+      <div class="networking-tab__empty">
+        <mat-icon>lan</mat-icon>
+        <p>{{ 'RESOURCE_EDIT.NETWORKING.NO_PE' | translate }}</p>
+      </div>
+    } @else {
+      <!-- Endpoint list -->
+      <div class="networking-tab__list">
+        @for (pe of endpoints(); track pe.id) {
+          <mat-card class="pe-card">
+            <mat-card-content>
+              <div class="pe-card__row">
+                <span class="pe-card__label">{{ 'RESOURCE_EDIT.NETWORKING.SUBNET' | translate }}</span>
+                <code class="pe-card__value">{{ pe.subnetId }}</code>
+              </div>
+              <div class="pe-card__row">
+                <span class="pe-card__label">{{ 'RESOURCE_EDIT.NETWORKING.GROUP_ID' | translate }}</span>
+                <code class="pe-card__value">{{ pe.groupId }}</code>
+              </div>
+              @if (pe.privateDnsZoneId) {
+                <div class="pe-card__row">
+                  <span class="pe-card__label">{{ 'RESOURCE_EDIT.NETWORKING.DNS_ZONE' | translate }}</span>
+                  <code class="pe-card__value">{{ pe.privateDnsZoneId }}</code>
+                </div>
+              }
+              @if (pe.customNetworkInterfaceName) {
+                <div class="pe-card__row">
+                  <span class="pe-card__label">{{ 'RESOURCE_EDIT.NETWORKING.CUSTOM_NIC' | translate }}</span>
+                  <code class="pe-card__value">{{ pe.customNetworkInterfaceName }}</code>
+                </div>
+              }
+              <div class="pe-card__row">
+                <span class="pe-card__label">{{ 'RESOURCE_EDIT.NETWORKING.AUTO_APPROVAL' | translate }}</span>
+                <span class="pe-card__badge" [class.pe-card__badge--active]="pe.autoApproval">
+                  {{ pe.autoApproval ? '✓' : '✗' }}
+                </span>
+              </div>
+              <div class="pe-card__actions">
+                <button mat-icon-button color="warn" (click)="removeEndpoint(pe.id)"
+                  [disabled]="pendingDeleteId() === pe.id"
+                  [attr.aria-label]="'RESOURCE_EDIT.NETWORKING.REMOVE_PE' | translate">
+                  @if (pendingDeleteId() === pe.id) {
+                    <mat-spinner diameter="16"></mat-spinner>
+                  } @else {
+                    <mat-icon>delete_outline</mat-icon>
+                  }
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    }
+  }
+</div>

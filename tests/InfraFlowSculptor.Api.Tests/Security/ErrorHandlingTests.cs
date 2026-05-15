@@ -71,6 +71,38 @@ public sealed class ErrorHandlingTests
             && entry.Exception.Message == "secret exception details");
     }
 
+    [Fact]
+    public async Task Given_UnhandledExceptionWithCurrentActivity_When_UsingErrorHandling_Then_EmitsTraceIdentifierAsync()
+    {
+        // Arrange
+        var services = new ServiceCollection()
+            .AddLogging()
+            .AddMetrics()
+            .AddSingleton<DiagnosticListener>(_ => new DiagnosticListener("ErrorHandlingTests"))
+            .AddSingleton<DiagnosticSource>(serviceProvider => serviceProvider.GetRequiredService<DiagnosticListener>())
+            .BuildServiceProvider();
+        var sut = CreateSut(services);
+        var httpContext = new DefaultHttpContext
+        {
+            RequestServices = services,
+        };
+        httpContext.Request.Path = "/api/projects";
+        httpContext.Response.Body = new MemoryStream();
+
+        using var activity = new Activity("unhandled-error-test");
+        activity.Start();
+        var expectedTraceId = activity.Id;
+
+        // Act
+        await sut(httpContext);
+
+        // Assert
+        httpContext.Response.Body.Position = 0;
+        var responseBody = await new StreamReader(httpContext.Response.Body).ReadToEndAsync();
+        responseBody.Should().Contain("traceId");
+        responseBody.Should().Contain(expectedTraceId);
+    }
+
     private static RequestDelegate CreateSut(IServiceProvider services)
     {
         var applicationBuilder = new ApplicationBuilder(services);

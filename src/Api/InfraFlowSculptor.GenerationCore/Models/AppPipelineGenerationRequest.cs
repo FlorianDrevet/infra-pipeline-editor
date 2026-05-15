@@ -59,6 +59,68 @@ public class AppPipelineGenerationRequest
     /// <summary>Indicates whether Trivy and SBOM generation steps are emitted for container CI pipelines.</summary>
     public bool EnableSecurityScans { get; set; } = true;
 
+    // ── Pipeline Step Options ──────────────────────────────────────────────────
+
+    /// <summary>Whether to run unit tests in the CI pipeline.</summary>
+    public bool RunUnitTests { get; set; }
+
+    /// <summary>Test framework identifier (xunit, nunit, jest, pytest, etc.).</summary>
+    public string? TestFramework { get; set; }
+
+    /// <summary>Test results output format (VSTest or JUnit).</summary>
+    public string? TestResultsFormat { get; set; }
+
+    /// <summary>Glob pattern for test result files.</summary>
+    public string? TestResultsPath { get; set; }
+
+    /// <summary>Whether to publish test results to Azure DevOps.</summary>
+    public bool PublishTestResults { get; set; }
+
+    /// <summary>Whether to collect and publish code coverage.</summary>
+    public bool PublishCodeCoverage { get; set; }
+
+    /// <summary>Coverage tool: Cobertura or JaCoCo.</summary>
+    public string? CoverageTool { get; set; }
+
+    /// <summary>Path to the coverage report file.</summary>
+    public string? CoverageReportPath { get; set; }
+
+    /// <summary>Whether to run SonarQube/SonarCloud analysis.</summary>
+    public bool RunSonarAnalysis { get; set; }
+
+    /// <summary>Sonar project key.</summary>
+    public string? SonarProjectKey { get; set; }
+
+    /// <summary>Sonar organization (SonarCloud only).</summary>
+    public string? SonarOrganization { get; set; }
+
+    /// <summary>Service connection name for Sonar in Azure DevOps.</summary>
+    public string? SonarServiceConnection { get; set; }
+
+    /// <summary>Whether to run linting/formatting checks.</summary>
+    public bool RunLinting { get; set; }
+
+    /// <summary>Custom lint command.</summary>
+    public string? LintCommand { get; set; }
+
+    /// <summary>Whether to scan dependencies for known vulnerabilities.</summary>
+    public bool RunDependencyScan { get; set; }
+
+    /// <summary>Dependency scan tool identifier (OWASPDependencyCheck, NpmAudit, PipAudit, Snyk).</summary>
+    public string? DependencyScanTool { get; set; }
+
+    /// <summary>Whether to run build validation on PR pipelines.</summary>
+    public bool RunBuildValidation { get; set; }
+
+    /// <summary>Whether to cache dependencies for faster builds.</summary>
+    public bool EnableDependencyCache { get; set; }
+
+    /// <summary>Whether to run smoke tests after deployment.</summary>
+    public bool RunSmokeTests { get; set; }
+
+    /// <summary>Custom smoke test command or URL to health-check.</summary>
+    public string? SmokeTestCommand { get; set; }
+
     /// <summary>Environment definitions with service connections and subscription IDs.</summary>
     public IReadOnlyList<EnvironmentDefinition> Environments { get; set; } = [];
 

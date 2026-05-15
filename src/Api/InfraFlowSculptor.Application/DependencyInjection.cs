@@ -4,10 +4,14 @@ using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Common.Services;
+using InfraFlowSculptor.Application.AppConfigurations.Commands.AddAppConfigurationKey;
+using InfraFlowSculptor.Application.AppSettings.Commands.AddAppSetting;
 using InfraFlowSculptor.Application.Imports.Common.Analysis;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
 using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics.Rules;
+using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBootstrapPipeline;
+using InfraFlowSculptor.Application.Projects.Commands.PushProjectArtifactsToMultiRepo;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Application.Projects.Common.Generation;
 using InfraFlowSculptor.Application.Projects.Common.Storage;
@@ -47,6 +51,8 @@ public static class DependencyInjection
         // Access control services
         services.AddScoped<IInfraConfigAccessService, InfraConfigAccessService>();
         services.AddScoped<IProjectAccessService, ProjectAccessService>();
+        services.AddScoped<IAddAppSettingAdditionService, AddAppSettingAdditionService>();
+        services.AddScoped<IAddAppConfigurationKeyAdditionService, AddAppConfigurationKeyAdditionService>();
 
         // Import preview analysis
         services.AddSingleton<IImportPreviewAnalyzer, ImportPreviewAnalyzer>();
@@ -57,6 +63,8 @@ public static class DependencyInjection
         services.AddScoped<IConfigPipelineGenerationService, ConfigPipelineGenerationService>();
         services.AddScoped<IApplicationFolderNameResolver, ApplicationFolderNameResolver>();
         services.AddScoped<IMultiScopeGitPushExecutor, MultiScopeGitPushExecutor>();
+        services.AddScoped<IMultiRepoProjectArtifactsPushService, MultiRepoProjectArtifactsPushService>();
+        services.AddScoped<IProjectBootstrapDefinitionBuilder, ProjectBootstrapDefinitionBuilder>();
         services.AddScoped<IProjectPipelineAggregator, ProjectPipelineAggregator>();
         services.AddScoped<IMonoRepoBlobUploadOrchestrator, MonoRepoBlobUploadOrchestrator>();
 

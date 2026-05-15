@@ -35,6 +35,9 @@ public sealed class ModuleBuildStage : IBicepGenerationStage
     public void Execute(BicepGenerationContext context)
     {
         var request = context.Request;
+        var cancellationToken = context.CancellationToken;
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         context.ResourceIdToInfo = request.Resources
             .Where(r => r.ResourceId != Guid.Empty)
@@ -46,13 +49,18 @@ public sealed class ModuleBuildStage : IBicepGenerationStage
 
         foreach (var resource in request.Resources)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!_generatorByArmType.TryGetValue(resource.Type, out var generator))
             {
                 throw new NotSupportedException(
                     $"No Bicep generator registered for resource '{resource.Name}' with resource type '{resource.Type}'.");
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             var spec = generator.GenerateSpec(resource);
+
+            cancellationToken.ThrowIfCancellationRequested();
             var legacyModule = generator.Generate(resource);
 
             // The IR skeleton carries structural metadata from the spec; preserve

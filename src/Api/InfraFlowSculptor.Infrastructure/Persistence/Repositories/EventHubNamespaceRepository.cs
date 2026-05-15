@@ -17,11 +17,7 @@ public sealed class EventHubNamespaceRepository : AzureResourceRepository<EventH
     /// <inheritdoc />
     public override async Task<EventHubNamespace?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
     {
-        return await Context.Set<EventHubNamespace>()
-            .Include(eh => eh.DependsOn)
-            .Include(eh => eh.EnvironmentSettings)
-            .Include(eh => eh.EventHubs)
-            .Include(eh => eh.ConsumerGroups)
+        return await WithSubResources(Context.Set<EventHubNamespace>())
             .FirstOrDefaultAsync(eh => eh.Id == id, cancellationToken);
     }
 
@@ -30,13 +26,18 @@ public sealed class EventHubNamespaceRepository : AzureResourceRepository<EventH
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<EventHubNamespace>()
-            .Include(eh => eh.DependsOn)
-            .Include(eh => eh.EnvironmentSettings)
-            .Include(eh => eh.EventHubs)
-            .Include(eh => eh.ConsumerGroups)
+        return await WithSubResources(Context.Set<EventHubNamespace>())
             .Where(eh => eh.ResourceGroupId == resourceGroupId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    private static IQueryable<EventHubNamespace> WithSubResources(IQueryable<EventHubNamespace> query)
+    {
+        return query
+            .Include(eh => eh.DependsOn)
+            .Include(eh => eh.EnvironmentSettings)
+            .Include(eh => eh.EventHubs)
+            .Include(eh => eh.ConsumerGroups);
     }
 }

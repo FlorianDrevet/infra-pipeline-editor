@@ -152,6 +152,32 @@ public sealed class CoreStringLengthConfigurationTests
         defaultValueProperty.GetMaxLength().Should().Be(ParameterDefinitionDefaultValueMaxLength);
     }
 
+    [Fact]
+    public void Given_EfModel_When_InspectingMappedStringProperties_Then_AllHaveExplicitMaxLengths()
+    {
+        // Arrange
+        using var context = InMemoryDbContextFactory.Create();
+
+        // Act
+        var unconstrainedStringProperties = context.Model
+            .GetEntityTypes()
+            .Where(static entityType => entityType.FindPrimaryKey() is not null)
+            .SelectMany(static entityType => entityType.GetProperties()
+                .Where(static property =>
+                    property.ClrType == typeof(string) &&
+                    !property.IsShadowProperty() &&
+                    (property.GetTypeMapping().Converter?.ProviderClrType ?? property.ClrType) == typeof(string)))
+            .Where(static property => property.GetMaxLength() is null)
+            .Select(static property => $"{property.DeclaringType.DisplayName()}.{property.Name}")
+            .OrderBy(static propertyPath => propertyPath)
+            .ToList();
+
+        // Assert
+        unconstrainedStringProperties.Should().BeEmpty(
+            "all mapped string properties must declare HasMaxLength. Missing: {0}",
+            string.Join(", ", unconstrainedStringProperties));
+    }
+
     private static IProperty GetProperty<TEntity>(ProjectDbContext context, string propertyName)
     {
         var entityType = context.Model.FindEntityType(typeof(TEntity));

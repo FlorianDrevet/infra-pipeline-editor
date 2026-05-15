@@ -1,0 +1,191 @@
+@use 'scss/main' as *;
+
+:host {
+  display: block;
+}
+
+.rg-error {
+  margin: 0;
+  padding: var(--ifs-space-8) var(--ifs-space-12);
+  background: var(--ifs-danger-bg);
+  border: 1px solid rgba(210, 74, 74, 0.4);
+  border-radius: var(--ifs-radius-md);
+  color: var(--ifs-danger);
+  font-size: 13px;
+}
+
+.tab-content {
+  padding: var(--ifs-space-16) var(--ifs-space-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-16);
+}
+
+.empty-state,
+.slot-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ifs-space-8);
+  padding: var(--ifs-space-32);
+  background: var(--ifs-surface-2);
+  border: 1px dashed var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
+  text-align: center;
+
+  &__icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: var(--ifs-text-muted);
+  }
+
+  &__hint,
+  &__desc,
+  &__title {
+    margin: 0;
+    color: var(--ifs-text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 360px;
+  }
+
+  &__title {
+    color: var(--ifs-text-primary);
+    font-weight: 600;
+  }
+}
+
+.config-layout-repos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-16);
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ifs-space-8);
+  }
+
+  &__section-header {
+    margin: 0;
+
+    h3 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ifs-text-primary);
+    }
+  }
+
+  &__section-help {
+    margin: 0;
+    color: var(--ifs-text-secondary);
+    font-size: 12px;
+  }
+}
+
+.preset-grid,
+.repo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--ifs-space-12);
+}
+
+.preset-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-6);
+  padding: var(--ifs-space-12);
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
+  cursor: pointer;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard);
+
+  &:hover {
+    background: var(--ifs-surface-2);
+  }
+
+  &--active {
+    border-color: var(--ifs-accent-500);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ifs-text-primary);
+  }
+
+  &__desc {
+    margin: 0;
+    color: var(--ifs-text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+}
+
+.repo-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-8);
+  padding: var(--ifs-space-12);
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: var(--ifs-space-6);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ifs-text-primary);
+  }
+
+  &__icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--ifs-text-secondary);
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ifs-space-4);
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: var(--ifs-space-6);
+    font-size: 12px;
+    color: var(--ifs-text-secondary);
+  }
+
+  &__label {
+    color: var(--ifs-text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 10px;
+  }
+
+  &__link {
+    color: var(--ifs-accent-500);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ifs-space-4);
+  }
+}

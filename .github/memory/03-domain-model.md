@@ -25,6 +25,10 @@
 | `ServiceBusNamespace` | extends `AzureResource` | `ServiceBusNamespaceEnvironmentSettings` | TPT; sub-resources: Queue, TopicSubscription |
 | `EventHubNamespace` | extends `AzureResource` | `EventHubNamespaceEnvironmentSettings` | TPT; sub-resources: EventHub, ConsumerGroup |
 | `ContainerRegistry` | extends `AzureResource` | `ContainerRegistryEnvironmentSettings` | TPT; abbreviation `acr` |
+| `VirtualNetwork` | extends `AzureResource` | `Subnet`, `VirtualNetworkEnvironmentSettings` | TPT; abbreviation `vnet`; DDoS protection flag; Subnets own delegation, service endpoints, PE network policies, optional NSG FK |
+| `NetworkSecurityGroup` | extends `AzureResource` | `NsgRule` | TPT; abbreviation `nsg`; Rules have priority/direction/access/protocol/CIDR |
+| `PrivateDnsZone` | extends `AzureResource` | `VirtualNetworkLink` | TPT; abbreviation `pdnsz`; VNet links with auto-registration flag |
+| `FrontDoor` | extends `AzureResource` | `FrontDoorOrigin`, `FrontDoorEnvironmentSettings` | TPT; abbreviation `afd`; WAF policy flag; Origins with target resource, private link, weight/priority; per-env SKU (Standard/Premium) |
 | `PersonalAccessToken` | `PersonalAccessToken` | `TokenHash` (VO), `PersonalAccessTokenId` (VO) | PAT for MCP auth. `ifs_` prefix + SHA-256 hash stored, plaintext returned once. `UserId` FK. `Revoke()`, `RecordUsage()`, `IsValid()` methods. |
 | `User` | `User` | — | Azure AD user info |
 
@@ -40,6 +44,7 @@ These reusable entity types are owned by multiple aggregates:
 | `RoleAssignment` | RBAC role assignment on any AzureResource |
 | `CustomDomain` | Per-environment custom domain binding for ContainerApp, WebApp, FunctionApp |
 | `SecureParameterMapping` | Maps secure Bicep params to project pipeline variable groups |
+| `PrivateEndpointConfig` | PE configuration on any AzureResource: subnet, group ID, auto-approval, DNS zone, custom NIC name |
 
 ## AzureResource.AssignedUserAssignedIdentityId [2026-04-02]
 
@@ -54,6 +59,7 @@ These reusable entity types are owned by multiple aggregates:
 3 compute aggregates now have CI/CD pipeline config properties:
 - **ContainerApp**: `DockerfilePath` (string?), `ApplicationName` (string?)
 - **WebApp/FunctionApp**: `DockerfilePath`, `SourceCodePath`, `BuildCommand`, `ApplicationName` (all string?)
+- `AppPipelineStepOptions` now lives under `Domain/Common/OwnedEntities/` and is shared by `WebApp`, `FunctionApp`, and `ContainerApp`. Update it through the single `AppPipelineStepOptionsData` payload instead of reintroducing long flat mutator signatures [2026-05-15].
 - `ApplicationName` is a user-friendly name displayed in Azure DevOps pipeline runs (fallback: resource name)
 - `InfrastructureConfig` has `AppPipelineMode` enum (`Isolated`/`Combined`) — controls whether app pipelines are generated per-resource or as a single combined pipeline
 - `Project` has `AgentPoolName` (string?) — when set, pipeline YAML uses `pool: name: '<value>'` (self-hosted); when null, `pool: vmImage: ubuntu-latest` (Microsoft-hosted). Endpoint: `PUT /projects/{id}/agent-pool`
@@ -89,10 +95,13 @@ These reusable entity types are owned by multiple aggregates:
 - `Project.Members` is `IReadOnlyCollection<ProjectMember>` — mutated via `AddMember()`, `ChangeRole()`, `RemoveMember()`.
 - `InfrastructureConfig` has a `ProjectId` FK. Access checks resolved via **project membership** — `IInfraConfigAccessService`.
 - `AzureResource` inheritance uses EF Core **TPT**: `HasBaseType<AzureResource>().ToTable("...")`.
+- `AzureResource` no longer exposes public setters for `ResourceGroupId`, `ResourceGroup`, `Name`, `Location`, or `CustomNameOverride`; the shared mutation surface is now `Rename(...)`, `MoveToResourceGroup(...)`, `OverrideName(...)`, `ClearNameOverride()`, plus the protected `SetNameAndLocation(...)` / `SetLocation(...)` helpers for derived aggregates [2026-05-13].
 - EF navigations that may legitimately be absent outside an eager-loaded query should be nullable in the domain model. The current reference cases are `AzureResource.ResourceGroup`, `ProjectEnvironmentDefinition.Project`, and `ProjectMember.Project` [2026-05-13].
 - `AzureResource.SetNameAndLocation(...)` is the shared helper for the common `Name` + `Location` mutation path; concrete Azure-resource `Update(...)` methods delegate this shared part to the base while keeping their resource-specific assignments local [2026-05-13].
 - `AzureResource.AddDependency(...)` now enforces same-resource-group dependencies and rejects cyclic graphs; self-dependency still throws and duplicate dependencies remain a no-op [2026-05-12].
 - `CorsRule` now keeps its string collections behind read-only views backed by private lists, and `StorageAccount.GetBlobCorsRules()` / `GetTableCorsRules()` reuse cached filtered views instead of recomputing `Where(...).ToList()` on every access [2026-05-12].
+- `CorsRule` is now the reference for EF-only entity constructors that must initialize cached read-only views: keep the parameterless materialization constructor non-private but still non-public (`internal` here) so the domain model does not rely on `SuppressMessage` for EF Core access [2026-05-13].
+- Concrete aggregate roots now follow the DOM-006 convention: expose a public static `Create(...)` factory and keep the EF parameterless constructor non-public. `AggregateFactoryConventionTests` guards this for every concrete `AggregateRoot<>` except the `AzureResource` base template; `PersonalAccessToken.Create(...)` remains allowed to return `(Token, PlainTextToken)` because the plaintext secret only exists at creation time [2026-05-13].
 
 ## Domain Code Quality Rules [2026-03-30]
 
@@ -100,8 +109,10 @@ These reusable entity types are owned by multiple aggregates:
 - Concrete aggregates inheriting from `AzureResource` must be declared `sealed`.
 - All `EnumValueObject<T>`-derived classes must be declared `sealed` [2026-04-16].
 - Value object properties must use `private set`.
+- `tests/InfraFlowSculptor.Domain.Tests/Common/Models/ValueObjectEqualityComponentsCoverageTests.cs` is the DOM-012 guardrail: every covered concrete `ValueObject` must change structural equality when one meaningful public instance property changes. Keep computed/read-only projections out of that guard by leaving them without a writable path or compiler-generated backing field [2026-05-13].
 - `Name` rejects `null`, empty, and whitespace strings, and `EntraId` rejects `Guid.Empty`; keep these guards local to the owning value objects and do not generalize them to every `SingleValueObject<string>` / `SingleValueObject<Guid>` because some setup flows still rely on `Guid.Empty` sentinels such as `SubscriptionId` [2026-05-13].
 - `SingleValueObject<T>.ToString()` now returns the wrapped value string (or `string.Empty` for `null`) instead of the CLR type name [2026-05-12].
+- Regex-backed domain validation must declare an explicit timeout; `VirtualNetworkAggregate.Entities.Subnet.ServiceEndpointPattern` (100 ms) is the current reference fix for regex guards in the domain layer [2026-05-15].
 - Error strings must be in English.
 - `Location` is the canonical source for Azure wire-format region keys: use `Location.DefaultAzureRegionKey` for the default region and `Location.ToAzureRegionKey(...)` instead of hardcoding values like `westeurope` or `francecentral` [2026-04-29].
 

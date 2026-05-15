@@ -1,0 +1,49 @@
+<div class="search-dialog" (keydown)="onKeydown($event)">
+  <div class="search-dialog__input-row">
+    <mat-icon class="search-dialog__search-icon" aria-hidden="true">search</mat-icon>
+    <input
+      class="search-dialog__input"
+      type="text"
+      [formControl]="searchCtrl"
+      [placeholder]="'SEARCH.PLACEHOLDER' | translate"
+      autocomplete="off"
+      cdkFocusInitial
+    />
+    <kbd class="search-dialog__shortcut">ESC</kbd>
+  </div>
+
+  @if (results().length > 0) {
+    <ul class="search-dialog__results">
+      @for (item of results(); track item.id; let i = $index) {
+        <li>
+          <button
+            type="button"
+            class="search-dialog__result"
+            [class.search-dialog__result--selected]="selectedIndex() === i"
+            [attr.aria-current]="selectedIndex() === i ? 'true' : null"
+            style="width: 100%; border: 0; background: none; text-align: left;"
+            (click)="navigateTo(item)"
+            (keydown)="onResultKeydown($event, item)"
+            (focus)="selectResult(i)"
+            (mouseenter)="selectResult(i)"
+          >
+            <mat-icon class="search-dialog__result-icon" aria-hidden="true">
+              {{ item.type === 'project' ? 'folder' : 'settings' }}
+            </mat-icon>
+            <div class="search-dialog__result-content">
+              <span class="search-dialog__result-name">{{ item.name }}</span>
+              @if (item.description) {
+                <span class="search-dialog__result-desc">{{ item.description }}</span>
+              }
+            </div>
+            <span class="search-dialog__result-type">{{ item.type }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="search-dialog__empty">
+      <p>{{ 'SEARCH.NO_RESULTS' | translate }}</p>
+    </div>
+  }
+</div>

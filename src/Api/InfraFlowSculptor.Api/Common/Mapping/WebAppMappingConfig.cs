@@ -1,6 +1,7 @@
 using InfraFlowSculptor.Application.WebApps.Commands.CreateWebApp;
 using InfraFlowSculptor.Application.WebApps.Commands.UpdateWebApp;
 using InfraFlowSculptor.Application.WebApps.Common;
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.WebApps.Requests;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -43,7 +44,8 @@ public sealed class WebAppMappingConfig : IRegister
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new WebAppEnvironmentConfigData(
-                        ec.EnvironmentName, ec.AlwaysOn, ec.HttpsOnly, ec.DockerImageTag)).ToList()));
+                        ec.EnvironmentName, ec.AlwaysOn, ec.HttpsOnly, ec.DockerImageTag)).ToList(),
+                src.Request.PipelineStepOptions));
 
         config.NewConfig<WebApp, WebAppResult>()
             .Map(dest => dest.EnvironmentSettings,
@@ -52,6 +54,7 @@ public sealed class WebAppMappingConfig : IRegister
                     es.AlwaysOn,
                     es.HttpsOnly,
                     es.DockerImageTag)).ToList())
+            .Map(dest => dest.PipelineStepOptions, src => src.PipelineStepOptions.Adapt<PipelineStepOptionsDto>())
             .Map(dest => dest.RuntimeStack, src => src.RuntimeStack.Value.ToString())
             .Map(dest => dest.AppServicePlanId, src => src.AppServicePlanId.Value)
             .Map(dest => dest.DeploymentMode, src => src.DeploymentMode.Value.ToString())

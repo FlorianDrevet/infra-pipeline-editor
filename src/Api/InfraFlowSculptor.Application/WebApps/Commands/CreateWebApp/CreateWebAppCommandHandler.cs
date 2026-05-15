@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.WebApps.Common;
@@ -78,6 +79,11 @@ public class CreateWebAppCommandHandler(
             isExisting: request.IsExisting);
 
         var saved = await webAppRepository.AddAsync(webApp);
+
+        if (request.PipelineStepOptions is { } opts)
+        {
+            webApp.PipelineStepOptions.Update(PipelineStepOptionsDataMapper.ToDomainData(opts));
+        }
 
         return mapper.Map<WebAppResult>(saved);
     }

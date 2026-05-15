@@ -31,7 +31,8 @@ public sealed class AppSettingsTools
         ISender mediator,
         [Description("The resource ID (GUID) of the compute resource.")] string resourceId,
         [Description("The app setting name (e.g. 'ASPNETCORE_ENVIRONMENT', 'DATABASE_URL').")] string name,
-        [Description("JSON object mapping environment short names to values, e.g. {\"dev\": \"Development\", \"prod\": \"Production\"}.")] string environmentValues)
+        [Description("JSON object mapping environment short names to values, e.g. {\"dev\": \"Development\", \"prod\": \"Production\"}.")] string environmentValues,
+        CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
@@ -53,7 +54,7 @@ public sealed class AppSettingsTools
             KeyVaultResourceId: null,
             SecretName: null);
 
-        var result = await mediator.Send(command);
+        var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
             appSetting => JsonSerializer.Serialize(new
@@ -78,7 +79,8 @@ public sealed class AppSettingsTools
         [Description("The resource ID (GUID) of the compute resource receiving the setting.")] string resourceId,
         [Description("The app setting name (e.g. 'REDIS_CONNECTION_STRING').")] string name,
         [Description("The source resource ID (GUID) providing the output.")] string sourceResourceId,
-        [Description("The output name from the source resource (e.g. 'PrimaryConnectionString', 'PrimaryKey').")] string sourceOutputName)
+        [Description("The output name from the source resource (e.g. 'PrimaryConnectionString', 'PrimaryKey').")] string sourceOutputName,
+        CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
@@ -99,7 +101,7 @@ public sealed class AppSettingsTools
             KeyVaultResourceId: null,
             SecretName: null);
 
-        var result = await mediator.Send(command);
+        var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
             appSetting => JsonSerializer.Serialize(new
@@ -120,7 +122,8 @@ public sealed class AppSettingsTools
     [Description("Lists all app settings (environment variables) configured on a compute resource.")]
     public static async Task<string> ListAppSettings(
         ISender mediator,
-        [Description("The resource ID (GUID) of the compute resource.")] string resourceId)
+        [Description("The resource ID (GUID) of the compute resource.")] string resourceId,
+        CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
@@ -128,7 +131,7 @@ public sealed class AppSettingsTools
         }
 
         var query = new ListAppSettingsQuery(AzureResourceId.Create(id));
-        var result = await mediator.Send(query);
+        var result = await mediator.Send(query, cancellationToken);
 
         return result.Match(
             settings => JsonSerializer.Serialize(new
@@ -155,7 +158,8 @@ public sealed class AppSettingsTools
     public static async Task<string> RemoveAppSetting(
         ISender mediator,
         [Description("The resource ID (GUID) of the compute resource.")] string resourceId,
-        [Description("The app setting ID (GUID) to remove.")] string appSettingId)
+        [Description("The app setting ID (GUID) to remove.")] string appSettingId,
+        CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
@@ -171,7 +175,7 @@ public sealed class AppSettingsTools
             AzureResourceId.Create(id),
             AppSettingId.Create(settingId));
 
-        var result = await mediator.Send(command);
+        var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
             _ => JsonSerializer.Serialize(new { status = "success", message = "App setting removed." }, McpJsonDefaults.SerializerOptions),

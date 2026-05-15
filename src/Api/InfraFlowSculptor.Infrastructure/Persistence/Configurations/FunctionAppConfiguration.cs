@@ -12,6 +12,9 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 /// <summary>EF Core configuration for the <see cref="FunctionApp"/> aggregate.</summary>
 public sealed class FunctionAppConfiguration : IEntityTypeConfiguration<FunctionApp>
 {
+    private const int RuntimeVersionMaxLength = 20;
+    private const int DockerImageNameMaxLength = 512;
+
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<FunctionApp> builder)
     {
@@ -35,7 +38,8 @@ public sealed class FunctionAppConfiguration : IEntityTypeConfiguration<Function
                     Enum.Parse<FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum>(v)));
 
         builder.Property(x => x.RuntimeVersion)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(RuntimeVersionMaxLength);
 
         builder.Property(x => x.HttpsOnly);
 
@@ -60,6 +64,7 @@ public sealed class FunctionAppConfiguration : IEntityTypeConfiguration<Function
             .IsRequired(false);
 
         builder.Property(x => x.DockerImageName)
+            .HasMaxLength(DockerImageNameMaxLength)
             .IsRequired(false);
 
         builder.Property(x => x.DockerfilePath)
@@ -77,6 +82,8 @@ public sealed class FunctionAppConfiguration : IEntityTypeConfiguration<Function
         builder.Property(x => x.ApplicationName)
             .HasMaxLength(200)
             .IsRequired(false);
+
+        builder.OwnsOne(x => x.PipelineStepOptions, AppPipelineStepOptionsConfiguration.Configure);
 
         builder.HasMany(x => x.EnvironmentSettings)
             .WithOne()

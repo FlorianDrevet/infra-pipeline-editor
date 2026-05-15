@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.FunctionApps.Common;
@@ -67,6 +68,11 @@ public sealed class UpdateFunctionAppCommandHandler(
                         ec.MaxInstanceCount,
                         ec.DockerImageTag))
                     .ToList());
+
+        if (request.PipelineStepOptions is { } opts)
+        {
+            functionApp.PipelineStepOptions.Update(PipelineStepOptionsDataMapper.ToDomainData(opts));
+        }
 
         var updated = await functionAppRepository.UpdateAsync(functionApp);
 

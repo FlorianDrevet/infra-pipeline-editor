@@ -4,14 +4,15 @@ using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
-
 using InfraFlowSculptor.Mcp.Drafts.Models;
+using Microsoft.Extensions.Options;
 
 namespace InfraFlowSculptor.Mcp.Drafts;
 
 /// <summary>In-memory implementation of <see cref="IProjectDraftService"/> for the MCP session.</summary>
 public sealed class ProjectDraftService : IProjectDraftService
 {
+    private const string DraftIdPrefix = "draft_";
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(250);
 
     private static readonly HashSet<string> StopWords = new(StringComparer.OrdinalIgnoreCase)
@@ -23,11 +24,28 @@ public sealed class ProjectDraftService : IProjectDraftService
     private static readonly Dictionary<string, string> ResourceTypeAliases = BuildResourceTypeAliases();
 
     private readonly ConcurrentDictionary<string, ProjectCreationDraft> _drafts = new();
+    private readonly object _syncRoot = new();
+    private readonly int _maxDraftCount;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProjectDraftService"/> class.
+    /// </summary>
+    /// <param name="draftStorageOptions">The configured in-memory storage options for project drafts.</param>
+    public ProjectDraftService(IOptions<ProjectDraftStorageOptions> draftStorageOptions)
+    {
+        ArgumentNullException.ThrowIfNull(draftStorageOptions);
+
+        _maxDraftCount = draftStorageOptions.Value.MaxDraftCount;
+
+        if (_maxDraftCount < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(draftStorageOptions), _maxDraftCount, "MaxDraftCount must be greater than zero.");
+        }
+    }
 
     /// <inheritdoc />
     public ProjectCreationDraft CreateDraftFromPrompt(string userPrompt)
     {
-        var draftId = "draft_" + Guid.NewGuid().ToString("N")[..8];
         var intent = ParsePromptIntent(userPrompt);
         var missingFields = new List<string>();
         var clarificationQuestions = new List<DraftClarificationQuestion>();
@@ -64,18 +82,32 @@ public sealed class ProjectDraftService : IProjectDraftService
 
         var status = missingFields.Count == 0 ? DraftStatus.ReadyToCreate : DraftStatus.RequiresClarification;
 
-        var draft = new ProjectCreationDraft
+        lock (_syncRoot)
         {
-            DraftId = draftId,
-            Status = status,
-            MissingFields = missingFields,
-            ClarificationQuestions = clarificationQuestions,
-            Intent = intent,
-            Warnings = warnings,
-        };
+            if (_drafts.Count >= _maxDraftCount)
+            {
+                throw new ProjectDraftLimitExceededException(_maxDraftCount);
+            }
 
-        _drafts[draftId] = draft;
-        return draft;
+            while (true)
+            {
+                var draftId = CreateDraftId();
+                var draft = new ProjectCreationDraft
+                {
+                    DraftId = draftId,
+                    Status = status,
+                    MissingFields = missingFields,
+                    ClarificationQuestions = clarificationQuestions,
+                    Intent = intent,
+                    Warnings = warnings,
+                };
+
+                if (_drafts.TryAdd(draftId, draft))
+                {
+                    return draft;
+                }
+            }
+        }
     }
 
     /// <inheritdoc />
@@ -362,22 +394,35 @@ public sealed class ProjectDraftService : IProjectDraftService
     /// <inheritdoc />
     public bool RemoveDraft(string draftId)
     {
-        return _drafts.TryRemove(draftId, out _);
+        lock (_syncRoot)
+        {
+            return _drafts.TryRemove(draftId, out _);
+        }
     }
 
     /// <inheritdoc />
     public int EvictExpired(TimeSpan maxAge)
     {
-        var cutoff = DateTime.UtcNow - maxAge;
-        var expired = _drafts
-            .Where(kvp => kvp.Value.CreatedAtUtc < cutoff)
-            .Select(kvp => kvp.Key)
-            .ToList();
+        lock (_syncRoot)
+        {
+            var cutoff = DateTime.UtcNow - maxAge;
+            var expired = _drafts
+                .Where(kvp => kvp.Value.CreatedAtUtc < cutoff)
+                .Select(kvp => kvp.Key)
+                .ToList();
 
-        foreach (var key in expired)
-            _drafts.TryRemove(key, out _);
+            foreach (var key in expired)
+            {
+                _drafts.TryRemove(key, out _);
+            }
 
-        return expired.Count;
+            return expired.Count;
+        }
+    }
+
+    private static string CreateDraftId()
+    {
+        return DraftIdPrefix + Guid.NewGuid().ToString("N")[..8];
     }
 }
 

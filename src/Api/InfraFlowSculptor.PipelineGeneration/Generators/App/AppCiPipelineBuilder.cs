@@ -47,6 +47,7 @@ internal static class AppCiPipelineBuilder
         sb.AppendLine($"    enableSecurityScans: {(request.EnableSecurityScans ? "true" : "false")}");
         sb.AppendLine($"    promotionStrategy: '{request.PromotionStrategy}'");
         sb.AppendLine($"    buildSourceEnvVariablesPath: '{AppNamingHelper.EscapeForSingleQuotedYaml(buildSourceEnvVariablesPath)}'");
+        AppendPipelineStepOptionsParameters(sb, request);
         AppendVariableGroupsParameter(sb, buildSourceEnvKey, request);
         AppendAgentPoolParameter(sb, request.AgentPoolName);
 
@@ -75,6 +76,7 @@ internal static class AppCiPipelineBuilder
         sb.AppendLine($"    buildCommand: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.BuildCommand ?? string.Empty)}'");
         sb.AppendLine($"    promotionStrategy: '{request.PromotionStrategy}'");
         sb.AppendLine($"    resourceType: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.ResourceType)}'");
+        AppendPipelineStepOptionsParameters(sb, request);
         AppendAgentPoolParameter(sb, request.AgentPoolName);
 
         return sb.ToString();
@@ -127,5 +129,90 @@ internal static class AppCiPipelineBuilder
         {
             sb.AppendLine($"    agentPoolName: '{AppNamingHelper.EscapeForSingleQuotedYaml(agentPoolName)}'");
         }
+    }
+
+    private static void AppendPipelineStepOptionsParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        AppendTestParameters(sb, request);
+        AppendCoverageParameters(sb, request);
+        AppendSonarParameters(sb, request);
+        AppendLintingParameters(sb, request);
+        AppendSecurityParameters(sb, request);
+        AppendBoolParam(sb, "runBuildValidation", request.RunBuildValidation);
+        AppendBoolParam(sb, "enableDependencyCache", request.EnableDependencyCache);
+        AppendSmokeTestParameters(sb, request);
+    }
+
+    private static void AppendTestParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.RunUnitTests)
+            return;
+
+        sb.AppendLine($"    runUnitTests: true");
+        AppendStringParam(sb, "testCommand", request.TestCommand);
+        AppendStringParam(sb, "testFramework", request.TestFramework);
+        AppendStringParam(sb, "testResultsFormat", request.TestResultsFormat);
+        AppendStringParam(sb, "testResultsPath", request.TestResultsPath);
+        AppendBoolParam(sb, "publishTestResults", request.PublishTestResults);
+    }
+
+    private static void AppendCoverageParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.PublishCodeCoverage)
+            return;
+
+        sb.AppendLine($"    publishCodeCoverage: true");
+        AppendStringParam(sb, "coverageTool", request.CoverageTool);
+        AppendStringParam(sb, "coverageReportPath", request.CoverageReportPath);
+    }
+
+    private static void AppendSonarParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.RunSonarAnalysis)
+            return;
+
+        sb.AppendLine($"    runSonarAnalysis: true");
+        AppendStringParam(sb, "sonarProjectKey", request.SonarProjectKey);
+        AppendStringParam(sb, "sonarOrganization", request.SonarOrganization);
+        AppendStringParam(sb, "sonarServiceConnection", request.SonarServiceConnection);
+    }
+
+    private static void AppendLintingParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.RunLinting)
+            return;
+
+        sb.AppendLine($"    runLinting: true");
+        AppendStringParam(sb, "lintCommand", request.LintCommand);
+    }
+
+    private static void AppendSecurityParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.RunDependencyScan)
+            return;
+
+        sb.AppendLine($"    runDependencyScan: true");
+        AppendStringParam(sb, "dependencyScanTool", request.DependencyScanTool);
+    }
+
+    private static void AppendSmokeTestParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.RunSmokeTests)
+            return;
+
+        sb.AppendLine($"    runSmokeTests: true");
+        AppendStringParam(sb, "smokeTestCommand", request.SmokeTestCommand);
+    }
+
+    private static void AppendStringParam(StringBuilder sb, string paramName, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            sb.AppendLine($"    {paramName}: '{AppNamingHelper.EscapeForSingleQuotedYaml(value)}'");
+    }
+
+    private static void AppendBoolParam(StringBuilder sb, string paramName, bool value)
+    {
+        if (value)
+            sb.AppendLine($"    {paramName}: true");
     }
 }

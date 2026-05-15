@@ -15,6 +15,9 @@ public sealed class BicepGenerationContext
     /// <summary>The original generation request.</summary>
     public required GenerationRequest Request { get; init; }
 
+    /// <summary>Token to cancel the current generation run.</summary>
+    public CancellationToken CancellationToken { get; init; }
+
     /// <summary>Modules currently being built by the pipeline. Stages mutate this list in place.</summary>
     public List<ModuleWorkItem> WorkItems { get; } = [];
 

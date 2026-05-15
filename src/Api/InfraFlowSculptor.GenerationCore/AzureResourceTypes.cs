@@ -1,5 +1,4 @@
 using System.Collections.Frozen;
-using System.Diagnostics.CodeAnalysis;
 
 namespace InfraFlowSculptor.GenerationCore;
 
@@ -30,6 +29,10 @@ public static class AzureResourceTypes
     public const string ContainerRegistry = "ContainerRegistry";
     public const string EventHubNamespace = "EventHubNamespace";
     public const string ResourceGroup = "ResourceGroup";
+    public const string VirtualNetwork = "VirtualNetwork";
+    public const string NetworkSecurityGroup = "NetworkSecurityGroup";
+    public const string PrivateDnsZone = "PrivateDnsZone";
+    public const string FrontDoor = "FrontDoor";
 
     /// <summary>
     /// Azure ARM resource provider type strings (e.g. "Microsoft.KeyVault/vaults").
@@ -54,14 +57,18 @@ public static class AzureResourceTypes
         public const string ServiceBusNamespaceType = "Microsoft.ServiceBus/namespaces";
         public const string ContainerRegistryType = "Microsoft.ContainerRegistry/registries";
         public const string EventHubNamespaceType = "Microsoft.EventHub/namespaces";
+        public const string VirtualNetworkType = "Microsoft.Network/virtualNetworks";
+        public const string NetworkSecurityGroupType = "Microsoft.Network/networkSecurityGroups";
+        public const string PrivateDnsZoneType = "Microsoft.Network/privateDnsZones";
+        public const string FrontDoorType = "Microsoft.Cdn/profiles";
+        public const string PrivateEndpointType = "Microsoft.Network/privateEndpoints";
     }
 
     /// <summary>
     /// Maps Azure ARM resource type strings to their friendly type names.
     /// Case-insensitive lookup.
     /// </summary>
-    [SuppressMessage("Minor Bug", "S3887:Use an immutable collection or reduce the accessibility of the non-private readonly field", Justification = "Backed by a FrozenDictionary which is immutable; the IReadOnlyDictionary interface used as the declared type also prevents mutation by callers.")]
-    public static IReadOnlyDictionary<string, string> ArmTypeToFriendlyName { get; } =
+    private static readonly FrozenDictionary<string, string> ArmTypeToFriendlyNameMap =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             [ArmTypes.KeyVaultType] = KeyVault,
@@ -82,7 +89,17 @@ public static class AzureResourceTypes
             [ArmTypes.ServiceBusNamespaceType] = ServiceBusNamespace,
             [ArmTypes.ContainerRegistryType] = ContainerRegistry,
             [ArmTypes.EventHubNamespaceType] = EventHubNamespace,
+            [ArmTypes.VirtualNetworkType] = VirtualNetwork,
+            [ArmTypes.NetworkSecurityGroupType] = NetworkSecurityGroup,
+            [ArmTypes.PrivateDnsZoneType] = PrivateDnsZone,
+            [ArmTypes.FrontDoorType] = FrontDoor,
         }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Maps Azure ARM resource type strings to their friendly type names.
+    /// Case-insensitive lookup.
+    /// </summary>
+    public static IReadOnlyDictionary<string, string> ArmTypeToFriendlyName => ArmTypeToFriendlyNameMap;
 
     /// <summary>
     /// All known friendly type names.

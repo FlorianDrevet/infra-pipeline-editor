@@ -8,7 +8,7 @@
   align-items: center;
   height: 28px;
   padding: 0 var(--ifs-space-16);
-  gap: var(--ifs-space-12);
+  gap: var(--ifs-space-8);
   background: var(--ifs-surface-1);
   border-top: 1px solid var(--ifs-border-subtle);
   font-size: 12px;
@@ -19,6 +19,11 @@
 
 .status-bar__item {
   white-space: nowrap;
+}
+
+.status-bar__item--copyright {
+  color: var(--ifs-text-secondary);
+  font-weight: 500;
 }
 
 .status-bar__item--version {
@@ -33,6 +38,12 @@
 
 .status-bar__spacer {
   flex: 1;
+}
+
+.status-bar__links {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ifs-space-8);
 }
 
 .status-bar__link {

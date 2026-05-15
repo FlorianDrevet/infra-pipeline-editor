@@ -1,0 +1,178 @@
+@if (viewModel().showPanel) {
+  <section class="generation-panel" [class.generation-panel--collapsed]="viewModel().isCollapsed">
+    <div class="generation-panel__header">
+      <div class="generation-panel__actions">
+        <app-ds-panel-action-button
+          [icon]="viewModel().isCollapsed ? 'keyboard_arrow_down' : 'keyboard_arrow_up'"
+          tone="accent"
+          surface="dark"
+          [pressed]="!viewModel().isCollapsed"
+          [ariaExpanded]="!viewModel().isCollapsed"
+          [ariaLabel]="((viewModel().isCollapsed ? 'CONFIG_DETAIL.GENERATION.EXPAND' : 'CONFIG_DETAIL.GENERATION.COLLAPSE') | translate)"
+          [tooltip]="((viewModel().isCollapsed ? 'CONFIG_DETAIL.GENERATION.EXPAND' : 'CONFIG_DETAIL.GENERATION.COLLAPSE') | translate)"
+          (clicked)="viewModel().onTogglePanelCollapsed()" />
+        <app-ds-panel-action-button
+          icon="close"
+          tone="danger"
+          surface="dark"
+          [ariaLabel]="'CONFIG_DETAIL.GENERATION.CLOSE' | translate"
+          [tooltip]="'CONFIG_DETAIL.GENERATION.CLOSE' | translate"
+          (clicked)="viewModel().onClosePanel()" />
+      </div>
+    </div>
+
+    @if (!viewModel().isCollapsed) {
+      <mat-tab-group class="generation-tabs" animationDuration="200ms">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">terminal</mat-icon>
+            <span>{{ 'CONFIG_DETAIL.GENERATION.TAB_BICEP' | translate }}</span>
+          </ng-template>
+
+          <div class="generation-tab-content">
+            <div class="generation-tab-content__toolbar">
+              @if (viewModel().bicepResult) {
+                <button
+                  class="bicep-download-btn config-detail-generation__download-bicep"
+                  (click)="viewModel().onDownloadBicepFiles()"
+                  [disabled]="viewModel().bicepDownloading">
+                  @if (viewModel().bicepDownloading) {
+                    <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                  } @else {
+                    <mat-icon>download</mat-icon>
+                  }
+                  {{ (viewModel().bicepDownloading ? 'CONFIG_DETAIL.BICEP.DOWNLOADING' : 'CONFIG_DETAIL.BICEP.DOWNLOAD') | translate }}
+                </button>
+              }
+            </div>
+
+            @if (viewModel().bicepLoading) {
+              <div class="bicep-panel__loading">
+                <div class="bicep-terminal">
+                  <div class="bicep-terminal__bar">
+                    <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                    <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                    <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                    <span class="bicep-terminal__bar-title">bicep-generator</span>
+                  </div>
+                  <div class="bicep-terminal__body">
+                    <p class="bicep-terminal__line bicep-terminal__line--active">
+                      <span class="bicep-terminal__prompt">$</span>
+                      {{ 'CONFIG_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}
+                      <span class="bicep-terminal__cursor"></span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (viewModel().bicepErrorKey) {
+              <div class="bicep-panel__error-body">
+                <p>{{ viewModel().bicepErrorKey | translate }}</p>
+                <button class="bicep-retry-btn config-detail-generation__retry-bicep" (click)="viewModel().onGenerateBicep()">
+                  <mat-icon>refresh</mat-icon>
+                  {{ 'CONFIG_DETAIL.BICEP.RETRY' | translate }}
+                </button>
+              </div>
+            }
+
+            @if (viewModel().bicepResult?.warnings?.length) {
+              <div class="bicep-warnings-banner">
+                <mat-icon class="bicep-warnings-banner__icon">gpp_bad</mat-icon>
+                <div class="bicep-warnings-banner__content">
+                  <strong>{{ 'CONFIG_DETAIL.BICEP.WARNINGS_TITLE' | translate }}</strong>
+                  <ul class="bicep-warnings-banner__list">
+                    @for (warning of viewModel().bicepResult!.warnings!; track warning.resourceId + warning.ruleCode) {
+                      <li>
+                        <strong>{{ warning.resourceName }}</strong> — {{ 'CONFIG_DETAIL.DIAGNOSTICS.' + warning.ruleCode | translate:{ target: warning.targetResourceName } }}
+                      </li>
+                    }
+                  </ul>
+                </div>
+              </div>
+            }
+
+            @if (viewModel().configBicepNodes.length > 0) {
+              <app-bicep-file-panel
+                [nodes]="viewModel().configBicepNodes"
+                [barTitle]="'bicep-generator — ' + ('CONFIG_DETAIL.BICEP.ARTIFACTS' | translate)"
+                [terminalDoneText]="'CONFIG_DETAIL.BICEP.TERMINAL_DONE' | translate"
+                [fileLoadingText]="'CONFIG_DETAIL.BICEP.FILE_LOADING' | translate"
+                [fileErrorText]="'CONFIG_DETAIL.BICEP.FILE_ERROR' | translate"
+                [loadFile]="viewModel().loadConfigBicepFile">
+              </app-bicep-file-panel>
+            }
+          </div>
+        </mat-tab>
+
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">account_tree</mat-icon>
+            <span>{{ 'CONFIG_DETAIL.GENERATION.TAB_PIPELINE' | translate }}</span>
+          </ng-template>
+
+          <div class="generation-tab-content">
+            <div class="generation-tab-content__toolbar">
+              @if (viewModel().pipelineResult) {
+                <button
+                  class="bicep-download-btn config-detail-generation__download-pipeline"
+                  (click)="viewModel().onDownloadPipelineFiles()"
+                  [disabled]="viewModel().pipelineDownloading">
+                  @if (viewModel().pipelineDownloading) {
+                    <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                  } @else {
+                    <mat-icon>download</mat-icon>
+                  }
+                  {{ (viewModel().pipelineDownloading ? 'CONFIG_DETAIL.BICEP.DOWNLOADING' : 'CONFIG_DETAIL.PIPELINE.DOWNLOAD') | translate }}
+                </button>
+              }
+            </div>
+
+            @if (viewModel().pipelineLoading) {
+              <div class="bicep-panel__loading">
+                <div class="bicep-terminal">
+                  <div class="bicep-terminal__bar">
+                    <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                    <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                    <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                    <span class="bicep-terminal__bar-title">pipeline-generator</span>
+                  </div>
+                  <div class="bicep-terminal__body">
+                    <p class="bicep-terminal__line bicep-terminal__line--active">
+                      <span class="bicep-terminal__prompt">$</span>
+                      {{ 'CONFIG_DETAIL.PIPELINE.GENERATING' | translate }}
+                      <span class="bicep-terminal__cursor"></span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (viewModel().pipelineErrorKey) {
+              <div class="bicep-panel__error-body">
+                <p>{{ viewModel().pipelineErrorKey | translate }}</p>
+                <button class="bicep-retry-btn config-detail-generation__retry-pipeline" (click)="viewModel().onGeneratePipeline()">
+                  <mat-icon>refresh</mat-icon>
+                  {{ 'CONFIG_DETAIL.BICEP.RETRY' | translate }}
+                </button>
+              </div>
+            }
+
+            @if (viewModel().configPipelineNodes.length > 0) {
+              <app-bicep-file-panel
+                [nodes]="viewModel().configPipelineNodes"
+                [barTitle]="'pipeline-generator — ' + ('CONFIG_DETAIL.PIPELINE.ARTIFACTS' | translate)"
+                [terminalDoneText]="'CONFIG_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
+                [fileLoadingText]="'CONFIG_DETAIL.BICEP.FILE_LOADING' | translate"
+                [fileErrorText]="'CONFIG_DETAIL.BICEP.FILE_ERROR' | translate"
+                [loadFile]="viewModel().loadConfigPipelineFile">
+              </app-bicep-file-panel>
+            } @else if (!viewModel().pipelineLoading && !viewModel().pipelineErrorKey) {
+              <p class="generation-empty">{{ 'CONFIG_DETAIL.PIPELINE.NO_FILES' | translate }}</p>
+            }
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    }
+  </section>
+}

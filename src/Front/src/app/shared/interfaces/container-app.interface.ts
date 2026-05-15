@@ -1,4 +1,5 @@
 import { AcrAuthMode } from './container-registry.interface';
+import { PipelineStepOptions } from '../../features/resource-edit/models/pipeline-step-options.model';
 
 // ─── Environment Settings ────────────────────────────────────────────────────
 
@@ -52,6 +53,7 @@ export interface ContainerAppResponse {
   dockerImageName: string | null;
   dockerfilePath: string | null;
   applicationName: string | null;
+  pipelineStepOptions?: PipelineStepOptions | null;
   environmentSettings: ContainerAppEnvironmentConfigResponse[];
   isExisting?: boolean;
 }
@@ -68,6 +70,7 @@ export interface CreateContainerAppRequest {
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   applicationName?: string | null;
+  pipelineStepOptions?: PipelineStepOptions | null;
   environmentSettings?: ContainerAppEnvironmentConfigEntry[];
   isExisting?: boolean;
 }
@@ -81,5 +84,6 @@ export interface UpdateContainerAppRequest {
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   applicationName?: string | null;
+  pipelineStepOptions?: PipelineStepOptions | null;
   environmentSettings?: ContainerAppEnvironmentConfigEntry[];
 }

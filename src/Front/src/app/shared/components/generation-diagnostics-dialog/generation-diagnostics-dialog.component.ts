@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ResourceDiagnosticResponse } from '../../interfaces/bicep-generator.interface';
-import { RESOURCE_TYPE_ABBREVIATIONS } from '../../../features/config-detail/enums/resource-type.enum';
+import { RESOURCE_TYPE_ABBREVIATIONS } from '../../resource-metadata/resource-type.metadata';
 import { DsButtonComponent } from '../ds';
 
 const ARM_TYPE_TO_FRIENDLY: Record<string, string> = {

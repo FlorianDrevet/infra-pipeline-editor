@@ -69,6 +69,21 @@ public sealed class ProjectEnvironmentDefinitionTests
         sut.Tags.Single().Value.Should().Be("prod");
     }
 
+    [Fact]
+    public void Given_TagsView_When_TryingToMutateReturnedCollection_Then_Throws()
+    {
+        // Arrange
+        var project = CreateValidProject();
+        var sut = project.AddEnvironment(BuildData(order: 0, name: "Dev", tags: [new Tag("env", "dev")]));
+
+        // Act
+        Action mutateTags = () => TryMutateReturnedCollection(sut.Tags);
+
+        // Assert
+        mutateTags.Should().Throw<Exception>()
+            .Where(exception => exception.GetType() == typeof(InvalidCastException) || exception.GetType() == typeof(NotSupportedException));
+    }
+
     private static Project CreateValidProject()
         => Project.Create(new Name("Demo"), description: null, UserId.CreateUnique());
 
@@ -87,4 +102,13 @@ public sealed class ProjectEnvironmentDefinitionTests
             new RequiresApproval(false),
             AzureResourceManagerConnection: null,
             Tags: tags ?? []);
+
+    private static void TryMutateReturnedCollection<T>(IReadOnlyCollection<T> collection)
+        where T : class
+    {
+        var mutableCollection = collection as ICollection<T>
+            ?? throw new InvalidCastException("Collection does not expose a mutable ICollection<T>.");
+
+        mutableCollection.Add(default!);
+    }
 }

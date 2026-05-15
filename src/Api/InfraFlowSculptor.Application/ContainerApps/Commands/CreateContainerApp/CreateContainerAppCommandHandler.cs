@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.ContainerApps.Common;
@@ -59,6 +60,11 @@ public sealed class CreateContainerAppCommandHandler(
             isExisting: request.IsExisting);
 
         var saved = await containerAppRepository.AddAsync(containerApp);
+
+        if (request.PipelineStepOptions is { } opts)
+        {
+            containerApp.PipelineStepOptions.Update(PipelineStepOptionsDataMapper.ToDomainData(opts));
+        }
 
         return mapper.Map<ContainerAppResult>(saved);
     }

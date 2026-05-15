@@ -1,6 +1,6 @@
 # API Endpoints Reference
 
-> 31 controllers — 18 Azure resource types + InfrastructureConfig + Project + ResourceGroup + BicepGeneration + PipelineGeneration + NamingTemplate + AppConfigurationKey + AppSetting + RoleAssignment + SecureParameterMapping + CustomDomain + PersonalAccessToken + Import
+> 36 controllers — 22 Azure resource types + InfrastructureConfig + Project + ResourceGroup + BicepGeneration + PipelineGeneration + NamingTemplate + AppConfigurationKey + AppSetting + RoleAssignment + SecureParameterMapping + CustomDomain + PersonalAccessToken + Import + PrivateEndpoint
 
 ## Core Aggregates
 
@@ -43,7 +43,7 @@
 
 Note [2026-04-26]: the create-project wizard submit path depends on an explicit `group.MapPost("/with-setup", ...)` registration inside `ProjectController.UseProjectController()`. The handler, contract, and Mapster mapping do not expose this route automatically.
 
-## Azure Resource CRUD (18 types — standard GET/POST/PUT/DELETE pattern)
+## Azure Resource CRUD (22 types — standard GET/POST/PUT/DELETE pattern)
 
 | Group | Extra endpoints |
 |---|---|
@@ -65,6 +65,10 @@ Note [2026-04-26]: the create-project wizard submit path depends on an explicit 
 | `/service-bus-namespace` | + queues (POST/DELETE), topic-subscriptions (POST/DELETE) |
 | `/container-registry` | + `/check-acr-pull-access` (GET) |
 | `/event-hubs` | + event-hubs (POST/DELETE), consumer-groups (POST/DELETE) |
+| `/virtual-network` | Standard CRUD |
+| `/network-security-group` | Standard CRUD |
+| `/private-dns-zone` | Standard CRUD |
+| `/front-door` | Standard CRUD |
 
 ## Sub-resource / Cross-cutting Controllers
 
@@ -87,6 +91,7 @@ Note [2026-04-26]: the create-project wizard submit path depends on an explicit 
 | `/azure-resources/{resourceId}/configuration-keys` | GET/POST/DELETE | various | AppConfigurationKey CRUD |
 | `/azure-resources/{id}/assigned-identity` | PUT | `` | `AssignIdentityToResourceCommand` |
 | `/azure-resources/{id}/assigned-identity` | DELETE | `` | `UnassignIdentityFromResourceCommand` |
+| `/resources/{resourceId}/private-endpoints` | GET/POST/PUT/DELETE | various | PrivateEndpoint CRUD (`GetPrivateEndpointConfigsQuery`, `AddPrivateEndpointCommand`, `UpdatePrivateEndpointCommand`, `RemovePrivateEndpointCommand`) |
 | `/infra-config/{id}/naming` | PUT | `/default` | `SetDefaultNamingTemplateCommand` |
 | `/infra-config/{id}/naming` | PUT | `/resources/{resourceType}` | `SetResourceNamingTemplateCommand` |
 | `/infra-config/{id}/naming` | DELETE | `/resources/{resourceType}` | `RemoveResourceNamingTemplateCommand` |

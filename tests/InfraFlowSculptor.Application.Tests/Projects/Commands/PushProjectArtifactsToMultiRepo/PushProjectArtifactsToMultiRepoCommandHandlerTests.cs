@@ -1,13 +1,8 @@
-using ErrorOr;
 using FluentAssertions;
-using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
-using InfraFlowSculptor.Application.Common.Services;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectArtifactsToMultiRepo;
-using InfraFlowSculptor.Application.Projects.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
@@ -18,17 +13,13 @@ namespace InfraFlowSculptor.Application.Tests.Projects.Commands.PushProjectArtif
 
 public sealed class PushProjectArtifactsToMultiRepoCommandHandlerTests
 {
+    private const string PersonalAccessToken = "pat-token";
+
     private readonly IProjectAccessService _accessService;
     private readonly IProjectRepository _projectRepository;
     private readonly IKeyVaultSecretClient _keyVaultSecretClient;
-    private readonly IGitProviderFactory _gitProviderFactory;
-    private readonly IBlobService _blobService;
-    private readonly IRepositoryTargetResolver _targetResolver;
-    private readonly IGitProviderService _gitProvider;
-    private readonly IGitMultiScopePushProviderService _multiScopeGitProvider;
+    private readonly IMultiRepoProjectArtifactsPushService _pushService;
     private readonly Project _project;
-    private readonly ResolvedRepositoryTarget _infraTarget;
-    private readonly ResolvedRepositoryTarget _appTarget;
     private readonly PushProjectArtifactsToMultiRepoCommand _command;
     private readonly PushProjectArtifactsToMultiRepoCommandHandler _sut;
 
@@ -37,33 +28,9 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandlerTests
         _accessService = Substitute.For<IProjectAccessService>();
         _projectRepository = Substitute.For<IProjectRepository>();
         _keyVaultSecretClient = Substitute.For<IKeyVaultSecretClient>();
-        _gitProviderFactory = Substitute.For<IGitProviderFactory>();
-        _blobService = Substitute.For<IBlobService>();
-        _targetResolver = Substitute.For<IRepositoryTargetResolver>();
-        _gitProvider = Substitute.For<IGitProviderService, IGitMultiScopePushProviderService>();
-        _multiScopeGitProvider = (IGitMultiScopePushProviderService)_gitProvider;
+        _pushService = Substitute.For<IMultiRepoProjectArtifactsPushService>();
 
         _project = CreateConfiguredSplitProject();
-        _infraTarget = new ResolvedRepositoryTarget(
-            Alias: "infra",
-            ProviderType: new GitProviderType(GitProviderTypeEnum.GitHub),
-            RepositoryUrl: "https://github.com/octo-org/retail-platform-infra",
-            Owner: "octo-org",
-            RepositoryName: "retail-platform-infra",
-            Branch: "main",
-            BasePath: "infra-root",
-            PipelineBasePath: "pipelines",
-            PatSecretName: null);
-        _appTarget = new ResolvedRepositoryTarget(
-            Alias: "code",
-            ProviderType: new GitProviderType(GitProviderTypeEnum.GitHub),
-            RepositoryUrl: "https://github.com/octo-org/retail-platform-app",
-            Owner: "octo-org",
-            RepositoryName: "retail-platform-app",
-            Branch: "main",
-            BasePath: string.Empty,
-            PipelineBasePath: "app-pipelines",
-            PatSecretName: null);
         _command = new PushProjectArtifactsToMultiRepoCommand(
             _project.Id,
             Infra: new RepoPushTarget(
@@ -79,136 +46,37 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandlerTests
             _accessService,
             _projectRepository,
             _keyVaultSecretClient,
-            new MultiScopeGitPushExecutor(_gitProviderFactory),
-            _blobService,
-            _targetResolver);
+            _pushService);
     }
 
     [Fact]
-    public async Task Given_ProviderWithoutMultiScopeSupport_When_Handle_Then_ReturnsPerRepoFailuresAsync()
+    public async Task Given_ValidSplitProject_When_Handle_Then_DelegatesToPushServiceAsync()
     {
         // Arrange
-        var unsupportedProvider = Substitute.For<IGitProviderService>();
-        var expectedError = Errors.GitRepository.PushFailed(
-            "The selected Git provider does not support multi-scope pushes.");
+        var expected = new PushProjectArtifactsToMultiRepoResult(
+        [
+            new RepoPushResult("infra", true, "https://example/infra", "abc123", 3, null, null),
+            new RepoPushResult("code", true, "https://example/code", "def456", 2, null, null),
+        ]);
 
-        ConfigureSuccessfulPrerequisites();
-        ConfigureGeneratedArtifacts();
-        _gitProviderFactory.Create(Arg.Any<GitProviderType>()).Returns(unsupportedProvider);
-
-        // Act
-        var result = await _sut.Handle(_command, CancellationToken.None);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.Results.Should().SatisfyRespectively(
-            infraResult =>
-            {
-                infraResult.Alias.Should().Be("infra");
-                infraResult.Success.Should().BeFalse();
-                infraResult.ErrorCode.Should().Be(expectedError.Code);
-                infraResult.ErrorDescription.Should().Be(expectedError.Description);
-            },
-            codeResult =>
-            {
-                codeResult.Alias.Should().Be("code");
-                codeResult.Success.Should().BeFalse();
-                codeResult.ErrorCode.Should().Be(expectedError.Code);
-                codeResult.ErrorDescription.Should().Be(expectedError.Description);
-            });
-    }
-
-    [Fact]
-    public async Task Given_InfraPushFailsAndCodePushSucceeds_When_Handle_Then_ReturnsIndependentRepoResultsAsync()
-    {
-        // Arrange
-        var infraPushError = Errors.GitRepository.PushFailed("infra push failed");
-
-        ConfigureSuccessfulPrerequisites();
-        ConfigureGeneratedArtifacts();
-        _gitProviderFactory.Create(Arg.Any<GitProviderType>()).Returns(_gitProvider);
-        _multiScopeGitProvider.PushScopedFilesAsync(Arg.Any<MultiScopeGitPushRequest>(), Arg.Any<CancellationToken>())
-            .Returns(
-                infraPushError,
-                new PushBicepToGitResult(
-                    BranchName: "feature/generated-code",
-                    BranchUrl: "https://github.com/octo-org/retail-platform-app/tree/feature/generated-code",
-                    CommitSha: "def456",
-                    FileCount: 2));
-
-        // Act
-        var result = await _sut.Handle(_command, CancellationToken.None);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.Results.Should().SatisfyRespectively(
-            infraResult =>
-            {
-                infraResult.Alias.Should().Be("infra");
-                infraResult.Success.Should().BeFalse();
-                infraResult.ErrorCode.Should().Be(infraPushError.Code);
-                infraResult.ErrorDescription.Should().Be(infraPushError.Description);
-                infraResult.FileCount.Should().Be(0);
-            },
-            codeResult =>
-            {
-                codeResult.Alias.Should().Be("code");
-                codeResult.Success.Should().BeTrue();
-                codeResult.BranchUrl.Should().Be("https://github.com/octo-org/retail-platform-app/tree/feature/generated-code");
-                codeResult.CommitSha.Should().Be("def456");
-                codeResult.FileCount.Should().Be(2);
-                codeResult.ErrorCode.Should().BeNull();
-                codeResult.ErrorDescription.Should().BeNull();
-            });
-    }
-
-    private void ConfigureSuccessfulPrerequisites()
-    {
         _accessService.VerifyWriteAccessAsync(_project.Id, Arg.Any<CancellationToken>())
             .Returns(_project);
         _projectRepository.GetByIdWithAllAsync(_project.Id, Arg.Any<CancellationToken>())
             .Returns(_project);
-        _targetResolver.Resolve(_project, config: null, ArtifactKind.Pipeline)
-            .Returns(_infraTarget);
-        _targetResolver.Resolve(_project, config: null, ArtifactKind.ApplicationPipeline)
-            .Returns(_appTarget);
         _keyVaultSecretClient.GetSecretAsync($"git-pat-{_project.Id.Value}", Arg.Any<CancellationToken>())
-            .Returns("pat-token");
-    }
+            .Returns(PersonalAccessToken);
+        _pushService.PushAsync(_command, _project, PersonalAccessToken, Arg.Any<CancellationToken>())
+            .Returns(expected);
 
-    private void ConfigureGeneratedArtifacts()
-    {
-        ConfigureBlobListing(
-            $"bicep/project/{_project.Id.Value}/",
-            [
-                ("20260512094500/main.bicep", "main-bicep"),
-            ]);
-        ConfigureBlobListing(
-            $"pipeline/project/{_project.Id.Value}/",
-            [
-                ("20260512094500/infra/.azuredevops/infra-ci.yml", "infra-ci"),
-                ("20260512094500/app/apps/api/api/ci.yml", "app-ci"),
-            ]);
-        ConfigureBlobListing(
-            $"bootstrap/project/{_project.Id.Value}/",
-            [
-                ("20260512094500/infra/bootstrap.yml", "infra-bootstrap"),
-                ("20260512094500/app/bootstrap.yml", "app-bootstrap"),
-            ]);
-    }
+        // Act
+        var result = await _sut.Handle(_command, CancellationToken.None);
 
-    private void ConfigureBlobListing(
-        string prefix,
-        IReadOnlyCollection<(string RelativePath, string Content)> blobs)
-    {
-        _blobService.ListBlobsAsync(prefix)
-            .Returns(blobs.Select(blob => $"{prefix}{blob.RelativePath}").ToList());
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.Should().BeEquivalentTo(expected);
 
-        foreach (var (relativePath, content) in blobs)
-        {
-            _blobService.DownloadContentAsync($"{prefix}{relativePath}")
-                .Returns(content);
-        }
+        await _pushService.Received(1)
+            .PushAsync(_command, _project, PersonalAccessToken, Arg.Any<CancellationToken>());
     }
 
     private static Project CreateConfiguredSplitProject()

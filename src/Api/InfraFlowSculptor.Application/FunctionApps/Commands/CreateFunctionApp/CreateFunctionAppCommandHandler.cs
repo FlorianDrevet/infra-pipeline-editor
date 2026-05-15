@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.FunctionApps.Common;
@@ -77,6 +78,11 @@ public sealed class CreateFunctionAppCommandHandler(
             isExisting: request.IsExisting);
 
         var saved = await functionAppRepository.AddAsync(functionApp);
+
+        if (request.PipelineStepOptions is { } opts)
+        {
+            functionApp.PipelineStepOptions.Update(PipelineStepOptionsDataMapper.ToDomainData(opts));
+        }
 
         return mapper.Map<FunctionAppResult>(saved);
     }

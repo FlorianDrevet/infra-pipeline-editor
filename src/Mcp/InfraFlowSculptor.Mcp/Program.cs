@@ -1,18 +1,22 @@
 using InfraFlowSculptor.Application;
-using InfraFlowSculptor.Mcp.DependencyInjection;
 using InfraFlowSculptor.Infrastructure;
 using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Drafts;
 using InfraFlowSculptor.Mcp.Imports;
 using InfraFlowSculptor.Mcp.Imports.Resources;
 using InfraFlowSculptor.Mcp.Prompts;
+using InfraFlowSculptor.Mcp.RateLimiting;
 using InfraFlowSculptor.Mcp.Resources;
 using InfraFlowSculptor.Mcp.Tools;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var mcpOptions = builder.Configuration.GetSection(McpOptions.SectionName).Get<McpOptions>() ?? new McpOptions();
+var mcpOptionsSection = builder.Configuration.GetSection(McpOptions.SectionName);
+builder.Services.Configure<McpOptions>(mcpOptionsSection);
+builder.Services.Configure<ProjectDraftStorageOptions>(builder.Configuration.GetSection(ProjectDraftStorageOptions.SectionName));
+
+var mcpOptions = mcpOptionsSection.Get<McpOptions>() ?? new McpOptions();
 builder.WebHost.UseUrls(mcpOptions.ListenUrl);
 
 builder.Services.AddSingleton<IProjectDraftService, ProjectDraftService>();
@@ -35,21 +39,22 @@ builder.Services
     .WithPrompts<ProjectCreationPrompts>();
 
 builder.Services
-    .AddMcpMappings()
     .AddApplication()
     .AddInfrastructure(builder.Configuration, builder.Environment, includeAuthentication: false)
-    .AddPatAuthentication();
+    .AddPatAuthentication()
+    .AddMcpRateLimiting();
 
 var app = builder.Build();
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseMcpHttpPipeline();
 
 app.MapHealthChecks("/health").AllowAnonymous();
 app.MapHealthChecks("/alive", new HealthCheckOptions
 {
     Predicate = registration => registration.Tags.Contains("live")
 }).AllowAnonymous();
-app.MapMcp(mcpOptions.Route).RequireAuthorization();
+app.MapMcp(mcpOptions.Route)
+    .RequireAuthorization()
+    .RequireRateLimiting(RateLimitingPolicyNames.Expensive);
 
 await app.RunAsync();

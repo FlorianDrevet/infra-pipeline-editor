@@ -17,9 +17,7 @@ public sealed class ContainerRegistryRepository(ProjectDbContext context)
         ValueObject id,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<ContainerRegistry>()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<ContainerRegistry>())
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
@@ -28,10 +26,7 @@ public sealed class ContainerRegistryRepository(ProjectDbContext context)
         ValueObject id,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<ContainerRegistry>()
-            .AsNoTracking()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<ContainerRegistry>().AsNoTracking())
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
@@ -40,11 +35,16 @@ public sealed class ContainerRegistryRepository(ProjectDbContext context)
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Set<ContainerRegistry>()
-            .Include(x => x.DependsOn)
-            .Include(x => x.EnvironmentSettings)
+        return await WithSubResources(Context.Set<ContainerRegistry>())
             .Where(x => x.ResourceGroupId == resourceGroupId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    private static IQueryable<ContainerRegistry> WithSubResources(IQueryable<ContainerRegistry> query)
+    {
+        return query
+            .Include(x => x.DependsOn)
+            .Include(x => x.EnvironmentSettings);
     }
 }

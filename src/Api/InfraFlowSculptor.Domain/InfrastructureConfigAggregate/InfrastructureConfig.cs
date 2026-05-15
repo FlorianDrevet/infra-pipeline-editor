@@ -57,7 +57,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     private readonly List<ParameterDefinition> _parameterDefinitions = [];
 
     /// <summary>Gets the parameter definitions declared in this configuration.</summary>
-    public IReadOnlyCollection<ParameterDefinition> ParameterDefinitions => _parameterDefinitions;
+    public IReadOnlyCollection<ParameterDefinition> ParameterDefinitions => _parameterDefinitions.AsReadOnly();
 
     private readonly List<CrossConfigResourceReference> _crossConfigReferences = [];
     /// <summary>Gets the cross-configuration resource references owned by this configuration.</summary>
@@ -66,7 +66,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     private readonly List<Tag> _tags = [];
 
     /// <summary>Gets the configuration-level tags that extend or override project-level tags.</summary>
-    public IReadOnlyCollection<Tag> Tags => _tags;
+    public IReadOnlyCollection<Tag> Tags => _tags.AsReadOnly();
 
     /// <summary>
     /// Gets the optional configuration-level layout mode used when the parent project layout is
@@ -92,17 +92,17 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         ProjectId = projectId;
     }
 
+    /// <summary>EF Core constructor.</summary>
+    private InfrastructureConfig()
+    {
+    }
+
     /// <summary>
     /// Creates a new <see cref="InfrastructureConfig"/> belonging to the specified project.
     /// </summary>
     public static InfrastructureConfig Create(Name name, ProjectId projectId)
     {
         return new InfrastructureConfig(InfrastructureConfigId.CreateUnique(), name, projectId);
-    }
-
-    /// <summary>EF Core constructor.</summary>
-    public InfrastructureConfig()
-    {
     }
 
     /// <summary>Adds a resource group if one with the same name does not already exist.</summary>
