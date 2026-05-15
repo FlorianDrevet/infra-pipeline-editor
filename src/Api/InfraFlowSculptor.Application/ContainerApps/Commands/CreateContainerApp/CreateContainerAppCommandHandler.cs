@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.ContainerApps.Common;
@@ -62,28 +63,7 @@ public sealed class CreateContainerAppCommandHandler(
 
         if (request.PipelineStepOptions is { } opts)
         {
-            containerApp.PipelineStepOptions.Update(
-                opts.RunUnitTests,
-                opts.TestCommand,
-                opts.TestFramework,
-                opts.TestResultsFormat,
-                opts.TestResultsPath,
-                opts.PublishTestResults,
-                opts.PublishCodeCoverage,
-                opts.CoverageTool,
-                opts.CoverageReportPath,
-                opts.RunSonarAnalysis,
-                opts.SonarProjectKey,
-                opts.SonarOrganization,
-                opts.SonarServiceConnection,
-                opts.RunLinting,
-                opts.LintCommand,
-                opts.RunDependencyScan,
-                opts.DependencyScanTool,
-                opts.RunBuildValidation,
-                opts.EnableDependencyCache,
-                opts.RunSmokeTests,
-                opts.SmokeTestCommand);
+            containerApp.PipelineStepOptions.Update(PipelineStepOptionsDataMapper.ToDomainData(opts));
         }
 
         return mapper.Map<ContainerAppResult>(saved);

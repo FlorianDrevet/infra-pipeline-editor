@@ -87,49 +87,30 @@ public sealed class AppPipelineStepOptions
     public string? SmokeTestCommand { get; private set; }
 
     /// <summary>Updates all pipeline step options at once.</summary>
-    public void Update(
-        bool runUnitTests,
-        string? testCommand,
-        string? testFramework,
-        string? testResultsFormat,
-        string? testResultsPath,
-        bool publishTestResults,
-        bool publishCodeCoverage,
-        string? coverageTool,
-        string? coverageReportPath,
-        bool runSonarAnalysis,
-        string? sonarProjectKey,
-        string? sonarOrganization,
-        string? sonarServiceConnection,
-        bool runLinting,
-        string? lintCommand,
-        bool runDependencyScan,
-        string? dependencyScanTool,
-        bool runBuildValidation,
-        bool enableDependencyCache,
-        bool runSmokeTests,
-        string? smokeTestCommand)
+    public void Update(AppPipelineStepOptionsData data)
     {
-        RunUnitTests = runUnitTests;
-        TestCommand = testCommand;
-        TestFramework = testFramework;
-        TestResultsFormat = testResultsFormat;
-        TestResultsPath = testResultsPath;
-        PublishTestResults = publishTestResults;
-        PublishCodeCoverage = publishCodeCoverage;
-        CoverageTool = coverageTool;
-        CoverageReportPath = coverageReportPath;
-        RunSonarAnalysis = runSonarAnalysis;
-        SonarProjectKey = sonarProjectKey;
-        SonarOrganization = sonarOrganization;
-        SonarServiceConnection = sonarServiceConnection;
-        RunLinting = runLinting;
-        LintCommand = lintCommand;
-        RunDependencyScan = runDependencyScan;
-        DependencyScanTool = dependencyScanTool;
-        RunBuildValidation = runBuildValidation;
-        EnableDependencyCache = enableDependencyCache;
-        RunSmokeTests = runSmokeTests;
-        SmokeTestCommand = smokeTestCommand;
+        ArgumentNullException.ThrowIfNull(data);
+
+        RunUnitTests = data.RunUnitTests;
+        TestCommand = data.TestCommand;
+        TestFramework = data.TestFramework;
+        TestResultsFormat = data.TestResultsFormat;
+        TestResultsPath = data.TestResultsPath;
+        PublishTestResults = data.PublishTestResults;
+        PublishCodeCoverage = data.PublishCodeCoverage;
+        CoverageTool = data.CoverageTool;
+        CoverageReportPath = data.CoverageReportPath;
+        RunSonarAnalysis = data.RunSonarAnalysis;
+        SonarProjectKey = data.SonarProjectKey;
+        SonarOrganization = data.SonarOrganization;
+        SonarServiceConnection = data.SonarServiceConnection;
+        RunLinting = data.RunLinting;
+        LintCommand = data.LintCommand;
+        RunDependencyScan = data.RunDependencyScan;
+        DependencyScanTool = data.DependencyScanTool;
+        RunBuildValidation = data.RunBuildValidation;
+        EnableDependencyCache = data.EnableDependencyCache;
+        RunSmokeTests = data.RunSmokeTests;
+        SmokeTestCommand = data.SmokeTestCommand;
     }
 }

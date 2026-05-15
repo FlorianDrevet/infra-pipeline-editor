@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.WebApps.Common;
@@ -81,28 +82,7 @@ public class CreateWebAppCommandHandler(
 
         if (request.PipelineStepOptions is { } opts)
         {
-            webApp.PipelineStepOptions.Update(
-                opts.RunUnitTests,
-                opts.TestCommand,
-                opts.TestFramework,
-                opts.TestResultsFormat,
-                opts.TestResultsPath,
-                opts.PublishTestResults,
-                opts.PublishCodeCoverage,
-                opts.CoverageTool,
-                opts.CoverageReportPath,
-                opts.RunSonarAnalysis,
-                opts.SonarProjectKey,
-                opts.SonarOrganization,
-                opts.SonarServiceConnection,
-                opts.RunLinting,
-                opts.LintCommand,
-                opts.RunDependencyScan,
-                opts.DependencyScanTool,
-                opts.RunBuildValidation,
-                opts.EnableDependencyCache,
-                opts.RunSmokeTests,
-                opts.SmokeTestCommand);
+            webApp.PipelineStepOptions.Update(PipelineStepOptionsDataMapper.ToDomainData(opts));
         }
 
         return mapper.Map<WebAppResult>(saved);

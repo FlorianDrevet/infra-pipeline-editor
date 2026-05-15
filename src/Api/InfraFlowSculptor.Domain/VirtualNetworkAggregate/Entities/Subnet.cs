@@ -9,9 +9,12 @@ namespace InfraFlowSculptor.Domain.VirtualNetworkAggregate.Entities;
 /// <summary>Represents a subnet within an Azure Virtual Network.</summary>
 public sealed class Subnet : Entity<SubnetId>
 {
+    private static readonly TimeSpan ServiceEndpointPatternTimeout = TimeSpan.FromMilliseconds(100);
+
     private static readonly Regex ServiceEndpointPattern = new(
         @"^Microsoft\.[A-Za-z][A-Za-z0-9]*$",
-        RegexOptions.Compiled);
+        RegexOptions.Compiled | RegexOptions.CultureInvariant,
+        ServiceEndpointPatternTimeout);
 
     /// <summary>Gets the parent virtual network identifier.</summary>
     public AzureResourceId VirtualNetworkId { get; private set; } = null!;

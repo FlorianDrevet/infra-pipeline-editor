@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.FunctionApps.Common;
@@ -70,28 +71,7 @@ public sealed class UpdateFunctionAppCommandHandler(
 
         if (request.PipelineStepOptions is { } opts)
         {
-            functionApp.PipelineStepOptions.Update(
-                opts.RunUnitTests,
-                opts.TestCommand,
-                opts.TestFramework,
-                opts.TestResultsFormat,
-                opts.TestResultsPath,
-                opts.PublishTestResults,
-                opts.PublishCodeCoverage,
-                opts.CoverageTool,
-                opts.CoverageReportPath,
-                opts.RunSonarAnalysis,
-                opts.SonarProjectKey,
-                opts.SonarOrganization,
-                opts.SonarServiceConnection,
-                opts.RunLinting,
-                opts.LintCommand,
-                opts.RunDependencyScan,
-                opts.DependencyScanTool,
-                opts.RunBuildValidation,
-                opts.EnableDependencyCache,
-                opts.RunSmokeTests,
-                opts.SmokeTestCommand);
+            functionApp.PipelineStepOptions.Update(PipelineStepOptionsDataMapper.ToDomainData(opts));
         }
 
         var updated = await functionAppRepository.UpdateAsync(functionApp);
