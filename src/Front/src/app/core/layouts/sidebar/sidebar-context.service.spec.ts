@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 
+import { CONFIG_DETAIL_ROUTE_TABS } from '../../../shared/enums/detail-route-tabs';
 import { RecentlyViewedItem, RecentlyViewedService } from '../../../shared/services/recently-viewed.service';
 import { FavoritesService } from '../../../shared/services/favorites.service';
 import { SidebarContextService } from './sidebar-context.service';
@@ -13,6 +14,10 @@ interface SidebarContextTargetItem {
     readonly tab: string;
   };
 }
+
+type ConfigContextCapableSidebarContextService = SidebarContextService & {
+  setConfigContext(id: string, name: string, projectId: string, isProjectMultiRepo: boolean): void;
+};
 
 @Component({
   standalone: true,
@@ -88,8 +93,8 @@ describe('SidebarContextService', () => {
   });
 
   it('Given_ConfigMode_When_ContextStateIsBuilt_Then_ContextualItemsExposeDistinctTabTargets', async () => {
-    service.setConfigContext('config-456', 'Config 456', 'project-123');
-    await router.navigateByUrl('/config/config-456?tab=tags');
+    setConfigContext(service, 'config-456', 'Config 456', 'project-123');
+    await router.navigateByUrl(`/config/config-456?tab=${CONFIG_DETAIL_ROUTE_TABS.crossConfigRefs}`);
 
     const items = readItems(service);
     const resourcesItem = findItem(items, 'resources');
@@ -105,8 +110,29 @@ describe('SidebarContextService', () => {
       routerLink: '/config/config-456',
       queryParams: { tab: 'naming' },
     }));
+    expect(findItem(items, 'cross-config-refs')).toEqual(jasmine.objectContaining({
+      routerLink: '/config/config-456',
+      queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.crossConfigRefs },
+    }));
+    expect(findItem(items, 'variables')).toEqual(jasmine.objectContaining({
+      routerLink: '/config/config-456',
+      queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.variables },
+    }));
+    expect(items.some((item) => item.id === 'git')).toBeFalse();
     expect(generationItem.routerLink).toBe('/config/config-456/generate');
     expect(generationItem.queryParams).toBeUndefined();
+  });
+
+  it('Given_MultiRepoConfigMode_When_ContextStateIsBuilt_Then_GitItemExposesDedicatedTabTarget', async () => {
+    setConfigContext(service, 'config-456', 'Config 456', 'project-123', true);
+    await router.navigateByUrl(`/config/config-456?tab=${CONFIG_DETAIL_ROUTE_TABS.git}`);
+
+    const items = readItems(service);
+
+    expect(findItem(items, 'git')).toEqual(jasmine.objectContaining({
+      routerLink: '/config/config-456',
+      queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.git },
+    }));
   });
 });
 
@@ -124,6 +150,16 @@ function createRecentlyViewedServiceStub(): Pick<RecentlyViewedService, 'recentI
 
 function readItems(service: SidebarContextService): readonly SidebarContextTargetItem[] {
   return service.contextState().items;
+}
+
+function setConfigContext(
+  service: SidebarContextService,
+  id: string,
+  name: string,
+  projectId: string,
+  isProjectMultiRepo = false
+): void {
+  (service as ConfigContextCapableSidebarContextService).setConfigContext(id, name, projectId, isProjectMultiRepo);
 }
 
 function findItem(items: readonly SidebarContextTargetItem[], id: string): SidebarContextTargetItem {

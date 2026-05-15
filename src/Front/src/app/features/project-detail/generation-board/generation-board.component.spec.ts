@@ -19,6 +19,16 @@ import { ProjectService } from '../../../shared/services/project.service';
 import { ProjectDetailGenerationWorkflowService } from '../project-detail-generation-workflow.service';
 import { GenerationBoardComponent } from './generation-board.component';
 
+interface GroupMetricExpectation {
+  readonly labelKey: string;
+  readonly value: number;
+}
+
+interface AliasGroupExpectation {
+  readonly alias: string;
+  readonly metrics: readonly GroupMetricExpectation[];
+}
+
 class ProjectDetailGenerationWorkflowServiceStub {
   readonly validatingDiagnostics = signal(false);
   readonly projectGenerateAllLoading = signal(false);
@@ -167,9 +177,7 @@ describe('GenerationBoardComponent', () => {
 
     await createComponent();
 
-    const groups = (component as unknown as {
-      groupedByAlias(): Array<{ alias: string }>;
-    }).groupedByAlias();
+    const groups = getGroupedByAlias(component);
     const repositoryCount = (component as unknown as {
       repositoryCount(): number;
     }).repositoryCount();
@@ -178,11 +186,64 @@ describe('GenerationBoardComponent', () => {
     expect(repositoryCount).toBe(2);
   });
 
+  it('builds dedicated metrics for the split application-code repository card', async () => {
+    projectServiceSpy.getProject.and.resolveTo(createSplitProject());
+    projectServiceSpy.getProjectConfigs.and.resolveTo([
+      createConfig({
+        id: 'config-1',
+        name: 'Config 1',
+        resourceGroupCount: 2,
+        resourceCount: 5,
+        appPipelineMode: 'Combined',
+      }),
+      createConfig({
+        id: 'config-2',
+        name: 'Config 2',
+        resourceGroupCount: 3,
+        resourceCount: 8,
+        appPipelineMode: 'Isolated',
+      }),
+    ]);
+
+    await createComponent();
+
+    const groups = getGroupedByAlias(component);
+    const infraGroup = groups.find((group) => group.alias === 'infra');
+    const codeGroup = groups.find((group) => group.alias === 'code');
+
+    expect(infraGroup?.metrics).toEqual([
+      { labelKey: 'PROJECT_DETAIL.BOARD.SUMMARY_CONFIGS', value: 2 },
+      { labelKey: 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCE_GROUPS', value: 5 },
+      { labelKey: 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCES', value: 13 },
+    ]);
+    expect(codeGroup?.metrics).toEqual([
+      { labelKey: 'PROJECT_DETAIL.BOARD.SUMMARY_APPLICATIONS', value: 2 },
+      { labelKey: 'PROJECT_DETAIL.BOARD.SUMMARY_PIPELINE_SCOPES', value: 2 },
+      { labelKey: 'PROJECT_DETAIL.BOARD.SUMMARY_SHARED_PIPELINES', value: 1 },
+    ]);
+  });
+
+  it('renders a single repository link in the identity block without the extra URL detail row', async () => {
+    await createComponent();
+
+    const nativeElement = fixture.nativeElement as HTMLElement;
+    const detailLinks = nativeElement.querySelectorAll('.repo-card__details a');
+    const subtitles = Array.from(nativeElement.querySelectorAll('.repo-card__subtitle'))
+      .map((subtitle) => subtitle.textContent?.trim());
+    const detailLabels = Array.from(nativeElement.querySelectorAll('.repo-card__detail-label'))
+      .map((label) => label.textContent?.trim());
+
+    expect(subtitles).toContain('org/default');
+    expect(detailLinks.length).toBe(0);
+    expect(detailLabels).not.toContain('PROJECT_DETAIL.LAYOUT.URL');
+  });
+
   async function createComponent(): Promise<void> {
     fixture = TestBed.createComponent(GenerationBoardComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
     await fixture.whenStable();
+    await fixture.whenRenderingDone();
     fixture.detectChanges();
   }
 });
@@ -207,6 +268,12 @@ function createProject(layoutPreset: ProjectLayoutPreset = 'AllInOne'): ProjectR
 
 function createSplitProject(): ProjectResponse {
   return createProject('SplitInfraCode');
+}
+
+function getGroupedByAlias(component: GenerationBoardComponent): readonly AliasGroupExpectation[] {
+  return (component as unknown as {
+    groupedByAlias(): readonly AliasGroupExpectation[];
+  }).groupedByAlias();
 }
 
 function createProjectRepositories(layoutPreset: ProjectLayoutPreset): ProjectRepositoryResponse[] {
@@ -237,7 +304,7 @@ function createRepository(
   };
 }
 
-function createConfig(): InfrastructureConfigResponse {
+function createConfig(overrides: Partial<InfrastructureConfigResponse> = {}): InfrastructureConfigResponse {
   return {
     id: 'config-1',
     name: 'Config 1',
@@ -253,6 +320,7 @@ function createConfig(): InfrastructureConfigResponse {
     tags: [],
     layoutMode: null,
     repositories: [],
+    ...overrides,
   };
 }
 

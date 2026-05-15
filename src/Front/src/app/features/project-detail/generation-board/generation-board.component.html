@@ -454,7 +454,13 @@
                     </h3>
                     <p class="repo-card__subtitle">
                       @if (group.repo) {
-                        {{ group.repo.owner }}/{{ group.repo.repositoryName }}
+                        <a
+                          class="repo-card__identity-link"
+                          [href]="group.repo.repositoryUrl"
+                          target="_blank"
+                          rel="noopener">
+                          {{ group.repo.owner }}/{{ group.repo.repositoryName }}
+                        </a>
                       } @else {
                         {{ 'PROJECT_DETAIL.BOARD.LEGACY_REPOSITORY_DESC' | translate }}
                       }
@@ -462,60 +468,41 @@
                   </div>
                 </div>
 
-                @if (group.repo) {
-                  <app-ds-chip size="sm" variant="info" icon="source">
-                    {{ group.repo.providerType }}
-                  </app-ds-chip>
-                } @else {
-                  <app-ds-chip size="sm" variant="warning" icon="history">
-                    {{ 'PROJECT_DETAIL.BOARD.LEGACY_BADGE' | translate }}
-                  </app-ds-chip>
-                }
+                <div class="repo-card__badges">
+                  @if (group.repo) {
+                    <app-ds-chip size="sm" variant="info" icon="source">
+                      {{ group.repo.providerType }}
+                    </app-ds-chip>
+
+                    @for (kind of group.repo.contentKinds; track kind) {
+                      <app-ds-chip size="sm" variant="accent" icon="deployed_code">
+                        {{ ('PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind) | translate }}
+                      </app-ds-chip>
+                    }
+                  } @else {
+                    <app-ds-chip size="sm" variant="warning" icon="history">
+                      {{ 'PROJECT_DETAIL.BOARD.LEGACY_BADGE' | translate }}
+                    </app-ds-chip>
+                  }
+                </div>
               </div>
 
               <div class="repo-card__metrics">
-                <div class="repo-card__metric">
-                  <span class="repo-card__metric-label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_CONFIGS' | translate }}</span>
-                  <strong>{{ group.configs.length }}</strong>
-                </div>
-                <div class="repo-card__metric">
-                  <span class="repo-card__metric-label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCE_GROUPS' | translate }}</span>
-                  <strong>{{ group.resourceGroupCount }}</strong>
-                </div>
-                <div class="repo-card__metric">
-                  <span class="repo-card__metric-label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCES' | translate }}</span>
-                  <strong>{{ group.resourceCount }}</strong>
-                </div>
+                @for (metric of group.metrics; track metric.labelKey) {
+                  <div class="repo-card__metric">
+                    <span class="repo-card__metric-label">{{ metric.labelKey | translate }}</span>
+                    <strong>{{ metric.value }}</strong>
+                  </div>
+                }
               </div>
             </div>
 
             @if (group.repo) {
               <div class="repo-card__details">
                 <div class="repo-card__detail-row">
-                  <span class="repo-card__detail-label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
-                  <a
-                    class="repo-card__link"
-                    [href]="group.repo.repositoryUrl"
-                    target="_blank"
-                    rel="noopener">
-                    {{ group.repo.owner }}/{{ group.repo.repositoryName }}
-                  </a>
-                </div>
-
-                <div class="repo-card__detail-row">
                   <span class="repo-card__detail-label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
                   <strong class="repo-card__detail-value">{{ group.repo.defaultBranch }}</strong>
                 </div>
-
-                @if (group.repo.contentKinds.length > 0) {
-                  <div class="repo-card__kind-list">
-                    @for (kind of group.repo.contentKinds; track kind) {
-                      <app-ds-chip size="sm" variant="accent" icon="deployed_code">
-                        {{ ('PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind) | translate }}
-                      </app-ds-chip>
-                    }
-                  </div>
-                }
               </div>
             }
           </app-ds-card>

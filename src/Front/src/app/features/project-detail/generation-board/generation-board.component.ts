@@ -19,6 +19,7 @@ import { InfrastructureConfigResponse } from '../../../shared/interfaces/infra-c
 import {
   ProjectLayoutPreset,
   ProjectRepositoryResponse,
+  RepositoryContentKind,
 } from '../../../shared/interfaces/project-repository.interface';
 import { ProjectService } from '../../../shared/services/project.service';
 import {
@@ -36,18 +37,50 @@ import { ProjectDetailGenerationWorkflowService } from '../project-detail-genera
 
 type BoardTopology = 'single' | 'split' | 'mixed' | 'empty' | 'split-infra-code';
 
+type RepositoryMetricLabelKey =
+  | 'PROJECT_DETAIL.BOARD.SUMMARY_CONFIGS'
+  | 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCE_GROUPS'
+  | 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCES'
+  | 'PROJECT_DETAIL.BOARD.SUMMARY_APPLICATIONS'
+  | 'PROJECT_DETAIL.BOARD.SUMMARY_PIPELINE_SCOPES'
+  | 'PROJECT_DETAIL.BOARD.SUMMARY_SHARED_PIPELINES';
+
+interface RepositoryMetric {
+  readonly labelKey: RepositoryMetricLabelKey;
+  readonly value: number;
+}
+
+interface ConfigSummary {
+  readonly resourceGroupCount: number;
+  readonly resourceCount: number;
+  readonly sharedPipelineCount: number;
+}
+
 interface AliasGroup {
   readonly alias: string;
   readonly repo: ProjectRepositoryResponse | null;
   readonly configs: readonly InfrastructureConfigResponse[];
   readonly resourceGroupCount: number;
   readonly resourceCount: number;
+  readonly metrics: readonly RepositoryMetric[];
 }
 
 const DEFAULT_ALIAS = 'default';
 const ALL_IN_ONE_LAYOUT: ProjectLayoutPreset = 'AllInOne';
 const MULTI_REPO_LAYOUT: ProjectLayoutPreset = 'MultiRepo';
 const SPLIT_INFRA_CODE_LAYOUT: ProjectLayoutPreset = 'SplitInfraCode';
+const INFRASTRUCTURE_CONTENT_KIND: RepositoryContentKind = 'Infrastructure';
+const APPLICATION_CODE_CONTENT_KIND: RepositoryContentKind = 'ApplicationCode';
+const COMBINED_APP_PIPELINE_MODE = 'Combined';
+
+const REPOSITORY_METRIC_LABEL_KEYS = {
+  configs: 'PROJECT_DETAIL.BOARD.SUMMARY_CONFIGS',
+  resourceGroups: 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCE_GROUPS',
+  resources: 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCES',
+  applications: 'PROJECT_DETAIL.BOARD.SUMMARY_APPLICATIONS',
+  pipelineScopes: 'PROJECT_DETAIL.BOARD.SUMMARY_PIPELINE_SCOPES',
+  sharedPipelines: 'PROJECT_DETAIL.BOARD.SUMMARY_SHARED_PIPELINES',
+} as const satisfies Record<string, RepositoryMetricLabelKey>;
 
 const LAYOUT_PRESET_LABEL_KEYS: Record<ProjectLayoutPreset, string> = {
   [ALL_IN_ONE_LAYOUT]: 'PROJECT_DETAIL.LAYOUT.PRESET_ALL_IN_ONE',
@@ -57,6 +90,39 @@ const LAYOUT_PRESET_LABEL_KEYS: Record<ProjectLayoutPreset, string> = {
 
 function isProjectLayoutPreset(value: string | null | undefined): value is ProjectLayoutPreset {
   return value === ALL_IN_ONE_LAYOUT || value === MULTI_REPO_LAYOUT || value === SPLIT_INFRA_CODE_LAYOUT;
+}
+
+function summarizeConfigs(configs: readonly InfrastructureConfigResponse[]): ConfigSummary {
+  return configs.reduce<ConfigSummary>((summary, config) => ({
+    resourceGroupCount: summary.resourceGroupCount + config.resourceGroupCount,
+    resourceCount: summary.resourceCount + config.resourceCount,
+    sharedPipelineCount: summary.sharedPipelineCount + (config.appPipelineMode === COMBINED_APP_PIPELINE_MODE ? 1 : 0),
+  }), {
+    resourceGroupCount: 0,
+    resourceCount: 0,
+    sharedPipelineCount: 0,
+  });
+}
+
+function buildInfrastructureMetrics(configCount: number, summary: ConfigSummary): readonly RepositoryMetric[] {
+  return [
+    { labelKey: REPOSITORY_METRIC_LABEL_KEYS.configs, value: configCount },
+    { labelKey: REPOSITORY_METRIC_LABEL_KEYS.resourceGroups, value: summary.resourceGroupCount },
+    { labelKey: REPOSITORY_METRIC_LABEL_KEYS.resources, value: summary.resourceCount },
+  ];
+}
+
+function buildApplicationCodeMetrics(configCount: number, summary: ConfigSummary): readonly RepositoryMetric[] {
+  return [
+    { labelKey: REPOSITORY_METRIC_LABEL_KEYS.applications, value: configCount },
+    { labelKey: REPOSITORY_METRIC_LABEL_KEYS.pipelineScopes, value: configCount },
+    { labelKey: REPOSITORY_METRIC_LABEL_KEYS.sharedPipelines, value: summary.sharedPipelineCount },
+  ];
+}
+
+function isApplicationCodeRepository(repo: ProjectRepositoryResponse): boolean {
+  return repo.contentKinds.includes(APPLICATION_CODE_CONTENT_KIND)
+    && !repo.contentKinds.includes(INFRASTRUCTURE_CONTENT_KIND);
 }
 
 @Component({
@@ -147,15 +213,17 @@ export class GenerationBoardComponent implements OnInit {
     const repos = project?.repositories ?? [];
 
     if (project?.layoutPreset === SPLIT_INFRA_CODE_LAYOUT) {
-      const resourceGroupCount = configs.reduce((total, config) => total + config.resourceGroupCount, 0);
-      const resourceCount = configs.reduce((total, config) => total + config.resourceCount, 0);
+      const summary = summarizeConfigs(configs);
 
       return repos.map((repo) => ({
         alias: repo.alias,
         repo,
         configs,
-        resourceGroupCount,
-        resourceCount,
+        resourceGroupCount: summary.resourceGroupCount,
+        resourceCount: summary.resourceCount,
+        metrics: isApplicationCodeRepository(repo)
+          ? buildApplicationCodeMetrics(configs.length, summary)
+          : buildInfrastructureMetrics(configs.length, summary),
       }));
     }
 
@@ -179,8 +247,7 @@ export class GenerationBoardComponent implements OnInit {
 
     return Array.from(byAlias.entries())
       .map<AliasGroup>(([alias, items]) => {
-        const resourceGroupCount = items.reduce((total, item) => total + item.resourceGroupCount, 0);
-        const resourceCount = items.reduce((total, item) => total + item.resourceCount, 0);
+        const summary = summarizeConfigs(items);
 
         return {
           alias,
@@ -189,8 +256,9 @@ export class GenerationBoardComponent implements OnInit {
               ? (items[0]?.repositories?.find((r) => r.alias === alias) ?? null)
               : null),
           configs: items,
-          resourceGroupCount,
-          resourceCount,
+          resourceGroupCount: summary.resourceGroupCount,
+          resourceCount: summary.resourceCount,
+          metrics: buildInfrastructureMetrics(items.length, summary),
         };
       })
       .sort((a, b) => a.alias.localeCompare(b.alias));

@@ -323,9 +323,9 @@
   min-height: 2rem;
   padding: 0.45rem 0.75rem;
   border-radius: 999px;
-  border: 1px solid rgba(96, 165, 250, 0.22);
-  background: rgba(37, 99, 235, 0.12);
-  color: rgba(219, 234, 254, 0.96);
+  border: 1px solid rgba(147, 197, 253, 0.52);
+  background: rgba(29, 78, 216, 0.42);
+  color: #f8fbff;
   cursor: pointer;
   font: inherit;
   font-size: 0.76rem;
@@ -347,10 +347,10 @@
   }
 
   &:hover {
-    background: rgba(37, 99, 235, 0.2);
-    border-color: rgba(96, 165, 250, 0.36);
-    color: #f8fbff;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.24);
+    background: rgba(37, 99, 235, 0.58);
+    border-color: rgba(191, 219, 254, 0.72);
+    color: #ffffff;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
   }
 }
 

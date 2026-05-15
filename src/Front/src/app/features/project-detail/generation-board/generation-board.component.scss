@@ -487,6 +487,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 0.75rem;
+    flex-wrap: wrap;
   }
 
   &__identity {
@@ -494,6 +495,15 @@
     align-items: flex-start;
     gap: 0.85rem;
     min-width: 0;
+    flex: 1 1 16rem;
+  }
+
+  &__badges {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   &__avatar {
@@ -524,11 +534,25 @@
   }
 
   &__subtitle {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
     margin: 0.2rem 0 0;
     color: var(--ifs-text-secondary);
     font-size: 0.86rem;
     line-height: 1.5;
     word-break: break-word;
+  }
+
+  &__identity-link {
+    color: #9fc2ff;
+    text-decoration: none;
+
+    &:hover {
+      color: #c0d9ff;
+      text-decoration: underline;
+    }
   }
 
   &__metrics {
@@ -583,24 +607,6 @@
   &__detail-value {
     color: var(--ifs-text-primary);
     font-size: 0.9rem;
-  }
-
-  &__link {
-    color: #9fc2ff;
-    text-decoration: none;
-    font-size: 0.9rem;
-    text-align: right;
-
-    &:hover {
-      color: #c0d9ff;
-      text-decoration: underline;
-    }
-  }
-
-  &__kind-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
   }
 }
 
@@ -658,12 +664,12 @@
       align-items: flex-start;
     }
 
-    &__metrics {
-      grid-template-columns: minmax(0, 1fr);
+    &__badges {
+      justify-content: flex-start;
     }
 
-    &__link {
-      text-align: left;
+    &__metrics {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 }

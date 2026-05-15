@@ -52,6 +52,7 @@ export class SidebarContextService {
   private readonly _configName = signal<string>('');
   private readonly _configId = signal<string>('');
   private readonly _configProjectId = signal<string>('');
+  private readonly _configProjectIsMultiRepo = signal(false);
 
   readonly mode = computed<SidebarMode>(() => {
     const url = this.currentUrl();
@@ -80,10 +81,11 @@ export class SidebarContextService {
     this._projectName.set(name);
   }
 
-  setConfigContext(id: string, name: string, projectId: string): void {
+  setConfigContext(id: string, name: string, projectId: string, isProjectMultiRepo = false): void {
     this._configId.set(id);
     this._configName.set(name);
     this._configProjectId.set(projectId);
+    this._configProjectIsMultiRepo.set(isProjectMultiRepo);
   }
 
   private buildGlobalContext(): SidebarContextState {
@@ -120,17 +122,33 @@ export class SidebarContextService {
   private buildConfigContext(): SidebarContextState {
     const id = this._configId();
     const projectId = this._configProjectId();
+    const items: SidebarContextItem[] = [
+      { id: 'resources', icon: 'dns', labelKey: 'SIDEBAR.CONFIG.RESOURCES', routerLink: `/config/${id}`, exact: true, section: 'define' },
+      { id: 'tags', icon: 'label_important', labelKey: 'SIDEBAR.CONFIG.TAGS', routerLink: `/config/${id}`, queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.tags }, exact: false, section: 'define' },
+      { id: 'naming', icon: 'label', labelKey: 'SIDEBAR.CONFIG.NAMING', routerLink: `/config/${id}`, queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.naming }, exact: false, section: 'define' },
+      { id: 'cross-config-refs', icon: 'link', labelKey: 'CONFIG_DETAIL.TABS.CROSS_CONFIG_REFS', routerLink: `/config/${id}`, queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.crossConfigRefs }, exact: false, section: 'manage' },
+      { id: 'variables', icon: 'library_books', labelKey: 'CONFIG_DETAIL.TABS.PIPELINE_VARIABLES', routerLink: `/config/${id}`, queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.variables }, exact: false, section: 'manage' },
+      { id: 'generation', icon: 'play_circle', labelKey: 'SIDEBAR.CONFIG.GENERATION', routerLink: `/config/${id}/generate`, exact: false, section: 'generate' },
+    ];
+
+    if (this._configProjectIsMultiRepo()) {
+      items.push({
+        id: 'git',
+        icon: 'code',
+        labelKey: 'CONFIG_DETAIL.TABS.GIT',
+        routerLink: `/config/${id}`,
+        queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.git },
+        exact: false,
+        section: 'manage',
+      });
+    }
+
     return {
       mode: 'config',
       backLabel: 'SIDEBAR.BACK_PROJECT',
       backLink: projectId ? `/projects/${projectId}` : '/projects',
       contextTitle: this._configName() || 'Configuration',
-      items: [
-        { id: 'resources', icon: 'dns', labelKey: 'SIDEBAR.CONFIG.RESOURCES', routerLink: `/config/${id}`, exact: true, section: 'define' },
-        { id: 'tags', icon: 'label_important', labelKey: 'SIDEBAR.CONFIG.TAGS', routerLink: `/config/${id}`, queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.tags }, exact: false, section: 'define' },
-        { id: 'naming', icon: 'label', labelKey: 'SIDEBAR.CONFIG.NAMING', routerLink: `/config/${id}`, queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.naming }, exact: false, section: 'define' },
-        { id: 'generation', icon: 'play_circle', labelKey: 'SIDEBAR.CONFIG.GENERATION', routerLink: `/config/${id}/generate`, exact: false, section: 'generate' },
-      ],
+      items,
     };
   }
 }

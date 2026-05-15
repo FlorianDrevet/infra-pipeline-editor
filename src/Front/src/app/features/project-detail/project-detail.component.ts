@@ -838,13 +838,13 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
 
   // ─── Pipeline Variable Groups ───
 
-  protected onTabChange(index: number): void {
+  protected async onTabChange(index: number): Promise<void> {
     const tab = getProjectDetailTabQuery(index);
     if (tab === this.currentTabQuery()) {
       return;
     }
 
-    void this.router.navigate([], {
+    await this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { tab },
       queryParamsHandling: 'merge',

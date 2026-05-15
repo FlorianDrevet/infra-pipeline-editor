@@ -93,7 +93,7 @@ import { ConfigDetailTagsSectionComponent } from './sections/tags/config-detail-
 import { createConfigDetailTagsSectionController } from './sections/tags/config-detail-tags-section.controller';
 import { ConfigDetailVariableGroupsSectionComponent } from './sections/variable-groups/config-detail-variable-groups-section.component';
 import { createConfigDetailVariableGroupsSectionController } from './sections/variable-groups/config-detail-variable-groups-section.controller';
-import { getConfigDetailTabIndex, getConfigDetailTabQuery } from '../../shared/enums/detail-route-tabs';
+import { CONFIG_DETAIL_ROUTE_TABS, getConfigDetailTabIndex, getConfigDetailTabQuery } from '../../shared/enums/detail-route-tabs';
 
 type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | undefined };
 
@@ -324,6 +324,20 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     return this.effectiveEnvironments().find((e) => e.id === id) ?? null;
   });
   private readonly currentTabQuery = computed(() => this.routeQueryParamMap().get('tab'));
+  private readonly normalizeUnavailableGitTabEffect = effect(() => {
+    const project = this.project();
+
+    if (!project || this.currentTabQuery() !== CONFIG_DETAIL_ROUTE_TABS.git || this.isProjectMultiRepo()) {
+      return;
+    }
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    }).catch(() => undefined);
+  });
   protected readonly selectedTabIndex = computed(() => {
     const index = getConfigDetailTabIndex(this.currentTabQuery());
     if (index === 5 && !this.isProjectMultiRepo()) {
@@ -490,6 +504,12 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
             .getProject(config.projectId)
             .then((project) => {
               this.project.set(project);
+              this.sidebarContextService.setConfigContext(
+                config.id,
+                config.name,
+                config.projectId,
+                project.layoutPreset === 'MultiRepo'
+              );
               // Pre-select the first effective environment for the naming preview
               const effectiveEnvs = project?.environmentDefinitions ?? [];
               const firstEnv = [...effectiveEnvs].sort((a, b) => a.order - b.order)[0];

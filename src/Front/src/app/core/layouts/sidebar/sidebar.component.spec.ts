@@ -3,7 +3,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { RecentlyViewedItem } from '../../../shared/services/recently-viewed.service';
+import { CONFIG_DETAIL_ROUTE_TABS } from '../../../shared/enums/detail-route-tabs';
+import { FavoritesService } from '../../../shared/services/favorites.service';
+import { RecentlyViewedItem, RecentlyViewedService } from '../../../shared/services/recently-viewed.service';
 import { SidebarContextService } from './sidebar-context.service';
 import { SidebarStateService } from './sidebar-state.service';
 import { SidebarComponent } from './sidebar.component';
@@ -27,6 +29,10 @@ interface SidebarTestState {
   readonly contextTitle: string;
   readonly items: readonly SidebarTestItem[];
 }
+
+type ConfigContextCapableSidebarContextService = SidebarContextService & {
+  setConfigContext(id: string, name: string, projectId: string, isProjectMultiRepo: boolean): void;
+};
 
 @Component({
   standalone: true,
@@ -122,3 +128,70 @@ describe('SidebarComponent', () => {
     return link!;
   }
 });
+
+describe('SidebarComponent config mode', () => {
+  let fixture: ComponentFixture<SidebarComponent>;
+  let router: Router;
+  let contextService: SidebarContextService;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [SidebarComponent, TranslateModule.forRoot()],
+      providers: [
+        provideRouter([
+          { path: 'projects', component: DummyRouteComponent },
+          { path: 'config/:id', component: DummyRouteComponent },
+        ]),
+        {
+          provide: SidebarStateService,
+          useValue: {
+            collapsed: signal(false).asReadonly(),
+            width: signal('240px').asReadonly(),
+            toggle: jasmine.createSpy('toggle'),
+          } satisfies Pick<SidebarStateService, 'collapsed' | 'width' | 'toggle'>,
+        },
+        {
+          provide: FavoritesService,
+          useValue: {
+            favorites: signal<string[]>([]).asReadonly(),
+          } satisfies Pick<FavoritesService, 'favorites'>,
+        },
+        {
+          provide: RecentlyViewedService,
+          useValue: {
+            recentItems: signal<RecentlyViewedItem[]>([]).asReadonly(),
+          } satisfies Pick<RecentlyViewedService, 'recentItems'>,
+        },
+      ],
+    }).compileComponents();
+
+    router = TestBed.inject(Router);
+    contextService = TestBed.inject(SidebarContextService);
+    fixture = TestBed.createComponent(SidebarComponent);
+  });
+
+  it('Given_ConfigTabRoute_When_ActiveLinkClassesAreResolved_Then_OnlyTheMatchingContextualItemStaysActive', async () => {
+    setConfigContext(contextService, 'config-456', 'Config 456', 'project-123', true);
+    await router.navigateByUrl(`/config/config-456?tab=${CONFIG_DETAIL_ROUTE_TABS.crossConfigRefs}`);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const activeLinks = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLAnchorElement>('.sidebar__link.sidebar__link--active')
+    );
+
+    expect(activeLinks.length).toBe(1);
+    expect(activeLinks[0].getAttribute('href')).toBe(`/config/config-456?tab=${CONFIG_DETAIL_ROUTE_TABS.crossConfigRefs}`);
+  });
+});
+
+function setConfigContext(
+  service: SidebarContextService,
+  id: string,
+  name: string,
+  projectId: string,
+  isProjectMultiRepo = false
+): void {
+  (service as ConfigContextCapableSidebarContextService).setConfigContext(id, name, projectId, isProjectMultiRepo);
+}
