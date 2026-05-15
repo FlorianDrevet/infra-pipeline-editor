@@ -3,10 +3,10 @@ using InfraFlowSculptor.Domain.Common.Models;
 namespace InfraFlowSculptor.Domain.VirtualNetworkAggregate.ValueObjects;
 
 /// <summary>Subnet delegation type for Azure service integration.</summary>
-public sealed class SubnetDelegation(SubnetDelegation.SubnetDelegationEnum value) : EnumValueObject<SubnetDelegation.SubnetDelegationEnum>(value)
+public sealed class SubnetDelegation(SubnetDelegation.Delegation value) : EnumValueObject<SubnetDelegation.Delegation>(value)
 {
     /// <summary>Available subnet delegation types.</summary>
-    public enum SubnetDelegationEnum
+    public enum Delegation
     {
         /// <summary>No delegation.</summary>
         None,
@@ -25,11 +25,11 @@ public sealed class SubnetDelegation(SubnetDelegation.SubnetDelegationEnum value
     /// <summary>Maps enum values to ARM delegation service names.</summary>
     public string ToArmServiceName() => Value switch
     {
-        SubnetDelegationEnum.WebServerFarms => "Microsoft.Web/serverFarms",
-        SubnetDelegationEnum.AppEnvironments => "Microsoft.App/environments",
-        SubnetDelegationEnum.ContainerGroups => "Microsoft.ContainerInstance/containerGroups",
-        SubnetDelegationEnum.SqlManagedInstances => "Microsoft.Sql/managedInstances",
-        SubnetDelegationEnum.PostgresFlexible => "Microsoft.DBforPostgreSQL/flexibleServers",
+        Delegation.WebServerFarms => "Microsoft.Web/serverFarms",
+        Delegation.AppEnvironments => "Microsoft.App/environments",
+        Delegation.ContainerGroups => "Microsoft.ContainerInstance/containerGroups",
+        Delegation.SqlManagedInstances => "Microsoft.Sql/managedInstances",
+        Delegation.PostgresFlexible => "Microsoft.DBforPostgreSQL/flexibleServers",
         _ => string.Empty
     };
 }

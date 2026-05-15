@@ -3,10 +3,10 @@ using InfraFlowSculptor.Domain.Common.Models;
 namespace InfraFlowSculptor.Domain.VirtualNetworkAggregate.ValueObjects;
 
 /// <summary>Controls how network policies apply to private endpoints in a subnet.</summary>
-public sealed class PrivateEndpointNetworkPolicy(PrivateEndpointNetworkPolicy.PolicyEnum value) : EnumValueObject<PrivateEndpointNetworkPolicy.PolicyEnum>(value)
+public sealed class PrivateEndpointNetworkPolicy(PrivateEndpointNetworkPolicy.Policy value) : EnumValueObject<PrivateEndpointNetworkPolicy.Policy>(value)
 {
     /// <summary>Available private endpoint network policy modes.</summary>
-    public enum PolicyEnum
+    public enum Policy
     {
         /// <summary>Network policies are disabled for private endpoints.</summary>
         Disabled,

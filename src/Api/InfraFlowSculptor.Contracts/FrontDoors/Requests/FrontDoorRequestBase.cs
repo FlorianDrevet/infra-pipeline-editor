@@ -31,6 +31,6 @@ public class FrontDoorEnvironmentConfigEntry
     public required string EnvironmentName { get; init; }
 
     /// <summary>Front Door pricing tier for this environment.</summary>
-    [Required, EnumValidation(typeof(FrontDoorSku.SkuEnum))]
+    [Required, EnumValidation(typeof(FrontDoorSku.Sku))]
     public required string Sku { get; init; }
 }

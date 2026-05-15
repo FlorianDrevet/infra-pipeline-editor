@@ -20,24 +20,24 @@
         <mat-card-content>
           <div class="add-form-grid">
             <div class="add-form-field">
-              <label class="add-form-label">{{ 'RESOURCE_EDIT.NETWORKING.SUBNET' | translate }}</label>
-              <input class="add-form-input" [(ngModel)]="subnetId" placeholder="subnet-id" />
+              <label class="add-form-label" for="pe-subnet-id">{{ 'RESOURCE_EDIT.NETWORKING.SUBNET' | translate }}</label>
+              <input id="pe-subnet-id" class="add-form-input" [(ngModel)]="subnetId" placeholder="subnet-id" />
             </div>
             <div class="add-form-field">
-              <label class="add-form-label">{{ 'RESOURCE_EDIT.NETWORKING.GROUP_ID' | translate }}</label>
-              <input class="add-form-input" [(ngModel)]="groupId" placeholder="e.g. vault, blob, sites" />
+              <label class="add-form-label" for="pe-group-id">{{ 'RESOURCE_EDIT.NETWORKING.GROUP_ID' | translate }}</label>
+              <input id="pe-group-id" class="add-form-input" [(ngModel)]="groupId" placeholder="e.g. vault, blob, sites" />
             </div>
             <div class="add-form-field">
-              <label class="add-form-label">{{ 'RESOURCE_EDIT.NETWORKING.DNS_ZONE' | translate }}</label>
-              <input class="add-form-input" [(ngModel)]="privateDnsZoneId" placeholder="optional" />
+              <label class="add-form-label" for="pe-dns-zone">{{ 'RESOURCE_EDIT.NETWORKING.DNS_ZONE' | translate }}</label>
+              <input id="pe-dns-zone" class="add-form-input" [(ngModel)]="privateDnsZoneId" placeholder="optional" />
             </div>
             <div class="add-form-field">
-              <label class="add-form-label">{{ 'RESOURCE_EDIT.NETWORKING.CUSTOM_NIC' | translate }}</label>
-              <input class="add-form-input" [(ngModel)]="customNicName" placeholder="optional" />
+              <label class="add-form-label" for="pe-custom-nic">{{ 'RESOURCE_EDIT.NETWORKING.CUSTOM_NIC' | translate }}</label>
+              <input id="pe-custom-nic" class="add-form-input" [(ngModel)]="customNicName" placeholder="optional" />
             </div>
             <div class="add-form-field add-form-field--toggle">
-              <label class="add-form-label">{{ 'RESOURCE_EDIT.NETWORKING.AUTO_APPROVAL' | translate }}</label>
-              <app-ds-toggle [(ngModel)]="autoApproval" [label]="'RESOURCE_EDIT.NETWORKING.AUTO_APPROVAL' | translate"></app-ds-toggle>
+              <label class="add-form-label" for="pe-auto-approval">{{ 'RESOURCE_EDIT.NETWORKING.AUTO_APPROVAL' | translate }}</label>
+              <app-ds-toggle id="pe-auto-approval" [(ngModel)]="autoApproval" [label]="'RESOURCE_EDIT.NETWORKING.AUTO_APPROVAL' | translate"></app-ds-toggle>
             </div>
           </div>
           <div class="add-form-actions">

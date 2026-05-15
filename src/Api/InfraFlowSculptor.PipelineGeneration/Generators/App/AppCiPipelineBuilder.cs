@@ -133,66 +133,86 @@ internal static class AppCiPipelineBuilder
 
     private static void AppendPipelineStepOptionsParameters(StringBuilder sb, AppPipelineGenerationRequest request)
     {
-        if (request.RunUnitTests)
-        {
-            sb.AppendLine($"    runUnitTests: true");
-            if (!string.IsNullOrWhiteSpace(request.TestCommand))
-                sb.AppendLine($"    testCommand: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.TestCommand)}'");
-            if (!string.IsNullOrWhiteSpace(request.TestFramework))
-                sb.AppendLine($"    testFramework: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.TestFramework)}'");
-            if (!string.IsNullOrWhiteSpace(request.TestResultsFormat))
-                sb.AppendLine($"    testResultsFormat: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.TestResultsFormat)}'");
-            if (!string.IsNullOrWhiteSpace(request.TestResultsPath))
-                sb.AppendLine($"    testResultsPath: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.TestResultsPath)}'");
-            if (request.PublishTestResults)
-                sb.AppendLine($"    publishTestResults: true");
-        }
+        AppendTestParameters(sb, request);
+        AppendCoverageParameters(sb, request);
+        AppendSonarParameters(sb, request);
+        AppendLintingParameters(sb, request);
+        AppendSecurityParameters(sb, request);
+        AppendBoolParam(sb, "runBuildValidation", request.RunBuildValidation);
+        AppendBoolParam(sb, "enableDependencyCache", request.EnableDependencyCache);
+        AppendSmokeTestParameters(sb, request);
+    }
 
-        if (request.PublishCodeCoverage)
-        {
-            sb.AppendLine($"    publishCodeCoverage: true");
-            if (!string.IsNullOrWhiteSpace(request.CoverageTool))
-                sb.AppendLine($"    coverageTool: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.CoverageTool)}'");
-            if (!string.IsNullOrWhiteSpace(request.CoverageReportPath))
-                sb.AppendLine($"    coverageReportPath: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.CoverageReportPath)}'");
-        }
+    private static void AppendTestParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.RunUnitTests)
+            return;
 
-        if (request.RunSonarAnalysis)
-        {
-            sb.AppendLine($"    runSonarAnalysis: true");
-            if (!string.IsNullOrWhiteSpace(request.SonarProjectKey))
-                sb.AppendLine($"    sonarProjectKey: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.SonarProjectKey)}'");
-            if (!string.IsNullOrWhiteSpace(request.SonarOrganization))
-                sb.AppendLine($"    sonarOrganization: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.SonarOrganization)}'");
-            if (!string.IsNullOrWhiteSpace(request.SonarServiceConnection))
-                sb.AppendLine($"    sonarServiceConnection: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.SonarServiceConnection)}'");
-        }
+        sb.AppendLine($"    runUnitTests: true");
+        AppendStringParam(sb, "testCommand", request.TestCommand);
+        AppendStringParam(sb, "testFramework", request.TestFramework);
+        AppendStringParam(sb, "testResultsFormat", request.TestResultsFormat);
+        AppendStringParam(sb, "testResultsPath", request.TestResultsPath);
+        AppendBoolParam(sb, "publishTestResults", request.PublishTestResults);
+    }
 
-        if (request.RunLinting)
-        {
-            sb.AppendLine($"    runLinting: true");
-            if (!string.IsNullOrWhiteSpace(request.LintCommand))
-                sb.AppendLine($"    lintCommand: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.LintCommand)}'");
-        }
+    private static void AppendCoverageParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.PublishCodeCoverage)
+            return;
 
-        if (request.RunDependencyScan)
-        {
-            sb.AppendLine($"    runDependencyScan: true");
-            if (!string.IsNullOrWhiteSpace(request.DependencyScanTool))
-                sb.AppendLine($"    dependencyScanTool: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.DependencyScanTool)}'");
-        }
+        sb.AppendLine($"    publishCodeCoverage: true");
+        AppendStringParam(sb, "coverageTool", request.CoverageTool);
+        AppendStringParam(sb, "coverageReportPath", request.CoverageReportPath);
+    }
 
-        if (request.RunBuildValidation)
-            sb.AppendLine($"    runBuildValidation: true");
+    private static void AppendSonarParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.RunSonarAnalysis)
+            return;
 
-        if (request.EnableDependencyCache)
-            sb.AppendLine($"    enableDependencyCache: true");
+        sb.AppendLine($"    runSonarAnalysis: true");
+        AppendStringParam(sb, "sonarProjectKey", request.SonarProjectKey);
+        AppendStringParam(sb, "sonarOrganization", request.SonarOrganization);
+        AppendStringParam(sb, "sonarServiceConnection", request.SonarServiceConnection);
+    }
 
-        if (request.RunSmokeTests)
-        {
-            sb.AppendLine($"    runSmokeTests: true");
-            if (!string.IsNullOrWhiteSpace(request.SmokeTestCommand))
-                sb.AppendLine($"    smokeTestCommand: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.SmokeTestCommand)}'");
-        }
+    private static void AppendLintingParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.RunLinting)
+            return;
+
+        sb.AppendLine($"    runLinting: true");
+        AppendStringParam(sb, "lintCommand", request.LintCommand);
+    }
+
+    private static void AppendSecurityParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.RunDependencyScan)
+            return;
+
+        sb.AppendLine($"    runDependencyScan: true");
+        AppendStringParam(sb, "dependencyScanTool", request.DependencyScanTool);
+    }
+
+    private static void AppendSmokeTestParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.RunSmokeTests)
+            return;
+
+        sb.AppendLine($"    runSmokeTests: true");
+        AppendStringParam(sb, "smokeTestCommand", request.SmokeTestCommand);
+    }
+
+    private static void AppendStringParam(StringBuilder sb, string paramName, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            sb.AppendLine($"    {paramName}: '{AppNamingHelper.EscapeForSingleQuotedYaml(value)}'");
+    }
+
+    private static void AppendBoolParam(StringBuilder sb, string paramName, bool value)
+    {
+        if (value)
+            sb.AppendLine($"    {paramName}: true");
     }
 }

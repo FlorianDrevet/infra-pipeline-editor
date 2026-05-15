@@ -63,10 +63,10 @@ public class SubnetConfiguration : IEntityTypeConfiguration<Subnet>
             .HasMaxLength(260);
 
         builder.Property(s => s.Delegation)
-            .HasConversion(new NullableEnumValueConverter<SubnetDelegation, SubnetDelegation.SubnetDelegationEnum>());
+            .HasConversion(new NullableEnumValueConverter<SubnetDelegation, SubnetDelegation.Delegation>());
 
         builder.Property(s => s.PrivateEndpointNetworkPolicies)
-            .HasConversion(new EnumValueConverter<PrivateEndpointNetworkPolicy, PrivateEndpointNetworkPolicy.PolicyEnum>())
+            .HasConversion(new EnumValueConverter<PrivateEndpointNetworkPolicy, PrivateEndpointNetworkPolicy.Policy>())
             .IsRequired();
 
         builder.Property(s => s.NsgId)

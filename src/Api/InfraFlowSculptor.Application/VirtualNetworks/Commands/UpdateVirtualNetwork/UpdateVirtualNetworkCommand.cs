@@ -12,4 +12,4 @@ public record UpdateVirtualNetworkCommand(
     Location Location,
     bool EnableDdosProtection = false,
     IReadOnlyList<VirtualNetworkEnvironmentConfigData>? EnvironmentSettings = null
-) : ICommand<VirtualNetworkResult>;
+) : ICommand<VirtualNetworkResult>, IHasEnvironmentSettings;

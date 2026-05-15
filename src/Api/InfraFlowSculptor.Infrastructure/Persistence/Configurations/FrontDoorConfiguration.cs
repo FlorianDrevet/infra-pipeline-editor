@@ -89,7 +89,7 @@ public class FrontDoorEnvironmentSettingsConfiguration : IEntityTypeConfiguratio
             .HasMaxLength(100);
 
         builder.Property(es => es.Sku)
-            .HasConversion(new EnumValueConverter<FrontDoorSku, FrontDoorSku.SkuEnum>())
+            .HasConversion(new EnumValueConverter<FrontDoorSku, FrontDoorSku.Sku>())
             .IsRequired();
 
         builder.HasIndex(es => new { es.FrontDoorId, es.EnvironmentName })

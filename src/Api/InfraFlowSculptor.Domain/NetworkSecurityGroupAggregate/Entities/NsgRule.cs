@@ -40,47 +40,43 @@ public sealed class NsgRule : Entity<NsgRuleId>
     private NsgRule() { }
 
     /// <summary>Updates rule properties.</summary>
-    public void Update(
-        string name, int priority, NsgDirection direction, NsgAccess access, NsgProtocol protocol,
-        string sourceAddressPrefix, string destinationAddressPrefix, string sourcePortRange, string destinationPortRange)
+    public void Update(NsgRuleParameters data)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentOutOfRangeException.ThrowIfLessThan(priority, 100);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(priority, 4096);
+        ArgumentException.ThrowIfNullOrWhiteSpace(data.Name);
+        ArgumentOutOfRangeException.ThrowIfLessThan(data.Priority, 100);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(data.Priority, 4096);
 
-        Name = name;
-        Priority = priority;
-        Direction = direction;
-        Access = access;
-        Protocol = protocol;
-        SourceAddressPrefix = sourceAddressPrefix;
-        DestinationAddressPrefix = destinationAddressPrefix;
-        SourcePortRange = sourcePortRange;
-        DestinationPortRange = destinationPortRange;
+        Name = data.Name;
+        Priority = data.Priority;
+        Direction = data.Direction;
+        Access = data.Access;
+        Protocol = data.Protocol;
+        SourceAddressPrefix = data.SourceAddressPrefix;
+        DestinationAddressPrefix = data.DestinationAddressPrefix;
+        SourcePortRange = data.SourcePortRange;
+        DestinationPortRange = data.DestinationPortRange;
     }
 
     /// <summary>Creates a new NSG rule.</summary>
-    internal static NsgRule Create(
-        AzureResourceId nsgId, string name, int priority, NsgDirection direction, NsgAccess access, NsgProtocol protocol,
-        string sourceAddressPrefix, string destinationAddressPrefix, string sourcePortRange, string destinationPortRange)
+    internal static NsgRule Create(AzureResourceId nsgId, NsgRuleParameters data)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentOutOfRangeException.ThrowIfLessThan(priority, 100);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(priority, 4096);
+        ArgumentException.ThrowIfNullOrWhiteSpace(data.Name);
+        ArgumentOutOfRangeException.ThrowIfLessThan(data.Priority, 100);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(data.Priority, 4096);
 
         return new NsgRule
         {
             Id = NsgRuleId.CreateUnique(),
             NetworkSecurityGroupId = nsgId,
-            Name = name,
-            Priority = priority,
-            Direction = direction,
-            Access = access,
-            Protocol = protocol,
-            SourceAddressPrefix = sourceAddressPrefix,
-            DestinationAddressPrefix = destinationAddressPrefix,
-            SourcePortRange = sourcePortRange,
-            DestinationPortRange = destinationPortRange
+            Name = data.Name,
+            Priority = data.Priority,
+            Direction = data.Direction,
+            Access = data.Access,
+            Protocol = data.Protocol,
+            SourceAddressPrefix = data.SourceAddressPrefix,
+            DestinationAddressPrefix = data.DestinationAddressPrefix,
+            SourcePortRange = data.SourcePortRange,
+            DestinationPortRange = data.DestinationPortRange
         };
     }
 }

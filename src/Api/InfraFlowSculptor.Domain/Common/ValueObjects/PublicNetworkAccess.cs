@@ -3,10 +3,10 @@ using InfraFlowSculptor.Domain.Common.Models;
 namespace InfraFlowSculptor.Domain.Common.ValueObjects;
 
 /// <summary>Controls public network access for an Azure resource.</summary>
-public sealed class PublicNetworkAccess(PublicNetworkAccess.AccessEnum value) : EnumValueObject<PublicNetworkAccess.AccessEnum>(value)
+public sealed class PublicNetworkAccess(PublicNetworkAccess.Access value) : EnumValueObject<PublicNetworkAccess.Access>(value)
 {
     /// <summary>Available public network access modes.</summary>
-    public enum AccessEnum
+    public enum Access
     {
         /// <summary>Public access is allowed.</summary>
         Enabled,

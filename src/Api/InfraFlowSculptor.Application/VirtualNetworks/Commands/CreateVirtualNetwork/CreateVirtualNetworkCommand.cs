@@ -13,4 +13,4 @@ public record CreateVirtualNetworkCommand(
     bool EnableDdosProtection = false,
     IReadOnlyList<VirtualNetworkEnvironmentConfigData>? EnvironmentSettings = null,
     bool IsExisting = false
-) : ICommand<VirtualNetworkResult>;
+) : ICommand<VirtualNetworkResult>, IHasEnvironmentSettings;

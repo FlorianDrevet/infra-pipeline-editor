@@ -26,23 +26,14 @@ public sealed class NetworkSecurityGroup : AzureResource
     }
 
     /// <summary>Adds a security rule to this NSG.</summary>
-    public NsgRule AddRule(
-        string name,
-        int priority,
-        NsgDirection direction,
-        NsgAccess access,
-        NsgProtocol protocol,
-        string sourceAddressPrefix,
-        string destinationAddressPrefix,
-        string sourcePortRange,
-        string destinationPortRange)
+    public NsgRule AddRule(NsgRuleParameters data)
     {
-        if (_securityRules.Any(r => r.Name == name))
-            throw new InvalidOperationException($"A rule named '{name}' already exists in this NSG.");
-        if (_securityRules.Any(r => r.Priority == priority && r.Direction.Value == direction.Value))
-            throw new InvalidOperationException($"A rule with priority {priority} already exists for direction {direction.Value}.");
+        if (_securityRules.Any(r => r.Name == data.Name))
+            throw new InvalidOperationException($"A rule named '{data.Name}' already exists in this NSG.");
+        if (_securityRules.Any(r => r.Priority == data.Priority && r.Direction.Value == data.Direction.Value))
+            throw new InvalidOperationException($"A rule with priority {data.Priority} already exists for direction {data.Direction.Value}.");
 
-        var rule = NsgRule.Create(Id, name, priority, direction, access, protocol, sourceAddressPrefix, destinationAddressPrefix, sourcePortRange, destinationPortRange);
+        var rule = NsgRule.Create(Id, data);
         _securityRules.Add(rule);
         return rule;
     }
@@ -56,21 +47,11 @@ public sealed class NetworkSecurityGroup : AzureResource
     }
 
     /// <summary>Updates an existing security rule.</summary>
-    public void UpdateRule(
-        NsgRuleId ruleId,
-        string name,
-        int priority,
-        NsgDirection direction,
-        NsgAccess access,
-        NsgProtocol protocol,
-        string sourceAddressPrefix,
-        string destinationAddressPrefix,
-        string sourcePortRange,
-        string destinationPortRange)
+    public void UpdateRule(NsgRuleId ruleId, NsgRuleParameters data)
     {
         var rule = _securityRules.FirstOrDefault(r => r.Id == ruleId)
             ?? throw new InvalidOperationException($"Rule '{ruleId.Value}' not found.");
-        rule.Update(name, priority, direction, access, protocol, sourceAddressPrefix, destinationAddressPrefix, sourcePortRange, destinationPortRange);
+        rule.Update(data);
     }
 
     /// <summary>Creates a new NetworkSecurityGroup.</summary>

@@ -33,7 +33,7 @@ public sealed class CreateFrontDoorCommandHandler(
             request.Location,
             request.WafPolicyEnabled,
             request.EnvironmentSettings?
-                .Select(ec => (ec.EnvironmentName, new FrontDoorSku(Enum.Parse<FrontDoorSku.SkuEnum>(ec.Sku, ignoreCase: true))))
+                .Select(ec => (ec.EnvironmentName, new FrontDoorSku(Enum.Parse<FrontDoorSku.Sku>(ec.Sku, ignoreCase: true))))
                 .ToList(),
             isExisting: request.IsExisting);
 

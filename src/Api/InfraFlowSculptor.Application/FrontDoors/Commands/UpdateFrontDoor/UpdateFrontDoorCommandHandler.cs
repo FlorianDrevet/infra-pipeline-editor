@@ -35,7 +35,7 @@ public sealed class UpdateFrontDoorCommandHandler(
         if (request.EnvironmentSettings is not null)
             fd.SetAllEnvironmentSettings(
                 request.EnvironmentSettings
-                    .Select(ec => (ec.EnvironmentName, new FrontDoorSku(Enum.Parse<FrontDoorSku.SkuEnum>(ec.Sku, ignoreCase: true))))
+                    .Select(ec => (ec.EnvironmentName, new FrontDoorSku(Enum.Parse<FrontDoorSku.Sku>(ec.Sku, ignoreCase: true))))
                     .ToList());
 
         var updated = await frontDoorRepository.UpdateAsync(fd);

@@ -45,15 +45,15 @@ public class NsgRuleConfiguration : IEntityTypeConfiguration<NsgRule>
             .IsRequired();
 
         builder.Property(r => r.Direction)
-            .HasConversion(new EnumValueConverter<NsgDirection, NsgDirection.DirectionEnum>())
+            .HasConversion(new EnumValueConverter<NsgDirection, NsgDirection.Direction>())
             .IsRequired();
 
         builder.Property(r => r.Access)
-            .HasConversion(new EnumValueConverter<NsgAccess, NsgAccess.AccessEnum>())
+            .HasConversion(new EnumValueConverter<NsgAccess, NsgAccess.Access>())
             .IsRequired();
 
         builder.Property(r => r.Protocol)
-            .HasConversion(new EnumValueConverter<NsgProtocol, NsgProtocol.ProtocolEnum>())
+            .HasConversion(new EnumValueConverter<NsgProtocol, NsgProtocol.Protocol>())
             .IsRequired();
 
         builder.Property(r => r.Name).IsRequired().HasMaxLength(260);

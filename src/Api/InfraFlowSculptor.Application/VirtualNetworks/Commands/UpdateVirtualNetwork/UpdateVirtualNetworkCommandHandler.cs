@@ -34,7 +34,7 @@ public sealed class UpdateVirtualNetworkCommandHandler(
         if (request.EnvironmentSettings is not null)
             vnet.SetAllEnvironmentSettings(
                 request.EnvironmentSettings
-                    .Select(ec => (ec.EnvironmentName, (IReadOnlyList<string>)ec.AddressSpaces, ec.DnsServers))
+                    .Select(ec => (ec.EnvironmentName, ec.AddressSpaces, ec.DnsServers))
                     .ToList());
 
         var updated = await virtualNetworkRepository.UpdateAsync(vnet);

@@ -76,10 +76,8 @@ public sealed class Subnet : Entity<SubnetId>
         if (serviceEndpoints is null)
             return;
 
-        foreach (var endpoint in serviceEndpoints)
-        {
-            if (!ServiceEndpointPattern.IsMatch(endpoint))
-                throw new ArgumentException($"Service endpoint '{endpoint}' must follow ARM resource provider format (e.g. Microsoft.Storage).");
-        }
+        var invalidEndpoint = serviceEndpoints.FirstOrDefault(e => !ServiceEndpointPattern.IsMatch(e));
+        if (invalidEndpoint is not null)
+            throw new ArgumentException($"Service endpoint '{invalidEndpoint}' must follow ARM resource provider format (e.g. Microsoft.Storage).");
     }
 }
