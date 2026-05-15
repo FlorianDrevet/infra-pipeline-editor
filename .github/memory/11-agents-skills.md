@@ -98,6 +98,12 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 - Current durable status after the latest resync: all P1/P2 issues are closed, P3 was requalified/resynchronized, wave P4 closed the targeted guardrail slice, and `13` issues remain open.
 - Treat the older `audits/triage-2026-05-12.md` file as historical context for the previous audit cycle, not as the active source of truth for current remediation tracking.
 
+## Local Audit 2026-05-15
+
+- `audits/audit-15-05-2026.md` is the latest slice-specific local audit, focused on privatization/networking plus pipeline step options.
+- It reused the phased remediation structure `Phase 0` critical, `Phase 1` high priority, `Phase 2` structural, `Phase 3` hygiene.
+- Same-day fix commits `c52fc926`, `2bf694b0`, `88634fe0`, and `dc06a28b` closed that phased backlog on the working branch before the later runtime and Sonar cleanup commits.
+
 ## Parallel Worktree Workflow [2026-04-30]
 
 - Recommended isolation unit for concurrent Copilot work is `1 feature = 1 branch = 1 git worktree = 1 VS Code window = 1 PR`.

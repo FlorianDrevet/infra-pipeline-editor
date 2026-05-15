@@ -23,6 +23,12 @@
 - When a persistence cap is introduced, align the request contract and validator in the same change set. The current reference slices are `CreateProject`, `CreateInfrastructureConfig`, and `CreateResourceGroup`.
 - `CoreStringLengthConfigurationTests` is now the DB-001 guardrail for every persisted `string` column in the EF model. It intentionally excludes keyless views and model-side `string` properties converted to non-string provider columns (for example `InputOutputLink` persisted as integers) [2026-05-13].
 
+## Networking Persistence Follow-ups [2026-05-15]
+- `NetworkSecurityGroupConfiguration` now treats the tightened networking lengths as canonical: CIDR prefixes cap at `100`, and source/destination port ranges cap at `50` instead of the old generic `260` fallback.
+- `VirtualNetworkEnvironmentSettings` and `FrontDoorEnvironmentSettings` now enforce uniqueness per `(Resource, EnvironmentName)` pair at the database boundary.
+- `PrivateEndpointConfig` is indexed by `ResourceId` for the per-resource private-endpoint read path.
+- `NsgRule` now enforces unique `(NetworkSecurityGroupId, Priority, Direction)` so conflicting rule priorities are blocked by both domain validation and persistence.
+
 ## Model Conventions
 - For index coverage verification, use a relational provider (`Npgsql`) rather than the InMemory provider; `IndexCoverageConfigurationTests` is the reference test.
 - Verified DB-002-obsolete coverage: explicit indexes on `InfrastructureConfig.ProjectId` and `AzureResource.ResourceType`, convention/FK indexes on the main resource hierarchy FKs, and the unique composite index on `RoleAssignment(SourceResourceId, TargetResourceId, UserAssignedIdentityId, RoleDefinitionId)`.
