@@ -1,9 +1,11 @@
+using InfraFlowSculptor.WebDefaults.RateLimiting;
+
 namespace InfraFlowSculptor.Mcp.RateLimiting;
 
 /// <summary>
 /// Represents the ASP.NET Core rate-limiting configuration used by the MCP host.
 /// </summary>
-public sealed class McpRateLimitingOptions
+public sealed class McpRateLimitingOptions : IRateLimitingOptions
 {
     /// <summary>Gets the configuration section name.</summary>
     public const string SectionName = "RateLimiting";

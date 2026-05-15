@@ -1,7 +1,7 @@
-namespace InfraFlowSculptor.Mcp.RateLimiting;
+namespace InfraFlowSculptor.WebDefaults.RateLimiting;
 
 /// <summary>
-/// Represents the configurable values for a fixed-window MCP rate-limiting policy.
+/// Represents the configurable values for a fixed-window rate-limiting policy.
 /// </summary>
 public sealed class FixedWindowRateLimitingPolicyOptions
 {

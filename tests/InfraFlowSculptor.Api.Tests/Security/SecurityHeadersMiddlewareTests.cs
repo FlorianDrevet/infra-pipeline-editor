@@ -1,5 +1,5 @@
 using FluentAssertions;
-using InfraFlowSculptor.Api.Common;
+using InfraFlowSculptor.WebDefaults.Security;
 using Microsoft.AspNetCore.Http;
 using Xunit;
 

@@ -3,6 +3,7 @@ using InfraFlowSculptor.Api.Common;
 using InfraFlowSculptor.Api.Controllers;
 using InfraFlowSculptor.Application;
 using InfraFlowSculptor.Infrastructure;
+using InfraFlowSculptor.WebDefaults.Security;
 using InfraFlowSculptor.Api.Configuration;
 using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Api.Options;

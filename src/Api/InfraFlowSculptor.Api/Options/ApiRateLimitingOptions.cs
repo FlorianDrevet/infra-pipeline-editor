@@ -1,9 +1,11 @@
+using InfraFlowSculptor.WebDefaults.RateLimiting;
+
 namespace InfraFlowSculptor.Api.Options;
 
 /// <summary>
 /// Represents the native ASP.NET Core rate-limiting configuration used by the API.
 /// </summary>
-public sealed class ApiRateLimitingOptions
+public sealed class ApiRateLimitingOptions : IRateLimitingOptions
 {
     /// <summary>Gets the configuration section name.</summary>
     public const string SectionName = "RateLimiting";

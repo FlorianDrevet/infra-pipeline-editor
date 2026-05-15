@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\Api\InfraFlowSculptor.Infrastructure\InfraFlowSculptor.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Api\InfraFlowSculptor.Contracts\InfraFlowSculptor.Contracts.csproj" />
     <ProjectReference Include="..\..\Api\InfraFlowSculptor.GenerationCore\InfraFlowSculptor.GenerationCore.csproj" />
+    <ProjectReference Include="..\..\Shared\InfraFlowSculptor.WebDefaults\InfraFlowSculptor.WebDefaults.csproj" />
   </ItemGroup>
 
 </Project>
