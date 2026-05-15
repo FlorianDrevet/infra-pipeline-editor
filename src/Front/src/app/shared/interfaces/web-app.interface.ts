@@ -50,6 +50,7 @@ export interface CreateWebAppRequest {
   name: string;
   location: string;
   appServicePlanId: string;
+  isExisting?: boolean;
   deploymentMode?: string;
   containerRegistryId?: string | null;
   acrAuthMode?: AcrAuthMode | null;
