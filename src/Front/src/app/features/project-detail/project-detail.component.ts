@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -50,6 +51,7 @@ import {
   AddProjectNamingTemplateDialogData,
   AddProjectNamingTemplateDialogResult,
 } from './add-project-naming-template-dialog/add-project-naming-template-dialog.component';
+import { ProjectDetailEnvironmentsSectionComponent } from './environments-section/project-detail-environments-section.component';
 import { LayoutRepositoriesComponent } from './layout-repositories/layout-repositories.component';
 import { SplitGenerationSwitcherComponent } from './split-generation-switcher/split-generation-switcher.component';
 import { RESOURCE_TYPE_OPTIONS, RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS } from '../../shared/resource-metadata/resource-type.metadata';
@@ -58,6 +60,7 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { BicepFilePanelComponent } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
 import { ProjectDetailGenerationWorkflowService } from './project-detail-generation-workflow.service';
+import { getProjectDetailTabIndex, getProjectDetailTabQuery } from '../../shared/enums/detail-route-tabs';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
@@ -72,6 +75,7 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
     ReactiveFormsModule,
     BicepFilePanelComponent,
     LayoutRepositoriesComponent,
+    ProjectDetailEnvironmentsSectionComponent,
     SplitGenerationSwitcherComponent,
     MatButtonModule,
     MatButtonToggleModule,
@@ -94,6 +98,9 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
 export class ProjectDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly routeQueryParamMap = toSignal(this.route.queryParamMap, {
+    initialValue: this.route.snapshot.queryParamMap,
+  });
   private readonly projectService = inject(ProjectService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly authService = inject(AuthenticationService);
@@ -235,6 +242,8 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     const me = members.find((m) => m.entraId === oid);
     return me?.role === 'Owner' || me?.role === 'Contributor';
   });
+  private readonly currentTabQuery = computed(() => this.routeQueryParamMap().get('tab'));
+  protected readonly selectedTabIndex = computed(() => getProjectDetailTabIndex(this.currentTabQuery()));
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -829,8 +838,17 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
 
   // ─── Pipeline Variable Groups ───
 
-  protected onTabChange(_index: number): void {
-    // Variable groups are now loaded eagerly in loadProject()
+  protected onTabChange(index: number): void {
+    const tab = getProjectDetailTabQuery(index);
+    if (tab === this.currentTabQuery()) {
+      return;
+    }
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab },
+      queryParamsHandling: 'merge',
+    });
   }
 
   protected async loadVariableGroups(): Promise<void> {

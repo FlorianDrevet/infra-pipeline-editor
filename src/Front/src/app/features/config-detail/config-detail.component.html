@@ -52,7 +52,7 @@
       <app-config-detail-generation-section [viewModel]="generationViewModel" />
     }
 
-    <mat-tab-group class="config-tabs" animationDuration="200ms" (selectedTabChange)="onTabChange($event.index)">
+    <mat-tab-group class="config-tabs" animationDuration="200ms" [selectedIndex]="selectedTabIndex()" (selectedTabChange)="onTabChange($event.index)">
       <!-- Resource Groups -->
       <mat-tab>
         <ng-template mat-tab-label>

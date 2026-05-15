@@ -779,6 +779,7 @@
       "RETRY": "Try again",
       "DOWNLOAD": "Download all files",
       "DOWNLOADING": "Downloading...",
+      "BACK_TO_FILE_LIST": "Back to file list",
       "FILE_LOADING": "Loading file content...",
       "FILE_ERROR": "Unable to load file content.",
       "WARNINGS_TITLE": "Configuration warnings detected"
@@ -1202,12 +1203,39 @@
       "REMOVE": "Delete",
       "EMPTY": "No environment definitions.",
       "LOCATION": "Location",
+      "ORDER": "Order",
       "SHORT_NAME": "Short name",
       "PREFIX": "Prefix",
       "SUFFIX": "Suffix",
       "TENANT_ID": "Tenant ID",
       "SUBSCRIPTION_ID": "Subscription ID",
       "REQUIRES_APPROVAL": "Requires approval",
+      "ARM_CONNECTION": "Azure connection",
+      "NOT_CONFIGURED": "Not configured",
+      "NO_TAGS": "No tags defined for this environment.",
+      "META": {
+        "ORDER": "Order {{order}}",
+        "APPROVAL_REQUIRED": "Approval required",
+        "STANDARD_RELEASE": "Standard release"
+      },
+      "SECTIONS": {
+        "OVERVIEW": {
+          "TITLE": "General",
+          "DESCRIPTION": "Core identifiers and Azure subscription scope."
+        },
+        "NAMING": {
+          "TITLE": "Naming",
+          "DESCRIPTION": "Prefix and suffix applied to generated names."
+        },
+        "GOVERNANCE": {
+          "TITLE": "Governance",
+          "DESCRIPTION": "Deployment controls and Azure connection binding."
+        },
+        "TAGS": {
+          "TITLE": "Tags",
+          "DESCRIPTION": "Metadata propagated with this environment."
+        }
+      },
       "ADD_DIALOG_TITLE": "Add an environment",
       "EDIT_DIALOG_TITLE": "Edit environment",
       "ADD_DIALOG_ERROR": "Unable to add the environment. Please try again.",
@@ -2371,7 +2399,23 @@
     "PREFERENCES": {
       "TITLE": "Preferences",
       "SUBTITLE": "Customize your workspace experience",
-      "LANGUAGE": "Language"
+      "LANGUAGE": "Language",
+      "BICEP_THEME": "Bicep code theme",
+      "BICEP_THEME_HINT": "Choose the syntax colors used when viewing generated Bicep files.",
+      "BICEP_THEME_OPTIONS": {
+        "AZURE_NIGHT": {
+          "LABEL": "Azure Night",
+          "DESCRIPTION": "Blue and cyan contrast close to the current viewer."
+        },
+        "GRAPHITE_FROST": {
+          "LABEL": "Graphite Frost",
+          "DESCRIPTION": "Cool neutrals with a softer, low-glare palette."
+        },
+        "SAND_DUSK": {
+          "LABEL": "Sand Dusk",
+          "DESCRIPTION": "Warm amber accents for a calmer reading mode."
+        }
+      }
     },
     "PAT_SECTION_TITLE": "Personal Access Tokens",
     "PAT_SECTION_DESCRIPTION": "Personal access tokens are used to authenticate MCP (Model Context Protocol) clients. Create a token and configure it in your MCP client.",

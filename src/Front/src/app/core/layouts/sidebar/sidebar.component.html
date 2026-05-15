@@ -39,6 +39,7 @@
             <a
               class="sidebar__link"
               [routerLink]="item.routerLink"
+              [queryParams]="item.queryParams"
               routerLinkActive="sidebar__link--active"
               [routerLinkActiveOptions]="{ exact: !!item.exact }"
               [attr.title]="collapsed() ? (item.labelKey | translate) : null"
@@ -121,6 +122,7 @@
               <a
                 class="sidebar__link"
                 [routerLink]="item.routerLink"
+                [queryParams]="item.queryParams"
                 routerLinkActive="sidebar__link--active"
                 [routerLinkActiveOptions]="{ exact: !!item.exact }"
                 [attr.title]="collapsed() ? (item.labelKey | translate) : null"
@@ -144,6 +146,7 @@
               <a
                 class="sidebar__link"
                 [routerLink]="item.routerLink"
+                [queryParams]="item.queryParams"
                 routerLinkActive="sidebar__link--active"
                 [routerLinkActiveOptions]="{ exact: !!item.exact }"
                 [attr.title]="collapsed() ? (item.labelKey | translate) : null"
@@ -167,6 +170,7 @@
               <a
                 class="sidebar__link"
                 [routerLink]="item.routerLink"
+                [queryParams]="item.queryParams"
                 routerLinkActive="sidebar__link--active"
                 [routerLinkActiveOptions]="{ exact: !!item.exact }"
                 [attr.title]="collapsed() ? (item.labelKey | translate) : null"

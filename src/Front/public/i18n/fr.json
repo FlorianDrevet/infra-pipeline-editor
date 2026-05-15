@@ -778,6 +778,7 @@
       "RETRY": "Reessayer",
       "DOWNLOAD": "Telecharger tous les fichiers",
       "DOWNLOADING": "Telechargement...",
+      "BACK_TO_FILE_LIST": "Retour a la liste des fichiers",
       "FILE_LOADING": "Chargement du fichier...",
       "FILE_ERROR": "Impossible de charger le contenu du fichier.",
       "WARNINGS_TITLE": "Avertissements de configuration détectés"
@@ -1184,16 +1185,44 @@
       "REMOVE": "Supprimer",
       "EMPTY": "Aucun environnement defini pour ce projet.",
       "LOCATION": "Localisation",
+      "ORDER": "Ordre",
+      "SHORT_NAME": "Nom court",
+      "PREFIX": "Prefixe",
+      "SUFFIX": "Suffixe",
+      "TENANT_ID": "Tenant ID",
+      "SUBSCRIPTION_ID": "Subscription ID",
+      "REQUIRES_APPROVAL": "Approbation",
+      "ARM_CONNECTION": "Connexion Azure",
+      "NOT_CONFIGURED": "Non configure",
+      "NO_TAGS": "Aucun tag defini pour cet environnement.",
+      "META": {
+        "ORDER": "Ordre {{order}}",
+        "APPROVAL_REQUIRED": "Approbation requise",
+        "STANDARD_RELEASE": "Deploiement standard"
+      },
+      "SECTIONS": {
+        "OVERVIEW": {
+          "TITLE": "General",
+          "DESCRIPTION": "Identifiants principaux et portee de l'abonnement Azure."
+        },
+        "NAMING": {
+          "TITLE": "Nommage",
+          "DESCRIPTION": "Prefixe et suffixe appliques aux noms generes."
+        },
+        "GOVERNANCE": {
+          "TITLE": "Gouvernance",
+          "DESCRIPTION": "Controles de deploiement et liaison de connexion Azure."
+        },
+        "TAGS": {
+          "TITLE": "Tags",
+          "DESCRIPTION": "Metadonnees propagees avec cet environnement."
+        }
+      },
       "REMOVE_CONFIRM_TITLE": "Supprimer l'environnement",
       "REMOVE_CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer l'environnement « {{name}} » ?",
       "REMOVE_CONFIRM_YES": "Supprimer",
       "REMOVE_CONFIRM_CANCEL": "Annuler",
       "REMOVE_ERROR": "Impossible de supprimer l'environnement.",
-      "ORDER": "Ordre",
-      "TENANT_ID": "Tenant ID",
-      "SUBSCRIPTION_ID": "Subscription ID",      "SHORT_NAME": "Nom court",      "PREFIX": "Prefixe",
-      "SUFFIX": "Suffixe",
-      "REQUIRES_APPROVAL": "Approbation",
       "ADD_DIALOG_TITLE": "Ajouter un environnement",
       "EDIT_DIALOG_TITLE": "Modifier l'environnement",
       "ADD_DIALOG_ERROR": "Impossible d'ajouter l'environnement. Veuillez reessayer.",
@@ -2362,7 +2391,23 @@
     "PREFERENCES": {
       "TITLE": "Préférences",
       "SUBTITLE": "Personnalisez votre expérience",
-      "LANGUAGE": "Langue"
+      "LANGUAGE": "Langue",
+      "BICEP_THEME": "Thème du code Bicep",
+      "BICEP_THEME_HINT": "Choisissez les couleurs de syntaxe utilisées pour afficher les fichiers Bicep générés.",
+      "BICEP_THEME_OPTIONS": {
+        "AZURE_NIGHT": {
+          "LABEL": "Azure Night",
+          "DESCRIPTION": "Contraste bleu et cyan proche du viewer actuel."
+        },
+        "GRAPHITE_FROST": {
+          "LABEL": "Graphite Frost",
+          "DESCRIPTION": "Palette neutre et froide avec moins d'éblouissement."
+        },
+        "SAND_DUSK": {
+          "LABEL": "Sand Dusk",
+          "DESCRIPTION": "Accents ambrés plus chaleureux pour une lecture posée."
+        }
+      }
     },
     "PAT_SECTION_TITLE": "Jetons d'accès personnels",
     "PAT_SECTION_DESCRIPTION": "Les jetons d'accès personnels sont utilisés pour authentifier les clients MCP (Model Context Protocol). Créez un jeton et configurez-le dans votre client MCP.",

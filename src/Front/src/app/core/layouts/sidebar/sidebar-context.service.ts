@@ -4,6 +4,10 @@ import { filter, map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FavoritesService } from '../../../shared/services/favorites.service';
 import { RecentlyViewedService } from '../../../shared/services/recently-viewed.service';
+import { CONFIG_DETAIL_ROUTE_TABS, PROJECT_DETAIL_ROUTE_TABS } from '../../../shared/enums/detail-route-tabs';
+
+const CONFIG_ROUTE_PATTERN = /^\/config\//;
+const PROJECT_ROUTE_PATTERN = /^\/projects\/[^/]+/;
 
 export type SidebarMode = 'global' | 'project' | 'config';
 
@@ -12,6 +16,9 @@ export interface SidebarContextItem {
   readonly icon: string;
   readonly labelKey: string;
   readonly routerLink: string;
+  readonly queryParams?: {
+    readonly tab: string;
+  };
   readonly exact?: boolean;
   readonly badge?: string;
   readonly section?: string;
@@ -35,7 +42,7 @@ export class SidebarContextService {
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
       filter((e) => e instanceof NavigationEnd),
-      map((e) => (e as NavigationEnd).urlAfterRedirects)
+      map((e) => e.urlAfterRedirects)
     ),
     { initialValue: this.router.url }
   );
@@ -48,8 +55,8 @@ export class SidebarContextService {
 
   readonly mode = computed<SidebarMode>(() => {
     const url = this.currentUrl();
-    if (url.match(/^\/config\//)) return 'config';
-    if (url.match(/^\/projects\/[^/]+/)) return 'project';
+    if (CONFIG_ROUTE_PATTERN.exec(url)) return 'config';
+    if (PROJECT_ROUTE_PATTERN.exec(url)) return 'project';
     return 'global';
   });
 
@@ -99,13 +106,13 @@ export class SidebarContextService {
       contextTitle: this._projectName() || 'Project',
       items: [
         { id: 'configs', icon: 'settings', labelKey: 'SIDEBAR.PROJECT.CONFIGURATIONS', routerLink: `/projects/${id}`, exact: true, section: 'define' },
-        { id: 'environments', icon: 'cloud_queue', labelKey: 'SIDEBAR.PROJECT.ENVIRONMENTS', routerLink: `/projects/${id}`, exact: false, section: 'define' },
-        { id: 'naming', icon: 'label', labelKey: 'SIDEBAR.PROJECT.NAMING', routerLink: `/projects/${id}`, exact: false, section: 'define' },
-        { id: 'variables', icon: 'library_books', labelKey: 'SIDEBAR.PROJECT.VARIABLES', routerLink: `/projects/${id}`, exact: false, section: 'define' },
+        { id: 'environments', icon: 'cloud_queue', labelKey: 'SIDEBAR.PROJECT.ENVIRONMENTS', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.environments }, exact: false, section: 'define' },
+        { id: 'naming', icon: 'label', labelKey: 'SIDEBAR.PROJECT.NAMING', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.naming }, exact: false, section: 'define' },
+        { id: 'variables', icon: 'library_books', labelKey: 'SIDEBAR.PROJECT.VARIABLES', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.variables }, exact: false, section: 'define' },
         { id: 'generation', icon: 'play_circle', labelKey: 'SIDEBAR.PROJECT.GENERATION', routerLink: `/projects/${id}/generate`, exact: false, section: 'generate' },
-        { id: 'members', icon: 'group', labelKey: 'SIDEBAR.PROJECT.MEMBERS', routerLink: `/projects/${id}`, exact: false, section: 'manage' },
-        { id: 'git', icon: 'code', labelKey: 'SIDEBAR.PROJECT.GIT', routerLink: `/projects/${id}`, exact: false, section: 'manage' },
-        { id: 'project-settings', icon: 'tune', labelKey: 'SIDEBAR.PROJECT.SETTINGS', routerLink: `/projects/${id}`, exact: false, section: 'manage' },
+        { id: 'members', icon: 'group', labelKey: 'SIDEBAR.PROJECT.MEMBERS', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.members }, exact: false, section: 'manage' },
+        { id: 'git', icon: 'code', labelKey: 'SIDEBAR.PROJECT.GIT', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.repositories }, exact: false, section: 'manage' },
+        { id: 'project-settings', icon: 'tune', labelKey: 'SIDEBAR.PROJECT.SETTINGS', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.settings }, exact: false, section: 'manage' },
       ],
     };
   }
@@ -120,8 +127,8 @@ export class SidebarContextService {
       contextTitle: this._configName() || 'Configuration',
       items: [
         { id: 'resources', icon: 'dns', labelKey: 'SIDEBAR.CONFIG.RESOURCES', routerLink: `/config/${id}`, exact: true, section: 'define' },
-        { id: 'tags', icon: 'label_important', labelKey: 'SIDEBAR.CONFIG.TAGS', routerLink: `/config/${id}`, exact: false, section: 'define' },
-        { id: 'naming', icon: 'label', labelKey: 'SIDEBAR.CONFIG.NAMING', routerLink: `/config/${id}`, exact: false, section: 'define' },
+        { id: 'tags', icon: 'label_important', labelKey: 'SIDEBAR.CONFIG.TAGS', routerLink: `/config/${id}`, queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.tags }, exact: false, section: 'define' },
+        { id: 'naming', icon: 'label', labelKey: 'SIDEBAR.CONFIG.NAMING', routerLink: `/config/${id}`, queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.naming }, exact: false, section: 'define' },
         { id: 'generation', icon: 'play_circle', labelKey: 'SIDEBAR.CONFIG.GENERATION', routerLink: `/config/${id}/generate`, exact: false, section: 'generate' },
       ],
     };

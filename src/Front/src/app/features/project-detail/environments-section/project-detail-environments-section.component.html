@@ -1,0 +1,121 @@
+<section class="environment-section">
+  <div class="environment-toolbar">
+    @if (canWrite()) {
+      <button type="button" class="environment-toolbar__add-button" (click)="onAddEnvironment()">
+        <mat-icon>add_circle_outline</mat-icon>
+        {{ 'PROJECT_DETAIL.ENVIRONMENTS.ADD' | translate }}
+      </button>
+    }
+  </div>
+
+  @if (errorKey()) {
+    <p class="environment-section__error" role="alert" aria-live="assertive">
+      {{ errorKey() | translate }}
+    </p>
+  }
+
+  @if (environmentPanels().length > 0) {
+    <div class="environment-list">
+      @for (panel of environmentPanels(); track panel.environment.id) {
+        <article class="environment-panel" [class.environment-panel--busy]="actionId() === panel.environment.id">
+          <header class="environment-panel__header">
+            <div class="environment-panel__heading">
+              <div class="environment-panel__meta">
+                @if (panel.environment.shortName) {
+                  <span class="environment-panel__meta-item environment-panel__meta-item--highlight">
+                    {{ panel.environment.shortName }}
+                  </span>
+                }
+                <span class="environment-panel__meta-item">{{ panel.environment.location }}</span>
+                <span class="environment-panel__meta-item">
+                  {{ 'PROJECT_DETAIL.ENVIRONMENTS.META.ORDER' | translate:{ order: panel.environment.order } }}
+                </span>
+                <span class="environment-panel__meta-item environment-panel__meta-item--status">
+                  {{ panel.approvalMetaKey | translate }}
+                </span>
+              </div>
+              <h3 class="environment-panel__title">{{ panel.environment.name }}</h3>
+            </div>
+
+            <div class="environment-panel__actions">
+              @if (actionId() === panel.environment.id) {
+                <mat-spinner class="environment-panel__spinner" diameter="20"></mat-spinner>
+              }
+
+              @if (canWrite()) {
+                <button
+                  type="button"
+                  class="environment-panel__action environment-panel__action--edit"
+                  [attr.aria-label]="'PROJECT_DETAIL.ENVIRONMENTS.EDIT' | translate"
+                  [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.EDIT' | translate"
+                  [disabled]="actionId() === panel.environment.id"
+                  (click)="onEditEnvironment(panel.environment)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  type="button"
+                  class="environment-panel__action environment-panel__action--delete"
+                  [attr.aria-label]="'PROJECT_DETAIL.ENVIRONMENTS.REMOVE' | translate"
+                  [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.REMOVE' | translate"
+                  [disabled]="actionId() === panel.environment.id"
+                  (click)="onRemoveEnvironment(panel.environment)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              }
+            </div>
+          </header>
+
+          <div class="environment-panel__content">
+            @for (group of panel.groups; track group.key) {
+              <section class="environment-group" [class.environment-group--tags]="group.kind === groupKinds.tags">
+                <div class="environment-group__header">
+                  <h4 class="environment-group__title">{{ group.titleKey | translate }}</h4>
+                  <p class="environment-group__description">{{ group.descriptionKey | translate }}</p>
+                </div>
+
+                @if (group.kind === groupKinds.tags) {
+                  @if (group.tags.length > 0) {
+                    <div class="environment-tags">
+                      @for (tag of group.tags; track tag.name) {
+                        <span class="environment-tag">{{ tag.name }}: {{ tag.value }}</span>
+                      }
+                    </div>
+                  } @else {
+                    <p class="environment-group__empty">{{ 'PROJECT_DETAIL.ENVIRONMENTS.NO_TAGS' | translate }}</p>
+                  }
+                } @else {
+                  <dl class="environment-facts">
+                    @for (fact of group.facts; track fact.labelKey) {
+                      <div class="environment-fact">
+                        <dt>{{ fact.labelKey | translate }}</dt>
+                        <dd class="environment-fact__value" [class.environment-fact__value--mono]="fact.monospace">
+                          @if (fact.valueKey) {
+                            {{ fact.valueKey | translate }}
+                          } @else {
+                            {{ fact.value }}
+                          }
+                        </dd>
+                      </div>
+                    }
+                  </dl>
+                }
+              </section>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <mat-icon class="empty-state__icon">cloud_queue</mat-icon>
+      <p>{{ 'PROJECT_DETAIL.ENVIRONMENTS.EMPTY' | translate }}</p>
+
+      @if (canWrite()) {
+        <button type="button" class="environment-toolbar__add-button" (click)="onAddEnvironment()">
+          <mat-icon>add_circle_outline</mat-icon>
+          {{ 'PROJECT_DETAIL.ENVIRONMENTS.ADD' | translate }}
+        </button>
+      }
+    </div>
+  }
+</section>

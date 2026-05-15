@@ -8,9 +8,9 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProjectResponse } from '../../../shared/interfaces/project.interface';
@@ -18,7 +18,6 @@ import { InfrastructureConfigResponse } from '../../../shared/interfaces/infra-c
 import {
   ProjectLayoutPreset,
   ProjectRepositoryResponse,
-  RepositoryContentKind,
 } from '../../../shared/interfaces/project-repository.interface';
 import { ProjectService } from '../../../shared/services/project.service';
 import {
@@ -26,17 +25,13 @@ import {
   DsCardComponent,
   DsChipComponent,
   DsEmptyStateComponent,
+  DsPanelActionButtonComponent,
   DsPageHeaderComponent,
   DsSectionHeaderComponent,
 } from '../../../shared/components/ds';
-import {
-  PushToGitDialogComponent,
-  PushToGitDialogData,
-} from '../../config-detail/push-to-git-dialog/push-to-git-dialog.component';
-import {
-  MultiRepoPushDialogComponent,
-  MultiRepoPushDialogData,
-} from '../multi-repo-push-dialog/multi-repo-push-dialog.component';
+import { BicepFilePanelComponent } from '../../../shared/components/bicep-file-panel/bicep-file-panel.component';
+import { SplitGenerationSwitcherComponent } from '../split-generation-switcher/split-generation-switcher.component';
+import { ProjectDetailGenerationWorkflowService } from '../project-detail-generation-workflow.service';
 
 type BoardTopology = 'single' | 'split' | 'mixed' | 'empty' | 'split-infra-code';
 
@@ -52,8 +47,6 @@ const DEFAULT_ALIAS = 'default';
 const ALL_IN_ONE_LAYOUT: ProjectLayoutPreset = 'AllInOne';
 const MULTI_REPO_LAYOUT: ProjectLayoutPreset = 'MultiRepo';
 const SPLIT_INFRA_CODE_LAYOUT: ProjectLayoutPreset = 'SplitInfraCode';
-const INFRASTRUCTURE_CONTENT_KIND: RepositoryContentKind = 'Infrastructure';
-const APPLICATION_CODE_CONTENT_KIND: RepositoryContentKind = 'ApplicationCode';
 
 const LAYOUT_PRESET_LABEL_KEYS: Record<ProjectLayoutPreset, string> = {
   [ALL_IN_ONE_LAYOUT]: 'PROJECT_DETAIL.LAYOUT.PRESET_ALL_IN_ONE',
@@ -71,26 +64,31 @@ function isProjectLayoutPreset(value: string | null | undefined): value is Proje
   imports: [
     TranslateModule,
     RouterLink,
+    MatTabsModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    BicepFilePanelComponent,
+    SplitGenerationSwitcherComponent,
     DsButtonComponent,
     DsCardComponent,
     DsChipComponent,
     DsEmptyStateComponent,
+    DsPanelActionButtonComponent,
     DsPageHeaderComponent,
     DsSectionHeaderComponent,
   ],
   templateUrl: './generation-board.component.html',
   styleUrl: './generation-board.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [ProjectDetailGenerationWorkflowService],
 })
 export class GenerationBoardComponent implements OnInit {
   private readonly projectService = inject(ProjectService);
-  private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly translate = inject(TranslateService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly generationWorkflow = inject(ProjectDetailGenerationWorkflowService);
 
   readonly projectId = input<string>();
 
@@ -101,6 +99,45 @@ export class GenerationBoardComponent implements OnInit {
   protected readonly project = signal<ProjectResponse | null>(null);
   protected readonly configs = signal<InfrastructureConfigResponse[]>([]);
   protected readonly isLoading = signal(true);
+
+  protected readonly validatingDiagnostics = this.generationWorkflow.validatingDiagnostics;
+  protected readonly projectGenerateAllLoading = this.generationWorkflow.projectGenerateAllLoading;
+  protected readonly projectBicepLoading = this.generationWorkflow.projectBicepLoading;
+  protected readonly projectBicepResult = this.generationWorkflow.projectBicepResult;
+  protected readonly projectBicepDownloading = this.generationWorkflow.projectBicepDownloading;
+  protected readonly projectInfraArtifactsDownloading = this.generationWorkflow.projectInfraArtifactsDownloading;
+  protected readonly projectBicepErrorKey = this.generationWorkflow.projectBicepErrorKey;
+  protected readonly projectGenerationPanelCollapsed = this.generationWorkflow.projectGenerationPanelCollapsed;
+  protected readonly projectPipelineLoading = this.generationWorkflow.projectPipelineLoading;
+  protected readonly projectPipelineResult = this.generationWorkflow.projectPipelineResult;
+  protected readonly projectPipelineDownloading = this.generationWorkflow.projectPipelineDownloading;
+  protected readonly projectCodeArtifactsDownloading = this.generationWorkflow.projectCodeArtifactsDownloading;
+  protected readonly projectPipelineErrorKey = this.generationWorkflow.projectPipelineErrorKey;
+  protected readonly projectBootstrapLoading = this.generationWorkflow.projectBootstrapLoading;
+  protected readonly projectBootstrapResult = this.generationWorkflow.projectBootstrapResult;
+  protected readonly projectBootstrapDownloading = this.generationWorkflow.projectBootstrapDownloading;
+  protected readonly projectBootstrapErrorKey = this.generationWorkflow.projectBootstrapErrorKey;
+  protected readonly canPushAllProjectArtifacts = this.generationWorkflow.canPushAllProjectArtifacts;
+  protected readonly isSplitInfraCodeLayout = this.generationWorkflow.isSplitInfraCodeLayout;
+  protected readonly projectBicepNodes = this.generationWorkflow.projectBicepNodes;
+  protected readonly loadProjectBicepFile = this.generationWorkflow.loadProjectBicepFile;
+  protected readonly projectPipelineNodes = this.generationWorkflow.projectPipelineNodes;
+  protected readonly loadProjectPipelineFile = this.generationWorkflow.loadProjectPipelineFile;
+  protected readonly projectBootstrapNodes = this.generationWorkflow.projectBootstrapNodes;
+  protected readonly loadProjectBootstrapFile = this.generationWorkflow.loadProjectBootstrapFile;
+  protected readonly deferMonoRepoBatchReveal = this.generationWorkflow.deferMonoRepoBatchReveal;
+  protected readonly projectGenerationPanelOpen = this.generationWorkflow.projectGenerationPanelOpen;
+  protected readonly toggleProjectGenerationPanelCollapsed = this.generationWorkflow.toggleProjectGenerationPanelCollapsed;
+  protected readonly downloadProjectBicepFiles = this.generationWorkflow.downloadProjectBicepFiles;
+  protected readonly downloadProjectInfraArtifacts = this.generationWorkflow.downloadProjectInfraArtifacts;
+  protected readonly downloadProjectCodeArtifacts = this.generationWorkflow.downloadProjectCodeArtifacts;
+  protected readonly downloadProjectPipelineFiles = this.generationWorkflow.downloadProjectPipelineFiles;
+  protected readonly downloadProjectBootstrapFiles = this.generationWorkflow.downloadProjectBootstrapFiles;
+  protected readonly generateProjectBicep = this.generationWorkflow.generateProjectBicep;
+  protected readonly generateProjectPipeline = this.generationWorkflow.generateProjectPipeline;
+  protected readonly generateProjectBootstrap = this.generationWorkflow.generateProjectBootstrap;
+  protected readonly openProjectPushAllToGitDialog = this.generationWorkflow.openProjectPushAllToGitDialog;
+  protected readonly openProjectMultiRepoPushDialog = this.generationWorkflow.openProjectMultiRepoPushDialog;
 
   protected readonly groupedByAlias = computed<AliasGroup[]>(() => {
     const configs = this.configs();
@@ -197,6 +234,8 @@ export class GenerationBoardComponent implements OnInit {
       ]);
       this.project.set(project);
       this.configs.set(configs);
+      this.generationWorkflow.setProject(project);
+      this.generationWorkflow.setConfigs(configs);
     } catch {
       this.showError('PROJECT_DETAIL.BOARD.LOAD_ERROR');
     } finally {
@@ -205,42 +244,7 @@ export class GenerationBoardComponent implements OnInit {
   }
 
   protected onGenerateAll(): void {
-    const project = this.project();
-    const hasRepositories = this.hasProjectLevelRepositories();
-    if (!project || !hasRepositories) {
-      this.showError('PROJECT_DETAIL.BOARD.NO_GIT_CONFIG');
-      return;
-    }
-
-    if (project.layoutPreset === SPLIT_INFRA_CODE_LAYOUT) {
-      const repos = project.repositories ?? [];
-      const infraRepo = repos.find((r) => r.contentKinds?.includes(INFRASTRUCTURE_CONTENT_KIND));
-      const codeRepo = repos.find((r) => r.contentKinds?.includes(APPLICATION_CODE_CONTENT_KIND));
-      if (!infraRepo || !codeRepo) {
-        this.showError('PROJECT_DETAIL.MULTI_REPO_PUSH.MISSING_SLOTS');
-        return;
-      }
-      const data: MultiRepoPushDialogData = {
-        projectId: project.id,
-        infraAlias: infraRepo.alias,
-        codeAlias: codeRepo.alias,
-      };
-      this.dialog.open(MultiRepoPushDialogComponent, {
-        width: '68rem',
-        maxWidth: '96vw',
-        panelClass: 'ifs-multi-repo-push-dialog',
-        data,
-      });
-      return;
-    }
-
-    const data: PushToGitDialogData = {
-      configId: '',
-      projectId: project.id,
-      isProjectLevel: true,
-      isCombinedProjectPush: true,
-    };
-    this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
+    this.runTask(this.generationWorkflow.generateAll());
   }
 
   protected openProjectDetail(): void {
@@ -250,10 +254,6 @@ export class GenerationBoardComponent implements OnInit {
     }
 
     this.runNavigation(this.router.navigate(['/projects', projectId]));
-  }
-
-  protected openConfiguration(configId: string): void {
-    this.runNavigation(this.router.navigate(['/config', configId]));
   }
 
   private runNavigation(navigationPromise: Promise<boolean>): void {

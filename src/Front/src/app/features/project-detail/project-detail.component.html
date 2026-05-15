@@ -33,7 +33,7 @@
       </div>
     </section>
 
-    <mat-tab-group class="project-tabs" animationDuration="200ms" (selectedTabChange)="onTabChange($event.index)">
+    <mat-tab-group class="project-tabs" animationDuration="200ms" [selectedIndex]="selectedTabIndex()" (selectedTabChange)="onTabChange($event.index)">
       <!-- Configurations -->
       <mat-tab>
         <ng-template mat-tab-label>
@@ -438,102 +438,14 @@
           <span class="tab-count">{{ project()!.environmentDefinitions.length }}</span>
         </ng-template>
         <div class="tab-content">
-          <div class="tab-content__toolbar">
-            @if (canWrite()) {
-              <button class="add-env-btn" (click)="openAddEnvironmentDialog()">
-                <mat-icon class="add-env-btn__icon">add_circle_outline</mat-icon>
-                {{ 'PROJECT_DETAIL.ENVIRONMENTS.ADD' | translate }}
-              </button>
-            }
-          </div>
-
-          @if (envErrorKey()) {
-            <p class="action-error">{{ envErrorKey() | translate }}</p>
-          }
-
-          @if (sortedEnvironments().length > 0) {
-            <div class="env-pipeline">
-              @for (env of sortedEnvironments(); track env.id; let last = $last) {
-                <article class="env-card" [class.env-card--busy]="envActionId() === env.id">
-                  @if (envActionId() === env.id) {
-                    <div class="env-card__spinner">
-                      <mat-spinner diameter="24"></mat-spinner>
-                    </div>
-                  }
-                  <div class="env-card__header">
-                    <h3>{{ env.name }}</h3>
-                    <div class="env-card__header-actions">
-                      @if (canWrite()) {
-                        <button
-                          class="env-action-btn env-action-btn--edit"
-                          [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.EDIT' | translate"
-                          [disabled]="envActionId() === env.id"
-                          (click)="openAddEnvironmentDialog(env)">
-                          <mat-icon>edit</mat-icon>
-                        </button>
-                        <button
-                          class="env-action-btn env-action-btn--delete"
-                          [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.REMOVE' | translate"
-                          [disabled]="envActionId() === env.id"
-                          (click)="openRemoveEnvironmentDialog(env)">
-                          <mat-icon>delete_outline</mat-icon>
-                        </button>
-                      }
-                    </div>
-                  </div>
-                  <div class="env-card__details">
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.LOCATION' | translate }}</span>
-                      <strong>{{ env.location }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.SHORT_NAME' | translate }}</span>
-                      <strong>{{ env.shortName || '—' }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.PREFIX' | translate }}</span>
-                      <strong>{{ env.prefix || '—' }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.SUFFIX' | translate }}</span>
-                      <strong>{{ env.suffix || '—' }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.SUBSCRIPTION_ID' | translate }}</span>
-                      <strong class="mono">{{ env.subscriptionId }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.REQUIRES_APPROVAL' | translate }}</span>
-                      <strong>{{ env.requiresApproval ? ('PROJECT_DETAIL.BOOLEAN.YES' | translate) : ('PROJECT_DETAIL.BOOLEAN.NO' | translate) }}</strong>
-                    </div>
-                  </div>
-                  @if (env.tags.length > 0) {
-                    <div class="env-card__tags">
-                      @for (tag of env.tags; track tag.name) {
-                        <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
-                      }
-                    </div>
-                  }
-                </article>
-                @if (!last) {
-                  <div class="env-pipeline__connector">
-                    <mat-icon>arrow_forward</mat-icon>
-                  </div>
-                }
-              }
-            </div>
-          } @else {
-            <div class="empty-state">
-              <mat-icon class="empty-state__icon">cloud_queue</mat-icon>
-              <p>{{ 'PROJECT_DETAIL.ENVIRONMENTS.EMPTY' | translate }}</p>
-              @if (canWrite()) {
-                <button class="add-env-btn" (click)="openAddEnvironmentDialog()">
-                  <mat-icon class="add-env-btn__icon">add_circle_outline</mat-icon>
-                  {{ 'PROJECT_DETAIL.ENVIRONMENTS.ADD' | translate }}
-                </button>
-              }
-            </div>
-          }
+          <app-project-detail-environments-section
+            [environments]="sortedEnvironments()"
+            [canWrite]="canWrite()"
+            [actionId]="envActionId()"
+            [errorKey]="envErrorKey()"
+            (addEnvironment)="openAddEnvironmentDialog()"
+            (editEnvironment)="openAddEnvironmentDialog($event)"
+            (removeEnvironment)="openRemoveEnvironmentDialog($event)" />
         </div>
       </mat-tab>
 

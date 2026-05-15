@@ -43,6 +43,37 @@
           </button>
         </div>
       </div>
+
+      <div class="preference-item preference-item--stacked" data-preference="bicep-viewer-theme">
+        <div class="preference-item__label preference-item__label--top">
+          <mat-icon>palette</mat-icon>
+          <div class="preference-item__copy">
+            <span class="preference-item__title">{{ 'SETTINGS.PREFERENCES.BICEP_THEME' | translate }}</span>
+            <span class="preference-item__description">{{ 'SETTINGS.PREFERENCES.BICEP_THEME_HINT' | translate }}</span>
+          </div>
+        </div>
+        <div class="preference-item__control preference-item__control--themes">
+          @for (themeOption of bicepViewerThemeOptions; track themeOption.value) {
+            <button
+              type="button"
+              class="theme-option"
+              [class.theme-option--active]="currentBicepViewerTheme() === themeOption.value"
+              [attr.aria-pressed]="currentBicepViewerTheme() === themeOption.value"
+              [attr.data-bicep-theme-option]="themeOption.value"
+              (click)="selectBicepViewerTheme(themeOption.value)">
+              <span class="theme-option__swatches" aria-hidden="true">
+                @for (swatch of themeOption.previewColors; track swatch) {
+                  <span class="theme-option__swatch" [style.background]="swatch"></span>
+                }
+              </span>
+              <span class="theme-option__copy">
+                <span class="theme-option__label">{{ themeOption.labelKey | translate }}</span>
+                <span class="theme-option__hint">{{ themeOption.descriptionKey | translate }}</span>
+              </span>
+            </button>
+          }
+        </div>
+      </div>
     </div>
   </app-ds-card>
 

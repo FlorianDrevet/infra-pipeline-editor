@@ -17,6 +17,7 @@ import {
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PersonalAccessTokenService } from '../../shared/services/personal-access-token.service';
 import { PersonalAccessTokenResponse } from '../../shared/interfaces/personal-access-token.interface';
+import { BicepViewerTheme, UserPreferencesService } from '../../shared/services/user-preferences.service';
 import { CreatePatDialogComponent } from './create-pat-dialog/create-pat-dialog.component';
 
 @Component({
@@ -40,6 +41,7 @@ import { CreatePatDialogComponent } from './create-pat-dialog/create-pat-dialog.
 export class SettingsComponent implements OnInit {
   private readonly patService = inject(PersonalAccessTokenService);
   private readonly dialog = inject(MatDialog);
+  private readonly userPreferencesService = inject(UserPreferencesService);
   protected readonly languageService = inject(LanguageService);
 
   protected readonly tokens = signal<PersonalAccessTokenResponse[]>([]);
@@ -48,6 +50,8 @@ export class SettingsComponent implements OnInit {
 
   protected readonly hasTokens = computed(() => this.tokens().length > 0);
   protected readonly currentLanguage = this.languageService.currentLanguage;
+  protected readonly currentBicepViewerTheme = this.userPreferencesService.bicepViewerTheme;
+  protected readonly bicepViewerThemeOptions = this.userPreferencesService.bicepViewerThemeOptions;
 
   async ngOnInit(): Promise<void> {
     await this.loadTokens();
@@ -135,5 +139,9 @@ export class SettingsComponent implements OnInit {
       month: 'short',
       day: 'numeric',
     });
+  }
+
+  protected selectBicepViewerTheme(theme: BicepViewerTheme): void {
+    this.userPreferencesService.setBicepViewerTheme(theme);
   }
 }

@@ -17,6 +17,7 @@
 
           @if (node.kind === 'folder') {
             <button
+              type="button"
               class="bicep-tree__folder"
               [style.paddingLeft]="getFolderPaddingLeft(node.depth)"
               (click)="toggleFolder(node.key)">
@@ -37,7 +38,10 @@
 
           @if (node.kind === 'file') {
             <button
+              #fileItemRef
+              type="button"
               class="bicep-tree__item"
+              [attr.data-file-path]="node.path"
               [class.bicep-tree__item--active]="viewerFile() === node.path"
               [style.paddingLeft]="getFilePaddingLeft(node.depth)"
               (click)="openFile(node.path, node.uri)">
@@ -56,7 +60,7 @@
 </div>
 
 @if (viewerFile()) {
-  <div class="bicep-viewer">
+  <div class="bicep-viewer" #viewerSectionRef [attr.data-theme]="bicepViewerTheme()">
     <div class="bicep-viewer__bar">
       <div class="bicep-viewer__file-meta">
         <mat-icon class="bicep-viewer__file-icon">description</mat-icon>
@@ -64,9 +68,15 @@
           <span class="bicep-viewer__bar-title">{{ viewerFile() }}</span>
         </div>
       </div>
-      <button class="bicep-viewer__close" (click)="closeViewer()">
-        <mat-icon>close</mat-icon>
-      </button>
+      <div class="bicep-viewer__actions">
+        <button type="button" class="bicep-viewer__jump-back" (click)="scrollToCurrentFile()">
+          <mat-icon>arrow_upward</mat-icon>
+          <span>{{ 'CONFIG_DETAIL.BICEP.BACK_TO_FILE_LIST' | translate }}</span>
+        </button>
+        <button type="button" class="bicep-viewer__close" (click)="closeViewer()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
     </div>
     <div class="bicep-viewer__body">
       @if (viewerLoading()) {

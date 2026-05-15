@@ -191,8 +191,7 @@
   }
 }
 
-.add-btn,
-.add-env-btn {
+.add-btn {
   @extend %detail-btn;
   background: var(--ifs-surface-2);
   background: var(--project-surface-hover);
@@ -236,16 +235,14 @@
 }
 
 .remove-btn,
-.template-action-btn,
-.env-action-btn {
+.template-action-btn {
   @extend %detail-btn;
   height: 28px;
   padding: 0 var(--ifs-space-8);
   font-size: 12px;
 }
 
-.template-action-btn--delete,
-.env-action-btn--delete {
+.template-action-btn--delete {
   color: var(--ifs-danger);
 
   &:hover {
@@ -654,56 +651,6 @@
 
   &:hover &__arrow {
     color: var(--ifs-accent-400);
-  }
-}
-
-.env-card {
-  @extend %detail-card;
-
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ifs-space-8);
-  }
-
-  &__details {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ifs-space-4);
-    color: var(--ifs-text-secondary);
-    font-size: 13px;
-  }
-
-  &__header-actions {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ifs-space-6);
-  }
-
-  &__tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ifs-space-6);
-  }
-
-  &__spinner {
-    width: 16px;
-    height: 16px;
-  }
-}
-
-.env-pipeline {
-  display: flex;
-  align-items: center;
-  gap: var(--ifs-space-8);
-  flex-wrap: wrap;
-
-  &__connector {
-    flex: 1;
-    height: 1px;
-    background: var(--ifs-border-subtle);
-    min-width: 24px;
   }
 }
 

@@ -1,5 +1,5 @@
 import { Component, DestroyRef, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -93,6 +93,7 @@ import { ConfigDetailTagsSectionComponent } from './sections/tags/config-detail-
 import { createConfigDetailTagsSectionController } from './sections/tags/config-detail-tags-section.controller';
 import { ConfigDetailVariableGroupsSectionComponent } from './sections/variable-groups/config-detail-variable-groups-section.component';
 import { createConfigDetailVariableGroupsSectionController } from './sections/variable-groups/config-detail-variable-groups-section.controller';
+import { getConfigDetailTabIndex, getConfigDetailTabQuery } from '../../shared/enums/detail-route-tabs';
 
 type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | undefined };
 
@@ -126,6 +127,9 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly routeQueryParamMap = toSignal(this.route.queryParamMap, {
+    initialValue: this.route.snapshot.queryParamMap,
+  });
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly keyVaultService = inject(KeyVaultService);
@@ -318,6 +322,15 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     const id = this.previewEnvId();
     if (!id) return null;
     return this.effectiveEnvironments().find((e) => e.id === id) ?? null;
+  });
+  private readonly currentTabQuery = computed(() => this.routeQueryParamMap().get('tab'));
+  protected readonly selectedTabIndex = computed(() => {
+    const index = getConfigDetailTabIndex(this.currentTabQuery());
+    if (index === 5 && !this.isProjectMultiRepo()) {
+      return 0;
+    }
+
+    return index;
   });
   protected readonly resourcesSectionViewModel = computed<ConfigDetailResourcesSectionViewModel | null>(() => {
     const config = this.config();
@@ -1416,6 +1429,15 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
   // ─── Cross-Config References ───
 
   protected async onTabChange(index: number): Promise<void> {
+    const tab = getConfigDetailTabQuery(index);
+    if (tab !== this.currentTabQuery()) {
+      await this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { tab },
+        queryParamsHandling: 'merge',
+      });
+    }
+
     // Tab 3 (0-indexed) is cross-config references — lazy load on first visit
     if (index === 3 && !this.crossConfigLoaded()) {
       await this.loadCrossConfigReferences();

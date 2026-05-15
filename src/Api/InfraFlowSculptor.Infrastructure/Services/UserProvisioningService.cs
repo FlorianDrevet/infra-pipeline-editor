@@ -14,14 +14,14 @@ public sealed class UserProvisioningService(ProjectDbContext dbContext) : IUserP
 {
     private const string ProvisionUserSql = """
                                             WITH inserted AS (
-                                                INSERT INTO \"User\" (\"Id\", \"EntraId\", \"Name_FirstName\", \"Name_LastName\")
+                                                INSERT INTO "User" ("Id", "EntraId", "Name_FirstName", "Name_LastName")
                                                 VALUES (@id, @entraId, @firstName, @lastName)
-                                                ON CONFLICT (\"EntraId\") DO NOTHING
-                                                RETURNING \"Id\"
+                                                ON CONFLICT ("EntraId") DO NOTHING
+                                                RETURNING "Id"
                                             )
-                                            SELECT \"Id\" FROM inserted
+                                            SELECT "Id" FROM inserted
                                             UNION ALL
-                                            SELECT \"Id\" FROM \"User\" WHERE \"EntraId\" = @entraId
+                                            SELECT "Id" FROM "User" WHERE "EntraId" = @entraId
                                             LIMIT 1;
                                             """;
 
