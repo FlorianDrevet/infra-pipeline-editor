@@ -28,6 +28,32 @@ describe('ProjectDetailEnvironmentsSectionComponent', () => {
     expect(getText('.environment-fact__value--mono')).toContain('830d');
   });
 
+  it('renders a denser environment header summary and split tag chips for readability', () => {
+    fixture.componentRef.setInput('canWrite', true);
+    fixture.componentRef.setInput('actionId', null);
+    fixture.componentRef.setInput('errorKey', '');
+    fixture.componentRef.setInput('environments', [createEnvironment()]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.environment-panel__summary-item').length).toBe(2);
+    expect(getText('.environment-panel__subtitle-value')).toContain('830d');
+    expect(getText('.environment-tag__key')).toContain('environment');
+    expect(getText('.environment-tag__value')).toContain('dev');
+  });
+
+  it('wraps the environment header content in an inset hero container to keep meta and title away from the panel border', () => {
+    fixture.componentRef.setInput('canWrite', true);
+    fixture.componentRef.setInput('actionId', null);
+    fixture.componentRef.setInput('errorKey', '');
+    fixture.componentRef.setInput('environments', [createEnvironment()]);
+    fixture.detectChanges();
+
+    const hero = fixture.nativeElement.querySelector('.environment-panel__hero') as HTMLElement | null;
+
+    expect(hero).withContext('the header should render an inner inset surface').not.toBeNull();
+    expect(hero?.querySelector('.environment-panel__title')?.textContent).toContain('Development');
+  });
+
   it('emits add, edit, and remove actions', () => {
     const environment = createEnvironment();
     fixture.componentRef.setInput('canWrite', true);

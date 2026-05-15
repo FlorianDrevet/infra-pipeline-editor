@@ -169,194 +169,70 @@
 
           @if (!projectGenerationPanelCollapsed()) {
             <mat-tab-group class="generation-tabs" animationDuration="200ms">
-              <mat-tab>
-                <ng-template mat-tab-label>
-                  <mat-icon class="tab-icon">terminal</mat-icon>
-                  <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BICEP' | translate }}</span>
-                </ng-template>
+              @for (tab of monoRepoTabs; track tab.id) {
+                <mat-tab>
+                  <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">{{ tab.tabIcon }}</mat-icon>
+                    <span>{{ tab.tabLabelKey | translate }}</span>
+                  </ng-template>
 
-                <div class="generation-tab-content">
-                  <div class="generation-tab-content__toolbar">
-                    @if (projectBicepResult() && !deferMonoRepoBatchReveal()) {
-                      <button class="bicep-download-btn" (click)="downloadProjectBicepFiles()" [disabled]="projectBicepDownloading()">
-                        @if (projectBicepDownloading()) {
-                          <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
-                        } @else {
-                          <mat-icon>download</mat-icon>
-                        }
-                        {{ (projectBicepDownloading() ? 'PROJECT_DETAIL.BICEP.DOWNLOADING' : 'PROJECT_DETAIL.BICEP.DOWNLOAD') | translate }}
-                      </button>
-                    }
-                  </div>
-
-                  @if (projectBicepLoading() || deferMonoRepoBatchReveal()) {
-                    <div class="bicep-panel__loading">
-                      <div class="bicep-terminal">
-                        <div class="bicep-terminal__bar">
-                          <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
-                          <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
-                          <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
-                          <span class="bicep-terminal__bar-title">bicep-generator</span>
-                        </div>
-                        <div class="bicep-terminal__body">
-                          <p class="bicep-terminal__line bicep-terminal__line--active">
-                            <span class="bicep-terminal__prompt">$</span>
-                            {{ 'PROJECT_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}
-                            <span class="bicep-terminal__cursor"></span>
-                          </p>
-                        </div>
-                      </div>
+                  <div class="generation-tab-content">
+                    <div class="generation-tab-content__toolbar">
+                      @if (tab.result() && !deferMonoRepoBatchReveal()) {
+                        <button class="bicep-download-btn" (click)="tab.download()" [disabled]="tab.isDownloading()">
+                          @if (tab.isDownloading()) {
+                            <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                          } @else {
+                            <mat-icon>download</mat-icon>
+                          }
+                          {{ (tab.isDownloading() ? tab.downloadBusyLabelKey : tab.downloadLabelKey) | translate }}
+                        </button>
+                      }
                     </div>
-                  }
 
-                  @if (projectBicepErrorKey() && !deferMonoRepoBatchReveal()) {
-                    <div class="bicep-panel__error-body">
-                      <p>{{ projectBicepErrorKey() | translate }}</p>
-                      <button class="bicep-retry-btn" (click)="generateProjectBicep()">
-                        <mat-icon>refresh</mat-icon>
-                        {{ 'PROJECT_DETAIL.BICEP.RETRY' | translate }}
-                      </button>
-                    </div>
-                  }
-
-                  @if (projectBicepNodes().length > 0 && !deferMonoRepoBatchReveal()) {
-                    <app-bicep-file-panel
-                      [nodes]="projectBicepNodes()"
-                      [barTitle]="'bicep-generator — ' + ('PROJECT_DETAIL.BICEP.ARTIFACTS' | translate)"
-                      [terminalDoneText]="'PROJECT_DETAIL.BICEP.TERMINAL_DONE' | translate"
-                      [fileLoadingText]="'PROJECT_DETAIL.BICEP.FILE_LOADING' | translate"
-                      [fileErrorText]="'PROJECT_DETAIL.BICEP.FILE_ERROR' | translate"
-                      [loadFile]="loadProjectBicepFile">
-                    </app-bicep-file-panel>
-                  }
-                </div>
-              </mat-tab>
-
-              <mat-tab>
-                <ng-template mat-tab-label>
-                  <mat-icon class="tab-icon">account_tree</mat-icon>
-                  <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_PIPELINE' | translate }}</span>
-                </ng-template>
-
-                <div class="generation-tab-content">
-                  <div class="generation-tab-content__toolbar">
-                    @if (projectPipelineResult() && !deferMonoRepoBatchReveal()) {
-                      <button class="bicep-download-btn" (click)="downloadProjectPipelineFiles()" [disabled]="projectPipelineDownloading()">
-                        @if (projectPipelineDownloading()) {
-                          <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
-                        } @else {
-                          <mat-icon>download</mat-icon>
-                        }
-                        {{ (projectPipelineDownloading() ? 'PROJECT_DETAIL.PIPELINE.DOWNLOADING' : 'PROJECT_DETAIL.PIPELINE.DOWNLOAD') | translate }}
-                      </button>
-                    }
-                  </div>
-
-                  @if (projectPipelineLoading() || deferMonoRepoBatchReveal()) {
-                    <div class="bicep-panel__loading">
-                      <div class="bicep-terminal">
-                        <div class="bicep-terminal__bar">
-                          <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
-                          <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
-                          <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
-                          <span class="bicep-terminal__bar-title">pipeline-generator</span>
-                        </div>
-                        <div class="bicep-terminal__body">
-                          <p class="bicep-terminal__line bicep-terminal__line--active">
-                            <span class="bicep-terminal__prompt">$</span>
-                            {{ 'PROJECT_DETAIL.PIPELINE.TERMINAL_GENERATING' | translate }}
-                            <span class="bicep-terminal__cursor"></span>
-                          </p>
+                    @if (tab.isLoading() || deferMonoRepoBatchReveal()) {
+                      <div class="bicep-panel__loading">
+                        <div class="bicep-terminal">
+                          <div class="bicep-terminal__bar">
+                            <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                            <span class="bicep-terminal__bar-title">{{ tab.terminalTitle }}</span>
+                          </div>
+                          <div class="bicep-terminal__body">
+                            <p class="bicep-terminal__line bicep-terminal__line--active">
+                              <span class="bicep-terminal__prompt">$</span>
+                              {{ tab.generatingLabelKey | translate }}
+                              <span class="bicep-terminal__cursor"></span>
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  }
-
-                  @if (projectPipelineErrorKey() && !deferMonoRepoBatchReveal()) {
-                    <div class="bicep-panel__error-body">
-                      <p>{{ projectPipelineErrorKey() | translate }}</p>
-                      <button class="bicep-retry-btn" (click)="generateProjectPipeline()">
-                        <mat-icon>refresh</mat-icon>
-                        {{ 'PROJECT_DETAIL.PIPELINE.RETRY' | translate }}
-                      </button>
-                    </div>
-                  }
-
-                  @if (projectPipelineNodes().length > 0 && !deferMonoRepoBatchReveal()) {
-                    <app-bicep-file-panel
-                      [nodes]="projectPipelineNodes()"
-                      [barTitle]="'pipeline-generator — ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
-                      [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
-                      [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
-                      [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
-                      [loadFile]="loadProjectPipelineFile">
-                    </app-bicep-file-panel>
-                  }
-                </div>
-              </mat-tab>
-
-              <mat-tab>
-                <ng-template mat-tab-label>
-                  <mat-icon class="tab-icon">rocket_launch</mat-icon>
-                  <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BOOTSTRAP' | translate }}</span>
-                </ng-template>
-
-                <div class="generation-tab-content">
-                  <div class="generation-tab-content__toolbar">
-                    @if (projectBootstrapResult() && !deferMonoRepoBatchReveal()) {
-                      <button class="bicep-download-btn" (click)="downloadProjectBootstrapFiles()" [disabled]="projectBootstrapDownloading()">
-                        @if (projectBootstrapDownloading()) {
-                          <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
-                        } @else {
-                          <mat-icon>download</mat-icon>
-                        }
-                        {{ (projectBootstrapDownloading() ? 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' : 'PROJECT_DETAIL.BOOTSTRAP.DOWNLOAD') | translate }}
-                      </button>
                     }
-                  </div>
 
-                  @if (projectBootstrapLoading() || deferMonoRepoBatchReveal()) {
-                    <div class="bicep-panel__loading">
-                      <div class="bicep-terminal">
-                        <div class="bicep-terminal__bar">
-                          <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
-                          <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
-                          <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
-                          <span class="bicep-terminal__bar-title">bootstrap-generator</span>
-                        </div>
-                        <div class="bicep-terminal__body">
-                          <p class="bicep-terminal__line bicep-terminal__line--active">
-                            <span class="bicep-terminal__prompt">$</span>
-                            {{ 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' | translate }}
-                            <span class="bicep-terminal__cursor"></span>
-                          </p>
-                        </div>
+                    @if (tab.errorKey() && !deferMonoRepoBatchReveal()) {
+                      <div class="bicep-panel__error-body">
+                        <p>{{ tab.errorKey() | translate }}</p>
+                        <button class="bicep-retry-btn" (click)="tab.retry()">
+                          <mat-icon>refresh</mat-icon>
+                          {{ tab.retryLabelKey | translate }}
+                        </button>
                       </div>
-                    </div>
-                  }
+                    }
 
-                  @if (projectBootstrapErrorKey() && !deferMonoRepoBatchReveal()) {
-                    <div class="bicep-panel__error-body">
-                      <p>{{ projectBootstrapErrorKey() | translate }}</p>
-                      <button class="bicep-retry-btn" (click)="generateProjectBootstrap()">
-                        <mat-icon>refresh</mat-icon>
-                        {{ 'PROJECT_DETAIL.BOOTSTRAP.RETRY' | translate }}
-                      </button>
-                    </div>
-                  }
+                    @if (tab.nodes().length > 0 && !deferMonoRepoBatchReveal()) {
+                      <app-bicep-file-panel
+                        [nodes]="tab.nodes()"
+                        [barTitle]="tab.terminalTitle + ' — ' + (tab.artifactsLabelKey | translate)"
+                        [terminalDoneText]="tab.terminalDoneKey | translate"
+                        [fileLoadingText]="tab.fileLoadingKey | translate"
+                        [fileErrorText]="tab.fileErrorKey | translate"
+                        [loadFile]="tab.loadFile">
+                      </app-bicep-file-panel>
+                    }
 
-                  @if (projectBootstrapNodes().length > 0 && !deferMonoRepoBatchReveal()) {
-                    <app-bicep-file-panel
-                      [nodes]="projectBootstrapNodes()"
-                      [barTitle]="'bootstrap-generator — ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
-                      [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
-                      [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
-                      [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
-                      [loadFile]="loadProjectBootstrapFile">
-                    </app-bicep-file-panel>
-                  }
-
-                  <div class="bootstrap-guide-card">
+                    @if (tab.showBootstrapGuide) {
+                      <div class="bootstrap-guide-card">
                     <h4 class="bootstrap-guide-card__title">{{ 'PROJECT_DETAIL.BOOTSTRAP.GUIDE_TITLE' | translate }}</h4>
                     <p class="bootstrap-guide-card__intro">{{ 'PROJECT_DETAIL.BOOTSTRAP.GUIDE_INTRO' | translate }}</p>
 
@@ -422,9 +298,11 @@
                         <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_10' | translate }}</div>
                       </li>
                     </ol>
+                      </div>
+                    }
                   </div>
-                </div>
-              </mat-tab>
+                </mat-tab>
+              }
             </mat-tab-group>
           }
         }

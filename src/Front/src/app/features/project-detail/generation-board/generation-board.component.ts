@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  Signal,
   computed,
   inject,
   input,
@@ -14,7 +15,12 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SidebarContextService } from '../../../core/layouts/sidebar/sidebar-context.service';
-import { ProjectResponse } from '../../../shared/interfaces/project.interface';
+import {
+  GenerateProjectBicepResponse,
+  GenerateProjectBootstrapPipelineResponse,
+  GenerateProjectPipelineResponse,
+  ProjectResponse,
+} from '../../../shared/interfaces/project.interface';
 import { InfrastructureConfigResponse } from '../../../shared/interfaces/infra-config.interface';
 import {
   ProjectLayoutPreset,
@@ -31,11 +37,20 @@ import {
   DsPageHeaderComponent,
   DsSectionHeaderComponent,
 } from '../../../shared/components/ds';
-import { BicepFilePanelComponent } from '../../../shared/components/bicep-file-panel/bicep-file-panel.component';
+import {
+  BicepTreeNode,
+  BicepFilePanelComponent,
+} from '../../../shared/components/bicep-file-panel/bicep-file-panel.component';
 import { SplitGenerationSwitcherComponent } from '../split-generation-switcher/split-generation-switcher.component';
 import { ProjectDetailGenerationWorkflowService } from '../project-detail-generation-workflow.service';
 
 type BoardTopology = 'single' | 'split' | 'mixed' | 'empty' | 'split-infra-code';
+type MonoRepoTabId = 'bicep' | 'pipeline' | 'bootstrap';
+type MonoRepoArtifactResult =
+  | GenerateProjectBicepResponse
+  | GenerateProjectPipelineResponse
+  | GenerateProjectBootstrapPipelineResponse;
+type MonoRepoLoadFile = (uri: string) => Promise<string>;
 
 type RepositoryMetricLabelKey =
   | 'PROJECT_DETAIL.BOARD.SUMMARY_CONFIGS'
@@ -65,6 +80,33 @@ interface AliasGroup {
   readonly metrics: readonly RepositoryMetric[];
 }
 
+interface MonoRepoTabDefinition {
+  readonly id: MonoRepoTabId;
+  readonly tabIcon: string;
+  readonly tabLabelKey: string;
+  readonly terminalTitle: string;
+  readonly generatingLabelKey: string;
+  readonly downloadLabelKey: string;
+  readonly downloadBusyLabelKey: string;
+  readonly retryLabelKey: string;
+  readonly artifactsLabelKey: string;
+  readonly terminalDoneKey: string;
+  readonly fileLoadingKey: string;
+  readonly fileErrorKey: string;
+}
+
+interface MonoRepoTab extends MonoRepoTabDefinition {
+  readonly showBootstrapGuide: boolean;
+  readonly result: Signal<MonoRepoArtifactResult | null>;
+  readonly nodes: Signal<BicepTreeNode[]>;
+  readonly isLoading: Signal<boolean>;
+  readonly isDownloading: Signal<boolean>;
+  readonly errorKey: Signal<string>;
+  readonly loadFile: MonoRepoLoadFile;
+  readonly download: () => Promise<void>;
+  readonly retry: () => Promise<void>;
+}
+
 const DEFAULT_ALIAS = 'default';
 const ALL_IN_ONE_LAYOUT: ProjectLayoutPreset = 'AllInOne';
 const MULTI_REPO_LAYOUT: ProjectLayoutPreset = 'MultiRepo';
@@ -87,6 +129,51 @@ const LAYOUT_PRESET_LABEL_KEYS: Record<ProjectLayoutPreset, string> = {
   [MULTI_REPO_LAYOUT]: 'PROJECT_DETAIL.LAYOUT.PRESET_MULTI_REPO',
   [SPLIT_INFRA_CODE_LAYOUT]: 'PROJECT_DETAIL.LAYOUT.PRESET_SPLIT_INFRA_CODE',
 };
+
+const MONO_REPO_TAB_DEFINITIONS = [
+  {
+    id: 'bicep',
+    tabIcon: 'terminal',
+    tabLabelKey: 'PROJECT_DETAIL.GENERATION.TAB_BICEP',
+    terminalTitle: 'bicep-generator',
+    generatingLabelKey: 'PROJECT_DETAIL.BICEP.TERMINAL_GENERATING',
+    downloadLabelKey: 'PROJECT_DETAIL.BICEP.DOWNLOAD',
+    downloadBusyLabelKey: 'PROJECT_DETAIL.BICEP.DOWNLOADING',
+    retryLabelKey: 'PROJECT_DETAIL.BICEP.RETRY',
+    artifactsLabelKey: 'PROJECT_DETAIL.BICEP.ARTIFACTS',
+    terminalDoneKey: 'PROJECT_DETAIL.BICEP.TERMINAL_DONE',
+    fileLoadingKey: 'PROJECT_DETAIL.BICEP.FILE_LOADING',
+    fileErrorKey: 'PROJECT_DETAIL.BICEP.FILE_ERROR',
+  },
+  {
+    id: 'pipeline',
+    tabIcon: 'account_tree',
+    tabLabelKey: 'PROJECT_DETAIL.GENERATION.TAB_PIPELINE',
+    terminalTitle: 'pipeline-generator',
+    generatingLabelKey: 'PROJECT_DETAIL.PIPELINE.TERMINAL_GENERATING',
+    downloadLabelKey: 'PROJECT_DETAIL.PIPELINE.DOWNLOAD',
+    downloadBusyLabelKey: 'PROJECT_DETAIL.PIPELINE.DOWNLOADING',
+    retryLabelKey: 'PROJECT_DETAIL.PIPELINE.RETRY',
+    artifactsLabelKey: 'PROJECT_DETAIL.PIPELINE.ARTIFACTS',
+    terminalDoneKey: 'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE',
+    fileLoadingKey: 'PROJECT_DETAIL.PIPELINE.FILE_LOADING',
+    fileErrorKey: 'PROJECT_DETAIL.PIPELINE.FILE_ERROR',
+  },
+  {
+    id: 'bootstrap',
+    tabIcon: 'rocket_launch',
+    tabLabelKey: 'PROJECT_DETAIL.GENERATION.TAB_BOOTSTRAP',
+    terminalTitle: 'bootstrap-generator',
+    generatingLabelKey: 'PROJECT_DETAIL.BOOTSTRAP.GENERATING',
+    downloadLabelKey: 'PROJECT_DETAIL.BOOTSTRAP.DOWNLOAD',
+    downloadBusyLabelKey: 'PROJECT_DETAIL.BOOTSTRAP.DOWNLOADING',
+    retryLabelKey: 'PROJECT_DETAIL.BOOTSTRAP.RETRY',
+    artifactsLabelKey: 'PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS',
+    terminalDoneKey: 'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE',
+    fileLoadingKey: 'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING',
+    fileErrorKey: 'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR',
+  },
+] as const satisfies readonly MonoRepoTabDefinition[];
 
 function isProjectLayoutPreset(value: string | null | undefined): value is ProjectLayoutPreset {
   return value === ALL_IN_ONE_LAYOUT || value === MULTI_REPO_LAYOUT || value === SPLIT_INFRA_CODE_LAYOUT;
@@ -206,6 +293,44 @@ export class GenerationBoardComponent implements OnInit {
   protected readonly generateProjectBootstrap = this.generationWorkflow.generateProjectBootstrap;
   protected readonly openProjectPushAllToGitDialog = this.generationWorkflow.openProjectPushAllToGitDialog;
   protected readonly openProjectMultiRepoPushDialog = this.generationWorkflow.openProjectMultiRepoPushDialog;
+  protected readonly monoRepoTabs: readonly MonoRepoTab[] = [
+    {
+      ...MONO_REPO_TAB_DEFINITIONS[0],
+      showBootstrapGuide: false,
+      result: this.projectBicepResult,
+      nodes: this.projectBicepNodes,
+      isLoading: this.projectBicepLoading,
+      isDownloading: this.projectBicepDownloading,
+      errorKey: this.projectBicepErrorKey,
+      loadFile: this.loadProjectBicepFile,
+      download: this.downloadProjectBicepFiles,
+      retry: this.generateProjectBicep,
+    },
+    {
+      ...MONO_REPO_TAB_DEFINITIONS[1],
+      showBootstrapGuide: false,
+      result: this.projectPipelineResult,
+      nodes: this.projectPipelineNodes,
+      isLoading: this.projectPipelineLoading,
+      isDownloading: this.projectPipelineDownloading,
+      errorKey: this.projectPipelineErrorKey,
+      loadFile: this.loadProjectPipelineFile,
+      download: this.downloadProjectPipelineFiles,
+      retry: this.generateProjectPipeline,
+    },
+    {
+      ...MONO_REPO_TAB_DEFINITIONS[2],
+      showBootstrapGuide: true,
+      result: this.projectBootstrapResult,
+      nodes: this.projectBootstrapNodes,
+      isLoading: this.projectBootstrapLoading,
+      isDownloading: this.projectBootstrapDownloading,
+      errorKey: this.projectBootstrapErrorKey,
+      loadFile: this.loadProjectBootstrapFile,
+      download: this.downloadProjectBootstrapFiles,
+      retry: this.generateProjectBootstrap,
+    },
+  ];
 
   protected readonly groupedByAlias = computed<AliasGroup[]>(() => {
     const configs = this.configs();

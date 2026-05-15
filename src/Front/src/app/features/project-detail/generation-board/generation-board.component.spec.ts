@@ -29,6 +29,11 @@ interface AliasGroupExpectation {
   readonly metrics: readonly GroupMetricExpectation[];
 }
 
+interface MonoRepoTabExpectation {
+  readonly id: string;
+  readonly downloadBusyLabelKey: string;
+}
+
 class ProjectDetailGenerationWorkflowServiceStub {
   readonly validatingDiagnostics = signal(false);
   readonly projectGenerateAllLoading = signal(false);
@@ -238,6 +243,16 @@ describe('GenerationBoardComponent', () => {
     expect(detailLabels).not.toContain('PROJECT_DETAIL.LAYOUT.URL');
   });
 
+  it('defines exactly three mono-repo tabs and uses the bootstrap downloading label for the busy download state', async () => {
+    await createComponent();
+
+    const monoRepoTabs = getMonoRepoTabs(component);
+    const bootstrapTab = monoRepoTabs.find((tab) => tab.id === 'bootstrap');
+
+    expect(monoRepoTabs.map((tab) => tab.id)).toEqual(['bicep', 'pipeline', 'bootstrap']);
+    expect(bootstrapTab?.downloadBusyLabelKey).toBe('PROJECT_DETAIL.BOOTSTRAP.DOWNLOADING');
+  });
+
   async function createComponent(): Promise<void> {
     fixture = TestBed.createComponent(GenerationBoardComponent);
     component = fixture.componentInstance;
@@ -274,6 +289,12 @@ function getGroupedByAlias(component: GenerationBoardComponent): readonly AliasG
   return (component as unknown as {
     groupedByAlias(): readonly AliasGroupExpectation[];
   }).groupedByAlias();
+}
+
+function getMonoRepoTabs(component: GenerationBoardComponent): readonly MonoRepoTabExpectation[] {
+  return (component as unknown as {
+    monoRepoTabs: readonly MonoRepoTabExpectation[];
+  }).monoRepoTabs;
 }
 
 function createProjectRepositories(layoutPreset: ProjectLayoutPreset): ProjectRepositoryResponse[] {

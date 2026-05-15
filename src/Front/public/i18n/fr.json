@@ -1099,6 +1099,7 @@
       "GENERATE": "Générer Bootstrap",
       "GENERATING": "Génération en cours...",
       "DOWNLOAD": "Télécharger Bootstrap",
+      "DOWNLOADING": "Téléchargement du bootstrap...",
       "PUSH_TO_GIT": "Pousser bootstrap.pipeline.yml vers Git",
       "NO_FILES": "Aucun fichier bootstrap généré",
       "ARTIFACTS": "sortie",

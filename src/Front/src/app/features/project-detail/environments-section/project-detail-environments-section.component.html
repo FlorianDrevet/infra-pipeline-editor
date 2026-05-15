@@ -19,55 +19,91 @@
       @for (panel of environmentPanels(); track panel.environment.id) {
         <article class="environment-panel" [class.environment-panel--busy]="actionId() === panel.environment.id">
           <header class="environment-panel__header">
-            <div class="environment-panel__heading">
-              <div class="environment-panel__meta">
-                @if (panel.environment.shortName) {
-                  <span class="environment-panel__meta-item environment-panel__meta-item--highlight">
-                    {{ panel.environment.shortName }}
+            <div class="environment-panel__hero">
+              <div class="environment-panel__heading">
+                <div class="environment-panel__meta">
+                  @if (panel.environment.shortName) {
+                    <span class="environment-panel__meta-item environment-panel__meta-item--highlight">
+                      {{ panel.environment.shortName }}
+                    </span>
+                  }
+                  <span class="environment-panel__meta-item">{{ panel.environment.location }}</span>
+                  <span class="environment-panel__meta-item">
+                    {{ 'PROJECT_DETAIL.ENVIRONMENTS.META.ORDER' | translate:{ order: panel.environment.order } }}
                   </span>
-                }
-                <span class="environment-panel__meta-item">{{ panel.environment.location }}</span>
-                <span class="environment-panel__meta-item">
-                  {{ 'PROJECT_DETAIL.ENVIRONMENTS.META.ORDER' | translate:{ order: panel.environment.order } }}
-                </span>
-                <span class="environment-panel__meta-item environment-panel__meta-item--status">
-                  {{ panel.approvalMetaKey | translate }}
-                </span>
+                  <span class="environment-panel__meta-item environment-panel__meta-item--status">
+                    {{ panel.approvalMetaKey | translate }}
+                  </span>
+                </div>
+
+                <div class="environment-panel__headline">
+                  <div class="environment-panel__identity">
+                    <h3 class="environment-panel__title">{{ panel.environment.name }}</h3>
+                    <p class="environment-panel__subtitle">
+                      <span class="environment-panel__subtitle-label">{{ 'PROJECT_DETAIL.ENVIRONMENTS.SUBSCRIPTION_ID' | translate }}</span>
+                      <span class="environment-panel__subtitle-value">{{ panel.environment.subscriptionId }}</span>
+                    </p>
+                  </div>
+
+                  <div class="environment-panel__summary">
+                    <div class="environment-panel__summary-item">
+                      <span class="environment-panel__summary-label">{{ 'PROJECT_DETAIL.ENVIRONMENTS.ARM_CONNECTION' | translate }}</span>
+                      <strong
+                        class="environment-panel__summary-value"
+                        [class.environment-panel__summary-value--muted]="!panel.environment.azureResourceManagerConnection?.trim()">
+                        @if (panel.environment.azureResourceManagerConnection?.trim()) {
+                          {{ panel.environment.azureResourceManagerConnection }}
+                        } @else {
+                          {{ 'PROJECT_DETAIL.ENVIRONMENTS.NOT_CONFIGURED' | translate }}
+                        }
+                      </strong>
+                    </div>
+
+                    <div class="environment-panel__summary-item">
+                      <span class="environment-panel__summary-label">{{ 'PROJECT_DETAIL.ENVIRONMENTS.SECTIONS.TAGS.TITLE' | translate }}</span>
+                      <strong class="environment-panel__summary-value">{{ panel.environment.tags.length }}</strong>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <h3 class="environment-panel__title">{{ panel.environment.name }}</h3>
-            </div>
 
-            <div class="environment-panel__actions">
-              @if (actionId() === panel.environment.id) {
-                <mat-spinner class="environment-panel__spinner" diameter="20"></mat-spinner>
-              }
+              <div class="environment-panel__actions">
+                @if (actionId() === panel.environment.id) {
+                  <mat-spinner class="environment-panel__spinner" diameter="20"></mat-spinner>
+                }
 
-              @if (canWrite()) {
-                <button
-                  type="button"
-                  class="environment-panel__action environment-panel__action--edit"
-                  [attr.aria-label]="'PROJECT_DETAIL.ENVIRONMENTS.EDIT' | translate"
-                  [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.EDIT' | translate"
-                  [disabled]="actionId() === panel.environment.id"
-                  (click)="onEditEnvironment(panel.environment)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button
-                  type="button"
-                  class="environment-panel__action environment-panel__action--delete"
-                  [attr.aria-label]="'PROJECT_DETAIL.ENVIRONMENTS.REMOVE' | translate"
-                  [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.REMOVE' | translate"
-                  [disabled]="actionId() === panel.environment.id"
-                  (click)="onRemoveEnvironment(panel.environment)">
-                  <mat-icon>delete_outline</mat-icon>
-                </button>
-              }
+                @if (canWrite()) {
+                  <button
+                    type="button"
+                    class="environment-panel__action environment-panel__action--edit"
+                    [attr.aria-label]="'PROJECT_DETAIL.ENVIRONMENTS.EDIT' | translate"
+                    [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.EDIT' | translate"
+                    [disabled]="actionId() === panel.environment.id"
+                    (click)="onEditEnvironment(panel.environment)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="environment-panel__action environment-panel__action--delete"
+                    [attr.aria-label]="'PROJECT_DETAIL.ENVIRONMENTS.REMOVE' | translate"
+                    [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.REMOVE' | translate"
+                    [disabled]="actionId() === panel.environment.id"
+                    (click)="onRemoveEnvironment(panel.environment)">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                }
+              </div>
             </div>
           </header>
 
           <div class="environment-panel__content">
             @for (group of panel.groups; track group.key) {
-              <section class="environment-group" [class.environment-group--tags]="group.kind === groupKinds.tags">
+              <section
+                class="environment-group"
+                [class.environment-group--overview]="group.key === 'overview'"
+                [class.environment-group--naming]="group.key === 'naming'"
+                [class.environment-group--governance]="group.key === 'governance'"
+                [class.environment-group--tags]="group.kind === groupKinds.tags">
                 <div class="environment-group__header">
                   <h4 class="environment-group__title">{{ group.titleKey | translate }}</h4>
                   <p class="environment-group__description">{{ group.descriptionKey | translate }}</p>
@@ -77,7 +113,11 @@
                   @if (group.tags.length > 0) {
                     <div class="environment-tags">
                       @for (tag of group.tags; track tag.name) {
-                        <span class="environment-tag">{{ tag.name }}: {{ tag.value }}</span>
+                        <span class="environment-tag">
+                          <span class="environment-tag__key">{{ tag.name }}</span>
+                          <span class="environment-tag__separator">:</span>
+                          <span class="environment-tag__value">{{ tag.value }}</span>
+                        </span>
                       }
                     </div>
                   } @else {
