@@ -30,15 +30,18 @@ const ACTIVE_FILE_SCROLL_OPTIONS: ScrollIntoViewOptions = {
 
 // ─── Public types ──────────────────────────────────────────────────────────────
 
-export type BicepFileType =
-  | 'types'
-  | 'functions'
-  | 'constants'
-  | 'entry-point'
-  | 'params'
-  | 'role-assignments'
-  | 'module-type'
-  | 'generic';
+const BICEP_FILE_TYPES = [
+  'types',
+  'functions',
+  'constants',
+  'entry-point',
+  'params',
+  'role-assignments',
+  'module-type',
+  'generic',
+] as const;
+
+export type BicepFileType = (typeof BICEP_FILE_TYPES)[number];
 
 export interface BicepFolderNode {
   kind: 'folder';
@@ -88,6 +91,7 @@ export type BicepTreeNode = BicepFolderNode | BicepFileNode;
 export class BicepFilePanelComponent {
   private readonly injector = inject(Injector);
   private readonly userPreferencesService = inject(UserPreferencesService);
+  private loadRequestSequence = 0;
 
   /** Flat, ordered list of tree nodes. Parent folders must precede their children. */
   readonly nodes = input.required<BicepTreeNode[]>();
@@ -167,29 +171,45 @@ export class BicepFilePanelComponent {
   }
 
   protected async openFile(path: string, uri: string): Promise<void> {
-    if (this.viewerLoading()) return;
     if (this.viewerFile() === path) {
+      this.cancelActiveLoad();
       this.viewerFile.set(null);
       this.viewerContent.set(null);
+      this.viewerLoading.set(false);
       return;
     }
+
+    const loadRequestId = ++this.loadRequestSequence;
     this.viewerFile.set(path);
     this.viewerContent.set(null);
     this.viewerLoading.set(true);
     this.scrollViewerIntoView();
+
     try {
       const content = await this.loadFile()(uri);
+      if (loadRequestId !== this.loadRequestSequence) {
+        return;
+      }
+
       this.viewerContent.set(content);
     } catch {
+      if (loadRequestId !== this.loadRequestSequence) {
+        return;
+      }
+
       this.viewerContent.set(null);
     } finally {
-      this.viewerLoading.set(false);
+      if (loadRequestId === this.loadRequestSequence) {
+        this.viewerLoading.set(false);
+      }
     }
   }
 
   protected closeViewer(): void {
+    this.cancelActiveLoad();
     this.viewerFile.set(null);
     this.viewerContent.set(null);
+    this.viewerLoading.set(false);
   }
 
   protected scrollToCurrentFile(): void {
@@ -258,6 +278,10 @@ export class BicepFilePanelComponent {
     this.runAfterNextRender(() => {
       this.viewerSectionRef()?.nativeElement.scrollIntoView(VIEWER_SCROLL_OPTIONS);
     });
+  }
+
+  private cancelActiveLoad(): void {
+    this.loadRequestSequence += 1;
   }
 
   private runAfterNextRender(callback: () => void): void {

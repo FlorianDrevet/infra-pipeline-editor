@@ -2,11 +2,10 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { By } from '@angular/platform-browser';
 import { convertToParamMap, provideRouter, ActivatedRoute } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
+import { SidebarContextService } from '../../../core/layouts/sidebar/sidebar-context.service';
 import { BicepFileNode } from '../../../shared/components/bicep-file-panel/bicep-file-panel.component';
 import {
   GenerateProjectBicepResponse,
@@ -71,11 +70,13 @@ describe('GenerationBoardComponent', () => {
   let component: GenerationBoardComponent;
   let projectServiceSpy: jasmine.SpyObj<ProjectService>;
   let dialogSpy: jasmine.SpyObj<MatDialog>;
+  let sidebarContextServiceSpy: jasmine.SpyObj<SidebarContextService>;
   let workflowStub: ProjectDetailGenerationWorkflowServiceStub;
 
   beforeEach(async () => {
     projectServiceSpy = jasmine.createSpyObj<ProjectService>('ProjectService', ['getProject', 'getProjectConfigs']);
     dialogSpy = jasmine.createSpyObj<MatDialog>('MatDialog', ['open']);
+    sidebarContextServiceSpy = jasmine.createSpyObj<SidebarContextService>('SidebarContextService', ['setProjectContext']);
     workflowStub = new ProjectDetailGenerationWorkflowServiceStub();
 
     projectServiceSpy.getProject.and.resolveTo(createProject());
@@ -91,7 +92,7 @@ describe('GenerationBoardComponent', () => {
     });
 
     await TestBed.configureTestingModule({
-      imports: [GenerationBoardComponent, NoopAnimationsModule, TranslateModule.forRoot()],
+      imports: [GenerationBoardComponent, TranslateModule.forRoot()],
       providers: [
         provideRouter([]),
         {
@@ -105,6 +106,7 @@ describe('GenerationBoardComponent', () => {
         { provide: ProjectService, useValue: projectServiceSpy },
         { provide: MatDialog, useValue: dialogSpy },
         { provide: MatSnackBar, useValue: jasmine.createSpyObj<MatSnackBar>('MatSnackBar', ['open']) },
+        { provide: SidebarContextService, useValue: sidebarContextServiceSpy },
       ],
     }).compileComponents();
   });
@@ -114,6 +116,12 @@ describe('GenerationBoardComponent', () => {
 
     expect(workflowStub.setProject).toHaveBeenCalledWith(createProject());
     expect(workflowStub.setConfigs).toHaveBeenCalledWith([createConfig()]);
+  });
+
+  it('syncs the loaded project into the sidebar context so the generation entry can stay active', async () => {
+    await createComponent();
+
+    expect(sidebarContextServiceSpy.setProjectContext).toHaveBeenCalledOnceWith('project-1', 'Project 1');
   });
 
   it('delegates the generate action to the workflow service instead of opening dialogs directly', async () => {
@@ -154,6 +162,22 @@ describe('GenerationBoardComponent', () => {
     expect(fixture.nativeElement.querySelector('app-split-generation-switcher')).not.toBeNull();
   });
 
+  it('renders both target repository cards for the split infra/code layout', async () => {
+    projectServiceSpy.getProject.and.resolveTo(createSplitProject());
+
+    await createComponent();
+
+    const groups = (component as unknown as {
+      groupedByAlias(): Array<{ alias: string }>;
+    }).groupedByAlias();
+    const repositoryCount = (component as unknown as {
+      repositoryCount(): number;
+    }).repositoryCount();
+
+    expect(groups.map((group) => group.alias)).toEqual(['infra', 'code']);
+    expect(repositoryCount).toBe(2);
+  });
+
   async function createComponent(): Promise<void> {
     fixture = TestBed.createComponent(GenerationBoardComponent);
     component = fixture.componentInstance;
@@ -175,22 +199,41 @@ function createProject(layoutPreset: ProjectLayoutPreset = 'AllInOne'): ProjectR
     resourceAbbreviations: [],
     tags: [],
     agentPoolName: null,
-    repositories: [createRepository(layoutPreset)],
+    repositories: createProjectRepositories(layoutPreset),
     layoutPreset,
     usedResourceTypes: [],
   };
 }
 
-function createRepository(layoutPreset: ProjectLayoutPreset): ProjectRepositoryResponse {
+function createSplitProject(): ProjectResponse {
+  return createProject('SplitInfraCode');
+}
+
+function createProjectRepositories(layoutPreset: ProjectLayoutPreset): ProjectRepositoryResponse[] {
+  if (layoutPreset === 'SplitInfraCode') {
+    return [
+      createRepository('repo-infra', 'infra', ['Infrastructure']),
+      createRepository('repo-code', 'code', ['ApplicationCode']),
+    ];
+  }
+
+  return [createRepository('repo-1', 'default', ['Infrastructure'])];
+}
+
+function createRepository(
+  id: string,
+  alias: string,
+  contentKinds: ProjectRepositoryResponse['contentKinds'],
+): ProjectRepositoryResponse {
   return {
-    id: 'repo-1',
-    alias: layoutPreset === 'SplitInfraCode' ? 'infra' : 'default',
+    id,
+    alias,
     providerType: 'GitHub',
-    repositoryUrl: 'https://example.test/org/repo',
+    repositoryUrl: `https://example.test/org/${alias}`,
     owner: 'org',
-    repositoryName: 'repo',
+    repositoryName: alias,
     defaultBranch: 'main',
-    contentKinds: layoutPreset === 'SplitInfraCode' ? ['Infrastructure'] : ['Infrastructure'],
+    contentKinds,
   };
 }
 

@@ -13,6 +13,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { SidebarContextService } from '../../../core/layouts/sidebar/sidebar-context.service';
 import { ProjectResponse } from '../../../shared/interfaces/project.interface';
 import { InfrastructureConfigResponse } from '../../../shared/interfaces/infra-config.interface';
 import {
@@ -88,6 +89,7 @@ export class GenerationBoardComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly sidebarContextService = inject(SidebarContextService);
   private readonly generationWorkflow = inject(ProjectDetailGenerationWorkflowService);
 
   readonly projectId = input<string>();
@@ -143,6 +145,20 @@ export class GenerationBoardComponent implements OnInit {
     const configs = this.configs();
     const project = this.project();
     const repos = project?.repositories ?? [];
+
+    if (project?.layoutPreset === SPLIT_INFRA_CODE_LAYOUT) {
+      const resourceGroupCount = configs.reduce((total, config) => total + config.resourceGroupCount, 0);
+      const resourceCount = configs.reduce((total, config) => total + config.resourceCount, 0);
+
+      return repos.map((repo) => ({
+        alias: repo.alias,
+        repo,
+        configs,
+        resourceGroupCount,
+        resourceCount,
+      }));
+    }
+
     const repoByAlias = new Map(repos.map((r) => [r.alias, r]));
     const isMultiRepo = project?.layoutPreset === MULTI_REPO_LAYOUT;
 
@@ -234,6 +250,7 @@ export class GenerationBoardComponent implements OnInit {
       ]);
       this.project.set(project);
       this.configs.set(configs);
+      this.sidebarContextService.setProjectContext(project.id, project.name);
       this.generationWorkflow.setProject(project);
       this.generationWorkflow.setConfigs(configs);
     } catch {

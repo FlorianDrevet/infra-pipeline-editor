@@ -32,10 +32,13 @@
 ## i18n (FR/EN)
 - `@ngx-translate/core` + `@ngx-translate/http-loader` v17 with dictionaries in `public/i18n/fr.json` and `public/i18n/en.json`
 - `LanguageService` is signal-based with localStorage persistence and fallback order `persisted -> navigator.language -> fr`
+- `UserPreferencesService` now owns browser-local display preferences under localStorage key `infra-flow-sculptor.user-preferences`; the first durable preference is `bicepViewerTheme`, configured from `features/settings/settings.component.*` and consumed by `shared/components/bicep-file-panel/` through a signal-driven `data-theme` + CSS-variable skin. Keep future viewer/display preferences centralized in this service instead of scattering component-level localStorage calls.
 - `resource-edit` dialog keys stay under `RESOURCE_EDIT.*`; missing nested keys render raw labels
 - `DeploymentConfigComponent` resolves ACR labels through `RESOURCE_EDIT.FIELDS.*`; missing `ACR_AUTH_MODE*` keys in one locale break the shared ACR UI
 - Multi-repo project screens consume `PROJECT_DETAIL.LAYOUT.*`; `GenerationBoardComponent` reads labels from `PROJECT_DETAIL.BOARD.*`, not `CONFIG_DETAIL.BOARD.*`
 - The standalone route `/projects/:id/generate` uses a centered DS page layout with `app-ds-page-header`, summary metric cards, and DS repository cards, but it must stay wired to `ProjectDetailGenerationWorkflowService`: the main CTA generates Bicep/Pipeline/Bootstrap artifacts, the mono-repo explorer reuses `app-bicep-file-panel`, SplitInfraCode reuses `SplitGenerationSwitcherComponent`, and the target repositories cards no longer render the old per-config list at the bottom.
+- The standalone route `/projects/:id/generate` must also call `SidebarContextService.setProjectContext(project.id, project.name)` after loading the project; otherwise the contextual sidebar can keep a stale project id and the `Génération` entry will not highlight on direct navigation or refresh.
+- On `/projects/:id/generate`, `SplitInfraCode` target repositories must be derived directly from `project.repositories` (infra slot + code slot), not from config grouping on `repos[0]`; otherwise the board can collapse both slots into a single visible card when one alias is first in the list.
 - The PowerShell source-vs-dictionary scan still reports `_`-suffixed dynamic prefixes such as `HOME.RECENT.TYPE_`; those are not true missing leaves
 
 ## Auth & Frontend Services

@@ -53,8 +53,8 @@ export class SettingsComponent implements OnInit {
   protected readonly currentBicepViewerTheme = this.userPreferencesService.bicepViewerTheme;
   protected readonly bicepViewerThemeOptions = this.userPreferencesService.bicepViewerThemeOptions;
 
-  async ngOnInit(): Promise<void> {
-    await this.loadTokens();
+  ngOnInit(): void {
+    void this.loadTokens();
   }
 
   private async loadTokens(): Promise<void> {

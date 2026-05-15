@@ -79,7 +79,11 @@ describe('BicepFilePanelComponent', () => {
 
     expect(loadFileSpy).toHaveBeenCalledOnceWith('https://example.test/Common/types.bicep');
     expect(viewerElement).not.toBeNull();
-    expect(scrolledElements).toContain(viewerElement!);
+    if (!viewerElement) {
+      throw new Error('Expected the Bicep viewer to be rendered.');
+    }
+
+    expect(scrolledElements).toContain(viewerElement);
   });
 
   it('scrolls the active file entry into view from the viewer back button', async () => {
@@ -124,6 +128,35 @@ describe('BicepFilePanelComponent', () => {
     expect(loadFileSpy).not.toHaveBeenCalled();
   });
 
+  it('keeps the last selected file when another file is clicked before the previous load finishes', async () => {
+    const deferredLoads = new Map<string, (content: string) => void>();
+    loadFileSpy.and.callFake((uri: string) => new Promise<string>((resolve) => {
+      deferredLoads.set(uri, resolve);
+    }));
+
+    getFileButton('main.bicep').click();
+    await flushPendingComponent();
+
+    getFileButton('Common/types.bicep').click();
+    await flushPendingComponent();
+
+    expect(loadFileSpy.calls.allArgs()).toEqual([
+      ['https://example.test/main.bicep'],
+      ['https://example.test/Common/types.bicep'],
+    ]);
+
+    deferredLoads.get('https://example.test/Common/types.bicep')?.('types content');
+    await flushPendingComponent();
+
+    expect(getViewerElement()?.textContent).toContain('types content');
+
+    deferredLoads.get('https://example.test/main.bicep')?.('main content');
+    await flushPendingComponent();
+
+    expect(getViewerElement()?.textContent).toContain('types content');
+    expect(getViewerElement()?.textContent).not.toContain('main content');
+  });
+
   it('reflects the selected Bicep viewer theme in the rendered viewer state', async () => {
     await clickFile('main.bicep');
 
@@ -148,6 +181,12 @@ describe('BicepFilePanelComponent', () => {
     fixture.detectChanges();
   }
 
+  async function flushPendingComponent(): Promise<void> {
+    fixture.detectChanges();
+    await Promise.resolve();
+    fixture.detectChanges();
+  }
+
   function getViewerElement(): HTMLElement | null {
     return fixture.nativeElement.querySelector('.bicep-viewer') as HTMLElement | null;
   }
@@ -161,8 +200,14 @@ describe('BicepFilePanelComponent', () => {
   }
 
   function getFolderButton(name: string): HTMLButtonElement {
-    return Array.from(fixture.nativeElement.querySelectorAll('.bicep-tree__folder'))
-      .find((button): button is HTMLButtonElement => button instanceof HTMLButtonElement && !!button.textContent?.includes(name))!;
+    const folderButton = Array.from(fixture.nativeElement.querySelectorAll('.bicep-tree__folder'))
+      .find((button): button is HTMLButtonElement => button instanceof HTMLButtonElement && !!button.textContent?.includes(name));
+
+    if (!folderButton) {
+      throw new Error(`Expected folder button for ${name}.`);
+    }
+
+    return folderButton;
   }
 
   function getFileButton(path: string): HTMLButtonElement {
