@@ -11,6 +11,7 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 public sealed class CustomDomainConfiguration : IEntityTypeConfiguration<CustomDomain>
 {
     private const string TableName = "CustomDomains";
+    private const string DefaultDnsValidationStatus = "Pending";
 
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<CustomDomain> builder)
@@ -39,6 +40,15 @@ public sealed class CustomDomainConfiguration : IEntityTypeConfiguration<CustomD
             .IsRequired()
             .HasMaxLength(20)
             .HasDefaultValue("SniEnabled");
+
+        builder.Property(cd => cd.DnsValidationStatus)
+            .HasConversion(
+                v => v.Value.ToString(),
+                v => new DnsValidationStatus(
+                    Enum.Parse<DnsValidationStatus.DnsValidationStatusType>(v)))
+            .IsRequired()
+            .HasMaxLength(20)
+            .HasDefaultValue(DnsValidationStatus.Pending);
 
         builder.HasIndex(cd => new { cd.ResourceId, cd.EnvironmentName, cd.DomainName })
             .IsUnique();

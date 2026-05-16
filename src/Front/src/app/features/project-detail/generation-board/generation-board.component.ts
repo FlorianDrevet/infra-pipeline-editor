@@ -181,8 +181,41 @@ const HISTORICAL_GENERATION_DATE_FORMAT: Intl.DateTimeFormatOptions = {
   timeStyle: 'short',
 };
 
+const COMPACT_GENERATION_TIMESTAMP_PATTERN = /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/;
+
 function isProjectLayoutPreset(value: string | null | undefined): value is ProjectLayoutPreset {
   return value === ALL_IN_ONE_LAYOUT || value === MULTI_REPO_LAYOUT || value === SPLIT_INFRA_CODE_LAYOUT;
+}
+
+function parseHistoricalGenerationDate(generatedAt: string): Date | null {
+  const compactTimestampMatch = COMPACT_GENERATION_TIMESTAMP_PATTERN.exec(generatedAt);
+  if (compactTimestampMatch) {
+    const [, year, month, day, hour, minute, second] = compactTimestampMatch;
+    const parsedDate = new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second),
+    );
+
+    if (
+      parsedDate.getFullYear() === Number(year)
+      && parsedDate.getMonth() === Number(month) - 1
+      && parsedDate.getDate() === Number(day)
+      && parsedDate.getHours() === Number(hour)
+      && parsedDate.getMinutes() === Number(minute)
+      && parsedDate.getSeconds() === Number(second)
+    ) {
+      return parsedDate;
+    }
+
+    return null;
+  }
+
+  const parsedDate = new Date(generatedAt);
+  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
 }
 
 function summarizeConfigs(configs: readonly InfrastructureConfigResponse[]): ConfigSummary {
@@ -311,9 +344,9 @@ export class GenerationBoardComponent implements OnInit {
     }
 
     const currentLanguage = this.languageService.currentLanguage();
-    const generatedAtDate = new Date(generatedAt);
+    const generatedAtDate = parseHistoricalGenerationDate(generatedAt);
 
-    if (Number.isNaN(generatedAtDate.getTime())) {
+    if (!generatedAtDate) {
       return generatedAt;
     }
 

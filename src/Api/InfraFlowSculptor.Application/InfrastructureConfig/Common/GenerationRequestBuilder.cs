@@ -244,6 +244,7 @@ internal static class GenerationRequestBuilder
                 EnvironmentName = customDomain.EnvironmentName,
                 DomainName = customDomain.DomainName,
                 BindingType = customDomain.BindingType,
+                DnsValidationStatus = customDomain.DnsValidationStatus,
             })
             .ToList();
 

@@ -61,7 +61,8 @@ internal static class ParameterFileAssembler
             && envOverrides.Count > 0;
 
         var envCustomDomains = matchingResource.CustomDomains
-            .Where(cd => cd.EnvironmentName.Equals(environmentName, StringComparison.OrdinalIgnoreCase))
+            .Where(cd => cd.EnvironmentName.Equals(environmentName, StringComparison.OrdinalIgnoreCase)
+                         && cd.DnsValidationStatus.Equals("Validated", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         if (!hasEnvOverrides && envCustomDomains.Count == 0)

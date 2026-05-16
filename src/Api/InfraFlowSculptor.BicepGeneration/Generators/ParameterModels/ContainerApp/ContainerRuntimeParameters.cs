@@ -4,9 +4,6 @@ namespace InfraFlowSculptor.BicepGeneration.Generators.ParameterModels.Container
 
 internal sealed record ContainerRuntimeParameters
 {
-    [JsonPropertyName("image")]
-    public required string Image { get; init; }
-
     [JsonPropertyName("cpuCores")]
     public required string CpuCores { get; init; }
 

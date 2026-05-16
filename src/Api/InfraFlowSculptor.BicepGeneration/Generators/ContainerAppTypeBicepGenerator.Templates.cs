@@ -10,8 +10,6 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @export()
         @description('Container runtime configuration (image, CPU, memory)')
         type ContainerRuntimeConfig = {
-          @description('Container image to deploy')
-          image: string
           @description('CPU cores allocated to the container')
           cpuCores: string
           @description('Memory allocated to the container (e.g. 0.5Gi)')
@@ -73,6 +71,9 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @description('Resource ID of the Container App Environment')
         param containerAppEnvironmentId string
 
+        @description('Container image (overridden by app pipeline after first deploy)')
+        param containerImage string = 'mcr.microsoft.com/k8s/core/pause:3.6'
+
         @description('Container runtime configuration')
         param containerRuntime ContainerRuntimeConfig
 
@@ -110,7 +111,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
               containers: [
                 {
                   name: name
-                  image: containerRuntime.image
+                  image: containerImage
                   resources: {
                     cpu: json(containerRuntime.cpuCores)
                     memory: containerRuntime.memoryGi
@@ -170,6 +171,9 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @description('Resource ID of the Container App Environment')
         param containerAppEnvironmentId string
 
+        @description('Container image (overridden by app pipeline after first deploy)')
+        param containerImage string = 'mcr.microsoft.com/k8s/core/pause:3.6'
+
         @description('Container runtime configuration')
         param containerRuntime ContainerRuntimeConfig
 
@@ -219,7 +223,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
               containers: [
                 {
                   name: name
-                  image: containerRuntime.image
+                  image: containerImage
                   resources: {
                     cpu: json(containerRuntime.cpuCores)
                     memory: containerRuntime.memoryGi
@@ -278,6 +282,9 @@ public sealed partial class ContainerAppTypeBicepGenerator
 
         @description('Resource ID of the Container App Environment')
         param containerAppEnvironmentId string
+
+        @description('Container image (overridden by app pipeline after first deploy)')
+        param containerImage string = 'mcr.microsoft.com/k8s/core/pause:3.6'
 
         @description('Container runtime configuration')
         param containerRuntime ContainerRuntimeConfig
@@ -338,7 +345,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
               containers: [
                 {
                   name: name
-                  image: containerRuntime.image
+                  image: containerImage
                   resources: {
                     cpu: json(containerRuntime.cpuCores)
                     memory: containerRuntime.memoryGi

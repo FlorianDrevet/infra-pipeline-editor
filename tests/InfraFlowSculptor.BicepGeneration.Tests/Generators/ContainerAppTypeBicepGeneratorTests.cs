@@ -120,10 +120,10 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     // ── NoAcr variant: Params ──
 
     [Fact]
-    public void Given_NoAcrResource_When_GenerateSpec_Then_HasEightParams()
+    public void Given_NoAcrResource_When_GenerateSpec_Then_HasNineParams()
     {
         var spec = _sut.GenerateSpec(CreateNoAcrResource());
-        spec.Parameters.Should().HaveCount(8);
+        spec.Parameters.Should().HaveCount(9);
     }
 
     [Theory]
@@ -255,10 +255,10 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     }
 
     [Fact]
-    public void Given_AcrMiResource_When_GenerateSpec_Then_HasTenParams()
+    public void Given_AcrMiResource_When_GenerateSpec_Then_HasElevenParams()
     {
         var spec = _sut.GenerateSpec(CreateAcrMiResource());
-        spec.Parameters.Should().HaveCount(10);
+        spec.Parameters.Should().HaveCount(11);
     }
 
     [Fact]
@@ -339,10 +339,10 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     }
 
     [Fact]
-    public void Given_AcrAdminResource_When_GenerateSpec_Then_HasTenParams()
+    public void Given_AcrAdminResource_When_GenerateSpec_Then_HasElevenParams()
     {
         var spec = _sut.GenerateSpec(CreateAcrAdminResource());
-        spec.Parameters.Should().HaveCount(10);
+        spec.Parameters.Should().HaveCount(11);
     }
 
     [Fact]

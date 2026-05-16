@@ -38,7 +38,8 @@ public record AzureResourceReadModel(
 public record CustomDomainReadModel(
     string EnvironmentName,
     string DomainName,
-    string BindingType);
+    string BindingType,
+    string DnsValidationStatus);
 
 public record ResourceEnvironmentConfigReadModel(
     string EnvironmentName,

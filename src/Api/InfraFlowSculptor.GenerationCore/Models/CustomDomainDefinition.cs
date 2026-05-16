@@ -13,4 +13,7 @@ public class CustomDomainDefinition
 
     /// <summary>Gets or sets the SSL binding type ("SniEnabled" or "Disabled").</summary>
     public string BindingType { get; set; } = "SniEnabled";
+
+    /// <summary>Gets or sets the DNS validation status ("Pending" or "Validated").</summary>
+    public string DnsValidationStatus { get; set; } = "Pending";
 }

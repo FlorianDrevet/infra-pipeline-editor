@@ -18,8 +18,8 @@
       <mat-icon class="split-switcher__tab-icon">dns</mat-icon>
       <span>{{ 'PROJECT_DETAIL.SWITCHER.INFRA_TAB' | translate }}</span>
       <span class="split-switcher__chip split-switcher__chip--infra"
-            [class.split-switcher__chip--empty]="infraFileCount() === 0">
-        {{ infraFileCount() }}
+            [class.split-switcher__chip--empty]="visibleInfraFileCount() === 0">
+        {{ visibleInfraFileCount() }}
       </span>
     </ng-template>
 
@@ -58,13 +58,13 @@
             <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BICEP' | translate }}</span>
           </ng-template>
           <div class="generation-tab-content">
-            @if (isGeneratingBicep()) {
+            @if (isGeneratingBicep() || deferBatchReveal()) {
               <div class="split-switcher__loading">
                 <mat-spinner diameter="22"></mat-spinner>
                 <span>{{ 'PROJECT_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}</span>
               </div>
             }
-            @if (bicepGenerationError()) {
+            @if (bicepGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__error">
                 <p>{{ bicepGenerationError()! | translate }}</p>
                 <button class="split-switcher__retry" type="button" (click)="onRetryBicep()">
@@ -73,7 +73,7 @@
                 </button>
               </div>
             }
-            @if (bicepNodes().length > 0) {
+            @if (bicepNodes().length > 0 && !deferBatchReveal()) {
               <app-bicep-file-panel
                 [nodes]="bicepNodes()"
                 [barTitle]="'bicep-generator \u2014 ' + ('PROJECT_DETAIL.BICEP.ARTIFACTS' | translate)"
@@ -82,7 +82,7 @@
                 [fileErrorText]="'PROJECT_DETAIL.BICEP.FILE_ERROR' | translate"
                 [loadFile]="loadBicepFile()">
               </app-bicep-file-panel>
-            } @else if (!isGeneratingBicep() && !bicepGenerationError()) {
+            } @else if (!isGeneratingBicep() && !bicepGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
             }
           </div>
@@ -95,13 +95,13 @@
             <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_PIPELINE' | translate }}</span>
           </ng-template>
           <div class="generation-tab-content">
-            @if (isGeneratingPipeline()) {
+            @if (isGeneratingPipeline() || deferBatchReveal()) {
               <div class="split-switcher__loading">
                 <mat-spinner diameter="22"></mat-spinner>
                 <span>{{ 'PROJECT_DETAIL.PIPELINE.TERMINAL_GENERATING' | translate }}</span>
               </div>
             }
-            @if (pipelineGenerationError()) {
+            @if (pipelineGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__error">
                 <p>{{ pipelineGenerationError()! | translate }}</p>
                 <button class="split-switcher__retry" type="button" (click)="onRetryPipeline()">
@@ -110,7 +110,7 @@
                 </button>
               </div>
             }
-            @if (hasInfraPipeline()) {
+            @if (hasInfraPipeline() && !deferBatchReveal()) {
               <app-bicep-file-panel
                 [nodes]="infraPipelineNodes()"
                 [barTitle]="'pipeline-generator \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
@@ -119,7 +119,7 @@
                 [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
                 [loadFile]="loadPipelineFile()">
               </app-bicep-file-panel>
-            } @else if (!isGeneratingPipeline() && !pipelineGenerationError()) {
+            } @else if (!isGeneratingPipeline() && !pipelineGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
             }
           </div>
@@ -132,13 +132,13 @@
             <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BOOTSTRAP_APP' | translate }}</span>
           </ng-template>
           <div class="generation-tab-content">
-            @if (isGeneratingBootstrap()) {
+            @if (isGeneratingBootstrap() || deferBatchReveal()) {
               <div class="split-switcher__loading">
                 <mat-spinner diameter="22"></mat-spinner>
                 <span>{{ 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' | translate }}</span>
               </div>
             }
-            @if (bootstrapGenerationError()) {
+            @if (bootstrapGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__error">
                 <p>{{ bootstrapGenerationError()! | translate }}</p>
                 <button class="split-switcher__retry" type="button" (click)="onRetryBootstrap()">
@@ -147,7 +147,7 @@
                 </button>
               </div>
             }
-            @if (infraBootstrapNodes().length > 0) {
+            @if (infraBootstrapNodes().length > 0 && !deferBatchReveal()) {
               <app-bicep-file-panel
                 [nodes]="infraBootstrapNodes()"
                 [barTitle]="'bootstrap-generator \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
@@ -156,7 +156,7 @@
                 [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
                 [loadFile]="loadBootstrapFile()">
               </app-bicep-file-panel>
-            } @else if (!isGeneratingBootstrap() && !bootstrapGenerationError()) {
+            } @else if (!isGeneratingBootstrap() && !bootstrapGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
             }
 
@@ -180,8 +180,8 @@
         info_outline
       </mat-icon>
       <span class="split-switcher__chip split-switcher__chip--code"
-            [class.split-switcher__chip--empty]="codeFileCount() === 0">
-        {{ codeFileCount() }}
+            [class.split-switcher__chip--empty]="visibleCodeFileCount() === 0">
+        {{ visibleCodeFileCount() }}
       </span>
     </ng-template>
 
@@ -220,13 +220,13 @@
             <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_PIPELINE' | translate }}</span>
           </ng-template>
           <div class="generation-tab-content">
-            @if (isGeneratingPipeline()) {
+            @if (isGeneratingPipeline() || deferBatchReveal()) {
               <div class="split-switcher__loading">
                 <mat-spinner diameter="22"></mat-spinner>
                 <span>{{ 'PROJECT_DETAIL.PIPELINE.TERMINAL_GENERATING' | translate }}</span>
               </div>
             }
-            @if (pipelineGenerationError()) {
+            @if (pipelineGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__error">
                 <p>{{ pipelineGenerationError()! | translate }}</p>
                 <button class="split-switcher__retry" type="button" (click)="onRetryPipeline()">
@@ -235,7 +235,7 @@
                 </button>
               </div>
             }
-            @if (hasAppPipeline()) {
+            @if (hasAppPipeline() && !deferBatchReveal()) {
               <app-bicep-file-panel
                 [nodes]="appPipelineNodes()"
                 [barTitle]="'pipeline-generator (code) \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
@@ -244,7 +244,7 @@
                 [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
                 [loadFile]="loadPipelineFile()">
               </app-bicep-file-panel>
-            } @else if (!isGeneratingPipeline() && !pipelineGenerationError()) {
+            } @else if (!isGeneratingPipeline() && !pipelineGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
             }
           </div>
@@ -278,13 +278,13 @@
               </ol>
             </section>
 
-            @if (isGeneratingBootstrap()) {
+            @if (isGeneratingBootstrap() || deferBatchReveal()) {
               <div class="split-switcher__loading">
                 <mat-spinner diameter="22"></mat-spinner>
                 <span>{{ 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' | translate }}</span>
               </div>
             }
-            @if (bootstrapGenerationError()) {
+            @if (bootstrapGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__error">
                 <p>{{ bootstrapGenerationError()! | translate }}</p>
                 <button class="split-switcher__retry" type="button" (click)="onRetryBootstrap()">
@@ -293,7 +293,7 @@
                 </button>
               </div>
             }
-            @if (appBootstrapNodes().length > 0) {
+            @if (appBootstrapNodes().length > 0 && !deferBatchReveal()) {
               <app-bicep-file-panel
                 [nodes]="appBootstrapNodes()"
                 [barTitle]="'bootstrap-generator (code) \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
@@ -302,7 +302,7 @@
                 [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
                 [loadFile]="loadBootstrapFile()">
               </app-bicep-file-panel>
-            } @else if (!isGeneratingBootstrap() && !bootstrapGenerationError()) {
+            } @else if (!isGeneratingBootstrap() && !bootstrapGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
             }
           </div>

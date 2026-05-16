@@ -3,27 +3,19 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.CustomDomains.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
-using InfraFlowSculptor.GenerationCore;
 
-namespace InfraFlowSculptor.Application.CustomDomains.Commands.AddCustomDomain;
+namespace InfraFlowSculptor.Application.CustomDomains.Commands.ValidateCustomDomainDns;
 
-/// <summary>Handles the <see cref="AddCustomDomainCommand"/> request.</summary>
-public sealed class AddCustomDomainCommandHandler(
+/// <summary>Handles the <see cref="ValidateCustomDomainDnsCommand"/> request.</summary>
+public sealed class ValidateCustomDomainDnsCommandHandler(
     IAzureResourceRepository azureResourceRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : ICommandHandler<AddCustomDomainCommand, CustomDomainResult>
+    : ICommandHandler<ValidateCustomDomainDnsCommand, CustomDomainResult>
 {
-    private static readonly HashSet<string> SupportedResourceTypes =
-    [
-        AzureResourceTypes.ContainerApp,
-        AzureResourceTypes.WebApp,
-        AzureResourceTypes.FunctionApp,
-    ];
-
     /// <inheritdoc />
     public async Task<ErrorOr<CustomDomainResult>> Handle(
-        AddCustomDomainCommand request,
+        ValidateCustomDomainDnsCommand request,
         CancellationToken cancellationToken)
     {
         var resource = await azureResourceRepository.GetByIdWithCustomDomainsAsync(
@@ -31,9 +23,6 @@ public sealed class AddCustomDomainCommandHandler(
 
         if (resource is null)
             return Errors.CustomDomain.ResourceNotFound(request.ResourceId);
-
-        if (!SupportedResourceTypes.Contains(resource.ResourceType))
-            return Errors.CustomDomain.NotSupportedForResourceType(resource.ResourceType);
 
         var resourceGroup = await resourceGroupRepository.GetByIdAsync(
             resource.ResourceGroupId, cancellationToken);
@@ -47,18 +36,21 @@ public sealed class AddCustomDomainCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        var result = resource.AddCustomDomain(
-            request.EnvironmentName,
-            request.DomainName,
-            request.BindingType);
+        var domain = resource.CustomDomains.FirstOrDefault(cd => cd.Id == request.CustomDomainId);
 
-        if (result.IsError)
-            return result.Errors;
+        if (domain is null)
+            return Errors.CustomDomain.NotFound(request.CustomDomainId);
+
+        domain.ValidateDns();
 
         await azureResourceRepository.UpdateAsync(resource, cancellationToken);
 
-        var cd = result.Value;
-        return new CustomDomainResult(cd.Id, cd.ResourceId, cd.EnvironmentName, cd.DomainName, cd.BindingType,
-            cd.DnsValidationStatus.Value.ToString());
+        return new CustomDomainResult(
+            domain.Id,
+            domain.ResourceId,
+            domain.EnvironmentName,
+            domain.DomainName,
+            domain.BindingType,
+            domain.DnsValidationStatus.Value.ToString());
     }
 }

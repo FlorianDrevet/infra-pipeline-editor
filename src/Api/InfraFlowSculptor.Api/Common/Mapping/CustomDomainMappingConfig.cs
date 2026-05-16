@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.CustomDomains.Common;
+using InfraFlowSculptor.Application.CustomDomains.Queries.GetDnsInstructions;
 using InfraFlowSculptor.Contracts.CustomDomains.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using Mapster;
@@ -17,6 +18,19 @@ public sealed class CustomDomainMappingConfig : IRegister
                 src.ResourceId.Value.ToString(),
                 src.EnvironmentName,
                 src.DomainName,
-                src.BindingType));
+                src.BindingType,
+                src.DnsValidationStatus));
+
+        config.NewConfig<DnsInstructionsResult, DnsInstructionsResponse>()
+            .MapWith(src => new DnsInstructionsResponse(
+                src.DomainName,
+                src.DnsValidationStatus,
+                src.Steps.Select(s => new DnsInstructionStepResponse(
+                    s.Order,
+                    s.Title,
+                    s.Description,
+                    s.RecordType,
+                    s.RecordName,
+                    s.RecordValue)).ToList()));
     }
 }

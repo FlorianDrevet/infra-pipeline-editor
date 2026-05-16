@@ -5,6 +5,10 @@ namespace InfraFlowSculptor.BicepGeneration.Generators.ParameterModels.Container
 
 internal sealed record ContainerAppParameters
 {
+    [JsonPropertyName("containerImage")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ContainerImage { get; init; }
+
     [JsonPropertyName("containerRuntime")]
     public required ContainerRuntimeParameters ContainerRuntime { get; init; }
 

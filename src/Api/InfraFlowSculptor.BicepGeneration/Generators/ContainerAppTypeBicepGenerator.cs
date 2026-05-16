@@ -48,7 +48,8 @@ public sealed partial class ContainerAppTypeBicepGenerator
     private const string AcrUsernameVariableName = "acrUsername";
     private const string AcrPasswordSecretNameVariableName = "acrPasswordSecretName";
     private const string ContainerAppArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.ContainerAppArmType;
-    private const string DefaultContainerImage = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest";
+    private const string ContainerImageParameterName = "containerImage";
+    private const string DefaultContainerImage = "mcr.microsoft.com/k8s/core/pause:3.6";
     private const string DefaultContainerCpuCores = "0.25";
     private const string DefaultContainerMemoryGi = "0.5Gi";
     private const string DefaultTransportMethod = "auto";
@@ -103,7 +104,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
     private const string ConfigurationPropertyName = "configuration";
     private const string TemplatePropertyName = "template";
     private const string NullExpression = "null";
-    private const string ContainerRuntimeImageSelector = ContainerRuntimeParameterName + ".image";
+
     private const string ContainerRuntimeCpuJsonExpression = "json(" + ContainerRuntimeParameterName + "." + CpuCoresPropertyName + ")";
     private const string ContainerRuntimeMemorySelector = ContainerRuntimeParameterName + "." + MemoryGiPropertyName;
     private const string IngressEnabledSelector = IngressParameterName + "." + EnabledPropertyName;
@@ -162,6 +163,8 @@ public sealed partial class ContainerAppTypeBicepGenerator
             .Param(LocationParameterName, BicepType.String, "Azure region for the Container App")
             .Param(NameParameterName, BicepType.String, "Name of the Container App")
             .Param(ContainerAppEnvironmentIdParameterName, BicepType.String, "Resource ID of the Container App Environment")
+            .Param(ContainerImageParameterName, BicepType.String, "Container image (overridden by app pipeline after first deploy)",
+                defaultValue: new BicepStringLiteral(DefaultContainerImage))
             .Param(ContainerRuntimeParameterName, BicepType.Custom(ContainerRuntimeConfigTypeName), "Container runtime configuration")
             .Param(ScalingParameterName, BicepType.Custom(ScalingConfigTypeName), "Scaling configuration")
             .Param(IngressParameterName, BicepType.Custom(IngressConfigTypeName), "Ingress configuration")
@@ -259,7 +262,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
           new BicepPropertyAssignment(ContainersPropertyName, new BicepArrayExpression([
                 new BicepObjectExpression([
               new BicepPropertyAssignment(NamePropertyName, new BicepReference(NameParameterName)),
-              new BicepPropertyAssignment(ImagePropertyName, new BicepReference(ContainerRuntimeImageSelector)),
+              new BicepPropertyAssignment(ImagePropertyName, new BicepReference(ContainerImageParameterName)),
               new BicepPropertyAssignment(ResourcesPropertyName, new BicepObjectExpression([
                 new BicepPropertyAssignment(CpuPropertyName, new BicepRawExpression(ContainerRuntimeCpuJsonExpression)),
                 new BicepPropertyAssignment(MemoryPropertyName, new BicepReference(ContainerRuntimeMemorySelector)),
@@ -294,8 +297,8 @@ public sealed partial class ContainerAppTypeBicepGenerator
               new BicepRawExpression(TransportMethodUnion),
                 description: "Ingress transport method for the Container App")
             .ExportedType(ContainerRuntimeConfigTypeName, new BicepRawExpression(
-                "{\n  @description('Container image to deploy')\n  image: string\n  @description('CPU cores allocated to the container')\n  cpuCores: string\n  @description('Memory allocated to the container (e.g. 0.5Gi)')\n  memoryGi: string\n}"),
-                description: "Container runtime configuration (image, CPU, memory)")
+                "{\n  @description('CPU cores allocated to the container')\n  cpuCores: string\n  @description('Memory allocated to the container (e.g. 0.5Gi)')\n  memoryGi: string\n}"),
+                description: "Container runtime configuration (CPU, memory)")
             .ExportedType(ScalingConfigTypeName, new BicepRawExpression(
                 "{\n  @description('Minimum number of replicas')\n  minReplicas: int\n  @description('Maximum number of replicas')\n  maxReplicas: int\n}"),
                 description: "Scaling configuration for the Container App")
@@ -332,18 +335,16 @@ public sealed partial class ContainerAppTypeBicepGenerator
         var acrAuthMode = GetAcrAuthMode(resource.Properties);
         var useAdminCredentials = hasAcr
             && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
-        var hasCustomDomains = resource.CustomDomains.Count > 0;
+        var hasCustomDomains = resource.CustomDomains
+            .Any(cd => cd.DnsValidationStatus.Equals("Validated", StringComparison.OrdinalIgnoreCase));
 
       var dockerImageName = resource.Properties.GetValueOrDefault(DockerImageNamePropertyName, EmptyParameterValue);
-        var containerImage = !string.IsNullOrEmpty(dockerImageName)
-            ? dockerImageName
-        : DefaultContainerImage;
 
         var parameters = new ContainerAppParameters
         {
+          ContainerImage = !string.IsNullOrEmpty(dockerImageName) ? dockerImageName : null,
           ContainerRuntime = new ContainerRuntimeParameters
             {
-            Image = containerImage,
             CpuCores = DefaultContainerCpuCores,
             MemoryGi = DefaultContainerMemoryGi,
           },

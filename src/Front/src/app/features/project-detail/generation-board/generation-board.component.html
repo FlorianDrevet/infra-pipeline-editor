@@ -147,6 +147,7 @@
         @if (isSplitInfraCodeLayout()) {
           <app-split-generation-switcher
             [collapsed]="projectGenerationPanelCollapsed()"
+            [deferBatchReveal]="deferMonoRepoBatchReveal()"
             [bicepResult]="projectBicepResult()"
             [pipelineResult]="projectPipelineResult()"
             [bootstrapResult]="projectBootstrapResult()"

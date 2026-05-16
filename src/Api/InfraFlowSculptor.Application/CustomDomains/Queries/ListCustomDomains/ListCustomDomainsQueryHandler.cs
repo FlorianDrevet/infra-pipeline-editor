@@ -42,7 +42,8 @@ public sealed class ListCustomDomainsQueryHandler(
                 cd.ResourceId,
                 cd.EnvironmentName,
                 cd.DomainName,
-                cd.BindingType))
+                cd.BindingType,
+                cd.DnsValidationStatus.Value.ToString()))
             .ToList();
 
         return results.ToList();

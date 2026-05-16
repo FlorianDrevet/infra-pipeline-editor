@@ -48,7 +48,7 @@ class ProjectDetailGenerationWorkflowServiceBannerStub {
   readonly deferMonoRepoBatchReveal = signal(false);
   readonly projectGenerationPanelOpen = signal(true);
   readonly viewingHistoricalGeneration = signal(true);
-  readonly displayedHistoricalGenerationAt = signal('2026-05-16T10:30:00Z');
+  readonly displayedHistoricalGenerationAt = signal('20260516133039');
 
   readonly loadProjectBicepFile = jasmine.createSpy('loadProjectBicepFile').and.resolveTo('main content');
   readonly loadProjectPipelineFile = jasmine.createSpy('loadProjectPipelineFile').and.resolveTo('pipeline content');

@@ -6,9 +6,11 @@ namespace InfraFlowSculptor.Contracts.CustomDomains.Responses;
 /// <param name="EnvironmentName">Deployment environment name.</param>
 /// <param name="DomainName">Fully qualified domain name.</param>
 /// <param name="BindingType">SSL binding type ("SniEnabled" or "Disabled").</param>
+/// <param name="DnsValidationStatus">DNS validation status ("Pending" or "Validated").</param>
 public record CustomDomainResponse(
     string Id,
     string ResourceId,
     string EnvironmentName,
     string DomainName,
-    string BindingType);
+    string BindingType,
+    string DnsValidationStatus);

@@ -21,6 +21,9 @@ public sealed class CustomDomain : Entity<CustomDomainId>
     /// <summary>Gets the SSL binding type. Either "SniEnabled" (managed certificate) or "Disabled" (no SSL).</summary>
     public string BindingType { get; private set; } = "SniEnabled";
 
+    /// <summary>Gets the DNS validation status for this custom domain binding.</summary>
+    public DnsValidationStatus DnsValidationStatus { get; private set; } = DnsValidationStatus.Pending;
+
     /// <summary>EF Core constructor.</summary>
     private CustomDomain() { }
 
@@ -42,5 +45,12 @@ public sealed class CustomDomain : Entity<CustomDomainId>
             EnvironmentName = environmentName,
             DomainName = domainName.ToLowerInvariant().Trim(),
             BindingType = bindingType,
+            DnsValidationStatus = DnsValidationStatus.Pending,
         };
+
+    /// <summary>Marks the DNS records for this domain as validated.</summary>
+    public void ValidateDns() => DnsValidationStatus = DnsValidationStatus.Validated;
+
+    /// <summary>Resets the DNS validation status to <see cref="ValueObjects.DnsValidationStatus.Pending"/>.</summary>
+    public void ResetDnsValidation() => DnsValidationStatus = DnsValidationStatus.Pending;
 }

@@ -56,6 +56,7 @@ export class SplitGenerationSwitcherComponent {
   readonly bicepResult = input<GenerateProjectBicepResponse | null>(null);
   readonly pipelineResult = input<GenerateProjectPipelineResponse | null>(null);
   readonly bootstrapResult = input<GenerateProjectBootstrapPipelineResponse | null>(null);
+  readonly deferBatchReveal = input<boolean>(false);
 
   readonly isGeneratingBicep = input<boolean>(false);
   readonly isGeneratingPipeline = input<boolean>(false);
@@ -106,6 +107,8 @@ export class SplitGenerationSwitcherComponent {
     return total;
   });
 
+  protected readonly visibleInfraFileCount = computed(() => this.deferBatchReveal() ? 0 : this.infraFileCount());
+
   protected readonly codeFileCount = computed(() => {
     const p = this.pipelineResult();
     const bs = this.bootstrapResult();
@@ -116,6 +119,8 @@ export class SplitGenerationSwitcherComponent {
     total += Object.keys(bs?.appFileUris ?? {}).length;
     return total;
   });
+
+  protected readonly visibleCodeFileCount = computed(() => this.deferBatchReveal() ? 0 : this.codeFileCount());
 
   // ─── Bicep tree (infra-only) ───
   protected readonly bicepNodes = computed<BicepTreeNode[]>(() => {

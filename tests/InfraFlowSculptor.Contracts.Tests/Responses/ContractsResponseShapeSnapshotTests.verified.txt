@@ -1,5 +1,5 @@
 Contracts response DTO public shape snapshot
-Count: 102
+Count: 104
 
 Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
 Type: AppConfigurationKeyResponse
@@ -182,13 +182,35 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.CustomDomains.Responses
 Type: CustomDomainResponse
 Constructors:
-  CustomDomainResponse(string Id, string ResourceId, string EnvironmentName, string DomainName, string BindingType)
+  CustomDomainResponse(string Id, string ResourceId, string EnvironmentName, string DomainName, string BindingType, string DnsValidationStatus)
 Properties:
   BindingType: string
+  DnsValidationStatus: string
   DomainName: string
   EnvironmentName: string
   Id: string
   ResourceId: string
+
+Namespace: InfraFlowSculptor.Contracts.CustomDomains.Responses
+Type: DnsInstructionStepResponse
+Constructors:
+  DnsInstructionStepResponse(int Order, string Title, string Description, string? RecordType, string? RecordName, string? RecordValue)
+Properties:
+  Description: string
+  Order: int
+  RecordName: string?
+  RecordType: string?
+  RecordValue: string?
+  Title: string
+
+Namespace: InfraFlowSculptor.Contracts.CustomDomains.Responses
+Type: DnsInstructionsResponse
+Constructors:
+  DnsInstructionsResponse(string DomainName, string DnsValidationStatus, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.CustomDomains.Responses.DnsInstructionStepResponse> Steps)
+Properties:
+  DnsValidationStatus: string
+  DomainName: string
+  Steps: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.CustomDomains.Responses.DnsInstructionStepResponse>
 
 Namespace: InfraFlowSculptor.Contracts.EventHubNamespaces.Responses
 Type: EventHubConsumerGroupResponse
