@@ -36,6 +36,7 @@ public sealed class FunctionAppMappingConfig : IRegister
                 src.Request.ContainerRegistryId,
                 src.Request.AcrAuthMode,
                 src.Request.DockerImageName,
+                src.Request.DockerImageValidated,
                 src.Request.DockerfilePath,
                 src.Request.SourceCodePath,
                 src.Request.BuildCommand,

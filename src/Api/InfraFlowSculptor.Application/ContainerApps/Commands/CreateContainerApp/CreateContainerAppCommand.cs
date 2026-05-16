@@ -16,6 +16,7 @@ public record CreateContainerAppCommand(
     Guid? ContainerRegistryId,
     string? AcrAuthMode = null,
     string? DockerImageName = null,
+    bool DockerImageValidated = false,
     string? DockerfilePath = null,
     string? ApplicationName = null,
     IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null,

@@ -20,6 +20,7 @@ public record WebAppResult(
     Guid? ContainerRegistryId,
     string? AcrAuthMode,
     string? DockerImageName,
+    bool DockerImageValidated,
     string? DockerfilePath,
     string? SourceCodePath,
     string? BuildCommand,

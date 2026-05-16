@@ -30,6 +30,9 @@ public sealed class ContainerApp : AzureResource
     /// <summary>Gets the optional base Docker image name (e.g., "myregistry.azurecr.io/myapp/api") without the tag.</summary>
     public string? DockerImageName { get; private set; }
 
+    /// <summary>Gets whether the user has confirmed that the Docker image exists in the container registry.</summary>
+    public bool DockerImageValidated { get; private set; }
+
     /// <summary>Gets the optional relative path to the Dockerfile in the repository.</summary>
     public string? DockerfilePath { get; private set; }
 
@@ -56,9 +59,10 @@ public sealed class ContainerApp : AzureResource
     /// <param name="containerRegistryId">The optional Container Registry identifier for authenticated image pulls.</param>
     /// <param name="acrAuthMode">The optional authentication mode used to pull images from Azure Container Registry.</param>
     /// <param name="dockerImageName">The optional base Docker image name without the tag.</param>
+    /// <param name="dockerImageValidated">Whether the user has confirmed the Docker image exists.</param>
     /// <param name="dockerfilePath">The optional relative path to the Dockerfile in the repository.</param>
     /// <param name="applicationName">The optional user-friendly application name for pipeline display.</param>
-    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, AcrAuthMode? acrAuthMode, string? dockerImageName, string? dockerfilePath, string? applicationName)
+    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, AcrAuthMode? acrAuthMode, string? dockerImageName, bool dockerImageValidated, string? dockerfilePath, string? applicationName)
     {
         SetNameAndLocation(name, location);
 
@@ -69,6 +73,7 @@ public sealed class ContainerApp : AzureResource
         ContainerRegistryId = containerRegistryId;
     AcrAuthMode = containerRegistryId is null ? null : acrAuthMode;
         DockerImageName = dockerImageName;
+        DockerImageValidated = dockerImageValidated;
         DockerfilePath = dockerfilePath;
         ApplicationName = applicationName;
     }
@@ -176,6 +181,7 @@ public sealed class ContainerApp : AzureResource
             ContainerRegistryId = containerRegistryId,
             AcrAuthMode = containerRegistryId is null ? null : acrAuthMode,
             DockerImageName = dockerImageName,
+            DockerImageValidated = false,
             DockerfilePath = dockerfilePath,
             ApplicationName = applicationName
         };

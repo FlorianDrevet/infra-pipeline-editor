@@ -38,6 +38,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
     private const string AcrAuthModePropertyName = "acrAuthMode";
     private const string ContainerRegistryIdPropertyName = "containerRegistryId";
     private const string DockerImageNamePropertyName = "dockerImageName";
+    private const string DockerImageValidatedPropertyName = "dockerImageValidated";
     private const string ContainerAppEnvironmentIdParameterName = "containerAppEnvironmentId";
     private const string AcrLoginServerParameterName = "acrLoginServer";
     private const string AcrPasswordParameterName = "acrPassword";
@@ -154,7 +155,6 @@ public sealed partial class ContainerAppTypeBicepGenerator
 
         var builder = new BicepModuleBuilder()
             .Module(ModuleName, ModuleFolderName, ResourceTypeName)
-            .ModuleFileName(ModuleName)
             .Import(TypesImportPath,
                 ContainerRuntimeConfigTypeName,
                 ScalingConfigTypeName,
@@ -202,6 +202,10 @@ public sealed partial class ContainerAppTypeBicepGenerator
         if (hasAcr && useAdminCredentials)
         {
           builder.ModuleFileName(AdminCredentialsModuleFileName);
+        }
+        else if (hasAcr)
+        {
+          builder.ModuleFileName(ModuleName);
         }
 
         // ── Resource ──
@@ -336,10 +340,13 @@ public sealed partial class ContainerAppTypeBicepGenerator
             .Any(cd => cd.DnsValidationStatus.Equals("Validated", StringComparison.OrdinalIgnoreCase));
 
       var dockerImageName = resource.Properties.GetValueOrDefault(DockerImageNamePropertyName, EmptyParameterValue);
+      var dockerImageValidated = string.Equals(
+          resource.Properties.GetValueOrDefault(DockerImageValidatedPropertyName, EmptyParameterValue),
+          "true", StringComparison.OrdinalIgnoreCase);
 
         var parameters = new ContainerAppParameters
         {
-          ContainerImage = !string.IsNullOrEmpty(dockerImageName) ? dockerImageName : null,
+          ContainerImage = !string.IsNullOrEmpty(dockerImageName) && dockerImageValidated ? dockerImageName : null,
           ContainerRuntime = new ContainerRuntimeParameters
             {
             CpuCores = DefaultContainerCpuCores,

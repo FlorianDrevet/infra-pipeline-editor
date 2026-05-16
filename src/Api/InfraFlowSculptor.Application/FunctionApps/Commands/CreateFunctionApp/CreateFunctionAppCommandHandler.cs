@@ -65,6 +65,7 @@ public sealed class CreateFunctionAppCommandHandler(
                 ? new AcrAuthMode(Enum.Parse<AcrAuthMode.AcrAuthModeType>(request.AcrAuthMode))
                 : null,
             request.DockerImageName,
+            request.DockerImageValidated,
             request.DockerfilePath,
             request.SourceCodePath,
             request.BuildCommand,

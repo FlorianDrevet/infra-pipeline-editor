@@ -16,6 +16,7 @@ namespace InfraFlowSculptor.Contracts.FunctionApps.Responses;
 /// <param name="ContainerRegistryId">Optional Container Registry identifier.</param>
 /// <param name="AcrAuthMode">Optional authentication mode used to pull images from Azure Container Registry.</param>
 /// <param name="DockerImageName">Docker image name for container deployments.</param>
+/// <param name="DockerImageValidated">Whether the Docker image name has been validated against the container registry.</param>
 /// <param name="DockerfilePath">Relative path to the Dockerfile in the repository.</param>
 /// <param name="SourceCodePath">Relative path to the source code folder.</param>
 /// <param name="BuildCommand">Optional custom build command.</param>
@@ -36,6 +37,7 @@ public record FunctionAppResponse(
     string? ContainerRegistryId,
     string? AcrAuthMode,
     string? DockerImageName,
+    bool DockerImageValidated,
     string? DockerfilePath,
     string? SourceCodePath,
     string? BuildCommand,

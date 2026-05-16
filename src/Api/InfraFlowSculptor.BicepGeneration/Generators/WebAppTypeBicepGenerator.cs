@@ -35,6 +35,7 @@ public sealed partial class WebAppTypeBicepGenerator
     private const string AlwaysOnPropertyName = "alwaysOn";
     private const string HttpsOnlyPropertyName = "httpsOnly";
     private const string DockerImageNamePropertyName = "dockerImageName";
+    private const string DockerImageValidatedPropertyName = "dockerImageValidated";
     private const string DockerImageTagPropertyName = "dockerImageTag";
     private const string AcrLoginServerPropertyName = "acrLoginServer";
     private const string AcrAuthModePropertyName = "acrAuthMode";
@@ -299,6 +300,10 @@ public sealed partial class WebAppTypeBicepGenerator
         var alwaysOn = resource.Properties.GetValueOrDefault(AlwaysOnPropertyName, BooleanTrueString) == BooleanTrueString;
         var httpsOnly = resource.Properties.GetValueOrDefault(HttpsOnlyPropertyName, BooleanTrueString) == BooleanTrueString;
         var dockerImageName = resource.Properties.GetValueOrDefault(DockerImageNamePropertyName, EmptyParameterValue);
+        var dockerImageValidated = string.Equals(
+            resource.Properties.GetValueOrDefault(DockerImageValidatedPropertyName, EmptyParameterValue),
+            BooleanTrueString,
+            StringComparison.OrdinalIgnoreCase);
 
         var parameters = new WebAppParameters
         {
@@ -314,7 +319,7 @@ public sealed partial class WebAppTypeBicepGenerator
         {
             parameters = parameters with
             {
-                DockerImageName = dockerImageName,
+                DockerImageName = !string.IsNullOrEmpty(dockerImageName) && dockerImageValidated ? dockerImageName : EmptyParameterValue,
                 DockerImageTag = DefaultDockerImageTag,
                 AcrLoginServer = EmptyParameterValue,
             };

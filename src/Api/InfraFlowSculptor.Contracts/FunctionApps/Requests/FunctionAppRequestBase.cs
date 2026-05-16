@@ -48,6 +48,9 @@ public abstract class FunctionAppRequestBase
     /// <summary>Docker image name for container deployments (e.g., "myapp/func").</summary>
     public string? DockerImageName { get; init; }
 
+    /// <summary>Whether the Docker image name has been validated against the container registry.</summary>
+    public bool DockerImageValidated { get; init; }
+
     /// <summary>Relative path to the Dockerfile in the repository for container pipeline generation.</summary>
     [MaxLength(500)]
     public string? DockerfilePath { get; init; }

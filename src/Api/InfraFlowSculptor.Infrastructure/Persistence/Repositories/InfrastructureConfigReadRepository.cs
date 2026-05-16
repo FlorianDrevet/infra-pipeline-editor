@@ -591,7 +591,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["deploymentMode"] = wa.DeploymentMode.Value.ToString(),
                     ["containerRegistryId"] = wa.ContainerRegistryId?.Value.ToString() ?? "",
                     ["acrAuthMode"] = wa.AcrAuthMode?.Value.ToString() ?? "",
-                    ["dockerImageName"] = wa.DockerImageName ?? ""
+                    ["dockerImageName"] = wa.DockerImageName ?? "",
+                    ["dockerImageValidated"] = wa.DockerImageValidated.ToString().ToLowerInvariant()
                 },
                 waSettings
                     .Where(es => es.WebAppId == wa.Id)
@@ -611,7 +612,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["deploymentMode"] = fa.DeploymentMode.Value.ToString(),
                     ["containerRegistryId"] = fa.ContainerRegistryId?.Value.ToString() ?? "",
                     ["acrAuthMode"] = fa.AcrAuthMode?.Value.ToString() ?? "",
-                    ["dockerImageName"] = fa.DockerImageName ?? ""
+                    ["dockerImageName"] = fa.DockerImageName ?? "",
+                    ["dockerImageValidated"] = fa.DockerImageValidated.ToString().ToLowerInvariant()
                 },
                 faSettings
                     .Where(es => es.FunctionAppId == fa.Id)
@@ -656,7 +658,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["containerAppEnvironmentId"] = ca.ContainerAppEnvironmentId.Value.ToString(),
                     ["containerRegistryId"] = ca.ContainerRegistryId?.Value.ToString() ?? "",
                     ["acrAuthMode"] = ca.AcrAuthMode?.Value.ToString() ?? "",
-                    ["dockerImageName"] = ca.DockerImageName ?? ""
+                    ["dockerImageName"] = ca.DockerImageName ?? "",
+                    ["dockerImageValidated"] = ca.DockerImageValidated.ToString().ToLowerInvariant()
                 },
                 caSettings
                     .Where(es => es.ContainerAppId == ca.Id)

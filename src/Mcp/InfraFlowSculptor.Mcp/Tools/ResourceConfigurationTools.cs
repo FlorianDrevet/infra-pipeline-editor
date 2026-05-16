@@ -119,6 +119,7 @@ public sealed class ResourceConfigurationTools
             current.Value.ContainerRegistryId,
             current.Value.AcrAuthMode,
             current.Value.DockerImageName,
+            current.Value.DockerImageValidated,
             current.Value.DockerfilePath,
             current.Value.ApplicationName,
             envConfigData);

@@ -45,6 +45,9 @@ public sealed class WebApp : AzureResource
     /// <summary>Gets the Docker image name for container deployments (e.g., "myapp/api").</summary>
     public string? DockerImageName { get; private set; }
 
+    /// <summary>Gets whether the Docker image name has been validated against the container registry.</summary>
+    public bool DockerImageValidated { get; private set; }
+
     /// <summary>Gets the optional relative path to the Dockerfile in the repository for container deployments.</summary>
     public string? DockerfilePath { get; private set; }
 
@@ -80,6 +83,7 @@ public sealed class WebApp : AzureResource
         AzureResourceId? containerRegistryId,
         AcrAuthMode? acrAuthMode,
         string? dockerImageName,
+        bool dockerImageValidated,
         string? dockerfilePath,
         string? sourceCodePath,
         string? buildCommand,
@@ -99,6 +103,7 @@ public sealed class WebApp : AzureResource
         ContainerRegistryId = containerRegistryId;
         AcrAuthMode = containerRegistryId is null ? null : acrAuthMode;
         DockerImageName = dockerImageName;
+        DockerImageValidated = dockerImageValidated;
         DockerfilePath = dockerfilePath;
         SourceCodePath = sourceCodePath;
         BuildCommand = buildCommand;
@@ -172,6 +177,7 @@ public sealed class WebApp : AzureResource
         AzureResourceId? containerRegistryId,
         AcrAuthMode? acrAuthMode,
         string? dockerImageName,
+        bool dockerImageValidated = false,
         string? dockerfilePath = null,
         string? sourceCodePath = null,
         string? buildCommand = null,
@@ -195,6 +201,7 @@ public sealed class WebApp : AzureResource
             ContainerRegistryId = containerRegistryId,
             AcrAuthMode = containerRegistryId is null ? null : acrAuthMode,
             DockerImageName = dockerImageName,
+            DockerImageValidated = dockerImageValidated,
             DockerfilePath = dockerfilePath,
             SourceCodePath = sourceCodePath,
             BuildCommand = buildCommand,

@@ -17,6 +17,7 @@ public record ContainerAppResult(
     Guid? ContainerRegistryId,
     string? AcrAuthMode,
     string? DockerImageName,
+    bool DockerImageValidated,
     string? DockerfilePath,
     string? ApplicationName,
     PipelineStepOptionsDto? PipelineStepOptions,

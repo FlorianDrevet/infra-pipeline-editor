@@ -51,6 +51,7 @@ export interface ContainerAppResponse {
   containerRegistryId: string | null;
   acrAuthMode?: AcrAuthMode | null;
   dockerImageName: string | null;
+  dockerImageValidated: boolean;
   dockerfilePath: string | null;
   applicationName: string | null;
   pipelineStepOptions?: PipelineStepOptions | null;
@@ -68,6 +69,7 @@ export interface CreateContainerAppRequest {
   containerRegistryId?: string | null;
   acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
+  dockerImageValidated?: boolean;
   dockerfilePath?: string | null;
   applicationName?: string | null;
   pipelineStepOptions?: PipelineStepOptions | null;
@@ -82,6 +84,7 @@ export interface UpdateContainerAppRequest {
   containerRegistryId?: string | null;
   acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
+  dockerImageValidated?: boolean;
   dockerfilePath?: string | null;
   applicationName?: string | null;
   pipelineStepOptions?: PipelineStepOptions | null;

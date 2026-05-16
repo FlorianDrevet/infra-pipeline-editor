@@ -32,6 +32,7 @@ public sealed class ContainerAppMappingConfig : IRegister
                 src.Request.ContainerRegistryId,
                 src.Request.AcrAuthMode,
                 src.Request.DockerImageName,
+                src.Request.DockerImageValidated,
                 src.Request.DockerfilePath,
                 src.Request.ApplicationName,
                 src.Request.EnvironmentSettings == null

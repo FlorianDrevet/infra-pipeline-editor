@@ -20,6 +20,7 @@ public record CreateFunctionAppCommand(
     Guid? ContainerRegistryId,
     string? AcrAuthMode,
     string? DockerImageName,
+    bool DockerImageValidated = false,
     string? DockerfilePath = null,
     string? SourceCodePath = null,
     string? BuildCommand = null,

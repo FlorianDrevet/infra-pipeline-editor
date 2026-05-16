@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CompactSelectComponent, CompactSelectOption } from '../compact-select/compact-select.component';
 import { AcrAuthMode } from '../../interfaces/container-registry.interface';
@@ -27,6 +28,7 @@ export type AcrUaiStateValue = 'idle' | 'checking' | 'ok' | 'uai-missing-role' |
     MatIconModule,
     MatProgressSpinnerModule,
     TranslateModule,
+    MatTooltipModule,
     CompactSelectComponent,
     DsSelectComponent,
     DsTextFieldComponent,
@@ -41,6 +43,7 @@ export class DeploymentConfigComponent {
   readonly containerRegistryId = input<string | null>(null);
   readonly acrAuthMode = input<AcrAuthMode | null>(null);
   readonly dockerImageName = input<string | null>(null);
+  readonly dockerImageValidated = input(false);
   readonly showDockerImageName = input(true);
   readonly runtimeStack = input('');
   readonly runtimeVersion = input('');
@@ -62,6 +65,7 @@ export class DeploymentConfigComponent {
   readonly containerRegistryChange = output<string | null>();
   readonly acrAuthModeChange = output<AcrAuthMode>();
   readonly dockerImageNameChange = output<string>();
+  readonly dockerImageValidatedChange = output<boolean>();
   readonly acrSelectedUaiIdChange = output<string | null>();
   readonly addAcrPullRole = output<void>();
   readonly createUai = output<void>();
@@ -89,6 +93,22 @@ export class DeploymentConfigComponent {
 
   protected get hasContainerRegistrySelected(): boolean {
     return !!this.containerRegistryId();
+  }
+
+  protected get hasDockerImageName(): boolean {
+    return !!this.dockerImageName()?.trim();
+  }
+
+  protected toggleDockerImageValidated(): void {
+    this.dockerImageValidatedChange.emit(!this.dockerImageValidated());
+  }
+
+  protected onDockerImageNameChanged(value: string): void {
+    this.dockerImageNameChange.emit(value);
+    // Reset validation when image name changes
+    if (this.dockerImageValidated()) {
+      this.dockerImageValidatedChange.emit(false);
+    }
   }
 
   protected get resolvedAcrAuthMode(): AcrAuthMode {

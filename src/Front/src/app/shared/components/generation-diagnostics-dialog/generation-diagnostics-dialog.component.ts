@@ -57,10 +57,24 @@ export interface ConfigPendingCustomDomainGroup {
   domains: PendingCustomDomainIssue[];
 }
 
+export interface PendingDockerImageIssue {
+  resourceId: string;
+  resourceName: string;
+  resourceType: string;
+  dockerImageName: string;
+}
+
+export interface ConfigPendingDockerImageGroup {
+  configId: string;
+  configName: string;
+  resources: PendingDockerImageIssue[];
+}
+
 export interface GenerationDiagnosticsDialogData {
   configDiagnostics: ConfigDiagnosticGroup[];
   missingEnvConfigs?: ConfigMissingEnvGroup[];
   pendingCustomDomainConfigs?: ConfigPendingCustomDomainGroup[];
+  pendingDockerImageConfigs?: ConfigPendingDockerImageGroup[];
 }
 
 @Component({
@@ -95,17 +109,23 @@ export class GenerationDiagnosticsDialogComponent {
     (sum, g) => sum + g.domains.length, 0,
   );
 
-  protected readonly totalIssues = this.totalDiagnostics + this.totalMissingEnvIssues + this.totalPendingCustomDomainIssues;
+  protected readonly totalPendingDockerImageIssues = (this.data.pendingDockerImageConfigs ?? []).reduce(
+    (sum, g) => sum + g.resources.length, 0,
+  );
+
+  protected readonly totalIssues = this.totalDiagnostics + this.totalMissingEnvIssues + this.totalPendingCustomDomainIssues + this.totalPendingDockerImageIssues;
 
   protected readonly hasDiagnostics = this.totalDiagnostics > 0;
   protected readonly hasMissingEnvs = this.totalMissingEnvIssues > 0;
   protected readonly hasPendingCustomDomains = this.totalPendingCustomDomainIssues > 0;
+  protected readonly hasPendingDockerImages = this.totalPendingDockerImageIssues > 0;
 
   protected readonly isMultiConfig = (() => {
     const configIds = new Set<string>();
     for (const g of this.data.configDiagnostics) configIds.add(g.configId);
     for (const g of this.data.missingEnvConfigs ?? []) configIds.add(g.configId);
     for (const g of this.data.pendingCustomDomainConfigs ?? []) configIds.add(g.configId);
+    for (const g of this.data.pendingDockerImageConfigs ?? []) configIds.add(g.configId);
     return configIds.size > 1;
   })();
 
@@ -149,6 +169,12 @@ export class GenerationDiagnosticsDialogComponent {
   }
 
   protected navigateToPendingCustomDomainResource(configId: string, issue: PendingCustomDomainIssue): void {
+    this.dialogRef.close(false);
+    const friendlyType = ARM_TYPE_TO_FRIENDLY[issue.resourceType] ?? issue.resourceType;
+    this.router.navigate(['/config', configId, 'resource', friendlyType, issue.resourceId]);
+  }
+
+  protected navigateToPendingDockerImageResource(configId: string, issue: PendingDockerImageIssue): void {
     this.dialogRef.close(false);
     const friendlyType = ARM_TYPE_TO_FRIENDLY[issue.resourceType] ?? issue.resourceType;
     this.router.navigate(['/config', configId, 'resource', friendlyType, issue.resourceId]);

@@ -165,6 +165,7 @@ public sealed class ContainerAppTests
             newRegistryId,
             new AcrAuthMode(AcrAuthMode.AcrAuthModeType.ManagedIdentity),
             "newimage",
+            true,
             "src/New/Dockerfile",
             "NewApp");
 
@@ -175,6 +176,7 @@ public sealed class ContainerAppTests
         sut.ContainerRegistryId.Should().Be(newRegistryId);
         sut.AcrAuthMode!.Value.Should().Be(AcrAuthMode.AcrAuthModeType.ManagedIdentity);
         sut.DockerImageName.Should().Be("newimage");
+        sut.DockerImageValidated.Should().BeTrue();
         sut.DockerfilePath.Should().Be("src/New/Dockerfile");
         sut.ApplicationName.Should().Be("NewApp");
     }
@@ -195,6 +197,7 @@ public sealed class ContainerAppTests
             containerRegistryId: null,
             acrAuthMode: new AcrAuthMode(AcrAuthMode.AcrAuthModeType.ManagedIdentity),
             dockerImageName: null,
+            dockerImageValidated: false,
             dockerfilePath: null,
             applicationName: null);
 
@@ -218,6 +221,7 @@ public sealed class ContainerAppTests
             containerRegistryId: AzureResourceId.CreateUnique(),
             acrAuthMode: new AcrAuthMode(AcrAuthMode.AcrAuthModeType.ManagedIdentity),
             dockerImageName: "newimage",
+            dockerImageValidated: true,
             dockerfilePath: null,
             applicationName: null);
 

@@ -17,6 +17,7 @@ import { InfrastructureConfigResponse } from '../../shared/interfaces/infra-conf
 import { PendingCustomDomainIssue } from '../../shared/interfaces/pending-custom-domain-issue.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { CustomDomainDiagnosticsService } from '../../shared/services/custom-domain-diagnostics.service';
+import { DockerImageDiagnosticsService } from '../../shared/services/docker-image-diagnostics.service';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
 import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
@@ -24,9 +25,11 @@ import {
   ConfigDiagnosticGroup,
   ConfigMissingEnvGroup,
   ConfigPendingCustomDomainGroup,
+  ConfigPendingDockerImageGroup,
   GenerationDiagnosticsDialogComponent,
   GenerationDiagnosticsDialogData,
   MissingEnvResource,
+  PendingDockerImageIssue,
 } from '../../shared/components/generation-diagnostics-dialog/generation-diagnostics-dialog.component';
 import {
   PushToGitDialogComponent,
@@ -69,6 +72,7 @@ interface CombinedProjectArchiveExtractionState {
 export class ProjectDetailGenerationWorkflowService {
   private readonly dialog = inject(MatDialog);
   private readonly customDomainDiagnosticsService = inject(CustomDomainDiagnosticsService);
+  private readonly dockerImageDiagnosticsService = inject(DockerImageDiagnosticsService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
   private readonly resourceGroupService = inject(ResourceGroupService);
@@ -545,14 +549,16 @@ export class ProjectDetailGenerationWorkflowService {
           }
 
           const pendingCustomDomains = await this.customDomainDiagnosticsService.collectPendingIssues(groupResources.flat());
+          const pendingDockerImages = this.dockerImageDiagnosticsService.collectPendingIssues(groupResources.flat());
 
-          return { config, diagnostics: diagnosticResult.diagnostics, missingEnvResources, pendingCustomDomains };
+          return { config, diagnostics: diagnosticResult.diagnostics, missingEnvResources, pendingCustomDomains, pendingDockerImages };
         } catch {
           return {
             config,
             diagnostics: [],
             missingEnvResources: [] as MissingEnvResource[],
             pendingCustomDomains: [] as PendingCustomDomainIssue[],
+            pendingDockerImages: [] as PendingDockerImageIssue[],
           };
         }
       }),
@@ -582,9 +588,18 @@ export class ProjectDetailGenerationWorkflowService {
         domains: result.pendingCustomDomains,
       }));
 
+    const configsWithPendingDockerImages: ConfigPendingDockerImageGroup[] = results
+      .filter((result) => result.pendingDockerImages.length > 0)
+      .map((result) => ({
+        configId: result.config.id,
+        configName: result.config.name,
+        resources: result.pendingDockerImages,
+      }));
+
     if (configsWithIssues.length === 0
       && configsWithMissingEnvs.length === 0
-      && configsWithPendingCustomDomains.length === 0) {
+      && configsWithPendingCustomDomains.length === 0
+      && configsWithPendingDockerImages.length === 0) {
       return true;
     }
 
@@ -594,6 +609,9 @@ export class ProjectDetailGenerationWorkflowService {
         missingEnvConfigs: configsWithMissingEnvs.length > 0 ? configsWithMissingEnvs : undefined,
         pendingCustomDomainConfigs: configsWithPendingCustomDomains.length > 0
           ? configsWithPendingCustomDomains
+          : undefined,
+        pendingDockerImageConfigs: configsWithPendingDockerImages.length > 0
+          ? configsWithPendingDockerImages
           : undefined,
       } satisfies GenerationDiagnosticsDialogData,
       width: '640px',

@@ -69,6 +69,10 @@ public class WebAppConfiguration : IEntityTypeConfiguration<WebApp>
             .HasMaxLength(DockerImageNameMaxLength)
             .IsRequired(false);
 
+        builder.Property(x => x.DockerImageValidated)
+            .HasDefaultValue(false)
+            .IsRequired();
+
         builder.Property(x => x.DockerfilePath)
             .HasMaxLength(500)
             .IsRequired(false);

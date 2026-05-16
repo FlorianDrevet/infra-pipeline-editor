@@ -134,6 +134,53 @@
       color: var(--ifs-accent-500);
     }
   }
+
+  &__validate-btn {
+    flex-shrink: 0;
+    color: var(--ifs-warning);
+    margin-bottom: 0.15rem;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--ifs-warning);
+    }
+
+    &--validated {
+      color: var(--ifs-success);
+
+      &:hover {
+        color: var(--ifs-text-muted);
+      }
+    }
+  }
+}
+
+// ─── Docker Image Validation Hint ────
+
+.docker-image-validation-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  margin-top: 0.35rem;
+  border-radius: var(--ifs-radius-sm);
+  font-size: 0.75rem;
+  color: var(--ifs-warning);
+  background: rgba(245, 166, 35, 0.08);
+  border: 1px solid rgba(245, 166, 35, 0.2);
+
+  &__icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+
+  &--validated {
+    color: var(--ifs-success);
+    background: rgba(46, 125, 50, 0.08);
+    border-color: rgba(46, 125, 50, 0.2);
+  }
 }
 
 // ─── ACR Auth Mode ────

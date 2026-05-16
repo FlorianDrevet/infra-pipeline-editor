@@ -91,6 +91,7 @@ export function buildResourceEditGeneralForm(request: ResourceEditGeneralFormBui
     base['containerRegistryId'] = [selectedContainerRegistryId];
     base['acrAuthMode'] = [acrAuthMode];
     base['dockerImageName'] = [webApp.dockerImageName ?? null];
+    base['dockerImageValidated'] = [webApp.dockerImageValidated ?? false];
     base['runtimeStack'] = [webApp.runtimeStack, [Validators.required]];
     base['runtimeVersion'] = [webApp.runtimeVersion];
     base['alwaysOn'] = [webApp.alwaysOn];
@@ -109,6 +110,7 @@ export function buildResourceEditGeneralForm(request: ResourceEditGeneralFormBui
     base['containerRegistryId'] = [selectedContainerRegistryId];
     base['acrAuthMode'] = [acrAuthMode];
     base['dockerImageName'] = [functionApp.dockerImageName ?? null];
+    base['dockerImageValidated'] = [functionApp.dockerImageValidated ?? false];
     base['runtimeStack'] = [functionApp.runtimeStack, [Validators.required]];
     base['runtimeVersion'] = [functionApp.runtimeVersion];
     base['httpsOnly'] = [functionApp.httpsOnly];
@@ -134,6 +136,7 @@ export function buildResourceEditGeneralForm(request: ResourceEditGeneralFormBui
     base['containerRegistryId'] = [selectedContainerRegistryId];
     base['acrAuthMode'] = [acrAuthMode];
     base['dockerImageName'] = [containerApp.dockerImageName ?? null];
+    base['dockerImageValidated'] = [containerApp.dockerImageValidated ?? false];
     base['dockerfilePath'] = [containerApp.dockerfilePath ?? ''];
     base['applicationName'] = [containerApp.applicationName ?? ''];
   } else if (resourceType === 'ContainerAppEnvironment') {

@@ -148,6 +148,54 @@
         </div>
       }
     }
+
+    @if (hasPendingDockerImages) {
+      @if (hasDiagnostics || hasMissingEnvs || hasPendingCustomDomains) {
+        <div class="diagnostics-dialog__section-divider"></div>
+      }
+
+      <div class="diagnostics-dialog__section-header">
+        <mat-icon class="diagnostics-dialog__section-header-icon diagnostics-dialog__section-header-icon--warning">inventory_2</mat-icon>
+        <span>{{ 'GENERATION_DIAGNOSTICS.PENDING_DOCKER_IMAGES_TITLE' | translate }}</span>
+        <span class="diagnostics-dialog__count diagnostics-dialog__count--warning">{{ totalPendingDockerImageIssues }}</span>
+      </div>
+      <p class="diagnostics-dialog__subtitle">
+        {{ 'GENERATION_DIAGNOSTICS.PENDING_DOCKER_IMAGES_SUBTITLE' | translate }}
+      </p>
+
+      @for (group of data.pendingDockerImageConfigs; track group.configId) {
+        @if (isMultiConfig) {
+          <div class="diagnostics-dialog__group-header">
+            <mat-icon class="diagnostics-dialog__group-icon">settings</mat-icon>
+            <span>{{ 'GENERATION_DIAGNOSTICS.CONFIG_SECTION' | translate: { name: group.configName } }}</span>
+          </div>
+        }
+
+        <div class="diagnostics-dialog__list">
+          @for (issue of group.resources; track issue.resourceId) {
+            <div class="diagnostics-dialog__row diagnostics-dialog__row--warning">
+              <div class="diagnostics-dialog__severity-bar"></div>
+              <mat-icon class="diagnostics-dialog__row-icon">inventory_2</mat-icon>
+              <div class="diagnostics-dialog__row-body">
+                <div class="diagnostics-dialog__row-header">
+                  <span class="diagnostics-dialog__resource-name">{{ issue.resourceName }}</span>
+                  <span class="diagnostics-dialog__resource-type">{{ getResourceTypeAbbr(issue.resourceType) }}</span>
+                </div>
+                <span class="diagnostics-dialog__message">
+                  {{ 'GENERATION_DIAGNOSTICS.PENDING_DOCKER_IMAGES_ITEM' | translate: { image: issue.dockerImageName } }}
+                </span>
+              </div>
+              <button mat-icon-button
+                      class="diagnostics-dialog__navigate-btn"
+                      [matTooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                      (click)="navigateToPendingDockerImageResource(group.configId, issue)">
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    }
   </mat-dialog-content>
 
   <mat-dialog-actions class="diagnostics-dialog__actions" align="end">

@@ -17,6 +17,7 @@ export interface AzureResourceResponse {
   parentResourceId?: string;
   configuredEnvironments?: string[];
   isExisting?: boolean;
+  properties?: Record<string, string>;
   storageSubResources?: StorageAccountSubResourcesResponse;
 }
 

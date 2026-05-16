@@ -789,7 +789,8 @@
       "ACR_PULL_MISSING": "Rôle AcrPull manquant sur {{target}}",
       "KEY_VAULT_ACCESS_MISSING": "Rôle Key Vault Secrets User manquant sur {{target}}",
       "NAME_UNAVAILABLE": "Nom déjà pris sur Azure : {{target}}",
-      "DOCKER_IMAGE_NOT_SET": "Aucune image Docker configurée pour {{target}} — une image par défaut (pause) sera utilisée"
+      "DOCKER_IMAGE_NOT_SET": "Aucune image Docker configurée pour {{target}} — une image par défaut (pause) sera utilisée",
+      "DOCKER_IMAGE_NOT_VALIDATED": "Image Docker non validée pour {{target}} — une image par défaut (pause) sera utilisée tant que l'image n'est pas confirmée"
     },
     "GENERATION": {
       "TITLE": "Résultats de génération",
@@ -2016,6 +2017,12 @@
       "STEP3_DESC": "Une fois l'image disponible dans le registry, renseignez son nom (ex : myapp/api) dans le champ « Nom de l'image Docker ». Le tag sera géré automatiquement par la pipeline de déploiement.",
       "CLOSE": "Fermer"
     },
+    "DOCKER_IMAGE_VALIDATION": {
+      "VALIDATE": "Confirmer que cette image existe dans le registry",
+      "UNVALIDATE": "Annuler la confirmation de l'image",
+      "HINT_NOT_VALIDATED": "Image non confirmée — une image par défaut sera utilisée dans le Bicep généré",
+      "HINT_VALIDATED": "Image confirmée — cette image sera utilisée dans le Bicep généré"
+    },
     "CUSTOM_DOMAINS": {
       "SECTION_TITLE": "Domaines personnalisés",
       "SECTION_SUBTITLE": "Configurez les liaisons de domaines personnalisés pour cet environnement.",
@@ -2489,7 +2496,10 @@
     "MISSING_ENV_SUBTITLE": "Les ressources suivantes n'ont pas été configurées pour tous les environnements définis dans le projet.",
     "PENDING_CUSTOM_DOMAINS_TITLE": "Domaines personnalisés DNS non validés",
     "PENDING_CUSTOM_DOMAINS_SUBTITLE": "Les domaines suivants ne sont pas marqués comme validés. Ils ne seront pas inclus dans le Bicep généré tant que vous ne les aurez pas validés dans l'onglet Configuration.",
-    "PENDING_CUSTOM_DOMAINS_ITEM": "Domaine « {{domain}} » sur l'environnement {{environment}}."
+    "PENDING_CUSTOM_DOMAINS_ITEM": "Domaine « {{domain}} » sur l'environnement {{environment}}.",
+    "PENDING_DOCKER_IMAGES_TITLE": "Images Docker non confirmées",
+    "PENDING_DOCKER_IMAGES_SUBTITLE": "Les images suivantes n'ont pas été confirmées par l'utilisateur. Une image par défaut (pause) sera utilisée dans le Bicep généré tant qu'elles ne seront pas validées.",
+    "PENDING_DOCKER_IMAGES_ITEM": "Image « {{image}} » non confirmée"
   },
   "ABBREVIATIONS": {
     "TITLE": "Abréviations des ressources",

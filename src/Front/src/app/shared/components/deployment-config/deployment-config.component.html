@@ -61,8 +61,21 @@
             [label]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate"
             [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate"
             [ngModel]="dockerImageName() ?? ''"
-            (ngModelChange)="dockerImageNameChange.emit($event)"
+            (ngModelChange)="onDockerImageNameChanged($event)"
             [disabled]="!canWrite() || disabled()" />
+          @if (hasDockerImageName) {
+            <button
+              type="button"
+              mat-icon-button
+              class="docker-image-field__validate-btn"
+              [class.docker-image-field__validate-btn--validated]="dockerImageValidated()"
+              [attr.aria-label]="(dockerImageValidated() ? 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.UNVALIDATE' : 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.VALIDATE') | translate"
+              [matTooltip]="(dockerImageValidated() ? 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.UNVALIDATE' : 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.VALIDATE') | translate"
+              [disabled]="!canWrite() || disabled()"
+              (click)="toggleDockerImageValidated()">
+              <mat-icon>{{ dockerImageValidated() ? 'check_circle' : 'help_outline' }}</mat-icon>
+            </button>
+          }
           <button
             type="button"
             mat-icon-button
@@ -72,6 +85,18 @@
             <mat-icon>info_outline</mat-icon>
           </button>
         </div>
+        @if (hasDockerImageName && !dockerImageValidated()) {
+          <div class="docker-image-validation-hint">
+            <mat-icon class="docker-image-validation-hint__icon">warning_amber</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.HINT_NOT_VALIDATED' | translate }}</span>
+          </div>
+        }
+        @if (hasDockerImageName && dockerImageValidated()) {
+          <div class="docker-image-validation-hint docker-image-validation-hint--validated">
+            <mat-icon class="docker-image-validation-hint__icon">check_circle</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.HINT_VALIDATED' | translate }}</span>
+          </div>
+        }
       }
     </div>
 
