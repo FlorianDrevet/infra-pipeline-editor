@@ -60,7 +60,16 @@
     <mat-icon class="topbar__help-icon">help_outline</mat-icon>
   </a>
 
-  <div class="language-switch" role="group" [attr.aria-label]="'NAV.LANGUAGE_SELECTOR_ARIA' | translate">
+  <a
+    class="topbar__settings"
+    [routerLink]="['/settings']"
+    [attr.aria-label]="'NAV.SETTINGS' | translate"
+    [attr.title]="'NAV.SETTINGS' | translate"
+  >
+    <mat-icon class="topbar__settings-icon">tune</mat-icon>
+  </a>
+
+  <fieldset class="language-switch" [attr.aria-label]="'NAV.LANGUAGE_SELECTOR_ARIA' | translate">
     @for (language of availableLanguages; track language.code) {
       <button
         type="button"
@@ -70,7 +79,7 @@
         {{ language.labelKey | translate }}
       </button>
     }
-  </div>
+  </fieldset>
 
   <div class="user-card" [attr.aria-label]="'NAV.USER_CARD_ARIA' | translate">
     <span class="user-card__avatar">

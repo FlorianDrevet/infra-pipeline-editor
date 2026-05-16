@@ -117,6 +117,21 @@ describe('NavigationComponent', () => {
 
     expect(revokeObjectUrlSpy).toHaveBeenCalledWith('blob:graph-photo');
   });
+
+  it('Given_ComponentRenders_When_TopbarIsVisible_Then_ExposesSettingsShortcut', async () => {
+    msalAuthServiceSpy.getActiveAccount.and.resolveTo(createAccountInfo());
+    graphProfilePhotoServiceSpy.getCurrentUserPhotoBlob.and.resolveTo(null);
+
+    fixture = TestBed.createComponent(NavigationComponent);
+    fixture.detectChanges();
+    await waitForAsyncInitialization();
+    fixture.detectChanges();
+
+    const settingsLink = fixture.debugElement.query(By.css('.topbar__settings'));
+
+    expect(settingsLink).not.toBeNull();
+    expect((settingsLink.nativeElement as HTMLAnchorElement).getAttribute('href')).toContain('/settings');
+  });
 });
 
 function createAccountInfo(): AccountInfo {
@@ -127,7 +142,7 @@ function createAccountInfo(): AccountInfo {
     username: 'john.doe@contoso.com',
     localAccountId: 'local-account-id',
     name: 'John Doe',
-  } as AccountInfo;
+  };
 }
 
 async function waitForAsyncInitialization(): Promise<void> {
