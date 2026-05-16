@@ -948,7 +948,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
 
         var resourceCustomDomains = customDomains
             .Where(cd => cd.ResourceId == r.Id)
-            .Select(cd => new CustomDomainReadModel(cd.EnvironmentName, cd.DomainName, cd.BindingType, cd.DnsValidationStatus.Value.ToString()))
+            .Select(cd => new CustomDomainReadModel(cd.EnvironmentName, cd.DomainName, cd.CertificateMode.Value.ToString(), cd.KeyVaultUrl, cd.ManagedIdentityResourceId, cd.CertificateName, cd.DnsValidationStatus.Value.ToString()))
             .ToList();
 
         return readModel with

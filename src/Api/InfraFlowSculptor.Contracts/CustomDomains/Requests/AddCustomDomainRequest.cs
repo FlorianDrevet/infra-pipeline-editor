@@ -15,7 +15,19 @@ public class AddCustomDomainRequest
     [MaxLength(253)]
     public required string DomainName { get; init; }
 
-    /// <summary>SSL binding type: "SniEnabled" (default) or "Disabled".</summary>
-    [MaxLength(20)]
-    public string BindingType { get; init; } = "SniEnabled";
+    /// <summary>Certificate provisioning mode: "ManagedCertificate" (default), "KeyVaultCertificate", "ManualCertificate", or "Disabled".</summary>
+    [MaxLength(30)]
+    public string CertificateMode { get; init; } = "ManagedCertificate";
+
+    /// <summary>Azure Key Vault secret URL (required for KeyVaultCertificate mode).</summary>
+    [MaxLength(500)]
+    public string? KeyVaultUrl { get; init; }
+
+    /// <summary>Resource ID of the managed identity for Key Vault access (required for KeyVaultCertificate mode).</summary>
+    [MaxLength(500)]
+    public string? ManagedIdentityResourceId { get; init; }
+
+    /// <summary>Name of the manually uploaded certificate in the Container App Environment (required for ManualCertificate mode).</summary>
+    [MaxLength(200)]
+    public string? CertificateName { get; init; }
 }

@@ -446,12 +446,18 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// </summary>
     /// <param name="environmentName">The deployment environment name.</param>
     /// <param name="domainName">The fully qualified domain name.</param>
-    /// <param name="bindingType">The SSL binding type (default: "SniEnabled").</param>
+    /// <param name="certificateMode">The certificate provisioning mode.</param>
+    /// <param name="keyVaultUrl">Key Vault secret URL (Key Vault mode only).</param>
+    /// <param name="managedIdentityResourceId">Managed identity resource ID (Key Vault mode only).</param>
+    /// <param name="certificateName">Certificate name in the environment (Manual mode only).</param>
     /// <returns>The created <see cref="CustomDomain"/>, or an error if duplicate.</returns>
     public ErrorOr<CustomDomain> AddCustomDomain(
         string environmentName,
         string domainName,
-        string bindingType = "SniEnabled")
+        CertificateMode certificateMode,
+        string? keyVaultUrl = null,
+        string? managedIdentityResourceId = null,
+        string? certificateName = null)
     {
         if (IsExisting)
             return Errors.Errors.CustomDomain.NotSupportedForExistingResource();
@@ -463,7 +469,14 @@ public class AzureResource : AggregateRoot<AzureResourceId>
                 cd.DomainName == normalizedDomain))
             return Errors.Errors.CustomDomain.DuplicateDomain(environmentName, normalizedDomain);
 
-        var customDomain = CustomDomain.Create(Id, environmentName, normalizedDomain, bindingType);
+        var customDomain = CustomDomain.Create(
+            Id,
+            environmentName,
+            normalizedDomain,
+            certificateMode,
+            keyVaultUrl,
+            managedIdentityResourceId,
+            certificateName);
         _customDomains.Add(customDomain);
         return customDomain;
     }

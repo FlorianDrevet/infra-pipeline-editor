@@ -8,5 +8,8 @@ public sealed record CustomDomainResult(
     AzureResourceId ResourceId,
     string EnvironmentName,
     string DomainName,
-    string BindingType,
+    string CertificateMode,
+    string? KeyVaultUrl,
+    string? ManagedIdentityResourceId,
+    string? CertificateName,
     string DnsValidationStatus);

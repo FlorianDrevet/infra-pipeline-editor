@@ -36,10 +36,23 @@ public sealed class CustomDomainConfiguration : IEntityTypeConfiguration<CustomD
             .IsRequired()
             .HasMaxLength(253);
 
-        builder.Property(cd => cd.BindingType)
+        builder.Property(cd => cd.CertificateMode)
+            .HasConversion(
+                v => v.Value.ToString(),
+                v => new CertificateMode(
+                    Enum.Parse<CertificateMode.CertificateModeType>(v)))
             .IsRequired()
-            .HasMaxLength(20)
-            .HasDefaultValue("SniEnabled");
+            .HasMaxLength(30)
+            .HasDefaultValue(CertificateMode.ManagedCertificate);
+
+        builder.Property(cd => cd.KeyVaultUrl)
+            .HasMaxLength(500);
+
+        builder.Property(cd => cd.ManagedIdentityResourceId)
+            .HasMaxLength(500);
+
+        builder.Property(cd => cd.CertificateName)
+            .HasMaxLength(200);
 
         builder.Property(cd => cd.DnsValidationStatus)
             .HasConversion(

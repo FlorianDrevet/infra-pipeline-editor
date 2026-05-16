@@ -81,7 +81,11 @@ internal static class ParameterFileAssembler
                 .Select(cd => (object)BicepParameterModelConverter.ToDictionary(new CustomDomainParameter
                 {
                     DomainName = cd.DomainName,
-                    BindingType = cd.BindingType,
+                    BindingType = MapCertificateModeToBindingType(cd.CertificateMode),
+                    CertificateMode = cd.CertificateMode,
+                    KeyVaultUrl = cd.KeyVaultUrl,
+                    ManagedIdentityResourceId = cd.ManagedIdentityResourceId,
+                    CertificateName = cd.CertificateName,
                 }))
                 .ToList<object>();
         }

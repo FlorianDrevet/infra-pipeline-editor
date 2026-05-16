@@ -51,11 +51,11 @@ describe('DnsInstructionsDialogComponent', () => {
           DNS_DIALOG_CLOSE: 'Fermer',
           DNS_DIALOG_STEPS: {
             CNAME_TITLE: 'Déployer l’infrastructure puis créer un enregistrement CNAME',
-            CONTAINER_APP_CNAME_DESC: "Déployez d’abord l’infrastructure. Ensuite, dans le portail Azure, ouvrez votre Container App, puis allez dans Networking > Custom domains > Add custom domain. Si l’entrée réseau n’est pas encore activée, activez d’abord l’ingress sur le Container App. Dans la section Domain validation, copiez la valeur Generated domain et utilisez-la comme cible CNAME pour '{{domainName}}'. N’ouvrez pas l’environnement Container App pour cette étape.",
+            CONTAINER_APP_CNAME_DESC: "Déployez d’abord l’infrastructure (sans le binding du domaine personnalisé — il sera ajouté après la validation DNS). Une fois déployée, ouvrez votre Container App dans le portail Azure, allez dans Networking > Custom domains. En haut de la page, notez le champ 'IP address' (utilisable aussi pour un enregistrement A). Pour un CNAME, allez dans Overview et copiez l’Application URL (sans https://) comme cible CNAME pour '{{domainName}}'.",
             TXT_TITLE: 'Créer un enregistrement TXT de validation',
-            CONTAINER_APP_TXT_DESC: "Toujours dans le Container App, dans Networking > Custom domains > Add custom domain, récupérez la valeur Domain verification code affichée dans la section Domain validation. Créez ensuite un enregistrement TXT sur '{{recordName}}' avec cette valeur.",
+            CONTAINER_APP_TXT_DESC: "Sur la même page Custom domains (Container App > Networking > Custom domains), copiez le 'Custom Domain Verification ID' affiché en haut de la page. Créez ensuite un enregistrement TXT sur '{{recordName}}' avec cette valeur.",
             VALIDATE_TITLE: 'Valider le DNS',
-            VALIDATE_DESC: 'Après propagation DNS, retournez dans le Container App sur Networking > Custom domains, relancez Add custom domain si nécessaire, puis cliquez sur Validate dans Azure. Une fois les valeurs reconnues, revenez ici et cliquez sur « Valider le DNS ».',
+            VALIDATE_DESC: 'Après propagation DNS, revenez ici et cliquez sur « Valider le DNS ». Une fois validé, le prochain déploiement de l’infrastructure créera automatiquement le binding du domaine personnalisé avec un certificat managé.',
           },
         },
       },
@@ -78,12 +78,12 @@ describe('DnsInstructionsDialogComponent', () => {
     expect(renderedText).toContain('Commencez par déployer l’infrastructure. Tant que l’infra n’est pas déployée');
     expect(renderedText).toContain('Déployer l’infrastructure puis créer un enregistrement CNAME');
     expect(renderedText).toContain('portail Azure');
-    expect(renderedText).toContain('Networking > Custom domains > Add custom domain');
-    expect(renderedText).toContain('Domain validation');
-    expect(renderedText).toContain('Generated domain');
-    expect(renderedText).toContain('Domain verification code');
-    expect(renderedText).toContain('activez d’abord l’ingress');
-    expect(renderedText).toContain('N’ouvrez pas l’environnement Container App pour cette étape');
+    expect(renderedText).toContain('Networking > Custom domains');
+    expect(renderedText).toContain('IP address');
+    expect(renderedText).toContain('Custom Domain Verification ID');
+    expect(renderedText).toContain('Application URL');
+    expect(renderedText).toContain('sans le binding du domaine');
+    expect(renderedText).toContain('certificat managé');
     expect(renderedText).toContain('Créer un enregistrement TXT de validation');
     expect(renderedText).not.toContain('Create a CNAME record');
     expect(renderedText).not.toContain('Create a TXT verification record');

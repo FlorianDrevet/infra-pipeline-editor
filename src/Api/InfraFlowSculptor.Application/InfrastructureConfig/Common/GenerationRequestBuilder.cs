@@ -243,7 +243,10 @@ internal static class GenerationRequestBuilder
             {
                 EnvironmentName = customDomain.EnvironmentName,
                 DomainName = customDomain.DomainName,
-                BindingType = customDomain.BindingType,
+                CertificateMode = customDomain.CertificateMode,
+                KeyVaultUrl = customDomain.KeyVaultUrl,
+                ManagedIdentityResourceId = customDomain.ManagedIdentityResourceId,
+                CertificateName = customDomain.CertificateName,
                 DnsValidationStatus = customDomain.DnsValidationStatus,
             })
             .ToList();

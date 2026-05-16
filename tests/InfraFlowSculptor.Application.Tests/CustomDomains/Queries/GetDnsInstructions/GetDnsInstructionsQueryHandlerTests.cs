@@ -79,16 +79,17 @@ public sealed class GetDnsInstructionsQueryHandlerTests
         var cnameStep = result.Value.Steps[0];
         cnameStep.Description.Should().Contain("Container App");
         cnameStep.Description.Should().Contain("Networking > Custom domains");
-        cnameStep.Description.Should().Contain("Add custom domain");
-        cnameStep.RecordValue.Should().Be("<generated-domain-from-container-app-custom-domains>");
+        cnameStep.Description.Should().Contain("IP address");
+        cnameStep.Description.Should().Contain("Application URL");
+        cnameStep.RecordValue.Should().Be("<application-url-from-container-app-overview>");
 
         var txtStep = result.Value.Steps[1];
-        txtStep.Description.Should().Contain("Domain validation");
+        txtStep.Description.Should().Contain("Custom Domain Verification ID");
         txtStep.RecordName.Should().Be("asuid.infraflowsculptor.fr");
-        txtStep.RecordValue.Should().Be("<domain-verification-code-from-container-app-custom-domains>");
+        txtStep.RecordValue.Should().Be("<custom-domain-verification-id-from-container-app>");
 
         var validateStep = result.Value.Steps[2];
-        validateStep.Description.Should().Contain("Validate");
-        validateStep.Description.Should().Contain("Custom domains");
+        validateStep.Description.Should().Contain("Validate DNS");
+        validateStep.Description.Should().Contain("managed certificate");
     }
 }

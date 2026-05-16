@@ -76,23 +76,27 @@ public sealed class GetDnsInstructionsQueryHandler(
             new DnsInstructionStep(
                 Order: 1,
                 Title: "Create a CNAME record",
-                Description: $"Deploy the infrastructure first. In the Azure portal, open Container App '{resourceName}', then go to Networking > Custom domains > Add custom domain. "
-                             + $"If you do not see Custom domains yet, enable ingress on the Container App first. In the Domain validation section, copy the Generated domain value and use it as the CNAME target for '{domainName}'. "
-                             + "Do not use the Container App Environment for this step.",
+                Description: $"Deploy the infrastructure first (without the custom domain binding — it will be added after DNS validation). "
+                             + $"Once deployed, open Container App '{resourceName}' in the Azure portal, go to Networking > Custom domains. "
+                             + "At the top of the page, note the 'IP address' field (you can also use it for an A record). "
+                             + $"For a CNAME, go to Overview and copy the Application URL (without https://) as the CNAME target for '{domainName}'.",
                 RecordType: CnameRecordType,
                 RecordName: domainName,
-                RecordValue: "<generated-domain-from-container-app-custom-domains>"),
+                RecordValue: "<application-url-from-container-app-overview>"),
             new DnsInstructionStep(
                 Order: 2,
                 Title: "Create a TXT verification record",
-                Description: $"In the same Add custom domain wizard, copy the Domain verification code shown in Domain validation and create a TXT record at '{AsuidPrefix}{domainName}' with that value.",
+                Description: $"On the same Custom domains page (Container App '{resourceName}' > Networking > Custom domains), "
+                             + "copy the 'Custom Domain Verification ID' displayed at the top of the page. "
+                             + $"Create a TXT record at '{AsuidPrefix}{domainName}' with that value.",
                 RecordType: TxtRecordType,
                 RecordName: $"{AsuidPrefix}{domainName}",
-                RecordValue: "<domain-verification-code-from-container-app-custom-domains>"),
+                RecordValue: "<custom-domain-verification-id-from-container-app>"),
             new DnsInstructionStep(
                 Order: 3,
                 Title: ValidateDnsTitle,
-                Description: $"After DNS propagation, return to Container App '{resourceName}' > Networking > Custom domains, reopen Add custom domain if needed, click 'Validate' in Azure, then return here and click 'Validate DNS'.",
+                Description: $"After DNS propagation, return here and click 'Validate DNS'. "
+                             + $"Once validated, the next infrastructure deployment will create the custom domain binding with a managed certificate on Container App '{resourceName}'.",
                 RecordType: null,
                 RecordName: null,
                 RecordValue: null),

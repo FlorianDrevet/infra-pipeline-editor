@@ -38,7 +38,10 @@ public record AzureResourceReadModel(
 public record CustomDomainReadModel(
     string EnvironmentName,
     string DomainName,
-    string BindingType,
+    string CertificateMode,
+    string? KeyVaultUrl,
+    string? ManagedIdentityResourceId,
+    string? CertificateName,
     string DnsValidationStatus);
 
 public record ResourceEnvironmentConfigReadModel(
