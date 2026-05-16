@@ -19,7 +19,14 @@
   font-size: 1.3rem;
   width: 1.3rem;
   height: 1.3rem;
-  color: var(--ifs-danger);
+
+  &--error {
+    color: var(--ifs-danger);
+  }
+
+  &--warning {
+    color: var(--ifs-warning);
+  }
 }
 
 .diagnostics-dialog__count {

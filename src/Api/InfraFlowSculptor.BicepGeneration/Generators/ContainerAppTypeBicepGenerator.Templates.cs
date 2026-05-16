@@ -72,7 +72,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
         param containerAppEnvironmentId string
 
         @description('Container image (overridden by app pipeline after first deploy)')
-        param containerImage string = 'mcr.microsoft.com/k8s/core/pause:3.6'
+        param containerImage string = '{{DefaultContainerImage}}'
 
         @description('Container runtime configuration')
         param containerRuntime ContainerRuntimeConfig
@@ -172,7 +172,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
         param containerAppEnvironmentId string
 
         @description('Container image (overridden by app pipeline after first deploy)')
-        param containerImage string = 'mcr.microsoft.com/k8s/core/pause:3.6'
+        param containerImage string = '{{DefaultContainerImage}}'
 
         @description('Container runtime configuration')
         param containerRuntime ContainerRuntimeConfig
@@ -284,7 +284,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
         param containerAppEnvironmentId string
 
         @description('Container image (overridden by app pipeline after first deploy)')
-        param containerImage string = 'mcr.microsoft.com/k8s/core/pause:3.6'
+        param containerImage string = '{{DefaultContainerImage}}'
 
         @description('Container runtime configuration')
         param containerRuntime ContainerRuntimeConfig

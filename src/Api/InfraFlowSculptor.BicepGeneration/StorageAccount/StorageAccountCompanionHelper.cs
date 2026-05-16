@@ -45,13 +45,15 @@ internal static class StorageAccountCompanionHelper
     internal static IEnumerable<(string Name, string Description, IReadOnlyList<BlobCorsRuleData> Value)> GetStorageAccountCorsParameters(
         GeneratedTypeModule module)
     {
+        var storageAccountName = GetStorageAccountDisplayName(module);
+
         foreach (var companion in module.CompanionModules)
         {
             if (companion.CorsRules.Count > 0)
             {
                 yield return (
                     GetStorageAccountCorsParameterName(module, companion),
-                    $"Blob service CORS rules for storage account '{module.LogicalResourceName}'",
+                    $"Blob service CORS rules for storage account {storageAccountName}.",
                     companion.CorsRules);
             }
 
@@ -59,7 +61,7 @@ internal static class StorageAccountCompanionHelper
             {
                 yield return (
                     GetStorageAccountCorsParameterName(module, companion),
-                    $"Table service CORS rules for storage account '{module.LogicalResourceName}'",
+                    $"Table service CORS rules for storage account {storageAccountName}.",
                     companion.TableCorsRules);
             }
         }
@@ -91,16 +93,25 @@ internal static class StorageAccountCompanionHelper
     internal static IEnumerable<(string Name, string Description, IReadOnlyList<ContainerLifecycleRuleData> Value)> GetStorageAccountLifecycleParameters(
         GeneratedTypeModule module)
     {
+        var storageAccountName = GetStorageAccountDisplayName(module);
+
         foreach (var companion in module.CompanionModules)
         {
             if (companion.LifecycleRules.Count > 0)
             {
                 yield return (
                     GetStorageAccountLifecycleParameterName(module, companion),
-                    $"Blob lifecycle management rules for storage account '{module.LogicalResourceName}'",
+                    $"Blob lifecycle management rules for storage account {storageAccountName}.",
                     companion.LifecycleRules);
             }
         }
+    }
+
+    private static string GetStorageAccountDisplayName(GeneratedTypeModule module)
+    {
+        return string.IsNullOrWhiteSpace(module.LogicalResourceName)
+            ? module.ModuleName
+            : module.LogicalResourceName;
     }
 
     internal static IEnumerable<string> RenderLifecycleRules(IReadOnlyList<ContainerLifecycleRuleData> rules, int indentLevel = 0)

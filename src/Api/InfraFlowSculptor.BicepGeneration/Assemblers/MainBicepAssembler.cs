@@ -273,7 +273,7 @@ internal static class MainBicepAssembler
             var paramName = BicepNamingHelper.GetSecureAppSettingParamName(setting.TargetResourceName, setting.SecretName!);
             sb.AppendLine();
             sb.AppendLine("@secure()");
-            sb.AppendLine($"@description('Secret value for Key Vault secret \\\'{BicepFormattingHelper.EscapeBicepString(setting.SecretName!)}\\\' used by {setting.TargetResourceName}')");
+            AppendDescriptionDecorator(sb, BuildKeyVaultSecretValueDescription(setting));
             sb.AppendLine($"param {paramName} string");
         }
     }
@@ -366,6 +366,11 @@ internal static class MainBicepAssembler
             : module.LogicalResourceName;
         var valueQualifier = isSecure ? "Secure value" : "Value";
 
-        return $"{valueQualifier} for the '{parameterName}' input of {resourceTypeName} resource '{resourceName}'.";
+        return $"{valueQualifier} for {parameterName} of {resourceTypeName} resource {resourceName}.";
+    }
+
+    private static string BuildKeyVaultSecretValueDescription(AppSettingDefinition setting)
+    {
+        return $"Secret value for Key Vault secret {setting.SecretName!} used by {setting.TargetResourceName}.";
     }
 }

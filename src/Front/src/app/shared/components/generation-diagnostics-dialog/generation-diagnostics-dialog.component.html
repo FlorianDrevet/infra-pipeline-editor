@@ -1,8 +1,13 @@
 <div class="diagnostics-dialog">
   <h2 mat-dialog-title class="diagnostics-dialog__title">
-    <mat-icon class="diagnostics-dialog__title-icon">gpp_bad</mat-icon>
+    <mat-icon
+      class="diagnostics-dialog__title-icon"
+      [class.diagnostics-dialog__title-icon--error]="hasErrorDiagnostics"
+      [class.diagnostics-dialog__title-icon--warning]="!hasErrorDiagnostics">
+      {{ dialogTitleIcon }}
+    </mat-icon>
     <span>{{ 'GENERATION_DIAGNOSTICS.TITLE' | translate }}</span>
-    <span class="diagnostics-dialog__count">{{ totalIssues }}</span>
+    <span class="diagnostics-dialog__count" [class.diagnostics-dialog__count--warning]="!hasErrorDiagnostics">{{ totalIssues }}</span>
   </h2>
 
   <mat-dialog-content class="diagnostics-dialog__content">
@@ -17,7 +22,7 @@
         <span class="diagnostics-dialog__count">{{ totalDiagnostics }}</span>
       </div>
 
-      @for (group of data.configDiagnostics; track group.configId) {
+      @for (group of regularDiagnosticConfigs; track group.configId) {
         @if (isMultiConfig) {
           <div class="diagnostics-dialog__group-header">
             <mat-icon class="diagnostics-dialog__group-icon">settings</mat-icon>
@@ -163,7 +168,7 @@
         {{ 'GENERATION_DIAGNOSTICS.PENDING_DOCKER_IMAGES_SUBTITLE' | translate }}
       </p>
 
-      @for (group of data.pendingDockerImageConfigs; track group.configId) {
+      @for (group of pendingDockerImageDialogGroups; track group.configId) {
         @if (isMultiConfig) {
           <div class="diagnostics-dialog__group-header">
             <mat-icon class="diagnostics-dialog__group-icon">settings</mat-icon>
@@ -172,6 +177,26 @@
         }
 
         <div class="diagnostics-dialog__list">
+          @for (diag of group.diagnosticIssues; track diag.ruleCode + diag.resourceId + diag.targetResourceName) {
+            <div class="diagnostics-dialog__row diagnostics-dialog__row--warning">
+              <div class="diagnostics-dialog__severity-bar"></div>
+              <mat-icon class="diagnostics-dialog__row-icon">inventory_2</mat-icon>
+              <div class="diagnostics-dialog__row-body">
+                <div class="diagnostics-dialog__row-header">
+                  <span class="diagnostics-dialog__resource-name">{{ diag.resourceName }}</span>
+                  <span class="diagnostics-dialog__resource-type">{{ getResourceTypeAbbr(diag.resourceType) }}</span>
+                </div>
+                <span class="diagnostics-dialog__message">{{ getTranslatedMessage(diag) }}</span>
+              </div>
+              <button mat-icon-button
+                      class="diagnostics-dialog__navigate-btn"
+                      [matTooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                      (click)="navigateToResource(group.configId, diag)">
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          }
+
           @for (issue of group.resources; track issue.resourceId) {
             <div class="diagnostics-dialog__row diagnostics-dialog__row--warning">
               <div class="diagnostics-dialog__severity-bar"></div>

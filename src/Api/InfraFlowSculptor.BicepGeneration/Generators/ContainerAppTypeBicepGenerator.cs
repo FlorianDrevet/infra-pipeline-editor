@@ -49,7 +49,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
     private const string AcrPasswordSecretNameVariableName = "acrPasswordSecretName";
     private const string ContainerAppArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.ContainerAppArmType;
     private const string ContainerImageParameterName = "containerImage";
-    private const string DefaultContainerImage = "mcr.microsoft.com/k8s/core/pause:3.6";
+    private const string DefaultContainerImage = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest";
     private const string DefaultContainerCpuCores = "0.25";
     private const string DefaultContainerMemoryGi = "0.5Gi";
     private const string DefaultTransportMethod = "auto";

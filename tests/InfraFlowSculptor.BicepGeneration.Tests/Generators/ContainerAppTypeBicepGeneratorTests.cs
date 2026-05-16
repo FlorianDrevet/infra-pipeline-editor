@@ -137,6 +137,17 @@ public sealed class ContainerAppTypeBicepGeneratorTests
             .Which.Type.Should().Be(BicepType.String);
     }
 
+    [Fact]
+    public void Given_NoAcrResource_When_GenerateSpec_Then_ContainerImageDefaultsToAzureDocsHelloWorld()
+    {
+        var spec = _sut.GenerateSpec(CreateNoAcrResource());
+
+        var parameter = spec.Parameters.Should().Contain(p => p.Name == "containerImage").Subject;
+
+        parameter.DefaultValue.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("mcr.microsoft.com/azuredocs/containerapps-helloworld:latest");
+    }
+
     [Theory]
     [InlineData("containerRuntime", "ContainerRuntimeConfig")]
     [InlineData("scaling", "ScalingConfig")]
@@ -421,6 +432,14 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     {
         var module = _sut.Generate(CreateNoAcrResource());
         module.ModuleFileName.Should().Be("containerApp.module.bicep");
+    }
+
+    [Fact]
+    public void Given_NoAcrResource_When_Generate_Then_ModuleTemplateUsesAzureDocsHelloWorldDefault()
+    {
+        var module = _sut.Generate(CreateNoAcrResource());
+
+        module.ModuleBicepContent.Should().Contain("param containerImage string = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'");
     }
 
     [Fact]

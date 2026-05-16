@@ -32,6 +32,9 @@ const ARM_TYPE_TO_FRIENDLY: Record<string, string> = {
   'Microsoft.EventHub/namespaces': 'EventHubNamespace',
 };
 
+const WarningSeverity = 'warning';
+const DockerImageNotValidatedRuleCode = 'DOCKER_IMAGE_NOT_VALIDATED';
+
 export interface ConfigDiagnosticGroup {
   configId: string;
   configName: string;
@@ -70,6 +73,13 @@ export interface ConfigPendingDockerImageGroup {
   resources: PendingDockerImageIssue[];
 }
 
+interface ConfigPendingDockerImageDialogGroup {
+  configId: string;
+  configName: string;
+  diagnosticIssues: ResourceDiagnosticResponse[];
+  resources: PendingDockerImageIssue[];
+}
+
 export interface GenerationDiagnosticsDialogData {
   configDiagnostics: ConfigDiagnosticGroup[];
   missingEnvConfigs?: ConfigMissingEnvGroup[];
@@ -97,7 +107,69 @@ export class GenerationDiagnosticsDialogComponent {
   private readonly translate = inject(TranslateService);
   protected readonly data: GenerationDiagnosticsDialogData = inject(MAT_DIALOG_DATA);
 
-  protected readonly totalDiagnostics = this.data.configDiagnostics.reduce(
+  protected readonly regularDiagnosticConfigs: ConfigDiagnosticGroup[] = this.data.configDiagnostics
+    .map((group) => ({
+      ...group,
+      diagnostics: group.diagnostics.filter((diagnostic) => diagnostic.ruleCode !== DockerImageNotValidatedRuleCode),
+    }))
+    .filter((group) => group.diagnostics.length > 0);
+
+  protected readonly pendingDockerImageDialogGroups: ConfigPendingDockerImageDialogGroup[] = (() => {
+    const groups = new Map<string, ConfigPendingDockerImageDialogGroup>();
+    const explicitDockerImageIssueKeys = new Set<string>();
+
+    const getOrCreateGroup = (configId: string, configName: string): ConfigPendingDockerImageDialogGroup => {
+      const existingGroup = groups.get(configId);
+      if (existingGroup) {
+        return existingGroup;
+      }
+
+      const createdGroup: ConfigPendingDockerImageDialogGroup = {
+        configId,
+        configName,
+        diagnosticIssues: [],
+        resources: [],
+      };
+      groups.set(configId, createdGroup);
+      return createdGroup;
+    };
+
+    for (const group of this.data.pendingDockerImageConfigs ?? []) {
+      const targetGroup = getOrCreateGroup(group.configId, group.configName);
+      for (const resource of group.resources) {
+        const issueKey = `${group.configId}:${resource.resourceId}`;
+        if (explicitDockerImageIssueKeys.has(issueKey)) {
+          continue;
+        }
+
+        explicitDockerImageIssueKeys.add(issueKey);
+        targetGroup.resources.push(resource);
+      }
+    }
+
+    for (const group of this.data.configDiagnostics) {
+      const dockerDiagnostics = group.diagnostics.filter((diagnostic) => {
+        if (diagnostic.ruleCode !== DockerImageNotValidatedRuleCode) {
+          return false;
+        }
+
+        const issueKey = `${group.configId}:${diagnostic.resourceId}`;
+        return !explicitDockerImageIssueKeys.has(issueKey);
+      });
+
+      if (dockerDiagnostics.length === 0) {
+        continue;
+      }
+
+      const targetGroup = getOrCreateGroup(group.configId, group.configName);
+      targetGroup.diagnosticIssues.push(...dockerDiagnostics);
+    }
+
+    return Array.from(groups.values())
+      .filter((group) => group.diagnosticIssues.length > 0 || group.resources.length > 0);
+  })();
+
+  protected readonly totalDiagnostics = this.regularDiagnosticConfigs.reduce(
     (sum, g) => sum + g.diagnostics.length, 0,
   );
 
@@ -109,8 +181,8 @@ export class GenerationDiagnosticsDialogComponent {
     (sum, g) => sum + g.domains.length, 0,
   );
 
-  protected readonly totalPendingDockerImageIssues = (this.data.pendingDockerImageConfigs ?? []).reduce(
-    (sum, g) => sum + g.resources.length, 0,
+  protected readonly totalPendingDockerImageIssues = this.pendingDockerImageDialogGroups.reduce(
+    (sum, g) => sum + g.resources.length + g.diagnosticIssues.length, 0,
   );
 
   protected readonly totalIssues = this.totalDiagnostics + this.totalMissingEnvIssues + this.totalPendingCustomDomainIssues + this.totalPendingDockerImageIssues;
@@ -119,6 +191,12 @@ export class GenerationDiagnosticsDialogComponent {
   protected readonly hasMissingEnvs = this.totalMissingEnvIssues > 0;
   protected readonly hasPendingCustomDomains = this.totalPendingCustomDomainIssues > 0;
   protected readonly hasPendingDockerImages = this.totalPendingDockerImageIssues > 0;
+
+  protected readonly hasErrorDiagnostics = this.regularDiagnosticConfigs.some((group) =>
+    group.diagnostics.some((diagnostic) => diagnostic.severity?.toLowerCase() !== WarningSeverity),
+  );
+
+  protected readonly dialogTitleIcon = this.hasErrorDiagnostics ? 'gpp_bad' : 'warning_amber';
 
   protected readonly isMultiConfig = (() => {
     const configIds = new Set<string>();
@@ -130,11 +208,11 @@ export class GenerationDiagnosticsDialogComponent {
   })();
 
   protected getSeverityIcon(severity: string): string {
-    return severity?.toLowerCase() === 'warning' ? 'warning' : 'gpp_bad';
+    return severity?.toLowerCase() === WarningSeverity ? 'warning' : 'gpp_bad';
   }
 
   protected getSeverityClass(severity: string): string {
-    return severity?.toLowerCase() === 'warning' ? 'warning' : 'error';
+    return severity?.toLowerCase() === WarningSeverity ? 'warning' : 'error';
   }
 
   protected getResourceTypeAbbr(resourceType: string): string {
