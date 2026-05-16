@@ -2039,7 +2039,20 @@
       "DNS_STEP4_TITLE": "Create a TXT verification record",
       "DNS_STEP4_DESC": "In your DNS provider, create a TXT record: Host = \"asuid.\" followed by your subdomain (e.g., \"asuid.api\" for api.example.com) → Value = the Custom Domain Verification ID copied in step 2. This proves you own the domain.",
       "DNS_STEP5_TITLE": "Add your domain here and wait for validation",
-      "DNS_STEP5_DESC": "Once the DNS records have propagated (this can take a few minutes to 48 hours), come back here and add your domain using the button above. Azure will automatically verify the DNS records and provision a managed TLS certificate."
+      "DNS_STEP5_DESC": "Once the DNS records have propagated (this can take a few minutes to 48 hours), come back here and add your domain using the button above. Azure will automatically verify the DNS records and provision a managed TLS certificate.",
+      "DNS_VALIDATED": "DNS Validated",
+      "DNS_PENDING": "Pending",
+      "DNS_INSTRUCTIONS": "DNS Instructions",
+      "VALIDATE_DNS": "Mark DNS as validated",
+      "VALIDATE_ERROR": "DNS validation error",
+      "DNS_DIALOG_TITLE": "DNS Configuration",
+      "DNS_DIALOG_SUBTITLE": "Follow these steps to configure your domain",
+      "DNS_DIALOG_RECORD_CARD": "DNS record to create",
+      "DNS_DIALOG_RECORD_TYPE": "Type",
+      "DNS_DIALOG_RECORD_NAME": "Name",
+      "DNS_DIALOG_RECORD_VALUE": "Value",
+      "DNS_DIALOG_COPIED": "Copied!",
+      "DNS_DIALOG_CLOSE": "Close"
     },
     "APP_SETTINGS": {
       "DESCRIPTION": "Configure environment variables for this compute resource. Reference outputs from other resources or set static values.",

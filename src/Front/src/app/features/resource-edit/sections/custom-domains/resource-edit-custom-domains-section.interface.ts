@@ -10,4 +10,6 @@ export interface ResourceEditCustomDomainsSection {
   domainsForEnvironment(environmentName: string): CustomDomainResponse[];
   openAddDialog(environmentName: string): void;
   removeDomain(domain: CustomDomainResponse): void;
+  validateDns(domain: CustomDomainResponse): void;
+  showDnsInstructions(domain: CustomDomainResponse): void;
 }

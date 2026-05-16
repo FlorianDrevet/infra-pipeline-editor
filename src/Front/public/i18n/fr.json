@@ -2031,7 +2031,20 @@
       "DNS_STEP4_TITLE": "Créer un enregistrement TXT de vérification",
       "DNS_STEP4_DESC": "Chez votre fournisseur DNS, créez un enregistrement TXT : Hôte = « asuid. » suivi de votre sous-domaine (ex : « asuid.api » pour api.example.com) → Valeur = l'ID de vérification copié à l'étape 2. Cela prouve que vous êtes propriétaire du domaine.",
       "DNS_STEP5_TITLE": "Ajoutez votre domaine ici et attendez la validation",
-      "DNS_STEP5_DESC": "Une fois les enregistrements DNS propagés (cela peut prendre quelques minutes à 48 heures), revenez ici et ajoutez votre domaine avec le bouton ci-dessus. Azure vérifiera automatiquement les enregistrements DNS et provisionnera un certificat TLS géré."
+      "DNS_STEP5_DESC": "Une fois les enregistrements DNS propagés (cela peut prendre quelques minutes à 48 heures), revenez ici et ajoutez votre domaine avec le bouton ci-dessus. Azure vérifiera automatiquement les enregistrements DNS et provisionnera un certificat TLS géré.",
+      "DNS_VALIDATED": "DNS validé",
+      "DNS_PENDING": "En attente",
+      "DNS_INSTRUCTIONS": "Instructions DNS",
+      "VALIDATE_DNS": "Marquer le DNS comme validé",
+      "VALIDATE_ERROR": "Erreur lors de la validation DNS",
+      "DNS_DIALOG_TITLE": "Configuration DNS",
+      "DNS_DIALOG_SUBTITLE": "Suivez ces étapes pour configurer votre domaine",
+      "DNS_DIALOG_RECORD_CARD": "Enregistrement DNS à créer",
+      "DNS_DIALOG_RECORD_TYPE": "Type",
+      "DNS_DIALOG_RECORD_NAME": "Nom",
+      "DNS_DIALOG_RECORD_VALUE": "Valeur",
+      "DNS_DIALOG_COPIED": "Copié !",
+      "DNS_DIALOG_CLOSE": "Fermer"
     },
     "APP_SETTINGS": {
       "DESCRIPTION": "Configurez les variables d'environnement pour cette ressource de calcul. Référencez les sorties d'autres ressources ou définissez des valeurs statiques.",

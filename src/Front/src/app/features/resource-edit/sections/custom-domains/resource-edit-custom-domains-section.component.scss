@@ -173,6 +173,32 @@
   &--disabled {
     color: var(--ifs-text-muted);
   }
+
+  &--pending {
+    background: rgba(255, 152, 0, 0.15);
+    color: #e65100;
+    border-color: rgba(255, 152, 0, 0.4);
+  }
+
+  &--validated {
+    background: rgba(76, 175, 80, 0.15);
+    color: #2e7d32;
+    border-color: rgba(76, 175, 80, 0.4);
+  }
+
+  &__icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    margin-right: 2px;
+  }
+}
+
+.cd-domain-row__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ifs-space-2);
+  flex-shrink: 0;
 }
 
 .custom-domains-section {
