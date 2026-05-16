@@ -1,5 +1,6 @@
 ﻿# Changelog
 
+- [2026-05-16] `dev`, `angular-front` — Fixed config-context `Génération` navigation so the sidebar now opens the canonical project generation page, kept `/config/:id/generate` as a legacy redirect bridge by resolving the owning project, added focused sidebar/config-generation specs, and revalidated frontend tests plus `npm run typecheck` and `npm run build`.
 - [2026-05-16] `dev`, `angular-front` — Migrated the `project-detail` Agent Pool settings card to DS controls, moved the toggle switch to the right of its label, hid the Save action until the normalized pool value is actually dirty, added focused helper coverage for the dirty-state logic, and revalidated the targeted frontend spec plus `npm run typecheck`.
 - [2026-05-16] `dev`, `angular-front` — Reordered the `project-detail` configuration row so the chevron stays next to the configuration name and the delete action sits at the far right, then revalidated frontend `typecheck` and `build`.
 - [2026-05-16] `dev`, `angular-front` — Centered the resource-type icons in the naming abbreviations tables for `config-detail` and `project-detail` by flex-aligning the type cell and wrapping the label for safe ellipsis, with frontend `typecheck` and `build` green.
