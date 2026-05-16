@@ -3,6 +3,11 @@
 <mat-dialog-content>
   <p class="dns-dialog__subtitle">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_SUBTITLE' | translate }}</p>
 
+  <div class="dns-dialog__prerequisite" role="note">
+    <mat-icon>info</mat-icon>
+    <span>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_PREREQUISITE' | translate }}</span>
+  </div>
+
   @if (isLoading()) {
     <div class="dns-dialog__loading">
       <mat-spinner diameter="24"></mat-spinner>

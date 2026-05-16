@@ -2038,7 +2038,8 @@
       "VALIDATE_DNS": "Marquer le DNS comme validé",
       "VALIDATE_ERROR": "Erreur lors de la validation DNS",
       "DNS_DIALOG_TITLE": "Configuration DNS",
-      "DNS_DIALOG_SUBTITLE": "Suivez ces étapes pour configurer votre domaine",
+      "DNS_DIALOG_SUBTITLE": "Suivez ces étapes pour configurer votre domaine et récupérer les valeurs nécessaires dans le portail Azure.",
+      "DNS_DIALOG_PREREQUISITE": "Commencez par déployer l’infrastructure. Tant que l’infra n’est pas déployée, Azure ne fournit pas le domaine par défaut ni le jeton de vérification nécessaires pour configurer le DNS.",
       "DNS_DIALOG_RECORD_CARD": "Enregistrement DNS à créer",
       "DNS_DIALOG_RECORD_TYPE": "Type",
       "DNS_DIALOG_RECORD_NAME": "Nom",
@@ -2046,14 +2047,14 @@
       "DNS_DIALOG_COPIED": "Copié !",
       "DNS_DIALOG_CLOSE": "Fermer",
       "DNS_DIALOG_STEPS": {
-        "CNAME_TITLE": "Créer un enregistrement CNAME",
+        "CNAME_TITLE": "Déployer l’infrastructure puis créer un enregistrement CNAME",
         "TXT_TITLE": "Créer un enregistrement TXT de validation",
         "VALIDATE_TITLE": "Valider le DNS",
-        "CONTAINER_APP_CNAME_DESC": "Pointez '{{domainName}}' vers le domaine par défaut de l'environnement Container App. La cible FQDN exacte sera disponible après le déploiement de l'environnement Container App.",
-        "WEB_LIKE_CNAME_DESC": "Pointez '{{domainName}}' vers '{{recordValue}}'.",
-        "CONTAINER_APP_TXT_DESC": "Créez un enregistrement TXT de vérification de propriété sur '{{recordName}}'.",
-        "WEB_LIKE_TXT_DESC": "Créez un enregistrement TXT sur '{{recordName}}' avec l'identifiant de vérification de domaine personnalisé fourni par le portail Azure.",
-        "VALIDATE_DESC": "Une fois les enregistrements DNS propagés, cliquez sur « Valider le DNS » pour confirmer la configuration."
+        "CONTAINER_APP_CNAME_DESC": "Déployez d’abord l’infrastructure. Ensuite, dans le portail Azure, ouvrez votre environnement Container App puis allez dans Vue d’ensemble > Domaine par défaut pour récupérer la cible CNAME. Pointez '{{domainName}}' vers cette valeur.",
+        "WEB_LIKE_CNAME_DESC": "Déployez d’abord l’infrastructure. Ensuite, dans le portail Azure, ouvrez votre ressource puis allez dans Vue d’ensemble > Domaine par défaut pour récupérer la cible CNAME '{{recordValue}}'. Pointez '{{domainName}}' vers cette valeur.",
+        "CONTAINER_APP_TXT_DESC": "Dans le portail Azure, ouvrez votre Container App puis allez dans Domaines personnalisés pour lancer l’ajout du domaine et récupérer le jeton de vérification. Créez ensuite un enregistrement TXT sur '{{recordName}}' avec cette valeur.",
+        "WEB_LIKE_TXT_DESC": "Dans le portail Azure, ouvrez votre ressource puis allez dans Domaines personnalisés pour copier l’identifiant de vérification du domaine personnalisé. Créez ensuite un enregistrement TXT sur '{{recordName}}' avec cette valeur.",
+        "VALIDATE_DESC": "Après propagation DNS, retournez dans le portail Azure sur la page Domaines personnalisés pour vérifier que les enregistrements sont bien reconnus, puis revenez ici et cliquez sur « Valider le DNS »."
       }
     },
     "APP_SETTINGS": {
