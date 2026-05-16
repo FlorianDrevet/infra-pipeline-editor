@@ -2047,6 +2047,7 @@
       "VALIDATE_ERROR": "DNS validation error",
       "DNS_DIALOG_TITLE": "DNS Configuration",
       "DNS_DIALOG_SUBTITLE": "Follow these steps to configure your domain and collect the required values from the Azure portal.",
+      "DNS_DIALOG_PREREQUISITE_TITLE": "Before you start",
       "DNS_DIALOG_PREREQUISITE": "Start by deploying the infrastructure. Until the infra is deployed, Azure does not expose the default domain or the verification token required to configure DNS.",
       "DNS_DIALOG_RECORD_CARD": "DNS record to create",
       "DNS_DIALOG_RECORD_TYPE": "Type",
@@ -2058,11 +2059,11 @@
         "CNAME_TITLE": "Deploy the infrastructure, then create a CNAME record",
         "TXT_TITLE": "Create a TXT verification record",
         "VALIDATE_TITLE": "Validate DNS",
-        "CONTAINER_APP_CNAME_DESC": "Deploy the infrastructure first. Then, in the Azure portal, open your Container App Environment and go to Overview > Default domain to collect the CNAME target. Point '{{domainName}}' to that value.",
+        "CONTAINER_APP_CNAME_DESC": "Deploy the infrastructure first. Then, in the Azure portal, open your Container App, then go to Networking > Custom domains > Add custom domain. If the networking entry point is not enabled yet, enable ingress on the Container App first. In the Domain validation section, copy the Generated domain value and use it as the CNAME target for '{{domainName}}'. Do not open the Container App Environment for this step.",
         "WEB_LIKE_CNAME_DESC": "Deploy the infrastructure first. Then, in the Azure portal, open your resource and go to Overview > Default domain to collect the CNAME target '{{recordValue}}'. Point '{{domainName}}' to that value.",
-        "CONTAINER_APP_TXT_DESC": "In the Azure portal, open your Container App and go to Custom domains to start adding the domain and retrieve the verification token. Then create a TXT record at '{{recordName}}' with that value.",
+        "CONTAINER_APP_TXT_DESC": "Still in the Container App, under Networking > Custom domains > Add custom domain, copy the Domain verification code shown in the Domain validation section. Then create a TXT record at '{{recordName}}' with that value.",
         "WEB_LIKE_TXT_DESC": "In the Azure portal, open your resource and go to Custom domains to copy the custom domain verification ID. Then create a TXT record at '{{recordName}}' with that value.",
-        "VALIDATE_DESC": "After DNS propagation, go back to the Custom domains page in the Azure portal to confirm the records are recognized, then return here and click 'Validate DNS'."
+        "VALIDATE_DESC": "After DNS propagation, go back to the Container App under Networking > Custom domains, reopen Add custom domain if needed, then click Validate in Azure. Once the values are recognized, return here and click 'Validate DNS'."
       }
     },
     "APP_SETTINGS": {

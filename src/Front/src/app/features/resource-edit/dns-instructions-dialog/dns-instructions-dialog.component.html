@@ -3,10 +3,12 @@
 <mat-dialog-content>
   <p class="dns-dialog__subtitle">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_SUBTITLE' | translate }}</p>
 
-  <div class="dns-dialog__prerequisite" role="note">
-    <mat-icon>info</mat-icon>
-    <span>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_PREREQUISITE' | translate }}</span>
-  </div>
+  <app-ds-alert
+    class="dns-dialog__prerequisite-alert"
+    severity="info"
+    [title]="'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_PREREQUISITE_TITLE' | translate">
+    {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_PREREQUISITE' | translate }}
+  </app-ds-alert>
 
   @if (isLoading()) {
     <div class="dns-dialog__loading">

@@ -15,6 +15,7 @@ public sealed class GetDnsInstructionsQueryHandler(
 {
     private const string CnameRecordType = "CNAME";
     private const string TxtRecordType = "TXT";
+    private const string ValidateDnsTitle = "Validate DNS";
     private const string AzureWebsitesSuffix = ".azurewebsites.net";
     private const string AsuidPrefix = "asuid.";
 
@@ -75,22 +76,23 @@ public sealed class GetDnsInstructionsQueryHandler(
             new DnsInstructionStep(
                 Order: 1,
                 Title: "Create a CNAME record",
-                Description: $"Point '{domainName}' to the Container App Environment's default domain. "
-                             + "The exact target FQDN will be available after the Container App Environment is deployed.",
+                Description: $"Deploy the infrastructure first. In the Azure portal, open Container App '{resourceName}', then go to Networking > Custom domains > Add custom domain. "
+                             + $"If you do not see Custom domains yet, enable ingress on the Container App first. In the Domain validation section, copy the Generated domain value and use it as the CNAME target for '{domainName}'. "
+                             + "Do not use the Container App Environment for this step.",
                 RecordType: CnameRecordType,
                 RecordName: domainName,
-                RecordValue: $"{resourceName}.<your-cae-default-domain>"),
+                RecordValue: "<generated-domain-from-container-app-custom-domains>"),
             new DnsInstructionStep(
                 Order: 2,
                 Title: "Create a TXT verification record",
-                Description: $"Create a TXT record for domain ownership verification at '{AsuidPrefix}{domainName}'.",
+                Description: $"In the same Add custom domain wizard, copy the Domain verification code shown in Domain validation and create a TXT record at '{AsuidPrefix}{domainName}' with that value.",
                 RecordType: TxtRecordType,
                 RecordName: $"{AsuidPrefix}{domainName}",
-                RecordValue: "<verification-id-from-azure-portal>"),
+                RecordValue: "<domain-verification-code-from-container-app-custom-domains>"),
             new DnsInstructionStep(
                 Order: 3,
-                Title: "Validate DNS",
-                Description: "Once DNS records have propagated, click 'Validate DNS' to confirm the configuration.",
+                Title: ValidateDnsTitle,
+                Description: $"After DNS propagation, return to Container App '{resourceName}' > Networking > Custom domains, reopen Add custom domain if needed, click 'Validate' in Azure, then return here and click 'Validate DNS'.",
                 RecordType: null,
                 RecordName: null,
                 RecordValue: null),
@@ -119,7 +121,7 @@ public sealed class GetDnsInstructionsQueryHandler(
                 RecordValue: "<custom-domain-verification-id>"),
             new DnsInstructionStep(
                 Order: 3,
-                Title: "Validate DNS",
+                Title: ValidateDnsTitle,
                 Description: "Once DNS records have propagated, click 'Validate DNS' to confirm the configuration.",
                 RecordType: null,
                 RecordName: null,
@@ -149,7 +151,7 @@ public sealed class GetDnsInstructionsQueryHandler(
                 RecordValue: "<custom-domain-verification-id>"),
             new DnsInstructionStep(
                 Order: 3,
-                Title: "Validate DNS",
+                Title: ValidateDnsTitle,
                 Description: "Once DNS records have propagated, click 'Validate DNS' to confirm the configuration.",
                 RecordType: null,
                 RecordName: null,
@@ -170,7 +172,7 @@ public sealed class GetDnsInstructionsQueryHandler(
                 RecordValue: null),
             new DnsInstructionStep(
                 Order: 2,
-                Title: "Validate DNS",
+                Title: ValidateDnsTitle,
                 Description: "Once DNS records have propagated, click 'Validate DNS' to confirm the configuration.",
                 RecordType: null,
                 RecordName: null,

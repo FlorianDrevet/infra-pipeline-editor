@@ -6,6 +6,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
+import { DsAlertComponent } from '../../../shared/components/ds';
 import { CustomDomainResponse, DnsInstructionsResponse, DnsInstructionStepResponse } from '../../../shared/interfaces/custom-domain.interface';
 import { CustomDomainService } from '../../../shared/services/custom-domain.service';
 
@@ -28,6 +29,7 @@ export interface DnsInstructionsDialogData {
   imports: [
     MatDialogModule,
     MatButtonModule,
+    DsAlertComponent,
     MatIconModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,

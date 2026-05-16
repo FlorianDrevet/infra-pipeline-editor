@@ -14,6 +14,7 @@ import {
 } from './multi-repo-push-dialog.component';
 
 interface MultiRepoPushDialogComponentTestApi {
+  state: { set(value: 'form' | 'pushing' | 'success' | 'partial' | 'error'): void };
   infraForm: {
     controls: {
       branch: { setValue(value: string): void };
@@ -146,6 +147,17 @@ describe('MultiRepoPushDialogComponent', () => {
     expect(textareaComponents[1].required()).toBeTrue();
     expect(textareaComponents[1].hint()).toBe('PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_HINT');
     expect(textareaComponents[1].error()).toBe('PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_REQUIRED_ERROR');
+  });
+
+  it('replaces commit textareas with dedicated loading states while pushing', () => {
+    componentTestApi.state.set('pushing');
+    fixture.detectChanges();
+
+    const textareaComponents = fixture.debugElement.queryAll(By.directive(DsTextareaComponent));
+    const loadingStates = fixture.debugElement.queryAll(By.css('.mr-card__state--loading'));
+
+    expect(textareaComponents.length).toBe(0);
+    expect(loadingStates.length).toBe(2);
   });
 
   it('does not call pushProjectArtifactsToMultiRepo when a commit message is missing', async () => {

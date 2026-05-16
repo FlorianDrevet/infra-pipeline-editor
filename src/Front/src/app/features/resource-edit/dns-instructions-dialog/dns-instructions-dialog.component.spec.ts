@@ -41,6 +41,7 @@ describe('DnsInstructionsDialogComponent', () => {
         CUSTOM_DOMAINS: {
           DNS_DIALOG_TITLE: 'Configuration DNS',
           DNS_DIALOG_SUBTITLE: 'Suivez ces étapes pour configurer votre domaine et récupérer les valeurs nécessaires dans le portail Azure.',
+          DNS_DIALOG_PREREQUISITE_TITLE: 'Avant de commencer',
           DNS_DIALOG_PREREQUISITE: 'Commencez par déployer l’infrastructure. Tant que l’infra n’est pas déployée, Azure ne fournit pas le domaine par défaut ni le jeton de vérification nécessaires pour configurer le DNS.',
           DNS_DIALOG_RECORD_CARD: 'Enregistrement DNS à créer',
           DNS_DIALOG_RECORD_TYPE: 'Type',
@@ -50,11 +51,11 @@ describe('DnsInstructionsDialogComponent', () => {
           DNS_DIALOG_CLOSE: 'Fermer',
           DNS_DIALOG_STEPS: {
             CNAME_TITLE: 'Déployer l’infrastructure puis créer un enregistrement CNAME',
-            CONTAINER_APP_CNAME_DESC: "Déployez d’abord l’infrastructure. Ensuite, dans le portail Azure, ouvrez votre environnement Container App puis allez dans Vue d’ensemble > Domaine par défaut pour récupérer la cible CNAME. Pointez '{{domainName}}' vers cette valeur.",
+            CONTAINER_APP_CNAME_DESC: "Déployez d’abord l’infrastructure. Ensuite, dans le portail Azure, ouvrez votre Container App, puis allez dans Networking > Custom domains > Add custom domain. Si l’entrée réseau n’est pas encore activée, activez d’abord l’ingress sur le Container App. Dans la section Domain validation, copiez la valeur Generated domain et utilisez-la comme cible CNAME pour '{{domainName}}'. N’ouvrez pas l’environnement Container App pour cette étape.",
             TXT_TITLE: 'Créer un enregistrement TXT de validation',
-            CONTAINER_APP_TXT_DESC: "Dans le portail Azure, ouvrez votre Container App puis allez dans Domaines personnalisés pour lancer l’ajout du domaine et récupérer le jeton de vérification. Créez ensuite un enregistrement TXT sur '{{recordName}}' avec cette valeur.",
+            CONTAINER_APP_TXT_DESC: "Toujours dans le Container App, dans Networking > Custom domains > Add custom domain, récupérez la valeur Domain verification code affichée dans la section Domain validation. Créez ensuite un enregistrement TXT sur '{{recordName}}' avec cette valeur.",
             VALIDATE_TITLE: 'Valider le DNS',
-            VALIDATE_DESC: 'Après propagation DNS, retournez dans le portail Azure sur la page Domaines personnalisés pour vérifier que les enregistrements sont bien reconnus, puis revenez ici et cliquez sur « Valider le DNS ».',
+            VALIDATE_DESC: 'Après propagation DNS, retournez dans le Container App sur Networking > Custom domains, relancez Add custom domain si nécessaire, puis cliquez sur Validate dans Azure. Une fois les valeurs reconnues, revenez ici et cliquez sur « Valider le DNS ».',
           },
         },
       },
@@ -72,11 +73,17 @@ describe('DnsInstructionsDialogComponent', () => {
     const renderedText = normalizeWhitespace(fixture.nativeElement.textContent ?? '');
 
     expect(customDomainServiceSpy.getDnsInstructions).toHaveBeenCalledOnceWith('resource-1', 'domain-1');
+    expect(fixture.nativeElement.querySelector('app-ds-alert')).not.toBeNull();
+    expect(renderedText).toContain('Avant de commencer');
     expect(renderedText).toContain('Commencez par déployer l’infrastructure. Tant que l’infra n’est pas déployée');
     expect(renderedText).toContain('Déployer l’infrastructure puis créer un enregistrement CNAME');
     expect(renderedText).toContain('portail Azure');
-    expect(renderedText).toContain('Vue d’ensemble > Domaine par défaut');
-    expect(renderedText).toContain('Domaines personnalisés');
+    expect(renderedText).toContain('Networking > Custom domains > Add custom domain');
+    expect(renderedText).toContain('Domain validation');
+    expect(renderedText).toContain('Generated domain');
+    expect(renderedText).toContain('Domain verification code');
+    expect(renderedText).toContain('activez d’abord l’ingress');
+    expect(renderedText).toContain('N’ouvrez pas l’environnement Container App pour cette étape');
     expect(renderedText).toContain('Créer un enregistrement TXT de validation');
     expect(renderedText).not.toContain('Create a CNAME record');
     expect(renderedText).not.toContain('Create a TXT verification record');
@@ -105,7 +112,7 @@ function createInstructionsResponse(): DnsInstructionsResponse {
         description: 'Point the domain to the container app environment default domain.',
         recordType: 'CNAME',
         recordName: 'infraflowsculptor.fr',
-        recordValue: 'ifs-frontend.<your-cae-default-domain>',
+        recordValue: '<generated-domain-from-container-app-custom-domains>',
       },
       {
         order: 2,
@@ -113,7 +120,7 @@ function createInstructionsResponse(): DnsInstructionsResponse {
         description: 'Create a TXT record for verification.',
         recordType: 'TXT',
         recordName: 'asuid.infraflowsculptor.fr',
-        recordValue: '<verification-id-from-azure-portal>',
+        recordValue: '<domain-verification-code-from-container-app-custom-domains>',
       },
       {
         order: 3,
