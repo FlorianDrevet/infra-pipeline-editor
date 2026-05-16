@@ -36,6 +36,19 @@
 
 </head>
 <body>
+  <script>
+    // Apply persisted theme immediately to avoid FOUC.
+    (function() {
+      try {
+        var prefs = JSON.parse(localStorage.getItem('infra-flow-sculptor.user-preferences') || '{}');
+        if (prefs.appTheme === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.querySelector('meta[name="color-scheme"]').content = 'light';
+          document.querySelector('meta[name="theme-color"]').content = '#f4f6f9';
+        }
+      } catch(e) {}
+    })();
+  </script>
   <app-root></app-root>
 </body>
 </html>

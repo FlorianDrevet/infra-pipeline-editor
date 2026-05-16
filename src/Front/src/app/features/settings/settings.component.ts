@@ -17,7 +17,7 @@ import {
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PersonalAccessTokenService } from '../../shared/services/personal-access-token.service';
 import { PersonalAccessTokenResponse } from '../../shared/interfaces/personal-access-token.interface';
-import { BicepViewerTheme, UserPreferencesService } from '../../shared/services/user-preferences.service';
+import { BicepViewerTheme, AppTheme, UserPreferencesService } from '../../shared/services/user-preferences.service';
 import { CreatePatDialogComponent } from './create-pat-dialog/create-pat-dialog.component';
 
 @Component({
@@ -52,6 +52,8 @@ export class SettingsComponent implements OnInit {
   protected readonly currentLanguage = this.languageService.currentLanguage;
   protected readonly currentBicepViewerTheme = this.userPreferencesService.bicepViewerTheme;
   protected readonly bicepViewerThemeOptions = this.userPreferencesService.bicepViewerThemeOptions;
+  protected readonly currentAppTheme = this.userPreferencesService.appTheme;
+  protected readonly appThemeOptions = this.userPreferencesService.appThemeOptions;
 
   ngOnInit(): void {
     void this.loadTokens();
@@ -143,5 +145,9 @@ export class SettingsComponent implements OnInit {
 
   protected selectBicepViewerTheme(theme: BicepViewerTheme): void {
     this.userPreferencesService.setBicepViewerTheme(theme);
+  }
+
+  protected selectAppTheme(theme: AppTheme): void {
+    this.userPreferencesService.setAppTheme(theme);
   }
 }

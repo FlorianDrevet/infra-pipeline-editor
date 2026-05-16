@@ -44,6 +44,32 @@
         </div>
       </div>
 
+      <div class="preference-item preference-item--stacked" data-preference="app-theme">
+        <div class="preference-item__label preference-item__label--top">
+          <mat-icon>contrast</mat-icon>
+          <div class="preference-item__copy">
+            <span class="preference-item__title">{{ 'SETTINGS.PREFERENCES.APP_THEME' | translate }}</span>
+            <span class="preference-item__description">{{ 'SETTINGS.PREFERENCES.APP_THEME_HINT' | translate }}</span>
+          </div>
+        </div>
+        <div class="preference-item__control preference-item__control--app-themes">
+          @for (themeOption of appThemeOptions; track themeOption.value) {
+            <button
+              type="button"
+              class="app-theme-option"
+              [class.app-theme-option--active]="currentAppTheme() === themeOption.value"
+              [attr.aria-pressed]="currentAppTheme() === themeOption.value"
+              (click)="selectAppTheme(themeOption.value)">
+              <mat-icon class="app-theme-option__icon">{{ themeOption.icon }}</mat-icon>
+              <span class="app-theme-option__copy">
+                <span class="app-theme-option__label">{{ themeOption.labelKey | translate }}</span>
+                <span class="app-theme-option__hint">{{ themeOption.descriptionKey | translate }}</span>
+              </span>
+            </button>
+          }
+        </div>
+      </div>
+
       <div class="preference-item preference-item--stacked" data-preference="bicep-viewer-theme">
         <div class="preference-item__label preference-item__label--top">
           <mat-icon>palette</mat-icon>

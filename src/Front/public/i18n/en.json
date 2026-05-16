@@ -2040,7 +2040,7 @@
     "APP_SETTINGS": {
       "DESCRIPTION": "Configure environment variables for this compute resource. Reference outputs from other resources or set static values.",
       "ADD": "Add app setting",
-      "IMPORT": "Import from JSON",
+      "IMPORT": "Import from file",
       "EMPTY": "No app settings configured. Add an app setting to inject environment variables or resource outputs.",
       "LOADING": "Loading app settings...",
       "STATIC_VALUE": "Static value",
@@ -2490,6 +2490,18 @@
       "TITLE": "Preferences",
       "SUBTITLE": "Customize your workspace experience",
       "LANGUAGE": "Language",
+      "APP_THEME": "Application theme",
+      "APP_THEME_HINT": "Choose between a light or dark appearance for the entire interface.",
+      "APP_THEME_OPTIONS": {
+        "DARK": {
+          "LABEL": "Dark",
+          "DESCRIPTION": "Dark interface, ideal for low-light environments."
+        },
+        "LIGHT": {
+          "LABEL": "Light",
+          "DESCRIPTION": "Bright interface, comfortable in daylight."
+        }
+      },
       "BICEP_THEME": "Bicep code theme",
       "BICEP_THEME_HINT": "Choose the syntax colors used when viewing generated Bicep files.",
       "BICEP_THEME_OPTIONS": {

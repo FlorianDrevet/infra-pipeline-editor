@@ -1,9 +1,3 @@
-// ============================================================================
-// InfraFlowSculptor — Design Tokens V2 (UI Refresh 2026-05, dark-only)
-// Source of truth: docs/design/ui-refresh-2026-05.md
-// Wave 1 — Tokens & fondations.
-// ============================================================================
-
 // ----------------------------------------------------------------------------
 // CSS Custom Properties (consommées partout via var(--ifs-…))
 // ----------------------------------------------------------------------------
@@ -108,6 +102,63 @@
   --ifs-z-modal:   1100;
   --ifs-z-popover: 1200;
   --ifs-z-tooltip: 1300;
+}
+
+// ----------------------------------------------------------------------------
+// Light theme overrides (activated via [data-theme="light"] on <html>)
+// ----------------------------------------------------------------------------
+[data-theme="light"] {
+  // --- Brand (same hue, slightly adjusted for light surfaces) ---
+  --ifs-brand-50:  #eef4ff;
+  --ifs-brand-100: #d8e7ff;
+  --ifs-brand-200: #b6cef9;
+  --ifs-brand-400: #5a8cf5;
+  --ifs-brand-500: #3b6fde;
+  --ifs-brand-600: #2a57b8;
+  --ifs-brand-700: #1e4091;
+
+  // --- Accent (cyan, adjusted for light bg contrast) ---
+  --ifs-accent-400: #2ba4d6;
+  --ifs-accent-500: #1a8cbd;
+  --ifs-accent-600: #12739e;
+
+  // --- Surfaces & text (LIGHT) ---
+  --ifs-bg:              #f4f6f9;
+  --ifs-surface-1:       #ffffff;
+  --ifs-surface-2:       #f8f9fb;
+  --ifs-surface-3:       #eef1f5;
+  --ifs-border-subtle:   #e2e6ed;
+  --ifs-border-strong:   #c8cfd9;
+  --ifs-text-primary:    #1a2233;
+  --ifs-text-secondary:  #4a5568;
+  --ifs-text-muted:      #7a8494;
+  --ifs-text-disabled:   #a8b1bd;
+  --ifs-text-on-brand:   #ffffff;
+
+  // --- Semantic states (light-mode-friendly) ---
+  --ifs-success:    #1f8b4d;
+  --ifs-success-bg: rgba(31, 139, 77, 0.08);
+  --ifs-warning:    #b8860b;
+  --ifs-warning-bg: rgba(184, 134, 11, 0.08);
+  --ifs-danger:     #c53030;
+  --ifs-danger-bg:  rgba(197, 48, 48, 0.08);
+  --ifs-info:       var(--ifs-accent-500);
+  --ifs-info-bg:    rgba(26, 140, 189, 0.08);
+
+  // --- Gradients (light variants) ---
+  --ifs-gradient-login: linear-gradient(160deg, #e8f0fe 0%, #d4e4fc 50%, #c0d8f9 100%);
+  --ifs-gradient-cta:   linear-gradient(135deg, #4a85f0 0%, #3570d8 52%, #2a5ab8 100%);
+  --ifs-app-backdrop:   none;
+
+  // --- Shadows (lighter, no brand tint) ---
+  --ifs-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --ifs-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --ifs-shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.10), 0 4px 16px rgba(0, 0, 0, 0.06);
+
+  // --- Focus ring (light-mode) ---
+  --ifs-focus-ring:
+    0 0 0 2px var(--ifs-bg),
+    0 0 0 4px var(--ifs-accent-500);
 }
 
 // ----------------------------------------------------------------------------

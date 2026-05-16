@@ -17,6 +17,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import 'agent-ui-annotation';
 import type { AnnotationElement } from 'agent-ui-annotation';
 import { environment } from '../environments/environment';
+import { UserPreferencesService } from './shared/services/user-preferences.service';
 
 @Component({
   selector: 'app-root',
@@ -29,6 +30,7 @@ import { environment } from '../environments/environment';
 export class AppComponent {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly _userPreferences = inject(UserPreferencesService);
 
   protected readonly isAnnotationEnabled = !environment.production;
   protected readonly annotationRef = viewChild<ElementRef<AnnotationElement>>('annotationRef');

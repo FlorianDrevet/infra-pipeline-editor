@@ -9,6 +9,12 @@
   flex-direction: column;
 }
 
+.tab-content__inner {
+  display: flex;
+  flex-direction: column;
+  padding: var(--ifs-space-16);
+}
+
 .feedback-banner {
   display: flex;
   align-items: center;
@@ -86,42 +92,13 @@
 .ra-actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--ifs-space-6);
+  flex-wrap: wrap;
+  gap: var(--ifs-space-8);
   margin-bottom: var(--ifs-space-12);
 }
 
-.ra-add-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ifs-space-6);
-  min-height: 36px;
-  padding: 0 var(--ifs-space-12);
-  border: 1px solid var(--ifs-border-subtle);
-  border-radius: var(--ifs-radius-md);
-  background: var(--ifs-surface-1);
-  color: var(--ifs-text-primary);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
-    background-color var(--ifs-duration-fast) var(--ifs-ease-standard);
-
-  &:hover {
-    background: var(--ifs-surface-2);
-    border-color: var(--ifs-border-strong);
-  }
-
-  &--secondary {
-    background: transparent;
-  }
-
-  mat-icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-  }
+.ra-actions app-ds-button {
+  flex: 0 0 auto;
 }
 
 .ra-loading {
@@ -322,6 +299,20 @@
   &--output,
   &--static {
     color: var(--ifs-accent-500);
+  }
+}
+
+@media (max-width: 768px) {
+  .tab-content__inner {
+    padding: var(--ifs-space-12);
+  }
+
+  .ra-actions {
+    justify-content: stretch;
+  }
+
+  .ra-actions app-ds-button {
+    flex: 1 1 100%;
   }
 }
 

@@ -2032,7 +2032,7 @@
     "APP_SETTINGS": {
       "DESCRIPTION": "Configurez les variables d'environnement pour cette ressource de calcul. Référencez les sorties d'autres ressources ou définissez des valeurs statiques.",
       "ADD": "Ajouter une variable",
-      "IMPORT": "Importer depuis JSON",
+      "IMPORT": "Importer depuis un fichier",
       "EMPTY": "Aucune variable d'environnement configurée. Ajoutez un paramètre pour injecter des variables d'environnement ou des sorties de ressources.",
       "LOADING": "Chargement des variables d'environnement...",
       "STATIC_VALUE": "Valeur statique",
@@ -2482,6 +2482,18 @@
       "TITLE": "Préférences",
       "SUBTITLE": "Personnalisez votre expérience",
       "LANGUAGE": "Langue",
+      "APP_THEME": "Thème de l'application",
+      "APP_THEME_HINT": "Choisissez entre un affichage clair ou sombre pour l'ensemble de l'interface.",
+      "APP_THEME_OPTIONS": {
+        "DARK": {
+          "LABEL": "Sombre",
+          "DESCRIPTION": "Interface foncée, idéale pour les environnements peu éclairés."
+        },
+        "LIGHT": {
+          "LABEL": "Clair",
+          "DESCRIPTION": "Interface lumineuse, confortable en plein jour."
+        }
+      },
       "BICEP_THEME": "Thème du code Bicep",
       "BICEP_THEME_HINT": "Choisissez les couleurs de syntaxe utilisées pour afficher les fichiers Bicep générés.",
       "BICEP_THEME_OPTIONS": {
