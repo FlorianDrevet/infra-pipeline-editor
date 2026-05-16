@@ -2,6 +2,25 @@
 
 :host {
   display: block;
+  --resource-btn-neutral-bg: color-mix(in srgb, var(--ifs-surface-2) 82%, var(--ifs-brand-700));
+  --resource-btn-neutral-bg-hover: color-mix(in srgb, var(--ifs-surface-2) 70%, var(--ifs-brand-600));
+  --resource-btn-neutral-border: color-mix(in srgb, var(--ifs-border-strong) 78%, var(--ifs-brand-500));
+  --resource-btn-neutral-border-hover: color-mix(in srgb, var(--ifs-border-strong) 54%, var(--ifs-brand-400));
+  --resource-btn-add-bg: color-mix(in srgb, var(--ifs-surface-2) 70%, var(--ifs-accent-500));
+  --resource-btn-add-bg-hover: color-mix(in srgb, var(--ifs-surface-2) 54%, var(--ifs-accent-500));
+  --resource-btn-add-border: color-mix(in srgb, var(--ifs-border-strong) 38%, var(--ifs-accent-400));
+  --resource-btn-add-border-hover: color-mix(in srgb, var(--ifs-border-strong) 12%, var(--ifs-accent-400));
+  --resource-btn-add-icon: var(--ifs-accent-400);
+  --resource-btn-edit-bg: color-mix(in srgb, var(--ifs-surface-2) 76%, var(--ifs-brand-500));
+  --resource-btn-edit-bg-hover: color-mix(in srgb, var(--ifs-surface-2) 60%, var(--ifs-brand-500));
+  --resource-btn-edit-border: color-mix(in srgb, var(--ifs-border-strong) 40%, var(--ifs-brand-400));
+  --resource-btn-edit-border-hover: color-mix(in srgb, var(--ifs-border-strong) 16%, var(--ifs-brand-400));
+  --resource-btn-edit-icon: var(--ifs-brand-100);
+  --resource-btn-delete-bg: color-mix(in srgb, var(--ifs-surface-2) 84%, var(--ifs-danger));
+  --resource-btn-delete-bg-hover: color-mix(in srgb, var(--ifs-surface-2) 68%, var(--ifs-danger));
+  --resource-btn-delete-border: color-mix(in srgb, var(--ifs-border-strong) 44%, var(--ifs-danger));
+  --resource-btn-delete-border-hover: color-mix(in srgb, var(--ifs-border-strong) 16%, var(--ifs-danger));
+  --resource-btn-delete-icon: var(--ifs-danger);
 }
 
 %cd-btn {
@@ -11,9 +30,10 @@
   height: 32px;
   padding: 0 var(--ifs-space-12);
   border-radius: var(--ifs-radius-md);
-  border: 1px solid var(--ifs-border-strong);
-  background: var(--ifs-surface-2);
-  color: var(--ifs-text-primary);
+  border: 1px solid var(--cd-btn-border, var(--resource-btn-neutral-border));
+  background: var(--cd-btn-bg, var(--resource-btn-neutral-bg));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--cd-btn-border, var(--resource-btn-neutral-border)) 18%, white);
+  color: var(--cd-btn-color, var(--ifs-text-primary));
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
@@ -23,10 +43,13 @@
   transition:
     background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
     border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard),
     color var(--ifs-duration-fast) var(--ifs-ease-standard);
 
   &:hover {
-    background: var(--ifs-surface-3);
+    background: var(--cd-btn-bg-hover, var(--resource-btn-neutral-bg-hover));
+    border-color: var(--cd-btn-border-hover, var(--resource-btn-neutral-border-hover));
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--cd-btn-border-hover, var(--resource-btn-neutral-border-hover)) 24%, white);
   }
 
   &:focus-visible {
@@ -44,6 +67,7 @@
     font-size: 16px;
     width: 16px;
     height: 16px;
+    color: var(--cd-btn-icon-color, currentColor);
   }
 }
 
@@ -51,6 +75,11 @@
 .add-child-resource-btn,
 .add-rg-btn {
   @extend %cd-btn;
+  --cd-btn-bg: var(--resource-btn-add-bg);
+  --cd-btn-bg-hover: var(--resource-btn-add-bg-hover);
+  --cd-btn-border: var(--resource-btn-add-border);
+  --cd-btn-border-hover: var(--resource-btn-add-border-hover);
+  --cd-btn-icon-color: var(--resource-btn-add-icon);
 
   &__icon {
     font-size: 16px;
@@ -69,6 +98,23 @@
   height: 28px;
   padding: 0 var(--ifs-space-8);
   font-size: 12px;
+
+  &--edit {
+    --cd-btn-bg: var(--resource-btn-edit-bg);
+    --cd-btn-bg-hover: var(--resource-btn-edit-bg-hover);
+    --cd-btn-border: var(--resource-btn-edit-border);
+    --cd-btn-border-hover: var(--resource-btn-edit-border-hover);
+    --cd-btn-icon-color: var(--resource-btn-edit-icon);
+  }
+
+  &--delete {
+    --cd-btn-bg: var(--resource-btn-delete-bg);
+    --cd-btn-bg-hover: var(--resource-btn-delete-bg-hover);
+    --cd-btn-border: var(--resource-btn-delete-border);
+    --cd-btn-border-hover: var(--resource-btn-delete-border-hover);
+    --cd-btn-color: color-mix(in srgb, var(--ifs-text-primary) 94%, var(--ifs-danger));
+    --cd-btn-icon-color: var(--resource-btn-delete-icon);
+  }
 }
 
 .tab-content {

@@ -68,20 +68,6 @@
   }
 }
 
-.resource-header__id {
-  margin: 0;
-  width: fit-content;
-  padding: 4px 10px;
-  border-radius: var(--ifs-radius-pill);
-  background: var(--project-pill-surface);
-  border: 1px solid var(--project-border-accent);
-  font-size: 12px;
-  color: var(--ifs-text-muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-variant-numeric: tabular-nums;
-  word-break: break-all;
-}
-
 .resource-header__actions {
   display: inline-flex;
   align-items: center;

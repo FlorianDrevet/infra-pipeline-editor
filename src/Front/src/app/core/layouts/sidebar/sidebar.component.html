@@ -1,6 +1,22 @@
 <aside class="sidebar" [class.sidebar--collapsed]="collapsed()">
   <header class="sidebar__header">
     <a class="sidebar__brand" routerLink="/" [attr.aria-label]="'SIDEBAR.BRAND_ARIA' | translate">
+      <svg class="sidebar__brand-logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="ifs-sidebar-grad" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#274fa7"/>
+            <stop offset="0.55" stop-color="#4e86f4"/>
+            <stop offset="1" stop-color="#46b5ff"/>
+          </linearGradient>
+        </defs>
+        <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#ifs-sidebar-grad)"/>
+        <line x1="32" y1="19" x2="21" y2="40" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+        <line x1="32" y1="19" x2="43" y2="40" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+        <line x1="21" y1="40" x2="43" y2="40" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+        <circle cx="32" cy="19" r="5" fill="white"/>
+        <circle cx="21" cy="40" r="5" fill="white"/>
+        <circle cx="43" cy="40" r="5" fill="white"/>
+      </svg>
       <span class="sidebar__brand-mark" aria-hidden="true">IFS</span>
       <span class="sidebar__brand-dot" aria-hidden="true"></span>
     </a>

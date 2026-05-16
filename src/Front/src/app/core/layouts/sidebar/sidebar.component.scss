@@ -51,6 +51,12 @@
   font-family: inherit;
 }
 
+.sidebar__brand-logo {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
 .sidebar__brand-dot {
   width: 6px;
   height: 6px;

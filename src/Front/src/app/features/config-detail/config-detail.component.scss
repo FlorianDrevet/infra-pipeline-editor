@@ -65,20 +65,6 @@
   }
 }
 
-.detail-header__id {
-  margin: 0;
-  width: fit-content;
-  padding: 4px 10px;
-  border-radius: var(--ifs-radius-pill);
-  background: var(--project-pill-surface);
-  border: 1px solid var(--project-border-accent);
-  font-size: 12px;
-  color: var(--ifs-text-muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-variant-numeric: tabular-nums;
-  word-break: break-all;
-}
-
 .detail-header__actions {
   display: inline-flex;
   align-items: center;
@@ -164,19 +150,22 @@
 
 .delete-btn {
   @extend %cd-btn;
-  background: transparent;
-  border-color: rgba(210, 74, 74, 0.4);
-  color: var(--ifs-danger);
+  background: color-mix(in srgb, var(--project-surface-panel) 78%, var(--ifs-danger));
+  border-color: color-mix(in srgb, var(--project-border-strong) 36%, var(--ifs-danger));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ifs-danger) 18%, white);
+  color: color-mix(in srgb, var(--ifs-text-primary) 92%, var(--ifs-danger));
 
   &:hover {
-    background: var(--ifs-danger-bg);
-    border-color: var(--ifs-danger);
+    background: color-mix(in srgb, var(--project-surface-hover) 62%, var(--ifs-danger));
+    border-color: color-mix(in srgb, var(--project-border-strong) 8%, var(--ifs-danger));
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ifs-danger) 24%, white), var(--ifs-shadow-md);
   }
 
   &__icon {
     font-size: 16px;
     width: 16px;
     height: 16px;
+    color: var(--ifs-danger);
   }
 }
 

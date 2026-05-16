@@ -19,6 +19,7 @@ import { SqlDatabaseService } from '../../../shared/services/sql-database.servic
 import { SqlServerService } from '../../../shared/services/sql-server.service';
 import { StorageAccountService } from '../../../shared/services/storage-account.service';
 import { UserAssignedIdentityService } from '../../../shared/services/user-assigned-identity.service';
+import { VirtualNetworkService } from '../../../shared/services/virtual-network.service';
 import { WebAppService } from '../../../shared/services/web-app.service';
 import {
   AddResourceEnvironmentDefinition,
@@ -69,6 +70,7 @@ interface AddResourceDialogCommonFormValue {
   readonly enableNonSslPort: boolean;
   readonly disableAccessKeyAuthentication: boolean;
   readonly enableAadAuth: boolean;
+  readonly enableDdosProtection?: boolean;
   readonly isExisting: boolean;
 }
 
@@ -90,6 +92,7 @@ export class AddResourceDialogResourceSubmitterService {
   private readonly sqlServerService = inject(SqlServerService);
   private readonly storageAccountService = inject(StorageAccountService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
+  private readonly virtualNetworkService = inject(VirtualNetworkService);
   private readonly webAppService = inject(WebAppService);
 
   async submit(command: {
@@ -300,8 +303,17 @@ export class AddResourceDialogResourceSubmitterService {
           isExisting: common.isExisting,
         });
         return;
-      default:
+      case ResourceTypeEnum.VirtualNetwork:
+        await this.virtualNetworkService.create(resourceGroupId, {
+          resourceGroupId,
+          name: common.name,
+          location: common.location,
+          enableDdosProtection: common.enableDdosProtection ?? false,
+          isExisting: common.isExisting,
+        });
         return;
+      default:
+        throw new Error(`Unsupported resource type submission: ${type}`);
     }
   }
 

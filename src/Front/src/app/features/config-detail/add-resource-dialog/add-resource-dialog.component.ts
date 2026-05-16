@@ -420,7 +420,7 @@ export class AddResourceDialogComponent implements OnInit {
     allowBlobPublicAccess: [false],
     enableHttpsTrafficOnly: [true],
     minimumTlsVersion: ['Tls12'],
-    redisVersion: [6 as number | null],
+    redisVersion: [6],
     enableNonSslPort: [false],
     disableAccessKeyAuthentication: [false],
     enableAadAuth: [false],
