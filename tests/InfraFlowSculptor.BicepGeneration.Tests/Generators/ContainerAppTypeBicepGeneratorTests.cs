@@ -475,12 +475,11 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     {
         var module = _sut.Generate(CreateNoAcrResource());
 
-        module.ParameterTypeOverrides.Should().Contain([
+        module.ParameterTypeOverrides.Should().Contain(
             new KeyValuePair<string, string>("containerRuntime", "ContainerRuntimeConfig"),
             new KeyValuePair<string, string>("scaling", "ScalingConfig"),
             new KeyValuePair<string, string>("ingress", "IngressConfig"),
-            new KeyValuePair<string, string>("healthProbes", "HealthProbeConfig"),
-        ]);
+            new KeyValuePair<string, string>("healthProbes", "HealthProbeConfig"));
     }
 
     // ── Emission ──
