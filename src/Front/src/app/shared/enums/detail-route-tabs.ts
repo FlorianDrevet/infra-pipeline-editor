@@ -4,7 +4,6 @@ export const PROJECT_DETAIL_ROUTE_TABS = {
   members: 'members',
   variables: 'variables',
   settings: 'settings',
-  repositories: 'repositories',
 } as const;
 
 export type ProjectDetailRouteTab = (typeof PROJECT_DETAIL_ROUTE_TABS)[keyof typeof PROJECT_DETAIL_ROUTE_TABS];
@@ -31,8 +30,6 @@ export function getProjectDetailTabIndex(tab: string | null): number {
       return 4;
     case PROJECT_DETAIL_ROUTE_TABS.settings:
       return 5;
-    case PROJECT_DETAIL_ROUTE_TABS.repositories:
-      return 6;
     default:
       return 0;
   }
@@ -50,11 +47,12 @@ export function getProjectDetailTabQuery(index: number): ProjectDetailRouteTab |
       return PROJECT_DETAIL_ROUTE_TABS.variables;
     case 5:
       return PROJECT_DETAIL_ROUTE_TABS.settings;
-    case 6:
-      return PROJECT_DETAIL_ROUTE_TABS.repositories;
     default:
       return null;
   }
+}
+export function isProjectDetailTab(tab: string | null): tab is ProjectDetailRouteTab {
+  return tab !== null && getProjectDetailTabQuery(getProjectDetailTabIndex(tab)) === tab;
 }
 
 export function getConfigDetailTabIndex(tab: string | null): number {

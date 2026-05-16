@@ -41,6 +41,7 @@ import {
   BicepTreeNode,
   BicepFilePanelComponent,
 } from '../../../shared/components/bicep-file-panel/bicep-file-panel.component';
+import { LayoutRepositoriesComponent } from '../layout-repositories/layout-repositories.component';
 import { SplitGenerationSwitcherComponent } from '../split-generation-switcher/split-generation-switcher.component';
 import { ProjectDetailGenerationWorkflowService } from '../project-detail-generation-workflow.service';
 
@@ -222,6 +223,7 @@ function isApplicationCodeRepository(repo: ProjectRepositoryResponse): boolean {
     MatIconModule,
     MatProgressSpinnerModule,
     BicepFilePanelComponent,
+    LayoutRepositoriesComponent,
     SplitGenerationSwitcherComponent,
     DsButtonComponent,
     DsCardComponent,

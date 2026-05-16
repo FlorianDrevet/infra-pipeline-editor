@@ -927,16 +927,6 @@
         </div>
       </mat-tab>
 
-      <!-- Layout & Repositories (V2 multi-repo topology) -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">account_tree</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.LAYOUT.TAB_TITLE' | translate }}</span>
-        </ng-template>
-        <div class="tab-content">
-          <app-layout-repositories [projectId]="project()!.id" />
-        </div>
-      </mat-tab>
     </mat-tab-group>
   }
 </div>

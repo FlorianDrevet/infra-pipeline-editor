@@ -2,7 +2,7 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 
-import { CONFIG_DETAIL_ROUTE_TABS } from '../../../shared/enums/detail-route-tabs';
+import { CONFIG_DETAIL_ROUTE_TABS, PROJECT_DETAIL_ROUTE_TABS } from '../../../shared/enums/detail-route-tabs';
 import { RecentlyViewedItem, RecentlyViewedService } from '../../../shared/services/recently-viewed.service';
 import { FavoritesService } from '../../../shared/services/favorites.service';
 import { SidebarContextService } from './sidebar-context.service';
@@ -54,7 +54,7 @@ describe('SidebarContextService', () => {
     service = TestBed.inject(SidebarContextService);
   });
 
-  it('Given_ProjectMode_When_ContextStateIsBuilt_Then_ContextualItemsExposeDistinctTabTargets', async () => {
+  it('Given_ProjectMode_When_ContextStateIsBuilt_Then_ContextualItemsExposeDistinctTabTargetsWithoutGitShortcut', async () => {
     service.setProjectContext('project-123', 'Project 123');
     await router.navigateByUrl('/projects/project-123?tab=members');
 
@@ -80,16 +80,17 @@ describe('SidebarContextService', () => {
       routerLink: '/projects/project-123',
       queryParams: { tab: 'members' },
     }));
-    expect(findItem(items, 'git')).toEqual(jasmine.objectContaining({
-      routerLink: '/projects/project-123',
-      queryParams: { tab: 'repositories' },
-    }));
+    expect(items.some((item) => item.id === 'git')).toBeFalse();
     expect(findItem(items, 'project-settings')).toEqual(jasmine.objectContaining({
       routerLink: '/projects/project-123',
       queryParams: { tab: 'settings' },
     }));
     expect(generationItem.routerLink).toBe('/projects/project-123/generate');
     expect(generationItem.queryParams).toBeUndefined();
+  });
+
+  it('Given_ProjectDetailTabs_When_ProjectRouteTargetsAreEnumerated_Then_RepositoriesIsNotExposed', () => {
+    expect('repositories' in PROJECT_DETAIL_ROUTE_TABS).toBeFalse();
   });
 
   it('Given_ConfigMode_When_ContextStateIsBuilt_Then_ContextualItemsExposeDistinctTabTargets', async () => {

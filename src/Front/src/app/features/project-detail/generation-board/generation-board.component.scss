@@ -66,6 +66,14 @@
   &__repositories-card {
     display: block;
   }
+
+  &__layout-editor-card {
+    display: block;
+  }
+
+  &__layout-editor-body {
+    padding-top: 0.5rem;
+  }
 }
 
 .summary-card {

@@ -13,7 +13,7 @@ describe('detail-route-tabs', () => {
     expect(getProjectDetailTabIndex('members')).toBe(3);
     expect(getProjectDetailTabIndex('variables')).toBe(4);
     expect(getProjectDetailTabIndex('settings')).toBe(5);
-    expect(getProjectDetailTabIndex('repositories')).toBe(6);
+    expect(getProjectDetailTabIndex('repositories')).toBe(0);
     expect(getProjectDetailTabIndex('unknown')).toBe(0);
   });
 
@@ -24,7 +24,7 @@ describe('detail-route-tabs', () => {
     expect(getProjectDetailTabQuery(3)).toBe('members');
     expect(getProjectDetailTabQuery(4)).toBe('variables');
     expect(getProjectDetailTabQuery(5)).toBe('settings');
-    expect(getProjectDetailTabQuery(6)).toBe('repositories');
+    expect(getProjectDetailTabQuery(6)).toBeNull();
   });
 
   it('Given_ConfigTabQuery_When_ResolvingSelectedIndex_Then_ReturnsExpectedConfigTabIndices', () => {

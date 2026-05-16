@@ -113,7 +113,6 @@ export class SidebarContextService {
         { id: 'variables', icon: 'library_books', labelKey: 'SIDEBAR.PROJECT.VARIABLES', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.variables }, exact: false, section: 'define' },
         { id: 'generation', icon: 'play_circle', labelKey: 'SIDEBAR.PROJECT.GENERATION', routerLink: `/projects/${id}/generate`, exact: false, section: 'generate' },
         { id: 'members', icon: 'group', labelKey: 'SIDEBAR.PROJECT.MEMBERS', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.members }, exact: false, section: 'manage' },
-        { id: 'git', icon: 'code', labelKey: 'SIDEBAR.PROJECT.GIT', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.repositories }, exact: false, section: 'manage' },
         { id: 'project-settings', icon: 'tune', labelKey: 'SIDEBAR.PROJECT.SETTINGS', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.settings }, exact: false, section: 'manage' },
       ],
     };

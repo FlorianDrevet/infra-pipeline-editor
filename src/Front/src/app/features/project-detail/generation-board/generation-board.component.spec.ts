@@ -191,6 +191,12 @@ describe('GenerationBoardComponent', () => {
     expect(repositoryCount).toBe(2);
   });
 
+  it('renders the layout repositories editor so layout and repositories can be edited from the generation board', async () => {
+    await createComponent();
+
+    expect(fixture.nativeElement.querySelector('app-layout-repositories')).not.toBeNull();
+  });
+
   it('builds dedicated metrics for the split application-code repository card', async () => {
     projectServiceSpy.getProject.and.resolveTo(createSplitProject());
     projectServiceSpy.getProjectConfigs.and.resolveTo([

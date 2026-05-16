@@ -8,7 +8,7 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  padding: 1rem 0;
+  padding: 0;
 
   &__loading {
     display: flex;
@@ -38,7 +38,7 @@
       margin: 0;
       font-size: 1.05rem;
       font-weight: 600;
-      color: rgba(0, 0, 0, 0.85);
+      color: var(--ifs-text-primary);
     }
   }
 
@@ -70,6 +70,9 @@
 .repo-card {
   display: flex;
   flex-direction: column;
+  background: var(--project-surface-panel, var(--ifs-surface-2));
+  border: 1px solid var(--project-border-accent, var(--ifs-border-subtle));
+  box-shadow: none;
 
   &--busy {
     opacity: 0.6;
@@ -99,6 +102,10 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.85rem;
+
+    strong {
+      color: var(--ifs-text-primary);
+    }
   }
 
   &__label {
@@ -133,16 +140,16 @@
   align-items: center;
   gap: 0.5rem;
   padding: 2.5rem 1rem;
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--project-surface-panel, var(--ifs-surface-2));
   border-radius: 0.75rem;
-  border: 1px dashed rgba(0, 0, 0, 0.1);
+  border: 1px dashed var(--project-border-accent, var(--ifs-border-subtle));
   color: $ifs-text-secondary;
 
   &__icon {
     font-size: 2rem;
     width: 2rem;
     height: 2rem;
-    color: rgba(0, 0, 0, 0.3);
+    color: var(--ifs-text-muted);
   }
 }
 
@@ -153,9 +160,9 @@
   justify-content: center;
   gap: 0.4rem;
   padding: 2rem 1.25rem;
-  border: 1.5px dashed rgba(2, 136, 209, 0.4);
+  border: 1.5px dashed color-mix(in srgb, var(--ifs-accent-500) 55%, var(--ifs-border-subtle));
   border-radius: 0.75rem;
-  background: rgba(2, 136, 209, 0.03);
+  background: color-mix(in srgb, var(--ifs-accent-500) 8%, var(--ifs-surface-1));
   cursor: pointer;
   text-align: center;
   transition: border-color 0.15s, background 0.15s;
@@ -163,7 +170,7 @@
 
   &:hover {
     border-color: var(--ifs-accent-500);
-    background: rgba(2, 136, 209, 0.08);
+    background: color-mix(in srgb, var(--ifs-accent-500) 14%, var(--ifs-surface-2));
   }
 
   &__icon {
@@ -176,7 +183,7 @@
   &__title {
     font-size: 0.95rem;
     font-weight: 600;
-    color: rgba(0, 0, 0, 0.85);
+    color: var(--ifs-text-primary);
   }
 
   &__desc {
@@ -190,8 +197,8 @@
   display: flex;
   gap: 0.85rem;
   padding: 1rem 1.25rem;
-  background: rgba(2, 136, 209, 0.05);
-  border: 1px solid rgba(2, 136, 209, 0.2);
+  background: color-mix(in srgb, var(--ifs-accent-500) 8%, var(--ifs-surface-2));
+  border: 1px solid color-mix(in srgb, var(--ifs-accent-500) 30%, var(--ifs-border-subtle));
   border-radius: 0.75rem;
 
   &__icon {
@@ -204,7 +211,7 @@
     margin: 0 0 0.25rem;
     font-size: 0.95rem;
     font-weight: 600;
-    color: rgba(0, 0, 0, 0.85);
+    color: var(--ifs-text-primary);
   }
 
   &__desc {
