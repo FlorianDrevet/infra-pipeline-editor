@@ -28,7 +28,9 @@ import {
   RepositoryContentKind,
 } from '../../../shared/interfaces/project-repository.interface';
 import { ProjectService } from '../../../shared/services/project.service';
+import { LanguageService } from '../../../shared/services/language.service';
 import {
+  DsBannerComponent,
   DsButtonComponent,
   DsCardComponent,
   DsEmptyStateComponent,
@@ -174,6 +176,11 @@ const MONO_REPO_TAB_DEFINITIONS = [
   },
 ] as const satisfies readonly MonoRepoTabDefinition[];
 
+const HISTORICAL_GENERATION_DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+};
+
 function isProjectLayoutPreset(value: string | null | undefined): value is ProjectLayoutPreset {
   return value === ALL_IN_ONE_LAYOUT || value === MULTI_REPO_LAYOUT || value === SPLIT_INFRA_CODE_LAYOUT;
 }
@@ -222,6 +229,7 @@ function isApplicationCodeRepository(repo: ProjectRepositoryResponse): boolean {
     MatProgressSpinnerModule,
     BicepFilePanelComponent,
     SplitGenerationSwitcherComponent,
+    DsBannerComponent,
     DsButtonComponent,
     DsCardComponent,
     DsEmptyStateComponent,
@@ -235,6 +243,7 @@ function isApplicationCodeRepository(repo: ProjectRepositoryResponse): boolean {
 })
 export class GenerationBoardComponent implements OnInit {
   private readonly projectService = inject(ProjectService);
+  private readonly languageService = inject(LanguageService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly translate = inject(TranslateService);
   private readonly route = inject(ActivatedRoute);
@@ -293,7 +302,23 @@ export class GenerationBoardComponent implements OnInit {
   protected readonly lastGenerationLoading = this.generationWorkflow.lastGenerationLoading;
   protected readonly lastGenerationAvailable = this.generationWorkflow.lastGenerationAvailable;
   protected readonly lastGenerationErrorKey = this.generationWorkflow.lastGenerationErrorKey;
-  protected readonly loadLastGeneration = this.generationWorkflow.loadLastGeneration;
+  protected readonly viewingHistoricalGeneration = this.generationWorkflow.viewingHistoricalGeneration;
+  protected readonly displayedHistoricalGenerationAt = this.generationWorkflow.displayedHistoricalGenerationAt;
+  protected readonly formattedHistoricalGenerationAt = computed(() => {
+    const generatedAt = this.displayedHistoricalGenerationAt();
+    if (!generatedAt) {
+      return '';
+    }
+
+    const currentLanguage = this.languageService.currentLanguage();
+    const generatedAtDate = new Date(generatedAt);
+
+    if (Number.isNaN(generatedAtDate.getTime())) {
+      return generatedAt;
+    }
+
+    return new Intl.DateTimeFormat(currentLanguage, HISTORICAL_GENERATION_DATE_FORMAT).format(generatedAtDate);
+  });
   protected readonly monoRepoTabs: readonly MonoRepoTab[] = [
     {
       ...MONO_REPO_TAB_DEFINITIONS[0],
@@ -457,6 +482,10 @@ export class GenerationBoardComponent implements OnInit {
 
   protected onGenerateAll(): void {
     this.runTask(this.generationWorkflow.generateAll());
+  }
+
+  protected onLoadLastGeneration(): void {
+    this.runTask(this.generationWorkflow.loadLastGeneration());
   }
 
   protected openProjectDetail(): void {

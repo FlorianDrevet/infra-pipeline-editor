@@ -10,6 +10,7 @@ import {
   GenerateProjectBicepResponse,
   GenerateProjectBootstrapPipelineResponse,
   GenerateProjectPipelineResponse,
+  GetProjectLatestGenerationResponse,
   ProjectResponse,
 } from '../../shared/interfaces/project.interface';
 import { InfrastructureConfigResponse } from '../../shared/interfaces/infra-config.interface';
@@ -100,6 +101,8 @@ export class ProjectDetailGenerationWorkflowService {
   readonly lastGenerationLoading = signal(false);
   readonly lastGenerationAvailable = signal<boolean | null>(null);
   readonly lastGenerationErrorKey = signal('');
+  readonly viewingHistoricalGeneration = signal(false);
+  readonly displayedHistoricalGenerationAt = signal<string | null>(null);
 
   readonly canPushAllProjectArtifacts = computed(
     () => this.projectBicepResult() !== null
@@ -200,6 +203,8 @@ export class ProjectDetailGenerationWorkflowService {
         this.lastGenerationErrorKey.set('PROJECT_DETAIL.BOARD.LAST_GENERATION_EXPIRED');
         return;
       }
+
+      this.applyHistoricalGenerationContext(result);
 
       if (result.bicep) {
         this.projectBicepResult.set({
@@ -428,6 +433,7 @@ export class ProjectDetailGenerationWorkflowService {
     const projectId = this.project()?.id;
     if (!projectId || this.projectBicepLoading()) return;
 
+    this.clearHistoricalGenerationContext();
     this.projectBicepLoading.set(true);
     this.projectBicepErrorKey.set('');
     this.projectBicepResult.set(null);
@@ -448,6 +454,7 @@ export class ProjectDetailGenerationWorkflowService {
     const projectId = this.project()?.id;
     if (!projectId || this.projectPipelineLoading()) return;
 
+    this.clearHistoricalGenerationContext();
     this.projectPipelineLoading.set(true);
     this.projectPipelineErrorKey.set('');
     this.projectPipelineResult.set(null);
@@ -468,6 +475,7 @@ export class ProjectDetailGenerationWorkflowService {
     const projectId = this.project()?.id;
     if (!projectId || this.projectBootstrapLoading()) return;
 
+    this.clearHistoricalGenerationContext();
     this.projectBootstrapLoading.set(true);
     this.projectBootstrapErrorKey.set('');
     this.projectBootstrapResult.set(null);
@@ -563,6 +571,18 @@ export class ProjectDetailGenerationWorkflowService {
     const result = await firstValueFrom(dialogRef.afterClosed());
     return result === true;
   };
+
+  private applyHistoricalGenerationContext(result: GetProjectLatestGenerationResponse): void {
+    const hasHistoricalArtifacts = result.bicep !== null || result.pipeline !== null || result.bootstrap !== null;
+
+    this.viewingHistoricalGeneration.set(hasHistoricalArtifacts);
+    this.displayedHistoricalGenerationAt.set(hasHistoricalArtifacts ? result.generatedAt : null);
+  }
+
+  private clearHistoricalGenerationContext(): void {
+    this.viewingHistoricalGeneration.set(false);
+    this.displayedHistoricalGenerationAt.set(null);
+  }
 
   private async buildCombinedProjectArchive(sources: CombinedArtifactArchiveSource[]): Promise<Blob> {
     const archive = new JSZip();

@@ -132,6 +132,28 @@
   flex-wrap: wrap;
 }
 
+.board__historical-banner {
+  overflow: hidden;
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  border-radius: var(--ifs-radius-md);
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.08), rgba(20, 32, 51, 0.98));
+}
+
+.board__historical-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.board__last-generation-feedback {
+  margin: 0;
+  color: var(--ifs-warning);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
 .board-banner {
   border-color: rgba(245, 158, 11, 0.28) !important;
   background: linear-gradient(180deg, rgba(245, 158, 11, 0.08), rgba(20, 32, 51, 0.98)) !important;

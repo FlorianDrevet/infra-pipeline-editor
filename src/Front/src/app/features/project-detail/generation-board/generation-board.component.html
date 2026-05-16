@@ -89,6 +89,26 @@
       </div>
     }
 
+    @if (viewingHistoricalGeneration()) {
+      <app-ds-banner
+        class="board__historical-banner"
+        variant="warning"
+        icon="history"
+        [title]="'PROJECT_DETAIL.BOARD.HISTORICAL_GENERATION_TITLE' | translate"
+        [description]="'PROJECT_DETAIL.BOARD.HISTORICAL_GENERATION_DESCRIPTION' | translate: { generatedAt: formattedHistoricalGenerationAt() }">
+        <div actions class="board__historical-banner-actions">
+          <app-ds-button
+            variant="secondary"
+            icon="rocket_launch"
+            [loading]="projectGenerateAllLoading()"
+            [disabled]="!canGenerateProject()"
+            (clicked)="onGenerateAll()">
+            {{ 'PROJECT_DETAIL.BOARD.HISTORICAL_GENERATION_ACTION' | translate }}
+          </app-ds-button>
+        </div>
+      </app-ds-banner>
+    }
+
     @if (topology() === 'empty') {
       <app-ds-card>
         <app-ds-empty-state
@@ -311,11 +331,27 @@
           icon="auto_awesome"
           [title]="'PROJECT_DETAIL.BOARD.READY_TITLE' | translate"
           [description]="'PROJECT_DETAIL.BOARD.READY_DESC' | translate">
-          <div actions>
+          <div actions class="board__ready-actions">
             <app-ds-button variant="primary" icon="rocket_launch" [loading]="projectGenerateAllLoading()" (clicked)="onGenerateAll()">
               {{ 'PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS' | translate }}
             </app-ds-button>
+
+            @if (lastGenerationAvailable()) {
+              <app-ds-button
+                variant="secondary"
+                icon="history"
+                [loading]="lastGenerationLoading()"
+                (clicked)="onLoadLastGeneration()">
+                {{ 'PROJECT_DETAIL.BOARD.LOAD_LAST_GENERATION' | translate }}
+              </app-ds-button>
+            }
           </div>
+
+          @if (lastGenerationErrorKey()) {
+            <p class="board__last-generation-feedback" role="alert">
+              {{ lastGenerationErrorKey() | translate }}
+            </p>
+          }
         </app-ds-empty-state>
       </app-ds-card>
     }

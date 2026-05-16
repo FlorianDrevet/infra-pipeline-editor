@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { convertToParamMap, provideRouter, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { SidebarContextService } from '../../../core/layouts/sidebar/sidebar-context.service';
@@ -39,6 +39,8 @@ class ProjectDetailGenerationWorkflowServiceStub {
   readonly lastGenerationLoading = signal(false);
   readonly lastGenerationAvailable = signal<boolean | null>(true);
   readonly lastGenerationErrorKey = signal('');
+  readonly viewingHistoricalGeneration = signal(false);
+  readonly displayedHistoricalGenerationAt = signal<string | null>(null);
   readonly projectGenerateAllLoading = signal(false);
   readonly projectBicepLoading = signal(false);
   readonly projectBicepResult = signal<GenerateProjectBicepResponse | null>(null);
@@ -90,6 +92,7 @@ describe('GenerationBoardComponent', () => {
   let component: GenerationBoardComponent;
   let projectServiceSpy: jasmine.SpyObj<ProjectService>;
   let dialogSpy: jasmine.SpyObj<MatDialog>;
+  let router: Router;
   let sidebarContextServiceSpy: jasmine.SpyObj<SidebarContextService>;
   let workflowStub: ProjectDetailGenerationWorkflowServiceStub;
 
@@ -129,6 +132,8 @@ describe('GenerationBoardComponent', () => {
         { provide: SidebarContextService, useValue: sidebarContextServiceSpy },
       ],
     }).compileComponents();
+
+    router = TestBed.inject(Router);
   });
 
   it('syncs the loaded project and configs into the generation workflow service', async () => {
@@ -214,10 +219,19 @@ describe('GenerationBoardComponent', () => {
     expect(repositoryCount).toBe(2);
   });
 
-  it('renders the layout repositories editor so layout and repositories can be edited from the generation board', async () => {
+  it('renders the configure action so layout and repositories can be edited from the generation board', async () => {
+    const navigateSpy = spyOn(router, 'navigate').and.resolveTo(true);
+
     await createComponent();
 
-    expect(fixture.nativeElement.querySelector('app-layout-repositories')).not.toBeNull();
+    const configureButton = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('PROJECT_DETAIL.BOARD.CONFIGURE'));
+
+    expect(configureButton).toBeTruthy();
+
+    invokeNavigateToConfig(component);
+
+    expect(navigateSpy).toHaveBeenCalledOnceWith(['/projects', 'project-1', 'generate', 'config']);
   });
 
   it('builds dedicated metrics for the split application-code repository card', async () => {
@@ -257,19 +271,14 @@ describe('GenerationBoardComponent', () => {
     ]);
   });
 
-  it('renders a single repository link in the identity block without the extra URL detail row', async () => {
+  it('keeps the legacy repository identity rows out of the generation board', async () => {
     await createComponent();
 
     const nativeElement = fixture.nativeElement as HTMLElement;
-    const detailLinks = nativeElement.querySelectorAll('.repo-card__details a');
-    const subtitles = Array.from(nativeElement.querySelectorAll('.repo-card__subtitle'))
-      .map((subtitle) => subtitle.textContent?.trim());
-    const detailLabels = Array.from(nativeElement.querySelectorAll('.repo-card__detail-label'))
-      .map((label) => label.textContent?.trim());
 
-    expect(subtitles).toContain('org/default');
-    expect(detailLinks.length).toBe(0);
-    expect(detailLabels).not.toContain('PROJECT_DETAIL.LAYOUT.URL');
+    expect(nativeElement.querySelector('.repo-card__subtitle')).toBeNull();
+    expect(nativeElement.querySelector('.repo-card__details a')).toBeNull();
+    expect(nativeElement.querySelector('.repo-card__detail-label')).toBeNull();
   });
 
   it('defines exactly three mono-repo tabs and uses the bootstrap downloading label for the busy download state', async () => {
@@ -395,4 +404,8 @@ function createNode(path: string): BicepFileNode {
 
 function invokeGenerateAll(component: GenerationBoardComponent): void {
   (component as unknown as { onGenerateAll(): void }).onGenerateAll();
+}
+
+function invokeNavigateToConfig(component: GenerationBoardComponent): void {
+  (component as unknown as { navigateToConfig(): void }).navigateToConfig();
 }

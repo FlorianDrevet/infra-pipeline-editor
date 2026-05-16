@@ -8,6 +8,7 @@ import {
   GenerateProjectBicepResponse,
   GenerateProjectBootstrapPipelineResponse,
   GenerateProjectPipelineResponse,
+  GetProjectLatestGenerationResponse,
   ProjectResponse,
 } from '../../shared/interfaces/project.interface';
 import { ResourceDiagnosticResponse } from '../../shared/interfaces/config-diagnostics.interface';
@@ -101,6 +102,31 @@ describe('ProjectDetailGenerationWorkflowService', () => {
     expect(service.lastGenerationErrorKey()).toBe('PROJECT_DETAIL.BOARD.LAST_GENERATION_ERROR');
     expect(service.lastGenerationLoading()).toBeFalse();
   });
+
+  it('stores the viewed historical generation timestamp when the latest generation is loaded', async () => {
+    const latestGeneration = createLatestGenerationResponse();
+    projectServiceSpy.getProjectLatestGeneration.and.resolveTo(latestGeneration);
+
+    await service.loadLastGeneration();
+
+    expect(service.viewingHistoricalGeneration()).toBeTrue();
+    expect(service.displayedHistoricalGenerationAt()).toBe(latestGeneration.generatedAt);
+    expect(service.projectBicepResult()).toEqual({
+      commonFileUris: latestGeneration.bicep!.commonFileUris,
+      configFileUris: latestGeneration.bicep!.configFileUris,
+    });
+  });
+
+  it('clears the historical generation context when a new project generation starts', async () => {
+    projectServiceSpy.getProjectLatestGeneration.and.resolveTo(createLatestGenerationResponse());
+
+    await service.loadLastGeneration();
+    await service.generateProjectBicep();
+
+    expect(service.viewingHistoricalGeneration()).toBeFalse();
+    expect(service.displayedHistoricalGenerationAt()).toBeNull();
+    expect(projectServiceSpy.generateProjectBicep).toHaveBeenCalledOnceWith('project-1');
+  });
 });
 
 function createProject(): ProjectResponse {
@@ -173,5 +199,17 @@ function createBootstrapResponse(): GenerateProjectBootstrapPipelineResponse {
     fileUris: { 'bootstrap.yml': '/files/bootstrap.yml' },
     infraFileUris: {},
     appFileUris: {},
+  };
+}
+
+function createLatestGenerationResponse(): GetProjectLatestGenerationResponse {
+  return {
+    bicep: {
+      commonFileUris: { 'main.bicep': '/files/main.bicep' },
+      configFileUris: {},
+    },
+    pipeline: null,
+    bootstrap: null,
+    generatedAt: '2026-05-16T10:30:00Z',
   };
 }

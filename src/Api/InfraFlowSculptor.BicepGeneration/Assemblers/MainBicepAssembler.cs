@@ -274,28 +274,31 @@ internal static class MainBicepAssembler
         IReadOnlyDictionary<string, string>? projectTags,
         IReadOnlyDictionary<string, string>? configTags)
     {
-        if (projectTags is null && configTags is null)
+        var hasProjectTags = projectTags is { Count: > 0 };
+        var hasConfigTags = configTags is { Count: > 0 };
+
+        if (!hasProjectTags && !hasConfigTags)
         {
             sb.AppendLine("var tags = env.tags");
             sb.AppendLine();
             return;
         }
 
-        if (projectTags is { Count: > 0 })
+        if (hasProjectTags)
         {
-            AppendTagsVariable(sb, "projectTags", projectTags);
+            AppendTagsVariable(sb, "projectTags", projectTags!);
         }
 
-        if (configTags is { Count: > 0 })
+        if (hasConfigTags)
         {
-            AppendTagsVariable(sb, "configTags", configTags);
+            AppendTagsVariable(sb, "configTags", configTags!);
         }
 
-        if (projectTags is { Count: > 0 } && configTags is { Count: > 0 })
+        if (hasProjectTags && hasConfigTags)
         {
             sb.AppendLine("var tags = union(projectTags, configTags, env.tags)");
         }
-        else if (projectTags is { Count: > 0 })
+        else if (hasProjectTags)
         {
             sb.AppendLine("var tags = union(projectTags, env.tags)");
         }

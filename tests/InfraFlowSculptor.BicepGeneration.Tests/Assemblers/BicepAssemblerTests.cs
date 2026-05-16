@@ -8,6 +8,53 @@ namespace InfraFlowSculptor.BicepGeneration.Tests.Assemblers;
 public sealed class BicepAssemblerTests
 {
     [Fact]
+    public void Given_EmptyProjectAndConfigTags_When_Assemble_Then_MainBicepUsesEnvironmentTagsOnly()
+    {
+        // Arrange
+        var resourceGroups = new[]
+        {
+            new ResourceGroupDefinition
+            {
+                Name = "ifs",
+                Location = "FranceCentral",
+                ResourceAbbreviation = "rg",
+            },
+        };
+
+        var environments = new[]
+        {
+            new EnvironmentDefinition
+            {
+                Name = "Development",
+                ShortName = "dev",
+                Location = "FranceCentral",
+            },
+        };
+
+        // Act
+        var result = BicepAssembler.Assemble(
+            modules: [],
+            new GenerationRequest
+            {
+                ResourceGroups = resourceGroups,
+                Environments = environments,
+                EnvironmentNames = ["Development"],
+                Resources = [],
+                NamingContext = new NamingContext(),
+                RoleAssignments = [],
+                AppSettings = [],
+                ExistingResourceReferences = [],
+                ProjectTags = new Dictionary<string, string>(),
+                ConfigTags = new Dictionary<string, string>(),
+            });
+
+        // Assert
+        result.MainBicep.Should().Contain("var tags = env.tags");
+        result.MainBicep.Should().NotContain("union(configTags, env.tags)");
+        result.MainBicep.Should().NotContain("var configTags = {");
+    }
+
+    [Fact]
     public void Given_ContainerRegistryRoleAssignment_When_Assemble_Then_EmitsContainerRegistryRoleAssignmentModuleInContainerRegistryFolder()
     {
         // Arrange
