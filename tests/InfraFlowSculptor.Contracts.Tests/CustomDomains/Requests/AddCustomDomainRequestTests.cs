@@ -75,20 +75,20 @@ public sealed class AddCustomDomainRequestTests
     }
 
     [Fact]
-    public void Given_BindingTypeExceedingMaxLength_When_Validate_Then_ReturnsLengthError()
+    public void Given_CertificateModeExceedingMaxLength_When_Validate_Then_ReturnsLengthError()
     {
         // Arrange
         var sut = new AddCustomDomainRequest
         {
             EnvironmentName = "production",
             DomainName = "api.example.com",
-            BindingType = new string('b', 21),
+            CertificateMode = new string('b', 31),
         };
 
         // Act
         var results = RequestValidator.Validate(sut);
 
         // Assert
-        results.HasErrorForMember(nameof(AddCustomDomainRequest.BindingType)).Should().BeTrue();
+        results.HasErrorForMember(nameof(AddCustomDomainRequest.CertificateMode)).Should().BeTrue();
     }
 }

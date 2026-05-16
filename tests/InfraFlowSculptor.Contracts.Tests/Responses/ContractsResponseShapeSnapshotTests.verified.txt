@@ -182,13 +182,16 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.CustomDomains.Responses
 Type: CustomDomainResponse
 Constructors:
-  CustomDomainResponse(string Id, string ResourceId, string EnvironmentName, string DomainName, string BindingType, string DnsValidationStatus)
+  CustomDomainResponse(string Id, string ResourceId, string EnvironmentName, string DomainName, string CertificateMode, string? KeyVaultUrl, string? ManagedIdentityResourceId, string? CertificateName, string DnsValidationStatus)
 Properties:
-  BindingType: string
+  CertificateMode: string
+  CertificateName: string?
   DnsValidationStatus: string
   DomainName: string
   EnvironmentName: string
   Id: string
+  KeyVaultUrl: string?
+  ManagedIdentityResourceId: string?
   ResourceId: string
 
 Namespace: InfraFlowSculptor.Contracts.CustomDomains.Responses

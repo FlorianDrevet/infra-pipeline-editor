@@ -42,7 +42,10 @@ public sealed class ListCustomDomainsQueryHandler(
                 cd.ResourceId,
                 cd.EnvironmentName,
                 cd.DomainName,
-                cd.BindingType,
+                cd.CertificateMode.Value.ToString(),
+                cd.KeyVaultUrl,
+                cd.ManagedIdentityResourceId,
+                cd.CertificateName,
                 cd.DnsValidationStatus.Value.ToString()))
             .ToList();
 

@@ -446,7 +446,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// </summary>
     /// <param name="environmentName">The deployment environment name.</param>
     /// <param name="domainName">The fully qualified domain name.</param>
-    /// <param name="certificateMode">The certificate provisioning mode.</param>
+    /// <param name="certificateMode">The certificate provisioning mode (defaults to ManagedCertificate if null).</param>
     /// <param name="keyVaultUrl">Key Vault secret URL (Key Vault mode only).</param>
     /// <param name="managedIdentityResourceId">Managed identity resource ID (Key Vault mode only).</param>
     /// <param name="certificateName">Certificate name in the environment (Manual mode only).</param>
@@ -454,7 +454,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     public ErrorOr<CustomDomain> AddCustomDomain(
         string environmentName,
         string domainName,
-        CertificateMode certificateMode,
+        CertificateMode? certificateMode = null,
         string? keyVaultUrl = null,
         string? managedIdentityResourceId = null,
         string? certificateName = null)
@@ -473,7 +473,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
             Id,
             environmentName,
             normalizedDomain,
-            certificateMode,
+            certificateMode ?? CertificateMode.ManagedCertificate,
             keyVaultUrl,
             managedIdentityResourceId,
             certificateName);

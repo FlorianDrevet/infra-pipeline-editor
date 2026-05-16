@@ -50,7 +50,10 @@ public sealed class ValidateCustomDomainDnsCommandHandler(
             domain.ResourceId,
             domain.EnvironmentName,
             domain.DomainName,
-            domain.BindingType,
+            domain.CertificateMode.Value.ToString(),
+            domain.KeyVaultUrl,
+            domain.ManagedIdentityResourceId,
+            domain.CertificateName,
             domain.DnsValidationStatus.Value.ToString());
     }
 }

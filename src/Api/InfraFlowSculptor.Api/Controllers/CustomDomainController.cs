@@ -48,7 +48,10 @@ public static class CustomDomainController
                             new AzureResourceId(resourceId),
                             request.EnvironmentName,
                             request.DomainName,
-                            request.BindingType);
+                            request.CertificateMode,
+                            request.KeyVaultUrl,
+                            request.ManagedIdentityResourceId,
+                            request.CertificateName);
 
                         var result = await mediator.Send(command);
 

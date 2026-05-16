@@ -1,0 +1,108 @@
+name: mirror-to-azure-devops
+
+on:
+  workflow_dispatch:
+  push:
+  create:
+  delete:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mirror-to-azure-devops
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      AZURE_DEVOPS_MIRROR_URL: ${{ vars.AZURE_DEVOPS_MIRROR_URL }}
+      AZURE_DEVOPS_MIRROR_PAT: ${{ secrets.AZURE_DEVOPS_MIRROR_PAT }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate mirror configuration
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          if ([string]::IsNullOrWhiteSpace($env:AZURE_DEVOPS_MIRROR_URL)) {
+            throw 'Repository variable AZURE_DEVOPS_MIRROR_URL is required.'
+          }
+
+          if ([string]::IsNullOrWhiteSpace($env:AZURE_DEVOPS_MIRROR_PAT)) {
+            throw 'Repository secret AZURE_DEVOPS_MIRROR_PAT is required.'
+          }
+
+      - name: Mirror branches and tags to Azure DevOps
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $targetRemote = 'azure-devops'
+          $authorizationBytes = [System.Text.Encoding]::ASCII.GetBytes("git:$env:AZURE_DEVOPS_MIRROR_PAT")
+          $authorizationHeader = 'AUTHORIZATION: basic ' + [Convert]::ToBase64String($authorizationBytes)
+
+          if ((git remote) -contains $targetRemote) {
+            git remote remove $targetRemote
+          }
+
+          git remote add $targetRemote $env:AZURE_DEVOPS_MIRROR_URL
+          git fetch origin "+refs/heads/*:refs/remotes/origin/*" --prune
+          git fetch origin "+refs/tags/*:refs/tags/*" --prune
+
+          $sourceBranches = @(git for-each-ref --format="%(refname:strip=3)" refs/remotes/origin |
+            Where-Object { $_ -and $_ -ne 'HEAD' } |
+            Sort-Object -Unique)
+
+          $targetBranches = @(git -c "http.extraheader=$authorizationHeader" ls-remote --heads $targetRemote |
+            ForEach-Object {
+              if ($_ -match 'refs/heads/(.+)$') {
+                $matches[1]
+              }
+            } |
+            Sort-Object -Unique)
+
+          foreach ($branch in $sourceBranches) {
+            git -c "http.extraheader=$authorizationHeader" push $targetRemote "+refs/remotes/origin/$branch:refs/heads/$branch"
+          }
+
+          $branchesToDelete = @($targetBranches | Where-Object { $_ -notin $sourceBranches })
+          foreach ($branch in $branchesToDelete) {
+            git -c "http.extraheader=$authorizationHeader" push $targetRemote ":refs/heads/$branch"
+          }
+
+          $sourceTags = @(git tag --list |
+            Where-Object { $_ } |
+            Sort-Object -Unique)
+
+          $targetTags = @(git -c "http.extraheader=$authorizationHeader" ls-remote --tags --refs $targetRemote |
+            ForEach-Object {
+              if ($_ -match 'refs/tags/(.+)$') {
+                $matches[1]
+              }
+            } |
+            Sort-Object -Unique)
+
+          foreach ($tag in $sourceTags) {
+            git -c "http.extraheader=$authorizationHeader" push $targetRemote "+refs/tags/$tag:refs/tags/$tag"
+          }
+
+          $tagsToDelete = @($targetTags | Where-Object { $_ -notin $sourceTags })
+          foreach ($tag in $tagsToDelete) {
+            git -c "http.extraheader=$authorizationHeader" push $targetRemote ":refs/tags/$tag"
+          }
+
+          @(
+            "Mirrored $($sourceBranches.Count) branches to Azure DevOps."
+            "Mirrored $($sourceTags.Count) tags to Azure DevOps."
+            "Pruned $($branchesToDelete.Count) branches missing from GitHub."
+            "Pruned $($tagsToDelete.Count) tags missing from GitHub."
+          ) | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append

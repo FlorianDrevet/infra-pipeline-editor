@@ -77,11 +77,12 @@ internal static class ParameterFileAssembler
 
         if (envCustomDomains.Count > 0 && mergedParams.ContainsKey("customDomains"))
         {
+            var isContainerApp = matchingResource.Type == AzureResourceTypes.ArmTypes.ContainerAppType;
             mergedParams["customDomains"] = envCustomDomains
                 .Select(cd => (object)BicepParameterModelConverter.ToDictionary(new CustomDomainParameter
                 {
                     DomainName = cd.DomainName,
-                    BindingType = MapCertificateModeToBindingType(cd.CertificateMode),
+                    BindingType = MapCertificateModeToBindingType(cd.CertificateMode, isContainerApp),
                     CertificateMode = cd.CertificateMode,
                     KeyVaultUrl = cd.KeyVaultUrl,
                     ManagedIdentityResourceId = cd.ManagedIdentityResourceId,
@@ -107,6 +108,15 @@ internal static class ParameterFileAssembler
             return module.ModuleName == expectedModuleName;
         });
     }
+
+    private static string MapCertificateModeToBindingType(string certificateMode, bool isContainerApp) => certificateMode switch
+    {
+        "ManagedCertificate" => isContainerApp ? "Auto" : "SniEnabled",
+        "KeyVaultCertificate" => "SniEnabled",
+        "ManualCertificate" => "SniEnabled",
+        "Disabled" => "Disabled",
+        _ => isContainerApp ? "Auto" : "SniEnabled",
+    };
 
     private static void ApplyParameterOverrides(
         Dictionary<string, object> mergedParams,

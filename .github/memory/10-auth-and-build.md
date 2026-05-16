@@ -45,6 +45,13 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - `tests/InfraFlowSculptor.Contracts.Tests/Responses/ContractsResponseShapeSnapshotTests.*` is the approval gate for public Contracts response DTO shape. When adding, removing, or splitting response types, update the verified snapshot in strict alphabetical order and keep the `Count` value aligned with the approved list.
 - `tmp/test-output-mcp/` is not ignored by the root `.gitignore`; generated MCP artefacts there can pollute branch diffs.
 
+## GitHub to Azure DevOps Mirror [2026-05-16]
+
+- `.github/workflows/mirror-to-azure-devops.yml` mirrors all GitHub branches and tags into an Azure DevOps Git repo on every `push`, `create`, `delete`, plus manual `workflow_dispatch`.
+- The workflow is serialized with a dedicated concurrency group so concurrent pushes on different branches do not race while updating the Azure DevOps mirror.
+- Required GitHub configuration: repository variable `AZURE_DEVOPS_MIRROR_URL` for the target clone URL and repository secret `AZURE_DEVOPS_MIRROR_PAT` with Azure DevOps `Code (Read & Write)` scope.
+- The workflow syncs the full branch/tag set, force-updates rewritten refs, and prunes refs deleted from GitHub so the Azure DevOps repo stays aligned instead of only forwarding the triggering branch.
+
 ## MCP Runtime Hardening [2026-05-13]
 
 - `src/Mcp/InfraFlowSculptor.Mcp/Program.cs` now reuses API rate limiting through `AddRateLimiting()` and the shared security headers middleware through `UseMcpHttpPipeline()`.

@@ -18,7 +18,10 @@ public sealed class CustomDomainMappingConfig : IRegister
                 src.ResourceId.Value.ToString(),
                 src.EnvironmentName,
                 src.DomainName,
-                src.BindingType,
+                src.CertificateMode,
+                src.KeyVaultUrl,
+                src.ManagedIdentityResourceId,
+                src.CertificateName,
                 src.DnsValidationStatus));
 
         config.NewConfig<DnsInstructionsResult, DnsInstructionsResponse>()
