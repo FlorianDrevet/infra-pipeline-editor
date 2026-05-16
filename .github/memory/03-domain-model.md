@@ -54,6 +54,11 @@ These reusable entity types are owned by multiple aggregates:
 
 `ContainerApp` owns `DockerImageName` at the resource level (not per-env). The `containerImage` property was removed from `ContainerAppEnvironmentSettings`. Bicep generator reads `resource.Properties["dockerImageName"]`.
 
+## Compute Docker Image Validation [2026-05-17]
+
+- `ContainerApp`, `WebApp`, and `FunctionApp` now persist `DockerImageValidated` alongside `DockerImageName`.
+- The flag defaults to `false` and is the canonical cross-layer signal for “image name entered” versus “image confirmed”, reused by frontend validation UX, diagnostics, and generation.
+
 ## Application Pipeline Properties [2026-04-04]
 
 3 compute aggregates now have CI/CD pipeline config properties:
@@ -79,9 +84,10 @@ These reusable entity types are owned by multiple aggregates:
 ## Custom Domains & Secure Parameter Mappings [2026-04-23]
 
 - `AzureResource` now owns `_customDomains` and `_secureParameterMappings` backing collections on the base class.
-- `CustomDomain` stores `EnvironmentName`, normalized `DomainName`, `BindingType` (`SniEnabled` or `Disabled`), and `DnsValidationStatus` (`Pending` or `Validated`). Duplicate `(EnvironmentName, DomainName)` pairs are rejected.
+- `CustomDomain` stores `EnvironmentName`, normalized `DomainName`, `CertificateMode` (`ManagedCertificate`, `KeyVaultCertificate`, `ManualCertificate`, or `Disabled`), optional `KeyVaultUrl` / `ManagedIdentityResourceId` / `CertificateName`, and `DnsValidationStatus` (`Pending` or `Validated`). Duplicate `(EnvironmentName, DomainName)` pairs are rejected.
 - `DnsValidationStatus` is an `EnumValueObject<DnsValidationStatus>` (sealed) with values `Pending` and `Validated`. New domains start as `Pending`. Methods: `ValidateDns()` → sets `Validated`, `ResetDnsValidation()` → resets to `Pending`.
 - Custom domains are supported for compute resources only (ContainerApp, WebApp, FunctionApp) and are blocked on `IsExisting` resources.
+- `ManagedCertificate` is the default replacement for the legacy `BindingType` flow; downstream Bicep emission maps `CertificateMode` back to the resource-specific binding representation expected by Container App versus Web/Function App.
 - Bicep generators only emit custom domain bindings for domains where `DnsValidationStatus == Validated`; `Pending` domains are excluded from generated artifacts.
 - `SecureParameterMapping` stores `SecureParameterName`, optional `VariableGroupId`, and `PipelineVariableName` so a secure Bicep param can be injected from an Azure DevOps variable group.
 - `AzureResource.SetSecureParameterMapping(...)` acts as upsert/clear: `null` group clears an existing mapping, inconsistent half-filled mappings are rejected.
