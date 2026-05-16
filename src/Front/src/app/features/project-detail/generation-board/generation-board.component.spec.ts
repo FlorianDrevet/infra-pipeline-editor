@@ -36,6 +36,9 @@ interface MonoRepoTabExpectation {
 
 class ProjectDetailGenerationWorkflowServiceStub {
   readonly validatingDiagnostics = signal(false);
+  readonly lastGenerationLoading = signal(false);
+  readonly lastGenerationAvailable = signal<boolean | null>(true);
+  readonly lastGenerationErrorKey = signal('');
   readonly projectGenerateAllLoading = signal(false);
   readonly projectBicepLoading = signal(false);
   readonly projectBicepResult = signal<GenerateProjectBicepResponse | null>(null);
@@ -66,6 +69,7 @@ class ProjectDetailGenerationWorkflowServiceStub {
 
   readonly setProject = jasmine.createSpy('setProject');
   readonly setConfigs = jasmine.createSpy('setConfigs');
+  readonly checkLastGenerationAvailable = jasmine.createSpy('checkLastGenerationAvailable').and.resolveTo();
   readonly generateAll = jasmine.createSpy('generateAll').and.resolveTo();
   readonly generateProjectBicep = jasmine.createSpy('generateProjectBicep').and.resolveTo();
   readonly generateProjectPipeline = jasmine.createSpy('generateProjectPipeline').and.resolveTo();
@@ -78,6 +82,7 @@ class ProjectDetailGenerationWorkflowServiceStub {
   readonly openProjectMultiRepoPushDialog = jasmine.createSpy('openProjectMultiRepoPushDialog');
   readonly downloadProjectPipelineFiles = jasmine.createSpy('downloadProjectPipelineFiles').and.resolveTo();
   readonly downloadProjectBootstrapFiles = jasmine.createSpy('downloadProjectBootstrapFiles').and.resolveTo();
+  readonly loadLastGeneration = jasmine.createSpy('loadLastGeneration').and.resolveTo();
 }
 
 describe('GenerationBoardComponent', () => {
@@ -156,6 +161,14 @@ describe('GenerationBoardComponent', () => {
     ).filter((button) => button.textContent?.includes('PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS'));
 
     expect(generateAllButtons.length).toBe(1);
+  });
+
+  it('renders the ready-state actions inside a dedicated action group', async () => {
+    await createComponent();
+
+    const actionGroup = (fixture.nativeElement as HTMLElement).querySelector('.board__ready-actions');
+
+    expect(actionGroup).not.toBeNull();
   });
 
   it('removes the per-config list from repository cards', async () => {
