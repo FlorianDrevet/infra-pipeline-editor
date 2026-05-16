@@ -64,7 +64,7 @@ export class ProjectService {
   private readonly axios = inject(AxiosService);
 
   /** Short-lived cache to avoid redundant fetches during navigation (TTL: 30s). */
-  private projectCache = new Map<string, { data: ProjectResponse; timestamp: number }>();
+  private readonly projectCache = new Map<string, { data: ProjectResponse; timestamp: number }>();
   private static readonly CACHE_TTL_MS = 30_000;
 
   getMyProjects(): Promise<ProjectResponse[]> {

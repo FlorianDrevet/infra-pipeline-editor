@@ -199,6 +199,33 @@ public sealed class BicepEmitterTests
     }
 
     [Fact]
+    public void Given_PropertyWithMultilineRawExpression_When_EmitModule_Then_IndentsContinuationLinesRelativeToProperty()
+    {
+        var spec = MinimalSpec() with
+        {
+            Resource = new BicepResourceDeclaration
+            {
+                Symbol = "kv",
+                ArmTypeWithApiVersion = "Microsoft.KeyVault/vaults@2023-07-01",
+                Body =
+                [
+                    new BicepPropertyAssignment("name", new BicepReference("name")),
+                    new BicepPropertyAssignment("properties", new BicepObjectExpression([
+                        new BicepPropertyAssignment("probes", new BicepRawExpression("union(\n  first()\n)")),
+                    ])),
+                ],
+            },
+        };
+
+        var result = _sut.EmitModule(spec);
+
+        result.Should().Contain(
+            "    probes: union(\n" +
+            "      first()\n" +
+            "    )");
+    }
+
+    [Fact]
     public void Given_SpecWithExportedTypes_When_EmitTypes_Then_EmitsExportedTypes()
     {
         var spec = MinimalSpec() with

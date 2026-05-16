@@ -221,8 +221,25 @@ public sealed class BicepEmitter
         }
         else
         {
-            sb.AppendLine(EmitExpression(prop.Value, indent));
+            var expression = EmitExpression(prop.Value, indent);
+            sb.AppendLine(IndentContinuationLines(expression, prefix));
         }
+    }
+
+    private static string IndentContinuationLines(string expression, string continuationPrefix)
+    {
+        if (!expression.Contains('\n'))
+        {
+            return expression;
+        }
+
+        var lines = expression.ReplaceLineEndings(CanonicalLineEnding).Split(CanonicalLineEnding);
+        for (var index = 1; index < lines.Length; index++)
+        {
+            lines[index] = continuationPrefix + lines[index];
+        }
+
+        return string.Join(CanonicalLineEnding, lines);
     }
 
     private static void EmitArrayMultiline(StringBuilder sb, BicepArrayExpression arr, int indent)

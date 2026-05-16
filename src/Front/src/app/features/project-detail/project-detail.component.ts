@@ -172,7 +172,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    void this.router.navigate([], {
+    this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { tab: null },
       queryParamsHandling: 'merge',
@@ -188,7 +188,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    void this.loadProject(id);
+    this.loadProject(id).catch(() => undefined);
   }
 
   private async loadProject(id: string): Promise<void> {
@@ -644,7 +644,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   protected navigateToGenerate(): void {
     const projectId = this.project()?.id;
     if (!projectId) return;
-    void this.router.navigate(['/projects', projectId, 'generate']);
+    this.router.navigate(['/projects', projectId, 'generate']).catch(() => undefined);
   }
 
   // ─── Pipeline Variable Groups ───

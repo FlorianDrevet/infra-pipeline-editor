@@ -132,7 +132,7 @@ public sealed class BicepAssemblerTests
             new GeneratedTypeModule
             {
                 ModuleName = "containerAppIfsApi",
-                ModuleFileName = "containerAppAcrManagedIdentity.module.bicep",
+                ModuleFileName = "containerApp.module.bicep",
                 ModuleFolderName = "ContainerApp",
                 ModuleBicepContent = "param location string",
                 ResourceGroupName = "ifs",

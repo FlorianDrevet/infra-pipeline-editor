@@ -12,6 +12,9 @@ namespace InfraFlowSculptor.BicepGeneration.Assemblers;
 /// </summary>
 internal static class ParameterFileAssembler
 {
+    /// <summary>SNI-based binding type used by Web Apps and Function Apps.</summary>
+    private const string SniEnabledBindingType = "SniEnabled";
+
     /// <summary>
     /// Generates one <c>.bicepparam</c> file per environment.
     /// Each file sets <c>environmentName</c> and the resource-specific parameter overrides.
@@ -111,11 +114,11 @@ internal static class ParameterFileAssembler
 
     private static string MapCertificateModeToBindingType(string certificateMode, bool isContainerApp) => certificateMode switch
     {
-        "ManagedCertificate" => isContainerApp ? "Auto" : "SniEnabled",
-        "KeyVaultCertificate" => "SniEnabled",
-        "ManualCertificate" => "SniEnabled",
+        "ManagedCertificate" => isContainerApp ? "Auto" : SniEnabledBindingType,
+        "KeyVaultCertificate" => SniEnabledBindingType,
+        "ManualCertificate" => SniEnabledBindingType,
         "Disabled" => "Disabled",
-        _ => isContainerApp ? "Auto" : "SniEnabled",
+        _ => isContainerApp ? "Auto" : SniEnabledBindingType,
     };
 
     private static void ApplyParameterOverrides(

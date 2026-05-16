@@ -21,7 +21,6 @@ public sealed partial class ContainerAppTypeBicepGenerator
 
     private const string ModuleName = "containerApp";
     private const string ModuleFolderName = "ContainerApp";
-    private const string ManagedIdentityModuleFileName = "containerAppAcrManagedIdentity";
     private const string AdminCredentialsModuleFileName = "containerAppAcrAdminCredentials";
     private const string ResourceSymbol = "containerApp";
 
@@ -155,7 +154,8 @@ public sealed partial class ContainerAppTypeBicepGenerator
 
         var builder = new BicepModuleBuilder()
             .Module(ModuleName, ModuleFolderName, ResourceTypeName)
-          .Import(TypesImportPath,
+            .ModuleFileName(ModuleName)
+            .Import(TypesImportPath,
                 ContainerRuntimeConfigTypeName,
                 ScalingConfigTypeName,
                 IngressConfigTypeName,
@@ -199,12 +199,9 @@ public sealed partial class ContainerAppTypeBicepGenerator
             builder.Var(AcrPasswordSecretNameVariableName, new BicepStringLiteral(AcrPasswordSecretNameValue));
         }
 
-        // ── Module file name (variant) ──
-        if (hasAcr)
+        if (hasAcr && useAdminCredentials)
         {
-            builder.ModuleFileName(useAdminCredentials
-                ? AdminCredentialsModuleFileName
-                : ManagedIdentityModuleFileName);
+          builder.ModuleFileName(AdminCredentialsModuleFileName);
         }
 
         // ── Resource ──
@@ -382,13 +379,9 @@ public sealed partial class ContainerAppTypeBicepGenerator
           parameters = parameters with { CustomDomains = [] };
         }
 
-        var moduleFileName = ModuleName;
-        if (hasAcr)
-        {
-          moduleFileName = useAdminCredentials
+        var moduleFileName = hasAcr && useAdminCredentials
             ? AdminCredentialsModuleFileName
-            : ManagedIdentityModuleFileName;
-        }
+            : ModuleName;
 
         var moduleBicepContent = ContainerAppModuleTemplate;
         if (hasAcr)

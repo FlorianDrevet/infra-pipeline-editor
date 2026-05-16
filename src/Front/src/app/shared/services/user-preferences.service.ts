@@ -86,7 +86,7 @@ export class UserPreferencesService {
   constructor() {
     effect(() => {
       const theme = this.appTheme();
-      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.dataset['theme'] = theme;
 
       const colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
       if (colorSchemeMeta) {

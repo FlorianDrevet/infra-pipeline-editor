@@ -63,8 +63,8 @@ public sealed class GetDnsInstructionsQueryHandler(
         return resourceType switch
         {
             AzureResourceTypes.ContainerApp => BuildContainerAppInstructions(resourceName, domainName),
-            AzureResourceTypes.WebApp => BuildWebAppInstructions(resourceName, domainName),
-            AzureResourceTypes.FunctionApp => BuildFunctionAppInstructions(resourceName, domainName),
+            AzureResourceTypes.WebApp => BuildAppServiceInstructions(resourceName, domainName),
+            AzureResourceTypes.FunctionApp => BuildAppServiceInstructions(resourceName, domainName),
             _ => BuildGenericInstructions(domainName),
         };
     }
@@ -103,37 +103,8 @@ public sealed class GetDnsInstructionsQueryHandler(
         ];
     }
 
-    private static List<DnsInstructionStep> BuildWebAppInstructions(string resourceName, string domainName)
-    {
-        var defaultHostname = $"{resourceName}{AzureWebsitesSuffix}";
-
-        return
-        [
-            new DnsInstructionStep(
-                Order: 1,
-                Title: "Create a CNAME record",
-                Description: $"Point '{domainName}' to '{defaultHostname}'.",
-                RecordType: CnameRecordType,
-                RecordName: domainName,
-                RecordValue: defaultHostname),
-            new DnsInstructionStep(
-                Order: 2,
-                Title: "Create a TXT verification record",
-                Description: $"Create a TXT record at '{AsuidPrefix}{domainName}' with the Custom Domain Verification ID from the Azure portal.",
-                RecordType: TxtRecordType,
-                RecordName: $"{AsuidPrefix}{domainName}",
-                RecordValue: "<custom-domain-verification-id>"),
-            new DnsInstructionStep(
-                Order: 3,
-                Title: ValidateDnsTitle,
-                Description: "Once DNS records have propagated, click 'Validate DNS' to confirm the configuration.",
-                RecordType: null,
-                RecordName: null,
-                RecordValue: null),
-        ];
-    }
-
-    private static List<DnsInstructionStep> BuildFunctionAppInstructions(string resourceName, string domainName)
+    /// <summary>Builds DNS instructions for App Service resources (Web App and Function App).</summary>
+    private static List<DnsInstructionStep> BuildAppServiceInstructions(string resourceName, string domainName)
     {
         var defaultHostname = $"{resourceName}{AzureWebsitesSuffix}";
 

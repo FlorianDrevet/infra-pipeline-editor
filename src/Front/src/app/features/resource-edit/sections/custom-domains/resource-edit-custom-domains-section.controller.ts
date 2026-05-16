@@ -115,22 +115,19 @@ export function createResourceEditCustomDomainsSectionController(
     });
   };
 
-  const validateDns = (domain: CustomDomainResponse): void => {
+  const validateDns = async (domain: CustomDomainResponse): Promise<void> => {
     isLoading.set(true);
     errorKey.set('');
-    customDomainService
-      .validateDns(dependencies.getResourceId(), domain.id)
-      .then((updated) => {
-        customDomains.update((current) =>
-          current.map((d) => (d.id === updated.id ? updated : d)),
-        );
-      })
-      .catch(() => {
-        errorKey.set('RESOURCE_EDIT.CUSTOM_DOMAINS.VALIDATE_ERROR');
-      })
-      .finally(() => {
-        isLoading.set(false);
-      });
+    try {
+      const updated = await customDomainService.validateDns(dependencies.getResourceId(), domain.id);
+      customDomains.update((current) =>
+        current.map((d) => (d.id === updated.id ? updated : d)),
+      );
+    } catch {
+      errorKey.set('RESOURCE_EDIT.CUSTOM_DOMAINS.VALIDATE_ERROR');
+    } finally {
+      isLoading.set(false);
+    }
   };
 
   const showDnsInstructions = (domain: CustomDomainResponse): void => {

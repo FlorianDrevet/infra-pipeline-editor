@@ -248,10 +248,10 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     // ── ACR ManagedIdentity variant ──
 
     [Fact]
-    public void Given_AcrMiResource_When_GenerateSpec_Then_ModuleFileNameIsContainerAppAcrManagedIdentity()
+    public void Given_AcrMiResource_When_GenerateSpec_Then_ModuleFileNameIsContainerApp()
     {
         var spec = _sut.GenerateSpec(CreateAcrMiResource());
-        spec.ModuleFileName.Should().Be("containerAppAcrManagedIdentity");
+        spec.ModuleFileName.Should().Be("containerApp");
     }
 
     [Fact]
@@ -324,7 +324,7 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     {
         var spec = _sut.GenerateSpec(CreateAcrDefaultAuthResource());
 
-        spec.ModuleFileName.Should().Be("containerAppAcrManagedIdentity");
+        spec.ModuleFileName.Should().Be("containerApp");
         spec.Parameters.Should().Contain(p => p.Name == "acrManagedIdentityClientId");
         spec.Parameters.Should().NotContain(p => p.Name == "acrPassword");
     }
@@ -427,7 +427,7 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     public void Given_AcrMiResource_When_Generate_Then_ModuleFileNameMatchesVariant()
     {
         var module = _sut.Generate(CreateAcrMiResource());
-        module.ModuleFileName.Should().Be("containerAppAcrManagedIdentity.module.bicep");
+        module.ModuleFileName.Should().Be("containerApp.module.bicep");
     }
 
     [Fact]
@@ -484,6 +484,17 @@ public sealed class ContainerAppTypeBicepGeneratorTests
 
         emitted.Should().Contain("registries");
         emitted.Should().NotContain("secrets:");
+    }
+
+    [Fact]
+    public void Given_AcrMiResource_When_EmitModule_Then_IndentsHealthProbeUnion()
+    {
+        var spec = _sut.GenerateSpec(CreateAcrMiResource());
+        var emitted = new BicepEmitter().EmitModule(spec);
+
+        emitted.Should().Contain(
+            "          probes: union(\n" +
+            "            !empty(healthProbes.readiness.path)");
     }
 
     [Fact]
