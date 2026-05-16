@@ -56,17 +56,17 @@
         <span class="order-section__label">{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.ORDER' | translate }}</span>
 
         @if (timelineItems().length > 0) {
-          <div class="order-timeline" role="list" [attr.aria-label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.TIMELINE_ARIA' | translate">
+          <ol class="order-timeline" [attr.aria-label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.TIMELINE_ARIA' | translate">
             @for (item of timelineItems(); track $index; let i = $index; let last = $last) {
-              <div class="timeline-step" [class.timeline-step--current]="item.isCurrent" role="listitem">
+              <li class="timeline-step" [class.timeline-step--current]="item.isCurrent">
                 <div class="timeline-step__dot"></div>
                 <span class="timeline-step__label">{{ item.name }}</span>
-              </div>
+              </li>
               @if (!last) {
-                <div class="timeline-connector" [class.timeline-connector--before-current]="timelineItems()[i + 1].isCurrent" [class.timeline-connector--after-current]="item.isCurrent"></div>
+                <li class="timeline-connector" aria-hidden="true" [class.timeline-connector--before-current]="timelineItems()[i + 1].isCurrent" [class.timeline-connector--after-current]="item.isCurrent"></li>
               }
             }
-          </div>
+          </ol>
 
           <div class="order-arrows">
             <button type="button" class="order-arrow-btn" [disabled]="currentOrder() <= minOrder" (click)="moveOrder(-1)">
