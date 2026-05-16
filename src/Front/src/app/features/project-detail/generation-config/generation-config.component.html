@@ -60,6 +60,9 @@
       </div>
     </app-ds-card>
   } @else if (project()?.id) {
-    <app-layout-repositories [projectId]="project()!.id" />
+    <app-layout-repositories
+      [projectId]="project()!.id"
+      (presetChanged)="onLayoutPresetChange($event)"
+    />
   }
 </section>

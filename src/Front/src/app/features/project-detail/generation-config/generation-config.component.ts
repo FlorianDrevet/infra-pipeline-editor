@@ -99,6 +99,19 @@ export class GenerationConfigComponent implements OnInit {
     }
   }
 
+  protected onLayoutPresetChange(preset: ProjectLayoutPreset): void {
+    this.project.update((project) => {
+      if (!project) {
+        return project;
+      }
+
+      return {
+        ...project,
+        layoutPreset: preset,
+      };
+    });
+  }
+
   private runTask(taskPromise: Promise<void>): void {
     taskPromise.catch(() => undefined);
   }

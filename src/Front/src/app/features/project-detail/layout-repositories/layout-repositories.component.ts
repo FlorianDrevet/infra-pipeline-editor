@@ -5,6 +5,7 @@ import {
   computed,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
 
@@ -47,6 +48,8 @@ interface RepoSlot {
   readonly repo: ProjectRepositoryResponse | null;
 }
 
+const DEFAULT_LAYOUT_PRESET: ProjectLayoutPreset = 'AllInOne';
+
 const LAYOUT_PRESETS: ReadonlyArray<PresetOption> = [
   {
     value: 'AllInOne',
@@ -67,6 +70,14 @@ const LAYOUT_PRESETS: ReadonlyArray<PresetOption> = [
     icon: 'hub',
   },
 ];
+
+function normalizeLayoutPreset(preset?: string): ProjectLayoutPreset {
+  if (preset === 'SplitInfraCode' || preset === 'MultiRepo') {
+    return preset;
+  }
+
+  return DEFAULT_LAYOUT_PRESET;
+}
 
 @Component({
   selector: 'app-layout-repositories',
@@ -92,18 +103,23 @@ export class LayoutRepositoriesComponent implements OnInit {
   private readonly translate = inject(TranslateService);
 
   readonly projectId = input.required<string>();
+  readonly presetChanged = output<ProjectLayoutPreset>();
 
   protected readonly project = signal<ProjectResponse | null>(null);
   protected readonly isLoading = signal(false);
   protected readonly presetSaving = signal(false);
   protected readonly repoActionId = signal<string | null>(null);
+  protected readonly optimisticPreset = signal<ProjectLayoutPreset | null>(null);
 
   protected readonly layoutPresets = LAYOUT_PRESETS;
 
   protected readonly currentPreset = computed<ProjectLayoutPreset>(() => {
-    const preset = this.project()?.layoutPreset;
-    if (preset === 'SplitInfraCode' || preset === 'MultiRepo') return preset;
-    return 'AllInOne';
+    const optimisticPreset = this.optimisticPreset();
+    if (optimisticPreset) {
+      return optimisticPreset;
+    }
+
+    return normalizeLayoutPreset(this.project()?.layoutPreset);
   });
 
   protected readonly repositories = computed<ProjectRepositoryResponse[]>(
@@ -132,8 +148,8 @@ export class LayoutRepositoriesComponent implements OnInit {
     ];
   });
 
-  async ngOnInit(): Promise<void> {
-    await this.load();
+  ngOnInit(): void {
+    void this.load();
   }
 
   private async load(): Promise<void> {
@@ -150,13 +166,34 @@ export class LayoutRepositoriesComponent implements OnInit {
 
   protected async onPresetChange(preset: ProjectLayoutPreset): Promise<void> {
     if (preset === this.currentPreset()) return;
+
+    const previousPreset = this.currentPreset();
+
+    this.optimisticPreset.set(preset);
+    this.presetChanged.emit(preset);
     this.presetSaving.set(true);
+
     try {
       await this.projectService.setLayoutPreset(this.projectId(), preset);
+
+      this.project.update((project) => {
+        if (!project) {
+          return project;
+        }
+
+        return {
+          ...project,
+          layoutPreset: preset,
+        };
+      });
+
+      this.projectService.invalidateProjectCache(this.projectId());
       await this.load();
     } catch (error) {
+      this.presetChanged.emit(previousPreset);
       this.showError(this.mapError(error, 'PROJECT_DETAIL.LAYOUT.PRESET_ERROR'));
     } finally {
+      this.optimisticPreset.set(null);
       this.presetSaving.set(false);
     }
   }
