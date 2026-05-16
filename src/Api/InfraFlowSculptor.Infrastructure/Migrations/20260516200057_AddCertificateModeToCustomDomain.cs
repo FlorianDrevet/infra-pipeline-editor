@@ -17,11 +17,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
             migrationBuilder.Sql(
                 """
-                UPDATE \"CustomDomains\"
-                SET \"CertificateMode\" = CASE
-                    WHEN \"CertificateMode\" = 'Disabled' THEN 'Disabled'
-                    WHEN \"CertificateMode\" = 'SniEnabled' THEN 'ManagedCertificate'
-                    WHEN \"CertificateMode\" = 'Auto' THEN 'ManagedCertificate'
+                UPDATE "CustomDomains"
+                SET "CertificateMode" = CASE
+                    WHEN "CertificateMode" = 'Disabled' THEN 'Disabled'
+                    WHEN "CertificateMode" = 'SniEnabled' THEN 'ManagedCertificate'
+                    WHEN "CertificateMode" = 'Auto' THEN 'ManagedCertificate'
                     ELSE 'ManagedCertificate'
                 END;
                 """);
@@ -77,9 +77,9 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
             migrationBuilder.Sql(
                 """
-                UPDATE \"CustomDomains\"
-                SET \"CertificateMode\" = CASE
-                    WHEN \"CertificateMode\" = 'Disabled' THEN 'Disabled'
+                UPDATE "CustomDomains"
+                SET "CertificateMode" = CASE
+                    WHEN "CertificateMode" = 'Disabled' THEN 'Disabled'
                     ELSE 'SniEnabled'
                 END;
                 """);
