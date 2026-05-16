@@ -29,6 +29,7 @@ describe('ProjectDetailGenerationWorkflowService', () => {
       'generateProjectBicep',
       'generateProjectPipeline',
       'generateProjectBootstrapPipeline',
+      'getProjectLatestGeneration',
     ]);
     infraConfigServiceSpy = jasmine.createSpyObj<InfraConfigService>('InfraConfigService', [
       'getDiagnostics',
@@ -40,6 +41,7 @@ describe('ProjectDetailGenerationWorkflowService', () => {
     projectServiceSpy.generateProjectBicep.and.resolveTo(createBicepResponse());
     projectServiceSpy.generateProjectPipeline.and.resolveTo(createPipelineResponse());
     projectServiceSpy.generateProjectBootstrapPipeline.and.resolveTo(createBootstrapResponse());
+    projectServiceSpy.getProjectLatestGeneration.and.resolveTo(null);
 
     TestBed.configureTestingModule({
       providers: [
@@ -80,6 +82,24 @@ describe('ProjectDetailGenerationWorkflowService', () => {
     expect(dialogSpy.open).toHaveBeenCalled();
     expect(projectServiceSpy.generateProjectBicep).not.toHaveBeenCalled();
     expect(service.projectBicepResult()).toBeNull();
+  });
+
+  it('marks the last generation as expired when the endpoint returns null', async () => {
+    projectServiceSpy.getProjectLatestGeneration.and.resolveTo(null);
+
+    await service.loadLastGeneration();
+
+    expect(service.lastGenerationErrorKey()).toBe('PROJECT_DETAIL.BOARD.LAST_GENERATION_EXPIRED');
+    expect(service.lastGenerationLoading()).toBeFalse();
+  });
+
+  it('surfaces a last generation error when the endpoint fails', async () => {
+    projectServiceSpy.getProjectLatestGeneration.and.rejectWith(new Error('latest generation failed'));
+
+    await service.loadLastGeneration();
+
+    expect(service.lastGenerationErrorKey()).toBe('PROJECT_DETAIL.BOARD.LAST_GENERATION_ERROR');
+    expect(service.lastGenerationLoading()).toBeFalse();
   });
 });
 

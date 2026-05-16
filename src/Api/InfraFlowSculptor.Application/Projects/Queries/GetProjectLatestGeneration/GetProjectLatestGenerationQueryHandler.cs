@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -15,6 +16,9 @@ public sealed class GetProjectLatestGenerationQueryHandler(
     : IQueryHandler<GetProjectLatestGenerationQuery, GetProjectLatestGenerationResult>
 {
     private const int ProjectBlobPrefixSegmentCount = 4;
+    private const string BicepArtifactPrefix = "bicep/project/";
+    private const string PipelineArtifactPrefix = "pipeline/project/";
+    private const string BootstrapArtifactPrefix = "bootstrap/project/";
     private const string CommonPathSegment = "Common/";
     private const string InfraBucketPrefix = "infra/";
     private const string AppBucketPrefix = "app/";
@@ -28,16 +32,25 @@ public sealed class GetProjectLatestGenerationQueryHandler(
         if (accessResult.IsError)
             return accessResult.Errors;
 
-        var bicepData = await GetLatestRelativePathsAsync($"bicep/project/{query.ProjectId}/");
-        var pipelineData = await GetLatestRelativePathsAsync($"pipeline/project/{query.ProjectId}/");
-        var bootstrapData = await GetLatestRelativePathsAsync($"bootstrap/project/{query.ProjectId}/");
+        var bicepData = await BlobDownloadHelper.GetLatestBlobFolderAsync(
+            blobService,
+            $"{BicepArtifactPrefix}{query.ProjectId}/",
+            ProjectBlobPrefixSegmentCount);
+        var pipelineData = await BlobDownloadHelper.GetLatestBlobFolderAsync(
+            blobService,
+            $"{PipelineArtifactPrefix}{query.ProjectId}/",
+            ProjectBlobPrefixSegmentCount);
+        var bootstrapData = await BlobDownloadHelper.GetLatestBlobFolderAsync(
+            blobService,
+            $"{BootstrapArtifactPrefix}{query.ProjectId}/",
+            ProjectBlobPrefixSegmentCount);
 
         if (bicepData is null && pipelineData is null && bootstrapData is null)
             return new GetProjectLatestGenerationResult(null, null, null, null);
 
-        var bicep = bicepData is not null ? BuildBicepFiles(bicepData.Value.Paths) : null;
-        var pipeline = pipelineData is not null ? BuildPipelineFiles(pipelineData.Value.Paths) : null;
-        var bootstrap = bootstrapData is not null ? BuildBootstrapFiles(bootstrapData.Value.Paths) : null;
+        var bicep = bicepData is not null ? BuildBicepFiles(bicepData.RelativePaths) : null;
+        var pipeline = pipelineData is not null ? BuildPipelineFiles(pipelineData.RelativePaths) : null;
+        var bootstrap = bootstrapData is not null ? BuildBootstrapFiles(bootstrapData.RelativePaths) : null;
 
         var generatedAt = bicepData?.Timestamp ?? pipelineData?.Timestamp ?? bootstrapData?.Timestamp;
 
@@ -99,6 +112,11 @@ public sealed class GetProjectLatestGenerationQueryHandler(
             {
                 var innerPath = path[AppBucketPrefix.Length..];
                 ClassifyPipelinePath(innerPath, appCommon, appConfig);
+            }
+            else
+            {
+                // Legacy project-level uploads used a single bucketless layout. Keep treating it as infra.
+                ClassifyPipelinePath(path, infraCommon, infraConfig);
             }
         }
 
@@ -164,33 +182,6 @@ public sealed class GetProjectLatestGenerationQueryHandler(
         return new LatestBootstrapFiles(allFiles, infraFiles, appFiles);
     }
 
-    private async Task<(IReadOnlyList<string> Paths, string Timestamp)?> GetLatestRelativePathsAsync(string blobPrefix)
-    {
-        var allBlobs = await blobService.ListBlobsAsync(blobPrefix);
-        if (allBlobs.Count == 0) return null;
-
-        var latestPrefix = allBlobs
-            .Select(blobName => string.Join('/', blobName.Split('/').Take(ProjectBlobPrefixSegmentCount)))
-            .Distinct()
-            .OrderDescending()
-            .First();
-
-        if (string.IsNullOrWhiteSpace(latestPrefix)) return null;
-
-        var fullPrefix = $"{latestPrefix}/";
-        var paths = allBlobs
-            .Where(blobName => blobName.StartsWith(fullPrefix, StringComparison.Ordinal))
-            .Select(blobName => blobName[fullPrefix.Length..])
-            .ToList();
-
-        var segments = latestPrefix.Split('/');
-        var timestamp = segments.Length >= ProjectBlobPrefixSegmentCount
-            ? segments[ProjectBlobPrefixSegmentCount - 1]
-            : string.Empty;
-
-        return (paths, timestamp);
-    }
-
     private static void ClassifyPipelinePath(
         string innerPath,
         Dictionary<string, string> commonBucket,
@@ -201,7 +192,8 @@ public sealed class GetProjectLatestGenerationQueryHandler(
         if (!innerPath.StartsWith(azureDevOpsPrefix, StringComparison.Ordinal))
         {
             // Non-standard path, treat as common
-            commonBucket[innerPath] = innerPath;
+            var normalizedPath = NormalizePipelineRelativePath(innerPath);
+            commonBucket[normalizedPath] = normalizedPath;
             return;
         }
 
@@ -216,17 +208,29 @@ public sealed class GetProjectLatestGenerationQueryHandler(
             if (slashIndex > 0)
             {
                 var configName = afterAzDo[..slashIndex];
+                var filePath = NormalizePipelineRelativePath(afterAzDo[(slashIndex + 1)..]);
                 if (!configBucket.TryGetValue(configName, out var files))
                 {
                     files = new Dictionary<string, string>(StringComparer.Ordinal);
                     configBucket[configName] = files;
                 }
-                files[innerPath] = innerPath;
+                files[filePath] = filePath;
             }
             else
             {
                 commonBucket[innerPath] = innerPath;
             }
         }
+    }
+
+    private static string NormalizePipelineRelativePath(string relativePath)
+    {
+        var normalizedFiles = GeneratedPipelinePathNormalizer.Normalize(
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                [relativePath] = relativePath,
+            });
+
+        return normalizedFiles.Keys.First();
     }
 }

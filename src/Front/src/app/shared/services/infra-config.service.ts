@@ -22,10 +22,10 @@ import { ConfigDiagnosticsResponse } from '../interfaces/config-diagnostics.inte
   providedIn: 'root',
 })
 export class InfraConfigService {
-  private axios = inject(AxiosService);
+  private readonly axios = inject(AxiosService);
 
   /** Short-lived cache to avoid redundant fetches during navigation (TTL: 30s). */
-  private configCache = new Map<string, { data: InfrastructureConfigResponse; timestamp: number }>();
+  private readonly configCache = new Map<string, { data: InfrastructureConfigResponse; timestamp: number }>();
   private static readonly CACHE_TTL_MS = 30_000;
 
   getAll(): Promise<InfrastructureConfigResponse[]> {
@@ -54,6 +54,15 @@ export class InfraConfigService {
     this.configCache.delete(id);
   }
 
+  private async invalidateConfigCacheAfterSuccess<T>(
+    configId: string,
+    mutation: Promise<T>
+  ): Promise<T> {
+    const result = await mutation;
+    this.invalidateCache(configId);
+    return result;
+  }
+
   getResourceGroups(id: string): Promise<ResourceGroupResponse[]> {
     return this.axios.request$<ResourceGroupResponse[]>(
       MethodEnum.GET,
@@ -72,17 +81,23 @@ export class InfraConfigService {
   }
 
   delete(id: string): Promise<void> {
-    return this.axios.request$<void>(MethodEnum.DELETE, `/infra-config/${id}`);
+    return this.invalidateConfigCacheAfterSuccess(
+      id,
+      this.axios.request$<void>(MethodEnum.DELETE, `/infra-config/${id}`)
+    );
   }
 
   setDefaultNamingTemplate(
     id: string,
     request: SetDefaultNamingTemplateRequest
   ): Promise<InfrastructureConfigResponse> {
-    return this.axios.request$<InfrastructureConfigResponse>(
-      MethodEnum.PUT,
-      `/infra-config/${id}/naming/default`,
-      request
+    return this.invalidateConfigCacheAfterSuccess(
+      id,
+      this.axios.request$<InfrastructureConfigResponse>(
+        MethodEnum.PUT,
+        `/infra-config/${id}/naming/default`,
+        request
+      )
     );
   }
 
@@ -91,10 +106,13 @@ export class InfraConfigService {
     resourceType: string,
     request: SetResourceNamingTemplateRequest
   ): Promise<InfrastructureConfigResponse> {
-    return this.axios.request$<InfrastructureConfigResponse>(
-      MethodEnum.PUT,
-      `/infra-config/${id}/naming/resources/${resourceType}`,
-      request
+    return this.invalidateConfigCacheAfterSuccess(
+      id,
+      this.axios.request$<InfrastructureConfigResponse>(
+        MethodEnum.PUT,
+        `/infra-config/${id}/naming/resources/${resourceType}`,
+        request
+      )
     );
   }
 
@@ -102,9 +120,12 @@ export class InfraConfigService {
     id: string,
     resourceType: string
   ): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/infra-config/${id}/naming/resources/${resourceType}`
+    return this.invalidateConfigCacheAfterSuccess(
+      id,
+      this.axios.request$<void>(
+        MethodEnum.DELETE,
+        `/infra-config/${id}/naming/resources/${resourceType}`
+      )
     );
   }
 
@@ -115,10 +136,13 @@ export class InfraConfigService {
     resourceType: string,
     request: SetResourceAbbreviationOverrideRequest
   ): Promise<ResourceAbbreviationOverrideResponse> {
-    return this.axios.request$<ResourceAbbreviationOverrideResponse>(
-      MethodEnum.PUT,
-      `/infra-config/${id}/naming/abbreviations/${resourceType}`,
-      request
+    return this.invalidateConfigCacheAfterSuccess(
+      id,
+      this.axios.request$<ResourceAbbreviationOverrideResponse>(
+        MethodEnum.PUT,
+        `/infra-config/${id}/naming/abbreviations/${resourceType}`,
+        request
+      )
     );
   }
 
@@ -126,9 +150,12 @@ export class InfraConfigService {
     id: string,
     resourceType: string
   ): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/infra-config/${id}/naming/abbreviations/${resourceType}`
+    return this.invalidateConfigCacheAfterSuccess(
+      id,
+      this.axios.request$<void>(
+        MethodEnum.DELETE,
+        `/infra-config/${id}/naming/abbreviations/${resourceType}`
+      )
     );
   }
 
@@ -136,10 +163,13 @@ export class InfraConfigService {
     id: string,
     request: { useProjectNamingConventions: boolean }
   ): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.PUT,
-      `/infra-config/${id}/inheritance`,
-      request
+    return this.invalidateConfigCacheAfterSuccess(
+      id,
+      this.axios.request$<void>(
+        MethodEnum.PUT,
+        `/infra-config/${id}/inheritance`,
+        request
+      )
     );
   }
 
@@ -156,17 +186,23 @@ export class InfraConfigService {
     configId: string,
     request: AddCrossConfigReferenceRequest
   ): Promise<CrossConfigReferenceResponse> {
-    return this.axios.request$<CrossConfigReferenceResponse>(
-      MethodEnum.POST,
-      `/infra-config/${configId}/cross-config-references`,
-      request
+    return this.invalidateConfigCacheAfterSuccess(
+      configId,
+      this.axios.request$<CrossConfigReferenceResponse>(
+        MethodEnum.POST,
+        `/infra-config/${configId}/cross-config-references`,
+        request
+      )
     );
   }
 
   removeCrossConfigReference(configId: string, referenceId: string): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/infra-config/${configId}/cross-config-references/${referenceId}`
+    return this.invalidateConfigCacheAfterSuccess(
+      configId,
+      this.axios.request$<void>(
+        MethodEnum.DELETE,
+        `/infra-config/${configId}/cross-config-references/${referenceId}`
+      )
     );
   }
 
@@ -180,10 +216,13 @@ export class InfraConfigService {
   // ─── Tags ───
 
   setTags(id: string, request: SetInfraConfigTagsRequest): Promise<InfrastructureConfigResponse> {
-    return this.axios.request$<InfrastructureConfigResponse>(
-      MethodEnum.PUT,
-      `/infra-config/${id}/tags`,
-      request
+    return this.invalidateConfigCacheAfterSuccess(
+      id,
+      this.axios.request$<InfrastructureConfigResponse>(
+        MethodEnum.PUT,
+        `/infra-config/${id}/tags`,
+        request
+      )
     );
   }
 

@@ -1,5 +1,5 @@
 Contracts response DTO public shape snapshot
-Count: 98
+Count: 102
 
 Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
 Type: AppConfigurationKeyResponse
@@ -705,6 +705,16 @@ Properties:
   InfraConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>>
 
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: GetProjectLatestGenerationResponse
+Constructors:
+  GetProjectLatestGenerationResponse(InfraFlowSculptor.Contracts.Projects.Responses.LatestBicepGenerationResponse? Bicep, InfraFlowSculptor.Contracts.Projects.Responses.LatestPipelineGenerationResponse? Pipeline, InfraFlowSculptor.Contracts.Projects.Responses.LatestBootstrapGenerationResponse? Bootstrap, string? GeneratedAt)
+Properties:
+  Bicep: InfraFlowSculptor.Contracts.Projects.Responses.LatestBicepGenerationResponse?
+  Bootstrap: InfraFlowSculptor.Contracts.Projects.Responses.LatestBootstrapGenerationResponse?
+  GeneratedAt: string?
+  Pipeline: InfraFlowSculptor.Contracts.Projects.Responses.LatestPipelineGenerationResponse?
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
 Type: GitBranchResponse
 Constructors:
   GitBranchResponse(string Name, bool IsProtected)
@@ -719,6 +729,35 @@ Constructors:
 Properties:
   Name: string
   Path: string
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: LatestBicepGenerationResponse
+Constructors:
+  LatestBicepGenerationResponse(System.Collections.Generic.IReadOnlyDictionary<string, string> CommonFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>> ConfigFileUris)
+Properties:
+  CommonFileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+  ConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>>
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: LatestBootstrapGenerationResponse
+Constructors:
+  LatestBootstrapGenerationResponse(System.Collections.Generic.IReadOnlyDictionary<string, string> FileUris, System.Collections.Generic.IReadOnlyDictionary<string, string> InfraFileUris, System.Collections.Generic.IReadOnlyDictionary<string, string> AppFileUris)
+Properties:
+  AppFileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+  FileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+  InfraFileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: LatestPipelineGenerationResponse
+Constructors:
+  LatestPipelineGenerationResponse(System.Collections.Generic.IReadOnlyDictionary<string, string> CommonFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>> ConfigFileUris, System.Collections.Generic.IReadOnlyDictionary<string, string> InfraCommonFileUris, System.Collections.Generic.IReadOnlyDictionary<string, string> AppCommonFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>> InfraConfigFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>> AppConfigFileUris)
+Properties:
+  AppCommonFileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+  AppConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>>
+  CommonFileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+  ConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>>
+  InfraCommonFileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+  InfraConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>>
 
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
 Type: PipelineVariableUsageResponse

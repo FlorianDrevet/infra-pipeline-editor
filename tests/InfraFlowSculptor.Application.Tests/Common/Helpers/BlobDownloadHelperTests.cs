@@ -18,6 +18,36 @@ public sealed class BlobDownloadHelperTests
     }
 
     [Fact]
+    public async Task Given_MultipleGenerationFolders_When_GetLatestBlobFolderAsync_Then_ReturnsLatestRelativePathsAndTimestampWithoutDownloadingAsync()
+    {
+        // Arrange
+        var entityId = Guid.NewGuid();
+        _blobService.ListBlobsAsync($"pipeline/project/{entityId}/")
+            .Returns(
+            [
+                $"pipeline/project/{entityId}/20260512090000/infra/.azuredevops/main.yml",
+                $"pipeline/project/{entityId}/20260512090000/app/.azuredevops/apps/api/ci.yml",
+                $"pipeline/project/{entityId}/20260511090000/.azuredevops/legacy.yml",
+            ]);
+
+        // Act
+        var result = await BlobDownloadHelper.GetLatestBlobFolderAsync(
+            _blobService,
+            blobPrefix: $"pipeline/project/{entityId}/",
+            prefixSegmentCount: 4);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Timestamp.Should().Be("20260512090000");
+        result.RelativePaths.Should().BeEquivalentTo(
+        [
+            "infra/.azuredevops/main.yml",
+            "app/.azuredevops/apps/api/ci.yml",
+        ]);
+        await _blobService.DidNotReceive().DownloadContentAsync(Arg.Any<string>());
+    }
+
+    [Fact]
     public async Task Given_LatestSplitArtifacts_When_GetLatestDualBucketBlobFilesAsync_Then_ReturnsSeparatedBucketsAsync()
     {
         // Arrange

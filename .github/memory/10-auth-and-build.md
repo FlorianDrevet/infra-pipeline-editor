@@ -42,6 +42,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - Active test projects under `tests/`: `Api`, `Application`, `BicepGeneration`, `Contracts`, `Domain`, `GenerationCore`, `Infrastructure`, `Mcp`, and `PipelineGeneration`.
 - `tests/InfraFlowSculptor.GenerationParity.Tests/` is only a placeholder folder; do not put regular unit tests there.
 - Shared coverage collection is now enabled for all test projects via `tests/Directory.Build.props` + `coverlet.collector`; use `dotnet test .\InfraFlowSculptor.slnx --collect:"XPlat Code Coverage"` or `.\scripts\test-coverage.ps1`.
+- `tests/InfraFlowSculptor.Contracts.Tests/Responses/ContractsResponseShapeSnapshotTests.*` is the approval gate for public Contracts response DTO shape. When adding, removing, or splitting response types, update the verified snapshot in strict alphabetical order and keep the `Count` value aligned with the approved list.
 - `tmp/test-output-mcp/` is not ignored by the root `.gitignore`; generated MCP artefacts there can pollute branch diffs.
 
 ## MCP Runtime Hardening [2026-05-13]
