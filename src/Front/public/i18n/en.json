@@ -789,7 +789,8 @@
       "UNKNOWN_RULE": "{{ruleCode}}: {{target}}",
       "ACR_PULL_MISSING": "Missing AcrPull role assignment on {{target}}",
       "KEY_VAULT_ACCESS_MISSING": "Missing Key Vault Secrets User role on {{target}}",
-      "NAME_UNAVAILABLE": "Name already taken on Azure: {{target}}"
+      "NAME_UNAVAILABLE": "Name already taken on Azure: {{target}}",
+      "DOCKER_IMAGE_NOT_SET": "No Docker image configured for {{resourceName}} — a default placeholder image (pause) will be used"
     },
     "GENERATION": {
       "TITLE": "Generation Results",
@@ -2009,6 +2010,19 @@
       "UNLINK_YES": "Unlink",
       "UNLINK_CANCEL": "Cancel",
       "UNLINK_ERROR": "Unable to unlink the resource. Please try again."
+    },
+    "DOCKER_IMAGE_INSTRUCTIONS": {
+      "TITLE": "Docker Image — How to Verify and Deploy",
+      "SUBTITLE": "Follow these steps to verify that your image exists in the container registry and how to deploy it using the code pipeline.",
+      "DEFAULT_IMAGE_TITLE": "Default Image",
+      "DEFAULT_IMAGE_MESSAGE": "As long as no Docker image is specified, a default placeholder image (pause) will be used during Bicep generation. Your application will only be functional after the first deployment via the CI/CD pipeline.",
+      "STEP1_TITLE": "Verify the image exists in the registry",
+      "STEP1_DESC": "Sign in to the Azure portal, navigate to your Container Registry (ACR), then in the 'Repositories' section, verify that your image and the desired tag are present. You can also use the command: az acr repository show-tags --name <acr-name> --repository <image-name>.",
+      "STEP2_TITLE": "Build and push the image via the pipeline",
+      "STEP2_DESC": "The generated CI/CD pipeline contains the steps to build your Docker image and push it to the ACR. Run the pipeline from Azure DevOps or GitHub Actions so the image is built and published automatically.",
+      "STEP3_TITLE": "Enter the image name",
+      "STEP3_DESC": "Once the image is available in the registry, enter its name (e.g., myapp/api) in the 'Docker Image Name' field. The tag will be managed automatically by the deployment pipeline.",
+      "CLOSE": "Close"
     },
     "CUSTOM_DOMAINS": {
       "SECTION_TITLE": "Custom Domains",

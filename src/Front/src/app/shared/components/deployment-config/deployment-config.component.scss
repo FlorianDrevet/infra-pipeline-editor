@@ -113,6 +113,29 @@
   border: 1px solid var(--ifs-border-subtle);
 }
 
+// ─── Docker Image Field with Info Button ────
+
+.docker-image-field {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25rem;
+  width: 100%;
+
+  .form-field {
+    flex: 1;
+  }
+
+  &__info-btn {
+    flex-shrink: 0;
+    color: var(--ifs-text-muted);
+    margin-bottom: 0.15rem;
+
+    &:hover {
+      color: var(--ifs-accent-500);
+    }
+  }
+}
+
 // ─── ACR Auth Mode ────
 
 .acr-auth-mode {

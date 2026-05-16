@@ -147,6 +147,21 @@ describe('ProjectDetailGenerationWorkflowService', () => {
     expect(service.lastGenerationLoading()).toBeFalse();
   });
 
+  it('reuses the latest generation fetched for availability when historical artifacts are loaded', async () => {
+    const latestGeneration = createLatestGenerationResponse();
+    projectServiceSpy.getProjectLatestGeneration.and.resolveTo(latestGeneration);
+
+    await service.checkLastGenerationAvailable();
+    await service.loadLastGeneration();
+
+    expect(projectServiceSpy.getProjectLatestGeneration).toHaveBeenCalledTimes(1);
+    expect(service.lastGenerationAvailable()).toBeTrue();
+    expect(service.projectBicepResult()).toEqual({
+      commonFileUris: latestGeneration.bicep!.commonFileUris,
+      configFileUris: latestGeneration.bicep!.configFileUris,
+    });
+  });
+
   it('surfaces a last generation error when the endpoint fails', async () => {
     projectServiceSpy.getProjectLatestGeneration.and.rejectWith(new Error('latest generation failed'));
 

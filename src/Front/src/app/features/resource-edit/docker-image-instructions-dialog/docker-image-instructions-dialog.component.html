@@ -1,0 +1,42 @@
+<h2 mat-dialog-title>{{ 'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.TITLE' | translate }}</h2>
+
+<mat-dialog-content>
+  <p class="docker-dialog__subtitle">{{ 'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.SUBTITLE' | translate }}</p>
+
+  <app-ds-alert
+    class="docker-dialog__alert"
+    severity="info"
+    [title]="'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.DEFAULT_IMAGE_TITLE' | translate">
+    {{ 'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.DEFAULT_IMAGE_MESSAGE' | translate }}
+  </app-ds-alert>
+
+  <div class="docker-dialog__steps">
+    <div class="docker-dialog__step">
+      <div class="docker-dialog__step-number">1</div>
+      <div class="docker-dialog__step-content">
+        <strong>{{ 'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.STEP1_TITLE' | translate }}</strong>
+        <p>{{ 'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.STEP1_DESC' | translate }}</p>
+      </div>
+    </div>
+
+    <div class="docker-dialog__step">
+      <div class="docker-dialog__step-number">2</div>
+      <div class="docker-dialog__step-content">
+        <strong>{{ 'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.STEP2_TITLE' | translate }}</strong>
+        <p>{{ 'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.STEP2_DESC' | translate }}</p>
+      </div>
+    </div>
+
+    <div class="docker-dialog__step">
+      <div class="docker-dialog__step-number">3</div>
+      <div class="docker-dialog__step-content">
+        <strong>{{ 'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.STEP3_TITLE' | translate }}</strong>
+        <p>{{ 'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.STEP3_DESC' | translate }}</p>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>{{ 'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.CLOSE' | translate }}</button>
+</mat-dialog-actions>

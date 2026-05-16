@@ -143,6 +143,7 @@ public static class DependencyInjection
         services.AddScoped<IDiagnosticRule, AcrPullDiagnosticRule>();
         services.AddScoped<IDiagnosticRule, KeyVaultAccessDiagnosticRule>();
         services.AddScoped<IDiagnosticRule, NameAvailabilityDiagnosticRule>();
+        services.AddScoped<IDiagnosticRule, DockerImageNotSetDiagnosticRule>();
 
         return services;
     }

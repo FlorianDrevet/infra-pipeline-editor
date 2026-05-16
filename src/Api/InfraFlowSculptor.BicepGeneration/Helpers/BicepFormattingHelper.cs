@@ -85,7 +85,7 @@ internal static class BicepFormattingHelper
         foreach (var (propertyName, propValue) in BicepObjectPropertyHelper.EnumerateSerializedProperties(obj))
         {
             if (propValue is not null)
-                sb.AppendLine($"  {FormatBicepObjectKey(propertyName)}: {SerializeToBicep(propValue)}");
+                sb.AppendLine($"  {FormatBicepObjectKey(propertyName)}: {IndentNestedValue(SerializeToBicep(propValue), 2)}");
         }
 
         sb.Append('}');
@@ -100,10 +100,32 @@ internal static class BicepFormattingHelper
         foreach (var (key, value) in dict)
         {
             if (value is not null)
-                sb.AppendLine($"  {FormatBicepObjectKey(key)}: {SerializeToBicep(value)}");
+                sb.AppendLine($"  {FormatBicepObjectKey(key)}: {IndentNestedValue(SerializeToBicep(value), 2)}");
         }
 
         sb.Append('}');
+        return sb.ToString();
+    }
+
+    private static string IndentNestedValue(string serializedValue, int indentationSize)
+    {
+        var normalizedValue = serializedValue.ReplaceLineEndings("\n");
+        if (!normalizedValue.Contains('\n'))
+        {
+            return serializedValue;
+        }
+
+        var indent = new string(' ', indentationSize);
+        var lines = normalizedValue.Split('\n');
+        var sb = new StringBuilder(lines[0]);
+
+        for (var index = 1; index < lines.Length; index++)
+        {
+            sb.AppendLine();
+            sb.Append(indent);
+            sb.Append(lines[index]);
+        }
+
         return sb.ToString();
     }
 

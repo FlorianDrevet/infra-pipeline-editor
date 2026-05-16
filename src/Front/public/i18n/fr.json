@@ -788,7 +788,8 @@
       "UNKNOWN_RULE": "{{ruleCode}} : {{target}}",
       "ACR_PULL_MISSING": "Rôle AcrPull manquant sur {{target}}",
       "KEY_VAULT_ACCESS_MISSING": "Rôle Key Vault Secrets User manquant sur {{target}}",
-      "NAME_UNAVAILABLE": "Nom déjà pris sur Azure : {{target}}"
+      "NAME_UNAVAILABLE": "Nom déjà pris sur Azure : {{target}}",
+      "DOCKER_IMAGE_NOT_SET": "Aucune image Docker configurée pour {{resourceName}} — une image par défaut (pause) sera utilisée"
     },
     "GENERATION": {
       "TITLE": "Résultats de génération",
@@ -2001,6 +2002,19 @@
       "UNLINK_YES": "D\u00e9lier",
       "UNLINK_CANCEL": "Annuler",
       "UNLINK_ERROR": "Impossible de d\u00e9lier la ressource. Veuillez r\u00e9essayer."
+    },
+    "DOCKER_IMAGE_INSTRUCTIONS": {
+      "TITLE": "Image Docker — Comment vérifier et déployer",
+      "SUBTITLE": "Voici les étapes pour vérifier que votre image existe dans le container registry et comment la déployer via la pipeline de code.",
+      "DEFAULT_IMAGE_TITLE": "Image par défaut",
+      "DEFAULT_IMAGE_MESSAGE": "Tant qu'aucune image Docker n'est renseignée, une image par défaut (pause) sera utilisée lors de la génération Bicep. Votre application ne sera fonctionnelle qu'après le premier déploiement via la pipeline CI/CD.",
+      "STEP1_TITLE": "Vérifier que l'image existe dans le registry",
+      "STEP1_DESC": "Connectez-vous au portail Azure, accédez à votre Container Registry (ACR), puis dans la section « Repositories », vérifiez que votre image et le tag souhaité sont bien présents. Vous pouvez aussi utiliser la commande : az acr repository show-tags --name <acr-name> --repository <image-name>.",
+      "STEP2_TITLE": "Builder et pousser l'image via la pipeline",
+      "STEP2_DESC": "La pipeline CI/CD générée contient les étapes pour builder votre image Docker et la pousser vers l'ACR. Lancez la pipeline depuis Azure DevOps ou GitHub Actions pour que l'image soit construite et publiée automatiquement.",
+      "STEP3_TITLE": "Renseigner le nom de l'image",
+      "STEP3_DESC": "Une fois l'image disponible dans le registry, renseignez son nom (ex : myapp/api) dans le champ « Nom de l'image Docker ». Le tag sera géré automatiquement par la pipeline de déploiement.",
+      "CLOSE": "Fermer"
     },
     "CUSTOM_DOMAINS": {
       "SECTION_TITLE": "Domaines personnalisés",

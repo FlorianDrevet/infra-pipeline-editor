@@ -159,28 +159,37 @@ internal static class ParameterFileAssembler
 
         foreach (var module in modules)
         {
+            var emittedContentForModule = false;
+
             foreach (var (key, value) in module.Parameters.Where(parameter => !IsDerivedParameter(module, parameter.Key)))
             {
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} = {BicepFormattingHelper.SerializeToBicep(value)}");
+                emittedContentForModule = true;
             }
 
             // Secure parameters â€” placeholder values to be replaced at deployment time
             foreach (var secureParam in module.SecureParameters)
             {
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(secureParam)} = ''");
+                emittedContentForModule = true;
             }
 
             foreach (var (name, _, value) in StorageAccountCompanionHelper.GetStorageAccountCorsParameters(module))
             {
                 StorageAccountCompanionHelper.AppendCorsParameterAssignment(sb, name, value);
+                emittedContentForModule = true;
             }
 
             foreach (var (name, _, value) in StorageAccountCompanionHelper.GetStorageAccountLifecycleParameters(module))
             {
                 StorageAccountCompanionHelper.AppendLifecycleParameterAssignment(sb, name, value);
+                emittedContentForModule = true;
             }
 
-            sb.AppendLine();
+            if (emittedContentForModule)
+            {
+                sb.AppendLine();
+            }
         }
 
         // â”€â”€ Static app setting params (per-environment values) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

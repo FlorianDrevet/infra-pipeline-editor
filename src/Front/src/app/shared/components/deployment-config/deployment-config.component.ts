@@ -1,6 +1,8 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -21,6 +23,7 @@ export type AcrUaiStateValue = 'idle' | 'checking' | 'ok' | 'uai-missing-role' |
   standalone: true,
   imports: [
     FormsModule,
+    MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
     TranslateModule,
@@ -101,4 +104,12 @@ export class DeploymentConfigComponent {
   }
 
   protected showWhyUai = false;
+
+  private readonly dialog = inject(MatDialog);
+
+  protected openDockerImageInstructions(): void {
+    import('../../../features/resource-edit/docker-image-instructions-dialog/docker-image-instructions-dialog.component').then(
+      (m) => this.dialog.open(m.DockerImageInstructionsDialogComponent, { width: '520px' }),
+    );
+  }
 }

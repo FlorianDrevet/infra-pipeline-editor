@@ -77,6 +77,9 @@ export class ProjectDetailGenerationWorkflowService {
 
   private readonly project = signal<ProjectResponse | null>(null);
   private readonly configs = signal<InfrastructureConfigResponse[]>([]);
+  private latestGenerationProjectId: string | null = null;
+  private latestGenerationCache: GetProjectLatestGenerationResponse | null | undefined = undefined;
+  private latestGenerationRequest: Promise<GetProjectLatestGenerationResponse | null> | null = null;
 
   readonly validatingDiagnostics = signal(false);
   readonly projectGenerateAllBatchActive = signal(false);
@@ -178,6 +181,11 @@ export class ProjectDetailGenerationWorkflowService {
   );
 
   setProject(project: ProjectResponse | null): void {
+    const projectId = project?.id ?? null;
+    if (this.latestGenerationProjectId !== projectId) {
+      this.resetLatestGenerationState(projectId);
+    }
+
     this.project.set(project);
   }
 
@@ -185,11 +193,10 @@ export class ProjectDetailGenerationWorkflowService {
     this.configs.set(configs);
   }
 
-  readonly checkLastGenerationAvailable = async (): Promise<void> => {
-    const projectId = this.project()?.id;
+  readonly checkLastGenerationAvailable = async (projectId = this.project()?.id): Promise<void> => {
     if (!projectId) return;
 
-    const result = await this.projectService.getProjectLatestGeneration(projectId);
+    const result = await this.getLatestGeneration(projectId);
     this.lastGenerationAvailable.set(result !== null);
   };
 
@@ -201,7 +208,8 @@ export class ProjectDetailGenerationWorkflowService {
     this.lastGenerationErrorKey.set('');
 
     try {
-      const result = await this.projectService.getProjectLatestGeneration(projectId);
+      const result = await this.getLatestGeneration(projectId);
+      this.lastGenerationAvailable.set(result !== null);
 
       if (!result) {
         this.lastGenerationErrorKey.set('PROJECT_DETAIL.BOARD.LAST_GENERATION_EXPIRED');
@@ -606,6 +614,44 @@ export class ProjectDetailGenerationWorkflowService {
   private clearHistoricalGenerationContext(): void {
     this.viewingHistoricalGeneration.set(false);
     this.displayedHistoricalGenerationAt.set(null);
+    this.invalidateLatestGenerationCache();
+  }
+
+  private async getLatestGeneration(projectId: string): Promise<GetProjectLatestGenerationResponse | null> {
+    if (this.latestGenerationProjectId !== projectId) {
+      this.resetLatestGenerationState(projectId);
+    }
+
+    if (this.latestGenerationCache !== undefined) {
+      return this.latestGenerationCache;
+    }
+
+    if (this.latestGenerationRequest !== null) {
+      return this.latestGenerationRequest;
+    }
+
+    this.latestGenerationRequest = this.projectService.getProjectLatestGeneration(projectId)
+      .then((result) => {
+        this.latestGenerationCache = result;
+        return result;
+      })
+      .finally(() => {
+        this.latestGenerationRequest = null;
+      });
+
+    return this.latestGenerationRequest;
+  }
+
+  private invalidateLatestGenerationCache(): void {
+    this.latestGenerationCache = undefined;
+    this.latestGenerationRequest = null;
+  }
+
+  private resetLatestGenerationState(projectId: string | null): void {
+    this.latestGenerationProjectId = projectId;
+    this.invalidateLatestGenerationCache();
+    this.lastGenerationAvailable.set(null);
+    this.lastGenerationErrorKey.set('');
   }
 
   private async buildCombinedProjectArchive(sources: CombinedArtifactArchiveSource[]): Promise<Blob> {

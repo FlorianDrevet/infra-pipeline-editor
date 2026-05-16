@@ -496,16 +496,20 @@ export class GenerationBoardComponent implements OnInit {
     this.isLoading.set(true);
     try {
       const id = this.resolvedProjectId();
+      const lastGenerationAvailabilityCheck = this.generationWorkflow
+        .checkLastGenerationAvailable(id)
+        .catch(() => undefined);
+
       const [project, configs] = await Promise.all([
         this.projectService.getProject(id),
         this.projectService.getProjectConfigs(id),
+        lastGenerationAvailabilityCheck,
       ]);
       this.project.set(project);
       this.configs.set(configs);
       this.sidebarContextService.setProjectContext(project.id, project.name);
       this.generationWorkflow.setProject(project);
       this.generationWorkflow.setConfigs(configs);
-      this.runTask(this.generationWorkflow.checkLastGenerationAvailable());
     } catch {
       this.showError('PROJECT_DETAIL.BOARD.LOAD_ERROR');
     } finally {

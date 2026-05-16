@@ -149,6 +149,35 @@ describe('GenerationBoardComponent', () => {
     expect(sidebarContextServiceSpy.setProjectContext).toHaveBeenCalledOnceWith('project-1', 'Project 1');
   });
 
+  it('keeps the board loading until the initial last-generation availability check settles', async () => {
+    const availabilityCheck = createDeferredPromise<void>();
+    workflowStub.lastGenerationAvailable.set(null);
+    workflowStub.checkLastGenerationAvailable.and.callFake(async () => {
+      await availabilityCheck.promise;
+      workflowStub.lastGenerationAvailable.set(true);
+    });
+
+    fixture = TestBed.createComponent(GenerationBoardComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await flushPromises();
+    fixture.detectChanges();
+
+    expect(getIsLoading(component)).toBeTrue();
+    expect(getLoadingStateElement(fixture)).not.toBeNull();
+    expect(getReadyActionsElement(fixture)).toBeNull();
+
+    availabilityCheck.resolve();
+    await flushPromises();
+    await fixture.whenStable();
+    await flushPromises();
+    await fixture.whenRenderingDone();
+    fixture.detectChanges();
+
+    expect(getIsLoading(component)).toBeFalse();
+    expect(findButtonByText(fixture, 'PROJECT_DETAIL.BOARD.LOAD_LAST_GENERATION')).not.toBeNull();
+  });
+
   it('delegates the generate action to the workflow service instead of opening dialogs directly', async () => {
     await createComponent();
 
@@ -295,7 +324,9 @@ describe('GenerationBoardComponent', () => {
     fixture = TestBed.createComponent(GenerationBoardComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    await flushPromises();
     await fixture.whenStable();
+    await flushPromises();
     await fixture.whenRenderingDone();
     fixture.detectChanges();
   }
@@ -400,6 +431,48 @@ function createNode(path: string): BicepFileNode {
     depth: 0,
     parentFolderKey: '',
   };
+}
+
+function getIsLoading(component: GenerationBoardComponent): boolean {
+  return (component as unknown as { isLoading(): boolean }).isLoading();
+}
+
+function getLoadingStateElement(fixture: ComponentFixture<GenerationBoardComponent>): Element | null {
+  return fixture.nativeElement.querySelector('.board-state--loading');
+}
+
+function getReadyActionsElement(fixture: ComponentFixture<GenerationBoardComponent>): Element | null {
+  return fixture.nativeElement.querySelector('.board__ready-actions');
+}
+
+function findButtonByText(
+  fixture: ComponentFixture<GenerationBoardComponent>,
+  text: string,
+): HTMLButtonElement | null {
+  return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('button'))
+    .find((button) => button.textContent?.includes(text) ?? false) ?? null;
+}
+
+function createDeferredPromise<T>(): {
+  promise: Promise<T>;
+  resolve: (value: T | PromiseLike<T>) => void;
+  reject: (reason?: unknown) => void;
+} {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve;
+    reject = promiseReject;
+  });
+
+  return { promise, resolve, reject };
+}
+
+async function flushPromises(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
 }
 
 function invokeGenerateAll(component: GenerationBoardComponent): void {
