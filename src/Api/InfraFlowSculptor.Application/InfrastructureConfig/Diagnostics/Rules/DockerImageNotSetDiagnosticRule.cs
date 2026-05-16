@@ -64,7 +64,7 @@ public sealed class DockerImageNotSetDiagnosticRule : IDiagnosticRule
                 resource.ResourceType,
                 DiagnosticSeverity.Info,
                 RuleCode,
-                string.Empty));
+                resource.Name));
         }
 
         return Task.FromResult<IReadOnlyList<ResourceDiagnosticItem>>(diagnostics);

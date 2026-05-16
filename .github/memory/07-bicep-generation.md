@@ -95,6 +95,7 @@ Thin orchestrator (~180 LOC) + 14 specialized classes: 7 assemblers (`Types`, `F
 - `types.bicep`, `functions.bicep`, `main.bicep`, `constants.bicep` (RBAC only)
 - `main.{shortName}.bicepparam` per environment (under `parameters/`, `using '../main.bicep'`)
 - `modules/{Folder}/{type}.module.bicep` + `types.bicep` per resource
+- **Parameter-file spacing guard [2026-05-16]:** `ParameterFileAssembler` must append the blank separator line only for modules that actually emitted at least one parameter (regular, secure, CORS, lifecycle). Empty/derived-only modules must not accumulate blank lines in generated `main.*.bicepparam` files; regression is locked by `ParameterFileAssemblerTests.Given_EmptyModulesBetweenEmittedModules_When_GeneratingParameterFiles_Then_DoesNotAccumulateBlankLines`.
 
 ## Module Conventions
 - Each module folder: `{type}.module.bicep` + `types.bicep` with exported types
@@ -109,6 +110,7 @@ All typed per-env parameters **must** be in the generator's `Parameters` diction
 
 - **Typed legacy parameter models [2026-05-11]:** fixed-schema `Generate(...)` parameter payloads should no longer be authored inline as `Dictionary<string, object>` in generator code. The legacy path now uses typed records under `Generators/ParameterModels/` plus `BicepParameterModelConverter` (System.Text.Json with `JsonPropertyName` + null omission) to adapt back to `GeneratedTypeModule.Parameters`. `BicepFormattingHelper` and `ParameterFileAssembler` honor `JsonPropertyName` when serializing or merging typed objects so environment overrides preserve the external Bicep field names.
 - **Serialized Bicep object keys [2026-05-11]:** when `BicepFormattingHelper` emits object members from `JsonPropertyName` metadata or `Dictionary<string, object>` keys, it must route the key through `FormatBicepObjectKey(...)`. Annotated names are part of the public Bicep shape, but they are not guaranteed to be valid bare identifiers.
+- **Nested grouped-param indentation [2026-05-16]:** when `BicepFormattingHelper` serializes a multiline nested object or dictionary inside another object, every line after the first must be reindented relative to the parent property. Without that carry-over indentation, generated `.bicepparam` groups such as `containerApp*HealthProbes` flatten child lines under the parent key. Lock both the helper output and the final `ParameterFileAssembler` snippet with focused regressions.
 
 - **Generator identifier constants [2026-05-11]:** when a generator repeats Bicep parameter names, variable names, resource symbols, property/output names, union literals, or raw expressions across `GenerateSpec(...)` and `Generate(...)`, extract them as constants. This applies strictly even to common builder keys such as `name`, `location`, `kind`, `properties`, and `linuxFxVersion` when they appear in generator code. Default to file-local `private const`; promote only the high-frequency literals with an identical cross-generator contract to `Generators/Constants/BicepGeneratorSharedConstants.cs`.
 

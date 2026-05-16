@@ -789,7 +789,7 @@
       "ACR_PULL_MISSING": "Rôle AcrPull manquant sur {{target}}",
       "KEY_VAULT_ACCESS_MISSING": "Rôle Key Vault Secrets User manquant sur {{target}}",
       "NAME_UNAVAILABLE": "Nom déjà pris sur Azure : {{target}}",
-      "DOCKER_IMAGE_NOT_SET": "Aucune image Docker configurée pour {{resourceName}} — une image par défaut (pause) sera utilisée"
+      "DOCKER_IMAGE_NOT_SET": "Aucune image Docker configurée pour {{target}} — une image par défaut (pause) sera utilisée"
     },
     "GENERATION": {
       "TITLE": "Résultats de génération",
