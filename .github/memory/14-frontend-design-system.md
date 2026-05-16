@@ -29,7 +29,7 @@
 
 - Vague 1 — tokens dark-only, Inter Variable self-host, _typography/tailwind/styles.scss alignés, suppression gradient app.
 - Vague 2 — primitives DS V2 : button, card, text-field, textarea, select, chip, alert, icon-button, toggle, checkbox, radio-group.
-- Vague 3 — shell V3 : sidebar permanente 240/56, top-bar 48px, footer status-bar 28px ; ds-tabs + ds-segmented-control.
+- Vague 3 — shell V3 : sidebar fixe 240px, top-bar 48px, footer status-bar 28px ; ds-tabs + ds-segmented-control.
 - Vague 4 — pages denses project-detail/config-detail refondues, ds-table + ds-tree-view + PageContextService (breadcrumb signal-driven).
 - Vague 5 — resource-edit refondu (54 kB CSS, 270+ classes préservées, HTML inchangé), 9 dialogs purgés, ds-option-card refondu.
 - Vague 6 — polish : 5 primitives finales + purge ciblée des composants feature/shared restants.

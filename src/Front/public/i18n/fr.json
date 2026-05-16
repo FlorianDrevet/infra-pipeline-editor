@@ -32,8 +32,6 @@
   "SIDEBAR": {
     "BRAND_ARIA": "Ouvrir la page d'accueil InfraFlowSculptor",
     "NAV_ARIA": "Navigation principale",
-    "COLLAPSE_ARIA": "Réduire la navigation",
-    "EXPAND_ARIA": "Étendre la navigation",
     "HOME": "Accueil",
     "PROJECTS": "Projets",
     "SETTINGS": "Paramètres",

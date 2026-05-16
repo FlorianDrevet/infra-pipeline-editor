@@ -5,8 +5,7 @@
   left: 0;
   bottom: 0;
   z-index: var(--ifs-z-sticky);
-  width: 240px;
-  transition: width var(--ifs-duration-base) var(--ifs-ease-standard);
+  width: var(--ifs-sidebar-width);
 }
 
 .sidebar {
@@ -62,14 +61,6 @@
   height: 6px;
   border-radius: var(--ifs-radius-pill);
   background: var(--ifs-accent-500);
-}
-
-.sidebar__spacer {
-  flex: 1;
-}
-
-.sidebar__toggle {
-  flex-shrink: 0;
 }
 
 .sidebar__nav {
@@ -221,36 +212,4 @@
   line-height: 14px;
   margin-left: auto;
   color: var(--ifs-text-muted);
-}
-
-// Collapsed state — icons only, brand reduced to dot, labels hidden.
-:host(.sidebar--collapsed) .sidebar__label,
-:host(.sidebar--collapsed) .sidebar__brand-mark,
-:host(.sidebar--collapsed) .sidebar__external-icon,
-:host(.sidebar--collapsed) .sidebar__back-label,
-:host(.sidebar--collapsed) .sidebar__context-title,
-:host(.sidebar--collapsed) .sidebar__section {
-  display: none;
-}
-
-:host(.sidebar--collapsed) .sidebar__link {
-  justify-content: center;
-  padding: 0;
-}
-
-:host(.sidebar--collapsed) .sidebar__brand {
-  justify-content: center;
-  width: 100%;
-  padding: var(--ifs-space-2);
-}
-
-:host(.sidebar--collapsed) .sidebar__header {
-  flex-direction: column;
-  align-items: center;
-  height: auto;
-  gap: var(--ifs-space-8);
-}
-
-:host(.sidebar--collapsed) .sidebar__spacer {
-  display: none;
 }

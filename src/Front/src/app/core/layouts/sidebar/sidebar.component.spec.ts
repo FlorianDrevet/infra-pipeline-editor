@@ -7,7 +7,6 @@ import { CONFIG_DETAIL_ROUTE_TABS } from '../../../shared/enums/detail-route-tab
 import { FavoritesService } from '../../../shared/services/favorites.service';
 import { RecentlyViewedItem, RecentlyViewedService } from '../../../shared/services/recently-viewed.service';
 import { SidebarContextService } from './sidebar-context.service';
-import { SidebarStateService } from './sidebar-state.service';
 import { SidebarComponent } from './sidebar.component';
 
 interface SidebarTestItem {
@@ -71,14 +70,6 @@ describe('SidebarComponent', () => {
           { path: 'projects/:id/generate', component: DummyRouteComponent },
         ]),
         {
-          provide: SidebarStateService,
-          useValue: {
-            collapsed: signal(false).asReadonly(),
-            width: signal('240px').asReadonly(),
-            toggle: jasmine.createSpy('toggle'),
-          } satisfies Pick<SidebarStateService, 'collapsed' | 'width' | 'toggle'>,
-        },
-        {
           provide: SidebarContextService,
           useValue: {
             contextState: contextState.asReadonly(),
@@ -132,7 +123,11 @@ describe('SidebarComponent', () => {
 
   function findLinkByLabel(label: string): HTMLAnchorElement {
     const links = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLAnchorElement>('.sidebar__link'));
-    const link = links.find((candidate) => candidate.textContent?.includes(label));
+    const link = links.find((candidate) => {
+      const visibleLabel = candidate.querySelector('.sidebar__label')?.textContent?.trim();
+
+      return visibleLabel === label;
+    });
 
     expect(link).withContext(`missing sidebar link ${label}`).toBeDefined();
 
@@ -154,14 +149,6 @@ describe('SidebarComponent config mode', () => {
           { path: 'projects/:id/generate', component: DummyRouteComponent },
           { path: 'config/:id', component: DummyRouteComponent },
         ]),
-        {
-          provide: SidebarStateService,
-          useValue: {
-            collapsed: signal(false).asReadonly(),
-            width: signal('240px').asReadonly(),
-            toggle: jasmine.createSpy('toggle'),
-          } satisfies Pick<SidebarStateService, 'collapsed' | 'width' | 'toggle'>,
-        },
         {
           provide: FavoritesService,
           useValue: {

@@ -1,4 +1,4 @@
-<aside class="sidebar" [class.sidebar--collapsed]="collapsed()">
+<aside class="sidebar">
   <header class="sidebar__header">
     <a class="sidebar__brand" routerLink="/" [attr.aria-label]="'SIDEBAR.BRAND_ARIA' | translate">
       <svg class="sidebar__brand-logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -20,15 +20,6 @@
       <span class="sidebar__brand-mark" aria-hidden="true">IFS</span>
       <span class="sidebar__brand-dot" aria-hidden="true"></span>
     </a>
-    <span class="sidebar__spacer"></span>
-    <app-ds-icon-button
-      class="sidebar__toggle"
-      size="sm"
-      variant="neutral"
-      [icon]="toggleIcon()"
-      [ariaLabel]="toggleAriaLabelKey() | translate"
-      (clicked)="onToggle()"
-    ></app-ds-icon-button>
   </header>
 
   <nav class="sidebar__nav" [attr.aria-label]="'SIDEBAR.NAV_ARIA' | translate">
@@ -58,7 +49,6 @@
               [queryParams]="item.queryParams"
               routerLinkActive="sidebar__link--active"
               [routerLinkActiveOptions]="{ exact: !!item.exact }"
-              [attr.title]="collapsed() ? (item.labelKey | translate) : null"
             >
               <mat-icon class="sidebar__icon" aria-hidden="true">{{ item.icon }}</mat-icon>
               <span class="sidebar__label">{{ item.labelKey | translate }}</span>
@@ -71,7 +61,6 @@
             href="https://docs.infraflowsculptor.dev"
             target="_blank"
             rel="noopener noreferrer"
-            [attr.title]="collapsed() ? ('SIDEBAR.DOCS' | translate) : null"
           >
             <mat-icon class="sidebar__icon" aria-hidden="true">description</mat-icon>
             <span class="sidebar__label">{{ 'SIDEBAR.DOCS' | translate }}</span>
@@ -92,7 +81,6 @@
                 <a
                   class="sidebar__link"
                   [routerLink]="fav.type === 'project' ? ['/projects', fav.id] : ['/config', fav.id]"
-                  [attr.title]="collapsed() ? fav.name : null"
                 >
                   <mat-icon class="sidebar__icon" aria-hidden="true">star</mat-icon>
                   <span class="sidebar__label">{{ fav.name }}</span>
@@ -114,7 +102,6 @@
               <a
                 class="sidebar__link"
                 [routerLink]="item.type === 'project' ? ['/projects', item.id] : ['/config', item.id]"
-                [attr.title]="collapsed() ? item.name : null"
               >
                 <mat-icon class="sidebar__icon" aria-hidden="true">{{ item.type === 'project' ? 'folder' : 'settings' }}</mat-icon>
                 <span class="sidebar__label">{{ item.name }}</span>
@@ -141,7 +128,6 @@
                 [queryParams]="item.queryParams"
                 routerLinkActive="sidebar__link--active"
                 [routerLinkActiveOptions]="{ exact: !!item.exact }"
-                [attr.title]="collapsed() ? (item.labelKey | translate) : null"
               >
                 <mat-icon class="sidebar__icon" aria-hidden="true">{{ item.icon }}</mat-icon>
                 <span class="sidebar__label">{{ item.labelKey | translate }}</span>
@@ -165,7 +151,6 @@
                 [queryParams]="item.queryParams"
                 routerLinkActive="sidebar__link--active"
                 [routerLinkActiveOptions]="{ exact: !!item.exact }"
-                [attr.title]="collapsed() ? (item.labelKey | translate) : null"
               >
                 <mat-icon class="sidebar__icon" aria-hidden="true">{{ item.icon }}</mat-icon>
                 <span class="sidebar__label">{{ item.labelKey | translate }}</span>
@@ -189,7 +174,6 @@
                 [queryParams]="item.queryParams"
                 routerLinkActive="sidebar__link--active"
                 [routerLinkActiveOptions]="{ exact: !!item.exact }"
-                [attr.title]="collapsed() ? (item.labelKey | translate) : null"
               >
                 <mat-icon class="sidebar__icon" aria-hidden="true">{{ item.icon }}</mat-icon>
                 <span class="sidebar__label">{{ item.labelKey | translate }}</span>

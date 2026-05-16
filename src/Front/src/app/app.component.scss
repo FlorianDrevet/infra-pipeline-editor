@@ -3,7 +3,7 @@
   min-height: 100vh;
 }
 
-// Default sidebar width (overridden at runtime by SidebarStateService).
+// Shared shell sidebar width.
 :root,
 :host {
   --ifs-sidebar-width: 240px;
@@ -41,7 +41,6 @@
   min-height: 100vh;
   background: var(--ifs-bg);
   color: var(--ifs-text-primary);
-  transition: grid-template-columns var(--ifs-duration-base) var(--ifs-ease-standard);
 }
 
 .app-shell--login {
