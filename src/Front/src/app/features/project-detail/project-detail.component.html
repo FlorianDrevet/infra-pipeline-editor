@@ -395,16 +395,8 @@
               @for (config of configs(); track config.id) {
                 <a class="config-card" [routerLink]="['/config', config.id]">
                   <div class="config-card__header">
-                    <h3>{{ config.name }}</h3>
-                    <div class="config-card__actions">
-                      @if (isOwner()) {
-                        <button
-                          class="config-card__delete-btn"
-                          [matTooltip]="'PROJECT_DETAIL.DELETE_CONFIG.BUTTON' | translate"
-                          (click)="$event.preventDefault(); $event.stopPropagation(); openDeleteConfigDialog(config)">
-                          <mat-icon>delete_outline</mat-icon>
-                        </button>
-                      }
+                    <div class="config-card__title">
+                      <h3>{{ config.name }}</h3>
                       <mat-icon class="config-card__arrow">chevron_right</mat-icon>
                     </div>
                   </div>
@@ -412,6 +404,14 @@
                     <span>{{ 'PROJECT_DETAIL.CONFIGS.RESOURCE_GROUPS' | translate: { count: config.resourceGroupCount } }}</span>
                     <span>{{ 'PROJECT_DETAIL.CONFIGS.RESOURCES' | translate: { count: config.resourceCount } }}</span>
                   </div>
+                  @if (isOwner()) {
+                    <button
+                      class="config-card__delete-btn"
+                      [matTooltip]="'PROJECT_DETAIL.DELETE_CONFIG.BUTTON' | translate"
+                      (click)="$event.preventDefault(); $event.stopPropagation(); openDeleteConfigDialog(config)">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  }
                 </a>
               }
             </div>
@@ -595,7 +595,7 @@
 
                     <span class="abbreviation-list__col abbreviation-list__col--type">
                       <mat-icon class="abbreviation-row__icon">{{ item.icon }}</mat-icon>
-                      {{ item.resourceType }}
+                      <span class="abbreviation-row__label">{{ item.resourceType }}</span>
                     </span>
 
                     <span class="abbreviation-list__col abbreviation-list__col--default">

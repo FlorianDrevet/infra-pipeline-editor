@@ -44,7 +44,11 @@
 }
 
 .dialog-action--cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 2rem;
+  height: 2rem;
   margin: 0;
   padding-inline: 0.75rem;
   border-radius: var(--ifs-radius-md);

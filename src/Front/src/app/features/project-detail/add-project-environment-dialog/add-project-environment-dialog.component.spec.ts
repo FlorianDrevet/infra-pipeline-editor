@@ -46,4 +46,11 @@ describe('AddProjectEnvironmentDialogComponent', () => {
     expect(host.querySelector('button.dialog-action.dialog-action--cancel')).not.toBeNull();
     expect(host.querySelector('app-ds-button.dialog-action.dialog-action--submit')).not.toBeNull();
   });
+
+  it('renders the design-system toggle instead of a material slide toggle', () => {
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(host.querySelectorAll('app-ds-toggle').length).toBe(1);
+    expect(host.querySelector('mat-slide-toggle')).toBeNull();
+  });
 });
