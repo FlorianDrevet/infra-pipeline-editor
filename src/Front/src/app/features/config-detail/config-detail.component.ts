@@ -60,7 +60,6 @@ import { SidebarContextService } from '../../core/layouts/sidebar/sidebar-contex
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS, PARENT_CHILD_RESOURCE_TYPES, CHILD_RESOURCE_TYPES } from '../../shared/resource-metadata/resource-type.metadata';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { StorageAccountSubResourcesResponse } from '../../shared/interfaces/storage-account.interface';
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
 import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
@@ -110,7 +109,6 @@ type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | un
     MatDialogModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
     ConfigDetailGenerationSectionComponent,

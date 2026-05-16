@@ -20,8 +20,8 @@ describe('DsSectionHeaderComponent', () => {
     fixture.detectChanges();
 
     const titleRow = getTitleRow();
-    const rowIcon = titleRow?.querySelector('.ds-section-header__icon') as HTMLElement | null;
-    const rowTitle = titleRow?.querySelector('.ds-section-header__title') as HTMLElement | null;
+    const rowIcon = titleRow?.querySelector('.ds-section-header__icon');
+    const rowTitle = titleRow?.querySelector('.ds-section-header__title');
     const subtitle = fixture.nativeElement.querySelector('.ds-section-header__subtitle') as HTMLElement | null;
 
     expect(titleRow).withContext('title row should exist').not.toBeNull();

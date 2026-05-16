@@ -140,6 +140,7 @@ describe('SidebarComponent config mode', () => {
       providers: [
         provideRouter([
           { path: 'projects', component: DummyRouteComponent },
+          { path: 'projects/:id/generate', component: DummyRouteComponent },
           { path: 'config/:id', component: DummyRouteComponent },
         ]),
         {
@@ -183,6 +184,21 @@ describe('SidebarComponent config mode', () => {
 
     expect(activeLinks.length).toBe(1);
     expect(activeLinks[0].getAttribute('href')).toBe(`/config/config-456?tab=${CONFIG_DETAIL_ROUTE_TABS.crossConfigRefs}`);
+  });
+
+  it('Given_ConfigContext_When_Rendered_Then_GenerationLinkTargetsProjectGenerationPage', async () => {
+    setConfigContext(contextService, 'config-456', 'Config 456', 'project-123');
+    await router.navigateByUrl('/config/config-456');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const generationLink = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLAnchorElement>('.sidebar__link')
+    ).find((candidate) => candidate.textContent?.includes('SIDEBAR.CONFIG.GENERATION'));
+
+    expect(generationLink).toBeDefined();
+    expect(generationLink?.getAttribute('href')).toBe('/projects/project-123/generate');
   });
 });
 

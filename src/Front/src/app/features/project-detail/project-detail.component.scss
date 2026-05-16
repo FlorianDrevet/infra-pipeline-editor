@@ -885,13 +885,19 @@
   }
 
   &__title {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ifs-space-8);
+    min-width: 0;
     margin: 0;
     font-size: 14px;
+    line-height: 1.4;
     font-weight: 600;
     color: var(--ifs-text-primary);
   }
 
   &__title-icon {
+    flex-shrink: 0;
     font-size: 18px;
     width: 18px;
     height: 18px;

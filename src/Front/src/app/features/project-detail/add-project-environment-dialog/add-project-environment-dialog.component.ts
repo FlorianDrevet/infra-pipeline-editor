@@ -1,11 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { DsButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent, DsToggleComponent } from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
 import { TranslateModule } from '@ngx-translate/core';
 import { EnvironmentDefinitionResponse, TagRequest } from '../../../shared/interfaces/infra-config.interface';
@@ -27,12 +26,12 @@ export interface AddProjectEnvironmentDialogData {
     MatDialogModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSlideToggleModule,
     ReactiveFormsModule,
     TranslateModule,
     DsButtonComponent,
     DsSelectComponent,
     DsTextFieldComponent,
+    DsToggleComponent,
   ],
   templateUrl: './add-project-environment-dialog.component.html',
   styleUrl: './add-project-environment-dialog.component.scss',
@@ -143,14 +142,16 @@ export class AddProjectEnvironmentDialogComponent {
       if (position <= others.length) {
         return others[position - 1].order;
       }
-      return others.length === 0 ? 1 : others[others.length - 1].order + 1;
+      const lastOther = others.at(-1);
+      return lastOther ? lastOther.order + 1 : 1;
     }
 
     const movingRight = position > this.initialPosition;
 
     if (movingRight) {
       const idx = position - 2;
-      return idx < others.length ? others[idx].order : others[others.length - 1].order;
+      const targetEnvironment = idx < others.length ? others[idx] : others.at(-1);
+      return targetEnvironment?.order ?? 1;
     }
 
     return others[position - 1].order;

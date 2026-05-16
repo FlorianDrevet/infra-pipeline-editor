@@ -7,7 +7,6 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -30,6 +29,7 @@ import {
   DsSelectComponent,
   DsSelectOption,
   DsTextFieldComponent,
+  DsToggleComponent,
 } from '../../shared/components/ds';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { PageContextService } from '../../shared/services/page-context.service';
@@ -60,6 +60,11 @@ import { MatChipsModule } from '@angular/material/chips';
 import { BicepFilePanelComponent } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
 import { ProjectDetailGenerationWorkflowService } from './project-detail-generation-workflow.service';
 import { getProjectDetailTabIndex, getProjectDetailTabQuery, isProjectDetailTab } from '../../shared/enums/detail-route-tabs';
+import {
+  hasProjectDetailAgentPoolChanges,
+  resolveProjectDetailAgentPoolDraft,
+  resolveProjectDetailAgentPoolValue,
+} from './project-detail-agent-pool.helper';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
@@ -81,13 +86,13 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
     MatDialogModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
     DsButtonComponent,
     DsPanelActionButtonComponent,
     DsSelectComponent,
     DsTextFieldComponent,
+    DsToggleComponent,
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',
@@ -164,6 +169,13 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   protected readonly agentPoolLoading = signal(false);
   protected readonly agentPoolName = signal<string | null>(null);
   protected readonly useCustomPool = signal(false);
+  protected readonly isAgentPoolDirty = computed(() => hasProjectDetailAgentPoolChanges(
+    this.project()?.agentPoolName,
+    {
+      useCustomPool: this.useCustomPool(),
+      agentPoolName: this.agentPoolName(),
+    },
+  ));
 
   // ─── Diagnostics Validation ───
   protected readonly validatingDiagnostics = this.generationWorkflow.validatingDiagnostics;
@@ -279,8 +291,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       this.project.set(project);
       this.configs.set(configs);
       this.availableUsers.set(users);
-      this.agentPoolName.set(project.agentPoolName);
-      this.useCustomPool.set(project.agentPoolName != null);
+      this.syncAgentPoolDraft(project.agentPoolName);
       this.sidebarContextService.setProjectContext(project.id, project.name);
       this.recentlyViewedService.trackView({
         id: project.id,
@@ -689,6 +700,13 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   private async refreshProject(projectId: string): Promise<void> {
     const refreshed = await this.projectService.getProject(projectId);
     this.project.set(refreshed);
+    this.syncAgentPoolDraft(refreshed.agentPoolName);
+  }
+
+  private syncAgentPoolDraft(agentPoolName: string | null | undefined): void {
+    const agentPoolDraft = resolveProjectDetailAgentPoolDraft(agentPoolName);
+    this.agentPoolName.set(agentPoolDraft.agentPoolName);
+    this.useCustomPool.set(agentPoolDraft.useCustomPool);
   }
 
   // ─── Agent Pool ───
@@ -701,14 +719,25 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   }
 
   protected async saveAgentPool(): Promise<void> {
-    const projectId = this.project()?.id;
-    if (!projectId) return;
+    const project = this.project();
+    const projectId = project?.id;
+    if (!projectId || !project || !this.isAgentPoolDirty()) return;
+
+    const agentPoolName = resolveProjectDetailAgentPoolValue({
+      useCustomPool: this.useCustomPool(),
+      agentPoolName: this.agentPoolName(),
+    });
 
     this.agentPoolLoading.set(true);
     try {
       await this.projectService.setAgentPool(projectId, {
-        agentPoolName: this.agentPoolName() || null,
+        agentPoolName,
       });
+      this.project.set({
+        ...project,
+        agentPoolName,
+      });
+      this.syncAgentPoolDraft(agentPoolName);
       this.snackBar.open(
         this.translate.instant('PROJECT_DETAIL.SETTINGS.AGENT_POOL.SAVE_SUCCESS'),
         '✕',

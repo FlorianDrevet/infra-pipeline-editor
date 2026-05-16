@@ -120,8 +120,17 @@ describe('SidebarContextService', () => {
       queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.variables },
     }));
     expect(items.some((item) => item.id === 'git')).toBeFalse();
-    expect(generationItem.routerLink).toBe('/config/config-456/generate');
+    expect(generationItem.routerLink).toBe('/projects/project-123/generate');
     expect(generationItem.queryParams).toBeUndefined();
+  });
+
+  it('Given_ConfigModeWithoutProjectId_When_ContextStateIsBuilt_Then_GenerationFallsBackToConfigRoute', async () => {
+    setConfigContext(service, 'config-456', 'Config 456', '');
+    await router.navigateByUrl('/config/config-456');
+
+    const items = readItems(service);
+
+    expect(findItem(items, 'generation').routerLink).toBe('/config/config-456');
   });
 
   it('Given_MultiRepoConfigMode_When_ContextStateIsBuilt_Then_GitItemExposesDedicatedTabTarget', async () => {

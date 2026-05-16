@@ -5,13 +5,12 @@
       <span>{{ (viewModel().useProjectNamingConventions ? 'CONFIG_DETAIL.INHERITANCE.NAMING_INHERITED' : 'CONFIG_DETAIL.INHERITANCE.NAMING_OVERRIDDEN') | translate }}</span>
     </div>
     @if (viewModel().canWrite) {
-      <mat-slide-toggle
-        [checked]="viewModel().useProjectNamingConventions"
+      <app-ds-toggle
+        [ngModel]="viewModel().useProjectNamingConventions"
+        (ngModelChange)="viewModel().onToggleInheritanceNaming($event)"
         [disabled]="viewModel().inheritanceLoading"
-        (change)="viewModel().onToggleInheritanceNaming($event.checked)"
-        color="primary">
-        {{ 'CONFIG_DETAIL.INHERITANCE.USE_PROJECT' | translate }}
-      </mat-slide-toggle>
+        [label]="'CONFIG_DETAIL.INHERITANCE.USE_PROJECT' | translate">
+      </app-ds-toggle>
     }
   </div>
 

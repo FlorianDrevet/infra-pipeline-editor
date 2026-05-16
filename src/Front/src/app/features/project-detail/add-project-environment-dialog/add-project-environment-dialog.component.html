@@ -106,9 +106,10 @@
         }
       </div>
 
-      <mat-slide-toggle formControlName="requiresApproval" color="primary">
-        {{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.REQUIRES_APPROVAL' | translate }}
-      </mat-slide-toggle>
+      <app-ds-toggle
+        formControlName="requiresApproval"
+        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.REQUIRES_APPROVAL' | translate">
+      </app-ds-toggle>
 
       @if (errorKey()) {
         <p class="dialog-error">{{ errorKey() | translate }}</p>

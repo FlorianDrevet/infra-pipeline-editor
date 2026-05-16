@@ -893,12 +893,13 @@
             <p class="settings-section__description">{{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.DESCRIPTION' | translate }}</p>
 
             <div class="agent-pool-form">
-              <mat-slide-toggle
-                [checked]="useCustomPool()"
-                (change)="onCustomPoolToggle($event.checked)"
-                [disabled]="agentPoolLoading()">
-                {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.USE_CUSTOM' | translate }}
-              </mat-slide-toggle>
+              <app-ds-toggle
+                [ngModel]="useCustomPool()"
+                (ngModelChange)="onCustomPoolToggle($event)"
+                [disabled]="agentPoolLoading()"
+                [label]="'PROJECT_DETAIL.SETTINGS.AGENT_POOL.USE_CUSTOM' | translate"
+                labelPosition="before">
+              </app-ds-toggle>
 
               @if (useCustomPool()) {
                 <app-ds-text-field
@@ -910,18 +911,16 @@
                   [disabled]="agentPoolLoading()" />
               }
 
-              <div class="agent-pool-actions">
-                <button mat-flat-button
-                        color="primary"
-                        (click)="saveAgentPool()"
-                        [disabled]="agentPoolLoading()">
-                  @if (agentPoolLoading()) {
-                    <mat-spinner diameter="20"></mat-spinner>
-                  } @else {
+              @if (isAgentPoolDirty()) {
+                <div class="agent-pool-actions">
+                  <app-ds-button
+                    variant="primary"
+                    [loading]="agentPoolLoading()"
+                    (clicked)="saveAgentPool()">
                     {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.SAVE' | translate }}
-                  }
-                </button>
-              </div>
+                  </app-ds-button>
+                </div>
+              }
             </div>
           </section>
         </div>

@@ -8,6 +8,7 @@ import { CONFIG_DETAIL_ROUTE_TABS, PROJECT_DETAIL_ROUTE_TABS } from '../../../sh
 
 const CONFIG_ROUTE_PATTERN = /^\/config\//;
 const PROJECT_ROUTE_PATTERN = /^\/projects\/[^/]+/;
+const PROJECTS_ROUTE_SEGMENT = '/projects';
 
 export type SidebarMode = 'global' | 'project' | 'config';
 
@@ -104,7 +105,7 @@ export class SidebarContextService {
     return {
       mode: 'project',
       backLabel: 'SIDEBAR.BACK_PROJECTS',
-      backLink: '/projects',
+      backLink: PROJECTS_ROUTE_SEGMENT,
       contextTitle: this._projectName() || 'Project',
       items: [
         { id: 'configs', icon: 'settings', labelKey: 'SIDEBAR.PROJECT.CONFIGURATIONS', routerLink: `/projects/${id}`, exact: true, section: 'define' },
@@ -127,7 +128,7 @@ export class SidebarContextService {
       { id: 'naming', icon: 'label', labelKey: 'SIDEBAR.CONFIG.NAMING', routerLink: `/config/${id}`, queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.naming }, exact: false, section: 'define' },
       { id: 'cross-config-refs', icon: 'link', labelKey: 'CONFIG_DETAIL.TABS.CROSS_CONFIG_REFS', routerLink: `/config/${id}`, queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.crossConfigRefs }, exact: false, section: 'manage' },
       { id: 'variables', icon: 'library_books', labelKey: 'CONFIG_DETAIL.TABS.PIPELINE_VARIABLES', routerLink: `/config/${id}`, queryParams: { tab: CONFIG_DETAIL_ROUTE_TABS.variables }, exact: false, section: 'manage' },
-      { id: 'generation', icon: 'play_circle', labelKey: 'SIDEBAR.CONFIG.GENERATION', routerLink: `/config/${id}/generate`, exact: false, section: 'generate' },
+      { id: 'generation', icon: 'play_circle', labelKey: 'SIDEBAR.CONFIG.GENERATION', routerLink: this.buildConfigGenerationLink(id, projectId), exact: false, section: 'generate' },
     ];
 
     if (this._configProjectIsMultiRepo()) {
@@ -145,9 +146,13 @@ export class SidebarContextService {
     return {
       mode: 'config',
       backLabel: 'SIDEBAR.BACK_PROJECT',
-      backLink: projectId ? `/projects/${projectId}` : '/projects',
+      backLink: projectId ? `/projects/${projectId}` : PROJECTS_ROUTE_SEGMENT,
       contextTitle: this._configName() || 'Configuration',
       items,
     };
+  }
+
+  private buildConfigGenerationLink(configId: string, projectId: string): string {
+    return projectId ? `/projects/${projectId}/generate` : `/config/${configId}`;
   }
 }

@@ -26,6 +26,11 @@
 
 .ds-page-header__main {
   display: flex;
+  min-width: 0;
+}
+
+.ds-page-header__title-row {
+  display: flex;
   align-items: center;
   gap: var(--ifs-space-12);
   min-width: 0;
@@ -46,7 +51,9 @@
 }
 
 .ds-page-header__title {
+  flex: 1;
   margin: 0;
+  min-width: 0;
   font-size: 22px;
   line-height: 1.25;
   font-weight: 600;

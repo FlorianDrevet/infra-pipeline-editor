@@ -25,15 +25,15 @@ describe('project detail agent pool helper', () => {
   });
 
   it('resolves the effective agent pool value from the toggle state and trims whitespace', () => {
-    expect(resolveProjectDetailAgentPoolValue(true, '  build-pool  ')).toBe('build-pool');
-    expect(resolveProjectDetailAgentPoolValue(true, '   ')).toBeNull();
-    expect(resolveProjectDetailAgentPoolValue(false, 'build-pool')).toBeNull();
+    expect(resolveProjectDetailAgentPoolValue({ useCustomPool: true, agentPoolName: '  build-pool  ' })).toBe('build-pool');
+    expect(resolveProjectDetailAgentPoolValue({ useCustomPool: true, agentPoolName: '   ' })).toBeNull();
+    expect(resolveProjectDetailAgentPoolValue({ useCustomPool: false, agentPoolName: 'build-pool' })).toBeNull();
   });
 
   it('reports dirty only when the effective agent pool value differs from the project value', () => {
-    expect(hasProjectDetailAgentPoolChanges(null, true, '   ')).toBeFalse();
-    expect(hasProjectDetailAgentPoolChanges('build-pool', true, '  build-pool  ')).toBeFalse();
-    expect(hasProjectDetailAgentPoolChanges('build-pool', false, 'build-pool')).toBeTrue();
-    expect(hasProjectDetailAgentPoolChanges(null, true, 'build-pool')).toBeTrue();
+    expect(hasProjectDetailAgentPoolChanges(null, { useCustomPool: true, agentPoolName: '   ' })).toBeFalse();
+    expect(hasProjectDetailAgentPoolChanges('build-pool', { useCustomPool: true, agentPoolName: '  build-pool  ' })).toBeFalse();
+    expect(hasProjectDetailAgentPoolChanges('build-pool', { useCustomPool: false, agentPoolName: 'build-pool' })).toBeTrue();
+    expect(hasProjectDetailAgentPoolChanges(null, { useCustomPool: true, agentPoolName: 'build-pool' })).toBeTrue();
   });
 });
