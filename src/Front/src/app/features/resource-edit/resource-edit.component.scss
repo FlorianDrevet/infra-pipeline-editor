@@ -10,6 +10,14 @@
 
 :host {
   display: block;
+  --project-surface-header: color-mix(in srgb, var(--ifs-surface-1) 84%, var(--ifs-brand-700));
+  --project-surface-panel: color-mix(in srgb, var(--ifs-surface-1) 88%, var(--ifs-brand-700));
+  --project-surface-hover: color-mix(in srgb, var(--ifs-surface-2) 78%, var(--ifs-brand-700));
+  --project-surface-active: color-mix(in srgb, var(--ifs-surface-2) 64%, var(--ifs-brand-600));
+  --project-pill-surface: color-mix(in srgb, var(--ifs-surface-3) 72%, var(--ifs-brand-600));
+  --project-pill-active: color-mix(in srgb, var(--ifs-surface-2) 52%, var(--ifs-accent-500));
+  --project-border-accent: color-mix(in srgb, var(--ifs-border-subtle) 58%, var(--ifs-accent-500));
+  --project-border-strong: color-mix(in srgb, var(--ifs-border-strong) 54%, var(--ifs-accent-500));
 }
 
 // ─── Layout ─────────────────────────────────────────────────────────────────
@@ -31,9 +39,10 @@
   flex-direction: column;
   gap: var(--ifs-space-12);
   padding: var(--ifs-space-20) var(--ifs-space-24);
-  background: var(--ifs-surface-1);
-  border: 1px solid var(--ifs-border-subtle);
+  background: var(--project-surface-header);
+  border: 1px solid var(--project-border-accent);
   border-radius: var(--ifs-radius-md);
+  box-shadow: var(--ifs-shadow-sm);
   color: var(--ifs-text-primary);
 }
 
@@ -42,6 +51,8 @@
   justify-content: space-between;
   align-items: center;
   gap: var(--ifs-space-8);
+  padding-bottom: var(--ifs-space-12);
+  border-bottom: 1px solid var(--project-border-accent);
 }
 
 .resource-header__info {
@@ -59,6 +70,11 @@
 
 .resource-header__id {
   margin: 0;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: var(--ifs-radius-pill);
+  background: var(--project-pill-surface);
+  border: 1px solid var(--project-border-accent);
   font-size: 12px;
   color: var(--ifs-text-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -79,9 +95,9 @@
   width: fit-content;
   padding: 2px 8px;
   border-radius: var(--ifs-radius-sm);
-  background: var(--ifs-surface-3);
-  border: 1px solid var(--ifs-border-subtle);
-  color: var(--ifs-text-secondary);
+  background: var(--project-pill-surface);
+  border: 1px solid var(--project-border-accent);
+  color: var(--ifs-accent-400);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -103,8 +119,9 @@
   height: 32px;
   padding: 0 var(--ifs-space-12);
   border-radius: var(--ifs-radius-md);
-  border: 1px solid var(--ifs-border-strong);
-  background: var(--ifs-surface-2);
+  border: 1px solid var(--project-border-accent);
+  background: var(--project-surface-panel);
+  box-shadow: var(--ifs-shadow-sm);
   color: var(--ifs-text-primary);
   font-family: inherit;
   font-size: 13px;
@@ -115,9 +132,14 @@
   transition:
     background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
     border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard),
     color var(--ifs-duration-fast) var(--ifs-ease-standard);
 
-  &:hover { background: var(--ifs-surface-3); }
+  &:hover {
+    background: var(--project-surface-hover);
+    border-color: var(--project-border-strong);
+    box-shadow: var(--ifs-shadow-md);
+  }
 
   &:focus-visible {
     outline: none;
@@ -137,12 +159,13 @@
 %re-btn-ghost {
   @extend %re-btn;
   background: transparent;
-  border-color: var(--ifs-border-subtle);
+  border-color: var(--project-border-accent);
   color: var(--ifs-text-secondary);
 
   &:hover {
-    background: var(--ifs-surface-2);
+    background: var(--project-surface-hover);
     color: var(--ifs-text-primary);
+    box-shadow: var(--ifs-shadow-sm);
   }
 }
 
@@ -291,11 +314,14 @@
 
 .resource-tabs {
   @extend %re-card-flat;
+  background: var(--project-surface-panel);
+  border: 1px solid var(--project-border-accent);
+  box-shadow: var(--ifs-shadow-sm);
   overflow: hidden;
 
   ::ng-deep .mat-mdc-tab-header {
-    border-bottom: 1px solid var(--ifs-border-subtle);
-    background: var(--ifs-surface-2);
+    border-bottom: 1px solid var(--project-border-accent);
+    background: color-mix(in srgb, var(--ifs-surface-2) 82%, var(--ifs-brand-700));
     padding: 0 var(--ifs-space-8);
   }
 
@@ -304,6 +330,13 @@
     padding: 0 var(--ifs-space-16);
     height: 44px;
     opacity: 1;
+    margin-top: var(--ifs-space-6);
+    border-radius: var(--ifs-radius-md) var(--ifs-radius-md) 0 0;
+    transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
+  }
+
+  ::ng-deep .mat-mdc-tab:hover {
+    background: var(--project-surface-hover);
   }
 
   ::ng-deep .mdc-tab__text-label {
@@ -313,9 +346,29 @@
     color: var(--ifs-text-secondary);
     font-weight: 500;
     font-size: 13px;
+    transition: color var(--ifs-duration-fast) var(--ifs-ease-standard);
+  }
+
+  ::ng-deep .mat-mdc-tab:hover .mdc-tab__text-label {
+    color: var(--ifs-text-primary);
+  }
+
+  ::ng-deep .mdc-tab--active {
+    background: var(--project-surface-active);
+    box-shadow: inset 0 0 0 1px var(--project-border-accent);
   }
 
   ::ng-deep .mdc-tab--active .mdc-tab__text-label {
+    color: var(--ifs-text-primary);
+  }
+
+  ::ng-deep .mdc-tab--active .tab-icon {
+    color: var(--ifs-accent-400);
+  }
+
+  ::ng-deep .mdc-tab--active .tab-count {
+    background: var(--project-pill-active);
+    border-color: var(--project-border-strong);
     color: var(--ifs-text-primary);
   }
 
@@ -347,7 +400,8 @@
   height: 16px;
   padding: 0 var(--ifs-space-4);
   border-radius: var(--ifs-radius-pill);
-  background: var(--ifs-surface-3);
+  background: var(--project-pill-surface);
+  border: 1px solid var(--project-border-accent);
   color: var(--ifs-text-secondary);
   font-size: 11px;
   font-weight: 600;

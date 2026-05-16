@@ -66,18 +66,20 @@
 .ds-toggle__track {
   position: absolute;
   inset: 0;
-  background: var(--ifs-surface-3);
+  background-color: var(--ifs-surface-3);
   border: 1px solid var(--ifs-border-strong);
   border-radius: var(--ifs-radius-pill);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ifs-border-strong) 72%, white 28%);
   transition:
-    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
-    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
-    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
+    background-color var(--ifs-duration-base) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-base) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-base) var(--ifs-ease-standard);
 }
 
 .ds-toggle--checked .ds-toggle__track {
-  background: var(--ifs-accent-500);
+  background-color: var(--ifs-accent-500);
   border-color: var(--ifs-accent-500);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ifs-accent-400) 42%, white 58%);
 }
 
 .ds-toggle__thumb {
@@ -86,13 +88,54 @@
   left: 2px;
   width: 14px;
   height: 14px;
-  background: var(--ifs-surface-3);
+  background-color: color-mix(in srgb, white 86%, var(--ifs-surface-1) 14%);
   border-radius: 50%;
-  transition: transform var(--ifs-duration-fast) var(--ifs-ease-standard);
+  box-shadow:
+    0 1px 3px rgba(2, 8, 20, 0.38),
+    inset 0 0 0 1px color-mix(in srgb, var(--ifs-border-strong) 52%, white 48%);
+  transition:
+    transform var(--ifs-duration-slow) var(--ifs-ease-emphasized),
+    background-color var(--ifs-duration-base) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-base) var(--ifs-ease-standard);
   pointer-events: none;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border-radius: inherit;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.84) 0%,
+      rgba(255, 255, 255, 0.18) 100%
+    );
+    opacity: 0.72;
+    transition: opacity var(--ifs-duration-base) var(--ifs-ease-standard);
+  }
 }
 
 .ds-toggle--checked .ds-toggle__thumb {
-  transform: translateX(14px);
+  transform: translateX(14px) scale(1.03);
+  background-color: color-mix(in srgb, white 74%, var(--ifs-accent-400) 26%);
+  box-shadow:
+    0 2px 5px rgba(2, 8, 20, 0.34),
+    0 0 0 1px color-mix(in srgb, var(--ifs-accent-500) 40%, white 60%),
+    inset 0 0 0 1px color-mix(in srgb, white 68%, var(--ifs-accent-400) 32%);
+}
+
+.ds-toggle--checked .ds-toggle__thumb::after {
+  opacity: 0.9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-toggle__track,
+  .ds-toggle__thumb,
+  .ds-toggle__thumb::after {
+    transition: none;
+  }
+
+  .ds-toggle--checked .ds-toggle__thumb {
+    transform: translateX(14px);
+  }
 }
 

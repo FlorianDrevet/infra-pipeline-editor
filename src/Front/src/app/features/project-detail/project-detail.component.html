@@ -314,74 +314,90 @@
         </div>
       </mat-tab>
 
-      <!-- Members -->
+      <!-- Members tab removed — now at /projects/:id/members -->
+
+      <!-- Tags -->
       <mat-tab>
         <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">group</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.TABS.MEMBERS' | translate }}</span>
-          <span class="tab-count">{{ project()!.members.length }}</span>
+          <mat-icon class="tab-icon">label_important</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.TABS.TAGS' | translate }}</span>
+          <span class="tab-count">{{ projectTags().length }}</span>
         </ng-template>
         <div class="tab-content">
-          <div class="tab-content__toolbar">
-            @if (isOwner()) {
-              <button class="add-btn" (click)="openAddMemberDialog()">
-                <mat-icon class="add-btn__icon">person_add</mat-icon>
-                {{ 'PROJECT_DETAIL.MEMBERS.ADD' | translate }}
-              </button>
-            }
-          </div>
+          <section class="settings-section">
+            <div class="settings-section__title-row">
+              <h3 class="settings-section__title">
+                <mat-icon class="settings-section__title-icon">label</mat-icon>
+                {{ 'PROJECT_DETAIL.TAGS.TITLE' | translate }}
+              </h3>
+              @if (canWrite() && !isEditingProjectTags()) {
+                <button class="template-action-btn template-action-btn--inline" (click)="startEditProjectTags()">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              }
+            </div>
 
-          @if (memberErrorKey()) {
-            <p class="action-error">{{ memberErrorKey() | translate }}</p>
-          }
+            <p class="settings-section__description">{{ 'PROJECT_DETAIL.TAGS.EMPTY_HINT' | translate }}</p>
 
-          @if (project()!.members.length > 0) {
-            @for (group of membersByRole(); track group.role) {
-              <div class="role-section">
-                <div class="role-section__header">
-                  <mat-icon class="role-section__icon">{{ group.icon }}</mat-icon>
-                  <h3 class="role-section__title">{{ 'PROJECT_DETAIL.MEMBERS.ROLE_' + group.role.toUpperCase() | translate }}</h3>
-                  <span class="role-section__count">{{ group.members.length }}</span>
-                </div>
-                <div class="members-grid">
-                  @for (member of group.members; track member.id) {
-                    <article class="member-card" [class.member-card--busy]="memberActionId() === member.id">
-                      @if (memberActionId() === member.id) {
-                        <div class="member-card__spinner">
-                          <mat-spinner diameter="20"></mat-spinner>
-                        </div>
-                      }
-                      <div class="member-card__info">
-                        <strong>{{ member.firstName }} {{ member.lastName }}</strong>
-                      </div>
-                      <div class="member-card__actions">
-                        @if (isOwner()) {
-                          <app-ds-select
-                            class="role-select"
-                            [options]="roleDsOptions"
-                            [ngModel]="member.role"
-                            (ngModelChange)="onRoleChange(member, $event)"
-                            [disabled]="memberActionId() === member.id" />
-                          <button
-                            class="remove-btn"
-                            [matTooltip]="'PROJECT_DETAIL.MEMBERS.REMOVE' | translate"
-                            [disabled]="memberActionId() === member.id"
-                            (click)="openRemoveMemberDialog(member)">
-                            <mat-icon>close</mat-icon>
-                          </button>
-                        }
-                      </div>
-                    </article>
+            @if (!isEditingProjectTags()) {
+              @if (projectTags().length > 0) {
+                <div class="tags-display">
+                  @for (tag of projectTags(); track tag.name) {
+                    <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
                   }
+                </div>
+              } @else {
+                <p class="tags-empty">{{ 'PROJECT_DETAIL.TAGS.EMPTY' | translate }}</p>
+              }
+            } @else {
+              <div class="tags-editor">
+                <div class="tags-add-row">
+                  <app-ds-text-field
+                    class="tag-name-field"
+                    [label]="'PROJECT_DETAIL.TAGS.TAG_NAME' | translate"
+                    [formControl]="tagNameCtrl"
+                    (keydown.enter)="addProjectTag()" />
+                  <app-ds-text-field
+                    class="tag-value-field"
+                    [label]="'PROJECT_DETAIL.TAGS.TAG_VALUE' | translate"
+                    [formControl]="tagValueCtrl"
+                    (keydown.enter)="addProjectTag()" />
+                  <button type="button" mat-icon-button (click)="addProjectTag()" [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()">
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </div>
+
+                @if (editingTags().length > 0) {
+                  <mat-chip-set>
+                    @for (tag of editingTags(); track tag.name) {
+                      <mat-chip (removed)="removeProjectTag(tag.name)">
+                        <span>{{ tag.name }}: {{ tag.value }}</span>
+                        <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                      </mat-chip>
+                    }
+                  </mat-chip-set>
+                }
+
+                @if (tagsErrorKey()) {
+                  <p class="action-error">{{ tagsErrorKey() | translate }}</p>
+                }
+
+                <div class="tags-actions">
+                  <button mat-stroked-button type="button" (click)="cancelProjectTagsEdit()" [disabled]="tagsSaving()">
+                    {{ 'PROJECT_DETAIL.TAGS.CANCEL' | translate }}
+                  </button>
+                  <app-ds-button
+                    variant="primary"
+                    type="button"
+                    (clicked)="saveProjectTags()"
+                    [loading]="tagsSaving()"
+                    [disabled]="tagsSaving()">
+                    {{ 'PROJECT_DETAIL.TAGS.SAVE' | translate }}
+                  </app-ds-button>
                 </div>
               </div>
             }
-          } @else {
-            <div class="empty-state">
-              <mat-icon class="empty-state__icon">group</mat-icon>
-              <p>{{ 'PROJECT_DETAIL.MEMBERS.EMPTY' | translate }}</p>
-            </div>
-          }
+          </section>
         </div>
       </mat-tab>
 
@@ -473,129 +489,6 @@
               <p class="empty-state__hint">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.EMPTY_HINT' | translate }}</p>
             </div>
           }
-        </div>
-      </mat-tab>
-
-      <!-- Settings (Repository Mode + Git Config) -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">tune</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.TABS.SETTINGS' | translate }}</span>
-        </ng-template>
-        <div class="tab-content">
-          <!-- Tags Section -->
-          <section class="settings-section">
-            <div class="settings-section__title-row">
-              <h3 class="settings-section__title">
-                <mat-icon class="settings-section__title-icon">label</mat-icon>
-                {{ 'PROJECT_DETAIL.TAGS.TITLE' | translate }}
-              </h3>
-              @if (canWrite() && !isEditingProjectTags()) {
-                <button class="template-action-btn template-action-btn--inline" (click)="startEditProjectTags()">
-                  <mat-icon>edit</mat-icon>
-                </button>
-              }
-            </div>
-
-            @if (!isEditingProjectTags()) {
-              @if (projectTags().length > 0) {
-                <div class="tags-display">
-                  @for (tag of projectTags(); track tag.name) {
-                    <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
-                  }
-                </div>
-              } @else {
-                <p class="tags-empty">{{ 'PROJECT_DETAIL.TAGS.EMPTY' | translate }}</p>
-              }
-            } @else {
-              <div class="tags-editor">
-                <div class="tags-add-row">
-                  <app-ds-text-field
-                    class="tag-name-field"
-                    [label]="'PROJECT_DETAIL.TAGS.TAG_NAME' | translate"
-                    [formControl]="tagNameCtrl"
-                    (keydown.enter)="addProjectTag()" />
-                  <app-ds-text-field
-                    class="tag-value-field"
-                    [label]="'PROJECT_DETAIL.TAGS.TAG_VALUE' | translate"
-                    [formControl]="tagValueCtrl"
-                    (keydown.enter)="addProjectTag()" />
-                  <button type="button" mat-icon-button (click)="addProjectTag()" [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()">
-                    <mat-icon>add</mat-icon>
-                  </button>
-                </div>
-
-                @if (editingTags().length > 0) {
-                  <mat-chip-set>
-                    @for (tag of editingTags(); track tag.name) {
-                      <mat-chip (removed)="removeProjectTag(tag.name)">
-                        <span>{{ tag.name }}: {{ tag.value }}</span>
-                        <button matChipRemove><mat-icon>cancel</mat-icon></button>
-                      </mat-chip>
-                    }
-                  </mat-chip-set>
-                }
-
-                @if (tagsErrorKey()) {
-                  <p class="action-error">{{ tagsErrorKey() | translate }}</p>
-                }
-
-                <div class="tags-actions">
-                  <button mat-stroked-button type="button" (click)="cancelProjectTagsEdit()" [disabled]="tagsSaving()">
-                    {{ 'PROJECT_DETAIL.TAGS.CANCEL' | translate }}
-                  </button>
-                  <app-ds-button
-                    variant="primary"
-                    type="button"
-                    (clicked)="saveProjectTags()"
-                    [loading]="tagsSaving()"
-                    [disabled]="tagsSaving()">
-                    {{ 'PROJECT_DETAIL.TAGS.SAVE' | translate }}
-                  </app-ds-button>
-                </div>
-              </div>
-            }
-          </section>
-
-          <!-- Agent Pool -->
-          <section class="settings-section">
-            <h3 class="settings-section__title">
-              <mat-icon class="settings-section__title-icon">dns</mat-icon>
-              {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.TITLE' | translate }}
-            </h3>
-            <p class="settings-section__description">{{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.DESCRIPTION' | translate }}</p>
-
-            <div class="agent-pool-form">
-              <app-ds-toggle
-                [ngModel]="useCustomPool()"
-                (ngModelChange)="onCustomPoolToggle($event)"
-                [disabled]="agentPoolLoading()"
-                [label]="'PROJECT_DETAIL.SETTINGS.AGENT_POOL.USE_CUSTOM' | translate"
-                labelPosition="before">
-              </app-ds-toggle>
-
-              @if (useCustomPool()) {
-                <app-ds-text-field
-                  class="pool-name-field"
-                  [label]="'PROJECT_DETAIL.SETTINGS.AGENT_POOL.POOL_NAME' | translate"
-                  [hint]="'PROJECT_DETAIL.SETTINGS.AGENT_POOL.POOL_HINT' | translate"
-                  [ngModel]="agentPoolName() ?? ''"
-                  (ngModelChange)="agentPoolName.set($event)"
-                  [disabled]="agentPoolLoading()" />
-              }
-
-              @if (isAgentPoolDirty()) {
-                <div class="agent-pool-actions">
-                  <app-ds-button
-                    variant="primary"
-                    [loading]="agentPoolLoading()"
-                    (clicked)="saveAgentPool()">
-                    {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.SAVE' | translate }}
-                  </app-ds-button>
-                </div>
-              }
-            </div>
-          </section>
         </div>
       </mat-tab>
 

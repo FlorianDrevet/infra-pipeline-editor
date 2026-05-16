@@ -148,6 +148,16 @@ describe('GenerationBoardComponent', () => {
     expect(dialogSpy.open).not.toHaveBeenCalled();
   });
 
+  it('renders a single generate-all action while keeping the ready state call to action', async () => {
+    await createComponent();
+
+    const generateAllButtons = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button')
+    ).filter((button) => button.textContent?.includes('PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS'));
+
+    expect(generateAllButtons.length).toBe(1);
+  });
+
   it('removes the per-config list from repository cards', async () => {
     await createComponent();
 

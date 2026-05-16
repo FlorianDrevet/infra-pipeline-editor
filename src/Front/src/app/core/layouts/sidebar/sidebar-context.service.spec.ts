@@ -35,6 +35,7 @@ describe('SidebarContextService', () => {
       providers: [
         provideRouter([
           { path: 'projects/:id', component: DummyRouteComponent },
+          { path: 'projects/:id/generate/config', component: DummyRouteComponent },
           { path: 'projects/:id/generate', component: DummyRouteComponent },
           { path: 'config/:id', component: DummyRouteComponent },
           { path: 'config/:id/generate', component: DummyRouteComponent },
@@ -60,6 +61,7 @@ describe('SidebarContextService', () => {
 
     const items = readItems(service);
     const configsItem = findItem(items, 'configs');
+    const generationConfigItem = findItem(items, 'generation-config');
     const generationItem = findItem(items, 'generation');
 
     expect(configsItem.routerLink).toBe('/projects/project-123');
@@ -76,17 +78,26 @@ describe('SidebarContextService', () => {
       routerLink: '/projects/project-123',
       queryParams: { tab: 'variables' },
     }));
-    expect(findItem(items, 'members')).toEqual(jasmine.objectContaining({
-      routerLink: '/projects/project-123',
-      queryParams: { tab: 'members' },
-    }));
+    expect(findItem(items, 'members').routerLink).toBe('/projects/project-123/members');
+    expect(findItem(items, 'members').queryParams).toBeUndefined();
     expect(items.some((item) => item.id === 'git')).toBeFalse();
-    expect(findItem(items, 'project-settings')).toEqual(jasmine.objectContaining({
-      routerLink: '/projects/project-123',
-      queryParams: { tab: 'settings' },
-    }));
+    expect(findItem(items, 'project-settings').routerLink).toBe('/projects/project-123/settings');
+    expect(findItem(items, 'project-settings').queryParams).toBeUndefined();
+    expect(generationConfigItem.routerLink).toBe('/projects/project-123/generate/config');
+    expect(generationConfigItem.queryParams).toBeUndefined();
     expect(generationItem.routerLink).toBe('/projects/project-123/generate');
     expect(generationItem.queryParams).toBeUndefined();
+  });
+
+  it('Given_ProjectMode_When_ContextStateIsBuilt_Then_GenerateSectionKeepsGenerationBeforeGenerationConfig', async () => {
+    service.setProjectContext('project-123', 'Project 123');
+    await router.navigateByUrl('/projects/project-123/generate');
+
+    const generateItemIds = readItems(service)
+      .filter((item) => item.id === 'generation' || item.id === 'generation-config')
+      .map((item) => item.id);
+
+    expect(generateItemIds).toEqual(['generation', 'generation-config']);
   });
 
   it('Given_ProjectDetailTabs_When_ProjectRouteTargetsAreEnumerated_Then_RepositoriesIsNotExposed', () => {

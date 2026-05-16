@@ -31,17 +31,15 @@ import { ProjectService } from '../../../shared/services/project.service';
 import {
   DsButtonComponent,
   DsCardComponent,
-  DsChipComponent,
   DsEmptyStateComponent,
   DsPanelActionButtonComponent,
   DsPageHeaderComponent,
-  DsSectionHeaderComponent,
 } from '../../../shared/components/ds';
 import {
   BicepTreeNode,
   BicepFilePanelComponent,
 } from '../../../shared/components/bicep-file-panel/bicep-file-panel.component';
-import { LayoutRepositoriesComponent } from '../layout-repositories/layout-repositories.component';
+
 import { SplitGenerationSwitcherComponent } from '../split-generation-switcher/split-generation-switcher.component';
 import { ProjectDetailGenerationWorkflowService } from '../project-detail-generation-workflow.service';
 
@@ -223,15 +221,12 @@ function isApplicationCodeRepository(repo: ProjectRepositoryResponse): boolean {
     MatIconModule,
     MatProgressSpinnerModule,
     BicepFilePanelComponent,
-    LayoutRepositoriesComponent,
     SplitGenerationSwitcherComponent,
     DsButtonComponent,
     DsCardComponent,
-    DsChipComponent,
     DsEmptyStateComponent,
     DsPanelActionButtonComponent,
     DsPageHeaderComponent,
-    DsSectionHeaderComponent,
   ],
   templateUrl: './generation-board.component.html',
   styleUrl: './generation-board.component.scss',
@@ -466,6 +461,15 @@ export class GenerationBoardComponent implements OnInit {
     }
 
     this.runNavigation(this.router.navigate(['/projects', projectId]));
+  }
+
+  protected navigateToConfig(): void {
+    const projectId = this.project()?.id || this.resolvedProjectId();
+    if (!projectId) {
+      return;
+    }
+
+    this.runNavigation(this.router.navigate(['/projects', projectId, 'generate', 'config']));
   }
 
   private runNavigation(navigationPromise: Promise<boolean>): void {

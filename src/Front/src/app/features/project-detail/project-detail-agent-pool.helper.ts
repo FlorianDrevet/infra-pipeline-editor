@@ -29,6 +29,16 @@ export function resolveProjectDetailAgentPoolValue(
   return normalizeProjectDetailAgentPoolName(draft.agentPoolName);
 }
 
+export function toggleProjectDetailAgentPoolDraft(
+  draft: ProjectDetailAgentPoolDraft,
+  useCustomPool: boolean,
+): ProjectDetailAgentPoolDraft {
+  return {
+    useCustomPool,
+    agentPoolName: draft.agentPoolName,
+  };
+}
+
 export function hasProjectDetailAgentPoolChanges(
   projectAgentPoolName: string | null | undefined,
   draft: ProjectDetailAgentPoolDraft,

@@ -3,6 +3,7 @@ import {
   normalizeProjectDetailAgentPoolName,
   resolveProjectDetailAgentPoolDraft,
   resolveProjectDetailAgentPoolValue,
+  toggleProjectDetailAgentPoolDraft,
 } from './project-detail-agent-pool.helper';
 
 describe('project detail agent pool helper', () => {
@@ -35,5 +36,24 @@ describe('project detail agent pool helper', () => {
     expect(hasProjectDetailAgentPoolChanges('build-pool', { useCustomPool: true, agentPoolName: '  build-pool  ' })).toBeFalse();
     expect(hasProjectDetailAgentPoolChanges('build-pool', { useCustomPool: false, agentPoolName: 'build-pool' })).toBeTrue();
     expect(hasProjectDetailAgentPoolChanges(null, { useCustomPool: true, agentPoolName: 'build-pool' })).toBeTrue();
+  });
+
+  it('Given_an_existing_custom_pool_draft_When_toggling_off_then_on_Then_preserves_the_unsaved_agent_pool_name', () => {
+    const initialDraft = {
+      useCustomPool: true,
+      agentPoolName: '  build-pool-draft  ',
+    };
+
+    const disabledDraft = toggleProjectDetailAgentPoolDraft(initialDraft, false);
+    const restoredDraft = toggleProjectDetailAgentPoolDraft(disabledDraft, true);
+
+    expect(disabledDraft).toEqual({
+      useCustomPool: false,
+      agentPoolName: '  build-pool-draft  ',
+    });
+    expect(restoredDraft).toEqual({
+      useCustomPool: true,
+      agentPoolName: '  build-pool-draft  ',
+    });
   });
 });

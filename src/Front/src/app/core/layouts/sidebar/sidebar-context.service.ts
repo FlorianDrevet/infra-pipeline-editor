@@ -111,10 +111,12 @@ export class SidebarContextService {
         { id: 'configs', icon: 'settings', labelKey: 'SIDEBAR.PROJECT.CONFIGURATIONS', routerLink: `/projects/${id}`, exact: true, section: 'define' },
         { id: 'environments', icon: 'cloud_queue', labelKey: 'SIDEBAR.PROJECT.ENVIRONMENTS', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.environments }, exact: false, section: 'define' },
         { id: 'naming', icon: 'label', labelKey: 'SIDEBAR.PROJECT.NAMING', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.naming }, exact: false, section: 'define' },
+        { id: 'tags', icon: 'label_important', labelKey: 'SIDEBAR.PROJECT.TAGS', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.tags }, exact: false, section: 'define' },
         { id: 'variables', icon: 'library_books', labelKey: 'SIDEBAR.PROJECT.VARIABLES', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.variables }, exact: false, section: 'define' },
-        { id: 'generation', icon: 'play_circle', labelKey: 'SIDEBAR.PROJECT.GENERATION', routerLink: `/projects/${id}/generate`, exact: false, section: 'generate' },
-        { id: 'members', icon: 'group', labelKey: 'SIDEBAR.PROJECT.MEMBERS', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.members }, exact: false, section: 'manage' },
-        { id: 'project-settings', icon: 'tune', labelKey: 'SIDEBAR.PROJECT.SETTINGS', routerLink: `/projects/${id}`, queryParams: { tab: PROJECT_DETAIL_ROUTE_TABS.settings }, exact: false, section: 'manage' },
+        { id: 'generation', icon: 'play_circle', labelKey: 'SIDEBAR.PROJECT.GENERATION', routerLink: `/projects/${id}/generate`, exact: true, section: 'generate' },
+        { id: 'generation-config', icon: 'settings', labelKey: 'SIDEBAR.PROJECT.GENERATION_CONFIG', routerLink: `/projects/${id}/generate/config`, exact: true, section: 'generate' },
+        { id: 'members', icon: 'group', labelKey: 'SIDEBAR.PROJECT.MEMBERS', routerLink: `/projects/${id}/members`, exact: false, section: 'manage' },
+        { id: 'project-settings', icon: 'tune', labelKey: 'SIDEBAR.PROJECT.SETTINGS', routerLink: `/projects/${id}/settings`, exact: false, section: 'manage' },
       ],
     };
   }

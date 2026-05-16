@@ -10,10 +10,8 @@ describe('detail-route-tabs', () => {
     expect(getProjectDetailTabIndex(null)).toBe(0);
     expect(getProjectDetailTabIndex('environments')).toBe(1);
     expect(getProjectDetailTabIndex('naming')).toBe(2);
-    expect(getProjectDetailTabIndex('members')).toBe(3);
+    expect(getProjectDetailTabIndex('tags')).toBe(3);
     expect(getProjectDetailTabIndex('variables')).toBe(4);
-    expect(getProjectDetailTabIndex('settings')).toBe(5);
-    expect(getProjectDetailTabIndex('repositories')).toBe(0);
     expect(getProjectDetailTabIndex('unknown')).toBe(0);
   });
 
@@ -21,10 +19,9 @@ describe('detail-route-tabs', () => {
     expect(getProjectDetailTabQuery(0)).toBeNull();
     expect(getProjectDetailTabQuery(1)).toBe('environments');
     expect(getProjectDetailTabQuery(2)).toBe('naming');
-    expect(getProjectDetailTabQuery(3)).toBe('members');
+    expect(getProjectDetailTabQuery(3)).toBe('tags');
     expect(getProjectDetailTabQuery(4)).toBe('variables');
-    expect(getProjectDetailTabQuery(5)).toBe('settings');
-    expect(getProjectDetailTabQuery(6)).toBeNull();
+    expect(getProjectDetailTabQuery(5)).toBeNull();
   });
 
   it('Given_ConfigTabQuery_When_ResolvingSelectedIndex_Then_ReturnsExpectedConfigTabIndices', () => {

@@ -31,6 +31,27 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'projects/:id/members',
+        loadComponent: () =>
+          import('./features/project-members/project-members.component').then(
+            (m) => m.ProjectMembersComponent
+          ),
+      },
+      {
+        path: 'projects/:id/settings',
+        loadComponent: () =>
+          import('./features/project-settings/project-settings.component').then(
+            (m) => m.ProjectSettingsComponent
+          ),
+      },
+      {
+        path: 'projects/:id/generate/config',
+        loadComponent: () =>
+          import('./features/project-detail/generation-config/generation-config.component').then(
+            (m) => m.GenerationConfigComponent
+          ),
+      },
+      {
         path: 'projects/:id/generate',
         loadComponent: () =>
           import('./features/project-detail/generation-board/generation-board.component').then(

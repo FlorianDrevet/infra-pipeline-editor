@@ -1,9 +1,8 @@
 export const PROJECT_DETAIL_ROUTE_TABS = {
   environments: 'environments',
   naming: 'naming',
-  members: 'members',
+  tags: 'tags',
   variables: 'variables',
-  settings: 'settings',
 } as const;
 
 export type ProjectDetailRouteTab = (typeof PROJECT_DETAIL_ROUTE_TABS)[keyof typeof PROJECT_DETAIL_ROUTE_TABS];
@@ -24,12 +23,10 @@ export function getProjectDetailTabIndex(tab: string | null): number {
       return 1;
     case PROJECT_DETAIL_ROUTE_TABS.naming:
       return 2;
-    case PROJECT_DETAIL_ROUTE_TABS.members:
+    case PROJECT_DETAIL_ROUTE_TABS.tags:
       return 3;
     case PROJECT_DETAIL_ROUTE_TABS.variables:
       return 4;
-    case PROJECT_DETAIL_ROUTE_TABS.settings:
-      return 5;
     default:
       return 0;
   }
@@ -42,11 +39,9 @@ export function getProjectDetailTabQuery(index: number): ProjectDetailRouteTab |
     case 2:
       return PROJECT_DETAIL_ROUTE_TABS.naming;
     case 3:
-      return PROJECT_DETAIL_ROUTE_TABS.members;
+      return PROJECT_DETAIL_ROUTE_TABS.tags;
     case 4:
       return PROJECT_DETAIL_ROUTE_TABS.variables;
-    case 5:
-      return PROJECT_DETAIL_ROUTE_TABS.settings;
     default:
       return null;
   }

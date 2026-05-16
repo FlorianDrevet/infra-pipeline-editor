@@ -51,7 +51,9 @@
       "CONFIGURATIONS": "Configurations",
       "ENVIRONMENTS": "Environments",
       "NAMING": "Naming Templates",
+      "TAGS": "Tags",
       "VARIABLES": "Pipeline Variables",
+      "GENERATION_CONFIG": "Configuration",
       "GENERATION": "Generation",
       "MEMBERS": "Members",
       "GIT": "Git Repositories",
@@ -948,6 +950,82 @@
   "RESOURCE_LIST": {
     "EXISTING_BADGE": "Existing"
   },
+  "PROJECT_MEMBERS": {
+    "TITLE": "Project Members",
+    "SUBTITLE": "Manage access and permissions for {{project}} ({{count}} member(s))",
+    "BREADCRUMB": "Members",
+    "ADD": "Add member",
+    "REMOVE": "Remove",
+    "SEARCH_PLACEHOLDER": "Search members...",
+    "EMPTY": "No members in this project.",
+    "NO_RESULTS": "No results found.",
+    "COL_USER": "User",
+    "COL_ROLE": "Role",
+    "ROLE_OWNER": "Owner",
+    "ROLE_CONTRIBUTOR": "Contributor",
+    "ROLE_READER": "Reader",
+    "ROLE_DESC_OWNER": "Full access: manage members, settings, configurations and generation.",
+    "ROLE_DESC_CONTRIBUTOR": "Can modify configurations, resources and trigger generation.",
+    "ROLE_DESC_READER": "Read-only access to the entire project.",
+    "REMOVE_CONFIRM_TITLE": "Remove member",
+    "REMOVE_CONFIRM_MESSAGE": "Are you sure you want to remove {{name}} from this project?",
+    "REMOVE_CONFIRM_YES": "Remove",
+    "REMOVE_CONFIRM_CANCEL": "Cancel",
+    "REMOVE_ERROR": "Failed to remove member.",
+    "ROLE_CHANGE_ERROR": "Failed to change role.",
+    "STATE": {
+      "LOADING": "Loading members..."
+    },
+    "ERROR": {
+      "NO_ID": "Missing project ID.",
+      "LOAD_FAILED": "Failed to load members."
+    },
+    "ACTIONS": {
+      "BACK": "Back"
+    }
+  },
+  "PROJECT_SETTINGS": {
+    "TITLE": "Project Settings",
+    "SUBTITLE": "Advanced configuration for {{project}}",
+    "BREADCRUMB": "Settings",
+    "UPCOMING": "Coming soon",
+    "AGENT_POOL": {
+      "TITLE": "Agent Pool",
+      "DESCRIPTION": "Define a custom agent pool for generated pipelines. The Microsoft-hosted pool is used by default.",
+      "USE_CUSTOM": "Use custom pool",
+      "POOL_NAME": "Pool name",
+      "POOL_HINT": "E.g. my-self-hosted-pool",
+      "SAVE": "Save",
+      "SAVE_SUCCESS": "Agent pool updated.",
+      "SAVE_ERROR": "Failed to update agent pool."
+    },
+    "NOTIFICATIONS": {
+      "TITLE": "Notifications",
+      "DESCRIPTION": "Configure webhooks and alerts on generation or resource changes."
+    },
+    "AUTO_GENERATION": {
+      "TITLE": "Auto-generation",
+      "DESCRIPTION": "Automatically trigger Bicep/Pipeline generation when a configuration is modified."
+    },
+    "RETENTION": {
+      "TITLE": "Retention Policy",
+      "DESCRIPTION": "Define how long generated artifacts (Bicep, pipelines, bootstrap) are retained."
+    },
+    "SERVICE_CONNECTIONS": {
+      "TITLE": "Service Connections",
+      "DESCRIPTION": "Manage service principals and tokens used for automated deployment."
+    },
+    "STATE": {
+      "LOADING": "Loading settings..."
+    },
+    "ERROR": {
+      "NO_ID": "Missing project ID.",
+      "LOAD_FAILED": "Failed to load settings."
+    },
+    "ACTIONS": {
+      "BACK": "Back"
+    }
+  },
   "PROJECT_DETAIL": {
     "HEADER": {
       "OVERLINE": "Project detail"
@@ -956,15 +1034,20 @@
       "CONFIGURATIONS": "Configurations",
       "ENVIRONMENTS": "Environments",
       "NAMING_TEMPLATES": "Naming",
-      "MEMBERS": "Members",
+      "TAGS": "Tags",
       "PIPELINE_VARIABLES": "Pipeline Variables",
-      "GIT": "Git",
-      "SETTINGS": "Settings"
+      "GIT": "Git"
     },
     "GENERATE_ALL": {
       "BUTTON": "Generate",
       "VALIDATING": "Validating configuration...",
       "PUSH_TO_GIT": "Push all to Git"
+    },
+    "GENERATION_CONFIG": {
+      "PAGE_TITLE": "Configure Generation",
+      "PAGE_SUBTITLE": "Choose the deployment layout and configure target repositories for artifact generation.",
+      "BREADCRUMB_CURRENT": "Configuration",
+      "NAVIGATE_GENERATE": "Generate"
     },
     "BOARD": {
       "LOADING": "Loading repository topology...",
@@ -974,6 +1057,9 @@
       "PROJECT_PLACEHOLDER": "Current project",
       "BREADCRUMB_CURRENT": "Generate",
       "OPEN_PROJECT": "Open project",
+      "CONFIGURE": "Configure",
+      "READY_TITLE": "Ready to generate",
+      "READY_DESC": "Run generation to produce the Bicep, Pipeline and Bootstrap artifacts for your project.",
       "LAYOUT_PRESET_UNKNOWN": "Unknown layout",
       "SUMMARY_LAYOUT": "Repository layout",
       "SUMMARY_REPOSITORIES": "Repositories",

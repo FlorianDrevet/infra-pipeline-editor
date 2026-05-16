@@ -1,0 +1,364 @@
+@use "scss/main" as *;
+
+.members-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+// ─── States ───
+.state-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  border-radius: var(--ifs-radius-lg);
+  background: var(--ifs-surface-2);
+
+  &--loading {
+    justify-content: center;
+  }
+
+  &--error {
+    border: 1px solid var(--ifs-danger);
+    color: var(--ifs-text-primary);
+  }
+}
+
+.pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ifs-accent-500);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.ghost-button {
+  color: var(--ifs-accent-500);
+  text-decoration: none;
+  font-weight: 500;
+  &:hover { text-decoration: underline; }
+}
+
+// ─── Header ───
+.members-header {
+  margin-bottom: 2rem;
+
+  &__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  &__title-block {
+    flex: 1;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--ifs-text-primary);
+    margin: 0;
+  }
+
+  &__icon {
+    font-size: 1.75rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    color: var(--ifs-accent-500);
+  }
+
+  &__subtitle {
+    margin: 0.25rem 0 0;
+    color: var(--ifs-text-secondary);
+    font-size: 0.875rem;
+  }
+
+  &__search {
+    max-width: 360px;
+  }
+}
+
+// ─── Error banner ───
+.members-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: var(--ifs-radius-md);
+  background: color-mix(in srgb, var(--ifs-danger) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ifs-danger) 30%, transparent);
+  color: var(--ifs-text-primary);
+  font-size: 0.8125rem;
+
+  mat-icon {
+    font-size: 1.125rem;
+    width: 1.125rem;
+    height: 1.125rem;
+    color: var(--ifs-danger);
+  }
+}
+
+// ─── Role Groups ───
+.members-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.role-group {
+  &__header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--ifs-border-subtle);
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    h2 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ifs-text-primary);
+    }
+  }
+
+  &__icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--ifs-text-secondary);
+  }
+
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.375rem;
+    border-radius: 10px;
+    background: var(--ifs-surface-3);
+    color: var(--ifs-text-secondary);
+    font-size: 0.6875rem;
+    font-weight: 600;
+  }
+
+  &__description {
+    margin: 0.25rem 0 0;
+    color: var(--ifs-text-tertiary);
+    font-size: 0.8125rem;
+  }
+}
+
+// ─── Members Table ───
+.members-table {
+  border-radius: var(--ifs-radius-md);
+  border: 1px solid var(--ifs-border-subtle);
+  overflow: hidden;
+
+  &__header {
+    display: grid;
+    grid-template-columns: 1fr 160px 48px;
+    gap: 1rem;
+    padding: 0.625rem 1rem;
+    background: var(--ifs-surface-2);
+    border-bottom: 1px solid var(--ifs-border-subtle);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ifs-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr 160px 48px;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--ifs-border-subtle);
+    position: relative;
+    transition: background 0.15s ease;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: color-mix(in srgb, var(--ifs-surface-3) 50%, transparent);
+    }
+
+    &--busy {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  }
+
+  &__row-spinner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--ifs-surface-1) 60%, transparent);
+    z-index: 1;
+    border-radius: var(--ifs-radius-sm);
+  }
+
+  &__col--actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+// ─── Member Identity ───
+.member-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  &__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--ifs-brand-500), var(--ifs-accent-500));
+    color: #fff;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ifs-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__email {
+    font-size: 0.75rem;
+    color: var(--ifs-text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// ─── Role Badge (read-only view) ───
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--ifs-surface-3);
+  color: var(--ifs-text-secondary);
+
+  &__icon {
+    font-size: 0.875rem;
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  &--owner {
+    background: color-mix(in srgb, var(--ifs-warning) 15%, transparent);
+    color: var(--ifs-warning);
+  }
+
+  &--contributor {
+    background: color-mix(in srgb, var(--ifs-accent-500) 15%, transparent);
+    color: var(--ifs-accent-500);
+  }
+
+  &--reader {
+    background: var(--ifs-surface-3);
+    color: var(--ifs-text-secondary);
+  }
+}
+
+// ─── Role Select ───
+.role-select {
+  width: 140px;
+}
+
+// ─── Remove button ───
+.remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--ifs-radius-sm);
+  background: transparent;
+  color: var(--ifs-text-tertiary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--ifs-danger) 12%, transparent);
+    color: var(--ifs-danger);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  mat-icon {
+    font-size: 1.125rem;
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+// ─── Empty State ───
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: var(--ifs-text-secondary);
+
+  &__icon {
+    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
+    color: var(--ifs-text-tertiary);
+  }
+
+  p {
+    margin: 0;
+  }
+}

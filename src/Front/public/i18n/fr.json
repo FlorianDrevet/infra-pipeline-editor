@@ -51,7 +51,9 @@
       "CONFIGURATIONS": "Configurations",
       "ENVIRONMENTS": "Environnements",
       "NAMING": "Modèles de nommage",
+      "TAGS": "Tags",
       "VARIABLES": "Variables pipeline",
+      "GENERATION_CONFIG": "Configuration",
       "GENERATION": "Génération",
       "MEMBERS": "Membres",
       "GIT": "Dépôts Git",
@@ -930,6 +932,82 @@
   "RESOURCE_LIST": {
     "EXISTING_BADGE": "Existant"
   },
+  "PROJECT_MEMBERS": {
+    "TITLE": "Membres du projet",
+    "SUBTITLE": "Gérez les accès et permissions des membres de {{project}} ({{count}} membre(s))",
+    "BREADCRUMB": "Membres",
+    "ADD": "Ajouter un membre",
+    "REMOVE": "Retirer",
+    "SEARCH_PLACEHOLDER": "Rechercher un membre...",
+    "EMPTY": "Aucun membre dans ce projet.",
+    "NO_RESULTS": "Aucun résultat pour cette recherche.",
+    "COL_USER": "Utilisateur",
+    "COL_ROLE": "Rôle",
+    "ROLE_OWNER": "Propriétaire",
+    "ROLE_CONTRIBUTOR": "Contributeur",
+    "ROLE_READER": "Lecteur",
+    "ROLE_DESC_OWNER": "Accès complet : gestion des membres, paramètres, configurations et génération.",
+    "ROLE_DESC_CONTRIBUTOR": "Peut modifier les configurations, ressources et lancer la génération.",
+    "ROLE_DESC_READER": "Accès en lecture seule à l'ensemble du projet.",
+    "REMOVE_CONFIRM_TITLE": "Retirer le membre",
+    "REMOVE_CONFIRM_MESSAGE": "Voulez-vous vraiment retirer {{name}} de ce projet ?",
+    "REMOVE_CONFIRM_YES": "Retirer",
+    "REMOVE_CONFIRM_CANCEL": "Annuler",
+    "REMOVE_ERROR": "Impossible de retirer le membre.",
+    "ROLE_CHANGE_ERROR": "Impossible de modifier le rôle.",
+    "STATE": {
+      "LOADING": "Chargement des membres..."
+    },
+    "ERROR": {
+      "NO_ID": "Identifiant de projet manquant.",
+      "LOAD_FAILED": "Impossible de charger les membres."
+    },
+    "ACTIONS": {
+      "BACK": "Retour"
+    }
+  },
+  "PROJECT_SETTINGS": {
+    "TITLE": "Paramètres du projet",
+    "SUBTITLE": "Configuration avancée de {{project}}",
+    "BREADCRUMB": "Paramètres",
+    "UPCOMING": "Bientôt disponible",
+    "AGENT_POOL": {
+      "TITLE": "Pool d'agents",
+      "DESCRIPTION": "Définissez un pool d'agents personnalisé pour les pipelines générés. Par défaut, le pool Microsoft-hosted est utilisé.",
+      "USE_CUSTOM": "Utiliser un pool personnalisé",
+      "POOL_NAME": "Nom du pool",
+      "POOL_HINT": "Ex : my-self-hosted-pool",
+      "SAVE": "Enregistrer",
+      "SAVE_SUCCESS": "Pool d'agents mis à jour.",
+      "SAVE_ERROR": "Impossible de mettre à jour le pool d'agents."
+    },
+    "NOTIFICATIONS": {
+      "TITLE": "Notifications",
+      "DESCRIPTION": "Configurez les webhooks et alertes lors de la génération ou de modifications de ressources."
+    },
+    "AUTO_GENERATION": {
+      "TITLE": "Génération automatique",
+      "DESCRIPTION": "Déclenchez automatiquement la génération Bicep/Pipeline lorsqu'une configuration est modifiée."
+    },
+    "RETENTION": {
+      "TITLE": "Politique de rétention",
+      "DESCRIPTION": "Définissez la durée de conservation des artefacts générés (Bicep, pipelines, bootstrap)."
+    },
+    "SERVICE_CONNECTIONS": {
+      "TITLE": "Connexions de service",
+      "DESCRIPTION": "Gérez les service principals et tokens utilisés pour le déploiement automatisé."
+    },
+    "STATE": {
+      "LOADING": "Chargement des paramètres..."
+    },
+    "ERROR": {
+      "NO_ID": "Identifiant de projet manquant.",
+      "LOAD_FAILED": "Impossible de charger les paramètres."
+    },
+    "ACTIONS": {
+      "BACK": "Retour"
+    }
+  },
   "PROJECT_DETAIL": {
     "HEADER": {
       "OVERLINE": "Detail du projet"
@@ -938,15 +1016,20 @@
       "CONFIGURATIONS": "Configurations",
       "ENVIRONMENTS": "Environnements",
       "NAMING_TEMPLATES": "Nommage",
-      "MEMBERS": "Membres",
+      "TAGS": "Tags",
       "PIPELINE_VARIABLES": "Variables Pipeline",
-      "GIT": "Git",
-      "SETTINGS": "Parametres"
+      "GIT": "Git"
     },
     "GENERATE_ALL": {
       "BUTTON": "Générer",
       "VALIDATING": "Vérification en cours...",
       "PUSH_TO_GIT": "Tout pousser vers Git"
+    },
+    "GENERATION_CONFIG": {
+      "PAGE_TITLE": "Configurer la génération",
+      "PAGE_SUBTITLE": "Choisissez le layout de déploiement et configurez les dépôts cibles pour la génération des artefacts.",
+      "BREADCRUMB_CURRENT": "Configuration",
+      "NAVIGATE_GENERATE": "Générer"
     },
     "BOARD": {
       "LOADING": "Chargement de la topologie des dépôts...",
@@ -956,6 +1039,9 @@
       "PROJECT_PLACEHOLDER": "Projet courant",
       "BREADCRUMB_CURRENT": "Générer",
       "OPEN_PROJECT": "Ouvrir le projet",
+      "CONFIGURE": "Configurer",
+      "READY_TITLE": "Prêt à générer",
+      "READY_DESC": "Lancez la génération pour produire les artefacts Bicep, Pipeline et Bootstrap de votre projet.",
       "LAYOUT_PRESET_UNKNOWN": "Layout inconnu",
       "SUMMARY_LAYOUT": "Layout dépôt",
       "SUMMARY_REPOSITORIES": "Dépôts",

@@ -55,7 +55,8 @@ describe('SidebarComponent', () => {
       { id: 'environments', icon: 'cloud_queue', labelKey: 'Environments', routerLink: '/projects/project-123', exact: false, section: 'define', queryParams: { tab: 'environments' } },
       { id: 'naming', icon: 'label', labelKey: 'Naming', routerLink: '/projects/project-123', exact: false, section: 'define', queryParams: { tab: 'naming' } },
       { id: 'members', icon: 'group', labelKey: 'Members', routerLink: '/projects/project-123', exact: false, section: 'manage', queryParams: { tab: 'members' } },
-      { id: 'generation', icon: 'play_circle', labelKey: 'Generation', routerLink: '/projects/project-123/generate', exact: false, section: 'generate' },
+      { id: 'generation-config', icon: 'settings', labelKey: 'Generation Config', routerLink: '/projects/project-123/generate/config', exact: true, section: 'generate' },
+      { id: 'generation', icon: 'play_circle', labelKey: 'Generation', routerLink: '/projects/project-123/generate', exact: true, section: 'generate' },
     ],
   });
 
@@ -66,6 +67,7 @@ describe('SidebarComponent', () => {
         provideRouter([
           { path: 'projects', component: DummyRouteComponent },
           { path: 'projects/:id', component: DummyRouteComponent },
+          { path: 'projects/:id/generate/config', component: DummyRouteComponent },
           { path: 'projects/:id/generate', component: DummyRouteComponent },
         ]),
         {
@@ -102,6 +104,7 @@ describe('SidebarComponent', () => {
     expect(findLinkByLabel('Environments').getAttribute('href')).toBe('/projects/project-123?tab=environments');
     expect(findLinkByLabel('Naming').getAttribute('href')).toBe('/projects/project-123?tab=naming');
     expect(findLinkByLabel('Members').getAttribute('href')).toBe('/projects/project-123?tab=members');
+    expect(findLinkByLabel('Generation Config').getAttribute('href')).toBe('/projects/project-123/generate/config');
     expect(findLinkByLabel('Generation').getAttribute('href')).toBe('/projects/project-123/generate');
   });
 

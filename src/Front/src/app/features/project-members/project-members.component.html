@@ -1,0 +1,141 @@
+<div class="members-page">
+  @if (isLoading()) {
+    <div class="state-card state-card--loading" aria-live="polite">
+      <div class="pulse-dot"></div>
+      <div>
+        <strong>{{ 'PROJECT_MEMBERS.STATE.LOADING' | translate }}</strong>
+      </div>
+    </div>
+  } @else if (loadError()) {
+    <div class="state-card state-card--error" role="alert" aria-live="assertive">
+      <strong>{{ loadError() | translate }}</strong>
+      <a class="ghost-button" routerLink="/">{{ 'PROJECT_MEMBERS.ACTIONS.BACK' | translate }}</a>
+    </div>
+  } @else if (project()) {
+    <!-- Page Header -->
+    <header class="members-header">
+      <div class="members-header__top">
+        <div class="members-header__title-block">
+          <h1 class="members-header__title">
+            <mat-icon class="members-header__icon">group</mat-icon>
+            {{ 'PROJECT_MEMBERS.TITLE' | translate }}
+          </h1>
+          <p class="members-header__subtitle">
+            {{ 'PROJECT_MEMBERS.SUBTITLE' | translate: { project: project()!.name, count: totalMembers() } }}
+          </p>
+        </div>
+        @if (isOwner()) {
+          <app-ds-button variant="primary" icon="person_add" (clicked)="openAddMemberDialog()">
+            {{ 'PROJECT_MEMBERS.ADD' | translate }}
+          </app-ds-button>
+        }
+      </div>
+
+      <!-- Search bar -->
+      <div class="members-header__search">
+        <app-ds-text-field
+          [label]="'PROJECT_MEMBERS.SEARCH_PLACEHOLDER' | translate"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          icon="search" />
+      </div>
+    </header>
+
+    @if (memberErrorKey()) {
+      <div class="members-error" role="alert">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ memberErrorKey() | translate }}</span>
+      </div>
+    }
+
+    <!-- Members table by role -->
+    @if (filteredMembersByRole().length > 0) {
+      <div class="members-content">
+        @for (group of filteredMembersByRole(); track group.role) {
+          <section class="role-group">
+            <div class="role-group__header">
+              <div class="role-group__title">
+                <mat-icon class="role-group__icon">{{ group.icon }}</mat-icon>
+                <h2>{{ 'PROJECT_MEMBERS.ROLE_' + group.role.toUpperCase() | translate }}</h2>
+                <span class="role-group__count">{{ group.members.length }}</span>
+              </div>
+              <p class="role-group__description">{{ group.descriptionKey | translate }}</p>
+            </div>
+
+            <div class="members-table">
+              <div class="members-table__header">
+                <span class="members-table__col members-table__col--user">{{ 'PROJECT_MEMBERS.COL_USER' | translate }}</span>
+                <span class="members-table__col members-table__col--role">{{ 'PROJECT_MEMBERS.COL_ROLE' | translate }}</span>
+                <span class="members-table__col members-table__col--actions"></span>
+              </div>
+
+              @for (member of group.members; track member.id) {
+                <div class="members-table__row" [class.members-table__row--busy]="memberActionId() === member.id">
+                  @if (memberActionId() === member.id) {
+                    <div class="members-table__row-spinner">
+                      <mat-spinner diameter="18"></mat-spinner>
+                    </div>
+                  }
+
+                  <div class="members-table__col members-table__col--user">
+                    <div class="member-identity">
+                      <div class="member-identity__avatar">
+                        {{ member.firstName.charAt(0) }}{{ member.lastName.charAt(0) }}
+                      </div>
+                      <div class="member-identity__info">
+                        <span class="member-identity__name">{{ member.firstName }} {{ member.lastName }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="members-table__col members-table__col--role">
+                    @if (isOwner()) {
+                      <app-ds-select
+                        class="role-select"
+                        [options]="roleDsOptions"
+                        [ngModel]="member.role"
+                        (ngModelChange)="onRoleChange(member, $event)"
+                        [disabled]="memberActionId() === member.id" />
+                    } @else {
+                      <span class="role-badge role-badge--{{ member.role.toLowerCase() }}">
+                        <mat-icon class="role-badge__icon">{{ group.icon }}</mat-icon>
+                        {{ 'PROJECT_MEMBERS.ROLE_' + member.role.toUpperCase() | translate }}
+                      </span>
+                    }
+                  </div>
+
+                  <div class="members-table__col members-table__col--actions">
+                    @if (isOwner()) {
+                      <button
+                        class="remove-btn"
+                        [matTooltip]="'PROJECT_MEMBERS.REMOVE' | translate"
+                        [disabled]="memberActionId() === member.id"
+                        (click)="openRemoveMemberDialog(member)">
+                        <mat-icon>person_remove</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    } @else if (searchQuery()) {
+      <div class="empty-state">
+        <mat-icon class="empty-state__icon">search_off</mat-icon>
+        <p>{{ 'PROJECT_MEMBERS.NO_RESULTS' | translate }}</p>
+      </div>
+    } @else {
+      <div class="empty-state">
+        <mat-icon class="empty-state__icon">group</mat-icon>
+        <p>{{ 'PROJECT_MEMBERS.EMPTY' | translate }}</p>
+        @if (isOwner()) {
+          <app-ds-button variant="primary" icon="person_add" (clicked)="openAddMemberDialog()">
+            {{ 'PROJECT_MEMBERS.ADD' | translate }}
+          </app-ds-button>
+        }
+      </div>
+    }
+  }
+</div>

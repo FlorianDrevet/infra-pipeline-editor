@@ -24,6 +24,9 @@
         <app-ds-button variant="secondary" icon="arrow_back" (clicked)="openProjectDetail()">
           {{ 'PROJECT_DETAIL.BOARD.OPEN_PROJECT' | translate }}
         </app-ds-button>
+        <app-ds-button variant="secondary" icon="settings" (clicked)="navigateToConfig()">
+          {{ 'PROJECT_DETAIL.BOARD.CONFIGURE' | translate }}
+        </app-ds-button>
       </div>
     </app-ds-page-header>
 
@@ -74,169 +77,48 @@
   } @else if (!project()?.id) {
     <!-- no project loaded -->
   } @else {
-    <mat-tab-group class="board__tabs" animationDuration="200ms">
-      <!-- Configuration Tab -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">settings</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.BOARD.TAB_CONFIGURATION' | translate }}</span>
-        </ng-template>
+    @if (hasProjectLevelRepositories() && !isSplitInfraCodeLayout()) {
+      <div class="board__generation-toolbar">
+        <app-ds-button
+          variant="secondary"
+          icon="cloud_upload"
+          [disabled]="!canPushAllProjectArtifacts()"
+          (clicked)="openProjectPushAllToGitDialog()">
+          {{ 'PROJECT_DETAIL.GENERATE_ALL.PUSH_TO_GIT' | translate }}
+        </app-ds-button>
+      </div>
+    }
 
-        <div class="board__tab-content">
-          <app-ds-card class="board__layout-editor-card" padding="lg">
-            <app-ds-section-header
-              [title]="'PROJECT_DETAIL.LAYOUT.TAB_TITLE' | translate"
-              icon="account_tree"
-              [divider]="true">
-            </app-ds-section-header>
-
-            <div class="board__layout-editor-body">
-              <app-layout-repositories [projectId]="project()!.id" />
-            </div>
-          </app-ds-card>
-
-          <app-ds-card class="board__repositories-card" padding="lg">
-            <app-ds-section-header
-              [title]="'PROJECT_DETAIL.BOARD.REPOSITORIES_TITLE' | translate"
-              [subtitle]="'PROJECT_DETAIL.BOARD.REPOSITORIES_SUBTITLE' | translate: { count: repositoryCount() }"
-              icon="inventory_2"
-              [divider]="true">
-            </app-ds-section-header>
-
-            <div class="repo-grid" [class.repo-grid--single]="topology() === 'single'">
-              @for (group of groupedByAlias(); track group.alias) {
-                <app-ds-card class="repo-card" variant="outlined" padding="lg">
-                  <div ds-card-header class="repo-card__header">
-                    <div class="repo-card__heading">
-                      <div class="repo-card__identity">
-                        <div class="repo-card__avatar">
-                          <mat-icon aria-hidden="true">folder_open</mat-icon>
-                        </div>
-                        <div class="repo-card__identity-text">
-                          <h3 class="repo-card__title">
-                            {{ group.repo?.alias ?? ('PROJECT_DETAIL.BOARD.DEFAULT_REPO_LABEL' | translate) }}
-                          </h3>
-                          <p class="repo-card__subtitle">
-                            @if (group.repo) {
-                              <a
-                                class="repo-card__identity-link"
-                                [href]="group.repo.repositoryUrl"
-                                target="_blank"
-                                rel="noopener">
-                                {{ group.repo.owner }}/{{ group.repo.repositoryName }}
-                              </a>
-                            } @else {
-                              {{ 'PROJECT_DETAIL.BOARD.LEGACY_REPOSITORY_DESC' | translate }}
-                            }
-                          </p>
-                        </div>
-                      </div>
-
-                      <div class="repo-card__badges">
-                        @if (group.repo) {
-                          <app-ds-chip size="sm" variant="info" icon="source">
-                            {{ group.repo.providerType }}
-                          </app-ds-chip>
-
-                          @for (kind of group.repo.contentKinds; track kind) {
-                            <app-ds-chip size="sm" variant="accent" icon="deployed_code">
-                              {{ ('PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind) | translate }}
-                            </app-ds-chip>
-                          }
-                        } @else {
-                          <app-ds-chip size="sm" variant="warning" icon="history">
-                            {{ 'PROJECT_DETAIL.BOARD.LEGACY_BADGE' | translate }}
-                          </app-ds-chip>
-                        }
-                      </div>
-                    </div>
-
-                    <div class="repo-card__metrics">
-                      @for (metric of group.metrics; track metric.labelKey) {
-                        <div class="repo-card__metric">
-                          <span class="repo-card__metric-label">{{ metric.labelKey | translate }}</span>
-                          <strong>{{ metric.value }}</strong>
-                        </div>
-                      }
-                    </div>
-                  </div>
-
-                  @if (group.repo) {
-                    <div class="repo-card__details">
-                      <div class="repo-card__detail-row">
-                        <span class="repo-card__detail-label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
-                        <strong class="repo-card__detail-value">{{ group.repo.defaultBranch }}</strong>
-                      </div>
-                    </div>
-                  }
-                </app-ds-card>
-              }
-            </div>
-          </app-ds-card>
-        </div>
-      </mat-tab>
-
-      <!-- Génération Tab -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">rocket_launch</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.BOARD.TAB_GENERATION' | translate }}</span>
-        </ng-template>
-
-        <div class="board__tab-content">
-          <div class="board__generation-toolbar">
-            @if (canGenerateProject()) {
-              <app-ds-button
-                variant="primary"
-                icon="rocket_launch"
-                [loading]="projectGenerateAllLoading()"
-                [disabled]="projectGenerateAllLoading()"
-                (clicked)="onGenerateAll()">
-                {{ (validatingDiagnostics() ? 'PROJECT_DETAIL.GENERATE_ALL.VALIDATING' : 'PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS') | translate }}
-              </app-ds-button>
-            }
-
-            @if (hasProjectLevelRepositories() && !isSplitInfraCodeLayout()) {
-              <app-ds-button
-                variant="secondary"
-                icon="cloud_upload"
-                [disabled]="!canPushAllProjectArtifacts()"
-                (clicked)="openProjectPushAllToGitDialog()">
-                {{ 'PROJECT_DETAIL.GENERATE_ALL.PUSH_TO_GIT' | translate }}
-              </app-ds-button>
-            }
+    @if (topology() === 'empty') {
+      <app-ds-card>
+        <app-ds-empty-state
+          [icon]="hasProjectLevelRepositories() ? 'layers_clear' : 'folder_off'"
+          [title]="(hasProjectLevelRepositories()
+            ? 'PROJECT_DETAIL.BOARD.EMPTY_CONFIGS_TITLE'
+            : 'PROJECT_DETAIL.BOARD.EMPTY_TITLE') | translate"
+          [description]="(hasProjectLevelRepositories()
+            ? 'PROJECT_DETAIL.BOARD.EMPTY_CONFIGS_DESC'
+            : 'PROJECT_DETAIL.BOARD.EMPTY_DESC') | translate">
+          <div actions>
+            <app-ds-button variant="secondary" icon="arrow_back" (clicked)="openProjectDetail()">
+              {{ 'PROJECT_DETAIL.BOARD.OPEN_PROJECT' | translate }}
+            </app-ds-button>
           </div>
+        </app-ds-empty-state>
+      </app-ds-card>
+    }
 
-          @if (topology() === 'empty') {
-            <app-ds-card>
-              <app-ds-empty-state
-                [icon]="hasProjectLevelRepositories() ? 'layers_clear' : 'folder_off'"
-                [title]="(hasProjectLevelRepositories()
-                  ? 'PROJECT_DETAIL.BOARD.EMPTY_CONFIGS_TITLE'
-                  : 'PROJECT_DETAIL.BOARD.EMPTY_TITLE') | translate"
-                [description]="(hasProjectLevelRepositories()
-                  ? 'PROJECT_DETAIL.BOARD.EMPTY_CONFIGS_DESC'
-                  : 'PROJECT_DETAIL.BOARD.EMPTY_DESC') | translate">
-                <div actions>
-                  <app-ds-button variant="secondary" icon="arrow_back" (clicked)="openProjectDetail()">
-                    {{ 'PROJECT_DETAIL.BOARD.OPEN_PROJECT' | translate }}
-                  </app-ds-button>
-                </div>
-              </app-ds-empty-state>
-            </app-ds-card>
-          }
-
-          @if (topology() === 'mixed') {
-            <app-ds-card class="board-banner">
-              <div class="board-banner__content">
-                <mat-icon class="board-banner__icon" aria-hidden="true">warning_amber</mat-icon>
-                <div class="board-banner__text">
-                  <h2>{{ 'PROJECT_DETAIL.BOARD.MIXED_WARNING_TITLE' | translate }}</h2>
-                  <p>{{ 'PROJECT_DETAIL.BOARD.MIXED_WARNING_DESC' | translate }}</p>
-                </div>
-              </div>
-            </app-ds-card>
-          }
+    @if (topology() === 'mixed') {
+      <app-ds-card class="board-banner">
+        <div class="board-banner__content">
+          <mat-icon class="board-banner__icon" aria-hidden="true">warning_amber</mat-icon>
+          <div class="board-banner__text">
+            <h2>{{ 'PROJECT_DETAIL.BOARD.MIXED_WARNING_TITLE' | translate }}</h2>
+            <p>{{ 'PROJECT_DETAIL.BOARD.MIXED_WARNING_DESC' | translate }}</p>
+          </div>
+        </div>
+      </app-ds-card>
+    }
 
     @if (projectGenerationPanelOpen()) {
       <section
@@ -423,9 +305,19 @@
           }
         }
       </section>
+    } @else if (topology() !== 'empty') {
+      <app-ds-card>
+        <app-ds-empty-state
+          icon="auto_awesome"
+          [title]="'PROJECT_DETAIL.BOARD.READY_TITLE' | translate"
+          [description]="'PROJECT_DETAIL.BOARD.READY_DESC' | translate">
+          <div actions>
+            <app-ds-button variant="primary" icon="rocket_launch" [loading]="projectGenerateAllLoading()" (clicked)="onGenerateAll()">
+              {{ 'PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS' | translate }}
+            </app-ds-button>
+          </div>
+        </app-ds-empty-state>
+      </app-ds-card>
     }
-        </div>
-      </mat-tab>
-    </mat-tab-group>
   }
 </section>
