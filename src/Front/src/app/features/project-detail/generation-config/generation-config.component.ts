@@ -112,6 +112,11 @@ export class GenerationConfigComponent implements OnInit {
     });
   }
 
+  protected onProjectChanged(project: ProjectResponse): void {
+    this.project.set(project);
+    this.sidebarContextService.setProjectContext(project.id, project.name);
+  }
+
   private runTask(taskPromise: Promise<void>): void {
     taskPromise.catch(() => undefined);
   }

@@ -104,6 +104,7 @@ export class LayoutRepositoriesComponent implements OnInit {
 
   readonly projectId = input.required<string>();
   readonly presetChanged = output<ProjectLayoutPreset>();
+  readonly projectChanged = output<ProjectResponse>();
 
   protected readonly project = signal<ProjectResponse | null>(null);
   protected readonly isLoading = signal(false);
@@ -152,16 +153,24 @@ export class LayoutRepositoriesComponent implements OnInit {
     void this.load();
   }
 
-  private async load(): Promise<void> {
+  private async load(emitProjectChanged = false): Promise<void> {
     this.isLoading.set(true);
     try {
       const project = await this.projectService.getProject(this.projectId());
       this.project.set(project);
+      if (emitProjectChanged) {
+        this.projectChanged.emit(project);
+      }
     } catch {
       this.showError('PROJECT_DETAIL.LAYOUT.LOAD_ERROR');
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  private async refreshProjectState(): Promise<void> {
+    this.projectService.invalidateProjectCache(this.projectId());
+    await this.load(true);
   }
 
   protected async onPresetChange(preset: ProjectLayoutPreset): Promise<void> {
@@ -187,8 +196,7 @@ export class LayoutRepositoriesComponent implements OnInit {
         };
       });
 
-      this.projectService.invalidateProjectCache(this.projectId());
-      await this.load();
+      await this.refreshProjectState();
     } catch (error) {
       this.presetChanged.emit(previousPreset);
       this.showError(this.mapError(error, 'PROJECT_DETAIL.LAYOUT.PRESET_ERROR'));
@@ -208,7 +216,9 @@ export class LayoutRepositoriesComponent implements OnInit {
     };
     const ref = this.dialog.open(RepositoryDialogComponent, { data, width: '560px' });
     ref.afterClosed().subscribe(async (result) => {
-      if (result) await this.load();
+      if (result) {
+        await this.refreshProjectState();
+      }
     });
   }
 
@@ -221,7 +231,9 @@ export class LayoutRepositoriesComponent implements OnInit {
     };
     const ref = this.dialog.open(RepositoryDialogComponent, { data, width: '560px' });
     ref.afterClosed().subscribe(async (result) => {
-      if (result) await this.load();
+      if (result) {
+        await this.refreshProjectState();
+      }
     });
   }
 
@@ -239,7 +251,7 @@ export class LayoutRepositoriesComponent implements OnInit {
       this.repoActionId.set(repo.id);
       try {
         await this.projectService.removeRepository(this.projectId(), repo.id);
-        await this.load();
+        await this.refreshProjectState();
       } catch (error) {
         if (this.isConflict(error)) {
           this.showError('PROJECT_DETAIL.LAYOUT.REPO_DELETE_IN_USE');

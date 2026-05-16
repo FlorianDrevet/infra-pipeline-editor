@@ -63,6 +63,7 @@
     <app-layout-repositories
       [projectId]="project()!.id"
       (presetChanged)="onLayoutPresetChange($event)"
+      (projectChanged)="onProjectChanged($event)"
     />
   }
 </section>
