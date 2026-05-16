@@ -79,8 +79,10 @@ These reusable entity types are owned by multiple aggregates:
 ## Custom Domains & Secure Parameter Mappings [2026-04-23]
 
 - `AzureResource` now owns `_customDomains` and `_secureParameterMappings` backing collections on the base class.
-- `CustomDomain` stores `EnvironmentName`, normalized `DomainName`, and `BindingType` (`SniEnabled` or `Disabled`). Duplicate `(EnvironmentName, DomainName)` pairs are rejected.
+- `CustomDomain` stores `EnvironmentName`, normalized `DomainName`, `BindingType` (`SniEnabled` or `Disabled`), and `DnsValidationStatus` (`Pending` or `Validated`). Duplicate `(EnvironmentName, DomainName)` pairs are rejected.
+- `DnsValidationStatus` is an `EnumValueObject<DnsValidationStatus>` (sealed) with values `Pending` and `Validated`. New domains start as `Pending`. Methods: `ValidateDns()` → sets `Validated`, `ResetDnsValidation()` → resets to `Pending`.
 - Custom domains are supported for compute resources only (ContainerApp, WebApp, FunctionApp) and are blocked on `IsExisting` resources.
+- Bicep generators only emit custom domain bindings for domains where `DnsValidationStatus == Validated`; `Pending` domains are excluded from generated artifacts.
 - `SecureParameterMapping` stores `SecureParameterName`, optional `VariableGroupId`, and `PipelineVariableName` so a secure Bicep param can be injected from an Azure DevOps variable group.
 - `AzureResource.SetSecureParameterMapping(...)` acts as upsert/clear: `null` group clears an existing mapping, inconsistent half-filled mappings are rejected.
 

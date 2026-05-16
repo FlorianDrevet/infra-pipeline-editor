@@ -43,7 +43,7 @@ describe('ResourceEditCustomDomainsSectionComponent', () => {
     fixture.detectChanges();
 
     getButton('.custom-domains-section__add-btn').click();
-    getButton('.cd-domain-row button').click();
+    getButton('.cd-domain-row__actions button[color="warn"]').click();
 
     expect(openAddDialog).toHaveBeenCalledOnceWith('dev');
     expect(removeDomain).toHaveBeenCalledOnceWith(domain);
@@ -65,6 +65,8 @@ function createSection(overrides: Partial<ResourceEditCustomDomainsSectionStub> 
     domainsForEnvironment: () => [],
     openAddDialog: () => undefined,
     removeDomain: () => undefined,
+    validateDns: () => undefined,
+    showDnsInstructions: () => undefined,
     ...overrides,
   };
 }
@@ -76,6 +78,7 @@ function createDomain(id: string, environmentName: string, domainName: string): 
     environmentName,
     domainName,
     bindingType: 'SniEnabled',
+    dnsValidationStatus: 'Pending',
   };
 }
 
@@ -85,4 +88,6 @@ interface ResourceEditCustomDomainsSectionStub {
   domainsForEnvironment(environmentName: string): CustomDomainResponse[];
   openAddDialog(environmentName: string): void;
   removeDomain(domain: CustomDomainResponse): void;
+  validateDns(domain: CustomDomainResponse): void;
+  showDnsInstructions(domain: CustomDomainResponse): void;
 }
