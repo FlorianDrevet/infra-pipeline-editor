@@ -50,13 +50,11 @@
 
           <div class="mr-card__content">
             @if (state() === 'pushing') {
-              <div class="mr-card__overlay">
-                <mat-spinner diameter="28"></mat-spinner>
-                <span>{{ pushingKey() | translate }}</span>
+              <div class="mr-card__state mr-card__state--loading">
+                <mat-spinner diameter="32"></mat-spinner>
+                <p>{{ pushingKey() | translate }}</p>
               </div>
-            }
-
-            @if (infraResult()?.success === true) {
+            } @else if (infraResult()?.success === true) {
               <div class="mr-card__result mr-card__result--ok">
                 <p class="mr-card__result-title">
                   <mat-icon>check_circle</mat-icon>
@@ -165,13 +163,11 @@
 
           <div class="mr-card__content">
             @if (state() === 'pushing') {
-              <div class="mr-card__overlay">
-                <mat-spinner diameter="28"></mat-spinner>
-                <span>{{ pushingKey() | translate }}</span>
+              <div class="mr-card__state mr-card__state--loading">
+                <mat-spinner diameter="32"></mat-spinner>
+                <p>{{ pushingKey() | translate }}</p>
               </div>
-            }
-
-            @if (codeResult()?.success === true) {
+            } @else if (codeResult()?.success === true) {
               <div class="mr-card__result mr-card__result--ok">
                 <p class="mr-card__result-title">
                   <mat-icon>check_circle</mat-icon>

@@ -197,20 +197,30 @@
   padding: 0 var(--ifs-space-20) var(--ifs-space-20);
 }
 
-.mr-card__overlay {
-  position: absolute;
-  inset: 0;
+.mr-card__state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--ifs-space-8);
-  z-index: 2;
-  border-radius: var(--ifs-radius-lg);
+  gap: var(--ifs-space-12);
+  min-height: 9.5rem;
+  padding: var(--ifs-space-20) var(--ifs-space-16);
   border: 1px solid var(--ifs-border-subtle);
+  border-radius: $ifs-radius-lg;
+  background: var(--ifs-surface-1);
+  text-align: center;
+
+  p {
+    margin: 0;
+    color: var(--ifs-text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+}
+
+.mr-card__state--loading {
   color: var(--ifs-brand-500);
-  font-size: 0.85rem;
-  font-weight: 600;
 }
 
 .mr-form {
