@@ -210,13 +210,6 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-
-  &::-webkit-scrollbar { width: 8px; height: 8px; }
-  &::-webkit-scrollbar-thumb {
-    background: var(--ifs-border-strong);
-    border-radius: var(--ifs-radius-pill);
-  }
-  &::-webkit-scrollbar-track { background: transparent; }
 }
 
 .ds-select__option {
