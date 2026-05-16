@@ -51,6 +51,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - The workflow is serialized with a dedicated concurrency group so concurrent pushes on different branches do not race while updating the Azure DevOps mirror.
 - Required GitHub configuration: repository variable `AZURE_DEVOPS_MIRROR_URL` for the target clone URL and repository secret `AZURE_DEVOPS_MIRROR_PAT` with Azure DevOps `Code (Read & Write)` scope.
 - The workflow syncs the full branch/tag set, force-updates rewritten refs, and prunes refs deleted from GitHub so the Azure DevOps repo stays aligned instead of only forwarding the triggering branch.
+- Source branches are enumerated from `git ls-remote --heads origin` and each native Git call is wrapped with an explicit exit-code check so a branch-push failure aborts the job before any prune can delete Azure DevOps refs.
 
 ## MCP Runtime Hardening [2026-05-13]
 
