@@ -7,9 +7,7 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
+
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -75,9 +73,6 @@ const LAYOUT_PRESETS: ReadonlyArray<PresetOption> = [
   standalone: true,
   imports: [
     TranslateModule,
-    MatButtonModule,
-    MatCardModule,
-    MatChipsModule,
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,

@@ -286,3 +286,29 @@ $custom-theme: mat.define-theme((
   background: rgba(70, 181, 255, 0.32);
   color: var(--ifs-text-on-brand);
 }
+
+// --- Global scrollbar (V2: slim dark-themed scrollbar everywhere) ---
+*,
+*::before,
+*::after {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ifs-border-subtle) transparent;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb {
+  background: var(--ifs-border-subtle);
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+  transition: background 0.2s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ifs-border-strong);
+  background-clip: content-box;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-corner { background: transparent; }
