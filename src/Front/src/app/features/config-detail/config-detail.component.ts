@@ -50,9 +50,11 @@ import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { ServiceBusNamespaceService } from '../../shared/services/service-bus-namespace.service';
 import { ContainerRegistryService } from '../../shared/services/container-registry.service';
 import { ProjectService } from '../../shared/services/project.service';
+import { CustomDomainDiagnosticsService } from '../../shared/services/custom-domain-diagnostics.service';
 import { CascadeDeleteDialogComponent, CascadeDeleteDialogData } from '../../shared/components/cascade-delete-dialog/cascade-delete-dialog.component';
 import { DependentResourceResponse } from '../../shared/interfaces/dependent-resource.interface';
 import { ResourceDiagnosticResponse } from '../../shared/interfaces/bicep-generator.interface';
+import { PendingCustomDomainIssue } from '../../shared/interfaces/pending-custom-domain-issue.interface';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { PageContextService } from '../../shared/services/page-context.service';
@@ -155,6 +157,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
   private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
   private readonly containerRegistryService = inject(ContainerRegistryService);
   private readonly projectService = inject(ProjectService);
+  private readonly customDomainDiagnosticsService = inject(CustomDomainDiagnosticsService);
   private readonly authService = inject(AuthenticationService);
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
@@ -1334,8 +1337,13 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     const currentDiagnostics = this.diagnostics();
     const allResources = await this.getAllResourceGroupResources();
     const missingEnvResources = this.collectMissingEnvResources(allResources);
+    const pendingCustomDomains = await this.customDomainDiagnosticsService.collectPendingIssues(
+      Object.values(allResources).flatMap((resources) => resources ?? []),
+    );
 
-    if (currentDiagnostics.length === 0 && missingEnvResources.length === 0) {
+    if (currentDiagnostics.length === 0
+      && missingEnvResources.length === 0
+      && pendingCustomDomains.length === 0) {
       return true;
     }
 
@@ -1344,6 +1352,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
       currentConfig.name,
       currentDiagnostics,
       missingEnvResources,
+      pendingCustomDomains,
     );
     const dialogRef = this.dialog.open(GenerationDiagnosticsDialogComponent, {
       data: dialogData,
@@ -1413,6 +1422,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     configName: string,
     diagnostics: ResourceDiagnosticResponse[],
     missingEnvResources: MissingEnvResource[],
+    pendingCustomDomains: PendingCustomDomainIssue[],
   ): GenerationDiagnosticsDialogData {
     return {
       configDiagnostics: diagnostics.length > 0
@@ -1427,6 +1437,13 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
           configId,
           configName,
           resources: missingEnvResources,
+        }]
+        : undefined,
+      pendingCustomDomainConfigs: pendingCustomDomains.length > 0
+        ? [{
+          configId,
+          configName,
+          domains: pendingCustomDomains,
         }]
         : undefined,
     };

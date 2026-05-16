@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ResourceDiagnosticResponse } from '../../interfaces/bicep-generator.interface';
+import { PendingCustomDomainIssue } from '../../interfaces/pending-custom-domain-issue.interface';
 import { RESOURCE_TYPE_ABBREVIATIONS } from '../../resource-metadata/resource-type.metadata';
 import { DsButtonComponent } from '../ds';
 
@@ -50,9 +51,16 @@ export interface ConfigMissingEnvGroup {
   resources: MissingEnvResource[];
 }
 
+export interface ConfigPendingCustomDomainGroup {
+  configId: string;
+  configName: string;
+  domains: PendingCustomDomainIssue[];
+}
+
 export interface GenerationDiagnosticsDialogData {
   configDiagnostics: ConfigDiagnosticGroup[];
   missingEnvConfigs?: ConfigMissingEnvGroup[];
+  pendingCustomDomainConfigs?: ConfigPendingCustomDomainGroup[];
 }
 
 @Component({
@@ -83,15 +91,21 @@ export class GenerationDiagnosticsDialogComponent {
     (sum, g) => sum + g.resources.length, 0,
   );
 
-  protected readonly totalIssues = this.totalDiagnostics + this.totalMissingEnvIssues;
+  protected readonly totalPendingCustomDomainIssues = (this.data.pendingCustomDomainConfigs ?? []).reduce(
+    (sum, g) => sum + g.domains.length, 0,
+  );
+
+  protected readonly totalIssues = this.totalDiagnostics + this.totalMissingEnvIssues + this.totalPendingCustomDomainIssues;
 
   protected readonly hasDiagnostics = this.totalDiagnostics > 0;
   protected readonly hasMissingEnvs = this.totalMissingEnvIssues > 0;
+  protected readonly hasPendingCustomDomains = this.totalPendingCustomDomainIssues > 0;
 
   protected readonly isMultiConfig = (() => {
     const configIds = new Set<string>();
     for (const g of this.data.configDiagnostics) configIds.add(g.configId);
     for (const g of this.data.missingEnvConfigs ?? []) configIds.add(g.configId);
+    for (const g of this.data.pendingCustomDomainConfigs ?? []) configIds.add(g.configId);
     return configIds.size > 1;
   })();
 
@@ -132,6 +146,12 @@ export class GenerationDiagnosticsDialogComponent {
     this.dialogRef.close(false);
     const friendlyType = ARM_TYPE_TO_FRIENDLY[resource.resourceType] ?? resource.resourceType;
     this.router.navigate(['/config', configId, 'resource', friendlyType, resource.resourceId]);
+  }
+
+  protected navigateToPendingCustomDomainResource(configId: string, issue: PendingCustomDomainIssue): void {
+    this.dialogRef.close(false);
+    const friendlyType = ARM_TYPE_TO_FRIENDLY[issue.resourceType] ?? issue.resourceType;
+    this.router.navigate(['/config', configId, 'resource', friendlyType, issue.resourceId]);
   }
 
   protected onContinue(): void {

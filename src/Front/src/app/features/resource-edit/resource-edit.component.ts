@@ -238,6 +238,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly project = signal<ProjectResponse | null>(null);
   protected readonly customDomainsSection = createResourceEditCustomDomainsSectionController({
     getResourceId: () => this.resourceId,
+    getResourceType: () => this.resourceType,
     getEnvironments: () => this.environments(),
   });
   protected readonly isLoading = signal(false);

@@ -2052,7 +2052,17 @@
       "DNS_DIALOG_RECORD_NAME": "Name",
       "DNS_DIALOG_RECORD_VALUE": "Value",
       "DNS_DIALOG_COPIED": "Copied!",
-      "DNS_DIALOG_CLOSE": "Close"
+      "DNS_DIALOG_CLOSE": "Close",
+      "DNS_DIALOG_STEPS": {
+        "CNAME_TITLE": "Create a CNAME record",
+        "TXT_TITLE": "Create a TXT verification record",
+        "VALIDATE_TITLE": "Validate DNS",
+        "CONTAINER_APP_CNAME_DESC": "Point '{{domainName}}' to the Container App Environment's default domain. The exact target FQDN will be available after the Container App Environment is deployed.",
+        "WEB_LIKE_CNAME_DESC": "Point '{{domainName}}' to '{{recordValue}}'.",
+        "CONTAINER_APP_TXT_DESC": "Create a TXT ownership verification record at '{{recordName}}'.",
+        "WEB_LIKE_TXT_DESC": "Create a TXT record at '{{recordName}}' with the custom domain verification ID from the Azure portal.",
+        "VALIDATE_DESC": "Once DNS records have propagated, click 'Validate DNS' to confirm the configuration."
+      }
     },
     "APP_SETTINGS": {
       "DESCRIPTION": "Configure environment variables for this compute resource. Reference outputs from other resources or set static values.",
@@ -2468,7 +2478,10 @@
     "CANCEL": "Cancel",
     "RBAC_SECTION_TITLE": "Permission Issues",
     "MISSING_ENV_TITLE": "Missing Environment Settings",
-    "MISSING_ENV_SUBTITLE": "The following resources have not been configured for all environments defined in the project."
+    "MISSING_ENV_SUBTITLE": "The following resources have not been configured for all environments defined in the project.",
+    "PENDING_CUSTOM_DOMAINS_TITLE": "Custom domains with unvalidated DNS",
+    "PENDING_CUSTOM_DOMAINS_SUBTITLE": "The following domains are not marked as validated. They will be excluded from the generated Bicep until you validate them from the Configuration tab.",
+    "PENDING_CUSTOM_DOMAINS_ITEM": "Domain '{{domain}}' on environment {{environment}}."
   },
   "ABBREVIATIONS": {
     "TITLE": "Resource abbreviations",

@@ -2044,7 +2044,17 @@
       "DNS_DIALOG_RECORD_NAME": "Nom",
       "DNS_DIALOG_RECORD_VALUE": "Valeur",
       "DNS_DIALOG_COPIED": "Copié !",
-      "DNS_DIALOG_CLOSE": "Fermer"
+      "DNS_DIALOG_CLOSE": "Fermer",
+      "DNS_DIALOG_STEPS": {
+        "CNAME_TITLE": "Créer un enregistrement CNAME",
+        "TXT_TITLE": "Créer un enregistrement TXT de validation",
+        "VALIDATE_TITLE": "Valider le DNS",
+        "CONTAINER_APP_CNAME_DESC": "Pointez '{{domainName}}' vers le domaine par défaut de l'environnement Container App. La cible FQDN exacte sera disponible après le déploiement de l'environnement Container App.",
+        "WEB_LIKE_CNAME_DESC": "Pointez '{{domainName}}' vers '{{recordValue}}'.",
+        "CONTAINER_APP_TXT_DESC": "Créez un enregistrement TXT de vérification de propriété sur '{{recordName}}'.",
+        "WEB_LIKE_TXT_DESC": "Créez un enregistrement TXT sur '{{recordName}}' avec l'identifiant de vérification de domaine personnalisé fourni par le portail Azure.",
+        "VALIDATE_DESC": "Une fois les enregistrements DNS propagés, cliquez sur « Valider le DNS » pour confirmer la configuration."
+      }
     },
     "APP_SETTINGS": {
       "DESCRIPTION": "Configurez les variables d'environnement pour cette ressource de calcul. Référencez les sorties d'autres ressources ou définissez des valeurs statiques.",
@@ -2460,7 +2470,10 @@
     "CANCEL": "Annuler",
     "RBAC_SECTION_TITLE": "Problèmes de droits",
     "MISSING_ENV_TITLE": "Paramètres d'environnement manquants",
-    "MISSING_ENV_SUBTITLE": "Les ressources suivantes n'ont pas été configurées pour tous les environnements définis dans le projet."
+    "MISSING_ENV_SUBTITLE": "Les ressources suivantes n'ont pas été configurées pour tous les environnements définis dans le projet.",
+    "PENDING_CUSTOM_DOMAINS_TITLE": "Domaines personnalisés DNS non validés",
+    "PENDING_CUSTOM_DOMAINS_SUBTITLE": "Les domaines suivants ne sont pas marqués comme validés. Ils ne seront pas inclus dans le Bicep généré tant que vous ne les aurez pas validés dans l'onglet Configuration.",
+    "PENDING_CUSTOM_DOMAINS_ITEM": "Domaine « {{domain}} » sur l'environnement {{environment}}."
   },
   "ABBREVIATIONS": {
     "TITLE": "Abréviations des ressources",

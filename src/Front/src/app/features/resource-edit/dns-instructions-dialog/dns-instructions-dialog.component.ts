@@ -9,8 +9,16 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CustomDomainResponse, DnsInstructionsResponse, DnsInstructionStepResponse } from '../../../shared/interfaces/custom-domain.interface';
 import { CustomDomainService } from '../../../shared/services/custom-domain.service';
 
+const ContainerAppResourceType = 'ContainerApp';
+const WebAppResourceType = 'WebApp';
+const FunctionAppResourceType = 'FunctionApp';
+const CnameRecordType = 'CNAME';
+const TxtRecordType = 'TXT';
+const DnsDialogStepTranslationKeyPrefix = 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_STEPS';
+
 export interface DnsInstructionsDialogData {
   resourceId: string;
+  resourceType: string;
   domain: CustomDomainResponse;
 }
 
@@ -67,5 +75,99 @@ export class DnsInstructionsDialogComponent implements OnInit {
 
   protected hasRecord(step: DnsInstructionStepResponse): boolean {
     return step.recordType !== null && step.recordName !== null && step.recordValue !== null;
+  }
+
+  protected getStepTitle(step: DnsInstructionStepResponse): string {
+    const translationKey = this.getStepTitleTranslationKey(step);
+    if (translationKey === null) {
+      return step.title;
+    }
+
+    return this.translateOrFallback(translationKey, {}, step.title);
+  }
+
+  protected getStepDescription(step: DnsInstructionStepResponse): string {
+    const translationKey = this.getStepDescriptionTranslationKey(step);
+    if (translationKey === null) {
+      return step.description;
+    }
+
+    return this.translateOrFallback(
+      translationKey,
+      {
+        domainName: this.data.domain.domainName,
+        recordName: step.recordName ?? '',
+        recordValue: step.recordValue ?? '',
+      },
+      step.description,
+    );
+  }
+
+  private getStepTitleTranslationKey(step: DnsInstructionStepResponse): string | null {
+    if (step.recordType === CnameRecordType) {
+      return `${DnsDialogStepTranslationKeyPrefix}.CNAME_TITLE`;
+    }
+
+    if (step.recordType === TxtRecordType) {
+      return `${DnsDialogStepTranslationKeyPrefix}.TXT_TITLE`;
+    }
+
+    if (this.isValidationStep(step) && this.isSupportedResourceType()) {
+      return `${DnsDialogStepTranslationKeyPrefix}.VALIDATE_TITLE`;
+    }
+
+    return null;
+  }
+
+  private getStepDescriptionTranslationKey(step: DnsInstructionStepResponse): string | null {
+    if (step.recordType === CnameRecordType) {
+      if (this.data.resourceType === ContainerAppResourceType) {
+        return `${DnsDialogStepTranslationKeyPrefix}.CONTAINER_APP_CNAME_DESC`;
+      }
+
+      if (this.isWebLikeResourceType()) {
+        return `${DnsDialogStepTranslationKeyPrefix}.WEB_LIKE_CNAME_DESC`;
+      }
+    }
+
+    if (step.recordType === TxtRecordType) {
+      if (this.data.resourceType === ContainerAppResourceType) {
+        return `${DnsDialogStepTranslationKeyPrefix}.CONTAINER_APP_TXT_DESC`;
+      }
+
+      if (this.isWebLikeResourceType()) {
+        return `${DnsDialogStepTranslationKeyPrefix}.WEB_LIKE_TXT_DESC`;
+      }
+    }
+
+    if (this.isValidationStep(step) && this.isSupportedResourceType()) {
+      return `${DnsDialogStepTranslationKeyPrefix}.VALIDATE_DESC`;
+    }
+
+    return null;
+  }
+
+  private isSupportedResourceType(): boolean {
+    return this.data.resourceType === ContainerAppResourceType
+      || this.data.resourceType === WebAppResourceType
+      || this.data.resourceType === FunctionAppResourceType;
+  }
+
+  private isWebLikeResourceType(): boolean {
+    return this.data.resourceType === WebAppResourceType
+      || this.data.resourceType === FunctionAppResourceType;
+  }
+
+  private isValidationStep(step: DnsInstructionStepResponse): boolean {
+    return step.recordType === null && step.recordName === null && step.recordValue === null;
+  }
+
+  private translateOrFallback(
+    key: string,
+    params: Record<string, string>,
+    fallback: string,
+  ): string {
+    const translated = this.translate.instant(key, params);
+    return translated === key ? fallback : translated;
   }
 }

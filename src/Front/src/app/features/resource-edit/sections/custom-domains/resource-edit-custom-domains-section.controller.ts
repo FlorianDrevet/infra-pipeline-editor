@@ -14,6 +14,7 @@ import { ResourceEditCustomDomainsSection } from './resource-edit-custom-domains
 
 interface ResourceEditCustomDomainsSectionControllerDependencies {
   getResourceId(): string;
+  getResourceType(): string;
   getEnvironments(): EnvironmentDefinitionResponse[];
 }
 
@@ -137,6 +138,7 @@ export function createResourceEditCustomDomainsSectionController(
       width: '560px',
       data: {
         resourceId: dependencies.getResourceId(),
+        resourceType: dependencies.getResourceType(),
         domain,
       } satisfies DnsInstructionsDialogData,
     });

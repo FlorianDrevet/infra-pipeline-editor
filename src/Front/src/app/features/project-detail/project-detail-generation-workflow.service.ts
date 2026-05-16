@@ -14,13 +14,16 @@ import {
   ProjectResponse,
 } from '../../shared/interfaces/project.interface';
 import { InfrastructureConfigResponse } from '../../shared/interfaces/infra-config.interface';
+import { PendingCustomDomainIssue } from '../../shared/interfaces/pending-custom-domain-issue.interface';
 import { ProjectService } from '../../shared/services/project.service';
+import { CustomDomainDiagnosticsService } from '../../shared/services/custom-domain-diagnostics.service';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
 import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import {
   ConfigDiagnosticGroup,
   ConfigMissingEnvGroup,
+  ConfigPendingCustomDomainGroup,
   GenerationDiagnosticsDialogComponent,
   GenerationDiagnosticsDialogData,
   MissingEnvResource,
@@ -65,6 +68,7 @@ interface CombinedProjectArchiveExtractionState {
 @Injectable()
 export class ProjectDetailGenerationWorkflowService {
   private readonly dialog = inject(MatDialog);
+  private readonly customDomainDiagnosticsService = inject(CustomDomainDiagnosticsService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
   private readonly resourceGroupService = inject(ResourceGroupService);
@@ -532,9 +536,16 @@ export class ProjectDetailGenerationWorkflowService {
             }
           }
 
-          return { config, diagnostics: diagnosticResult.diagnostics, missingEnvResources };
+          const pendingCustomDomains = await this.customDomainDiagnosticsService.collectPendingIssues(groupResources.flat());
+
+          return { config, diagnostics: diagnosticResult.diagnostics, missingEnvResources, pendingCustomDomains };
         } catch {
-          return { config, diagnostics: [], missingEnvResources: [] as MissingEnvResource[] };
+          return {
+            config,
+            diagnostics: [],
+            missingEnvResources: [] as MissingEnvResource[],
+            pendingCustomDomains: [] as PendingCustomDomainIssue[],
+          };
         }
       }),
     );
@@ -555,7 +566,17 @@ export class ProjectDetailGenerationWorkflowService {
         resources: result.missingEnvResources,
       }));
 
-    if (configsWithIssues.length === 0 && configsWithMissingEnvs.length === 0) {
+    const configsWithPendingCustomDomains: ConfigPendingCustomDomainGroup[] = results
+      .filter((result) => result.pendingCustomDomains.length > 0)
+      .map((result) => ({
+        configId: result.config.id,
+        configName: result.config.name,
+        domains: result.pendingCustomDomains,
+      }));
+
+    if (configsWithIssues.length === 0
+      && configsWithMissingEnvs.length === 0
+      && configsWithPendingCustomDomains.length === 0) {
       return true;
     }
 
@@ -563,6 +584,9 @@ export class ProjectDetailGenerationWorkflowService {
       data: {
         configDiagnostics: configsWithIssues,
         missingEnvConfigs: configsWithMissingEnvs.length > 0 ? configsWithMissingEnvs : undefined,
+        pendingCustomDomainConfigs: configsWithPendingCustomDomains.length > 0
+          ? configsWithPendingCustomDomains
+          : undefined,
       } satisfies GenerationDiagnosticsDialogData,
       width: '640px',
       maxHeight: '80vh',

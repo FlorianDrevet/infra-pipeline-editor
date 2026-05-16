@@ -18,8 +18,8 @@
         <div class="dns-dialog__step">
           <div class="dns-dialog__step-number">{{ step.order }}</div>
           <div class="dns-dialog__step-content">
-            <strong>{{ step.title }}</strong>
-            <p>{{ step.description }}</p>
+            <strong>{{ getStepTitle(step) }}</strong>
+            <p>{{ getStepDescription(step) }}</p>
 
             @if (hasRecord(step)) {
               <div class="dns-dialog__record-card">
