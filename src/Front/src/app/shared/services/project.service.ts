@@ -60,6 +60,10 @@ import {
 export class ProjectService {
   private readonly axios = inject(AxiosService);
 
+  /** Short-lived cache to avoid redundant fetches during navigation (TTL: 30s). */
+  private projectCache = new Map<string, { data: ProjectResponse; timestamp: number }>();
+  private static readonly CACHE_TTL_MS = 30_000;
+
   getMyProjects(): Promise<ProjectResponse[]> {
     return this.axios.request$<ProjectResponse[]>(MethodEnum.GET, '/projects');
   }
@@ -72,8 +76,20 @@ export class ProjectService {
     );
   }
 
-  getProject(id: string): Promise<ProjectResponse> {
-    return this.axios.request$<ProjectResponse>(MethodEnum.GET, `/projects/${id}`);
+  async getProject(id: string): Promise<ProjectResponse> {
+    const cached = this.projectCache.get(id);
+    if (cached && Date.now() - cached.timestamp < ProjectService.CACHE_TTL_MS) {
+      return cached.data;
+    }
+
+    const data = await this.axios.request$<ProjectResponse>(MethodEnum.GET, `/projects/${id}`);
+    this.projectCache.set(id, { data, timestamp: Date.now() });
+    return data;
+  }
+
+  /** Invalidates the cached project entry so the next getProject triggers a fresh fetch. */
+  invalidateProjectCache(id: string): void {
+    this.projectCache.delete(id);
   }
 
   createProject(request: CreateProjectRequest): Promise<ProjectResponse> {

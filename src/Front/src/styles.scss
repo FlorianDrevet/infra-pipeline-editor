@@ -236,6 +236,48 @@ $custom-theme: mat.define-theme((
   font-weight: 600 !important;
 }
 
+// --- Dialog footer action layout (equal-width secondary + primary pair) ---
+mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) {
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 0.875rem;
+}
+
+mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > button[mat-stroked-button]:first-child,
+mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > app-ds-button:last-child {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+}
+
+mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > button[mat-stroked-button]:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+  padding-inline: 0.875rem;
+}
+
+mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > app-ds-button:last-child {
+  display: flex;
+}
+
+mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > app-ds-button:last-child > .ds-btn {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) {
+    flex-direction: column;
+  }
+
+  mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > button[mat-stroked-button]:first-child,
+  mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > app-ds-button:last-child {
+    flex-basis: auto;
+    width: 100%;
+  }
+}
+
 // --- Snack bar (V2: surface-2 flat) ---
 .mat-mdc-snack-bar-container {
   --mat-snackbar-container-shape: var(--ifs-radius-md);

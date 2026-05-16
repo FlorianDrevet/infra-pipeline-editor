@@ -191,36 +191,43 @@ export function createResourceEditIdentityAccessSectionController(
 
   const loadAllResources = async (): Promise<void> => {
     try {
+      const projectId = dependencies.getConfig()?.projectId;
+
+      // Start project resources fetch in parallel with per-group resources
+      const projectResourcesPromise = projectId
+        ? projectService.getProjectResources(projectId).catch(() => null)
+        : Promise.resolve(null);
+
       const resourceGroups = await infraConfigService.getResourceGroups(dependencies.getConfigId());
       const resourceResults = await Promise.all(resourceGroups.map((resourceGroup) => resourceGroupService.getResources(resourceGroup.id)));
       const localResources = resourceResults.flat().filter((resource) => resource.id !== dependencies.getResourceId());
-      const projectId = dependencies.getConfig()?.projectId;
 
       if (!projectId) {
         allResources.set(localResources);
         return;
       }
 
-      try {
-        const projectResources = await projectService.getProjectResources(projectId);
-        const localResourceIds = new Set(localResources.map((resource) => resource.id));
-        const crossConfigResources = projectResources
-          .filter((projectResource) => (
-            projectResource.configId !== dependencies.getConfigId()
-            && !localResourceIds.has(projectResource.resourceId)
-            && projectResource.resourceId !== dependencies.getResourceId()
-          ))
-          .map((projectResource) => ({
-            id: projectResource.resourceId,
-            resourceType: projectResource.resourceType,
-            name: `${projectResource.resourceName} (${projectResource.configName})`,
-            location: '',
-          }));
-
-        allResources.set([...localResources, ...crossConfigResources]);
-      } catch {
+      const projectResources = await projectResourcesPromise;
+      if (!projectResources) {
         allResources.set(localResources);
+        return;
       }
+
+      const localResourceIds = new Set(localResources.map((resource) => resource.id));
+      const crossConfigResources = projectResources
+        .filter((projectResource) => (
+          projectResource.configId !== dependencies.getConfigId()
+          && !localResourceIds.has(projectResource.resourceId)
+          && projectResource.resourceId !== dependencies.getResourceId()
+        ))
+        .map((projectResource) => ({
+          id: projectResource.resourceId,
+          resourceType: projectResource.resourceType,
+          name: `${projectResource.resourceName} (${projectResource.configName})`,
+          location: '',
+        }));
+
+      allResources.set([...localResources, ...crossConfigResources]);
     } catch {
       allResources.set([]);
     }
@@ -250,15 +257,13 @@ export function createResourceEditIdentityAccessSectionController(
       }
 
       const targetResourceIds = [...new Set(result.roleAssignments.map((assignment) => assignment.targetResourceId))];
-      const roleDefinitions: AzureRoleDefinitionResponse[] = [];
 
-      for (const targetResourceId of targetResourceIds) {
-        try {
-          roleDefinitions.push(...await roleAssignmentService.getAvailableRoleDefinitions(targetResourceId));
-        } catch {
-          // Ignore per-target failures to keep the rest of the role list usable.
-        }
-      }
+      const roleDefinitionResults = await Promise.all(
+        targetResourceIds.map((targetResourceId) =>
+          roleAssignmentService.getAvailableRoleDefinitions(targetResourceId).catch(() => [] as AzureRoleDefinitionResponse[]),
+        ),
+      );
+      const roleDefinitions = roleDefinitionResults.flat();
 
       availableRoleDefs.set(
         roleDefinitions.filter(

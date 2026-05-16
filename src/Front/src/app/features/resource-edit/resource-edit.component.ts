@@ -700,7 +700,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.loadError.set('');
 
     try {
-      // Load config + project in parallel with resource
+      // Load config + resource in parallel
       const [config, resource] = await Promise.all([
         this.infraConfigService.getById(this.configId),
         this.loadResource(),
@@ -708,26 +708,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       this.config.set(config);
       this.resource.set(resource);
 
-      // Load parent project for permissions and environments
-      if (config.projectId) {
-        try {
-          const project = await this.projectService.getProject(config.projectId);
-          this.project.set(project);
-        } catch {
-          // Non-blocking — project data used for permissions and inherited envs
-        }
-      }
-
-      this.buildGeneralForm(resource);
-      this.buildEnvForms(resource);
-      this.watchFormChanges();
-
-      // Check ACR pull access: container mode for WebApp/FunctionApp, always for ContainerApp
-      if (this.isAcrEnabled()) {
-        this.checkAcrPullAccess();
-      }
-
-      // Load role assignments and sibling resources in background (non-blocking)
+      // Start background loads immediately — they only need configId/resourceId, not project
       void this.identityAccessSection.loadRoleAssignments();
       void this.identityAccessSection.loadAllResources();
       if (this.supportsAppSettings()) {
@@ -746,16 +727,35 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         this.loadSecureParamMappings();
       }
 
-    // Initialize runtime version options for WebApp/FunctionApp
-    if (this.resourceType === 'WebApp') {
-      const stack = this.generalForm.get('runtimeStack')?.value;
-      this.runtimeVersionOptions.set(WEBAPP_RUNTIME_VERSION_MAP[stack] ?? []);
-    } else if (this.resourceType === 'FunctionApp') {
-      const stack = this.generalForm.get('runtimeStack')?.value;
-      this.runtimeVersionOptions.set(FUNCTIONAPP_RUNTIME_VERSION_MAP[stack] ?? []);
-    } else {
-      this.runtimeVersionOptions.set([]);
-    }
+      // Load parent project (required for environment forms + permissions)
+      if (config.projectId) {
+        try {
+          const project = await this.projectService.getProject(config.projectId);
+          this.project.set(project);
+        } catch {
+          // Non-blocking — project data used for permissions and inherited envs
+        }
+      }
+
+      this.buildGeneralForm(resource);
+      this.buildEnvForms(resource);
+      this.watchFormChanges();
+
+      // Check ACR pull access: container mode for WebApp/FunctionApp, always for ContainerApp
+      if (this.isAcrEnabled()) {
+        this.checkAcrPullAccess();
+      }
+
+      // Initialize runtime version options for WebApp/FunctionApp
+      if (this.resourceType === 'WebApp') {
+        const stack = this.generalForm.get('runtimeStack')?.value;
+        this.runtimeVersionOptions.set(WEBAPP_RUNTIME_VERSION_MAP[stack] ?? []);
+      } else if (this.resourceType === 'FunctionApp') {
+        const stack = this.generalForm.get('runtimeStack')?.value;
+        this.runtimeVersionOptions.set(FUNCTIONAPP_RUNTIME_VERSION_MAP[stack] ?? []);
+      } else {
+        this.runtimeVersionOptions.set([]);
+      }
     } catch {
       this.loadError.set('RESOURCE_EDIT.ERROR.LOAD_FAILED');
     } finally {
@@ -897,9 +897,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     const envForms = this.envForms();
 
     try {
+      let updated: ResourceData;
+
       switch (this.resourceType) {
         case 'KeyVault':
-          await this.keyVaultService.update(this.resourceId, {
+          updated = await this.keyVaultService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             enableRbacAuthorization: general.enableRbacAuthorization,
@@ -912,7 +914,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           });
           break;
         case 'RedisCache':
-          await this.redisCacheService.update(this.resourceId, {
+          updated = await this.redisCacheService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             redisVersion: toNullableNumber(general.redisVersion),
@@ -930,7 +932,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             return;
           }
 
-          await this.storageAccountService.update(this.resourceId, {
+          updated = await this.storageAccountService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             kind: general.kind,
@@ -945,7 +947,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           });
           break;
         case 'AppServicePlan':
-          await this.appServicePlanService.update(this.resourceId, {
+          updated = await this.appServicePlanService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             osType: general.osType,
@@ -957,7 +959,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             ? this.resolveAcrAuthMode(general.containerRegistryId || null, general.acrAuthMode as AcrAuthMode | null | undefined)
             : null;
 
-          await this.webAppService.update(this.resourceId, {
+          updated = await this.webAppService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             appServicePlanId: general.appServicePlanId,
@@ -983,7 +985,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             ? this.resolveAcrAuthMode(general.containerRegistryId || null, general.acrAuthMode as AcrAuthMode | null | undefined)
             : null;
 
-          await this.functionAppService.update(this.resourceId, {
+          updated = await this.functionAppService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             appServicePlanId: general.appServicePlanId,
@@ -1004,20 +1006,20 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           break;
         }
         case 'UserAssignedIdentity':
-          await this.userAssignedIdentityService.update(this.resourceId, {
+          updated = await this.userAssignedIdentityService.update(this.resourceId, {
             name: general.name,
             location: general.location,
           });
           break;
         case 'AppConfiguration':
-          await this.appConfigurationService.update(this.resourceId, {
+          updated = await this.appConfigurationService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             environmentSettings: buildAppConfigurationEnvironmentSettings(envForms),
           });
           break;
         case 'ContainerAppEnvironment':
-          await this.containerAppEnvironmentService.update(this.resourceId, {
+          updated = await this.containerAppEnvironmentService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             logAnalyticsWorkspaceId: general.logAnalyticsWorkspaceId || null,
@@ -1027,7 +1029,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         case 'ContainerApp': {
           const acrAuthMode = this.resolveAcrAuthMode(general.containerRegistryId || null, general.acrAuthMode as AcrAuthMode | null | undefined);
 
-          await this.containerAppService.update(this.resourceId, {
+          updated = await this.containerAppService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             containerAppEnvironmentId: general.containerAppEnvironmentId,
@@ -1042,14 +1044,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           break;
         }
         case 'LogAnalyticsWorkspace':
-          await this.logAnalyticsWorkspaceService.update(this.resourceId, {
+          updated = await this.logAnalyticsWorkspaceService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             environmentSettings: buildLogAnalyticsWorkspaceEnvironmentSettings(envForms),
           });
           break;
         case 'ApplicationInsights':
-          await this.applicationInsightsService.update(this.resourceId, {
+          updated = await this.applicationInsightsService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             logAnalyticsWorkspaceId: general.logAnalyticsWorkspaceId,
@@ -1057,28 +1059,28 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           });
           break;
         case 'CosmosDb':
-          await this.cosmosDbService.update(this.resourceId, {
+          updated = await this.cosmosDbService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             environmentSettings: buildCosmosDbEnvironmentSettings(envForms),
           });
           break;
         case 'ServiceBusNamespace':
-          await this.serviceBusNamespaceService.update(this.resourceId, {
+          updated = await this.serviceBusNamespaceService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             environmentSettings: buildServiceBusNamespaceEnvironmentSettings(envForms),
           });
           break;
         case 'ContainerRegistry':
-          await this.containerRegistryService.update(this.resourceId, {
+          updated = await this.containerRegistryService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             environmentSettings: buildContainerRegistryEnvironmentSettings(envForms),
           });
           break;
         case 'SqlServer':
-          await this.sqlServerService.update(this.resourceId, {
+          updated = await this.sqlServerService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             version: general.version,
@@ -1087,7 +1089,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           });
           break;
         case 'SqlDatabase':
-          await this.sqlDatabaseService.update(this.resourceId, {
+          updated = await this.sqlDatabaseService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             sqlServerId: general.sqlServerId,
@@ -1095,10 +1097,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             environmentSettings: buildSqlDatabaseEnvironmentSettings(envForms),
           });
           break;
+        default:
+          throw new Error(`Unsupported resource type: ${this.resourceType}`);
       }
 
-      // Reload to reflect saved state
-      const updated = await this.loadResource();
+      // Use the response directly — no redundant GET needed
       this.resource.set(updated);
       this.buildGeneralForm(updated);
       this.buildEnvForms(updated);

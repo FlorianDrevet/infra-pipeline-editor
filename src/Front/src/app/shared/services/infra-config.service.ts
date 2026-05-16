@@ -24,6 +24,10 @@ import { ConfigDiagnosticsResponse } from '../interfaces/config-diagnostics.inte
 export class InfraConfigService {
   private axios = inject(AxiosService);
 
+  /** Short-lived cache to avoid redundant fetches during navigation (TTL: 30s). */
+  private configCache = new Map<string, { data: InfrastructureConfigResponse; timestamp: number }>();
+  private static readonly CACHE_TTL_MS = 30_000;
+
   getAll(): Promise<InfrastructureConfigResponse[]> {
     return this.axios.request$<InfrastructureConfigResponse[]>(
       MethodEnum.GET,
@@ -31,11 +35,23 @@ export class InfraConfigService {
     );
   }
 
-  getById(id: string): Promise<InfrastructureConfigResponse> {
-    return this.axios.request$<InfrastructureConfigResponse>(
+  async getById(id: string): Promise<InfrastructureConfigResponse> {
+    const cached = this.configCache.get(id);
+    if (cached && Date.now() - cached.timestamp < InfraConfigService.CACHE_TTL_MS) {
+      return cached.data;
+    }
+
+    const data = await this.axios.request$<InfrastructureConfigResponse>(
       MethodEnum.GET,
       `/infra-config/${id}`
     );
+    this.configCache.set(id, { data, timestamp: Date.now() });
+    return data;
+  }
+
+  /** Invalidates the cached config entry so the next getById triggers a fresh fetch. */
+  invalidateCache(id: string): void {
+    this.configCache.delete(id);
   }
 
   getResourceGroups(id: string): Promise<ResourceGroupResponse[]> {

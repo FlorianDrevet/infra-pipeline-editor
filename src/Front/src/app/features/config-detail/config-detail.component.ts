@@ -58,7 +58,14 @@ import { RecentlyViewedService } from '../../shared/services/recently-viewed.ser
 import { PageContextService } from '../../shared/services/page-context.service';
 import { SidebarContextService } from '../../core/layouts/sidebar/sidebar-context.service';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
-import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS, PARENT_CHILD_RESOURCE_TYPES, CHILD_RESOURCE_TYPES } from '../../shared/resource-metadata/resource-type.metadata';
+import {
+  CHILD_RESOURCE_TYPES,
+  PARENT_CHILD_RESOURCE_TYPES,
+  RESOURCE_TYPES_WITHOUT_ENVIRONMENT_SETTINGS,
+  RESOURCE_TYPE_ABBREVIATIONS,
+  RESOURCE_TYPE_ICONS,
+  RESOURCE_TYPE_OPTIONS,
+} from '../../shared/resource-metadata/resource-type.metadata';
 import { MatChipsModule } from '@angular/material/chips';
 import { StorageAccountSubResourcesResponse } from '../../shared/interfaces/storage-account.interface';
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
@@ -239,16 +246,13 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     return [...envs].sort((a, b) => a.order - b.order);
   });
 
-  /** Resource types that have no per-environment settings. */
-  private readonly ENV_SETTINGS_EXCLUDED_TYPES = new Set(['UserAssignedIdentity']);
-
   /**
    * Returns the list of environment names that are defined in the project
    * but not yet configured for the given resource. Returns empty array if
    * the resource type has no environment settings or if all environments are configured.
    */
   protected getMissingEnvironments(resource: AzureResourceResponse): string[] {
-    return getMissingEnvironmentNames(resource, this.projectSortedEnvironments(), this.ENV_SETTINGS_EXCLUDED_TYPES);
+    return getMissingEnvironmentNames(resource, this.projectSortedEnvironments(), RESOURCE_TYPES_WITHOUT_ENVIRONMENT_SETTINGS);
   }
 
   /**

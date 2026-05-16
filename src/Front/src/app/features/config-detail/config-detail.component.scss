@@ -1585,14 +1585,21 @@
     flex-direction: column;
     border: 1px solid var(--ifs-border-subtle);
     border-radius: var(--ifs-radius-sm);
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   &__table-header,
   &__table-row {
     display: grid;
-    grid-template-columns: 2fr 3fr auto;
+    grid-template-columns:
+      minmax(12rem, 1.6fr)
+      minmax(14rem, 2fr)
+      minmax(10rem, 1.2fr)
+      minmax(10rem, 1fr)
+      minmax(10rem, 1fr);
     gap: var(--ifs-space-12);
+    min-width: 64rem;
     padding: var(--ifs-space-8) var(--ifs-space-12);
     align-items: center;
     border-bottom: 1px solid var(--ifs-border-subtle);
@@ -1609,12 +1616,17 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+
+    .vg-col {
+      white-space: nowrap;
+    }
   }
 }
 
 .vg-col {
   font-size: 13px;
   color: var(--ifs-text-primary);
+  min-width: 0;
 }
 
 .vg-type-chip {

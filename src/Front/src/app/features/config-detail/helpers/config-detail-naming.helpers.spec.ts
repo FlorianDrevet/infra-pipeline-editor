@@ -1,6 +1,7 @@
 import { EnvironmentDefinitionResponse, InfrastructureConfigResponse } from '../../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../../shared/interfaces/project.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
+import { RESOURCE_TYPES_WITHOUT_ENVIRONMENT_SETTINGS } from '../../../shared/resource-metadata/resource-type.metadata';
 import { getMissingEnvironmentNames, resolveNamingPreview } from './config-detail-naming.helpers';
 
 describe('config detail naming helpers', () => {
@@ -74,24 +75,31 @@ describe('config detail naming helpers', () => {
     const missingForWebApp = getMissingEnvironmentNames(
       createResource({ resourceType: 'WebApp', configuredEnvironments: ['Development'] }),
       environments,
-      new Set(['UserAssignedIdentity']),
+      RESOURCE_TYPES_WITHOUT_ENVIRONMENT_SETTINGS,
     );
 
     const missingForExistingResource = getMissingEnvironmentNames(
       createResource({ resourceType: 'WebApp', isExisting: true, configuredEnvironments: ['Development'] }),
       environments,
-      new Set(['UserAssignedIdentity']),
+      RESOURCE_TYPES_WITHOUT_ENVIRONMENT_SETTINGS,
     );
 
     const missingForIdentity = getMissingEnvironmentNames(
       createResource({ resourceType: 'UserAssignedIdentity' }),
       environments,
-      new Set(['UserAssignedIdentity']),
+      RESOURCE_TYPES_WITHOUT_ENVIRONMENT_SETTINGS,
+    );
+
+    const missingForFrontDoor = getMissingEnvironmentNames(
+      createResource({ resourceType: 'FrontDoor' }),
+      environments,
+      RESOURCE_TYPES_WITHOUT_ENVIRONMENT_SETTINGS,
     );
 
     expect(missingForWebApp).toEqual(['Production']);
     expect(missingForExistingResource).toEqual([]);
     expect(missingForIdentity).toEqual([]);
+    expect(missingForFrontDoor).toEqual([]);
   });
 });
 

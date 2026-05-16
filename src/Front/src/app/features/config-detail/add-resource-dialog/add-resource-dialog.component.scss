@@ -27,10 +27,11 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  padding: 0.5rem 0.65rem 0.5rem 0;
+  padding: 0.5rem 1rem 0.5rem 0;
   max-height: 60vh;
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-gutter: stable;
 }
 
 .type-category {
