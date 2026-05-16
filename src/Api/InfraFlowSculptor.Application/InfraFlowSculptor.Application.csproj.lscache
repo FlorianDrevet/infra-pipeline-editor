@@ -864,6 +864,9 @@ Projects/Queries/GetProjectBicepFileContent/
 Projects/Queries/GetProjectBootstrapPipelineFileContent/
  GetProjectBootstrapPipelineFileContentQuery.cs
  GetProjectBootstrapPipelineFileContentQueryHandler.cs
+Projects/Queries/GetProjectLatestGeneration/
+ GetProjectLatestGenerationQuery.cs
+ GetProjectLatestGenerationQueryHandler.cs
 Projects/Queries/GetProjectPipelineFileContent/
  GetProjectPipelineFileContentQuery.cs
  GetProjectPipelineFileContentQueryHandler.cs

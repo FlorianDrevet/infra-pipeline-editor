@@ -5,12 +5,25 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { LanguageService } from '../../shared/services/language.service';
 import {
+  AppTheme,
+  AppThemeOption,
   BicepViewerTheme,
   BicepViewerThemeOption,
   UserPreferencesService,
 } from '../../shared/services/user-preferences.service';
+import { PersonalAccessTokenResponse } from '../../shared/interfaces/personal-access-token.interface';
 import { PersonalAccessTokenService } from '../../shared/services/personal-access-token.service';
 import { SettingsComponent } from './settings.component';
+
+const ACTIVE_TOKEN: PersonalAccessTokenResponse = {
+  id: 'pat-01',
+  name: 'Terraform Bot',
+  tokenPrefix: 'ifs_pat',
+  createdAt: '2026-05-01T12:00:00.000Z',
+  lastUsedAt: '2026-05-12T08:00:00.000Z',
+  expiresAt: '2026-06-01T12:00:00.000Z',
+  isRevoked: false,
+};
 
 describe('SettingsComponent', () => {
   let fixture: ComponentFixture<SettingsComponent>;
@@ -19,7 +32,7 @@ describe('SettingsComponent', () => {
 
   beforeEach(async () => {
     patServiceSpy = jasmine.createSpyObj<PersonalAccessTokenService>('PersonalAccessTokenService', ['getAll', 'revoke']);
-    patServiceSpy.getAll.and.resolveTo([]);
+    patServiceSpy.getAll.and.resolveTo([ACTIVE_TOKEN]);
 
     userPreferencesServiceStub = new UserPreferencesServiceStub();
 
@@ -54,13 +67,18 @@ describe('SettingsComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders the Bicep viewer theme preference with the available options', () => {
+  it('renders a Bicep preview block for each available viewer theme', () => {
     const preferenceRow = fixture.nativeElement.querySelector(
       '[data-preference="bicep-viewer-theme"]',
     ) as HTMLElement | null;
+    const previewBlocks = fixture.nativeElement.querySelectorAll('[data-bicep-theme-preview]');
 
     expect(preferenceRow).not.toBeNull();
     expect(preferenceRow?.querySelectorAll('[data-bicep-theme-option]').length).toBe(3);
+    expect(previewBlocks.length).toBe(3);
+    expect(
+      preferenceRow?.querySelector('[data-bicep-theme-preview="azure-night"] .theme-option__code-line'),
+    ).not.toBeNull();
     expect(
       preferenceRow?.querySelector('[data-bicep-theme-option="azure-night"]')?.classList.contains('theme-option--active'),
     ).toBeTrue();
@@ -77,12 +95,23 @@ describe('SettingsComponent', () => {
     expect(userPreferencesServiceStub.setBicepViewerTheme).toHaveBeenCalledOnceWith('graphite-frost');
     expect(graphiteButton.classList.contains('theme-option--active')).toBeTrue();
   });
+
+  it('renders the PAT list with the design-system table instead of legacy ifs-table markup', () => {
+    const dsTable = fixture.nativeElement.querySelector('app-ds-table');
+    const legacyHeader = fixture.nativeElement.querySelector('.ifs-table__header');
+
+    expect(dsTable).not.toBeNull();
+    expect(legacyHeader).toBeNull();
+    expect(dsTable?.textContent).toContain('Terraform Bot');
+  });
 });
 
 class UserPreferencesServiceStub {
   private readonly selectedTheme = signal<BicepViewerTheme>('azure-night');
+  private readonly selectedAppTheme = signal<AppTheme>('dark');
 
   readonly bicepViewerTheme = this.selectedTheme.asReadonly();
+  readonly appTheme = this.selectedAppTheme.asReadonly();
   readonly bicepViewerThemeOptions: readonly BicepViewerThemeOption[] = [
     {
       value: 'azure-night',
@@ -103,10 +132,30 @@ class UserPreferencesServiceStub {
       previewColors: ['#fbbf24', '#f59e0b', '#fcd34d'],
     },
   ];
+  readonly appThemeOptions: readonly AppThemeOption[] = [
+    {
+      value: 'dark',
+      labelKey: 'SETTINGS.PREFERENCES.APP_THEME_OPTIONS.DARK.LABEL',
+      descriptionKey: 'SETTINGS.PREFERENCES.APP_THEME_OPTIONS.DARK.DESCRIPTION',
+      icon: 'dark_mode',
+    },
+    {
+      value: 'light',
+      labelKey: 'SETTINGS.PREFERENCES.APP_THEME_OPTIONS.LIGHT.LABEL',
+      descriptionKey: 'SETTINGS.PREFERENCES.APP_THEME_OPTIONS.LIGHT.DESCRIPTION',
+      icon: 'light_mode',
+    },
+  ];
 
   readonly setBicepViewerTheme = jasmine
     .createSpy('setBicepViewerTheme')
     .and.callFake((theme: BicepViewerTheme) => {
       this.selectedTheme.set(theme);
+    });
+
+  readonly setAppTheme = jasmine
+    .createSpy('setAppTheme')
+    .and.callFake((theme: AppTheme) => {
+      this.selectedAppTheme.set(theme);
     });
 }

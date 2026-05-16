@@ -290,6 +290,10 @@ export class GenerationBoardComponent implements OnInit {
   protected readonly generateProjectBootstrap = this.generationWorkflow.generateProjectBootstrap;
   protected readonly openProjectPushAllToGitDialog = this.generationWorkflow.openProjectPushAllToGitDialog;
   protected readonly openProjectMultiRepoPushDialog = this.generationWorkflow.openProjectMultiRepoPushDialog;
+  protected readonly lastGenerationLoading = this.generationWorkflow.lastGenerationLoading;
+  protected readonly lastGenerationAvailable = this.generationWorkflow.lastGenerationAvailable;
+  protected readonly lastGenerationErrorKey = this.generationWorkflow.lastGenerationErrorKey;
+  protected readonly loadLastGeneration = this.generationWorkflow.loadLastGeneration;
   protected readonly monoRepoTabs: readonly MonoRepoTab[] = [
     {
       ...MONO_REPO_TAB_DEFINITIONS[0],
@@ -443,6 +447,7 @@ export class GenerationBoardComponent implements OnInit {
       this.sidebarContextService.setProjectContext(project.id, project.name);
       this.generationWorkflow.setProject(project);
       this.generationWorkflow.setConfigs(configs);
+      this.runTask(this.generationWorkflow.checkLastGenerationAvailable());
     } catch {
       this.showError('PROJECT_DETAIL.BOARD.LOAD_ERROR');
     } finally {

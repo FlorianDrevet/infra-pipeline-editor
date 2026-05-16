@@ -43,6 +43,7 @@ using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBootstrapPi
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectBootstrapPipelineToGit;
 using InfraFlowSculptor.Application.Projects.Queries.GetProjectBicepFileContent;
 using InfraFlowSculptor.Application.Projects.Queries.GetProjectBootstrapPipelineFileContent;
+using InfraFlowSculptor.Application.Projects.Queries.GetProjectLatestGeneration;
 using InfraFlowSculptor.Application.Projects.Queries.GetProjectPipelineFileContent;
 using InfraFlowSculptor.Application.Projects.Queries.ListGitBranches;
 using InfraFlowSculptor.Application.Projects.Queries.ListCodeRepoBranches;
@@ -91,6 +92,7 @@ public static class ProjectController
             MapResourceAndAgentPoolEndpoints(group);
             MapRepositoryAndLayoutEndpoints(group);
             MapInfraConfigRepositoryEndpoints(group);
+            MapLatestGenerationEndpoint(group);
             MapBicepGenerationEndpoints(group);
             MapPipelineGenerationEndpoints(group);
             MapBootstrapAndPushArtifactEndpoints(group);
@@ -1436,6 +1438,48 @@ public static class ProjectController
                 .WithSummary("Remove a project-level pipeline variable group")
                 .WithDescription("Removes a variable group from the project.")
                 .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+    }
+
+    private static void MapLatestGenerationEndpoint(RouteGroupBuilder group)
+    {
+            group.MapGet("/{projectId:guid}/latest-generation",
+                    async ([FromRoute] Guid projectId, IMediator mediator, CancellationToken cancellationToken) =>
+                    {
+                        var query = new GetProjectLatestGenerationQuery(projectId);
+                        var result = await mediator.Send(query, cancellationToken);
+
+                        return result.Match(
+                            value =>
+                            {
+                                if (value.Bicep is null && value.Pipeline is null && value.Bootstrap is null)
+                                    return Results.NotFound();
+
+                                var response = new GetProjectLatestGenerationResponse(
+                                    value.Bicep is not null
+                                        ? new LatestBicepGenerationResponse(value.Bicep.CommonFilePaths, value.Bicep.ConfigFilePaths)
+                                        : null,
+                                    value.Pipeline is not null
+                                        ? new LatestPipelineGenerationResponse(
+                                            value.Pipeline.CommonFilePaths, value.Pipeline.ConfigFilePaths,
+                                            value.Pipeline.InfraCommonFilePaths, value.Pipeline.AppCommonFilePaths,
+                                            value.Pipeline.InfraConfigFilePaths, value.Pipeline.AppConfigFilePaths)
+                                        : null,
+                                    value.Bootstrap is not null
+                                        ? new LatestBootstrapGenerationResponse(value.Bootstrap.FilePaths, value.Bootstrap.InfraFilePaths, value.Bootstrap.AppFilePaths)
+                                        : null,
+                                    value.GeneratedAt);
+                                return Results.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName(ProjectRouteNames.GetProjectLatestGeneration)
+                .WithSummary("Get latest generation file listing")
+                .WithDescription("Returns file paths of the latest generated artifacts (Bicep, Pipeline, Bootstrap) without re-generating. Returns 404 when no generation exists.")
+                .Produces<GetProjectLatestGenerationResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);

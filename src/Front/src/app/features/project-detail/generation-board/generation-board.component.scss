@@ -499,3 +499,9 @@
     text-align: left;
   }
 }
+
+.board__last-gen-error {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--ds-color-warn, #ef5350);
+}

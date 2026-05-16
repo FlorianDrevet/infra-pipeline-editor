@@ -49,10 +49,16 @@
     }
 
     mat-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       color: var(--ifs-text-secondary);
       font-size: 1.25rem;
       width: 1.25rem;
       height: 1.25rem;
+      line-height: 1;
+      overflow: visible;
+      flex-shrink: 0;
     }
   }
 
@@ -82,6 +88,7 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 0.75rem;
       width: 100%;
+      align-items: stretch;
     }
 
     &--app-themes {
@@ -89,6 +96,7 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.75rem;
       width: 100%;
+      align-items: stretch;
     }
   }
 }
@@ -118,13 +126,16 @@
 
 .theme-option {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.9rem;
   width: 100%;
   padding: 0.75rem 0.85rem;
   border-radius: 0.9rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(15, 23, 42, 0.5);
+  background:
+    linear-gradient(180deg, rgba(14, 165, 233, 0.08), rgba(15, 23, 42, 0.08)),
+    rgba(15, 23, 42, 0.5);
   color: var(--ifs-text-primary);
   cursor: pointer;
   text-align: left;
@@ -145,6 +156,12 @@
     border-color: rgba(96, 165, 250, 0.48);
     background: rgba(29, 78, 216, 0.16);
     box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
 
   &__swatches {
@@ -168,6 +185,7 @@
     flex-direction: column;
     gap: 0.18rem;
     min-width: 0;
+    flex: 1;
   }
 
   &__label {
@@ -179,6 +197,14 @@
     color: var(--ifs-text-muted);
     font-size: 0.74rem;
     line-height: 1.4;
+  }
+
+  &__preview {
+    width: 100%;
+  }
+
+  &__code-line {
+    display: block;
   }
 }
 
@@ -213,10 +239,16 @@
   }
 
   &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.5rem;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.75rem;
+    height: 1.75rem;
     color: var(--ifs-text-secondary);
+    line-height: 1;
+    overflow: visible;
+    flex-shrink: 0;
   }
 
   &--active &__icon {
@@ -239,6 +271,126 @@
     color: var(--ifs-text-muted);
     font-size: 0.74rem;
     line-height: 1.4;
+  }
+}
+
+.bicep-preview {
+  --bicep-syntax-plain: rgba(244, 248, 252, 0.9);
+  --bicep-syntax-keyword: #adc8ff;
+  --bicep-syntax-type: #89bcc9;
+  --bicep-syntax-string: #d8c490;
+  --bicep-syntax-comment: #6f7f97;
+  --bicep-syntax-decorator: #86b8a4;
+  --bicep-syntax-constant: #c5addc;
+  --bicep-syntax-number: #c5addc;
+  --bicep-syntax-property: #b5d0e6;
+  display: block;
+  border-radius: 0.78rem;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: linear-gradient(180deg, rgba(10, 18, 35, 0.96), rgba(19, 31, 54, 0.96));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+
+  &[data-theme='graphite-frost'] {
+    --bicep-syntax-plain: rgba(241, 245, 249, 0.94);
+    --bicep-syntax-keyword: #c7d2fe;
+    --bicep-syntax-type: #bfdbfe;
+    --bicep-syntax-string: #d6deeb;
+    --bicep-syntax-comment: #7c8aa0;
+    --bicep-syntax-decorator: #93c5fd;
+    --bicep-syntax-constant: #e2e8f0;
+    --bicep-syntax-number: #cbd5f5;
+    --bicep-syntax-property: #e5eef8;
+  }
+
+  &[data-theme='sand-dusk'] {
+    --bicep-syntax-plain: rgba(252, 246, 235, 0.94);
+    --bicep-syntax-keyword: #fbbf24;
+    --bicep-syntax-type: #f59e0b;
+    --bicep-syntax-string: #fde68a;
+    --bicep-syntax-comment: #94714a;
+    --bicep-syntax-decorator: #f97316;
+    --bicep-syntax-constant: #fcd34d;
+    --bicep-syntax-number: #facc15;
+    --bicep-syntax-property: #fef3c7;
+  }
+}
+
+.bicep-preview__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.42rem 0.62rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.bicep-preview__dots {
+  display: inline-flex;
+  gap: 0.24rem;
+}
+
+.bicep-preview__dot {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.3);
+}
+
+.bicep-preview__file {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(226, 232, 240, 0.78);
+}
+
+.bicep-preview__body {
+  display: block;
+  padding: 0.62rem 0.7rem 0.74rem;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.73rem;
+  line-height: 1.55;
+}
+
+.bicep-preview__line {
+  padding-left: calc(var(--bicep-preview-indent, 0) * 0.9rem);
+  white-space: pre;
+}
+
+.bicep-preview__token {
+  color: var(--bicep-syntax-plain);
+
+  &[data-tone='keyword'] {
+    color: var(--bicep-syntax-keyword);
+    font-weight: 600;
+  }
+
+  &[data-tone='type'] {
+    color: var(--bicep-syntax-type);
+  }
+
+  &[data-tone='string'] {
+    color: var(--bicep-syntax-string);
+  }
+
+  &[data-tone='comment'] {
+    color: var(--bicep-syntax-comment);
+  }
+
+  &[data-tone='decorator'] {
+    color: var(--bicep-syntax-decorator);
+  }
+
+  &[data-tone='constant'] {
+    color: var(--bicep-syntax-constant);
+  }
+
+  &[data-tone='number'] {
+    color: var(--bicep-syntax-number);
+  }
+
+  &[data-tone='property'] {
+    color: var(--bicep-syntax-property);
   }
 }
 
@@ -274,31 +426,46 @@
 }
 
 .pat-table {
-  @include ifs-data-table;
+  overflow-x: auto;
+  border-radius: var(--ifs-radius-md);
+
+  app-ds-table {
+    min-width: 980px;
+  }
 }
 
-.pat-col {
+.pat-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  width: 100%;
+
   &--name {
-    flex: 2;
     font-weight: 500;
   }
 
-  &--prefix {
-    flex: 1.5;
-  }
-
-  &--date {
-    flex: 1.2;
-  }
-
-  &--status {
-    flex: 0.8;
-  }
-
   &--actions {
-    flex: 0.8;
     justify-content: flex-end;
   }
+}
+
+.pat-cell__text {
+  @include ifs-truncate;
+}
+
+.pat-cell__prefix {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.78rem;
+  color: var(--ifs-text-secondary);
+}
+
+.pat-cell__date {
+  font-variant-numeric: tabular-nums;
+}
+
+.pat-cell__muted {
+  color: var(--ifs-text-muted);
 }
 
 .pat-token-icon {
@@ -316,6 +483,10 @@
     &__control--themes {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+  }
+
+  .pat-table app-ds-table {
+    min-width: 860px;
   }
 }
 

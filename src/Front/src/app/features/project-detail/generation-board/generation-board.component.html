@@ -315,7 +315,15 @@
             <app-ds-button variant="primary" icon="rocket_launch" [loading]="projectGenerateAllLoading()" (clicked)="onGenerateAll()">
               {{ 'PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS' | translate }}
             </app-ds-button>
+            @if (lastGenerationAvailable() === true) {
+              <app-ds-button variant="secondary" icon="history" [loading]="lastGenerationLoading()" (clicked)="loadLastGeneration()">
+                {{ 'PROJECT_DETAIL.BOARD.LOAD_LAST_GENERATION' | translate }}
+              </app-ds-button>
+            }
           </div>
+          @if (lastGenerationErrorKey()) {
+            <p class="board__last-gen-error">{{ lastGenerationErrorKey() | translate }}</p>
+          }
         </app-ds-empty-state>
       </app-ds-card>
     }

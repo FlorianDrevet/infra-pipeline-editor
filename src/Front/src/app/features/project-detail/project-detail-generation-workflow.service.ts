@@ -97,6 +97,10 @@ export class ProjectDetailGenerationWorkflowService {
   readonly projectBootstrapErrorKey = signal('');
   readonly projectBootstrapPanelOpen = signal(false);
 
+  readonly lastGenerationLoading = signal(false);
+  readonly lastGenerationAvailable = signal<boolean | null>(null);
+  readonly lastGenerationErrorKey = signal('');
+
   readonly canPushAllProjectArtifacts = computed(
     () => this.projectBicepResult() !== null
       && this.projectPipelineResult() !== null
@@ -173,6 +177,64 @@ export class ProjectDetailGenerationWorkflowService {
   setConfigs(configs: InfrastructureConfigResponse[]): void {
     this.configs.set(configs);
   }
+
+  readonly checkLastGenerationAvailable = async (): Promise<void> => {
+    const projectId = this.project()?.id;
+    if (!projectId) return;
+
+    const result = await this.projectService.getProjectLatestGeneration(projectId);
+    this.lastGenerationAvailable.set(result !== null);
+  };
+
+  readonly loadLastGeneration = async (): Promise<void> => {
+    const projectId = this.project()?.id;
+    if (!projectId || this.lastGenerationLoading()) return;
+
+    this.lastGenerationLoading.set(true);
+    this.lastGenerationErrorKey.set('');
+
+    try {
+      const result = await this.projectService.getProjectLatestGeneration(projectId);
+
+      if (!result) {
+        this.lastGenerationErrorKey.set('PROJECT_DETAIL.BOARD.LAST_GENERATION_EXPIRED');
+        return;
+      }
+
+      if (result.bicep) {
+        this.projectBicepResult.set({
+          commonFileUris: result.bicep.commonFileUris,
+          configFileUris: result.bicep.configFileUris,
+        });
+        this.projectBicepPanelOpen.set(true);
+      }
+
+      if (result.pipeline) {
+        this.projectPipelineResult.set({
+          commonFileUris: result.pipeline.commonFileUris,
+          configFileUris: result.pipeline.configFileUris,
+          infraCommonFileUris: result.pipeline.infraCommonFileUris,
+          appCommonFileUris: result.pipeline.appCommonFileUris,
+          infraConfigFileUris: result.pipeline.infraConfigFileUris,
+          appConfigFileUris: result.pipeline.appConfigFileUris,
+        });
+        this.projectPipelinePanelOpen.set(true);
+      }
+
+      if (result.bootstrap) {
+        this.projectBootstrapResult.set({
+          fileUris: result.bootstrap.fileUris,
+          infraFileUris: result.bootstrap.infraFileUris,
+          appFileUris: result.bootstrap.appFileUris,
+        });
+        this.projectBootstrapPanelOpen.set(true);
+      }
+    } catch {
+      this.lastGenerationErrorKey.set('PROJECT_DETAIL.BOARD.LAST_GENERATION_ERROR');
+    } finally {
+      this.lastGenerationLoading.set(false);
+    }
+  };
 
   readonly generateProjectBicep = async (): Promise<void> => {
     const projectId = this.project()?.id;

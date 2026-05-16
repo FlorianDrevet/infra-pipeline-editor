@@ -1083,6 +1083,9 @@
       "CONFIG_RESOURCES": "{{count}} resources",
       "CONFIG_GENERATE": "Open configuration",
       "GENERATE_ALL_CONFIGS": "Generate all configurations",
+      "LOAD_LAST_GENERATION": "View last generation",
+      "LAST_GENERATION_EXPIRED": "No previous generation available. Files have expired or no generation has been performed yet.",
+      "LAST_GENERATION_ERROR": "Unable to load the last generation. Please try again.",
       "NO_GIT_CONFIG": "No project-level repository is configured.",
       "LOAD_ERROR": "Unable to load repository topology.",
       "PUSH_AMBIGUOUS_DESC": "This push cannot be done at project level because the generated artifacts target multiple repositories."

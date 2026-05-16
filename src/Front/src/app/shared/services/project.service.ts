@@ -18,6 +18,7 @@ import {
   GenerateProjectBicepResponse,
   GenerateProjectPipelineResponse,
   GenerateProjectBootstrapPipelineResponse,
+  GetProjectLatestGenerationResponse,
   ProjectPipelineVariableGroupResponse,
   AddProjectPipelineVariableGroupRequest,
   SetProjectTagsRequest,
@@ -276,6 +277,13 @@ export class ProjectService {
       MethodEnum.GET,
       `/projects/${projectId}/resources`
     );
+  }
+
+  getProjectLatestGeneration(projectId: string): Promise<GetProjectLatestGenerationResponse | null> {
+    return this.axios.request$<GetProjectLatestGenerationResponse>(
+      MethodEnum.GET,
+      `/projects/${projectId}/latest-generation`
+    ).catch(() => null);
   }
 
   generateProjectBicep(projectId: string): Promise<GenerateProjectBicepResponse> {

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../../shared/services/language.service';
 
 import {
@@ -13,12 +13,82 @@ import {
   DsButtonComponent,
   DsAlertComponent,
   DsChipComponent,
+  DsTableColumn,
+  DsTableComponent,
 } from '../../shared/components/ds';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PersonalAccessTokenService } from '../../shared/services/personal-access-token.service';
 import { PersonalAccessTokenResponse } from '../../shared/interfaces/personal-access-token.interface';
 import { BicepViewerTheme, AppTheme, UserPreferencesService } from '../../shared/services/user-preferences.service';
 import { CreatePatDialogComponent } from './create-pat-dialog/create-pat-dialog.component';
+
+const PAT_TABLE_COLUMN_KEYS = {
+  name: 'name',
+  tokenPrefix: 'tokenPrefix',
+  createdAt: 'createdAt',
+  lastUsedAt: 'lastUsedAt',
+  expiresAt: 'expiresAt',
+  status: 'status',
+  actions: 'actions',
+} as const;
+
+const BICEP_THEME_PREVIEW_LINES = [
+  {
+    id: 'decorator',
+    indent: 0,
+    segments: [
+      { text: '@minLength', tone: 'decorator' },
+      { text: '(3)', tone: 'number' },
+    ],
+  },
+  {
+    id: 'param',
+    indent: 0,
+    segments: [
+      { text: 'param', tone: 'keyword' },
+      { text: ' environment ', tone: 'plain' },
+      { text: 'string', tone: 'type' },
+      { text: ' = ', tone: 'plain' },
+      { text: "'prod'", tone: 'string' },
+    ],
+  },
+  {
+    id: 'resource',
+    indent: 0,
+    segments: [
+      { text: 'resource', tone: 'keyword' },
+      { text: ' stg ', tone: 'plain' },
+      { text: "'Microsoft.Storage/storageAccounts@2024-01-01'", tone: 'string' },
+      { text: ' = {', tone: 'plain' },
+    ],
+  },
+  {
+    id: 'name',
+    indent: 1,
+    segments: [
+      { text: 'name', tone: 'property' },
+      { text: ': ', tone: 'plain' },
+      { text: "'st${", tone: 'string' },
+      { text: 'uniqueString', tone: 'constant' },
+      { text: '(subscription().subscriptionId)}', tone: 'plain' },
+      { text: "'", tone: 'string' },
+    ],
+  },
+  {
+    id: 'location',
+    indent: 1,
+    segments: [
+      { text: 'location', tone: 'property' },
+      { text: ': ', tone: 'plain' },
+      { text: 'location', tone: 'plain' },
+    ],
+  },
+  {
+    id: 'close',
+    indent: 0,
+    segments: [{ text: '}', tone: 'plain' }],
+  },
+] as const;
 
 @Component({
   selector: 'app-settings',
@@ -34,6 +104,7 @@ import { CreatePatDialogComponent } from './create-pat-dialog/create-pat-dialog.
     DsButtonComponent,
     DsAlertComponent,
     DsChipComponent,
+    DsTableComponent,
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
@@ -41,6 +112,7 @@ import { CreatePatDialogComponent } from './create-pat-dialog/create-pat-dialog.
 export class SettingsComponent implements OnInit {
   private readonly patService = inject(PersonalAccessTokenService);
   private readonly dialog = inject(MatDialog);
+  private readonly translate = inject(TranslateService);
   private readonly userPreferencesService = inject(UserPreferencesService);
   protected readonly languageService = inject(LanguageService);
 
@@ -54,6 +126,50 @@ export class SettingsComponent implements OnInit {
   protected readonly bicepViewerThemeOptions = this.userPreferencesService.bicepViewerThemeOptions;
   protected readonly currentAppTheme = this.userPreferencesService.appTheme;
   protected readonly appThemeOptions = this.userPreferencesService.appThemeOptions;
+  protected readonly bicepPreviewLines = BICEP_THEME_PREVIEW_LINES;
+  protected readonly patTableColumns = computed((): readonly DsTableColumn<PersonalAccessTokenResponse>[] => {
+    this.currentLanguage();
+
+    return [
+      {
+        key: PAT_TABLE_COLUMN_KEYS.name,
+        header: this.translate.instant('SETTINGS.TABLE.NAME'),
+        width: 'minmax(220px, 2fr)',
+      },
+      {
+        key: PAT_TABLE_COLUMN_KEYS.tokenPrefix,
+        header: this.translate.instant('SETTINGS.TABLE.PREFIX'),
+        width: 'minmax(140px, 1.15fr)',
+        mono: true,
+      },
+      {
+        key: PAT_TABLE_COLUMN_KEYS.createdAt,
+        header: this.translate.instant('SETTINGS.TABLE.CREATED'),
+        width: 'minmax(130px, 1fr)',
+      },
+      {
+        key: PAT_TABLE_COLUMN_KEYS.lastUsedAt,
+        header: this.translate.instant('SETTINGS.TABLE.LAST_USED'),
+        width: 'minmax(130px, 1fr)',
+      },
+      {
+        key: PAT_TABLE_COLUMN_KEYS.expiresAt,
+        header: this.translate.instant('SETTINGS.TABLE.EXPIRES'),
+        width: 'minmax(130px, 1fr)',
+      },
+      {
+        key: PAT_TABLE_COLUMN_KEYS.status,
+        header: this.translate.instant('SETTINGS.TABLE.STATUS'),
+        width: 'minmax(120px, 0.9fr)',
+      },
+      {
+        key: PAT_TABLE_COLUMN_KEYS.actions,
+        header: this.translate.instant('SETTINGS.TABLE.ACTIONS'),
+        width: 'max-content',
+        align: 'end',
+      },
+    ];
+  });
 
   ngOnInit(): void {
     void this.loadTokens();
@@ -150,4 +266,6 @@ export class SettingsComponent implements OnInit {
   protected selectAppTheme(theme: AppTheme): void {
     this.userPreferencesService.setAppTheme(theme);
   }
+
+  protected trackByTokenId = (_: number, token: PersonalAccessTokenResponse): string => token.id;
 }

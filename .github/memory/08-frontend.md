@@ -35,6 +35,7 @@
 - `@ngx-translate/core` + `@ngx-translate/http-loader` v17 with dictionaries in `public/i18n/fr.json` and `public/i18n/en.json`
 - `LanguageService` is signal-based with localStorage persistence and fallback order `persisted -> navigator.language -> fr`
 - `UserPreferencesService` now owns browser-local display preferences under localStorage key `infra-flow-sculptor.user-preferences`; the first durable preference is `bicepViewerTheme`, configured from `features/settings/settings.component.*` and consumed by `shared/components/bicep-file-panel/` through a signal-driven `data-theme` + CSS-variable skin. Keep future viewer/display preferences centralized in this service instead of scattering component-level localStorage calls.
+- The `/settings` page now keeps the display-preferences UX fully on DS surfaces: application-theme cards use explicit icon sizing to avoid clipped Material ligatures, Bicep-theme cards embed a local `main.bicep` preview that mirrors the viewer's syntax-color variables, and the PAT list is rendered with `app-ds-table` plus typed cell templates instead of legacy `ifs-data-table` markup.
 - `resource-edit` dialog keys stay under `RESOURCE_EDIT.*`; missing nested keys render raw labels
 - `DeploymentConfigComponent` resolves ACR labels through `RESOURCE_EDIT.FIELDS.*`; missing `ACR_AUTH_MODE*` keys in one locale break the shared ACR UI
 - Multi-repo project screens consume `PROJECT_DETAIL.LAYOUT.*`; `GenerationBoardComponent` reads labels from `PROJECT_DETAIL.BOARD.*`, not `CONFIG_DETAIL.BOARD.*`

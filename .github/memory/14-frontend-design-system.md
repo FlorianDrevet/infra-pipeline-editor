@@ -106,7 +106,8 @@
 
 ## Shared SCSS Mixins [2026-04-28]
 
-- `@include ifs-data-table` (in `src/Front/src/scss/_tables.scss`) provides reusable flex-based data table styling with `.ifs-table__header`, `.ifs-table__row`, `.ifs-table__col`, `.ifs-table__muted`, `.ifs-table__mono`. Used in settings PAT table. Consumer adds local `*-col--*` flex rules.
+- `@include ifs-data-table` (in `src/Front/src/scss/_tables.scss`) remains available for legacy flex-table surfaces with `.ifs-table__header`, `.ifs-table__row`, `.ifs-table__col`, `.ifs-table__muted`, `.ifs-table__mono`, but new dense tabular UIs should prefer `app-ds-table`. The `/settings` PAT list is now the reference migration: DS grid columns + typed cell templates + horizontal overflow wrapper instead of hand-rolled `ifs-table` markup.
+- The `/settings` Bicep-theme chooser is also a DS-aligned reference for theme previews: keep the sample snippet local to the page, but reuse the same syntax-color CSS variables as `shared/components/bicep-file-panel/` so the chooser matches the real generated-file viewer.
 - `DsTextFieldComponent` now supports `type="date"` and a `min` input for date constraints.
 - `DsDatePickerComponent` provides a fully custom calendar date picker (CDK overlay, brand gradient header, 42-day grid, min/max constraints, locale-aware formatting via `Intl.DateTimeFormat`, CVA support). Used in PAT creation dialog.
 - `DsDatePickerComponent` now includes a fast year-selection mode: clicking the header label switches to a 12-year grid with previous/next range navigation, selected/current year highlighting, and disabled years when fully outside `min`/`max`.

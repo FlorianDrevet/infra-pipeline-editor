@@ -224,6 +224,7 @@ Projects/Responses/
  GenerateProjectBicepResponse.cs
  GenerateProjectBootstrapPipelineResponse.cs
  GenerateProjectPipelineResponse.cs
+ GetProjectLatestGenerationResponse.cs
  GitBranchResponse.cs
  GitFileResponse.cs
  PipelineVariableUsageResponse.cs
