@@ -12,6 +12,15 @@ namespace InfraFlowSculptor.BicepGeneration.Assemblers.MainBicep;
 /// </summary>
 internal static class MainBicepDeploymentSectionAssembler
 {
+    private const string CrossConfigurationExistingResourceGroupsHeader =
+        "// -- Cross-configuration existing resource groups --------------------------";
+
+    private const string CrossConfigurationExistingResourcesHeader =
+        "// -- Cross-configuration existing resources --------------------------------";
+
+    private const string KeyVaultSecretsHeader =
+        "// -- Key Vault secrets (batch per Key Vault) ------------------------------";
+
     internal static void AppendResourceGroupDeclarations(
         StringBuilder sb,
         IReadOnlyList<ResourceGroupDefinition> resourceGroups,
@@ -53,7 +62,7 @@ internal static class MainBicepDeploymentSectionAssembler
             return;
         }
 
-        sb.AppendLine("// â”€â”€ Cross-configuration existing resource groups â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€");
+        sb.AppendLine(CrossConfigurationExistingResourceGroupsHeader);
         foreach (var extRgName in externalRgs)
         {
             var extRgSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRgName)}";
@@ -70,7 +79,7 @@ internal static class MainBicepDeploymentSectionAssembler
             return;
         }
 
-        sb.AppendLine("// â”€â”€ Cross-configuration existing resources â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€");
+        sb.AppendLine(CrossConfigurationExistingResourcesHeader);
         foreach (var extRef in existingResourceReferences)
         {
             var extSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRef.ResourceName)}";
@@ -110,7 +119,7 @@ internal static class MainBicepDeploymentSectionAssembler
             return;
         }
 
-        sb.AppendLine("// â”€â”€ Key Vault secrets (batch per Key Vault) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€");
+        sb.AppendLine(KeyVaultSecretsHeader);
         sb.AppendLine();
 
         foreach (var kvGroup in secretsByKv)

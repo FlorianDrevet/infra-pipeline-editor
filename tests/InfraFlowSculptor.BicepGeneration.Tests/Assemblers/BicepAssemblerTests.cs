@@ -164,4 +164,62 @@ public sealed class BicepAssemblerTests
         result.MainBicep.Should().NotContain("param containerAppIfsApiAcrLoginServer string");
         result.EnvironmentParameterFiles["main.dev.bicepparam"].Should().NotContain("containerAppIfsApiAcrLoginServer");
     }
+
+    [Fact]
+    public void Given_CrossConfigurationExistingResources_When_Assemble_Then_EmitsAsciiSectionComments()
+    {
+        // Arrange
+        var resourceGroups = new[]
+        {
+            new ResourceGroupDefinition
+            {
+                Name = "ifs",
+                Location = "FranceCentral",
+                ResourceAbbreviation = "rg",
+            },
+        };
+
+        var environments = new[]
+        {
+            new EnvironmentDefinition
+            {
+                Name = "Development",
+                ShortName = "dev",
+                Location = "FranceCentral",
+            },
+        };
+
+        var existingResourceReferences = new[]
+        {
+            new ExistingResourceReference
+            {
+                ResourceName = "infraflowsculptor",
+                ResourceTypeName = AzureResourceTypes.ContainerRegistry,
+                ResourceType = AzureResourceTypes.ArmTypes.ContainerRegistryType,
+                ResourceGroupName = "ifs-core",
+                ResourceAbbreviation = "acr",
+                SourceConfigName = "shared",
+            },
+        };
+
+        // Act
+        var result = BicepAssembler.Assemble(
+            modules: [],
+            new GenerationRequest
+            {
+                ResourceGroups = resourceGroups,
+                Environments = environments,
+                EnvironmentNames = ["Development"],
+                Resources = [],
+                NamingContext = new NamingContext(),
+                RoleAssignments = [],
+                AppSettings = [],
+                ExistingResourceReferences = existingResourceReferences,
+            });
+
+        // Assert
+        result.MainBicep.Should().Contain("// -- Cross-configuration existing resource groups");
+        result.MainBicep.Should().Contain("// -- Cross-configuration existing resources");
+        result.MainBicep.Should().NotContain("â");
+    }
 }

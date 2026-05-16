@@ -87,8 +87,7 @@ These reusable entity types are owned by multiple aggregates:
 ## Domain Events [2026-05-13]
 
 - `AggregateRoot<TId>` now implements `IHasDomainEvents` and owns an in-process `IReadOnlyCollection<IDomainEvent>` exposed through `DomainEvents`, plus `AddDomainEvent(...)` / `ClearDomainEvents()` helpers.
-- `Project.Create(...)` is the first event producer on the current branch and raises `ProjectCreatedDomainEvent`.
-- This seam is intentionally narrow: in-process only, no outbox, no integration-event rollout, and no requirement that every aggregate emits events yet.
+- `Project.Create(...)` is the first event producer on the current branch and raises `ProjectCreatedDomainEvent`; keep this seam intentionally narrow (in-process only, no outbox, no integration-event rollout, and no requirement that every aggregate emits events yet).
 
 ## Domain Invariants
 
