@@ -2,6 +2,17 @@
   display: block;
 }
 
+:host(.ds-page-header--gradient) .ds-page-header {
+  padding: var(--ifs-space-24);
+  border-radius: calc(var(--ifs-radius-lg) + 4px);
+  border: 1px solid var(--ifs-border-strong);
+  background:
+    radial-gradient(circle at top right, rgba(93, 152, 255, 0.22), transparent 34%),
+    linear-gradient(160deg, rgba(13, 29, 67, 0.92), rgba(15, 25, 40, 0.96));
+  box-shadow: var(--ifs-shadow-md);
+  overflow: hidden;
+}
+
 .ds-page-header {
   display: flex;
   align-items: flex-start;

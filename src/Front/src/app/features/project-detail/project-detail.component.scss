@@ -38,12 +38,14 @@
   flex-direction: column;
   gap: var(--ifs-space-12);
   padding: var(--ifs-space-20) var(--ifs-space-24);
-  background: var(--ifs-surface-1);
-  background: var(--project-surface-header);
-  border: 1px solid var(--project-border-accent);
-  border-radius: var(--ifs-radius-md);
+  background:
+    radial-gradient(circle at top right, rgba(93, 152, 255, 0.22), transparent 34%),
+    linear-gradient(160deg, rgba(13, 29, 67, 0.92), rgba(15, 25, 40, 0.96));
+  border: 1px solid var(--ifs-border-strong);
+  border-radius: calc(var(--ifs-radius-lg) + 4px);
   color: var(--ifs-text-primary);
-  box-shadow: var(--ifs-shadow-sm);
+  box-shadow: var(--ifs-shadow-md);
+  overflow: hidden;
 }
 
 .detail-header__nav {

@@ -122,6 +122,14 @@ describe('SidebarComponent', () => {
     expect(activeLinks[0].textContent).toContain('Members');
   });
 
+  it('Given_SidebarRendered_When_Rendered_Then_CollapseToggleIsNotExposed', () => {
+    fixture.detectChanges();
+
+    const collapseToggle = (fixture.nativeElement as HTMLElement).querySelector('.sidebar__toggle');
+
+    expect(collapseToggle).toBeNull();
+  });
+
   function findLinkByLabel(label: string): HTMLAnchorElement {
     const links = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLAnchorElement>('.sidebar__link'));
     const link = links.find((candidate) => candidate.textContent?.includes(label));
