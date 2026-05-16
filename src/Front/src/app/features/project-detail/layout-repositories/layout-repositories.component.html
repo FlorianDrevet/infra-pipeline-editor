@@ -37,44 +37,48 @@
           </header>
 
           @if (allInOneRepo(); as repo) {
-            <mat-card class="repo-card" [class.repo-card--busy]="repoActionId() === repo.id">
-              <mat-card-header>
-                <mat-card-title class="repo-card__title">
-                  <mat-icon class="repo-card__icon">folder_open</mat-icon>
-                  <span>{{ repo.alias }}</span>
-                </mat-card-title>
-                <mat-card-subtitle>{{ repo.providerType }}</mat-card-subtitle>
-              </mat-card-header>
+            <div class="repo-card" [class.repo-card--busy]="repoActionId() === repo.id">
+              <div class="repo-card__header">
+                <div class="repo-card__icon-badge">
+                  <mat-icon>folder_open</mat-icon>
+                </div>
+                <div class="repo-card__header-info">
+                  <span class="repo-card__name">{{ repo.alias }}</span>
+                  <span class="repo-card__provider">{{ repo.providerType }}</span>
+                </div>
+              </div>
 
-              <mat-card-content class="repo-card__content">
-                <div class="repo-card__row">
-                  <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
-                  <a class="repo-card__link" [href]="repo.repositoryUrl" target="_blank" rel="noopener">
+              <div class="repo-card__body">
+                <div class="repo-card__meta-row">
+                  <span class="repo-card__meta-label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
+                  <a class="repo-card__meta-value repo-card__meta-value--link" [href]="repo.repositoryUrl" target="_blank" rel="noopener">
                     {{ repo.owner }}/{{ repo.repositoryName }}
                   </a>
                 </div>
-                <div class="repo-card__row">
-                  <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
-                  <strong>{{ repo.defaultBranch }}</strong>
+                <div class="repo-card__meta-row">
+                  <span class="repo-card__meta-label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
+                  <span class="repo-card__meta-value repo-card__meta-value--mono">{{ repo.defaultBranch }}</span>
                 </div>
-                <div class="repo-card__chips">
-                  @for (kind of repo.contentKinds; track kind) {
-                    <mat-chip disableRipple>{{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}</mat-chip>
-                  }
-                </div>
-              </mat-card-content>
+                @if (repo.contentKinds.length > 0) {
+                  <div class="repo-card__chips">
+                    @for (kind of repo.contentKinds; track kind) {
+                      <span class="repo-card__chip">{{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}</span>
+                    }
+                  </div>
+                }
+              </div>
 
-              <mat-card-actions align="end">
-                <button mat-stroked-button (click)="openAllInOneDialog()" [disabled]="repoActionId() === repo.id">
+              <div class="repo-card__actions">
+                <button class="repo-card__action-btn" (click)="openAllInOneDialog()" [disabled]="repoActionId() === repo.id">
                   <mat-icon>edit</mat-icon>
                   {{ 'PROJECT_DETAIL.LAYOUT.EDIT' | translate }}
                 </button>
-                <button mat-stroked-button color="warn" (click)="openRemoveRepoDialog(repo)" [disabled]="repoActionId() === repo.id">
+                <button class="repo-card__action-btn repo-card__action-btn--danger" (click)="openRemoveRepoDialog(repo)" [disabled]="repoActionId() === repo.id">
                   <mat-icon>delete_outline</mat-icon>
                   {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
                 </button>
-              </mat-card-actions>
-            </mat-card>
+              </div>
+            </div>
           } @else {
             <button type="button" class="slot-empty" (click)="openAllInOneDialog()">
               <mat-icon class="slot-empty__icon">add_circle_outline</mat-icon>
@@ -97,39 +101,41 @@
           <div class="repo-grid">
             @for (slot of splitSlots(); track slot.kind) {
               @if (slot.repo; as repo) {
-                <mat-card class="repo-card" [class.repo-card--busy]="repoActionId() === repo.id">
-                  <mat-card-header>
-                    <mat-card-title class="repo-card__title">
-                      <mat-icon class="repo-card__icon">folder_open</mat-icon>
-                      <span>{{ slot.labelKey | translate }}</span>
-                    </mat-card-title>
-                    <mat-card-subtitle>{{ repo.alias }} · {{ repo.providerType }}</mat-card-subtitle>
-                  </mat-card-header>
+                <div class="repo-card" [class.repo-card--busy]="repoActionId() === repo.id">
+                  <div class="repo-card__header">
+                    <div class="repo-card__icon-badge">
+                      <mat-icon>folder_open</mat-icon>
+                    </div>
+                    <div class="repo-card__header-info">
+                      <span class="repo-card__name">{{ slot.labelKey | translate }}</span>
+                      <span class="repo-card__provider">{{ repo.alias }} · {{ repo.providerType }}</span>
+                    </div>
+                  </div>
 
-                  <mat-card-content class="repo-card__content">
-                    <div class="repo-card__row">
-                      <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
-                      <a class="repo-card__link" [href]="repo.repositoryUrl" target="_blank" rel="noopener">
+                  <div class="repo-card__body">
+                    <div class="repo-card__meta-row">
+                      <span class="repo-card__meta-label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
+                      <a class="repo-card__meta-value repo-card__meta-value--link" [href]="repo.repositoryUrl" target="_blank" rel="noopener">
                         {{ repo.owner }}/{{ repo.repositoryName }}
                       </a>
                     </div>
-                    <div class="repo-card__row">
-                      <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
-                      <strong>{{ repo.defaultBranch }}</strong>
+                    <div class="repo-card__meta-row">
+                      <span class="repo-card__meta-label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
+                      <span class="repo-card__meta-value repo-card__meta-value--mono">{{ repo.defaultBranch }}</span>
                     </div>
-                  </mat-card-content>
+                  </div>
 
-                  <mat-card-actions align="end">
-                    <button mat-stroked-button (click)="openSlotDialog(slot)" [disabled]="repoActionId() === repo.id">
+                  <div class="repo-card__actions">
+                    <button class="repo-card__action-btn" (click)="openSlotDialog(slot)" [disabled]="repoActionId() === repo.id">
                       <mat-icon>edit</mat-icon>
                       {{ 'PROJECT_DETAIL.LAYOUT.EDIT' | translate }}
                     </button>
-                    <button mat-stroked-button color="warn" (click)="openRemoveRepoDialog(repo)" [disabled]="repoActionId() === repo.id">
+                    <button class="repo-card__action-btn repo-card__action-btn--danger" (click)="openRemoveRepoDialog(repo)" [disabled]="repoActionId() === repo.id">
                       <mat-icon>delete_outline</mat-icon>
                       {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
                     </button>
-                  </mat-card-actions>
-                </mat-card>
+                  </div>
+                </div>
               } @else {
                 <button type="button" class="slot-empty" (click)="openSlotDialog(slot)">
                   <mat-icon class="slot-empty__icon">add_circle_outline</mat-icon>
