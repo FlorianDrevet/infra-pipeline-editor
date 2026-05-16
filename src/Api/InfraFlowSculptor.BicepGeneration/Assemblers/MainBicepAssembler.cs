@@ -223,6 +223,7 @@ internal static class MainBicepAssembler
                 var bicepType = module.ParameterTypeOverrides.TryGetValue(key, out var customType)
                     ? ResolveImportedTypeName(importedModuleTypeNames, module.ModuleFolderName, customType)
                     : BicepFormattingHelper.InferBicepType(value);
+                AppendDescriptionDecorator(sb, BuildResourceParameterDescription(module, key, isSecure: false));
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} {bicepType}");
             }
 
@@ -230,6 +231,7 @@ internal static class MainBicepAssembler
             {
                 sb.AppendLine();
                 sb.AppendLine("@secure()");
+                AppendDescriptionDecorator(sb, BuildResourceParameterDescription(module, secureParam, isSecure: true));
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(secureParam)} string");
             }
 
@@ -251,10 +253,17 @@ internal static class MainBicepAssembler
         StringBuilder sb,
         IReadOnlyList<AppSettingDefinition> appSettings)
     {
-        foreach (var setting in appSettings.Where(setting => setting.EnvironmentValues is { Count: > 0 }))
+        foreach (var settingGroup in appSettings
+                     .Where(setting => setting.EnvironmentValues is { Count: > 0 })
+                     .GroupBy(setting => setting.TargetResourceName, StringComparer.OrdinalIgnoreCase))
         {
-            var paramName = BicepNamingHelper.GetStaticAppSettingParamName(setting.TargetResourceName, setting.Name);
-            sb.AppendLine($"param {paramName} string");
+            sb.AppendLine($"// The following inputs are used as environment variables for application {settingGroup.Key}.");
+
+            foreach (var setting in settingGroup)
+            {
+                var paramName = BicepNamingHelper.GetStaticAppSettingParamName(setting.TargetResourceName, setting.Name);
+                sb.AppendLine($"param {paramName} string");
+            }
         }
 
         foreach (var setting in appSettings.Where(setting =>
@@ -337,5 +346,26 @@ internal static class MainBicepAssembler
             || module.ParentModuleOutputReferences.ContainsKey(parameterName)
             || module.ExistingResourceIdReferences.ContainsKey(parameterName)
             || module.ExistingResourcePropertyReferences.ContainsKey(parameterName);
+    }
+
+    private static void AppendDescriptionDecorator(StringBuilder sb, string description)
+    {
+        sb.AppendLine($"@description('{BicepFormattingHelper.EscapeBicepString(description)}')");
+    }
+
+    private static string BuildResourceParameterDescription(
+        GeneratedTypeModule module,
+        string parameterName,
+        bool isSecure)
+    {
+        var resourceTypeName = string.IsNullOrWhiteSpace(module.ResourceTypeName)
+            ? module.ModuleFolderName
+            : module.ResourceTypeName;
+        var resourceName = string.IsNullOrWhiteSpace(module.LogicalResourceName)
+            ? module.ModuleName
+            : module.LogicalResourceName;
+        var valueQualifier = isSecure ? "Secure value" : "Value";
+
+        return $"{valueQualifier} for the '{parameterName}' input of {resourceTypeName} resource '{resourceName}'.";
     }
 }
