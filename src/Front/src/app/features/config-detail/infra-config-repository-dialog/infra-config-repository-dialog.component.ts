@@ -4,11 +4,9 @@ import {
   FormBuilder,
   FormControl,
   ReactiveFormsModule,
-  Validators,
-  AbstractControl,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent } from '../../../shared/components/ds';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import {
   MAT_DIALOG_DATA,
@@ -24,6 +22,12 @@ import {
   UpdateInfraConfigRepositoryRequest,
 } from '../../../shared/interfaces/infra-config-repository.interface';
 import { ProjectService } from '../../../shared/services/project.service';
+import {
+  buildRepositoryForm,
+  CONTENT_KINDS,
+  getSelectedContentKinds,
+  PROVIDER_OPTIONS,
+} from '../../../shared/utils/repository-dialog.utils';
 
 export interface InfraConfigRepositoryDialogData {
   projectId: string;
@@ -33,18 +37,6 @@ export interface InfraConfigRepositoryDialogData {
   /** Pre-selected and locked content kinds for slotted layouts. */
   lockedKinds?: RepositoryContentKind[];
 }
-
-const PROVIDER_OPTIONS: DsSelectOption[] = [
-  { value: 'AzureDevOps', label: 'Azure DevOps' },
-  { value: 'GitHub', label: 'GitHub' },
-  { value: 'GitLab', label: 'GitLab' },
-  { value: 'Bitbucket', label: 'Bitbucket' },
-];
-
-const CONTENT_KINDS: ReadonlyArray<RepositoryContentKind> = [
-  'Infrastructure',
-  'ApplicationCode',
-];
 
 @Component({
   selector: 'app-infra-config-repository-dialog',
@@ -77,40 +69,9 @@ export class InfraConfigRepositoryDialogComponent {
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
 
-  protected readonly form = this.fb.group({
-    alias: new FormControl<string>(
-      { value: this.data.existing?.alias ?? '', disabled: this.isEditMode },
-      {
-        nonNullable: true,
-        validators: [Validators.required, Validators.pattern(/^[a-z0-9-]+$/)],
-      }
-    ),
-    providerType: new FormControl<string>(
-      this.data.existing?.providerType ?? 'AzureDevOps',
-      { nonNullable: true, validators: [Validators.required] }
-    ),
-    repositoryUrl: new FormControl<string>(
-      this.data.existing?.repositoryUrl ?? '',
-      { nonNullable: true, validators: [Validators.required] }
-    ),
-    defaultBranch: new FormControl<string>(
-      this.data.existing?.defaultBranch ?? 'main',
-      { nonNullable: true, validators: [Validators.required] }
-    ),
-    contentKinds: this.fb.array<FormControl<boolean>>(
-      CONTENT_KINDS.map((kind) => {
-        const isLocked = this.lockedKinds.includes(kind);
-        const initialChecked = isLocked
-          ? true
-          : (this.data.existing?.contentKinds?.includes(kind) ?? false);
-        return new FormControl<boolean>(
-          { value: initialChecked, disabled: isLocked },
-          { nonNullable: true }
-        );
-      }),
-      [atLeastOneChecked()]
-    ),
-  });
+  protected readonly form = buildRepositoryForm(
+    this.fb, this.isEditMode, this.data.existing, this.lockedKinds
+  );
 
   protected get contentKindsArray(): FormArray<FormControl<boolean>> {
     return this.form.controls.contentKinds;
@@ -127,9 +88,7 @@ export class InfraConfigRepositoryDialogComponent {
     this.errorKey.set('');
 
     const raw = this.form.getRawValue();
-    const selectedKinds: RepositoryContentKind[] = CONTENT_KINDS.filter(
-      (kind, idx) => raw.contentKinds[idx] || this.lockedKinds.includes(kind)
-    );
+    const selectedKinds = getSelectedContentKinds(raw.contentKinds, this.lockedKinds);
 
     try {
       if (this.isEditMode && this.data.existing) {
@@ -171,12 +130,4 @@ export class InfraConfigRepositoryDialogComponent {
   protected onCancel(): void {
     this.dialogRef.close();
   }
-}
-
-function atLeastOneChecked() {
-  return (control: AbstractControl) => {
-    const arr = control as FormArray<FormControl<boolean>>;
-    const any = arr.controls.some((c) => c.value === true);
-    return any ? null : { required: true };
-  };
 }

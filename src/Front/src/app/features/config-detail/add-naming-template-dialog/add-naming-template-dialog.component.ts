@@ -1,5 +1,5 @@
 import { Component, computed, ElementRef, inject, viewChild } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { DsButtonComponent, DsSelectComponent } from '../../../shared/components/ds';
 import { MatChipsModule } from '@angular/material/chips';
@@ -10,6 +10,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { RESOURCE_TYPE_OPTIONS } from '../enums/resource-type.enum';
+import {
+  buildNamingTemplateForm,
+  computeFilteredResourceTypeOptions,
+  extractNamingTemplateResult,
+  formatPlaceholder,
+  insertPlaceholderAtCursor,
+  NAMING_TEMPLATE_PLACEHOLDERS,
+} from '../../../shared/utils/naming-template-dialog.utils';
 
 export type NamingTemplateDialogMode = 'default' | 'resource';
 
@@ -55,17 +63,7 @@ export class AddNamingTemplateDialogComponent {
   protected readonly isResourceMode = this.data.mode === 'resource';
   protected readonly isEditMode = this.data.isEditMode;
 
-  /** Available placeholder variables that can be inserted into the template. */
-  protected readonly placeholders: readonly string[] = [
-    'name',
-    'prefix',
-    'suffix',
-    'env',
-    'envShort',
-    'resourceType',
-    'resourceAbbr',
-    'location',
-  ];
+  protected readonly placeholders = NAMING_TEMPLATE_PLACEHOLDERS;
 
   protected readonly dialogTitleKey = computed(() => {
     if (this.isResourceMode) {
@@ -83,51 +81,20 @@ export class AddNamingTemplateDialogComponent {
     ? 'CONFIG_DETAIL.NAMING_TEMPLATES.FORM.SAVE'
     : 'CONFIG_DETAIL.NAMING_TEMPLATES.FORM.ADD';
 
-  protected readonly resourceTypeOptions = computed(() => {
-    if (!this.isResourceMode || this.isEditMode) {
-      return RESOURCE_TYPE_OPTIONS;
-    }
+  protected readonly resourceTypeOptions = computed(() =>
+    computeFilteredResourceTypeOptions(
+      RESOURCE_TYPE_OPTIONS, this.isResourceMode, this.isEditMode, this.data.availableResourceTypes
+    )
+  );
 
-    const allowedResourceTypes = new Set(this.data.availableResourceTypes ?? []);
-    return RESOURCE_TYPE_OPTIONS.filter((option) => allowedResourceTypes.has(option.value));
-  });
-
-  protected readonly form = this.fb.group({
-    resourceType: [
-      this.data.resourceType ?? '',
-      this.isResourceMode ? [Validators.required] : [],
-    ],
-    template: [
-      this.data.template ?? '',
-      [Validators.required, Validators.minLength(1), Validators.maxLength(500)],
-    ],
-  });
+  protected readonly form = buildNamingTemplateForm(this.fb, this.isResourceMode, this.data);
 
   protected formatPlaceholder(placeholder: string): string {
-    return `{${placeholder}}`;
+    return formatPlaceholder(placeholder);
   }
 
-  /** Inserts `{placeholder}` at the cursor position (or end) of the template input. */
   protected insertPlaceholder(placeholder: string): void {
-    const token = this.formatPlaceholder(placeholder);
-    const inputEl = this.templateInput()?.nativeElement;
-    const ctrl = this.form.controls.template;
-    const current = ctrl.value ?? '';
-
-    if (inputEl) {
-      const start = inputEl.selectionStart ?? current.length;
-      const end = inputEl.selectionEnd ?? start;
-      const newValue = current.slice(0, start) + token + current.slice(end);
-      ctrl.setValue(newValue);
-      // Restore focus and place cursor right after the inserted token.
-      const cursorPos = start + token.length;
-      requestAnimationFrame(() => {
-        inputEl.focus();
-        inputEl.setSelectionRange(cursorPos, cursorPos);
-      });
-    } else {
-      ctrl.setValue(current + token);
-    }
+    insertPlaceholderAtCursor(placeholder, this.form.controls.template, this.templateInput());
   }
 
   protected onCancel(): void {
@@ -135,25 +102,9 @@ export class AddNamingTemplateDialogComponent {
   }
 
   protected onSubmit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
+    const result = extractNamingTemplateResult(this.form, this.isResourceMode);
+    if (result) {
+      this.dialogRef.close(result);
     }
-
-    const values = this.form.getRawValue();
-    const template = values.template?.trim();
-
-    if (!template) {
-      this.form.controls.template.setErrors({ required: true });
-      return;
-    }
-
-    const result: AddNamingTemplateDialogResult = { template };
-
-    if (this.isResourceMode) {
-      result.resourceType = values.resourceType ?? undefined;
-    }
-
-    this.dialogRef.close(result);
   }
 }

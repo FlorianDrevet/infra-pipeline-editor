@@ -71,6 +71,9 @@ public static class DependencyInjection
         // V2 multi-repo Git routing
         services.AddScoped<IRepositoryTargetResolver, RepositoryTargetResolver>();
 
+        // Git repo query helper (shared setup for branch/file query handlers)
+        services.AddScoped<IGitRepoQueryHelper, GitRepoQueryHelper>();
+
         // Role assignment domain services
         services.AddScoped<IRoleAssignmentDomainService, RoleAssignmentDomainService>();
         services.AddScoped<IRoleAssignmentImpactAnalyzer, RoleAssignmentImpactAnalyzer>();
