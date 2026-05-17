@@ -23,7 +23,7 @@ public static class CustomDomainController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/azure-resources/{resourceId:guid}/custom-domains")
+            var group = endpoints.MapGroup(Routes.AzureResourceCustomDomains)
                 .WithTags("CustomDomains");
 
             group.MapGet("",

@@ -14,6 +14,7 @@ namespace InfraFlowSculptor.Application.PersonalAccessTokens.Common;
 /// <param name="CreatedAt">UTC creation timestamp.</param>
 /// <param name="LastUsedAt">UTC timestamp of last authentication usage, or <c>null</c>.</param>
 /// <param name="IsRevoked">Whether the token has been revoked.</param>
+/// <param name="Scopes">The permission scope names assigned to this token.</param>
 public record PersonalAccessTokenResult(
     PersonalAccessTokenId Id,
     UserId UserId,
@@ -22,4 +23,5 @@ public record PersonalAccessTokenResult(
     DateTime? ExpiresAt,
     DateTime CreatedAt,
     DateTime? LastUsedAt,
-    bool IsRevoked);
+    bool IsRevoked,
+    List<string> Scopes);

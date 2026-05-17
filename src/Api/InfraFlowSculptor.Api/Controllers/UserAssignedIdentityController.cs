@@ -29,7 +29,7 @@ public static class UserAssignedIdentityController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/user-assigned-identity")
+            var group = endpoints.MapGroup(Routes.UserAssignedIdentity)
                 .WithTags("User Assigned Identities");
 
             group.MapGet("/{id:guid}",

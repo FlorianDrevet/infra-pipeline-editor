@@ -22,7 +22,7 @@ public static class WebAppController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/web-app")
+            var group = endpoints.MapGroup(Routes.WebApp)
                 .WithTags("Web Apps");
 
             group.MapGet("/{id:guid}",

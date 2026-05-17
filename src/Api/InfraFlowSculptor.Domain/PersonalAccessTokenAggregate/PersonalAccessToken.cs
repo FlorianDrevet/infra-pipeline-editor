@@ -43,6 +43,11 @@ public sealed class PersonalAccessToken : AggregateRoot<PersonalAccessTokenId>
     /// <summary>Gets whether this token has been revoked.</summary>
     public bool IsRevoked { get; private set; }
 
+    private readonly List<PatScope> _scopes = [];
+
+    /// <summary>Gets the permission scopes assigned to this token.</summary>
+    public IReadOnlyList<PatScope> Scopes => _scopes.AsReadOnly();
+
     [SetsRequiredMembers]
     private PersonalAccessToken(
         PersonalAccessTokenId id,
@@ -51,7 +56,8 @@ public sealed class PersonalAccessToken : AggregateRoot<PersonalAccessTokenId>
         TokenHash tokenHash,
         string tokenPrefix,
         DateTime? expiresAt,
-        DateTime createdAt)
+        DateTime createdAt,
+        IEnumerable<PatScope> scopes)
         : base(id)
     {
         UserId = userId;
@@ -61,6 +67,7 @@ public sealed class PersonalAccessToken : AggregateRoot<PersonalAccessTokenId>
         ExpiresAt = expiresAt;
         CreatedAt = createdAt;
         IsRevoked = false;
+        _scopes = scopes.ToList();
     }
 
     /// <summary>EF Core constructor.</summary>
@@ -73,15 +80,20 @@ public sealed class PersonalAccessToken : AggregateRoot<PersonalAccessTokenId>
     /// <param name="userId">The identifier of the owning user.</param>
     /// <param name="name">A human-readable label for this token.</param>
     /// <param name="expiresAt">Optional UTC expiration date.</param>
+    /// <param name="scopes">The permission scopes to assign. Defaults to read-only if empty.</param>
     /// <returns>A tuple of the persisted entity and the one-time plaintext token value.</returns>
     public static (PersonalAccessToken Token, string PlainTextToken) Create(
         UserId userId,
         string name,
-        DateTime? expiresAt)
+        DateTime? expiresAt,
+        IReadOnlyList<PatScope>? scopes = null)
     {
         var plainText = GenerateToken();
         var hash = ValueObjects.TokenHash.Compute(plainText);
         var prefix = plainText[..Math.Min(12, plainText.Length)];
+        var effectiveScopes = scopes is { Count: > 0 }
+            ? scopes
+            : [new PatScope(PatScopeType.Read)];
 
         var token = new PersonalAccessToken(
             PersonalAccessTokenId.CreateUnique(),
@@ -90,9 +102,17 @@ public sealed class PersonalAccessToken : AggregateRoot<PersonalAccessTokenId>
             hash,
             prefix,
             expiresAt,
-            DateTime.UtcNow);
+            DateTime.UtcNow,
+            effectiveScopes);
 
         return (token, plainText);
+    }
+
+    /// <summary>Returns <c>true</c> if this token has the specified scope.</summary>
+    /// <param name="scope">The scope type to check.</param>
+    public bool HasScope(PatScopeType scope)
+    {
+        return _scopes.Any(s => s.Value == scope);
     }
 
     /// <summary>Marks this token as revoked. Revoked tokens cannot be used for authentication.</summary>

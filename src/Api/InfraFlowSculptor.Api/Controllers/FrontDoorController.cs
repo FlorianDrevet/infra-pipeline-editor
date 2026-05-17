@@ -21,7 +21,7 @@ public static class FrontDoorController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/front-door")
+            var group = endpoints.MapGroup(Routes.FrontDoor)
                 .WithTags("FrontDoors");
 
             group.MapGet("/{id:guid}",

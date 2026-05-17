@@ -8,6 +8,8 @@ namespace InfraFlowSculptor.Application.PersonalAccessTokens.Commands.CreatePers
 /// </summary>
 /// <param name="Name">A human-readable label for the token.</param>
 /// <param name="ExpiresAt">Optional UTC expiration date. <c>null</c> means no expiration.</param>
+/// <param name="Scopes">Permission scopes (read, write, generate). Defaults to read-only if empty or null.</param>
 public record CreatePersonalAccessTokenCommand(
     string Name,
-    DateTime? ExpiresAt) : ICommand<CreatedPersonalAccessTokenResult>;
+    DateTime? ExpiresAt,
+    List<string>? Scopes = null) : ICommand<CreatedPersonalAccessTokenResult>;

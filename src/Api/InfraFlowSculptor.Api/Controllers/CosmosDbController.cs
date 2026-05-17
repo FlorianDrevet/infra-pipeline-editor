@@ -22,7 +22,7 @@ public static class CosmosDbController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var config = endpoints.MapGroup("/cosmos-db")
+            var config = endpoints.MapGroup(Routes.CosmosDb)
                 .WithTags("Cosmos DB");
 
             config.MapGet("/{id:guid}",

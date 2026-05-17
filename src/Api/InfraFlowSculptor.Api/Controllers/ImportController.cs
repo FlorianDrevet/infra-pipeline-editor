@@ -27,7 +27,7 @@ public static class ImportController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/imports")
+            var group = endpoints.MapGroup(Routes.Imports)
                 .WithTags("Imports");
 
             group.MapPost("/preview",

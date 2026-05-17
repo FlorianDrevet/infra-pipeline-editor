@@ -25,7 +25,7 @@ public static class PersonalAccessTokenController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/personal-access-tokens")
+            var group = endpoints.MapGroup(Routes.PersonalAccessTokens)
                 .WithTags("Personal Access Tokens");
 
             group.MapGet("",

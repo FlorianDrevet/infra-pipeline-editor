@@ -21,7 +21,7 @@ public static class PrivateDnsZoneController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/private-dns-zone")
+            var group = endpoints.MapGroup(Routes.PrivateDnsZone)
                 .WithTags("PrivateDnsZones");
 
             group.MapGet("/{id:guid}",

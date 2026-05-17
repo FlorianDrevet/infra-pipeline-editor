@@ -20,7 +20,7 @@ public static class ResourceGroupController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var config = endpoints.MapGroup("/resource-group")
+            var config = endpoints.MapGroup(Routes.ResourceGroup)
                 .WithTags("ResourceGroups");
 
             config.MapGet("/{id:guid}",

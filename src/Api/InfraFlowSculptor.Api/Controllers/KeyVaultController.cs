@@ -20,7 +20,7 @@ public static class KeyVaultController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var config = endpoints.MapGroup("/keyvault")
+            var config = endpoints.MapGroup(Routes.KeyVault)
                 .WithTags("KeyVaults");
 
             config.MapGet("/{id:guid}",

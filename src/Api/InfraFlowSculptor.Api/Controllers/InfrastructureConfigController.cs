@@ -29,7 +29,7 @@ public static class InfrastructureConfigController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var config = endpoints.MapGroup("/infra-config")
+            var config = endpoints.MapGroup(Routes.InfraConfig)
                 .WithTags("Infrastructure Configuration");
 
             // ── Core CRUD ────────────────────────────────────────────────────

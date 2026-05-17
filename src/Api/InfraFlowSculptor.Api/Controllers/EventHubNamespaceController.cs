@@ -26,7 +26,7 @@ public static class EventHubNamespaceController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/event-hubs")
+            var group = endpoints.MapGroup(Routes.EventHubs)
                 .WithTags("Event Hubs");
 
             group.MapGet("/{id:guid}",

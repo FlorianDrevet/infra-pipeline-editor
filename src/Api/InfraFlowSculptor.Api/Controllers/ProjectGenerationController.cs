@@ -38,7 +38,7 @@ public static class ProjectGenerationController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/projects")
+            var group = endpoints.MapGroup(Routes.Projects)
                 .WithTags("Projects");
 
             MapLatestGenerationEndpoint(group);

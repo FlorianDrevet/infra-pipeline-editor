@@ -43,7 +43,7 @@ describe('UserPreferencesService', () => {
     expect(service.bicepViewerTheme()).toBe('sand-dusk');
     expect(setItemSpy).toHaveBeenCalledOnceWith(
       USER_PREFERENCES_STORAGE_KEY,
-      JSON.stringify({ bicepViewerTheme: 'sand-dusk' }),
+      JSON.stringify({ bicepViewerTheme: 'sand-dusk', appTheme: 'dark' }),
     );
   });
 });

@@ -20,7 +20,7 @@ public static class SecureParameterMappingController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/azure-resources/{resourceId:guid}/secure-parameter-mappings")
+            var group = endpoints.MapGroup(Routes.AzureResourceSecureParameterMappings)
                 .WithTags("SecureParameterMappings");
 
             group.MapGet("",

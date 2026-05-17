@@ -23,7 +23,7 @@ public static class ContainerRegistryController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/container-registry")
+            var group = endpoints.MapGroup(Routes.ContainerRegistry)
                 .WithTags("Container Registries");
 
             group.MapGet("/{id:guid}",
@@ -121,7 +121,7 @@ public static class ContainerRegistryController
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // Endpoint to check whether a compute resource has AcrPull access on a Container Registry
-            var acrAccessGroup = endpoints.MapGroup("/azure-resources/{resourceId:guid}/check-acr-pull-access")
+            var acrAccessGroup = endpoints.MapGroup(Routes.AzureResourceCheckAcrPullAccess)
                 .WithTags("Container Registries");
 
             acrAccessGroup.MapGet("/{containerRegistryId:guid}",

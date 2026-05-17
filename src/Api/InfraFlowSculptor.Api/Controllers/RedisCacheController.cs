@@ -20,7 +20,7 @@ public static class RedisCacheController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var config = endpoints.MapGroup("/redis-cache")
+            var config = endpoints.MapGroup(Routes.RedisCache)
                 .WithTags("RedisCaches");
 
             config.MapGet("/{id:guid}",

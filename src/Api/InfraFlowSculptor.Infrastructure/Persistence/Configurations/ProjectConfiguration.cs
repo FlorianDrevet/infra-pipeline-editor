@@ -27,6 +27,10 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.HasKey(x => x.Id);
         builder.ConfigureAggregateRootId<Project, ProjectId>();
 
+        builder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .IsRowVersion();
+
         builder.Property(x => x.Name)
             .HasConversion(new SingleValueConverter<Name, string>())
             .HasMaxLength(ProjectNameMaxLength)

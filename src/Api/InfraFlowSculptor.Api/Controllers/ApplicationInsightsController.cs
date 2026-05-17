@@ -22,7 +22,7 @@ public static class ApplicationInsightsController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/application-insights")
+            var group = endpoints.MapGroup(Routes.ApplicationInsights)
                 .WithTags("Application Insights");
 
             group.MapGet("/{id:guid}",

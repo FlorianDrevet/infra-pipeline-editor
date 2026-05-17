@@ -23,7 +23,7 @@ public static class LogAnalyticsWorkspaceController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/log-analytics-workspace")
+            var group = endpoints.MapGroup(Routes.LogAnalyticsWorkspace)
                 .WithTags("Log Analytics Workspaces");
 
             group.MapGet("/{id:guid}",

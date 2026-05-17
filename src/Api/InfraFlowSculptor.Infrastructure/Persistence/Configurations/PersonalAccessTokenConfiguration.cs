@@ -52,5 +52,19 @@ public sealed class PersonalAccessTokenConfiguration : IEntityTypeConfiguration<
         builder.Property(t => t.IsRevoked).IsRequired();
 
         builder.HasIndex(t => t.UserId);
+
+        builder.OwnsMany(t => t.Scopes, scope =>
+        {
+            scope.ToTable("PersonalAccessTokenScopes");
+            scope.WithOwner().HasForeignKey("PersonalAccessTokenId");
+            scope.Property(s => s.Value)
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .HasColumnName("Scope");
+            scope.HasKey("PersonalAccessTokenId", nameof(PatScope.Value));
+        });
+        builder.Navigation(t => t.Scopes)
+            .HasField("_scopes")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

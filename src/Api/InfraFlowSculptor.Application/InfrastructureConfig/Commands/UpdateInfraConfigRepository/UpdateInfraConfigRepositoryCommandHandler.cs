@@ -20,7 +20,7 @@ public sealed class UpdateInfraConfigRepositoryCommandHandler(
         var auth = await accessService.VerifyOwnerAccessAsync(command.ProjectId, cancellationToken);
         if (auth.IsError) return auth.Errors;
 
-        var config = await repo.GetByIdAsync(command.ConfigId);
+        var config = await repo.GetByIdAsync(command.ConfigId, cancellationToken);
         if (config is null) return Errors.InfrastructureConfig.NotFoundError(command.ConfigId);
         if (config.ProjectId != command.ProjectId) return Errors.InfrastructureConfig.NotFoundError(command.ConfigId);
 

@@ -22,7 +22,7 @@ public static class AppConfigurationKeyController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/azure-resources/{appConfigurationId:guid}/configuration-keys")
+            var group = endpoints.MapGroup(Routes.AzureResourceConfigurationKeys)
                 .WithTags("AppConfigurationKeys");
 
             group.MapGet("",

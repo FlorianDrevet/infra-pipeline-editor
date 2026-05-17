@@ -151,7 +151,9 @@ describe('GenerationBoardComponent historical generation banner', () => {
   it('renders a historical generation banner with a relaunch action', async () => {
     fixture = TestBed.createComponent(GenerationBoardComponent);
     fixture.detectChanges();
+    await flushPromises();
     await fixture.whenStable();
+    await flushPromises();
     await fixture.whenRenderingDone();
     fixture.detectChanges();
 
@@ -169,7 +171,9 @@ describe('GenerationBoardComponent historical generation banner', () => {
   it('delegates the banner relaunch action to generateAll', async () => {
     fixture = TestBed.createComponent(GenerationBoardComponent);
     fixture.detectChanges();
+    await flushPromises();
     await fixture.whenStable();
+    await flushPromises();
     await fixture.whenRenderingDone();
     fixture.detectChanges();
 
@@ -234,4 +238,10 @@ function createConfig(): InfrastructureConfigResponse {
     layoutMode: null,
     repositories: [],
   };
+}
+
+async function flushPromises(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
 }

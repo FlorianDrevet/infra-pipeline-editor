@@ -28,7 +28,7 @@ public static class StorageAccountController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var storageAccounts = endpoints.MapGroup("/storage-accounts")
+            var storageAccounts = endpoints.MapGroup(Routes.StorageAccounts)
                 .WithTags("StorageAccounts");
 
             storageAccounts.MapGet("/{id:guid}",

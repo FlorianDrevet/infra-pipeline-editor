@@ -23,6 +23,10 @@ public sealed class InfrastructureConfigConfiguration
 
         builder.ConfigureAggregateRootId<InfrastructureConfig, InfrastructureConfigId>();
 
+        builder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .IsRowVersion();
+
         builder.Property(x => x.Name)
             .HasConversion(new SingleValueConverter<Name, string>())
             .HasMaxLength(InfrastructureConfigNameMaxLength);

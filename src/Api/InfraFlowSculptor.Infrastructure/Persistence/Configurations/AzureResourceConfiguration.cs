@@ -24,6 +24,10 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
 
         builder.ConfigureAggregateRootId<AzureResource, AzureResourceId>();
 
+        builder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .IsRowVersion();
+
         builder.Property(order => order.Location)
             .IsRequired()
             .HasConversion(new EnumValueConverter<Location, Location.LocationEnum>());

@@ -26,7 +26,7 @@ public static class ServiceBusNamespaceController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/service-bus")
+            var group = endpoints.MapGroup(Routes.ServiceBus)
                 .WithTags("Service Bus");
 
             group.MapGet("/{id:guid}",

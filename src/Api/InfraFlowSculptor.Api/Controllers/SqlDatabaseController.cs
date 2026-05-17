@@ -22,7 +22,7 @@ public static class SqlDatabaseController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/sql-database")
+            var group = endpoints.MapGroup(Routes.SqlDatabase)
                 .WithTags("SQL Databases");
 
             group.MapGet("/{id:guid}",

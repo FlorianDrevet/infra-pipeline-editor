@@ -21,7 +21,7 @@ public static class PipelineGenerationController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/generate-pipeline")
+            var group = endpoints.MapGroup(Routes.GeneratePipeline)
                 .WithTags("Generate Pipeline");
 
             group.MapPost("",

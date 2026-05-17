@@ -22,7 +22,7 @@ public static class ContainerAppEnvironmentController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/container-app-environment")
+            var group = endpoints.MapGroup(Routes.ContainerAppEnvironment)
                 .WithTags("Container App Environments");
 
             group.MapGet("/{id:guid}",

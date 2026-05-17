@@ -22,7 +22,7 @@ public static class FunctionAppController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/function-app")
+            var group = endpoints.MapGroup(Routes.FunctionApp)
                 .WithTags("Function Apps");
 
             group.MapGet("/{id:guid}",

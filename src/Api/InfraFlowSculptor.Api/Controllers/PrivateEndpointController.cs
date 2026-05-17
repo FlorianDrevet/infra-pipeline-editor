@@ -21,7 +21,7 @@ public static class PrivateEndpointController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/resources/{resourceId:guid}/private-endpoints")
+            var group = endpoints.MapGroup(Routes.ResourcePrivateEndpoints)
                 .WithTags("PrivateEndpoints");
 
             group.MapGet("",

@@ -21,7 +21,7 @@ public static class NetworkSecurityGroupController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/network-security-group")
+            var group = endpoints.MapGroup(Routes.NetworkSecurityGroup)
                 .WithTags("NetworkSecurityGroups");
 
             group.MapGet("/{id:guid}",

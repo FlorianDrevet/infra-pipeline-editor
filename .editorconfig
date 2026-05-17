@@ -101,8 +101,8 @@ dotnet_diagnostic.CA1805.severity = none
 dotnet_diagnostic.CA1019.severity = suggestion
 # CS1734: XML comment parameter reference
 dotnet_diagnostic.CS1734.severity = suggestion
-# CA2016: Forward CancellationToken to methods — defer to incremental improvement
-dotnet_diagnostic.CA2016.severity = suggestion
+# CA2016: Forward CancellationToken to methods — enforced as error
+dotnet_diagnostic.CA2016.severity = warning
 # CS1587: XML comment is not placed on a valid language element
 dotnet_diagnostic.CS1587.severity = suggestion
 # CA1068: CancellationToken should be last parameter — existing signatures are stable

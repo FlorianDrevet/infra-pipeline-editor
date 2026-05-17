@@ -22,14 +22,18 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IValidator<TRequest>
     {
         if (validator is null || request is not ICommandBase)
         {
+#pragma warning disable CA2016 // RequestHandlerDelegate has no CancellationToken parameter
             return await next();
+#pragma warning restore CA2016
         }
 
         var validationResult = await validator.ValidateAsync(request, cancellationToken);
 
         if (validationResult.IsValid)
         {
+#pragma warning disable CA2016 // RequestHandlerDelegate has no CancellationToken parameter
             return await next();
+#pragma warning restore CA2016
         }
 
         var errors = validationResult.Errors

@@ -19,7 +19,7 @@ public static class ProjectRepositoryController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/projects")
+            var group = endpoints.MapGroup(Routes.Projects)
                 .WithTags("Projects");
 
             MapRepositoryAndLayoutEndpoints(group);

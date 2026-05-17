@@ -21,7 +21,7 @@ public static class VirtualNetworkController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/virtual-network")
+            var group = endpoints.MapGroup(Routes.VirtualNetwork)
                 .WithTags("VirtualNetworks");
 
             group.MapGet("/{id:guid}",

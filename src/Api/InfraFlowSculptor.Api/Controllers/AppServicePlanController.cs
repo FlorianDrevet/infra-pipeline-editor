@@ -23,7 +23,7 @@ public static class AppServicePlanController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/app-service-plan")
+            var group = endpoints.MapGroup(Routes.AppServicePlan)
                 .WithTags("App Service Plans");
 
             group.MapGet("/{id:guid}",

@@ -652,7 +652,7 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.PersonalAccessTokens.Responses
 Type: PersonalAccessTokenResponse
 Constructors:
-  PersonalAccessTokenResponse(string Id, string Name, string TokenPrefix, System.DateTime? ExpiresAt, System.DateTime CreatedAt, System.DateTime? LastUsedAt, bool IsRevoked)
+  PersonalAccessTokenResponse(string Id, string Name, string TokenPrefix, System.DateTime? ExpiresAt, System.DateTime CreatedAt, System.DateTime? LastUsedAt, bool IsRevoked, System.Collections.Generic.List<string> Scopes)
 Properties:
   CreatedAt: System.DateTime
   ExpiresAt: System.DateTime?
@@ -660,6 +660,7 @@ Properties:
   IsRevoked: bool
   LastUsedAt: System.DateTime?
   Name: string
+  Scopes: System.Collections.Generic.List<string>
   TokenPrefix: string
 
 Namespace: InfraFlowSculptor.Contracts.PrivateDnsZones.Responses

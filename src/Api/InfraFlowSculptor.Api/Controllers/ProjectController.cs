@@ -42,7 +42,7 @@ public static class ProjectController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/projects")
+            var group = endpoints.MapGroup(Routes.Projects)
                 .WithTags("Projects");
 
             MapCoreCrudEndpoints(group);
@@ -78,7 +78,8 @@ public static class ProjectController
             .WithSummary("List my Projects")
             .WithDescription("Returns all Projects the current user is a member of.")
             .Produces<IReadOnlyList<ProjectResponse>>(StatusCodes.Status200OK)
-            .ProducesProblem(StatusCodes.Status401Unauthorized);
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .CacheOutput("ShortLived");
 
         group.MapGet("/{id:guid}",
                 async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
@@ -98,6 +99,7 @@ public static class ProjectController
             .WithName(ProjectRouteNames.GetProject)
             .WithSummary("Get a Project")
             .WithDescription("Returns the full details of a single Project, including members.")
+            .CacheOutput("ShortLived")
             .Produces<ProjectResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status401Unauthorized);

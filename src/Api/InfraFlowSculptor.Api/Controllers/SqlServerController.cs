@@ -23,7 +23,7 @@ public static class SqlServerController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/sql-server")
+            var group = endpoints.MapGroup(Routes.SqlServer)
                 .WithTags("SQL Servers");
 
             group.MapGet("/{id:guid}",

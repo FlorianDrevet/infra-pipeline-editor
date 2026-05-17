@@ -22,7 +22,7 @@ public static class AppConfigurationController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var config = endpoints.MapGroup("/app-configuration")
+            var config = endpoints.MapGroup(Routes.AppConfiguration)
                 .WithTags("App Configurations");
 
             config.MapGet("/{id:guid}",
