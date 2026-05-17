@@ -51,7 +51,7 @@ public sealed class AddInfraConfigRepositoryCommandHandler(
             contentKinds.Value);
         if (added.IsError) return added.Errors;
 
-        await repo.UpdateAsync(config);
+        repo.Update(config);
         return added.Value.Id;
     }
 }

@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.Projects.Commands.CreateProject;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using NSubstitute;
-using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
 namespace InfraFlowSculptor.Application.Tests.Projects.Commands.CreateProject;
 
@@ -30,8 +29,8 @@ public sealed class CreateProjectCommandHandlerTests
         _currentUser = Substitute.For<ICurrentUser>();
         _userId = UserId.CreateUnique();
         _currentUser.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(_userId);
-        _repository.AddAsync(Arg.Any<Project>())
-            .Returns(callInfo => Task.FromResult((Project)callInfo.Args()[0]));
+        _repository.Add(Arg.Any<Project>())
+            .Returns(callInfo => (Project)callInfo.Args()[0]);
         _sut = new CreateProjectCommandHandler(_repository, _currentUser);
     }
 
@@ -54,7 +53,7 @@ public sealed class CreateProjectCommandHandlerTests
         result.Value.ResourceNamingTemplates.Should()
             .Contain(t => t.ResourceType == StorageAccountResourceType && t.Template == ExpectedStorageAccountTemplate);
 
-        await _repository.Received(1).AddAsync(Arg.Is<Project>(p =>
+        _repository.Received(1).Add(Arg.Is<Project>(p =>
             p.Name.Value == ProjectName
             && p.Description == ProjectDescription
             && p.Members.Count == 1));
@@ -84,7 +83,7 @@ public sealed class CreateProjectCommandHandlerTests
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await _repository.Received(1).AddAsync(Arg.Is<Project>(p =>
+        _repository.Received(1).Add(Arg.Is<Project>(p =>
             p.Members.Count == 1 && p.Members.First().UserId == _userId));
     }
 }

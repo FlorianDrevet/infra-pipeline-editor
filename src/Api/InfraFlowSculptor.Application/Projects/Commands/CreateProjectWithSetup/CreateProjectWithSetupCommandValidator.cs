@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;

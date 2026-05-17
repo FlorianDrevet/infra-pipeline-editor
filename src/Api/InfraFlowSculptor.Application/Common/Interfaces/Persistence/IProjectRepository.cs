@@ -1,7 +1,6 @@
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
-using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectPipelineVariableGroups;
 

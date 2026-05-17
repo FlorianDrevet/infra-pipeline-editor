@@ -1,5 +1,3 @@
-using System;
-
 namespace InfraFlowSculptor.BicepGeneration.Models;
 
 public sealed record GeneratedTypeModule

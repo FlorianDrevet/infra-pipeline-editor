@@ -7,7 +7,6 @@ using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
 using MapsterMapper;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.ContainerApps.Commands.CreateContainerApp;
@@ -62,7 +61,7 @@ public sealed class CreateContainerAppCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await containerAppRepository.AddAsync(containerApp);
+        var saved = containerAppRepository.Add(containerApp);
 
         if (request.PipelineStepOptions is { } opts)
         {

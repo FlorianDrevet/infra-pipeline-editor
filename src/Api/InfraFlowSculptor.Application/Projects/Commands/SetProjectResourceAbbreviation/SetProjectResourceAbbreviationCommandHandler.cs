@@ -28,7 +28,7 @@ public sealed class SetProjectResourceAbbreviationCommandHandler(
 
         var entry = project.SetResourceAbbreviation(command.ResourceType, command.Abbreviation);
 
-        await projectRepository.UpdateAsync(project);
+        projectRepository.Update(project);
 
         return mapper.Map<ProjectResourceAbbreviationResult>(entry);
     }

@@ -1,10 +1,7 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetDefaultNamingTemplate;
 
@@ -29,7 +26,7 @@ public class SetDefaultNamingTemplateCommandHandler(
 
         infraConfig.SetDefaultNamingTemplate(template);
 
-        await repository.UpdateAsync(infraConfig);
+        repository.Update(infraConfig);
 
         return Result.Updated;
     }

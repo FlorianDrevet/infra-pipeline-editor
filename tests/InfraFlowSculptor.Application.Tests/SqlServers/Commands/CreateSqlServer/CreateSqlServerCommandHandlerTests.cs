@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.SqlServers.Commands.CreateSqlServer;
 using InfraFlowSculptor.Application.SqlServers.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -49,8 +48,8 @@ public sealed class CreateSqlServerCommandHandlerTests
             new Location(Location.LocationEnum.FranceCentral),
             Version: nameof(SqlServerVersion.SqlServerVersionEnum.V12),
             AdministratorLogin: AdministratorLogin);
-        _sqlServerRepository.AddAsync(Arg.Any<SqlServer>())
-            .Returns(callInfo => Task.FromResult((SqlServer)callInfo.Args()[0]));
+        _sqlServerRepository.Add(Arg.Any<SqlServer>())
+            .Returns(callInfo => (SqlServer)callInfo.Args()[0]);
         _sut = new CreateSqlServerCommandHandler(
             _sqlServerRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -68,7 +67,7 @@ public sealed class CreateSqlServerCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _sqlServerRepository.DidNotReceive().AddAsync(Arg.Any<SqlServer>());
+        _sqlServerRepository.DidNotReceive().Add(Arg.Any<SqlServer>());
     }
 
     [Fact]
@@ -85,7 +84,7 @@ public sealed class CreateSqlServerCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _sqlServerRepository.Received(1).AddAsync(Arg.Is<SqlServer>(s =>
+        _sqlServerRepository.Received(1).Add(Arg.Is<SqlServer>(s =>
             s.ResourceGroupId == _resourceGroup.Id
             && s.Name.Value == SqlServerName
             && s.AdministratorLogin == AdministratorLogin));

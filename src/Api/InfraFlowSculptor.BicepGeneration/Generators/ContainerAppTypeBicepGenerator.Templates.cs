@@ -2,10 +2,10 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 
 public sealed partial class ContainerAppTypeBicepGenerator
 {
-  private const string CustomDomainDeclarationsPlaceholder = "__CUSTOM_DOMAIN_DECLARATIONS__";
-  private const string IngressCustomDomainsPropertyPlaceholder = "__INGRESS_CUSTOM_DOMAINS_PROPERTY__";
+    private const string CustomDomainDeclarationsPlaceholder = "__CUSTOM_DOMAIN_DECLARATIONS__";
+    private const string IngressCustomDomainsPropertyPlaceholder = "__INGRESS_CUSTOM_DOMAINS_PROPERTY__";
 
-  private const string CustomDomainDeclarationsBlock = """
+    private const string CustomDomainDeclarationsBlock = """
     @description('Custom domain bindings for this Container App')
     param customDomains array = []
 
@@ -15,7 +15,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
     }]
     """;
 
-  private const string IngressCustomDomainsPropertyBlock = """
+    private const string IngressCustomDomainsPropertyBlock = """
         customDomains: !empty(customDomains) ? customDomainBindings : null
     """;
 

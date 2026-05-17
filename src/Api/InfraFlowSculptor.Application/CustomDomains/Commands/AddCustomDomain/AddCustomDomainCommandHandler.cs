@@ -61,7 +61,7 @@ public sealed class AddCustomDomainCommandHandler(
         if (result.IsError)
             return result.Errors;
 
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken);
+        azureResourceRepository.Update(resource);
 
         var cd = result.Value;
         return new CustomDomainResult(

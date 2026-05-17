@@ -2,7 +2,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.ApplicationInsights.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using ErrorOr;
 
 namespace InfraFlowSculptor.Application.ApplicationInsights.Commands.CreateApplicationInsights;
 

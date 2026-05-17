@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.AppConfigurations.Commands.UpdateAppConfiguration;
 
@@ -44,7 +43,7 @@ public class UpdateAppConfigurationCommandHandler(
                     .Select(ec => (ec.EnvironmentName, ec.Sku, ec.SoftDeleteRetentionInDays, ec.PurgeProtectionEnabled, ec.DisableLocalAuth, ec.PublicNetworkAccess))
                     .ToList());
 
-        var updatedAppConfiguration = await appConfigurationRepository.UpdateAsync(appConfiguration);
+        var updatedAppConfiguration = appConfigurationRepository.Update(appConfiguration);
 
         return mapper.Map<AppConfigurationResult>(updatedAppConfiguration);
     }

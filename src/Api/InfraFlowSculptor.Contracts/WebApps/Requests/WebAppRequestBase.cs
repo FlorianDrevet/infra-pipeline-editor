@@ -3,7 +3,6 @@ using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.ValidationAttributes;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.WebAppAggregate.ValueObjects;
-using static InfraFlowSculptor.Domain.Common.ValueObjects.DeploymentMode;
 
 namespace InfraFlowSculptor.Contracts.WebApps.Requests;
 

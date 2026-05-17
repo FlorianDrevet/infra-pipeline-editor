@@ -5,7 +5,6 @@ using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.SqlServerAggregate;
 using InfraFlowSculptor.Domain.SqlServerAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.SqlServers.Commands.CreateSqlServer;
@@ -45,7 +44,7 @@ public class CreateSqlServerCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await sqlServerRepository.AddAsync(server);
+        var saved = sqlServerRepository.Add(server);
 
         return mapper.Map<SqlServerResult>(saved);
     }

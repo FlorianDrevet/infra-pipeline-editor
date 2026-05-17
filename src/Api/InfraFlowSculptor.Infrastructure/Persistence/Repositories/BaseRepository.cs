@@ -17,10 +17,10 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
     }
 
     /// <inheritdoc />
-    public virtual Task<TEntity> AddAsync(TEntity entity)
+    public virtual TEntity Add(TEntity entity)
     {
         var res = Context.Set<TEntity>().Add(entity);
-        return Task.FromResult(res.Entity);
+        return res.Entity;
     }
 
     /// <inheritdoc />
@@ -90,9 +90,9 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
     }
 
     /// <inheritdoc />
-    public virtual Task<TEntity> UpdateAsync(TEntity entity)
+    public virtual TEntity Update(TEntity entity)
     {
         Context.Entry(entity).State = EntityState.Modified;
-        return Task.FromResult(entity);
+        return entity;
     }
 }

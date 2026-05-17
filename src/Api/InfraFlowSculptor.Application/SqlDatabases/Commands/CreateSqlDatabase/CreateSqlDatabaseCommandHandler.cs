@@ -6,7 +6,6 @@ using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.SqlDatabases.Commands.CreateSqlDatabase;
@@ -55,7 +54,7 @@ public class CreateSqlDatabaseCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await sqlDatabaseRepository.AddAsync(database);
+        var saved = sqlDatabaseRepository.Add(database);
 
         return mapper.Map<SqlDatabaseResult>(saved);
     }

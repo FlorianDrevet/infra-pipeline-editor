@@ -8,7 +8,7 @@ namespace InfraFlowSculptor.Contracts.ResourceGroups.Requests;
 public class CreateResourceGroupRequest
 {
     /// <summary>Unique identifier of the Infrastructure Configuration that will own this Resource Group.</summary>
-    [Required, GuidValidation] 
+    [Required, GuidValidation]
     public required Guid InfraConfigId { get; init; }
 
     /// <summary>Display name for the Resource Group.</summary>

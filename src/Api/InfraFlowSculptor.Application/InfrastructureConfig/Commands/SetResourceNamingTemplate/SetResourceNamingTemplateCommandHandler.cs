@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetResourceNamingTemplate;
 
@@ -31,7 +30,7 @@ public class SetResourceNamingTemplateCommandHandler(
             command.ResourceType,
             new NamingTemplate(command.Template));
 
-        await repository.UpdateAsync(infraConfig);
+        repository.Update(infraConfig);
 
         return mapper.Map<ResourceNamingTemplateResult>(entry);
     }

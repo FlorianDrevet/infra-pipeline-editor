@@ -1,7 +1,6 @@
 using InfraFlowSculptor.Application.CustomDomains.Common;
 using InfraFlowSculptor.Application.CustomDomains.Queries.GetDnsInstructions;
 using InfraFlowSculptor.Contracts.CustomDomains.Responses;
-using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;

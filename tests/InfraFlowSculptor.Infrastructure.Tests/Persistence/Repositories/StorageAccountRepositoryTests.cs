@@ -45,7 +45,7 @@ public sealed class StorageAccountRepositoryTests : IDisposable
     {
         // Arrange
         var account = NewAccount(ResourceGroupId.CreateUnique());
-        await _context.StorageAccounts.AddAsync(account);
+        _context.StorageAccounts.Add(account);
         await _context.SaveChangesAsync();
 
         // Act
@@ -73,7 +73,7 @@ public sealed class StorageAccountRepositoryTests : IDisposable
         var account = NewAccount(ResourceGroupId.CreateUnique());
 
         // Act
-        await _sut.AddAsync(account);
+        _sut.Add(account);
         await _context.SaveChangesAsync();
 
         // Assert
@@ -86,7 +86,7 @@ public sealed class StorageAccountRepositoryTests : IDisposable
     {
         // Arrange
         var account = NewAccount(ResourceGroupId.CreateUnique());
-        await _context.StorageAccounts.AddAsync(account);
+        _context.StorageAccounts.Add(account);
         await _context.SaveChangesAsync();
 
         // Act
@@ -103,7 +103,7 @@ public sealed class StorageAccountRepositoryTests : IDisposable
     {
         // Arrange
         var account = NewAccount(ResourceGroupId.CreateUnique());
-        await _context.StorageAccounts.AddAsync(account);
+        _context.StorageAccounts.Add(account);
         await _context.SaveChangesAsync();
 
         // Act
@@ -137,7 +137,7 @@ public sealed class StorageAccountRepositoryTests : IDisposable
     {
         // Arrange
         var account = NewAccount(ResourceGroupId.CreateUnique());
-        await _context.StorageAccounts.AddAsync(account);
+        _context.StorageAccounts.Add(account);
         await _context.SaveChangesAsync();
         var container = BlobContainer.Create(account.Id, ContainerName, new BlobContainerPublicAccess(BlobContainerPublicAccess.AccessLevel.None));
 
@@ -156,10 +156,10 @@ public sealed class StorageAccountRepositoryTests : IDisposable
     {
         // Arrange
         var account = NewAccount(ResourceGroupId.CreateUnique());
-        await _context.StorageAccounts.AddAsync(account);
+        _context.StorageAccounts.Add(account);
         await _context.SaveChangesAsync();
         var container = BlobContainer.Create(account.Id, ContainerName, new BlobContainerPublicAccess(BlobContainerPublicAccess.AccessLevel.None));
-        await _context.BlobContainers.AddAsync(container);
+        _context.BlobContainers.Add(container);
         await _context.SaveChangesAsync();
 
         // Act

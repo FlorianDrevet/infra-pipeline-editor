@@ -40,7 +40,7 @@ public class UpdateEventHubNamespaceCommandHandler(
                     .Select(ec => (ec.EnvironmentName, ec.Sku, ec.Capacity, ec.ZoneRedundant, ec.DisableLocalAuth, ec.MinimumTlsVersion, ec.AutoInflateEnabled, ec.MaxThroughputUnits))
                     .ToList());
 
-        var updated = await eventHubNamespaceRepository.UpdateAsync(eh);
+        var updated = eventHubNamespaceRepository.Update(eh);
 
         return mapper.Map<EventHubNamespaceResult>(updated);
     }

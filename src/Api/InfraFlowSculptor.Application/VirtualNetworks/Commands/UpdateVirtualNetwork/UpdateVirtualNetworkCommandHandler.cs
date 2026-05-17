@@ -37,7 +37,7 @@ public sealed class UpdateVirtualNetworkCommandHandler(
                     .Select(ec => (ec.EnvironmentName, ec.AddressSpaces, ec.DnsServers))
                     .ToList());
 
-        var updated = await virtualNetworkRepository.UpdateAsync(vnet);
+        var updated = virtualNetworkRepository.Update(vnet);
         return mapper.Map<VirtualNetworkResult>(updated);
     }
 }

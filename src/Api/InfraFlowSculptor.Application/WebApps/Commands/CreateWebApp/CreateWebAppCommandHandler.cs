@@ -8,7 +8,6 @@ using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.WebAppAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.WebApps.Commands.CreateWebApp;
@@ -82,7 +81,7 @@ public class CreateWebAppCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await webAppRepository.AddAsync(webApp);
+        var saved = webAppRepository.Add(webApp);
 
         if (request.PipelineStepOptions is { } opts)
         {

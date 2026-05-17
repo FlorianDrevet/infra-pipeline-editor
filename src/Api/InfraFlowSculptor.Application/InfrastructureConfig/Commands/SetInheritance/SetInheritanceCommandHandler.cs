@@ -2,7 +2,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInheritance;
 
@@ -26,7 +25,7 @@ public sealed class SetInheritanceCommandHandler(
 
         infraConfig.SetUseProjectNamingConventions(command.UseProjectNamingConventions);
 
-        await repository.UpdateAsync(infraConfig);
+        repository.Update(infraConfig);
 
         return Result.Success;
     }

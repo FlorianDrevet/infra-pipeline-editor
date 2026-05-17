@@ -8,7 +8,6 @@ using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.FunctionAppAggregate;
 using InfraFlowSculptor.Domain.FunctionAppAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.FunctionApps.Commands.CreateFunctionApp;
@@ -81,7 +80,7 @@ public sealed class CreateFunctionAppCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await functionAppRepository.AddAsync(functionApp);
+        var saved = functionAppRepository.Add(functionApp);
 
         if (request.PipelineStepOptions is { } opts)
         {

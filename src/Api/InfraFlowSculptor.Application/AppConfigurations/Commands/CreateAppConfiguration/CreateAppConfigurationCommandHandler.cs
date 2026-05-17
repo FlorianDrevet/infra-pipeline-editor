@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.AppConfigurationAggregate;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.AppConfigurations.Commands.CreateAppConfiguration;
@@ -42,7 +41,7 @@ public class CreateAppConfigurationCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var savedAppConfiguration = await appConfigurationRepository.AddAsync(appConfiguration);
+        var savedAppConfiguration = appConfigurationRepository.Add(appConfiguration);
 
         return mapper.Map<AppConfigurationResult>(savedAppConfiguration);
     }

@@ -3,7 +3,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.RoleAssignments.Commands.RemoveRoleAssignment;
 
@@ -35,7 +34,7 @@ public sealed class RemoveRoleAssignmentCommandHandler(
 
         sourceResource.RemoveRoleAssignment(request.RoleAssignmentId);
 
-        await azureResourceRepository.UpdateAsync(sourceResource, cancellationToken);
+        azureResourceRepository.Update(sourceResource);
 
         return Result.Deleted;
     }

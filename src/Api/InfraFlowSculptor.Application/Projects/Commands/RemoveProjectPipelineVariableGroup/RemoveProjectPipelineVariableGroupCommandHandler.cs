@@ -30,7 +30,7 @@ public sealed class RemoveProjectPipelineVariableGroupCommandHandler(
         if (result.IsError)
             return result.Errors;
 
-        await projectRepository.UpdateAsync(project);
+        projectRepository.Update(project);
 
         return Result.Deleted;
     }

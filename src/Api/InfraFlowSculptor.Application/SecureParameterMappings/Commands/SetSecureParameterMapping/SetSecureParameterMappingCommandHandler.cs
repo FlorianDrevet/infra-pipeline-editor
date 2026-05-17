@@ -61,7 +61,7 @@ public sealed class SetSecureParameterMappingCommandHandler(
         if (result.IsError)
             return result.Errors;
 
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken);
+        azureResourceRepository.Update(resource);
 
         return Result.Updated;
     }

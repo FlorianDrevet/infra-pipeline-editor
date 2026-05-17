@@ -1,14 +1,12 @@
-﻿using ErrorOr;
+using ErrorOr;
 using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.RedisCaches.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
-using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.RedisCaches.Commands.CreateRedisCache;
 
@@ -45,7 +43,7 @@ public class CreateRedisCacheCommandHandler(
             environmentSettingsResult.Value,
             isExisting: request.IsExisting);
 
-        var savedRedisCache = await redisCacheRepository.AddAsync(redisCache);
+        var savedRedisCache = redisCacheRepository.Add(redisCache);
 
         return mapper.Map<RedisCacheResult>(savedRedisCache);
     }

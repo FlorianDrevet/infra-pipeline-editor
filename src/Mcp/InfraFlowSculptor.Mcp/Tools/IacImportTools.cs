@@ -6,7 +6,6 @@ using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Imports;
 using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Server;
 
 namespace InfraFlowSculptor.Mcp.Tools;

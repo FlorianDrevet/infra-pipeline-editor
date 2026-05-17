@@ -26,7 +26,7 @@ public sealed class RemoveProjectResourceAbbreviationCommandHandler(
         if (!project.RemoveResourceAbbreviation(command.ResourceType))
             return Errors.Project.ResourceAbbreviationNotFoundError(command.ResourceType);
 
-        await projectRepository.UpdateAsync(project);
+        projectRepository.Update(project);
 
         return Result.Deleted;
     }

@@ -45,8 +45,8 @@ public sealed class CreateKeyVaultCommandHandlerTests
             _resourceGroup.Id,
             new Name(KeyVaultName),
             new Location(Location.LocationEnum.FranceCentral));
-        _keyVaultRepository.AddAsync(Arg.Any<KeyVault>())
-            .Returns(callInfo => Task.FromResult((KeyVault)callInfo.Args()[0]));
+        _keyVaultRepository.Add(Arg.Any<KeyVault>())
+            .Returns(callInfo => (KeyVault)callInfo.Args()[0]);
         _sut = new CreateKeyVaultCommandHandler(
             _keyVaultRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -64,7 +64,7 @@ public sealed class CreateKeyVaultCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _keyVaultRepository.DidNotReceive().AddAsync(Arg.Any<KeyVault>());
+        _keyVaultRepository.DidNotReceive().Add(Arg.Any<KeyVault>());
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public sealed class CreateKeyVaultCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Forbidden);
-        await _keyVaultRepository.DidNotReceive().AddAsync(Arg.Any<KeyVault>());
+        _keyVaultRepository.DidNotReceive().Add(Arg.Any<KeyVault>());
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public sealed class CreateKeyVaultCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _keyVaultRepository.Received(1).AddAsync(Arg.Is<KeyVault>(kv =>
+        _keyVaultRepository.Received(1).Add(Arg.Is<KeyVault>(kv =>
             kv.ResourceGroupId == _resourceGroup.Id && kv.Name.Value == KeyVaultName));
         _mapper.Received(1).Map<KeyVaultResult>(Arg.Any<KeyVault>());
     }

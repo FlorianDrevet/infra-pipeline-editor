@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.CosmosDbs.Commands.CreateCosmosDb;
 using InfraFlowSculptor.Application.CosmosDbs.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.CosmosDbAggregate;
@@ -45,8 +44,8 @@ public sealed class CreateCosmosDbCommandHandlerTests
             _resourceGroup.Id,
             new Name(CosmosDbName),
             new Location(Location.LocationEnum.FranceCentral));
-        _cosmosDbRepository.AddAsync(Arg.Any<CosmosDb>())
-            .Returns(callInfo => Task.FromResult((CosmosDb)callInfo.Args()[0]));
+        _cosmosDbRepository.Add(Arg.Any<CosmosDb>())
+            .Returns(callInfo => (CosmosDb)callInfo.Args()[0]);
         _sut = new CreateCosmosDbCommandHandler(
             _cosmosDbRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -64,7 +63,7 @@ public sealed class CreateCosmosDbCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _cosmosDbRepository.DidNotReceive().AddAsync(Arg.Any<CosmosDb>());
+        _cosmosDbRepository.DidNotReceive().Add(Arg.Any<CosmosDb>());
     }
 
     [Fact]
@@ -81,7 +80,7 @@ public sealed class CreateCosmosDbCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _cosmosDbRepository.Received(1).AddAsync(Arg.Is<CosmosDb>(c =>
+        _cosmosDbRepository.Received(1).Add(Arg.Is<CosmosDb>(c =>
             c.ResourceGroupId == _resourceGroup.Id && c.Name.Value == CosmosDbName));
         _mapper.Received(1).Map<CosmosDbResult>(Arg.Any<CosmosDb>());
     }

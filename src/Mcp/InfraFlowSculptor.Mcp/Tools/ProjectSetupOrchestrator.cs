@@ -4,7 +4,6 @@ using InfraFlowSculptor.Mcp.Tools.Models;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace InfraFlowSculptor.Mcp.Tools;
 

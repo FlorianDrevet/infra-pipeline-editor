@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.ContainerApps.Commands.CreateContainerApp;
 using InfraFlowSculptor.Application.ContainerApps.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
@@ -55,8 +54,8 @@ public sealed class CreateContainerAppCommandHandlerTests
             new Location(Location.LocationEnum.FranceCentral),
             ContainerAppEnvironmentId: _environment.Id.Value,
             ContainerRegistryId: null);
-        _containerAppRepository.AddAsync(Arg.Any<ContainerApp>())
-            .Returns(callInfo => Task.FromResult((ContainerApp)callInfo.Args()[0]));
+        _containerAppRepository.Add(Arg.Any<ContainerApp>())
+            .Returns(callInfo => (ContainerApp)callInfo.Args()[0]);
         _sut = new CreateContainerAppCommandHandler(
             _containerAppRepository, _environmentRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -74,7 +73,7 @@ public sealed class CreateContainerAppCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _containerAppRepository.DidNotReceive().AddAsync(Arg.Any<ContainerApp>());
+        _containerAppRepository.DidNotReceive().Add(Arg.Any<ContainerApp>());
     }
 
     [Fact]
@@ -94,7 +93,7 @@ public sealed class CreateContainerAppCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _containerAppRepository.DidNotReceive().AddAsync(Arg.Any<ContainerApp>());
+        _containerAppRepository.DidNotReceive().Add(Arg.Any<ContainerApp>());
     }
 
     [Fact]
@@ -113,7 +112,7 @@ public sealed class CreateContainerAppCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _containerAppRepository.Received(1).AddAsync(Arg.Is<ContainerApp>(c =>
+        _containerAppRepository.Received(1).Add(Arg.Is<ContainerApp>(c =>
             c.ResourceGroupId == _resourceGroup.Id
             && c.Name.Value == ContainerAppName
             && c.ContainerAppEnvironmentId == _environment.Id));

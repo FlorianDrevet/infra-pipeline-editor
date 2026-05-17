@@ -25,7 +25,7 @@ public sealed class ProjectDbContextDomainEventsTests
         IReadOnlyCollection<IDomainEvent>? dispatchedEvents = null;
 
         await using var context = new ProjectDbContext(CreateOptions(), dispatcher);
-        await context.Projects.AddAsync(project);
+        context.Projects.Add(project);
 
         dispatcher.DispatchAsync(Arg.Any<IReadOnlyCollection<IDomainEvent>>(), Arg.Any<CancellationToken>())
             .Returns(callInfo =>
@@ -56,7 +56,7 @@ public sealed class ProjectDbContextDomainEventsTests
         var project = Project.Create(new Name("alpha"), "primary workload", UserId.CreateUnique());
 
         await using var context = new ProjectDbContext(CreateOptions());
-        await context.Projects.AddAsync(project);
+        context.Projects.Add(project);
 
         // Act
         var writtenEntries = await context.SaveChangesAsync();

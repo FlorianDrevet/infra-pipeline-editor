@@ -19,7 +19,6 @@ using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.Mcp.Drafts;
 using InfraFlowSculptor.Mcp.Drafts.Models;
-using InfraFlowSculptor.Mcp.Tools.Models;
 using InfraFlowSculptor.Mcp.Tools;
 using InfraFlowSculptor.GenerationCore;
 using MediatR;

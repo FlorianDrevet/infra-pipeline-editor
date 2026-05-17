@@ -7,7 +7,6 @@ using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration;
-using InfraFlowSculptor.PipelineGeneration.Models;
 using AppPipelineMode = InfraFlowSculptor.GenerationCore.Models.AppPipelineMode;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Common;

@@ -41,7 +41,7 @@ public sealed class UpdateInfraConfigRepositoryCommandHandler(
             contentKinds.Value);
         if (updated.IsError) return updated.Errors;
 
-        await repo.UpdateAsync(config);
+        repo.Update(config);
         return Result.Updated;
     }
 }

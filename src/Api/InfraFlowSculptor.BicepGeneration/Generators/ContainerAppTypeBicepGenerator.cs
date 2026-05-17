@@ -1,5 +1,4 @@
 using InfraFlowSculptor.BicepGeneration.Generators.Helpers;
-using InfraFlowSculptor.BicepGeneration.Generators.ParameterModels;
 using InfraFlowSculptor.BicepGeneration.Generators.ParameterModels.ContainerApp;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Ir;
@@ -84,7 +83,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
     /// <inheritdoc />
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
-      var containerRegistryId = resource.Properties.GetValueOrDefault(ContainerRegistryIdPropertyName, EmptyParameterValue);
+        var containerRegistryId = resource.Properties.GetValueOrDefault(ContainerRegistryIdPropertyName, EmptyParameterValue);
         var hasAcr = !string.IsNullOrEmpty(containerRegistryId);
         var acrAuthMode = GetAcrAuthMode(resource.Properties);
         var useAdminCredentials = hasAcr
@@ -115,8 +114,8 @@ public sealed partial class ContainerAppTypeBicepGenerator
 
         if (hasValidatedCustomDomains)
         {
-          builder.Param(CustomDomainsParameterName, BicepType.Array, "Custom domain bindings for this Container App",
-            defaultValue: new BicepArrayExpression([]));
+            builder.Param(CustomDomainsParameterName, BicepType.Array, "Custom domain bindings for this Container App",
+              defaultValue: new BicepArrayExpression([]));
             builder.Var(CustomDomainBindingsVariableName, new BicepRawExpression(CustomDomainBindingsExpression));
         }
 
@@ -129,11 +128,11 @@ public sealed partial class ContainerAppTypeBicepGenerator
 
         if (hasAcr && useAdminCredentials)
         {
-          builder.ModuleFileName(AdminCredentialsModuleFileName);
+            builder.ModuleFileName(AdminCredentialsModuleFileName);
         }
         else if (hasAcr)
         {
-          builder.ModuleFileName(ModuleName);
+            builder.ModuleFileName(ModuleName);
         }
 
         // ── Resource ──
@@ -183,58 +182,58 @@ public sealed partial class ContainerAppTypeBicepGenerator
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
-      var containerRegistryId = resource.Properties.GetValueOrDefault(ContainerRegistryIdPropertyName, EmptyParameterValue);
+        var containerRegistryId = resource.Properties.GetValueOrDefault(ContainerRegistryIdPropertyName, EmptyParameterValue);
         var hasAcr = !string.IsNullOrEmpty(containerRegistryId);
         var acrAuthMode = GetAcrAuthMode(resource.Properties);
         var useAdminCredentials = hasAcr
             && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
         var hasValidatedCustomDomains = HasValidatedCustomDomains(resource);
 
-      var dockerImageName = resource.Properties.GetValueOrDefault(DockerImageNamePropertyName, EmptyParameterValue);
-      var dockerImageValidated = string.Equals(
-          resource.Properties.GetValueOrDefault(DockerImageValidatedPropertyName, EmptyParameterValue),
-          "true", StringComparison.OrdinalIgnoreCase);
+        var dockerImageName = resource.Properties.GetValueOrDefault(DockerImageNamePropertyName, EmptyParameterValue);
+        var dockerImageValidated = string.Equals(
+            resource.Properties.GetValueOrDefault(DockerImageValidatedPropertyName, EmptyParameterValue),
+            "true", StringComparison.OrdinalIgnoreCase);
 
         var parameters = new ContainerAppParameters
         {
-          ContainerImage = !string.IsNullOrEmpty(dockerImageName) && dockerImageValidated ? dockerImageName : null,
-          ContainerRuntime = new ContainerRuntimeParameters
+            ContainerImage = !string.IsNullOrEmpty(dockerImageName) && dockerImageValidated ? dockerImageName : null,
+            ContainerRuntime = new ContainerRuntimeParameters
             {
-            CpuCores = DefaultContainerCpuCores,
-            MemoryGi = DefaultContainerMemoryGi,
-          },
-          Scaling = new ScalingParameters
-          {
-            MinReplicas = 0,
-            MaxReplicas = 1,
-          },
-          Ingress = new IngressParameters
-          {
-            Enabled = true,
-            TargetPort = 80,
-            External = true,
-            TransportMethod = DefaultTransportMethod,
-          },
-          HealthProbes = new HealthProbesParameters
-          {
-            Readiness = new HealthProbeParameters { Path = string.Empty, Port = 0 },
-            Liveness = new HealthProbeParameters { Path = string.Empty, Port = 0 },
-            Startup = new HealthProbeParameters { Path = string.Empty, Port = 0 },
-          },
+                CpuCores = DefaultContainerCpuCores,
+                MemoryGi = DefaultContainerMemoryGi,
+            },
+            Scaling = new ScalingParameters
+            {
+                MinReplicas = 0,
+                MaxReplicas = 1,
+            },
+            Ingress = new IngressParameters
+            {
+                Enabled = true,
+                TargetPort = 80,
+                External = true,
+                TransportMethod = DefaultTransportMethod,
+            },
+            HealthProbes = new HealthProbesParameters
+            {
+                Readiness = new HealthProbeParameters { Path = string.Empty, Port = 0 },
+                Liveness = new HealthProbeParameters { Path = string.Empty, Port = 0 },
+                Startup = new HealthProbeParameters { Path = string.Empty, Port = 0 },
+            },
         };
 
         if (hasAcr)
         {
-          parameters = parameters with { AcrLoginServer = EmptyParameterValue };
-          if (!useAdminCredentials)
-          {
-          parameters = parameters with { AcrManagedIdentityClientId = EmptyParameterValue };
-          }
+            parameters = parameters with { AcrLoginServer = EmptyParameterValue };
+            if (!useAdminCredentials)
+            {
+                parameters = parameters with { AcrManagedIdentityClientId = EmptyParameterValue };
+            }
         }
 
         if (hasValidatedCustomDomains)
         {
-          parameters = parameters with { CustomDomains = [] };
+            parameters = parameters with { CustomDomains = [] };
         }
 
         var moduleFileName = hasAcr && useAdminCredentials
@@ -244,9 +243,9 @@ public sealed partial class ContainerAppTypeBicepGenerator
         var moduleBicepContent = ContainerAppModuleTemplate;
         if (hasAcr)
         {
-          moduleBicepContent = useAdminCredentials
-            ? ContainerAppWithAcrAdminCredentialsModuleTemplate
-            : ContainerAppWithAcrManagedIdentityModuleTemplate;
+            moduleBicepContent = useAdminCredentials
+              ? ContainerAppWithAcrAdminCredentialsModuleTemplate
+              : ContainerAppWithAcrManagedIdentityModuleTemplate;
         }
 
         moduleBicepContent = ApplyCustomDomainSupport(moduleBicepContent, hasValidatedCustomDomains);
@@ -256,7 +255,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
             ModuleName = ModuleName,
             ModuleFileName = moduleFileName,
             ModuleFolderName = ModuleFolderName,
-          ModuleBicepContent = moduleBicepContent,
+            ModuleBicepContent = moduleBicepContent,
             ModuleTypesBicepContent = ContainerAppTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = BicepParameterModelConverter.ToDictionary(parameters),
@@ -270,27 +269,27 @@ public sealed partial class ContainerAppTypeBicepGenerator
             },
             ParameterGroupMappings = new Dictionary<string, (string, string)>
             {
-              [CpuCoresPropertyName] = (ContainerRuntimeParameterName, CpuCoresPropertyName),
-              [MemoryGiPropertyName] = (ContainerRuntimeParameterName, MemoryGiPropertyName),
-              [MinReplicasPropertyName] = (ScalingParameterName, MinReplicasPropertyName),
-              [MaxReplicasPropertyName] = (ScalingParameterName, MaxReplicasPropertyName),
-              [IngressEnabledMappingKey] = (IngressParameterName, EnabledPropertyName),
-              [IngressTargetPortMappingKey] = (IngressParameterName, TargetPortPropertyName),
-              [IngressExternalMappingKey] = (IngressParameterName, ExternalPropertyName),
-              [TransportMethodPropertyName] = (IngressParameterName, TransportMethodPropertyName),
-              [ReadinessProbePathMappingKey] = (HealthProbesParameterName, ReadinessPathSelector),
-              [ReadinessProbePortMappingKey] = (HealthProbesParameterName, ReadinessPortSelector),
-              [LivenessProbePathMappingKey] = (HealthProbesParameterName, LivenessPathSelector),
-              [LivenessProbePortMappingKey] = (HealthProbesParameterName, LivenessPortSelector),
-              [StartupProbePathMappingKey] = (HealthProbesParameterName, StartupPathSelector),
-              [StartupProbePortMappingKey] = (HealthProbesParameterName, StartupPortSelector),
+                [CpuCoresPropertyName] = (ContainerRuntimeParameterName, CpuCoresPropertyName),
+                [MemoryGiPropertyName] = (ContainerRuntimeParameterName, MemoryGiPropertyName),
+                [MinReplicasPropertyName] = (ScalingParameterName, MinReplicasPropertyName),
+                [MaxReplicasPropertyName] = (ScalingParameterName, MaxReplicasPropertyName),
+                [IngressEnabledMappingKey] = (IngressParameterName, EnabledPropertyName),
+                [IngressTargetPortMappingKey] = (IngressParameterName, TargetPortPropertyName),
+                [IngressExternalMappingKey] = (IngressParameterName, ExternalPropertyName),
+                [TransportMethodPropertyName] = (IngressParameterName, TransportMethodPropertyName),
+                [ReadinessProbePathMappingKey] = (HealthProbesParameterName, ReadinessPathSelector),
+                [ReadinessProbePortMappingKey] = (HealthProbesParameterName, ReadinessPortSelector),
+                [LivenessProbePathMappingKey] = (HealthProbesParameterName, LivenessPathSelector),
+                [LivenessProbePortMappingKey] = (HealthProbesParameterName, LivenessPortSelector),
+                [StartupProbePathMappingKey] = (HealthProbesParameterName, StartupPathSelector),
+                [StartupProbePortMappingKey] = (HealthProbesParameterName, StartupPortSelector),
             }
         };
     }
 
     private static string GetAcrAuthMode(IReadOnlyDictionary<string, string> properties)
     {
-      var acrAuthMode = properties.GetValueOrDefault(AcrAuthModePropertyName, string.Empty);
+        var acrAuthMode = properties.GetValueOrDefault(AcrAuthModePropertyName, string.Empty);
         return string.IsNullOrWhiteSpace(acrAuthMode)
             ? ManagedIdentityAcrAuthMode
             : acrAuthMode;
@@ -298,21 +297,21 @@ public sealed partial class ContainerAppTypeBicepGenerator
 
     private static bool HasValidatedCustomDomains(ResourceDefinition resource)
     {
-      return resource.CustomDomains.Any(customDomain =>
-        customDomain.DnsValidationStatus.Equals(ValidatedDnsValidationStatus, StringComparison.OrdinalIgnoreCase));
+        return resource.CustomDomains.Any(customDomain =>
+          customDomain.DnsValidationStatus.Equals(ValidatedDnsValidationStatus, StringComparison.OrdinalIgnoreCase));
     }
 
     private static string ApplyCustomDomainSupport(string template, bool hasValidatedCustomDomains)
     {
-      return template
-        .Replace(
-          CustomDomainDeclarationsPlaceholder,
-          hasValidatedCustomDomains ? CustomDomainDeclarationsBlock : string.Empty,
-          StringComparison.Ordinal)
-        .Replace(
-          IngressCustomDomainsPropertyPlaceholder,
-          hasValidatedCustomDomains ? IngressCustomDomainsPropertyBlock : string.Empty,
-          StringComparison.Ordinal);
+        return template
+          .Replace(
+            CustomDomainDeclarationsPlaceholder,
+            hasValidatedCustomDomains ? CustomDomainDeclarationsBlock : string.Empty,
+            StringComparison.Ordinal)
+          .Replace(
+            IngressCustomDomainsPropertyPlaceholder,
+            hasValidatedCustomDomains ? IngressCustomDomainsPropertyBlock : string.Empty,
+            StringComparison.Ordinal);
     }
 
 }

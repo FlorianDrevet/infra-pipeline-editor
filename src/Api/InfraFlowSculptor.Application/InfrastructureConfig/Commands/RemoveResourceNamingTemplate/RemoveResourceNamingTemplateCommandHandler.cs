@@ -2,7 +2,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveResourceNamingTemplate;
 
@@ -26,7 +25,7 @@ public class RemoveResourceNamingTemplateCommandHandler(
         if (!infraConfig.RemoveResourceNamingTemplate(command.ResourceType))
             return Errors.InfrastructureConfig.ResourceNamingTemplateNotFoundError(command.ResourceType);
 
-        await repository.UpdateAsync(infraConfig);
+        repository.Update(infraConfig);
 
         return Result.Deleted;
     }

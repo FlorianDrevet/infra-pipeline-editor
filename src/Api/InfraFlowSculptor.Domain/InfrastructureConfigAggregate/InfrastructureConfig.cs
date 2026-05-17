@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
@@ -111,18 +111,18 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     {
         if (_resourceGroups.Any(rg => rg.Name == resourceGroup.Name))
             return false;
-        
+
         _resourceGroups.Add(resourceGroup);
         return true;
     }
-    
+
     /// <summary>Removes a resource group from this configuration.</summary>
     /// <returns><c>true</c> if removed; <c>false</c> if not found.</returns>
     public bool RemoveResourceGroup(ResourceGroup resourceGroup)
     {
         return _resourceGroups.Remove(resourceGroup);
     }
-    
+
     /// <summary>Renames this infrastructure configuration.</summary>
     public void Rename(Name name)
     {

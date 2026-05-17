@@ -1,8 +1,5 @@
 using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
@@ -39,7 +36,7 @@ public sealed class InputOutputLinkConfiguration
             .WithMany(r => r.Inputs)
             .HasForeignKey(x => x.TargetResourceId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         builder.HasIndex(x => new
         {
             x.SourceResourceId,

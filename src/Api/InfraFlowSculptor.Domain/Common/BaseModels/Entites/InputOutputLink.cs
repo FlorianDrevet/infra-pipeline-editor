@@ -57,11 +57,11 @@ public sealed class InputOutputLink : Entity<InputOutputId>
     {
         if (!Enum.IsDefined(typeof(TOutput), outputType))
             throw new InvalidOperationException($"OutputType '{outputType}' is not defined in enum '{typeof(TOutput).Name}'.");
-        
+
         if (!Enum.IsDefined(typeof(TInput), inputType))
             throw new InvalidOperationException($"InputType '{inputType}' is not defined in enum '{typeof(TInput).Name}'.");
-        
-        return new InputOutputLink(InputOutputId.CreateUnique(),source, target, outputType, inputType);
+
+        return new InputOutputLink(InputOutputId.CreateUnique(), source, target, outputType, inputType);
     }
 
     private InputOutputLink()

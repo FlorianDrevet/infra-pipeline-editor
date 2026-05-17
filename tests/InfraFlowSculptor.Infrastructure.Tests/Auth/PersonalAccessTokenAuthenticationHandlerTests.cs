@@ -123,7 +123,7 @@ public sealed class PersonalAccessTokenAuthenticationHandlerTests : IAsyncDispos
 
     private async Task SeedTokenAsync(PersonalAccessToken token, DateTime? lastUsedAt = null)
     {
-        await _dbContext.PersonalAccessTokens.AddAsync(token);
+        _dbContext.PersonalAccessTokens.Add(token);
         await _dbContext.SaveChangesAsync();
 
         if (lastUsedAt.HasValue)

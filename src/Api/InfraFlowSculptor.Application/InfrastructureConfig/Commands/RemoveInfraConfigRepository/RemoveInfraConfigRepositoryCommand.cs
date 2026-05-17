@@ -33,7 +33,7 @@ public sealed class RemoveInfraConfigRepositoryCommandHandler(
         var removed = config.RemoveRepository(command.RepositoryId);
         if (removed.IsError) return removed.Errors;
 
-        await repo.UpdateAsync(config);
+        repo.Update(config);
         return Result.Deleted;
     }
 }

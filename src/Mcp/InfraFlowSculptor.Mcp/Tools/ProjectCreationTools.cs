@@ -48,7 +48,7 @@ public sealed class ProjectCreationTools
         }
 
         var command = BuildCommand(draft.Intent);
-    var result = await mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
         if (result.IsError)
         {

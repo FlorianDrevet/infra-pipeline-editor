@@ -2006,6 +2006,9 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<string>("AcrAuthMode")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("AcrPullIdentityId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("ApplicationName")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -2079,6 +2082,9 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("AcrAuthMode")
                         .HasColumnType("text");
+
+                    b.Property<Guid?>("AcrPullIdentityId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AppServicePlanId")
                         .HasColumnType("uuid");
@@ -2290,6 +2296,9 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<string>("AcrAuthMode")
                         .HasColumnType("text");
+
+                    b.Property<Guid?>("AcrPullIdentityId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("AlwaysOn")
                         .HasColumnType("boolean");

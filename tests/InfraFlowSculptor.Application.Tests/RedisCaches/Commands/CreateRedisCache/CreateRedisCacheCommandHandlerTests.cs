@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.RedisCaches.Commands.CreateRedisCache;
 using InfraFlowSculptor.Application.RedisCaches.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -55,8 +54,8 @@ public sealed class CreateRedisCacheCommandHandlerTests
             MinimumTlsVersion: null,
             DisableAccessKeyAuthentication: false,
             EnableAadAuth: false);
-        _redisCacheRepository.AddAsync(Arg.Any<RedisCache>())
-            .Returns(callInfo => Task.FromResult((RedisCache)callInfo.Args()[0]));
+        _redisCacheRepository.Add(Arg.Any<RedisCache>())
+            .Returns(callInfo => (RedisCache)callInfo.Args()[0]);
         _sut = new CreateRedisCacheCommandHandler(
             _redisCacheRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -74,7 +73,7 @@ public sealed class CreateRedisCacheCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _redisCacheRepository.DidNotReceive().AddAsync(Arg.Any<RedisCache>());
+        _redisCacheRepository.DidNotReceive().Add(Arg.Any<RedisCache>());
     }
 
     [Fact]
@@ -91,7 +90,7 @@ public sealed class CreateRedisCacheCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _redisCacheRepository.Received(1).AddAsync(Arg.Is<RedisCache>(rc =>
+        _redisCacheRepository.Received(1).Add(Arg.Is<RedisCache>(rc =>
             rc.ResourceGroupId == _resourceGroup.Id && rc.Name.Value == RedisCacheName));
         _mapper.Received(1).Map<RedisCacheResult>(Arg.Any<RedisCache>());
     }
@@ -112,7 +111,7 @@ public sealed class CreateRedisCacheCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Validation);
-        await _redisCacheRepository.DidNotReceive().AddAsync(Arg.Any<RedisCache>());
+        _redisCacheRepository.DidNotReceive().Add(Arg.Any<RedisCache>());
     }
 
     [Fact]
@@ -138,7 +137,7 @@ public sealed class CreateRedisCacheCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _redisCacheRepository.Received(1).AddAsync(Arg.Is<RedisCache>(redisCache =>
+        _redisCacheRepository.Received(1).Add(Arg.Is<RedisCache>(redisCache =>
             redisCache.MinimumTlsVersion != null
             && redisCache.MinimumTlsVersion.Value == TlsVersion.Version.Tls12
             && redisCache.EnvironmentSettings.Count == 2
@@ -178,7 +177,7 @@ public sealed class CreateRedisCacheCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("RedisCache.InvalidSku");
-        await _redisCacheRepository.DidNotReceive().AddAsync(Arg.Any<RedisCache>());
+        _redisCacheRepository.DidNotReceive().Add(Arg.Any<RedisCache>());
     }
 
     [Fact]
@@ -203,6 +202,6 @@ public sealed class CreateRedisCacheCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("RedisCache.InvalidMaxMemoryPolicy");
-        await _redisCacheRepository.DidNotReceive().AddAsync(Arg.Any<RedisCache>());
+        _redisCacheRepository.DidNotReceive().Add(Arg.Any<RedisCache>());
     }
 }

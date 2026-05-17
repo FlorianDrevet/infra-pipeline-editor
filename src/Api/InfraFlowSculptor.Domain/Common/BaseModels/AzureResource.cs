@@ -4,7 +4,6 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ResourceParameterUsage;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
@@ -23,7 +22,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// Persisted as a discriminator column to enable lightweight queries without TPT resolution.
     /// Automatically set by <see cref="Infrastructure"/> on entity creation.
     /// </summary>
-    public string ResourceType { get; private set; } = string.Empty;
+    public ResourceTypeName ResourceType { get; private set; } = null!;
 
     /// <summary>Gets the parent resource group identifier.</summary>
     public ResourceGroupId ResourceGroupId { get; protected set; } = null!;

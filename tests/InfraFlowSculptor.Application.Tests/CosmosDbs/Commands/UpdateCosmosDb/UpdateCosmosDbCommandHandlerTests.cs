@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.CosmosDbs.Commands.UpdateCosmosDb;
 using InfraFlowSculptor.Application.CosmosDbs.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.CosmosDbAggregate;
@@ -48,8 +47,8 @@ public sealed class UpdateCosmosDbCommandHandlerTests
             _existingCosmosDb.Id,
             new Name("cosmosrenamed"),
             new Location(Location.LocationEnum.WestEurope));
-        _cosmosDbRepository.UpdateAsync(Arg.Any<CosmosDb>())
-            .Returns(callInfo => Task.FromResult((CosmosDb)callInfo.Args()[0]));
+        _cosmosDbRepository.Update(Arg.Any<CosmosDb>())
+            .Returns(callInfo => (CosmosDb)callInfo.Args()[0]);
         _sut = new UpdateCosmosDbCommandHandler(
             _cosmosDbRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -67,7 +66,7 @@ public sealed class UpdateCosmosDbCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _cosmosDbRepository.DidNotReceive().UpdateAsync(Arg.Any<CosmosDb>());
+        _cosmosDbRepository.DidNotReceive().Update(Arg.Any<CosmosDb>());
     }
 
     [Fact]
@@ -85,7 +84,7 @@ public sealed class UpdateCosmosDbCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _cosmosDbRepository.DidNotReceive().UpdateAsync(Arg.Any<CosmosDb>());
+        _cosmosDbRepository.DidNotReceive().Update(Arg.Any<CosmosDb>());
     }
 
     [Fact]
@@ -104,7 +103,7 @@ public sealed class UpdateCosmosDbCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _cosmosDbRepository.Received(1).UpdateAsync(Arg.Is<CosmosDb>(c =>
+        _cosmosDbRepository.Received(1).Update(Arg.Is<CosmosDb>(c =>
             c.Name.Value == "cosmosrenamed"));
         _mapper.Received(1).Map<CosmosDbResult>(Arg.Any<CosmosDb>());
     }

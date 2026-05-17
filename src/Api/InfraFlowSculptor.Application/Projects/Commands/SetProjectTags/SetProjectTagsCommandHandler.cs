@@ -1,6 +1,5 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using ErrorOr;
@@ -26,7 +25,7 @@ public sealed class SetProjectTagsCommandHandler(
 
         var tags = command.Tags.Select(t => new Tag(t.Name, t.Value)).ToList();
         project.SetTags(tags);
-        await projectRepository.UpdateAsync(project);
+        projectRepository.Update(project);
 
         return Result.Updated;
     }

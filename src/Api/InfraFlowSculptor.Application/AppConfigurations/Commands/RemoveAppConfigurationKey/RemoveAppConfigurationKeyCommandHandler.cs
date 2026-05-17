@@ -40,7 +40,7 @@ public sealed class RemoveAppConfigurationKeyCommandHandler(
             return authResult.Errors;
 
         appConfig.RemoveConfigurationKey(request.AppConfigurationKeyId);
-        await appConfigurationRepository.UpdateAsync(appConfig);
+        appConfigurationRepository.Update(appConfig);
 
         return Result.Deleted;
     }

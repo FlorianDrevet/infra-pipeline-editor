@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate;
 using MapsterMapper;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.CreateLogAnalyticsWorkspace;
@@ -41,7 +40,7 @@ public sealed class CreateLogAnalyticsWorkspaceCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await logAnalyticsWorkspaceRepository.AddAsync(logAnalyticsWorkspace);
+        var saved = logAnalyticsWorkspaceRepository.Add(logAnalyticsWorkspace);
 
         return mapper.Map<LogAnalyticsWorkspaceResult>(saved);
     }

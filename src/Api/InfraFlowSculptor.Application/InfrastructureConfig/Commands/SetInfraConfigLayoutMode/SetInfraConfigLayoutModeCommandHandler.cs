@@ -38,7 +38,7 @@ public sealed class SetInfraConfigLayoutModeCommandHandler(
         }
 
         config.SetLayoutMode(layout);
-        await repo.UpdateAsync(config);
+        repo.Update(config);
         return Result.Updated;
     }
 }

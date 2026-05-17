@@ -6,37 +6,14 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using InfraFlowSculptor.Domain.Common.Models;
-using InfraFlowSculptor.Domain.WebAppAggregate;
-using InfraFlowSculptor.Domain.FunctionAppAggregate;
-using InfraFlowSculptor.Domain.ContainerAppAggregate;
-using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
-using InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
-using InfraFlowSculptor.Domain.Common.BaseModels;
-using InfraFlowSculptor.Domain.KeyVaultAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.RedisCacheAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
-using InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities;
-using InfraFlowSculptor.Domain.WebAppAggregate.Entities;
-using InfraFlowSculptor.Domain.FunctionAppAggregate.Entities;
-using InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities;
-using InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.Entities;
-using InfraFlowSculptor.Domain.ContainerAppAggregate.Entities;
-using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities;
-using InfraFlowSculptor.Domain.ApplicationInsightsAggregate.Entities;
-using InfraFlowSculptor.Domain.CosmosDbAggregate.Entities;
-using InfraFlowSculptor.Domain.SqlServerAggregate.Entities;
-using InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities;
-using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities;
-using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
-using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
-using InfraFlowSculptor.Infrastructure.Persistence.Views;
 using InfraFlowSculptor.Application.ResourceGroups.Common;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 
-public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbContext>, IResourceGroupRepository
+public class ResourceGroupRepository : BaseRepository<ResourceGroup, ProjectDbContext>, IResourceGroupRepository
 {
     public ResourceGroupRepository(ProjectDbContext context) : base(context)
     {
@@ -259,7 +236,7 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
 
         return await Context.AzureResources
             .Where(r => resourceGroupIds.Contains(r.ResourceGroupId))
-            .Select(r => r.ResourceType)
+            .Select(r => (string)r.ResourceType)
             .Distinct()
             .OrderBy(t => t)
             .AsNoTracking()

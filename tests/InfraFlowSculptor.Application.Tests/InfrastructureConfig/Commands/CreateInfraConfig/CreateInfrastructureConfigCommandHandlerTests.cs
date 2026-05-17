@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
-using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -35,8 +34,8 @@ public sealed class CreateInfrastructureConfigCommandHandlerTests
         _mapper = Substitute.For<IMapper>();
         _project = Project.Create(new Name("RetailApi"), null, UserId.CreateUnique());
         _projectGuid = _project.Id.Value;
-        _repository.AddAsync(Arg.Any<DomainInfrastructureConfig>())
-            .Returns(callInfo => Task.FromResult((DomainInfrastructureConfig)callInfo.Args()[0]));
+        _repository.Add(Arg.Any<DomainInfrastructureConfig>())
+            .Returns(callInfo => (DomainInfrastructureConfig)callInfo.Args()[0]);
         _sut = new CreateInfrastructureConfigCommandHandler(_repository, _accessService, _mapper);
     }
 
@@ -57,7 +56,7 @@ public sealed class CreateInfrastructureConfigCommandHandlerTests
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().BeSameAs(expectedDto);
-        await _repository.Received(1).AddAsync(Arg.Is<DomainInfrastructureConfig>(c =>
+        _repository.Received(1).Add(Arg.Is<DomainInfrastructureConfig>(c =>
             c.Name.Value == ConfigName && c.ProjectId.Value == _projectGuid));
     }
 
@@ -75,7 +74,7 @@ public sealed class CreateInfrastructureConfigCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Forbidden);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<DomainInfrastructureConfig>());
+        _repository.DidNotReceive().Add(Arg.Any<DomainInfrastructureConfig>());
     }
 
     private static GetInfrastructureConfigResult BuildExpectedResult() => new(

@@ -86,7 +86,7 @@ public sealed class AddAppConfigurationKeyAdditionService(
             request.SecretName!,
             request.SecretValueAssignment ?? SecretValueAssignment.DirectInKeyVault);
 
-        await appConfigurationRepository.UpdateAsync(appConfiguration).ConfigureAwait(false);
+        appConfigurationRepository.Update(appConfiguration);
 
         var hasAccess = await CheckKeyVaultAccessAsync(
                 request.AppConfigurationId,
@@ -116,7 +116,7 @@ public sealed class AddAppConfigurationKeyAdditionService(
             variableGroupLookup.Value.Id,
             request.PipelineVariableName!);
 
-        await appConfigurationRepository.UpdateAsync(appConfiguration).ConfigureAwait(false);
+        appConfigurationRepository.Update(appConfiguration);
         return ToResult(configurationKey, null, variableGroupLookup.Value.GroupName);
     }
 
@@ -148,7 +148,7 @@ public sealed class AddAppConfigurationKeyAdditionService(
             request.KeyVaultResourceId!,
             request.SecretName!);
 
-        await appConfigurationRepository.UpdateAsync(appConfiguration).ConfigureAwait(false);
+        appConfigurationRepository.Update(appConfiguration);
 
         var hasAccess = await CheckKeyVaultAccessAsync(
                 request.AppConfigurationId,
@@ -177,7 +177,7 @@ public sealed class AddAppConfigurationKeyAdditionService(
             request.SecretName!,
             request.SecretValueAssignment ?? SecretValueAssignment.DirectInKeyVault);
 
-        await appConfigurationRepository.UpdateAsync(appConfiguration).ConfigureAwait(false);
+        appConfigurationRepository.Update(appConfiguration);
 
         var hasAccess = await CheckKeyVaultAccessAsync(
                 request.AppConfigurationId,
@@ -206,7 +206,7 @@ public sealed class AddAppConfigurationKeyAdditionService(
             request.SourceResourceId!,
             request.SourceOutputName!);
 
-        await appConfigurationRepository.UpdateAsync(appConfiguration).ConfigureAwait(false);
+        appConfigurationRepository.Update(appConfiguration);
         return ToResult(configurationKey, null);
     }
 
@@ -219,7 +219,7 @@ public sealed class AddAppConfigurationKeyAdditionService(
             request.Label,
             request.EnvironmentValues ?? new Dictionary<string, string>());
 
-        await appConfigurationRepository.UpdateAsync(appConfiguration).ConfigureAwait(false);
+        appConfigurationRepository.Update(appConfiguration);
         return ToResult(configurationKey, null);
     }
 

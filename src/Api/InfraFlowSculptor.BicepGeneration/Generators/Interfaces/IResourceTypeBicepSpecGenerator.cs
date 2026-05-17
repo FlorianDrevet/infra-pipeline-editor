@@ -1,5 +1,4 @@
 using InfraFlowSculptor.BicepGeneration.Ir;
-using InfraFlowSculptor.GenerationCore.Models;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 

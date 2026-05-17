@@ -7,7 +7,6 @@ using InfraFlowSculptor.Contracts.PersonalAccessTokens.Responses;
 using InfraFlowSculptor.Domain.PersonalAccessTokenAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using InfraFlowSculptor.Api.Controllers.Constants;

@@ -2,11 +2,9 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Projects.Common;
-using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
-using MediatR;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.CreateProject;
@@ -52,7 +50,7 @@ public sealed class CreateProjectCommandHandler(
             project.SetResourceNamingTemplate(resourceType, new NamingTemplate(template));
         }
 
-        var saved = await repository.AddAsync(project);
+        var saved = repository.Add(project);
 
         return ProjectResultMapper.ToProjectResult(saved);
     }

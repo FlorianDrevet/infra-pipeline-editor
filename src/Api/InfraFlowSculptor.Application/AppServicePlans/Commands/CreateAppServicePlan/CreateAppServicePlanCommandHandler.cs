@@ -5,7 +5,6 @@ using InfraFlowSculptor.Domain.AppServicePlanAggregate;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.AppServicePlans.Commands.CreateAppServicePlan;
@@ -48,7 +47,7 @@ public class CreateAppServicePlanCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await appServicePlanRepository.AddAsync(plan);
+        var saved = appServicePlanRepository.Add(plan);
 
         return mapper.Map<AppServicePlanResult>(saved);
     }

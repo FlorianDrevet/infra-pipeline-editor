@@ -131,9 +131,9 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
             .AnyAsync(r => r.Id == id, cancellationToken);
     }
 
-    public Task<AzureResource> UpdateAsync(AzureResource resource, CancellationToken cancellationToken = default)
+    public AzureResource Update(AzureResource resource)
     {
-        return Task.FromResult(resource);
+        return resource;
     }
 
     /// <inheritdoc />

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using FluentAssertions;
 using InfraFlowSculptor.Application.Imports.Common.Analysis;
 using InfraFlowSculptor.Application.Imports.Common.Constants;
@@ -13,7 +12,7 @@ namespace InfraFlowSculptor.Mcp.Tests.Imports;
 /// </summary>
 public sealed class GoldenArmTemplateTests
 {
-  private readonly ImportPreviewAnalyzer _sut = new();
+    private readonly ImportPreviewAnalyzer _sut = new();
 
     // ── Template 1: Simple — Key Vault + Storage Account ──────────────
 
@@ -52,23 +51,23 @@ public sealed class GoldenArmTemplateTests
     [Fact]
     public void SimpleTemplate_ParsesAllResources()
     {
-      var preview = _sut.AnalyzeArmTemplate(SimpleTemplate);
+        var preview = _sut.AnalyzeArmTemplate(SimpleTemplate);
 
-      preview.Resources.Should().HaveCount(2);
+        preview.Resources.Should().HaveCount(2);
         preview.UnsupportedResources.Should().BeEmpty();
     }
 
     [Fact]
     public void SimpleTemplate_MapsKeyVaultCorrectly()
     {
-      var preview = _sut.AnalyzeArmTemplate(SimpleTemplate);
+        var preview = _sut.AnalyzeArmTemplate(SimpleTemplate);
 
-      var kv = preview.Resources
-            .Single(r => r.MappedResourceType == AzureResourceTypes.KeyVault);
+        var kv = preview.Resources
+              .Single(r => r.MappedResourceType == AzureResourceTypes.KeyVault);
 
         kv.SourceType.Should().Be("Microsoft.KeyVault/vaults");
         kv.SourceName.Should().Be("myKeyVault");
-      kv.Confidence.Should().Be(ImportPreviewMappingConfidence.High);
+        kv.Confidence.Should().Be(ImportPreviewMappingConfidence.High);
         kv.ExtractedProperties.Should().ContainKey("skuName")
             .WhoseValue.Should().Be("standard");
     }
@@ -76,14 +75,14 @@ public sealed class GoldenArmTemplateTests
     [Fact]
     public void SimpleTemplate_MapsStorageAccountCorrectly()
     {
-      var preview = _sut.AnalyzeArmTemplate(SimpleTemplate);
+        var preview = _sut.AnalyzeArmTemplate(SimpleTemplate);
 
-      var sa = preview.Resources
-            .Single(r => r.MappedResourceType == AzureResourceTypes.StorageAccount);
+        var sa = preview.Resources
+              .Single(r => r.MappedResourceType == AzureResourceTypes.StorageAccount);
 
         sa.SourceType.Should().Be("Microsoft.Storage/storageAccounts");
         sa.SourceName.Should().Be("mystorageacct");
-      sa.Confidence.Should().Be(ImportPreviewMappingConfidence.High);
+        sa.Confidence.Should().Be(ImportPreviewMappingConfidence.High);
         sa.ExtractedProperties.Should().ContainKey("kind")
             .WhoseValue.Should().Be("StorageV2");
         sa.ExtractedProperties.Should().ContainKey("skuName")
@@ -93,17 +92,17 @@ public sealed class GoldenArmTemplateTests
     [Fact]
     public void SimpleTemplate_CapturesMetadata()
     {
-      var preview = _sut.AnalyzeArmTemplate(SimpleTemplate);
+        var preview = _sut.AnalyzeArmTemplate(SimpleTemplate);
 
-      preview.Metadata.Should().ContainKey("schema");
-      preview.Metadata.Should().ContainKey("contentVersion");
-      preview.Metadata["contentVersion"].Should().Be("1.0.0.0");
+        preview.Metadata.Should().ContainKey("schema");
+        preview.Metadata.Should().ContainKey("contentVersion");
+        preview.Metadata["contentVersion"].Should().Be("1.0.0.0");
     }
 
     [Fact]
     public void SimpleTemplate_GeneratesUnmappedPropertyGaps()
     {
-      var preview = _sut.AnalyzeArmTemplate(SimpleTemplate);
+        var preview = _sut.AnalyzeArmTemplate(SimpleTemplate);
 
         // tenantId and enableSoftDelete on KeyVault should be reported as unmapped
         preview.Gaps.Should().Contain(g =>
@@ -177,18 +176,18 @@ public sealed class GoldenArmTemplateTests
     [Fact]
     public void DependencyTemplate_ParsesAllFourResources()
     {
-      var preview = _sut.AnalyzeArmTemplate(DependencyTemplate);
+        var preview = _sut.AnalyzeArmTemplate(DependencyTemplate);
 
-      preview.Resources.Should().HaveCount(4);
+        preview.Resources.Should().HaveCount(4);
         preview.UnsupportedResources.Should().BeEmpty();
     }
 
     [Fact]
     public void DependencyTemplate_MapsDependencies()
     {
-      var preview = _sut.AnalyzeArmTemplate(DependencyTemplate);
+        var preview = _sut.AnalyzeArmTemplate(DependencyTemplate);
 
-      var deps = preview.Dependencies;
+        var deps = preview.Dependencies;
         deps.Should().Contain(d =>
             d.FromResourceName == "myWebApp"
             && d.DependencyType == "dependsOn");
@@ -200,11 +199,11 @@ public sealed class GoldenArmTemplateTests
     [Fact]
     public void DependencyTemplate_MapsAllResourceTypes()
     {
-      var preview = _sut.AnalyzeArmTemplate(DependencyTemplate);
+        var preview = _sut.AnalyzeArmTemplate(DependencyTemplate);
 
-      var types = preview.Resources
-            .Select(r => r.MappedResourceType)
-            .ToList();
+        var types = preview.Resources
+              .Select(r => r.MappedResourceType)
+              .ToList();
 
         types.Should().Contain(AzureResourceTypes.AppServicePlan);
         types.Should().Contain(AzureResourceTypes.WebApp);
@@ -281,15 +280,15 @@ public sealed class GoldenArmTemplateTests
     [Fact]
     public void MixedTemplate_ParsesAllSixResources()
     {
-      var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
+        var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
 
-      preview.Resources.Should().HaveCount(6);
+        preview.Resources.Should().HaveCount(6);
     }
 
     [Fact]
     public void MixedTemplate_IdentifiesUnsupportedResources()
     {
-      var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
+        var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
 
         // VNet and NSG are now supported by IFS
         preview.UnsupportedResources.Should().BeEmpty();
@@ -298,12 +297,12 @@ public sealed class GoldenArmTemplateTests
     [Fact]
     public void MixedTemplate_MapsSupportedResourcesCorrectly()
     {
-      var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
+        var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
 
-      var mapped = preview.Resources
-            .Where(r => r.MappedResourceType is not null)
-            .Select(r => r.MappedResourceType!)
-            .ToList();
+        var mapped = preview.Resources
+              .Where(r => r.MappedResourceType is not null)
+              .Select(r => r.MappedResourceType!)
+              .ToList();
 
         mapped.Should().HaveCount(6);
         mapped.Should().Contain(AzureResourceTypes.KeyVault);
@@ -317,7 +316,7 @@ public sealed class GoldenArmTemplateTests
     [Fact]
     public void MixedTemplate_GeneratesUnsupportedResourceGaps()
     {
-      var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
+        var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
 
         // VNet and NSG are now supported — no unsupported resource gaps expected
         preview.Gaps.Should().NotContain(g =>
@@ -332,10 +331,10 @@ public sealed class GoldenArmTemplateTests
     [Fact]
     public void MixedTemplate_ExtractsKeyVaultPremiumSku()
     {
-      var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
+        var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
 
-      var kv = preview.Resources
-            .Single(r => r.MappedResourceType == AzureResourceTypes.KeyVault);
+        var kv = preview.Resources
+              .Single(r => r.MappedResourceType == AzureResourceTypes.KeyVault);
 
         kv.ExtractedProperties.Should().ContainKey("skuName")
             .WhoseValue.Should().Be("premium");
@@ -344,11 +343,11 @@ public sealed class GoldenArmTemplateTests
     [Fact]
     public void MixedTemplate_CapturesSqlDependency()
     {
-      var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
+        var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
 
-      preview.Dependencies.Should().Contain(d =>
-            d.FromResourceName == "prodSqlServer/prodDb"
-            && d.DependencyType == "dependsOn");
+        preview.Dependencies.Should().Contain(d =>
+              d.FromResourceName == "prodSqlServer/prodDb"
+              && d.DependencyType == "dependsOn");
     }
 
     // ── Shared analyzer summary ────────────────────────────────────────
@@ -356,10 +355,10 @@ public sealed class GoldenArmTemplateTests
     [Fact]
     public void SimpleTemplate_ReturnsCorrectSummary()
     {
-      var preview = _sut.AnalyzeArmTemplate(SimpleTemplate);
+        var preview = _sut.AnalyzeArmTemplate(SimpleTemplate);
 
-      preview.SourceFormat.Should().Be(IacSourceFormat.ArmJson);
-      preview.Resources.Should().HaveCount(2);
-      preview.Summary.Should().Be("Parsed 2 resource(s): 2 mapped, 0 unsupported.");
+        preview.SourceFormat.Should().Be(IacSourceFormat.ArmJson);
+        preview.Resources.Should().HaveCount(2);
+        preview.Summary.Should().Be("Parsed 2 resource(s): 2 mapped, 0 unsupported.");
     }
 }

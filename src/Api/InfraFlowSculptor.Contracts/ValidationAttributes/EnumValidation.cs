@@ -15,7 +15,7 @@ public sealed class EnumValidation : ValidationAttribute
         }
         _enumType = enumType;
     }
-    
+
     public override bool IsValid(object? value)
     {
         if (value is null)
@@ -33,7 +33,7 @@ public sealed class EnumValidation : ValidationAttribute
 
         return Enum.IsDefined(_enumType, value);
     }
-    
+
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
         return !IsValid(value) ? new ValidationResult($"The value '{value}' is not valid for enum type '{_enumType.Name}'.") : ValidationResult.Success;

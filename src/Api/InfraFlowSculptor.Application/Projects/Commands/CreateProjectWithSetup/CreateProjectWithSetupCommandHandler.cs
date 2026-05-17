@@ -1,10 +1,9 @@
-﻿using ErrorOr;
+using ErrorOr;
 using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
-using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
@@ -64,7 +63,7 @@ public sealed class CreateProjectWithSetupCommandHandler(
         if (repositoryResult.IsError)
             return repositoryResult.Errors;
 
-        var saved = await repository.AddAsync(project);
+        var saved = repository.Add(project);
         return ProjectResultMapper.ToProjectResult(saved);
     }
 

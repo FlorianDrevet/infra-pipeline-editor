@@ -27,7 +27,7 @@ public sealed class ParameterDefinitionConfiguration
 
         builder.Property(x => x.InfraConfigId)
             .HasConversion(new IdValueConverter<InfrastructureConfigId>());
-        
+
         builder.Property(x => x.IsSecret)
             .HasConversion(new SingleValueConverter<IsSecret, bool>());
 

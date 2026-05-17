@@ -2,7 +2,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.StorageAccounts.Commands.DeleteStorageAccount;
 

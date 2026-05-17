@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using InfraFlowSculptor.BicepGeneration.Generators.ParameterModels;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;

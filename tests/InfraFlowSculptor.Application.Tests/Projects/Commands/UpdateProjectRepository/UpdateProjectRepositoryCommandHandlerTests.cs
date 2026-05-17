@@ -50,7 +50,7 @@ public sealed class UpdateProjectRepositoryCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.GitRepository.InvalidProviderType("Unsupported").Code);
-        await _projectRepository.DidNotReceive().UpdateAsync(Arg.Any<Project>());
+        _projectRepository.DidNotReceive().Update(Arg.Any<Project>());
     }
 
     [Fact]
@@ -71,6 +71,6 @@ public sealed class UpdateProjectRepositoryCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.ProjectRepository.NoContentKind().Code);
-        await _projectRepository.DidNotReceive().UpdateAsync(Arg.Any<Project>());
+        _projectRepository.DidNotReceive().Update(Arg.Any<Project>());
     }
 }

@@ -1,5 +1,4 @@
 using InfraFlowSculptor.Domain.AppConfigurationAggregate;
-using InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

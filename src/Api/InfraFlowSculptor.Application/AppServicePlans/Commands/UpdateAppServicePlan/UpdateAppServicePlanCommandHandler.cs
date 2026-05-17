@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.AppServicePlans.Commands.UpdateAppServicePlan;
 
@@ -49,7 +48,7 @@ public class UpdateAppServicePlanCommandHandler(
                         ec.Capacity))
                     .ToList());
 
-        var updated = await appServicePlanRepository.UpdateAsync(plan);
+        var updated = appServicePlanRepository.Update(plan);
 
         return mapper.Map<AppServicePlanResult>(updated);
     }

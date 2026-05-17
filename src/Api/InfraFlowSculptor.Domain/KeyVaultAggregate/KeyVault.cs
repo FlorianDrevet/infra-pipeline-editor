@@ -2,7 +2,6 @@ using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ResourceParameterUsage;
 using InfraFlowSculptor.Domain.KeyVaultAggregate.Entities;
 using InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
@@ -53,11 +52,11 @@ public sealed class KeyVault : AzureResource
 
         AddParameterUsage(parameter, ParameterUsage.Secret);
     }
-    
+
     private KeyVault()
     {
     }
-    
+
     /// <summary>Updates the resource-level properties of this Key Vault.</summary>
     public void Update(
         Name name,

@@ -28,7 +28,7 @@ public sealed class PersonalAccessTokenRepositoryTests : IDisposable
     {
         // Arrange
         var (token, _) = PersonalAccessToken.Create(UserId.CreateUnique(), PrimaryTokenName, expiresAt: null);
-        await _context.PersonalAccessTokens.AddAsync(token);
+        _context.PersonalAccessTokens.Add(token);
         await _context.SaveChangesAsync();
 
         // Act
@@ -47,7 +47,7 @@ public sealed class PersonalAccessTokenRepositoryTests : IDisposable
         var (token, _) = PersonalAccessToken.Create(UserId.CreateUnique(), PrimaryTokenName, expiresAt: null);
 
         // Act
-        await _sut.AddAsync(token);
+        _sut.Add(token);
         await _context.SaveChangesAsync();
 
         // Assert
@@ -60,7 +60,7 @@ public sealed class PersonalAccessTokenRepositoryTests : IDisposable
     {
         // Arrange
         var (token, _) = PersonalAccessToken.Create(UserId.CreateUnique(), PrimaryTokenName, expiresAt: null);
-        await _context.PersonalAccessTokens.AddAsync(token);
+        _context.PersonalAccessTokens.Add(token);
         await _context.SaveChangesAsync();
 
         // Act
@@ -77,7 +77,7 @@ public sealed class PersonalAccessTokenRepositoryTests : IDisposable
     {
         // Arrange
         var (token, _) = PersonalAccessToken.Create(UserId.CreateUnique(), PrimaryTokenName, expiresAt: null);
-        await _context.PersonalAccessTokens.AddAsync(token);
+        _context.PersonalAccessTokens.Add(token);
         await _context.SaveChangesAsync();
 
         // Act

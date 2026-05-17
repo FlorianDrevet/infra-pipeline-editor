@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 var mcpOptionsSection = builder.Configuration.GetSection(McpOptions.SectionName);
 builder.Services.Configure<McpOptions>(mcpOptionsSection);
 builder.Services.Configure<ProjectDraftStorageOptions>(builder.Configuration.GetSection(ProjectDraftStorageOptions.SectionName));
+builder.Services.Configure<ImportPreviewStorageOptions>(builder.Configuration.GetSection(ImportPreviewStorageOptions.SectionName));
 
 var mcpOptions = mcpOptionsSection.Get<McpOptions>() ?? new McpOptions();
 builder.WebHost.UseUrls(mcpOptions.ListenUrl);

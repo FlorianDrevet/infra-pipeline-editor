@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Scalar.AspNetCore;
 using InfraFlowSculptor.Api.Options;
 
@@ -10,16 +7,16 @@ public static class DevelopmentTools
 {
     public static void AddDevelopmentTools(this WebApplication app, IConfiguration configuration)
     {
-        if (!app.Environment.IsDevelopment()) 
+        if (!app.Environment.IsDevelopment())
             return;
-        
+
         app.UseDeveloperExceptionPage();
         app.MapOpenApi().AllowAnonymous();
-    
+
         var scalarOauthConfiguration = configuration
             .GetSection(ScalarOAuthOptions.SectionName)
             .Get<ScalarOAuthOptions>();
-    
+
         app.MapScalarApiReference(options =>
         {
             options.Layout = ScalarLayout.Classic;

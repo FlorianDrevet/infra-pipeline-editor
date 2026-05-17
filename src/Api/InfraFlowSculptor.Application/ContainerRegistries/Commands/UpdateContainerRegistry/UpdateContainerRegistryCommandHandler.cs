@@ -42,7 +42,7 @@ public sealed class UpdateContainerRegistryCommandHandler(
                     .Select(ec => (ec.EnvironmentName, ec.Sku, ec.AdminUserEnabled, ec.PublicNetworkAccess, ec.ZoneRedundancy))
                     .ToList());
 
-        var updated = await containerRegistryRepository.UpdateAsync(containerRegistry);
+        var updated = containerRegistryRepository.Update(containerRegistry);
 
         return mapper.Map<ContainerRegistryResult>(updated);
     }

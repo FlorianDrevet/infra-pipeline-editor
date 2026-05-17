@@ -3,7 +3,6 @@ using FluentAssertions;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.ProjectAggregate;
-using Xunit;
 
 namespace InfraFlowSculptor.Domain.Tests.Common.Models;
 

@@ -36,7 +36,7 @@ public sealed class SetProjectLayoutPresetCommandHandler(
         if (setResult.IsError)
             return setResult.Errors;
 
-        await projectRepository.UpdateAsync(project);
+        projectRepository.Update(project);
 
         return Result.Success;
     }

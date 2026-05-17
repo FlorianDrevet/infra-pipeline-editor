@@ -2,97 +2,98 @@ using FluentAssertions;
 using InfraFlowSculptor.Application.Imports.Common.Analysis;
 using InfraFlowSculptor.Application.Imports.Common.Constants;
 using InfraFlowSculptor.Mcp.Imports;
-using InfraFlowSculptor.Mcp.Imports.Models;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 
 namespace InfraFlowSculptor.Mcp.Tests.Imports;
 
 public sealed class ImportPreviewServiceTests
 {
-  private const string SourceContent = "arm content";
+    private const string SourceContent = "arm content";
 
-  private readonly IImportPreviewAnalyzer _analyzer;
-  private readonly ImportPreviewService _sut;
+    private readonly IImportPreviewAnalyzer _analyzer;
+    private readonly ImportPreviewService _sut;
 
-  public ImportPreviewServiceTests()
-  {
-    _analyzer = Substitute.For<IImportPreviewAnalyzer>();
-    _sut = new ImportPreviewService(_analyzer);
-  }
+    public ImportPreviewServiceTests()
+    {
+        _analyzer = Substitute.For<IImportPreviewAnalyzer>();
+        var options = Options.Create(new ImportPreviewStorageOptions());
+        _sut = new ImportPreviewService(_analyzer, options);
+    }
 
     [Fact]
-  public void Given_AnalyzerResult_When_CreatePreviewFromArm_Then_StoresPreviewWithGeneratedId()
+    public void Given_AnalyzerResult_When_CreatePreviewFromArm_Then_StoresPreviewWithGeneratedId()
     {
-    // Arrange
-    var analysis = CreateAnalysisResult();
-    _analyzer.AnalyzeArmTemplate(SourceContent).Returns(analysis);
+        // Arrange
+        var analysis = CreateAnalysisResult();
+        _analyzer.AnalyzeArmTemplate(SourceContent).Returns(analysis);
 
         // Act
-    var preview = _sut.CreatePreviewFromArm(SourceContent);
+        var preview = _sut.CreatePreviewFromArm(SourceContent);
 
         // Assert
         preview.PreviewId.Should().StartWith("preview_");
         preview.Analysis.SourceFormat.Should().Be(IacSourceFormat.ArmJson);
         preview.Analysis.Resources.Should().HaveCount(1);
-      preview.Analysis.Dependencies.Should().ContainSingle();
-      preview.Analysis.Metadata["schema"].Should().Be("https://example/schema");
-      preview.Analysis.Gaps.Should().ContainSingle();
-      preview.Analysis.UnsupportedResources.Should().ContainSingle().Which.Should().Be("legacyNetwork");
+        preview.Analysis.Dependencies.Should().ContainSingle();
+        preview.Analysis.Metadata["schema"].Should().Be("https://example/schema");
+        preview.Analysis.Gaps.Should().ContainSingle();
+        preview.Analysis.UnsupportedResources.Should().ContainSingle().Which.Should().Be("legacyNetwork");
 
-    var storedPreview = _sut.GetPreview(preview.PreviewId);
-    storedPreview.Should().BeEquivalentTo(preview);
+        var storedPreview = _sut.GetPreview(preview.PreviewId);
+        storedPreview.Should().BeEquivalentTo(preview);
 
         var resource = preview.Analysis.Resources[0];
         resource.SourceType.Should().Be("Microsoft.KeyVault/vaults");
         resource.SourceName.Should().Be("myKeyVault");
         resource.MappedResourceType.Should().Be("KeyVault");
-      resource.Confidence.Should().Be(ImportPreviewMappingConfidence.High);
-    _analyzer.Received(1).AnalyzeArmTemplate(SourceContent);
+        resource.Confidence.Should().Be(ImportPreviewMappingConfidence.High);
+        _analyzer.Received(1).AnalyzeArmTemplate(SourceContent);
     }
 
     [Fact]
-  public void Given_MissingPreviewId_When_GetPreview_Then_ReturnsNull()
+    public void Given_MissingPreviewId_When_GetPreview_Then_ReturnsNull()
     {
         // Act
-    var preview = _sut.GetPreview("preview_missing");
+        var preview = _sut.GetPreview("preview_missing");
 
         // Assert
-    preview.Should().BeNull();
+        preview.Should().BeNull();
     }
 
     [Fact]
-  public void Given_StoredPreview_When_RemovePreview_Then_RemovesItFromMemory()
+    public void Given_StoredPreview_When_RemovePreview_Then_RemovesItFromMemory()
     {
-    // Arrange
-    _analyzer.AnalyzeArmTemplate(SourceContent).Returns(CreateAnalysisResult());
-    var preview = _sut.CreatePreviewFromArm(SourceContent);
+        // Arrange
+        _analyzer.AnalyzeArmTemplate(SourceContent).Returns(CreateAnalysisResult());
+        var preview = _sut.CreatePreviewFromArm(SourceContent);
 
         // Act
-    var removed = _sut.RemovePreview(preview.PreviewId);
+        var removed = _sut.RemovePreview(preview.PreviewId);
 
         // Assert
-    removed.Should().BeTrue();
-    _sut.GetPreview(preview.PreviewId).Should().BeNull();
+        removed.Should().BeTrue();
+        _sut.GetPreview(preview.PreviewId).Should().BeNull();
     }
 
     [Fact]
-  public void Given_MissingPreviewId_When_RemovePreview_Then_ReturnsFalse()
+    public void Given_MissingPreviewId_When_RemovePreview_Then_ReturnsFalse()
     {
         // Act
-    var removed = _sut.RemovePreview("preview_missing");
+        var removed = _sut.RemovePreview("preview_missing");
 
         // Assert
-    removed.Should().BeFalse();
+        removed.Should().BeFalse();
     }
 
-  private static ImportPreviewAnalysisResult CreateAnalysisResult()
+    private static ImportPreviewAnalysisResult CreateAnalysisResult()
     {
-    return new ImportPreviewAnalysisResult
-    {
-      SourceFormat = IacSourceFormat.ArmJson,
-      Resources =
-      [
-        new ImportedResourceAnalysisResult
+        return new ImportPreviewAnalysisResult
+        {
+            SourceFormat = IacSourceFormat.ArmJson,
+            Resources =
+          [
+            new ImportedResourceAnalysisResult
         {
           SourceType = "Microsoft.KeyVault/vaults",
           SourceName = "myKeyVault",
@@ -105,17 +106,17 @@ public sealed class ImportPreviewServiceTests
           },
         },
       ],
-      Dependencies =
-      [
-        new ImportedDependencyAnalysisResult("myKeyVault", "sharedIdentity", ImportDependencyType.DependsOn),
+            Dependencies =
+          [
+            new ImportedDependencyAnalysisResult("myKeyVault", "sharedIdentity", ImportDependencyType.DependsOn),
       ],
-      Metadata = new Dictionary<string, string>
-      {
-        ["schema"] = "https://example/schema",
-      },
-      Gaps =
-      [
-        new ImportPreviewGapResult
+            Metadata = new Dictionary<string, string>
+            {
+                ["schema"] = "https://example/schema",
+            },
+            Gaps =
+          [
+            new ImportPreviewGapResult
         {
           Severity = ImportPreviewGapSeverity.Warning,
           Category = ImportPreviewGapCategory.UnsupportedResource,
@@ -123,8 +124,8 @@ public sealed class ImportPreviewServiceTests
           SourceResourceName = "legacyNetwork",
         },
       ],
-      UnsupportedResources = ["legacyNetwork"],
-      Summary = "Parsed 1 resource(s): 1 mapped, 1 unsupported.",
-    };
+            UnsupportedResources = ["legacyNetwork"],
+            Summary = "Parsed 1 resource(s): 1 mapped, 1 unsupported.",
+        };
     }
 }

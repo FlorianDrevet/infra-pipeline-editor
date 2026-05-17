@@ -6,7 +6,6 @@ using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.StorageAccounts.Commands.CreateStorageAccount;
 
@@ -69,7 +68,7 @@ public class CreateStorageAccountCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await storageAccountRepository.AddAsync(storageAccount);
+        var saved = storageAccountRepository.Add(storageAccount);
 
         return mapper.Map<StorageAccountResult>(saved);
     }

@@ -7,7 +7,6 @@ using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration;
 using InfraFlowSculptor.PipelineGeneration.Infra;
-using InfraFlowSculptor.PipelineGeneration.Models;
 using NSubstitute;
 
 namespace InfraFlowSculptor.Application.Tests.Projects.Common.Generation;

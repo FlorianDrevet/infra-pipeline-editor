@@ -8,7 +8,6 @@ using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.FunctionAppAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.FunctionApps.Commands.UpdateFunctionApp;
 
@@ -77,7 +76,7 @@ public sealed class UpdateFunctionAppCommandHandler(
             functionApp.PipelineStepOptions.Update(PipelineStepOptionsDataMapper.ToDomainData(opts));
         }
 
-        var updated = await functionAppRepository.UpdateAsync(functionApp);
+        var updated = functionAppRepository.Update(functionApp);
 
         return mapper.Map<FunctionAppResult>(updated);
     }

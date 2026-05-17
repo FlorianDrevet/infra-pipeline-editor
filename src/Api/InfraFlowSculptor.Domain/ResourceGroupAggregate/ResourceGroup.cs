@@ -44,13 +44,13 @@ public sealed class ResourceGroup : AggregateRoot<ResourceGroupId>
     private ResourceGroup()
     {
     }
-    
+
     /// <summary>Creates a new <see cref="ResourceGroup"/> with a generated identifier.</summary>
     public static ResourceGroup Create(Name name, InfrastructureConfigId infraConfigId, Location location)
     {
         return new ResourceGroup(ResourceGroupId.CreateUnique(), name, infraConfigId, location);
     }
-    
+
     /// <summary>
     /// Adds a resource to this resource group. Validates location consistency,
     /// name uniqueness, and the 800-resource limit.
@@ -62,14 +62,14 @@ public sealed class ResourceGroup : AggregateRoot<ResourceGroupId>
 
         if (_resources.Any(r => r.Name == resource.Name))
             return Errors.ResourceGroup.AddResource.ResourceAlreadyInGroup();
-        
+
         if (_resources.Count >= 800)
             return Errors.ResourceGroup.AddResource.ResourceGroupResourceLimitReached();
 
         _resources.Add(resource);
         return Result.Success;
     }
-    
+
     /// <summary>
     /// Removes a resource from this resource group. Returns an error if the resource
     /// is not in the group or is required as a dependency by other resources.

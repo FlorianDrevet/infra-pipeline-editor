@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.RedisCaches.Commands.UpdateRedisCache;
 using InfraFlowSculptor.Application.RedisCaches.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -49,8 +48,8 @@ public sealed class UpdateRedisCacheCommandHandlerTests
             minimumTlsVersion: new TlsVersion(TlsVersion.Version.Tls12),
             disableAccessKeyAuthentication: false,
             enableAadAuth: false);
-        _redisCacheRepository.UpdateAsync(Arg.Any<RedisCache>())
-            .Returns(callInfo => Task.FromResult((RedisCache)callInfo.Args()[0]));
+        _redisCacheRepository.Update(Arg.Any<RedisCache>())
+            .Returns(callInfo => (RedisCache)callInfo.Args()[0]);
         _sut = new UpdateRedisCacheCommandHandler(
             _redisCacheRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -79,7 +78,7 @@ public sealed class UpdateRedisCacheCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _redisCacheRepository.DidNotReceive().UpdateAsync(Arg.Any<RedisCache>());
+        _redisCacheRepository.DidNotReceive().Update(Arg.Any<RedisCache>());
     }
 
     [Fact]
@@ -97,7 +96,7 @@ public sealed class UpdateRedisCacheCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _redisCacheRepository.DidNotReceive().UpdateAsync(Arg.Any<RedisCache>());
+        _redisCacheRepository.DidNotReceive().Update(Arg.Any<RedisCache>());
     }
 
     [Fact]
@@ -117,7 +116,7 @@ public sealed class UpdateRedisCacheCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Validation);
-        await _redisCacheRepository.DidNotReceive().UpdateAsync(Arg.Any<RedisCache>());
+        _redisCacheRepository.DidNotReceive().Update(Arg.Any<RedisCache>());
     }
 
     [Fact]
@@ -136,7 +135,7 @@ public sealed class UpdateRedisCacheCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _redisCacheRepository.Received(1).UpdateAsync(Arg.Is<RedisCache>(rc =>
+        _redisCacheRepository.Received(1).Update(Arg.Is<RedisCache>(rc =>
             rc.Name.Value == "redis-renamed"
             && rc.RedisVersion == 7
             && rc.EnableNonSslPort == true));

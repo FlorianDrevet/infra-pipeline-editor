@@ -37,7 +37,7 @@ public sealed class UserRepositoryTests : IDisposable
     {
         // Arrange — entity is added then loaded from change-tracker cache, avoiding query translation.
         var user = User.Create(new EntraId(Guid.NewGuid()), new Name(AliceFirstName, AliceLastName));
-        await _context.Users.AddAsync(user);
+        _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
         // Act
@@ -56,7 +56,7 @@ public sealed class UserRepositoryTests : IDisposable
         var user = User.Create(new EntraId(Guid.NewGuid()), new Name(AliceFirstName, AliceLastName));
 
         // Act
-        var added = await _sut.AddAsync(user);
+        var added = _sut.Add(user);
         await _context.SaveChangesAsync();
 
         // Assert — verify via change-tracker entry rather than a query (InMemory limitation).

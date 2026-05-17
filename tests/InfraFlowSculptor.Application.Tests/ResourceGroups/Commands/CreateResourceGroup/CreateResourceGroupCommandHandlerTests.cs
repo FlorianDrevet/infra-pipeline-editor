@@ -39,8 +39,8 @@ public sealed class CreateResourceGroupCommandHandlerTests
         _infraConfigId = _config.Id;
         _name = new Name(ResourceGroupName);
         _location = new Location(Location.LocationEnum.FranceCentral);
-        _repository.AddAsync(Arg.Any<DomainResourceGroup>())
-            .Returns(callInfo => Task.FromResult((DomainResourceGroup)callInfo.Args()[0]));
+        _repository.Add(Arg.Any<DomainResourceGroup>())
+            .Returns(callInfo => (DomainResourceGroup)callInfo.Args()[0]);
         _sut = new CreateResourceGroupCommandHandler(_repository, _accessService, _mapper);
     }
 
@@ -60,7 +60,7 @@ public sealed class CreateResourceGroupCommandHandlerTests
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().BeSameAs(expectedDto);
-        await _repository.Received(1).AddAsync(Arg.Is<DomainResourceGroup>(rg =>
+        _repository.Received(1).Add(Arg.Is<DomainResourceGroup>(rg =>
             rg.Name == _name && rg.InfraConfigId == _infraConfigId && rg.Location == _location));
     }
 
@@ -78,7 +78,7 @@ public sealed class CreateResourceGroupCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Forbidden);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<DomainResourceGroup>());
+        _repository.DidNotReceive().Add(Arg.Any<DomainResourceGroup>());
     }
 
     private ResourceGroupResult BuildExpectedResult() => new(

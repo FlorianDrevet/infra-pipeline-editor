@@ -6,7 +6,6 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.GenerationCore;
 using NSubstitute;
 using DomainInfrastructureConfig = InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig;
@@ -47,7 +46,7 @@ public sealed class GetDnsInstructionsQueryHandlerTests
             null);
         typeof(InfraFlowSculptor.Domain.Common.BaseModels.AzureResource)
             .GetProperty(nameof(InfraFlowSculptor.Domain.Common.BaseModels.AzureResource.ResourceType))!
-            .SetValue(_containerApp, AzureResourceTypes.ContainerApp);
+            .SetValue(_containerApp, new ResourceTypeName(AzureResourceTypes.ContainerApp));
 
         var customDomain = _containerApp.AddCustomDomain("dev", "infraflowsculptor.fr").Value;
         _query = new GetDnsInstructionsQuery(_containerApp.Id, customDomain.Id);

@@ -2,14 +2,11 @@ using InfraFlowSculptor.Application.SqlServers.Commands.CreateSqlServer;
 using InfraFlowSculptor.Application.SqlServers.Commands.DeleteSqlServer;
 using InfraFlowSculptor.Application.SqlServers.Commands.UpdateSqlServer;
 using InfraFlowSculptor.Application.SqlServers.Queries;
-using InfraFlowSculptor.Application.Common.Queries.GetDependentResources;
 using MediatR;
 using InfraFlowSculptor.Contracts.SqlServers.Requests;
 using InfraFlowSculptor.Contracts.SqlServers.Responses;
-using InfraFlowSculptor.Contracts.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 

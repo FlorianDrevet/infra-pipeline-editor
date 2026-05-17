@@ -7,7 +7,6 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ContainerApps.Commands.UpdateContainerApp;
 
@@ -71,7 +70,7 @@ public sealed class UpdateContainerAppCommandHandler(
             containerApp.PipelineStepOptions.Update(PipelineStepOptionsDataMapper.ToDomainData(opts));
         }
 
-        var updated = await containerAppRepository.UpdateAsync(containerApp);
+        var updated = containerAppRepository.Update(containerApp);
 
         return mapper.Map<ContainerAppResult>(updated);
     }

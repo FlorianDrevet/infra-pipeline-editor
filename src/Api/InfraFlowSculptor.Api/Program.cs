@@ -8,7 +8,6 @@ using InfraFlowSculptor.Api.Configuration;
 using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Api.Options;
 using InfraFlowSculptor.Api.RateLimiting;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 

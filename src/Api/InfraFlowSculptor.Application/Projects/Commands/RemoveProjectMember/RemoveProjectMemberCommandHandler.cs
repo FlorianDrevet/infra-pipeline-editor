@@ -33,7 +33,7 @@ public sealed class RemoveProjectMemberCommandHandler(
             return Errors.Project.CannotRemoveOwnerError();
 
         project.RemoveMember(targetUserId);
-        await projectRepository.UpdateAsync(project);
+        projectRepository.Update(project);
 
         return Result.Deleted;
     }

@@ -26,7 +26,7 @@ public sealed class RemoveResourceAbbreviationOverrideCommandHandler(
         if (!infraConfig.RemoveResourceAbbreviationOverride(command.ResourceType))
             return Errors.InfrastructureConfig.ResourceAbbreviationOverrideNotFoundError(command.ResourceType);
 
-        await repository.UpdateAsync(infraConfig);
+        repository.Update(infraConfig);
 
         return Result.Deleted;
     }

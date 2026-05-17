@@ -37,7 +37,7 @@ public sealed class CreateFrontDoorCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await frontDoorRepository.AddAsync(fd);
+        var saved = frontDoorRepository.Add(fd);
         return mapper.Map<FrontDoorResult>(saved);
     }
 }

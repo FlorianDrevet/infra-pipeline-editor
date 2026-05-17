@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
@@ -31,7 +31,6 @@ using InfraFlowSculptor.Domain.ContainerAppAggregate;
 using InfraFlowSculptor.Domain.ContainerAppAggregate.Entities;
 using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate;
 using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities;
-using InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
 using InfraFlowSculptor.Domain.ApplicationInsightsAggregate.Entities;
 using InfraFlowSculptor.Domain.CosmosDbAggregate;
 using InfraFlowSculptor.Domain.CosmosDbAggregate.Entities;
@@ -47,7 +46,6 @@ using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
-using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;

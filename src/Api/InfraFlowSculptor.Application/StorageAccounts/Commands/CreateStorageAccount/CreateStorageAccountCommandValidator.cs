@@ -1,23 +1,15 @@
 using FluentValidation;
+using InfraFlowSculptor.Application.Common.Validation;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Application.StorageAccounts.Commands.CreateStorageAccount;
 
 /// <summary>Validates the <see cref="CreateStorageAccountCommand"/> before it is handled.</summary>
-public sealed class CreateStorageAccountCommandValidator : AbstractValidator<CreateStorageAccountCommand>
+public sealed class CreateStorageAccountCommandValidator : CreateResourceCommandValidator<CreateStorageAccountCommand>
 {
     /// <summary>Initializes validation rules for creating a Storage Account.</summary>
     public CreateStorageAccountCommandValidator()
     {
-        RuleFor(x => x.ResourceGroupId)
-            .NotEmpty().WithMessage("ResourceGroupId is required.");
-
-        RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Name is required.");
-
-        RuleFor(x => x.Location)
-            .NotEmpty().WithMessage("Location is required.");
-
         RuleFor(x => x.Kind)
             .NotEmpty().WithMessage("Kind is required.")
             .Must(value => Enum.TryParse<StorageAccountKind.Kind>(value, out _))

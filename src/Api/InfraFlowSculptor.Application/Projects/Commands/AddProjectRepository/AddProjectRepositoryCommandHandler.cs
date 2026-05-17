@@ -55,7 +55,7 @@ public sealed class AddProjectRepositoryCommandHandler(
         if (addResult.IsError)
             return addResult.Errors;
 
-        await projectRepository.UpdateAsync(project);
+        projectRepository.Update(project);
 
         return addResult.Value.Id;
     }

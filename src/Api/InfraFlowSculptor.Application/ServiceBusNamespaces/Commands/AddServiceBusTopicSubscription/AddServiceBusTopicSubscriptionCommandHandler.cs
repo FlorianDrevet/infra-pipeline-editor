@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.ServiceBusNamespaces.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.AddServiceBusTopicSubscription;
 
@@ -39,7 +38,7 @@ public class AddServiceBusTopicSubscriptionCommandHandler(
         if (addResult.IsError)
             return addResult.Errors;
 
-        await serviceBusNamespaceRepository.UpdateAsync(sb);
+        serviceBusNamespaceRepository.Update(sb);
 
         return mapper.Map<ServiceBusNamespaceResult>(sb);
     }

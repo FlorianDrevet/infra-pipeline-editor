@@ -40,7 +40,7 @@ public sealed class RemoveCustomDomainCommandHandler(
             return authResult.Errors;
 
         resource.RemoveCustomDomain(request.CustomDomainId);
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken);
+        azureResourceRepository.Update(resource);
 
         return Result.Deleted;
     }

@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.ContainerRegistries.Commands.UpdateContainerRegistry;
 using InfraFlowSculptor.Application.ContainerRegistries.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
@@ -48,8 +47,8 @@ public sealed class UpdateContainerRegistryCommandHandlerTests
             _existingRegistry.Id,
             new Name("acrrenamed"),
             new Location(Location.LocationEnum.WestEurope));
-        _registryRepository.UpdateAsync(Arg.Any<ContainerRegistry>())
-            .Returns(callInfo => Task.FromResult((ContainerRegistry)callInfo.Args()[0]));
+        _registryRepository.Update(Arg.Any<ContainerRegistry>())
+            .Returns(callInfo => (ContainerRegistry)callInfo.Args()[0]);
         _sut = new UpdateContainerRegistryCommandHandler(
             _registryRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -67,7 +66,7 @@ public sealed class UpdateContainerRegistryCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _registryRepository.DidNotReceive().UpdateAsync(Arg.Any<ContainerRegistry>());
+        _registryRepository.DidNotReceive().Update(Arg.Any<ContainerRegistry>());
     }
 
     [Fact]
@@ -85,7 +84,7 @@ public sealed class UpdateContainerRegistryCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _registryRepository.DidNotReceive().UpdateAsync(Arg.Any<ContainerRegistry>());
+        _registryRepository.DidNotReceive().Update(Arg.Any<ContainerRegistry>());
     }
 
     [Fact]
@@ -104,7 +103,7 @@ public sealed class UpdateContainerRegistryCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _registryRepository.Received(1).UpdateAsync(Arg.Is<ContainerRegistry>(cr =>
+        _registryRepository.Received(1).Update(Arg.Is<ContainerRegistry>(cr =>
             cr.Name.Value == "acrrenamed"));
         _mapper.Received(1).Map<ContainerRegistryResult>(Arg.Any<ContainerRegistry>());
     }

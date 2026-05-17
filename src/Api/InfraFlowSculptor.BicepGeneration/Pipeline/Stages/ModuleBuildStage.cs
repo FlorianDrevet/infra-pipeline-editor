@@ -1,7 +1,6 @@
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Ir;
-using InfraFlowSculptor.BicepGeneration.Ir.Emit;
 
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 

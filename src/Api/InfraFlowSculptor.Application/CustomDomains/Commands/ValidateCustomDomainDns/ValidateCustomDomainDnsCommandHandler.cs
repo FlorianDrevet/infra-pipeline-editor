@@ -43,7 +43,7 @@ public sealed class ValidateCustomDomainDnsCommandHandler(
 
         domain.ValidateDns();
 
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken);
+        azureResourceRepository.Update(resource);
 
         return new CustomDomainResult(
             domain.Id,

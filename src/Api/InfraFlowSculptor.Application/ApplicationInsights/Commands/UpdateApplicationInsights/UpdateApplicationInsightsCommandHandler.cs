@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ApplicationInsights.Commands.UpdateApplicationInsights;
 
@@ -51,7 +50,7 @@ public sealed class UpdateApplicationInsightsCommandHandler(
                     .Select(ec => (ec.EnvironmentName, ec.SamplingPercentage, ec.RetentionInDays, ec.DisableIpMasking, ec.DisableLocalAuth, ec.IngestionMode))
                     .ToList());
 
-        var updated = await applicationInsightsRepository.UpdateAsync(applicationInsights);
+        var updated = applicationInsightsRepository.Update(applicationInsights);
 
         return mapper.Map<ApplicationInsightsResult>(updated);
     }

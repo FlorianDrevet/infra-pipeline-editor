@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.UserAssignedIdentities.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.UserAssignedIdentities.Commands.UpdateUserAssignedIdentity;
 
@@ -38,7 +37,7 @@ public sealed class UpdateUserAssignedIdentityCommandHandler(
 
         identity.Update(request.Name, request.Location);
 
-        var updated = await userAssignedIdentityRepository.UpdateAsync(identity);
+        var updated = userAssignedIdentityRepository.Update(identity);
 
         return mapper.Map<UserAssignedIdentityResult>(updated);
     }

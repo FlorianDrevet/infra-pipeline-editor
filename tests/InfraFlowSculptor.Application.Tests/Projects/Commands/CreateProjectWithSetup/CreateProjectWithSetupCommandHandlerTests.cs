@@ -40,8 +40,8 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         _userId = UserId.CreateUnique();
 
         _currentUser.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(_userId);
-        _repository.AddAsync(Arg.Any<Project>())
-            .Returns(callInfo => Task.FromResult((Project)callInfo.Args()[0]));
+        _repository.Add(Arg.Any<Project>())
+            .Returns(callInfo => (Project)callInfo.Args()[0]);
 
         _sut = new CreateProjectWithSetupCommandHandler(_repository, _currentUser);
     }
@@ -76,7 +76,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
             && repository.IsConfigured);
         result.Value.Repositories![0].ContentKinds.Should().BeEquivalentTo("Infrastructure", "ApplicationCode");
 
-        await _repository.Received(1).AddAsync(Arg.Is<Project>(project =>
+        _repository.Received(1).Add(Arg.Is<Project>(project =>
             project.Name.Value == ProjectName
             && project.Description == ProjectDescription
             && project.Members.Count == 1
@@ -100,7 +100,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.Project.InvalidLayoutPreset(UnsupportedValue).Code);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
+        _repository.DidNotReceive().Add(Arg.Any<Project>());
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.Location.InvalidLocation(UnsupportedValue).Code);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
+        _repository.DidNotReceive().Add(Arg.Any<Project>());
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.GitRepository.InvalidProviderType(UnsupportedValue).Code);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
+        _repository.DidNotReceive().Add(Arg.Any<Project>());
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.ProjectRepository.NoContentKind().Code);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
+        _repository.DidNotReceive().Add(Arg.Any<Project>());
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Unauthorized);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
+        _repository.DidNotReceive().Add(Arg.Any<Project>());
     }
 
     private static CreateProjectWithSetupCommand CreateValidCommand() => new(

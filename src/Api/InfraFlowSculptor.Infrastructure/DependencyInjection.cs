@@ -64,11 +64,11 @@ public static class DependencyInjection
 
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        
+
         services.AddMigration<ProjectDbContext>();
 
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-        
+
         services.AddScoped<ICurrentUser, CurrentUser>();
         services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         services.AddHttpContextAccessor();
@@ -148,7 +148,7 @@ public static class DependencyInjection
     {
         services.AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builderConfiguration.GetSection("AzureAd"));
-        
+
         return services;
     }
 
@@ -201,10 +201,10 @@ public static class DependencyInjection
         services.AddSingleton<IKeyVaultSecretClient, KeyVaultSecretClient>();
 
         services.AddRefitClient<IGitHubTreeApi>(new RefitSettings
-            {
-                ContentSerializer = new SystemTextJsonContentSerializer(
+        {
+            ContentSerializer = new SystemTextJsonContentSerializer(
                     new JsonSerializerOptions(JsonSerializerDefaults.Web)),
-            })
+        })
             .ConfigureHttpClient(c =>
             {
                 c.BaseAddress = new Uri("https://api.github.com");

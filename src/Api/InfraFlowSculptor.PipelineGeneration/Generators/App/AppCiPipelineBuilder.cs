@@ -3,9 +3,6 @@ using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 
 namespace InfraFlowSculptor.PipelineGeneration.Generators.App;
-
-using static PipelineGenerationEngine;
-
 /// <summary>
 /// Builds thin CI pipeline wrapper YAML files that reference shared templates via <c>extends:</c>.
 /// Wrappers live under <c>.azuredevops/{configName}/apps/{appName}/</c> and reference templates under

@@ -32,7 +32,7 @@ public sealed class InfrastructureConfigRepositoryTests : IDisposable
     {
         // Arrange
         var config = InfrastructureConfig.Create(new Name(ConfigName), ProjectId.CreateUnique());
-        await _context.InfrastructureConfigs.AddAsync(config);
+        _context.InfrastructureConfigs.Add(config);
         await _context.SaveChangesAsync();
 
         // Act
@@ -60,7 +60,7 @@ public sealed class InfrastructureConfigRepositoryTests : IDisposable
         var config = InfrastructureConfig.Create(new Name(ConfigName), ProjectId.CreateUnique());
 
         // Act
-        await _sut.AddAsync(config);
+        _sut.Add(config);
         await _context.SaveChangesAsync();
 
         // Assert
@@ -73,7 +73,7 @@ public sealed class InfrastructureConfigRepositoryTests : IDisposable
     {
         // Arrange
         var config = InfrastructureConfig.Create(new Name(ConfigName), ProjectId.CreateUnique());
-        await _context.InfrastructureConfigs.AddAsync(config);
+        _context.InfrastructureConfigs.Add(config);
         await _context.SaveChangesAsync();
 
         // Act
@@ -100,7 +100,7 @@ public sealed class InfrastructureConfigRepositoryTests : IDisposable
     {
         // Arrange
         var config = InfrastructureConfig.Create(new Name(ConfigName), ProjectId.CreateUnique());
-        await _context.InfrastructureConfigs.AddAsync(config);
+        _context.InfrastructureConfigs.Add(config);
         await _context.SaveChangesAsync();
 
         // Act
@@ -116,7 +116,7 @@ public sealed class InfrastructureConfigRepositoryTests : IDisposable
     {
         // Arrange
         var config = InfrastructureConfig.Create(new Name(ConfigName), ProjectId.CreateUnique());
-        await _context.InfrastructureConfigs.AddAsync(config);
+        _context.InfrastructureConfigs.Add(config);
         await _context.SaveChangesAsync();
 
         // Act
@@ -133,7 +133,7 @@ public sealed class InfrastructureConfigRepositoryTests : IDisposable
     {
         // Arrange
         var config = InfrastructureConfig.Create(new Name(ConfigName), ProjectId.CreateUnique());
-        await _context.InfrastructureConfigs.AddAsync(config);
+        _context.InfrastructureConfigs.Add(config);
         await _context.SaveChangesAsync();
 
         // Act
@@ -170,7 +170,7 @@ public sealed class InfrastructureConfigRepositoryTests : IDisposable
     {
         // Arrange
         var config = InfrastructureConfig.Create(new Name(ConfigName), ProjectId.CreateUnique());
-        await _context.InfrastructureConfigs.AddAsync(config);
+        _context.InfrastructureConfigs.Add(config);
         await _context.SaveChangesAsync();
 
         // Act

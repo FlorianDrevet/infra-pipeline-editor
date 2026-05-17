@@ -28,7 +28,7 @@ public sealed class AddProjectPipelineVariableGroupCommandHandler(
         if (result.IsError)
             return result.Errors;
 
-        await projectRepository.UpdateAsync(project);
+        projectRepository.Update(project);
 
         var group = result.Value;
         return new AddProjectPipelineVariableGroupResult(group.Id.Value, group.GroupName);

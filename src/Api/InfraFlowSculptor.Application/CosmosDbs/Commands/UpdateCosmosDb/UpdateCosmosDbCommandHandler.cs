@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.CosmosDbs.Commands.UpdateCosmosDb;
 
@@ -44,7 +43,7 @@ public class UpdateCosmosDbCommandHandler(
                     .Select(ec => (ec.EnvironmentName, ec.DatabaseApiType, ec.ConsistencyLevel, ec.MaxStalenessPrefix, ec.MaxIntervalInSeconds, ec.EnableAutomaticFailover, ec.EnableMultipleWriteLocations, ec.BackupPolicyType, ec.EnableFreeTier))
                     .ToList());
 
-        var updatedCosmosDb = await cosmosDbRepository.UpdateAsync(cosmosDb);
+        var updatedCosmosDb = cosmosDbRepository.Update(cosmosDb);
 
         return mapper.Map<CosmosDbResult>(updatedCosmosDb);
     }

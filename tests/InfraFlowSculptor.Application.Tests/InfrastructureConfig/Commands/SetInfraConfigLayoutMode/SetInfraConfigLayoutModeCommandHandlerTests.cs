@@ -2,7 +2,6 @@ using FluentAssertions;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInfraConfigLayoutMode;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using NSubstitute;
@@ -46,6 +45,6 @@ public sealed class SetInfraConfigLayoutModeCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("InfrastructureConfig.InvalidLayoutMode");
-        await _repository.DidNotReceive().UpdateAsync(Arg.Any<DomainInfrastructureConfig>());
+        _repository.DidNotReceive().Update(Arg.Any<DomainInfrastructureConfig>());
     }
 }

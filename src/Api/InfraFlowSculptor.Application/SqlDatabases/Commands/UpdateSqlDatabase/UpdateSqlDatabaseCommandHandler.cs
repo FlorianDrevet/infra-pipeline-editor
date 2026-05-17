@@ -6,7 +6,6 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.SqlDatabases.Commands.UpdateSqlDatabase;
 
@@ -55,7 +54,7 @@ public class UpdateSqlDatabaseCommandHandler(
                         ec.ZoneRedundant))
                     .ToList());
 
-        var updated = await sqlDatabaseRepository.UpdateAsync(database);
+        var updated = sqlDatabaseRepository.Update(database);
 
         return mapper.Map<SqlDatabaseResult>(updated);
     }

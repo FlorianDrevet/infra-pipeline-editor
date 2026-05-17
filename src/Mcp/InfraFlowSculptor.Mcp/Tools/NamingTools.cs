@@ -44,7 +44,7 @@ public sealed class NamingTools
         }
 
         var command = new SetProjectDefaultNamingTemplateCommand(new ProjectId(id), template);
-    var result = await mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
             _ => JsonSerializer.Serialize(new { status = "success", message = "Default naming template updated." }, McpJsonDefaults.SerializerOptions),
@@ -72,7 +72,7 @@ public sealed class NamingTools
         }
 
         var command = new SetProjectResourceNamingTemplateCommand(new ProjectId(id), resourceType, template);
-    var result = await mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
             tpl => JsonSerializer.Serialize(new { status = "success", resourceType, template }, McpJsonDefaults.SerializerOptions),
@@ -96,7 +96,7 @@ public sealed class NamingTools
         }
 
         var command = new RemoveProjectResourceNamingTemplateCommand(new ProjectId(id), resourceType);
-    var result = await mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
             _ => JsonSerializer.Serialize(new { status = "success", message = $"Naming template override for '{resourceType}' removed." }, McpJsonDefaults.SerializerOptions),
@@ -124,7 +124,7 @@ public sealed class NamingTools
         }
 
         var command = new SetProjectResourceAbbreviationCommand(new ProjectId(id), resourceType, abbreviation);
-    var result = await mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
             _ => JsonSerializer.Serialize(new { status = "success", resourceType, abbreviation }, McpJsonDefaults.SerializerOptions),
@@ -148,7 +148,7 @@ public sealed class NamingTools
         }
 
         var command = new RemoveProjectResourceAbbreviationCommand(new ProjectId(id), resourceType);
-    var result = await mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
             _ => JsonSerializer.Serialize(new { status = "success", message = $"Abbreviation override for '{resourceType}' removed." }, McpJsonDefaults.SerializerOptions),

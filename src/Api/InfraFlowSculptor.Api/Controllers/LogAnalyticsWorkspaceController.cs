@@ -2,14 +2,11 @@ using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.CreateLogAna
 using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.DeleteLogAnalyticsWorkspace;
 using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.UpdateLogAnalyticsWorkspace;
 using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Queries.GetLogAnalyticsWorkspace;
-using InfraFlowSculptor.Application.Common.Queries.GetDependentResources;
-using InfraFlowSculptor.Contracts.Common;
 using InfraFlowSculptor.Contracts.LogAnalyticsWorkspaces.Requests;
 using InfraFlowSculptor.Contracts.LogAnalyticsWorkspaces.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MediatR;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 

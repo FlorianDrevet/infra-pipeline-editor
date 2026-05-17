@@ -6,6 +6,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.DomainEvents;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.Models;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
@@ -149,7 +150,7 @@ public class ProjectDbContext : DbContext
             if (entry.State == EntityState.Added)
             {
                 entry.Property(nameof(AzureResource.ResourceType)).CurrentValue =
-                    entry.Entity.GetType().Name;
+                    new ResourceTypeName(entry.Entity.GetType().Name);
             }
         }
 
@@ -176,6 +177,11 @@ public class ProjectDbContext : DbContext
 
         await _domainEventDispatcher.DispatchAsync(domainEvents, cancellationToken);
         return savedEntries;
+    }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Conventions.Add(_ => new Conventions.ValueObjectConvention());
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

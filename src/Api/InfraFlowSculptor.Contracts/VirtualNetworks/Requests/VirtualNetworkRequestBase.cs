@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using InfraFlowSculptor.Contracts.ValidationAttributes;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using InfraFlowSculptor.Domain.VirtualNetworkAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Contracts.VirtualNetworks.Requests;
 

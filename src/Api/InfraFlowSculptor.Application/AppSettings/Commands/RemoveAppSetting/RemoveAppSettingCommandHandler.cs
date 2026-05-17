@@ -2,7 +2,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.AppSettings.Commands.RemoveAppSetting;
 
@@ -41,7 +40,7 @@ public sealed class RemoveAppSettingCommandHandler(
             return authResult.Errors;
 
         resource.RemoveAppSetting(request.AppSettingId);
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken);
+        azureResourceRepository.Update(resource);
 
         return Result.Deleted;
     }

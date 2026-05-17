@@ -27,7 +27,7 @@ public sealed class CreatePersonalAccessTokenCommandHandler(
             request.Name,
             request.ExpiresAt);
 
-        await repository.AddAsync(token);
+        repository.Add(token);
 
         var result = new PersonalAccessTokenResult(
             token.Id,

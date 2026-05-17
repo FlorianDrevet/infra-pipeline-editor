@@ -36,7 +36,7 @@ public sealed class CreateVirtualNetworkCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await virtualNetworkRepository.AddAsync(vnet);
+        var saved = virtualNetworkRepository.Add(vnet);
         return mapper.Map<VirtualNetworkResult>(saved);
     }
 }

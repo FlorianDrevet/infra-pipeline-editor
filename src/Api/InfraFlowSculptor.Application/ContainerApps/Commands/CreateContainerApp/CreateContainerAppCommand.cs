@@ -3,7 +3,6 @@ using InfraFlowSculptor.Application.ContainerApps.Common;
 using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using ErrorOr;
 
 namespace InfraFlowSculptor.Application.ContainerApps.Commands.CreateContainerApp;
 

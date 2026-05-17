@@ -31,7 +31,7 @@ public sealed class RemoveProjectRepositoryCommandHandler(
         if (removeResult.IsError)
             return removeResult.Errors;
 
-        await projectRepository.UpdateAsync(project);
+        projectRepository.Update(project);
 
         return Result.Deleted;
     }

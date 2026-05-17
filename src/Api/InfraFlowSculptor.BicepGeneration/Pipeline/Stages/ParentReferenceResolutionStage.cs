@@ -1,4 +1,4 @@
-﻿using InfraFlowSculptor.GenerationCore;
+using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.BicepGeneration.Models;
 
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;

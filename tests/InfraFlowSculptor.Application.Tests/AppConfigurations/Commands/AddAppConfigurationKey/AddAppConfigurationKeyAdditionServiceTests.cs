@@ -66,7 +66,7 @@ public sealed class AddAppConfigurationKeyAdditionServiceTests
 
         _projectRepository.GetByIdWithPipelineVariableGroupsAsync(_project.Id, Arg.Any<CancellationToken>())
             .Returns(_project);
-        _appConfigurationRepository.UpdateAsync(_appConfiguration)
+        _appConfigurationRepository.Update(_appConfiguration)
             .Returns(_appConfiguration);
 
         // Act
@@ -85,8 +85,8 @@ public sealed class AddAppConfigurationKeyAdditionServiceTests
 
         await _projectRepository.Received(1)
             .GetByIdWithPipelineVariableGroupsAsync(_project.Id, Arg.Any<CancellationToken>());
-        await _appConfigurationRepository.Received(1)
-            .UpdateAsync(_appConfiguration);
+        _appConfigurationRepository.Received(1)
+            .Update(_appConfiguration);
         await _azureResourceRepository.DidNotReceive()
             .GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>());
     }
@@ -101,7 +101,7 @@ public sealed class AddAppConfigurationKeyAdditionServiceTests
             Label: null,
             EnvironmentValues: null);
 
-        _appConfigurationRepository.UpdateAsync(_appConfiguration)
+        _appConfigurationRepository.Update(_appConfiguration)
             .Returns(_appConfiguration);
 
         // Act
@@ -119,7 +119,7 @@ public sealed class AddAppConfigurationKeyAdditionServiceTests
 
         await _projectRepository.DidNotReceive()
             .GetByIdWithPipelineVariableGroupsAsync(Arg.Any<ProjectId>(), Arg.Any<CancellationToken>());
-        await _appConfigurationRepository.Received(1)
-            .UpdateAsync(_appConfiguration);
+        _appConfigurationRepository.Received(1)
+            .Update(_appConfiguration);
     }
 }

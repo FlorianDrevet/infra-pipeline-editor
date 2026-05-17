@@ -40,7 +40,7 @@ public sealed class CreateContainerRegistryCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await containerRegistryRepository.AddAsync(containerRegistry);
+        var saved = containerRegistryRepository.Add(containerRegistry);
 
         return mapper.Map<ContainerRegistryResult>(saved);
     }
