@@ -11,7 +11,7 @@ import {
   providedIn: 'root',
 })
 export class KeyVaultService {
-  private axios = inject(AxiosService);
+  private readonly axios = inject(AxiosService);
 
   getById(id: string): Promise<KeyVaultResponse> {
     return this.axios.request$<KeyVaultResponse>(

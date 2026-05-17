@@ -29,4 +29,4 @@ public record CreateWebAppCommand(
     IReadOnlyList<WebAppEnvironmentConfigData>? EnvironmentSettings = null,
     bool IsExisting = false,
     PipelineStepOptionsDto? PipelineStepOptions = null
-) : ICommand<WebAppResult>;
+) : ICommand<WebAppResult>, IWebAppCommandProperties;

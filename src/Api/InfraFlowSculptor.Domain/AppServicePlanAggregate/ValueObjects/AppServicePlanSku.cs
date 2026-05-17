@@ -7,7 +7,7 @@ public sealed class AppServicePlanSku(AppServicePlanSku.AppServicePlanSkuEnum va
     : EnumValueObject<AppServicePlanSku.AppServicePlanSkuEnum>(value)
 {
     /// <summary>Available pricing tier values.</summary>
-    public enum AppServicePlanSkuEnum
+    public enum AppServicePlanSkuEnum // NOSONAR S2344
     {
         /// <summary>Free tier.</summary>
         F1,

@@ -7,7 +7,7 @@ public sealed class AppServicePlanOsType(AppServicePlanOsType.AppServicePlanOsTy
     : EnumValueObject<AppServicePlanOsType.AppServicePlanOsTypeEnum>(value)
 {
     /// <summary>Available operating system types.</summary>
-    public enum AppServicePlanOsTypeEnum
+    public enum AppServicePlanOsTypeEnum // NOSONAR S2344
     {
         /// <summary>Windows operating system.</summary>
         Windows,

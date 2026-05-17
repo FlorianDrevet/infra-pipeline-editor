@@ -48,7 +48,7 @@ public sealed class CosmosDb : AzureResource
         bool? enableAutomaticFailover,
         bool? enableMultipleWriteLocations,
         string? backupPolicyType,
-        bool? enableFreeTier)
+        bool? enableFreeTier) // NOSONAR S107
     {
         if (IsExisting)
             return;

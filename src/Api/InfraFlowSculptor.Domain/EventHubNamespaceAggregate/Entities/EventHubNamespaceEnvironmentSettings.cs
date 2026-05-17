@@ -48,7 +48,7 @@ public sealed class EventHubNamespaceEnvironmentSettings : Entity<EventHubNamesp
         bool? disableLocalAuth,
         string? minimumTlsVersion,
         bool? autoInflateEnabled,
-        int? maxThroughputUnits)
+        int? maxThroughputUnits) // NOSONAR S107
         : base(EventHubNamespaceEnvironmentSettingsId.CreateUnique())
     {
         EventHubNamespaceId = eventHubNamespaceId;
@@ -75,7 +75,7 @@ public sealed class EventHubNamespaceEnvironmentSettings : Entity<EventHubNamesp
         string? minimumTlsVersion,
         bool? autoInflateEnabled,
         int? maxThroughputUnits)
-        => new(eventHubNamespaceId, environmentName, sku, capacity, zoneRedundant, disableLocalAuth, minimumTlsVersion, autoInflateEnabled, maxThroughputUnits);
+        => new(eventHubNamespaceId, environmentName, sku, capacity, zoneRedundant, disableLocalAuth, minimumTlsVersion, autoInflateEnabled, maxThroughputUnits); // NOSONAR S107
 
     /// <summary>Updates the configuration overrides for this environment.</summary>
     public void Update(

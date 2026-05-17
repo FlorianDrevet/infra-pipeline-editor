@@ -41,20 +41,11 @@ internal static class MigrateDbContextExtensions
 
         using var activity = ActivitySource.StartActivity($"Migration operation {typeof(TContext).Name}");
 
-        try
-        {
-            logger.LogInformation("Migrating database associated with context {DbContextName}", typeof(TContext).Name);
+        logger.LogInformation("Migrating database associated with context {DbContextName}", typeof(TContext).Name);
 
-            var strategy = context.Database.CreateExecutionStrategy();
+        var strategy = context.Database.CreateExecutionStrategy();
 
-            await strategy.ExecuteAsync(() => InvokeSeeder(seeder, context, scopeServices));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An error occurred while migrating the database used on context {DbContextName}", typeof(TContext).Name);
-
-            throw;
-        }
+        await strategy.ExecuteAsync(() => InvokeSeeder(seeder, context, scopeServices));
     }
 
     private static async Task InvokeSeeder<TContext>(Func<TContext, IServiceProvider, Task> seeder, TContext context, IServiceProvider services)

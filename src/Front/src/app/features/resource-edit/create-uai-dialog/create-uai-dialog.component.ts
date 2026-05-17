@@ -8,7 +8,6 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import axios from 'axios';
 import { UserAssignedIdentityService } from '../../../shared/services/user-assigned-identity.service';
-import { UserAssignedIdentityResponse } from '../../../shared/interfaces/user-assigned-identity.interface';
 
 export interface CreateUaiDialogData {
   resourceGroupId: string;

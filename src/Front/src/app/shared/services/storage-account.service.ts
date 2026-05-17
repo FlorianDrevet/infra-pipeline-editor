@@ -15,7 +15,7 @@ import {
   providedIn: 'root',
 })
 export class StorageAccountService {
-  private axios = inject(AxiosService);
+  private readonly axios = inject(AxiosService);
 
   getById(id: string): Promise<StorageAccountResponse> {
     return this.axios.request$<StorageAccountResponse>(

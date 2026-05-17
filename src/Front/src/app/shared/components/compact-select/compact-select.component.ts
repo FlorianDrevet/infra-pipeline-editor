@@ -1,7 +1,7 @@
-import { Component, input, output, signal, computed, ElementRef, inject } from '@angular/core';
+import { Component, input, output, signal, computed } from '@angular/core';
 
 import { MatIconModule } from '@angular/material/icon';
-import { OverlayModule, CdkOverlayOrigin, CdkConnectedOverlay } from '@angular/cdk/overlay';
+import { OverlayModule } from '@angular/cdk/overlay';
 
 export interface CompactSelectOption {
   value: string;

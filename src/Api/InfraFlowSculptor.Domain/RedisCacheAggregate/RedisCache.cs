@@ -128,7 +128,7 @@ public sealed class RedisCache : AzureResource
         bool disableAccessKeyAuthentication,
         bool enableAadAuth,
         IReadOnlyList<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>? environmentSettings = null,
-        bool isExisting = false)
+        bool isExisting = false) // NOSONAR S107
     {
         var redisCache = new RedisCache
         {

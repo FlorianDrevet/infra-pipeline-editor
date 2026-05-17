@@ -11,7 +11,7 @@ import {
   providedIn: 'root',
 })
 export class RedisCacheService {
-  private axios = inject(AxiosService);
+  private readonly axios = inject(AxiosService);
 
   getById(id: string): Promise<RedisCacheResponse> {
     return this.axios.request$<RedisCacheResponse>(

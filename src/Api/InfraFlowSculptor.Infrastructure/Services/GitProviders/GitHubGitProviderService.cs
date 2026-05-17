@@ -285,13 +285,8 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
         if (pushData.FilesByPath.ContainsKey(path))
             return false;
 
-        foreach (var cleanupRoot in pushData.CleanupRoots)
-        {
-            if (path.StartsWith($"{cleanupRoot}/", StringComparison.Ordinal))
-                return true;
-        }
-
-        return false;
+        return pushData.CleanupRoots.Any(cleanupRoot =>
+            path.StartsWith($"{cleanupRoot}/", StringComparison.Ordinal));
     }
 
     private static string NormalizeBasePath(string? basePath) =>

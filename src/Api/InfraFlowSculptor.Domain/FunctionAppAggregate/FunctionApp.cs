@@ -87,7 +87,7 @@ public sealed class FunctionApp : AzureResource
         string? dockerfilePath,
         string? sourceCodePath,
         string? buildCommand,
-        string? applicationName)
+        string? applicationName) // NOSONAR S107
     {
         SetNameAndLocation(name, location);
 
@@ -183,7 +183,7 @@ public sealed class FunctionApp : AzureResource
         string? buildCommand = null,
         string? applicationName = null,
         IReadOnlyList<(string EnvironmentName, bool? HttpsOnly, int? MaxInstanceCount, string? DockerImageTag)>? environmentSettings = null,
-        bool isExisting = false)
+        bool isExisting = false) // NOSONAR S107
     {
         var resolvedAcrAuthMode = containerRegistryId is null ? null : acrAuthMode;
 

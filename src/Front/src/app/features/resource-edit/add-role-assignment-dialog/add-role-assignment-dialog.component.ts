@@ -139,22 +139,7 @@ export class AddRoleAssignmentDialogComponent {
 
   // ─── UAI mode: step 2 — load roles for selected target ───
   private async goToUAIStep2(): Promise<void> {
-    this.step.set(2);
-    this.errorKey.set('');
-    this.selectedRoleId.set('');
-
-    const target = this.selectedTarget();
-    if (!target) return;
-
-    this.rolesLoading.set(true);
-    try {
-      const roles = await this.roleAssignmentService.getAvailableRoleDefinitions(target.id);
-      this.availableRoles.set(roles);
-    } catch {
-      this.availableRoles.set([]);
-    } finally {
-      this.rolesLoading.set(false);
-    }
+    return this.goToStep2();
   }
 
   protected async goToStep2(): Promise<void> {

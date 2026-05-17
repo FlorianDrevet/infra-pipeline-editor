@@ -59,7 +59,7 @@
 - [x] 27/27 agrégats Domain couverts (FrontDoor, NetworkSecurityGroup, PrivateDnsZone ajoutés — 51 tests)
 - [x] GenerationCore : chaque classe publique a au moins 1 test (87 tests ajoutés : KeyVaultSecretNameRules, PathSanitizer, AzureResourceDefaults, GenerationErrors, DeploymentModes, AcrAuthModes)
 - [x] Contracts : tous les request types avec attributs de validation couverts (203 tests ajoutés : 15 Create + 35 Add/Update/Set/Import/Push/Check)
-- [x] `dotnet test .\InfraFlowSculptor.slnx` = 0 failure (3,294 passing, 9 skipped Infrastructure)
+- [x] `dotnet test .\InfraFlowSculptor.slnx` = 0 failure (3,725 passing, 9 skipped Infrastructure)
 
 ---
 
@@ -174,13 +174,16 @@
 </details>
 
 **Critères de succès Phase 3 :**
-- [ ] 128/128 handlers couverts (au minimum : happy path + 1 cas d'erreur principal par handler)
-- [ ] Pour les Update handlers : test des branches de parsing (SKU, enum, settings)
-- [ ] Pour les Create handlers : test des invariants domain (guard clauses du constructeur via le handler)
-- [ ] Pour les Delete handlers : test not-found + ownership/access
-- [ ] Mock pattern : NSubstitute, `_sut` convention, `Arg.Is<>()` pour assertions sur appels repo
-- [ ] `dotnet test .\tests\InfraFlowSculptor.Application.Tests` = 0 failure
+- [x] 128/128 handlers couverts (au minimum : happy path + 1 cas d'erreur principal par handler) — 125 concrete handlers (3 are interfaces), all 224/224 handler files now tested
+- [x] Pour les Update handlers : test des branches de parsing (SKU, enum, settings)
+- [x] Pour les Create handlers : test des invariants domain (guard clauses du constructeur via le handler)
+- [x] Pour les Delete handlers : test not-found + ownership/access
+- [x] Mock pattern : NSubstitute, `_sut` convention, `Arg.Is<>()` pour assertions sur appels repo
+- [x] `dotnet test .\tests\InfraFlowSculptor.Application.Tests` = 0 failure (1441 passing)
 - [ ] Stryker mutation score > 75% sur le namespace Handlers
+
+**Phase 3 complétée le 2026-05-17 : +430 handler tests (Application.Tests 1011 → 1441)**
+**Total solution : 3,725 tests passing, 0 failures, 9 skipped (Infrastructure pre-existing)**
 
 ---
 

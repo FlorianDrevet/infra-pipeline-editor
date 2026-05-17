@@ -8,7 +8,6 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import axios from 'axios';
 import { AppSettingService } from '../../../shared/services/app-setting.service';
-import { AppSettingResponse } from '../../../shared/interfaces/app-setting.interface';
 
 export interface EditStaticAppSettingDialogData {
   resourceId: string;

@@ -2,6 +2,7 @@
   type="button"
   class="ds-option-card"
   role="radio"
+  [attr.aria-label]="title()"
   [class.ds-option-card--selected]="selected()"
   [disabled]="disabled() || null"
   [attr.aria-checked]="selected()"

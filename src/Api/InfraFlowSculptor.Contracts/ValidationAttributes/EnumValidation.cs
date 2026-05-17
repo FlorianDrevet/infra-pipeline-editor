@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace InfraFlowSculptor.Contracts.ValidationAttributes;
 
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class EnumValidation : ValidationAttribute
+public sealed class EnumValidation : ValidationAttribute // NOSONAR S3376 — short name without Attribute suffix is intentional
 {
     private readonly Type _enumType;
 

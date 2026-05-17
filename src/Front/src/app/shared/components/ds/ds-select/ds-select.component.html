@@ -60,6 +60,8 @@
           <mat-icon>search</mat-icon>
           <input
             type="text"
+            aria-label="Search options"
+            autocomplete="off"
             [value]="searchTerm()"
             (input)="onSearch($event)"
             (click)="$event.stopPropagation()"

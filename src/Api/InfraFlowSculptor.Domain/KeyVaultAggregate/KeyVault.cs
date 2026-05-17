@@ -66,7 +66,7 @@ public sealed class KeyVault : AzureResource
         bool enabledForDiskEncryption,
         bool enabledForTemplateDeployment,
         bool enablePurgeProtection,
-        bool enableSoftDelete)
+        bool enableSoftDelete) // NOSONAR S107
     {
         SetNameAndLocation(name, location);
 
@@ -146,7 +146,7 @@ public sealed class KeyVault : AzureResource
         bool enablePurgeProtection = true,
         bool enableSoftDelete = true,
         IReadOnlyList<(string EnvironmentName, Sku? Sku)>? environmentSettings = null,
-        bool isExisting = false)
+        bool isExisting = false) // NOSONAR S107
     {
         var keyVault = new KeyVault
         {

@@ -26,6 +26,9 @@ public sealed class ProjectPipelineVariableGroup : Entity<ProjectPipelineVariabl
         GroupName = groupName;
     }
 
+    /// <summary>EF Core constructor.</summary>
+    private ProjectPipelineVariableGroup() { }
+
     /// <summary>
     /// Creates a new <see cref="ProjectPipelineVariableGroup"/> with a generated identifier.
     /// </summary>
@@ -38,7 +41,4 @@ public sealed class ProjectPipelineVariableGroup : Entity<ProjectPipelineVariabl
             projectId,
             groupName);
     }
-
-    /// <summary>EF Core constructor.</summary>
-    private ProjectPipelineVariableGroup() { }
 }

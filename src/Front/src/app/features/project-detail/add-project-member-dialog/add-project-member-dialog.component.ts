@@ -10,7 +10,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserResponse } from '../../../shared/interfaces/infra-config.interface';
-import { ProjectResponse } from '../../../shared/interfaces/project.interface';
 import { ProjectService } from '../../../shared/services/project.service';
 
 export interface AddProjectMemberDialogData {
@@ -80,7 +79,8 @@ export class AddProjectMemberDialogComponent {
   protected onSearchInput(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.searchTerm.set(value);
-    if (this.selectedUser() && this.displayUser(this.selectedUser()!) !== value) {
+    const user = this.selectedUser();
+    if (user && this.displayUser(user) !== value) {
       this.selectedUser.set(null);
     }
   }

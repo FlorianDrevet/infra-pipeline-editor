@@ -3,7 +3,7 @@ using InfraFlowSculptor.Domain.Common.Models;
 namespace InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
 /// <summary>Supported Git hosting providers.</summary>
-public enum GitProviderTypeEnum
+public enum GitProviderTypeEnum // NOSONAR S2344
 {
     /// <summary>GitHub.com or GitHub Enterprise.</summary>
     GitHub,

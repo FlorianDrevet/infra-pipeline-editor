@@ -15,7 +15,7 @@ public sealed class LogAnalyticsWorkspaceRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<LogAnalyticsWorkspace?> GetByIdAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await WithSubResources(Context.Set<LogAnalyticsWorkspace>())
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);

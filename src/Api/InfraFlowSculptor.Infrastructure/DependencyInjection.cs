@@ -207,7 +207,7 @@ public static class DependencyInjection
         })
             .ConfigureHttpClient(c =>
             {
-                c.BaseAddress = new Uri("https://api.github.com");
+                c.BaseAddress = new Uri("https://api.github.com"); // NOSONAR
                 c.DefaultRequestHeaders.UserAgent.Add(
                     new ProductInfoHeaderValue("InfraFlowSculptor", "1.0"));
             });

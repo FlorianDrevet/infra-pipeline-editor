@@ -5,7 +5,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import { DsTextFieldComponent } from '../../../shared/components/ds';
-import { InfrastructureConfigResponse } from '../../../shared/interfaces/infra-config.interface';
 import { InfraConfigService } from '../../../shared/services/infra-config.service';
 
 export interface AddConfigDialogData {

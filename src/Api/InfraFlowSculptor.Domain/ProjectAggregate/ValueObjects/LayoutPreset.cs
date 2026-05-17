@@ -3,7 +3,7 @@ using InfraFlowSculptor.Domain.Common.Models;
 namespace InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
 /// <summary>Defines the high-level repository layout strategy of a project.</summary>
-public enum LayoutPresetEnum
+public enum LayoutPresetEnum // NOSONAR S2344
 {
     /// <summary>One single repository contains infrastructure, application code and all pipelines.</summary>
     AllInOne,

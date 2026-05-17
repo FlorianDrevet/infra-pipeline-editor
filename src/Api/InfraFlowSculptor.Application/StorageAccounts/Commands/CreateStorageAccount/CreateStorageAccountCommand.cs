@@ -19,4 +19,4 @@ public record CreateStorageAccountCommand(
     IReadOnlyList<CorsRuleResult>? TableCorsRules = null,
     IReadOnlyList<BlobLifecycleRuleResult>? LifecycleRules = null,
     bool IsExisting = false
-) : ICommand<StorageAccountResult>, ICreateResourceCommand;
+) : ICommand<StorageAccountResult>, ICreateResourceCommand, IStorageAccountCommandProperties;

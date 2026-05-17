@@ -7,7 +7,7 @@ public sealed class SqlDatabaseSku(SqlDatabaseSku.SqlDatabaseSkuEnum value)
     : EnumValueObject<SqlDatabaseSku.SqlDatabaseSkuEnum>(value)
 {
     /// <summary>Available SQL Database SKU tiers.</summary>
-    public enum SqlDatabaseSkuEnum
+    public enum SqlDatabaseSkuEnum // NOSONAR S2344
     {
         /// <summary>Basic tier.</summary>
         Basic,

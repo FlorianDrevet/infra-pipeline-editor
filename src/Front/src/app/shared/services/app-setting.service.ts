@@ -13,7 +13,7 @@ import {
   providedIn: 'root',
 })
 export class AppSettingService {
-  private axios = inject(AxiosService);
+  private readonly axios = inject(AxiosService);
 
   getByResourceId(resourceId: string): Promise<AppSettingResponse[]> {
     return this.axios.request$<AppSettingResponse[]>(

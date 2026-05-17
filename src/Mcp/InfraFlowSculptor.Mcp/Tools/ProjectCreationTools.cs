@@ -277,7 +277,7 @@ public sealed class ProjectCreationTools
     /// The naming template system (e.g. <c>{projectName}-{resourceAbbr}-{envSuffix}</c>) handles
     /// prefixing at generation time — resource names should be short identifiers only.
     /// </summary>
-    private static string BuildDefaultResourceName(string projectName, string resourceType)
+    private static string BuildDefaultResourceName(string _, string resourceType)
     {
         return resourceType.ToLowerInvariant();
     }

@@ -18,7 +18,7 @@ public sealed class ServiceBusNamespaceRepository : AzureResourceRepository<Serv
     }
 
     /// <inheritdoc />
-    public override async Task<ServiceBusNamespace?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
+    public override async Task<ServiceBusNamespace?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await WithSubResources(Context.Set<ServiceBusNamespace>())
             .FirstOrDefaultAsync(sb => sb.Id == id, cancellationToken);

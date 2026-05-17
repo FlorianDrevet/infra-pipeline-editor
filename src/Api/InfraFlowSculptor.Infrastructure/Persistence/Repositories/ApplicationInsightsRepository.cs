@@ -14,7 +14,7 @@ public sealed class ApplicationInsightsRepository(ProjectDbContext context)
     /// <inheritdoc />
     public override async Task<ApplicationInsights?> GetByIdAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await WithSubResources(Context.Set<ApplicationInsights>())
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);

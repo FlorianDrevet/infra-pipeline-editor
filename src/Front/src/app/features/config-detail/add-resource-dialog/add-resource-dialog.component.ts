@@ -289,9 +289,10 @@ export class AddResourceDialogComponent implements OnInit {
     ResourceTypeEnum.SqlServer,
   ]);
 
-  protected readonly isNameAvailabilityCheckEnabled = computed(
-    () => AddResourceDialogComponent.NAME_AVAILABILITY_TYPES.has(this.selectedType()!) && !this.isExistingResource(),
-  );
+  protected readonly isNameAvailabilityCheckEnabled = computed(() => {
+    const type = this.selectedType();
+    return type !== null && AddResourceDialogComponent.NAME_AVAILABILITY_TYPES.has(type) && !this.isExistingResource();
+  });
 
   protected readonly nameAvailabilityOverallState = computed<'idle' | 'checking' | 'all-ok' | 'has-unavailable' | 'has-invalid' | 'unknown'>(() => {
     if (this.nameAvailabilityChecking()) return 'checking';

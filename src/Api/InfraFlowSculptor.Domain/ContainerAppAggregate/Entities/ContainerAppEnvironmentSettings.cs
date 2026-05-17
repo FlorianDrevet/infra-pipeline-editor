@@ -76,7 +76,7 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
         string? livenessProbePath,
         int? livenessProbePort,
         string? startupProbePath,
-        int? startupProbePort)
+        int? startupProbePort) // NOSONAR S107
         : base(ContainerAppEnvironmentSettingsId.CreateUnique())
     {
         ContainerAppId = containerAppId;
@@ -116,7 +116,7 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
         string? livenessProbePath = null,
         int? livenessProbePort = null,
         string? startupProbePath = null,
-        int? startupProbePort = null)
+        int? startupProbePort = null) // NOSONAR S107
         => new(containerAppId, environmentName, cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod, readinessProbePath, readinessProbePort, livenessProbePath, livenessProbePort, startupProbePath, startupProbePort);
 
     /// <summary>Updates the configuration overrides for this environment.</summary>
@@ -134,7 +134,7 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
         string? livenessProbePath = null,
         int? livenessProbePort = null,
         string? startupProbePath = null,
-        int? startupProbePort = null)
+        int? startupProbePort = null) // NOSONAR S107
     {
         CpuCores = cpuCores;
         MemoryGi = memoryGi;

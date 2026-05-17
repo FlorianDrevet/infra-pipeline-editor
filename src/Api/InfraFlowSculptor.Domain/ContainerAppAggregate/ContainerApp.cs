@@ -65,7 +65,7 @@ public sealed class ContainerApp : AzureResource
     /// <param name="dockerImageValidated">Whether the user has confirmed the Docker image exists.</param>
     /// <param name="dockerfilePath">The optional relative path to the Dockerfile in the repository.</param>
     /// <param name="applicationName">The optional user-friendly application name for pipeline display.</param>
-    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, AcrAuthMode? acrAuthMode, AzureResourceId? acrPullIdentityId, string? dockerImageName, bool dockerImageValidated, string? dockerfilePath, string? applicationName)
+    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, AcrAuthMode? acrAuthMode, AzureResourceId? acrPullIdentityId, string? dockerImageName, bool dockerImageValidated, string? dockerfilePath, string? applicationName) // NOSONAR S107
     {
         SetNameAndLocation(name, location);
 
@@ -109,7 +109,7 @@ public sealed class ContainerApp : AzureResource
         string? livenessProbePath = null,
         int? livenessProbePort = null,
         string? startupProbePath = null,
-        int? startupProbePort = null)
+        int? startupProbePort = null) // NOSONAR S107
     {
         if (IsExisting)
             return;
@@ -162,7 +162,7 @@ public sealed class ContainerApp : AzureResource
     /// <param name="applicationName">The optional user-friendly application name for pipeline display.</param>
     /// <param name="environmentSettings">Optional per-environment configuration overrides.</param>
     /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
-    public static ContainerApp Create(
+    public static ContainerApp Create( // NOSONAR S107
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,

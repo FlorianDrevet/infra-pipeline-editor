@@ -7,7 +7,7 @@ public sealed class WebAppRuntimeStack(WebAppRuntimeStack.WebAppRuntimeStackEnum
     : EnumValueObject<WebAppRuntimeStack.WebAppRuntimeStackEnum>(value)
 {
     /// <summary>Available runtime stack types.</summary>
-    public enum WebAppRuntimeStackEnum
+    public enum WebAppRuntimeStackEnum // NOSONAR S2344
     {
         /// <summary>.NET runtime stack.</summary>
         DotNet,

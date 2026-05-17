@@ -58,7 +58,7 @@ public sealed class EventHubNamespace : AzureResource
         bool? disableLocalAuth,
         string? minimumTlsVersion,
         bool? autoInflateEnabled,
-        int? maxThroughputUnits)
+        int? maxThroughputUnits) // NOSONAR S107
     {
         if (IsExisting)
             return;

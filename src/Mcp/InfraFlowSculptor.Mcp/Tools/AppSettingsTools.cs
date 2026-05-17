@@ -17,6 +17,8 @@ namespace InfraFlowSculptor.Mcp.Tools;
 [McpServerToolType]
 public sealed class AppSettingsTools
 {
+    private const string InvalidResourceIdError = "invalid_resource_id";
+
     private AppSettingsTools() { }
 
     /// <summary>
@@ -36,7 +38,7 @@ public sealed class AppSettingsTools
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
-            return McpJsonDefaults.Error("invalid_resource_id", "The resourceId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidResourceIdError, "The resourceId must be a valid GUID.");
         }
 
         var values = DeserializeEnvValues(environmentValues);
@@ -84,7 +86,7 @@ public sealed class AppSettingsTools
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
-            return McpJsonDefaults.Error("invalid_resource_id", "The resourceId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidResourceIdError, "The resourceId must be a valid GUID.");
         }
 
         if (!Guid.TryParse(sourceResourceId, out var sourceId))
@@ -127,7 +129,7 @@ public sealed class AppSettingsTools
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
-            return McpJsonDefaults.Error("invalid_resource_id", "The resourceId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidResourceIdError, "The resourceId must be a valid GUID.");
         }
 
         var query = new ListAppSettingsQuery(AzureResourceId.Create(id));
@@ -163,7 +165,7 @@ public sealed class AppSettingsTools
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
-            return McpJsonDefaults.Error("invalid_resource_id", "The resourceId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidResourceIdError, "The resourceId must be a valid GUID.");
         }
 
         if (!Guid.TryParse(appSettingId, out var settingId))

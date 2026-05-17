@@ -28,4 +28,4 @@ public record UpdateWebAppCommand(
     string? ApplicationName = null,
     IReadOnlyList<WebAppEnvironmentConfigData>? EnvironmentSettings = null,
     PipelineStepOptionsDto? PipelineStepOptions = null
-) : ICommand<WebAppResult>;
+) : ICommand<WebAppResult>, IWebAppCommandProperties;

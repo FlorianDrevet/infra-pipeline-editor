@@ -30,6 +30,9 @@ namespace InfraFlowSculptor.Mcp.Tools;
 [McpServerToolType]
 public sealed class ResourceConfigurationTools
 {
+    private const string InvalidSettingsError = "invalid_settings";
+    private const string FailedToParseSettingsMessage = "Failed to parse environmentSettings JSON array.";
+
     private ResourceConfigurationTools() { }
 
     /// <summary>
@@ -79,7 +82,7 @@ public sealed class ResourceConfigurationTools
 
         var settings = DeserializeSettings<KeyVaultEnvEntry>(settingsJson);
         if (settings is null)
-            return McpJsonDefaults.Error("invalid_settings", "Failed to parse environmentSettings JSON array.");
+            return McpJsonDefaults.Error(InvalidSettingsError, FailedToParseSettingsMessage);
 
         var envConfigData = settings.Select(s => new KeyVaultEnvironmentConfigData(s.EnvironmentName, s.Sku)).ToList();
 
@@ -104,7 +107,7 @@ public sealed class ResourceConfigurationTools
 
         var settings = DeserializeSettings<ContainerAppEnvEntry>(settingsJson);
         if (settings is null)
-            return McpJsonDefaults.Error("invalid_settings", "Failed to parse environmentSettings JSON array.");
+            return McpJsonDefaults.Error(InvalidSettingsError, FailedToParseSettingsMessage);
 
         var envConfigData = settings.Select(s => new ContainerAppEnvironmentConfigData(
             s.EnvironmentName, s.CpuCores, s.MemoryGi, s.MinReplicas, s.MaxReplicas,
@@ -139,7 +142,7 @@ public sealed class ResourceConfigurationTools
 
         var settings = DeserializeSettings<StorageAccountEnvEntry>(settingsJson);
         if (settings is null)
-            return McpJsonDefaults.Error("invalid_settings", "Failed to parse environmentSettings JSON array.");
+            return McpJsonDefaults.Error(InvalidSettingsError, FailedToParseSettingsMessage);
 
         var envConfigData = settings.Select(s => new StorageAccountEnvironmentConfigData(s.EnvironmentName, s.Sku)).ToList();
 
@@ -164,7 +167,7 @@ public sealed class ResourceConfigurationTools
 
         var settings = DeserializeSettings<SqlServerEnvEntry>(settingsJson);
         if (settings is null)
-            return McpJsonDefaults.Error("invalid_settings", "Failed to parse environmentSettings JSON array.");
+            return McpJsonDefaults.Error(InvalidSettingsError, FailedToParseSettingsMessage);
 
         var envConfigData = settings.Select(s => new SqlServerEnvironmentConfigData(s.EnvironmentName, s.MinimalTlsVersion)).ToList();
 
@@ -187,7 +190,7 @@ public sealed class ResourceConfigurationTools
 
         var settings = DeserializeSettings<SqlDatabaseEnvEntry>(settingsJson);
         if (settings is null)
-            return McpJsonDefaults.Error("invalid_settings", "Failed to parse environmentSettings JSON array.");
+            return McpJsonDefaults.Error(InvalidSettingsError, FailedToParseSettingsMessage);
 
         var envConfigData = settings.Select(s => new SqlDatabaseEnvironmentConfigData(s.EnvironmentName, s.Sku, s.MaxSizeGb, s.ZoneRedundant)).ToList();
 
@@ -211,7 +214,7 @@ public sealed class ResourceConfigurationTools
 
         var settings = DeserializeSettings<ContainerRegistryEnvEntry>(settingsJson);
         if (settings is null)
-            return McpJsonDefaults.Error("invalid_settings", "Failed to parse environmentSettings JSON array.");
+            return McpJsonDefaults.Error(InvalidSettingsError, FailedToParseSettingsMessage);
 
         var envConfigData = settings.Select(s => new ContainerRegistryEnvironmentConfigData(
             s.EnvironmentName, s.Sku, s.AdminUserEnabled, s.PublicNetworkAccess, s.ZoneRedundancy)).ToList();
@@ -234,7 +237,7 @@ public sealed class ResourceConfigurationTools
 
         var settings = DeserializeSettings<AppServicePlanEnvEntry>(settingsJson);
         if (settings is null)
-            return McpJsonDefaults.Error("invalid_settings", "Failed to parse environmentSettings JSON array.");
+            return McpJsonDefaults.Error(InvalidSettingsError, FailedToParseSettingsMessage);
 
         var envConfigData = settings.Select(s => new AppServicePlanEnvironmentConfigData(s.EnvironmentName, s.Sku, s.Capacity)).ToList();
 

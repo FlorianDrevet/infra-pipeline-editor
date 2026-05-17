@@ -17,6 +17,8 @@ public sealed record ResourceOutputDefinition(string Name, string Description, s
 /// </summary>
 public static class ResourceOutputCatalog
 {
+    private const string ConnectionStringOutput = "connectionString";
+
     private static readonly Dictionary<string, IReadOnlyList<ResourceOutputDefinition>> Outputs = new(StringComparer.OrdinalIgnoreCase)
     {
         ["KeyVault"] =
@@ -28,7 +30,7 @@ public static class ResourceOutputCatalog
         [
             new("hostName", "Redis host name", "redis.properties.hostName"),
             new("sslPort", "Redis SSL port", "string(redis.properties.sslPort)"),
-            new("connectionString", "Redis connection string", "'${redis.properties.hostName}:${redis.properties.sslPort},password=${redis.listKeys().primaryKey},ssl=True,abortConnect=False'", IsSensitive: true),
+            new(ConnectionStringOutput, "Redis connection string", "'${redis.properties.hostName}:${redis.properties.sslPort},password=${redis.listKeys().primaryKey},ssl=True,abortConnect=False'", IsSensitive: true),
             new("primaryKey", "Redis primary access key", "redis.listKeys().primaryKey", IsSensitive: true),
         ],
         ["StorageAccount"] =
@@ -37,7 +39,7 @@ public static class ResourceOutputCatalog
             new("primaryBlobEndpoint", "Primary Blob endpoint", "storage.properties.primaryEndpoints.blob"),
             new("primaryQueueEndpoint", "Primary Queue endpoint", "storage.properties.primaryEndpoints.queue"),
             new("primaryTableEndpoint", "Primary Table endpoint", "storage.properties.primaryEndpoints.table"),
-            new("connectionString", "Storage account connection string", "'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[0].value}'", IsSensitive: true),
+            new(ConnectionStringOutput, "Storage account connection string", "'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[0].value}'", IsSensitive: true),
             new("primaryKey", "Storage account primary access key", "storage.listKeys().keys[0].value", IsSensitive: true),
         ],
         ["AppConfiguration"] =
@@ -46,7 +48,7 @@ public static class ResourceOutputCatalog
         ],
         ["ApplicationInsights"] =
         [
-            new("connectionString", "Application Insights connection string", "applicationInsights.properties.ConnectionString"),
+            new(ConnectionStringOutput, "Application Insights connection string", "applicationInsights.properties.ConnectionString"),
             new("instrumentationKey", "Application Insights instrumentation key", "applicationInsights.properties.InstrumentationKey"),
         ],
         ["LogAnalyticsWorkspace"] =
@@ -62,7 +64,7 @@ public static class ResourceOutputCatalog
         ["SqlServer"] =
         [
             new("fullyQualifiedDomainName", "SQL Server FQDN", "sqlServer.properties.fullyQualifiedDomainName"),
-            new("connectionString", "SQL Server connection string (ADO.NET)", "'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Authentication=Active Directory Default;'", IsSensitive: true),
+            new(ConnectionStringOutput, "SQL Server connection string (ADO.NET)", "'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Authentication=Active Directory Default;'", IsSensitive: true),
         ],
         ["ContainerAppEnvironment"] =
         [
@@ -96,7 +98,7 @@ public static class ResourceOutputCatalog
         ],
         ["ServiceBusNamespace"] =
         [
-            new("connectionString", "Service Bus primary connection string", "serviceBusNamespace.listKeys('${serviceBusNamespace.id}/authorizationRules/RootManageSharedAccessKey', serviceBusNamespace.apiVersion).primaryConnectionString", IsSensitive: true),
+            new(ConnectionStringOutput, "Service Bus primary connection string", "serviceBusNamespace.listKeys('${serviceBusNamespace.id}/authorizationRules/RootManageSharedAccessKey', serviceBusNamespace.apiVersion).primaryConnectionString", IsSensitive: true),
         ],
     };
 

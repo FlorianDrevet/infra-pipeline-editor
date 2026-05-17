@@ -39,6 +39,7 @@
         } @else {
           <select
             class="picker-panel__select"
+            autocomplete="off"
             [value]="selectedBranch()"
             (change)="onBranchChange($event)">
             @for (branch of branches(); track branch.name) {
@@ -63,6 +64,8 @@
                 class="picker-panel__file-item"
                 role="option"
                 tabindex="0"
+                [attr.aria-label]="file.path"
+                [attr.aria-selected]="false"
                 (click)="selectFile(file)"
                 (keydown.enter)="selectFile(file)"
                 (keydown.space)="selectFile(file)">

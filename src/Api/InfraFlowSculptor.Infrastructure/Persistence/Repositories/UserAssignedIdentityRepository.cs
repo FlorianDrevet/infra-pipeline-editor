@@ -21,7 +21,7 @@ public sealed class UserAssignedIdentityRepository
     /// <inheritdoc />
     public override async Task<UserAssignedIdentity?> GetByIdAsync(
         ValueObject id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await Context.Set<UserAssignedIdentity>()
             .Include(uai => uai.DependsOn)

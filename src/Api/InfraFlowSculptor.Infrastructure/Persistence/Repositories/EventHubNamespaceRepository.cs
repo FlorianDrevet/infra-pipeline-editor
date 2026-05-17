@@ -15,7 +15,7 @@ public sealed class EventHubNamespaceRepository : AzureResourceRepository<EventH
     }
 
     /// <inheritdoc />
-    public override async Task<EventHubNamespace?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
+    public override async Task<EventHubNamespace?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await WithSubResources(Context.Set<EventHubNamespace>())
             .FirstOrDefaultAsync(eh => eh.Id == id, cancellationToken);

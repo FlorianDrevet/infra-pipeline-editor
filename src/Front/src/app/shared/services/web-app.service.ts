@@ -11,7 +11,7 @@ import {
   providedIn: 'root',
 })
 export class WebAppService {
-  private axios = inject(AxiosService);
+  private readonly axios = inject(AxiosService);
 
   getById(id: string): Promise<WebAppResponse> {
     return this.axios.request$<WebAppResponse>(

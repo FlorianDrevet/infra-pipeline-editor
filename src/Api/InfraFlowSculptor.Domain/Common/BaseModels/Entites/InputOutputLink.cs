@@ -46,6 +46,10 @@ public sealed class InputOutputLink : Entity<InputOutputId>
             throw new InvalidOperationException("A resource cannot link to itself.");
     }
 
+    private InputOutputLink()
+    {
+    }
+
     /// <summary>
     /// Creates a new <see cref="InputOutputLink"/> between two resources after validating
     /// that both the output and input types are defined members of their respective enums.
@@ -62,9 +66,5 @@ public sealed class InputOutputLink : Entity<InputOutputId>
             throw new InvalidOperationException($"InputType '{inputType}' is not defined in enum '{typeof(TInput).Name}'.");
 
         return new InputOutputLink(InputOutputId.CreateUnique(), source, target, outputType, inputType);
-    }
-
-    private InputOutputLink()
-    {
     }
 }

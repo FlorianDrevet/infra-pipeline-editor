@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Application.Common.Queries.GetDependentResources;
 /// Handles the <see cref="GetDependentResourcesQuery"/> by looking up all child resources
 /// that depend on the given parent resource (LogAnalyticsWorkspace, AppServicePlan, SqlServer).
 /// </summary>
-public sealed class GetDependentResourcesQueryHandler(
+public sealed class GetDependentResourcesQueryHandler( // NOSONAR S107
     ILogAnalyticsWorkspaceRepository logAnalyticsWorkspaceRepository,
     IAppServicePlanRepository appServicePlanRepository,
     ISqlServerRepository sqlServerRepository,

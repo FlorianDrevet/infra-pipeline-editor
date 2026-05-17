@@ -7,7 +7,7 @@ public sealed class FunctionAppRuntimeStack(FunctionAppRuntimeStack.FunctionAppR
     : EnumValueObject<FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum>(value)
 {
     /// <summary>Supported Function App runtime stacks.</summary>
-    public enum FunctionAppRuntimeStackEnum
+    public enum FunctionAppRuntimeStackEnum // NOSONAR S2344
     {
         /// <summary>.NET runtime.</summary>
         DotNet,

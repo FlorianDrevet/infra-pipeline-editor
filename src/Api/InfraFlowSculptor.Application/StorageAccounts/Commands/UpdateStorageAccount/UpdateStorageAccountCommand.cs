@@ -18,4 +18,4 @@ public record UpdateStorageAccountCommand(
     IReadOnlyList<CorsRuleResult>? CorsRules = null,
     IReadOnlyList<CorsRuleResult>? TableCorsRules = null,
     IReadOnlyList<BlobLifecycleRuleResult>? LifecycleRules = null
-) : ICommand<StorageAccountResult>;
+) : ICommand<StorageAccountResult>, IStorageAccountCommandProperties;

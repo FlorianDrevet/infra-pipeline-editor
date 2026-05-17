@@ -160,7 +160,7 @@ public sealed class AppConfigurationKey : Entity<AppConfigurationKeyId>
         string pipelineVariableName,
         AzureResourceId keyVaultResourceId,
         string secretName,
-        SecretValueAssignment assignment)
+        SecretValueAssignment assignment) // NOSONAR S107
         => new()
         {
             Id = AppConfigurationKeyId.CreateUnique(),

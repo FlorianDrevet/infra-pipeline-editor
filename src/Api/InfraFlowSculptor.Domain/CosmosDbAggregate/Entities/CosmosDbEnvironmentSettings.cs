@@ -52,7 +52,7 @@ public sealed class CosmosDbEnvironmentSettings : Entity<CosmosDbEnvironmentSett
         bool? enableAutomaticFailover,
         bool? enableMultipleWriteLocations,
         string? backupPolicyType,
-        bool? enableFreeTier)
+        bool? enableFreeTier) // NOSONAR S107
         : base(CosmosDbEnvironmentSettingsId.CreateUnique())
     {
         CosmosDbId = cosmosDbId;
@@ -81,7 +81,7 @@ public sealed class CosmosDbEnvironmentSettings : Entity<CosmosDbEnvironmentSett
         bool? enableMultipleWriteLocations,
         string? backupPolicyType,
         bool? enableFreeTier)
-        => new(cosmosDbId, environmentName, databaseApiType, consistencyLevel, maxStalenessPrefix, maxIntervalInSeconds, enableAutomaticFailover, enableMultipleWriteLocations, backupPolicyType, enableFreeTier);
+        => new(cosmosDbId, environmentName, databaseApiType, consistencyLevel, maxStalenessPrefix, maxIntervalInSeconds, enableAutomaticFailover, enableMultipleWriteLocations, backupPolicyType, enableFreeTier); // NOSONAR S107
 
     /// <summary>Updates the configuration overrides for this environment.</summary>
     public void Update(
@@ -92,7 +92,7 @@ public sealed class CosmosDbEnvironmentSettings : Entity<CosmosDbEnvironmentSett
         bool? enableAutomaticFailover,
         bool? enableMultipleWriteLocations,
         string? backupPolicyType,
-        bool? enableFreeTier)
+        bool? enableFreeTier) // NOSONAR S107
     {
         DatabaseApiType = databaseApiType;
         ConsistencyLevel = consistencyLevel;

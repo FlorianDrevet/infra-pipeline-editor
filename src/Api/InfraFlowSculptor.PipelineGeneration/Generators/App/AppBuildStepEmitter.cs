@@ -8,6 +8,9 @@ namespace InfraFlowSculptor.PipelineGeneration.Generators.App;
 /// </summary>
 internal static class AppBuildStepEmitter
 {
+    private const string InputsLine = "            inputs:";
+    private const string PwshStepLine = "          - pwsh: |";
+    private const string DotNetCoreStack = "DOTNETCORE";
     /// <summary>
     /// Determines whether the request uses ACR admin credentials for authentication.
     /// </summary>
@@ -30,15 +33,15 @@ internal static class AppBuildStepEmitter
     /// <param name="runtimeVersion">The runtime version (e.g. <c>8.0</c>).</param>
     internal static void AppendSdkSetupStep(StringBuilder sb, string? runtimeStack, string? runtimeVersion)
     {
-        var stack = runtimeStack?.ToUpperInvariant() ?? "DOTNETCORE";
+        var stack = runtimeStack?.ToUpperInvariant() ?? DotNetCoreStack;
         var version = runtimeVersion ?? "8.0";
 
         switch (stack)
         {
-            case "DOTNETCORE" or "DOTNET":
+            case DotNetCoreStack or "DOTNET":
                 sb.AppendLine("          - task: UseDotNet@2");
                 sb.AppendLine("            displayName: 'Setup .NET SDK'");
-                sb.AppendLine("            inputs:");
+                sb.AppendLine(InputsLine);
                 sb.AppendLine("              packageType: sdk");
                 sb.AppendLine($"              version: {version}.x");
                 sb.AppendLine();
@@ -47,7 +50,7 @@ internal static class AppBuildStepEmitter
             case "NODE" or "NODEJS":
                 sb.AppendLine("          - task: UseNode@1");
                 sb.AppendLine("            displayName: 'Setup Node.js'");
-                sb.AppendLine("            inputs:");
+                sb.AppendLine(InputsLine);
                 sb.AppendLine($"              version: {version}.x");
                 sb.AppendLine();
                 break;
@@ -55,7 +58,7 @@ internal static class AppBuildStepEmitter
             case "PYTHON":
                 sb.AppendLine("          - task: UsePythonVersion@0");
                 sb.AppendLine("            displayName: 'Setup Python'");
-                sb.AppendLine("            inputs:");
+                sb.AppendLine(InputsLine);
                 sb.AppendLine($"              versionSpec: {version}");
                 sb.AppendLine();
                 break;
@@ -63,7 +66,7 @@ internal static class AppBuildStepEmitter
             case "JAVA":
                 sb.AppendLine("          - task: JavaToolInstaller@0");
                 sb.AppendLine("            displayName: 'Setup Java'");
-                sb.AppendLine("            inputs:");
+                sb.AppendLine(InputsLine);
                 sb.AppendLine($"              versionSpec: {version}");
                 sb.AppendLine("              jdkArchitectureOption: x64");
                 sb.AppendLine("              jdkSourceOption: PreInstalled");
@@ -79,13 +82,13 @@ internal static class AppBuildStepEmitter
     /// <param name="request">The application pipeline generation request.</param>
     internal static void AppendCodeBuildSteps(StringBuilder sb, AppPipelineGenerationRequest request)
     {
-        var runtimeStack = request.RuntimeStack?.ToUpperInvariant() ?? "DOTNETCORE";
+        var runtimeStack = request.RuntimeStack?.ToUpperInvariant() ?? DotNetCoreStack;
         var sourcePath = request.SourceCodePath ?? ".";
         var packagePath = $"$(Build.ArtifactStagingDirectory)/{AppHeaderEmitter.PackageArtifactName}";
 
         if (!string.IsNullOrWhiteSpace(request.TestCommand))
         {
-            sb.AppendLine("          - pwsh: |");
+            sb.AppendLine(PwshStepLine);
             sb.AppendLine($"              {request.TestCommand}");
             sb.AppendLine("            displayName: 'Run application tests'");
             sb.AppendLine($"            workingDirectory: {sourcePath}");
@@ -94,7 +97,7 @@ internal static class AppBuildStepEmitter
 
         if (!string.IsNullOrWhiteSpace(request.BuildCommand))
         {
-            sb.AppendLine("          - pwsh: |");
+            sb.AppendLine(PwshStepLine);
             sb.AppendLine($"              {request.BuildCommand}");
             sb.AppendLine("            displayName: 'Build and package application'");
             sb.AppendLine($"            workingDirectory: {sourcePath}");
@@ -102,7 +105,7 @@ internal static class AppBuildStepEmitter
             return;
         }
 
-        if (runtimeStack is "DOTNETCORE" or "DOTNET")
+        if (runtimeStack is DotNetCoreStack or "DOTNET")
         {
             AppendDotNetCodeBuildSteps(sb, sourcePath, packagePath);
             return;
@@ -113,14 +116,14 @@ internal static class AppBuildStepEmitter
 
     private static void AppendDotNetCodeBuildSteps(StringBuilder sb, string sourcePath, string packagePath)
     {
-        sb.AppendLine("          - pwsh: |");
+        sb.AppendLine(PwshStepLine);
         sb.AppendLine("              dotnet restore");
         sb.AppendLine("              dotnet build --configuration Release --no-restore");
         sb.AppendLine("            displayName: 'Restore and build .NET application'");
         sb.AppendLine($"            workingDirectory: {sourcePath}");
         sb.AppendLine();
 
-        sb.AppendLine("          - pwsh: |");
+        sb.AppendLine(PwshStepLine);
         sb.AppendLine("              dotnet test --configuration Release --no-build --logger \"trx;LogFileName=test-results.trx\" --results-directory \"$(Common.TestResultsDirectory)\" --collect \"XPlat Code Coverage\"");
         sb.AppendLine("            displayName: 'Run automated tests'");
         sb.AppendLine($"            workingDirectory: {sourcePath}");
@@ -128,7 +131,7 @@ internal static class AppBuildStepEmitter
 
         sb.AppendLine("          - task: PublishTestResults@2");
         sb.AppendLine("            displayName: 'Publish test results'");
-        sb.AppendLine("            inputs:");
+        sb.AppendLine(InputsLine);
         sb.AppendLine("              testResultsFormat: VSTest");
         sb.AppendLine("              testResultsFiles: '$(Common.TestResultsDirectory)/**/*.trx'");
         sb.AppendLine("              failTaskOnFailedTests: true");
@@ -136,13 +139,13 @@ internal static class AppBuildStepEmitter
 
         sb.AppendLine("          - task: PublishCodeCoverageResults@2");
         sb.AppendLine("            displayName: 'Publish code coverage'");
-        sb.AppendLine("            inputs:");
+        sb.AppendLine(InputsLine);
         sb.AppendLine("              codeCoverageTool: Cobertura");
         sb.AppendLine("              summaryFileLocation: '$(Common.TestResultsDirectory)/**/coverage.cobertura.xml'");
         sb.AppendLine("              failIfCoverageEmpty: false");
         sb.AppendLine();
 
-        sb.AppendLine("          - pwsh: |");
+        sb.AppendLine(PwshStepLine);
         sb.AppendLine($"              dotnet publish --configuration Release --no-build --output \"{packagePath}\"");
         sb.AppendLine("            displayName: 'Publish application package'");
         sb.AppendLine($"            workingDirectory: {sourcePath}");
