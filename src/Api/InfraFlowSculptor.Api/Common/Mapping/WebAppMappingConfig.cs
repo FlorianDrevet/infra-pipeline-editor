@@ -36,6 +36,7 @@ public sealed class WebAppMappingConfig : IRegister
                 src.Request.DeploymentMode,
                 src.Request.ContainerRegistryId,
                 src.Request.AcrAuthMode,
+                src.Request.AcrPullIdentityId,
                 src.Request.DockerImageName,
                 src.Request.DockerImageValidated,
                 src.Request.DockerfilePath,
@@ -60,7 +61,8 @@ public sealed class WebAppMappingConfig : IRegister
             .Map(dest => dest.AppServicePlanId, src => src.AppServicePlanId.Value)
             .Map(dest => dest.DeploymentMode, src => src.DeploymentMode.Value.ToString())
                     .Map(dest => dest.ContainerRegistryId, src => src.ContainerRegistryId != null ? src.ContainerRegistryId.Value : (Guid?)null)
-                    .Map(dest => dest.AcrAuthMode, src => src.AcrAuthMode != null ? src.AcrAuthMode.Value.ToString() : null);
+                    .Map(dest => dest.AcrAuthMode, src => src.AcrAuthMode != null ? src.AcrAuthMode.Value.ToString() : null)
+                    .Map(dest => dest.AcrPullIdentityId, src => src.AcrPullIdentityId != null ? src.AcrPullIdentityId.Value : (Guid?)null);
 
         config.NewConfig<WebAppEnvironmentConfigData, WebAppEnvironmentConfigResponse>()
             .MapWith(src => new WebAppEnvironmentConfigResponse(

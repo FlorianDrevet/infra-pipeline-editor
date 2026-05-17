@@ -42,6 +42,9 @@ public sealed class WebApp : AzureResource
     /// <summary>Gets the optional authentication mode used to pull images from Azure Container Registry.</summary>
     public AcrAuthMode? AcrAuthMode { get; private set; }
 
+    /// <summary>Gets the optional User Assigned Identity used exclusively for pulling images from ACR (distinct from the resource-level identity).</summary>
+    public AzureResourceId? AcrPullIdentityId { get; private set; }
+
     /// <summary>Gets the Docker image name for container deployments (e.g., "myapp/api").</summary>
     public string? DockerImageName { get; private set; }
 
@@ -82,6 +85,7 @@ public sealed class WebApp : AzureResource
         DeploymentMode deploymentMode,
         AzureResourceId? containerRegistryId,
         AcrAuthMode? acrAuthMode,
+        AzureResourceId? acrPullIdentityId,
         string? dockerImageName,
         bool dockerImageValidated,
         string? dockerfilePath,
@@ -102,6 +106,7 @@ public sealed class WebApp : AzureResource
         DeploymentMode = deploymentMode;
         ContainerRegistryId = containerRegistryId;
         AcrAuthMode = containerRegistryId is null ? null : acrAuthMode;
+        AcrPullIdentityId = containerRegistryId is null || acrAuthMode?.Value != AcrAuthMode.AcrAuthModeType.ManagedIdentity ? null : acrPullIdentityId;
         DockerImageName = dockerImageName;
         DockerImageValidated = dockerImageValidated;
         DockerfilePath = dockerfilePath;
@@ -176,7 +181,8 @@ public sealed class WebApp : AzureResource
         DeploymentMode deploymentMode,
         AzureResourceId? containerRegistryId,
         AcrAuthMode? acrAuthMode,
-        string? dockerImageName,
+        AzureResourceId? acrPullIdentityId = null,
+        string? dockerImageName = null,
         bool dockerImageValidated = false,
         string? dockerfilePath = null,
         string? sourceCodePath = null,
@@ -185,6 +191,8 @@ public sealed class WebApp : AzureResource
         IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, string? DockerImageTag)>? environmentSettings = null,
         bool isExisting = false)
     {
+        var resolvedAcrAuthMode = containerRegistryId is null ? null : acrAuthMode;
+
         var webApp = new WebApp
         {
             Id = AzureResourceId.CreateUnique(),
@@ -199,7 +207,8 @@ public sealed class WebApp : AzureResource
             HttpsOnly = httpsOnly,
             DeploymentMode = deploymentMode,
             ContainerRegistryId = containerRegistryId,
-            AcrAuthMode = containerRegistryId is null ? null : acrAuthMode,
+            AcrAuthMode = resolvedAcrAuthMode,
+            AcrPullIdentityId = resolvedAcrAuthMode?.Value == AcrAuthMode.AcrAuthModeType.ManagedIdentity ? acrPullIdentityId : null,
             DockerImageName = dockerImageName,
             DockerImageValidated = dockerImageValidated,
             DockerfilePath = dockerfilePath,

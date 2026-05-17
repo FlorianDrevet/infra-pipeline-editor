@@ -12,6 +12,7 @@ public record ContainerAppResponse(
     string ContainerAppEnvironmentId,
     string? ContainerRegistryId,
     string? AcrAuthMode,
+    string? AcrPullIdentityId,
     string? DockerImageName,
     bool DockerImageValidated,
     string? DockerfilePath,

@@ -28,6 +28,10 @@ public abstract class ContainerAppRequestBase
     [EnumValidation(typeof(AcrAuthMode.AcrAuthModeType))]
     public string? AcrAuthMode { get; init; }
 
+    /// <summary>Optional User Assigned Identity identifier used exclusively for ACR image pull (distinct from the resource-level identity).</summary>
+    [GuidValidation]
+    public Guid? AcrPullIdentityId { get; init; }
+
     /// <summary>Optional base Docker image name (e.g., "myregistry.azurecr.io/myapp/api") without the tag.</summary>
     public string? DockerImageName { get; init; }
 

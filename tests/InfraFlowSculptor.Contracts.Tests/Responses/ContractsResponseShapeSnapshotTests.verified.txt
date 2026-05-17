@@ -126,9 +126,10 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.ContainerApps.Responses
 Type: ContainerAppResponse
 Constructors:
-  ContainerAppResponse(string Id, string ResourceGroupId, string Name, string Location, string ContainerAppEnvironmentId, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, bool DockerImageValidated, string? DockerfilePath, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Requests.ContainerAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+  ContainerAppResponse(string Id, string ResourceGroupId, string Name, string Location, string ContainerAppEnvironmentId, string? ContainerRegistryId, string? AcrAuthMode, string? AcrPullIdentityId, string? DockerImageName, bool DockerImageValidated, string? DockerfilePath, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Requests.ContainerAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
 Properties:
   AcrAuthMode: string?
+  AcrPullIdentityId: string?
   ApplicationName: string?
   ContainerAppEnvironmentId: string
   ContainerRegistryId: string?
@@ -284,9 +285,10 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.FunctionApps.Responses
 Type: FunctionAppResponse
 Constructors:
-  FunctionAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, bool DockerImageValidated, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FunctionApps.Requests.FunctionAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+  FunctionAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? AcrPullIdentityId, string? DockerImageName, bool DockerImageValidated, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FunctionApps.Requests.FunctionAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
 Properties:
   AcrAuthMode: string?
+  AcrPullIdentityId: string?
   AppServicePlanId: string
   ApplicationName: string?
   BuildCommand: string?
@@ -1224,9 +1226,10 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.WebApps.Responses
 Type: WebAppResponse
 Constructors:
-  WebAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool AlwaysOn, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, bool DockerImageValidated, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.WebApps.Requests.WebAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+  WebAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool AlwaysOn, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? AcrPullIdentityId, string? DockerImageName, bool DockerImageValidated, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.WebApps.Requests.WebAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
 Properties:
   AcrAuthMode: string?
+  AcrPullIdentityId: string?
   AlwaysOn: bool
   AppServicePlanId: string
   ApplicationName: string?

@@ -26,7 +26,7 @@ function Invoke-GhJson {
         return $null
     }
 
-    return $output | ConvertFrom-Json -Depth 20
+    return $output | ConvertFrom-Json
 }
 
 function Invoke-Gh {
@@ -53,7 +53,7 @@ function Get-Config {
         throw "Config file not found: $Path"
     }
 
-    return Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -Depth 20
+    return Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
 }
 
 function Get-AuditStamp {
@@ -88,7 +88,7 @@ function Convert-SeverityToLabel {
     $normalized = $RawSeverity.ToLowerInvariant()
     if ($normalized.Contains('crit')) { return 'severity: critical' }
     if ($normalized.Contains('haut') -or $normalized.Contains('high')) { return 'severity: high' }
-    if ($normalized.Contains('moy')) { return 'severity: medium' }
+    if ($normalized.Contains('moy') -or $normalized.Contains('medium')) { return 'severity: medium' }
     return 'severity: low'
 }
 
@@ -183,10 +183,10 @@ function Get-AuditFindings {
     )
 
     $results = @()
-    $sectionMatches = [regex]::Matches($Content, '(?mi)^##\s+.*SECTION\s+\d+\s+[—-]\s+FINDINGS\s+(?<bucket>CRITIQUES|HAUTS|MOYENS|BAS)')
+    $sectionMatches = [regex]::Matches($Content, "(?mi)^##\s+.*SECTION\s+\d+\s+[\u2014-]\s+FINDINGS\s+(?<bucket>CRITIQUES|HAUTS|MOYENS|BAS)")
     $matches = [regex]::Matches(
         $Content,
-        '(?ms)^###\s+(?<id>[A-Z]+-\d{3})\s+[—-]\s+(?<title>.+?)\r?\n(?<body>.*?)(?=^###\s+[A-Z]+-\d{3}\s+[—-]|^##\s+|\z)'
+        "(?ms)^###\s+(?<id>[A-Z]+-\d{3})\s+[\u2014-]\s+(?<title>.+?)\r?\n(?<body>.*?)(?=^###\s+[A-Z]+-\d{3}\s+[\u2014-]|^##\s+|\z)"
     )
 
     foreach ($match in $matches) {
@@ -194,7 +194,7 @@ function Get-AuditFindings {
         $title = $match.Groups['title'].Value.Trim()
         $body = $match.Groups['body'].Value.Trim()
 
-        $severityMatch = [regex]::Match($body, '\*\*S[ée]v[ée]rit[ée]\s*:\*\*\s*(?<value>.+)')
+        $severityMatch = [regex]::Match($body, "\*\*S[\u00e9e]v[\u00e9e]rit[\u00e9e]\s*:\*\*\s*(?<value>.+)")
         $severityLabel = if ($severityMatch.Success) {
             Convert-SeverityToLabel -RawSeverity $severityMatch.Groups['value'].Value.Trim()
         }
@@ -279,7 +279,7 @@ function Get-AuditIssues {
     $auditIssues = @{}
 
     foreach ($issue in @($issues)) {
-        $body = [string]($issue.body ?? '')
+        $body = if ($null -eq $issue.body) { '' } else { [string]$issue.body }
         $match = [regex]::Match($body, '<!--\s*audit-finding-id:\s*(?<id>[A-Z]+-\d{3})\s*-->')
         if (-not $match.Success) {
             continue
@@ -497,7 +497,7 @@ if (-not $AuditFile) {
 
 $resolvedAuditFile = Resolve-Path -LiteralPath $AuditFile
 $auditStamp = Get-AuditStamp -Path $resolvedAuditFile
-$auditContent = Get-Content -LiteralPath $resolvedAuditFile -Raw
+$auditContent = Get-Content -LiteralPath $resolvedAuditFile -Raw -Encoding UTF8
 
 if ($EnsureLabels) {
     foreach ($label in @($config.requiredLabels)) {

@@ -107,7 +107,7 @@ public sealed class ResourceCreationCoordinatorTests
                 return Task.FromResult<ErrorOr<WebAppResult>>(
                     new WebAppResult(new AzureResourceId(webAppId), TestRgId, new Name("my-web"), defaultLocation,
                         callInfo.Arg<CreateWebAppCommand>().AppServicePlanId,
-                        ".NET", "10.0", true, true, "code", null, null, null, false, null, null, null, null, null, []));
+                        ".NET", "10.0", true, true, "code", null, null, null, null, false, null, null, null, null, null, []));
             });
 
         var inputs = new List<ResourceCreationInput>

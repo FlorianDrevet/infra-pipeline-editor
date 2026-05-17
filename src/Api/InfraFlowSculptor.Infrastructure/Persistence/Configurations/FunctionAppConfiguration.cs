@@ -63,6 +63,10 @@ public sealed class FunctionAppConfiguration : IEntityTypeConfiguration<Function
                         Enum.Parse<AcrAuthMode.AcrAuthModeType>(v)))
             .IsRequired(false);
 
+        builder.Property(x => x.AcrPullIdentityId)
+            .HasConversion(new NullableIdValueConverter<AzureResourceId>())
+            .IsRequired(false);
+
         builder.Property(x => x.DockerImageName)
             .HasMaxLength(DockerImageNameMaxLength)
             .IsRequired(false);

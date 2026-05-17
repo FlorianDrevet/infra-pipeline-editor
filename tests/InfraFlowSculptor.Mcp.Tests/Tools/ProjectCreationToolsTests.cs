@@ -306,6 +306,8 @@ public sealed class ProjectCreationToolsTests
                     null,
                     null,
                     null,
+                    false,
+                    null,
                     null,
                     null,
                     [])));

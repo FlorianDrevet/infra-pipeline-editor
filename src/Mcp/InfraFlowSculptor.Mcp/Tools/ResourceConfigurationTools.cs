@@ -118,6 +118,7 @@ public sealed class ResourceConfigurationTools
             current.Value.ContainerAppEnvironmentId,
             current.Value.ContainerRegistryId,
             current.Value.AcrAuthMode,
+            current.Value.AcrPullIdentityId,
             current.Value.DockerImageName,
             current.Value.DockerImageValidated,
             current.Value.DockerfilePath,

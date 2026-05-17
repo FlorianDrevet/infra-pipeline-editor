@@ -56,6 +56,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
     private const string EmptyParameterValue = "";
     private const string SystemManagedIdentityValue = "system";
     private const string AcrPasswordSecretNameValue = "acr-password";
+    private const string ValidatedDnsValidationStatus = "Validated";
     private const string CustomDomainBindingsExpression = "[for domain in customDomains: {\n  name: domain.domainName\n  bindingType: domain.bindingType\n}]";
     private const string AcrUsernameExpression = "split(acrLoginServer, '.')[0]";
     private const string ManagedIdentityClientIdConditionExpression = "!empty(acrManagedIdentityClientId)";
@@ -152,6 +153,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
         var acrAuthMode = GetAcrAuthMode(resource.Properties);
         var useAdminCredentials = hasAcr
             && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
+        var hasValidatedCustomDomains = HasValidatedCustomDomains(resource);
 
         var builder = new BicepModuleBuilder()
             .Module(ModuleName, ModuleFolderName, ResourceTypeName)
@@ -187,11 +189,14 @@ public sealed partial class ContainerAppTypeBicepGenerator
             }
         }
 
+        if (hasValidatedCustomDomains)
+        {
           builder.Param(CustomDomainsParameterName, BicepType.Array, "Custom domain bindings for this Container App",
             defaultValue: new BicepArrayExpression([]));
+            builder.Var(CustomDomainBindingsVariableName, new BicepRawExpression(CustomDomainBindingsExpression));
+        }
 
         // ── Variables ──
-          builder.Var(CustomDomainBindingsVariableName, new BicepRawExpression(CustomDomainBindingsExpression));
 
         if (hasAcr && useAdminCredentials)
         {
@@ -245,17 +250,26 @@ public sealed partial class ContainerAppTypeBicepGenerator
             ])));
         }
 
+        var ingressProperties = new List<BicepPropertyAssignment>
+        {
+            new(ExternalPropertyName, new BicepReference(IngressExternalSelector)),
+            new(TargetPortPropertyName, new BicepReference(IngressTargetPortSelector)),
+            new(TransportPropertyName, new BicepReference(IngressTransportMethodSelector)),
+        };
+
+        if (hasValidatedCustomDomains)
+        {
+            ingressProperties.Add(new BicepPropertyAssignment(
+                CustomDomainsParameterName,
+                new BicepConditionalExpression(
+                    new BicepRawExpression(CustomDomainsConditionExpression),
+                    new BicepReference(CustomDomainBindingsVariableName),
+                    new BicepRawExpression(NullExpression))));
+        }
+
         configProps.Add(new BicepPropertyAssignment(IngressPropertyName, new BicepConditionalExpression(
           new BicepReference(IngressEnabledSelector),
-            new BicepObjectExpression([
-            new BicepPropertyAssignment(ExternalPropertyName, new BicepReference(IngressExternalSelector)),
-            new BicepPropertyAssignment(TargetPortPropertyName, new BicepReference(IngressTargetPortSelector)),
-            new BicepPropertyAssignment(TransportPropertyName, new BicepReference(IngressTransportMethodSelector)),
-            new BicepPropertyAssignment(CustomDomainsParameterName, new BicepConditionalExpression(
-                new BicepRawExpression(CustomDomainsConditionExpression),
-                new BicepReference(CustomDomainBindingsVariableName),
-              new BicepRawExpression(NullExpression))),
-            ]),
+            new BicepObjectExpression(ingressProperties),
           new BicepRawExpression(NullExpression))));
 
         // template sub-object
@@ -336,8 +350,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
         var acrAuthMode = GetAcrAuthMode(resource.Properties);
         var useAdminCredentials = hasAcr
             && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
-        var hasCustomDomains = resource.CustomDomains
-            .Any(cd => cd.DnsValidationStatus.Equals("Validated", StringComparison.OrdinalIgnoreCase));
+        var hasValidatedCustomDomains = HasValidatedCustomDomains(resource);
 
       var dockerImageName = resource.Properties.GetValueOrDefault(DockerImageNamePropertyName, EmptyParameterValue);
       var dockerImageValidated = string.Equals(
@@ -381,7 +394,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
           }
         }
 
-        if (hasCustomDomains)
+        if (hasValidatedCustomDomains)
         {
           parameters = parameters with { CustomDomains = [] };
         }
@@ -397,6 +410,8 @@ public sealed partial class ContainerAppTypeBicepGenerator
             ? ContainerAppWithAcrAdminCredentialsModuleTemplate
             : ContainerAppWithAcrManagedIdentityModuleTemplate;
         }
+
+        moduleBicepContent = ApplyCustomDomainSupport(moduleBicepContent, hasValidatedCustomDomains);
 
         return new GeneratedTypeModule
         {
@@ -441,6 +456,25 @@ public sealed partial class ContainerAppTypeBicepGenerator
         return string.IsNullOrWhiteSpace(acrAuthMode)
             ? ManagedIdentityAcrAuthMode
             : acrAuthMode;
+    }
+
+    private static bool HasValidatedCustomDomains(ResourceDefinition resource)
+    {
+      return resource.CustomDomains.Any(customDomain =>
+        customDomain.DnsValidationStatus.Equals(ValidatedDnsValidationStatus, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string ApplyCustomDomainSupport(string template, bool hasValidatedCustomDomains)
+    {
+      return template
+        .Replace(
+          CustomDomainDeclarationsPlaceholder,
+          hasValidatedCustomDomains ? CustomDomainDeclarationsBlock : string.Empty,
+          StringComparison.Ordinal)
+        .Replace(
+          IngressCustomDomainsPropertyPlaceholder,
+          hasValidatedCustomDomains ? IngressCustomDomainsPropertyBlock : string.Empty,
+          StringComparison.Ordinal);
     }
 
 }

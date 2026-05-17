@@ -591,6 +591,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["deploymentMode"] = wa.DeploymentMode.Value.ToString(),
                     ["containerRegistryId"] = wa.ContainerRegistryId?.Value.ToString() ?? "",
                     ["acrAuthMode"] = wa.AcrAuthMode?.Value.ToString() ?? "",
+                    ["acrPullIdentityId"] = wa.AcrPullIdentityId?.Value.ToString() ?? "",
                     ["dockerImageName"] = wa.DockerImageName ?? "",
                     ["dockerImageValidated"] = wa.DockerImageValidated.ToString().ToLowerInvariant()
                 },
@@ -612,6 +613,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["deploymentMode"] = fa.DeploymentMode.Value.ToString(),
                     ["containerRegistryId"] = fa.ContainerRegistryId?.Value.ToString() ?? "",
                     ["acrAuthMode"] = fa.AcrAuthMode?.Value.ToString() ?? "",
+                    ["acrPullIdentityId"] = fa.AcrPullIdentityId?.Value.ToString() ?? "",
                     ["dockerImageName"] = fa.DockerImageName ?? "",
                     ["dockerImageValidated"] = fa.DockerImageValidated.ToString().ToLowerInvariant()
                 },
@@ -658,6 +660,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["containerAppEnvironmentId"] = ca.ContainerAppEnvironmentId.Value.ToString(),
                     ["containerRegistryId"] = ca.ContainerRegistryId?.Value.ToString() ?? "",
                     ["acrAuthMode"] = ca.AcrAuthMode?.Value.ToString() ?? "",
+                    ["acrPullIdentityId"] = ca.AcrPullIdentityId?.Value.ToString() ?? "",
                     ["dockerImageName"] = ca.DockerImageName ?? "",
                     ["dockerImageValidated"] = ca.DockerImageValidated.ToString().ToLowerInvariant()
                 },

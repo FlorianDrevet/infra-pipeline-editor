@@ -201,12 +201,13 @@ public sealed class FunctionAppTests
             new DeploymentMode(DeploymentMode.DeploymentModeType.Container),
             newRegistryId,
             new AcrAuthMode(AcrAuthMode.AcrAuthModeType.AdminCredentials),
-            DefaultDockerImage,
+            acrPullIdentityId: null,
+            dockerImageName: DefaultDockerImage,
             dockerImageValidated: false,
-            DefaultDockerfilePath,
+            dockerfilePath: DefaultDockerfilePath,
             sourceCodePath: null,
-            DefaultBuildCommand,
-            DefaultApplicationName);
+            buildCommand: DefaultBuildCommand,
+            applicationName: DefaultApplicationName);
 
         // Assert
         sut.Name.Value.Should().Be("func-updated");
@@ -243,6 +244,7 @@ public sealed class FunctionAppTests
             new DeploymentMode(DeploymentMode.DeploymentModeType.Code),
             containerRegistryId: null,
             acrAuthMode: new AcrAuthMode(AcrAuthMode.AcrAuthModeType.ManagedIdentity),
+            acrPullIdentityId: null,
             dockerImageName: null,
             dockerImageValidated: false,
             dockerfilePath: null,
@@ -274,6 +276,7 @@ public sealed class FunctionAppTests
             new DeploymentMode(DeploymentMode.DeploymentModeType.Container),
             containerRegistryId: AzureResourceId.CreateUnique(),
             acrAuthMode: new AcrAuthMode(AcrAuthMode.AcrAuthModeType.ManagedIdentity),
+            acrPullIdentityId: null,
             dockerImageName: DefaultDockerImage,
             dockerImageValidated: false,
             dockerfilePath: null,

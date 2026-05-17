@@ -45,6 +45,10 @@ public abstract class FunctionAppRequestBase
     [EnumValidation(typeof(AcrAuthMode.AcrAuthModeType))]
     public string? AcrAuthMode { get; init; }
 
+    /// <summary>Optional User Assigned Identity identifier used exclusively for ACR image pull (distinct from the resource-level identity).</summary>
+    [GuidValidation]
+    public Guid? AcrPullIdentityId { get; init; }
+
     /// <summary>Docker image name for container deployments (e.g., "myapp/func").</summary>
     public string? DockerImageName { get; init; }
 

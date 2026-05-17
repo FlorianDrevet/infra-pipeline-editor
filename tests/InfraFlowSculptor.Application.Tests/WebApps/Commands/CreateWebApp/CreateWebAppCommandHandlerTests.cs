@@ -64,6 +64,7 @@ public sealed class CreateWebAppCommandHandlerTests
             DeploymentMode: nameof(DeploymentMode.DeploymentModeType.Code),
             ContainerRegistryId: null,
             AcrAuthMode: null,
+            AcrPullIdentityId: null,
             DockerImageName: null);
         _webAppRepository.AddAsync(Arg.Any<WebApp>())
             .Returns(callInfo => Task.FromResult((WebApp)callInfo.Args()[0]));

@@ -20,6 +20,7 @@ public record UpdateWebAppCommand(
     string DeploymentMode,
     Guid? ContainerRegistryId,
     string? AcrAuthMode,
+    Guid? AcrPullIdentityId,
     string? DockerImageName,
     bool DockerImageValidated = false,
     string? DockerfilePath = null,

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -29,12 +29,27 @@ describe('GenerationDiagnosticsDialogComponent', () => {
         ],
       },
     ],
+    missingEnvConfigs: [
+      {
+        configId: 'config-1',
+        configName: 'Config Demo',
+        resources: [
+          {
+            resourceId: 'resource-2',
+            resourceName: 'ifs-api',
+            resourceType: 'Microsoft.App/containerApps',
+            missingEnvironments: ['Development'],
+          },
+        ],
+      },
+    ],
   };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GenerationDiagnosticsDialogComponent, TranslateModule.forRoot(), NoopAnimationsModule],
+      imports: [GenerationDiagnosticsDialogComponent, TranslateModule.forRoot()],
       providers: [
+        provideNoopAnimations(),
         provideRouter([]),
         {
           provide: MAT_DIALOG_DATA,
@@ -57,8 +72,7 @@ describe('GenerationDiagnosticsDialogComponent', () => {
     expect(contentText).not.toContain('GENERATION_DIAGNOSTICS.RBAC_SECTION_TITLE');
     expect(contentText).toContain('GENERATION_DIAGNOSTICS.PENDING_DOCKER_IMAGES_TITLE');
 
-    const dockerSectionIcon = getSectionIcons()[0];
-    expect(dockerSectionIcon?.textContent?.trim()).toBe('inventory_2');
+    expect(getSectionIcons().map((icon) => icon.textContent?.trim())).toContain('inventory_2');
   });
 
   it('uses warning iconography for a dialog that only contains warnings', () => {
@@ -67,6 +81,15 @@ describe('GenerationDiagnosticsDialogComponent', () => {
 
     expect(titleIcon?.textContent?.trim()).toBe('warning_amber');
     expect(count?.classList.contains('diagnostics-dialog__count--warning')).toBeTrue();
+  });
+
+  it('renders each visible warning category inside its own section card', () => {
+    const sectionCards = Array.from(
+      fixture.nativeElement.querySelectorAll('.diagnostics-dialog__section-card'),
+    ) as HTMLElement[];
+
+    expect(sectionCards.length).toBe(2);
+    expect(sectionCards.every((sectionCard) => sectionCard.classList.contains('diagnostics-dialog__section-card--warning'))).toBeTrue();
   });
 
   function getSectionIcons(): HTMLElement[] {

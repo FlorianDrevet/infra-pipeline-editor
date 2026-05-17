@@ -20,6 +20,7 @@ public record CreateWebAppCommand(
     string DeploymentMode,
     Guid? ContainerRegistryId,
     string? AcrAuthMode,
+    Guid? AcrPullIdentityId,
     string? DockerImageName,
     bool DockerImageValidated = false,
     string? DockerfilePath = null,

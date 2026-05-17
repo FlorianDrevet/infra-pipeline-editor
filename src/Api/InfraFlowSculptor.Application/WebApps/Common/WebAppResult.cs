@@ -19,6 +19,7 @@ public record WebAppResult(
     string DeploymentMode,
     Guid? ContainerRegistryId,
     string? AcrAuthMode,
+    Guid? AcrPullIdentityId,
     string? DockerImageName,
     bool DockerImageValidated,
     string? DockerfilePath,

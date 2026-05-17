@@ -16,6 +16,7 @@ public record ContainerAppResult(
     Guid ContainerAppEnvironmentId,
     Guid? ContainerRegistryId,
     string? AcrAuthMode,
+    Guid? AcrPullIdentityId,
     string? DockerImageName,
     bool DockerImageValidated,
     string? DockerfilePath,

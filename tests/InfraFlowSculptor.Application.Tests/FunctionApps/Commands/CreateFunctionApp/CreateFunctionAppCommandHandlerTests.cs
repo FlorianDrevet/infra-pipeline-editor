@@ -63,6 +63,7 @@ public sealed class CreateFunctionAppCommandHandlerTests
             DeploymentMode: nameof(DeploymentMode.DeploymentModeType.Code),
             ContainerRegistryId: null,
             AcrAuthMode: null,
+            AcrPullIdentityId: null,
             DockerImageName: null);
         _functionAppRepository.AddAsync(Arg.Any<FunctionApp>())
             .Returns(callInfo => Task.FromResult((FunctionApp)callInfo.Args()[0]));

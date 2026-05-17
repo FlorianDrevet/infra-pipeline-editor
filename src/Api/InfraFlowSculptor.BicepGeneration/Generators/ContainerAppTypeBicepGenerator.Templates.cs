@@ -2,6 +2,23 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 
 public sealed partial class ContainerAppTypeBicepGenerator
 {
+  private const string CustomDomainDeclarationsPlaceholder = "__CUSTOM_DOMAIN_DECLARATIONS__";
+  private const string IngressCustomDomainsPropertyPlaceholder = "__INGRESS_CUSTOM_DOMAINS_PROPERTY__";
+
+  private const string CustomDomainDeclarationsBlock = """
+    @description('Custom domain bindings for this Container App')
+    param customDomains array = []
+
+    var customDomainBindings = [for domain in customDomains: {
+      name: domain.domainName
+      bindingType: domain.bindingType
+    }]
+    """;
+
+  private const string IngressCustomDomainsPropertyBlock = """
+        customDomains: !empty(customDomains) ? customDomainBindings : null
+    """;
+
     private const string ContainerAppTypesTemplate = """
         @export()
         @description('Ingress transport method for the Container App')
@@ -86,13 +103,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @description('Health probe configuration')
         param healthProbes HealthProbeConfig
 
-        @description('Custom domain bindings for this Container App')
-        param customDomains array = []
-
-        var customDomainBindings = [for domain in customDomains: {
-          name: domain.domainName
-          bindingType: domain.bindingType
-        }]
+        {{CustomDomainDeclarationsPlaceholder}}
 
         resource containerApp '{{ContainerAppArmType}}' = {
           name: name
@@ -104,7 +115,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
                 external: ingress.external
                 targetPort: ingress.targetPort
                 transport: ingress.transportMethod
-                customDomains: !empty(customDomains) ? customDomainBindings : null
+        {{IngressCustomDomainsPropertyPlaceholder}}
               } : null
             }
             template: {
@@ -192,13 +203,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @description('Client ID of the managed identity for ACR pull')
         param acrManagedIdentityClientId string = ''
 
-        @description('Custom domain bindings for this Container App')
-        param customDomains array = []
-
-        var customDomainBindings = [for domain in customDomains: {
-          name: domain.domainName
-          bindingType: domain.bindingType
-        }]
+        {{CustomDomainDeclarationsPlaceholder}}
 
         resource containerApp '{{ContainerAppArmType}}' = {
           name: name
@@ -216,7 +221,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
                 external: ingress.external
                 targetPort: ingress.targetPort
                 transport: ingress.transportMethod
-                customDomains: !empty(customDomains) ? customDomainBindings : null
+        {{IngressCustomDomainsPropertyPlaceholder}}
               } : null
             }
             template: {
@@ -305,13 +310,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @description('Admin password for the Container Registry')
         param acrPassword string
 
-        @description('Custom domain bindings for this Container App')
-        param customDomains array = []
-
-        var customDomainBindings = [for domain in customDomains: {
-          name: domain.domainName
-          bindingType: domain.bindingType
-        }]
+        {{CustomDomainDeclarationsPlaceholder}}
         var acrUsername = split(acrLoginServer, '.')[0]
         var acrPasswordSecretName = 'acr-password'
 
@@ -338,7 +337,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
                 external: ingress.external
                 targetPort: ingress.targetPort
                 transport: ingress.transportMethod
-                customDomains: !empty(customDomains) ? customDomainBindings : null
+        {{IngressCustomDomainsPropertyPlaceholder}}
               } : null
             }
             template: {

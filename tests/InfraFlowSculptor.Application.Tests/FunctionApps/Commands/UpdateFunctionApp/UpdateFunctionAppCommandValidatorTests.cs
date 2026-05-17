@@ -86,6 +86,7 @@ public sealed class UpdateFunctionAppCommandValidatorTests
             deploymentMode,
             ContainerRegistryId: null,
             AcrAuthMode: null,
+            AcrPullIdentityId: null,
             DockerImageName: null);
     }
 }

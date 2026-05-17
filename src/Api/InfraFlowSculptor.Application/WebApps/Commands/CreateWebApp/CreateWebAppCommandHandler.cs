@@ -65,6 +65,9 @@ public class CreateWebAppCommandHandler(
             !string.IsNullOrWhiteSpace(request.AcrAuthMode)
                 ? new AcrAuthMode(Enum.Parse<AcrAuthMode.AcrAuthModeType>(request.AcrAuthMode))
                 : null,
+            request.AcrPullIdentityId.HasValue
+                ? new AzureResourceId(request.AcrPullIdentityId.Value)
+                : null,
             request.DockerImageName,
             request.DockerImageValidated,
             request.DockerfilePath,

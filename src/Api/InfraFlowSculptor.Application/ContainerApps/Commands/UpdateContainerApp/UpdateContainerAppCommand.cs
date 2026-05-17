@@ -15,6 +15,7 @@ public record UpdateContainerAppCommand(
     Guid ContainerAppEnvironmentId,
     Guid? ContainerRegistryId,
     string? AcrAuthMode = null,
+    Guid? AcrPullIdentityId = null,
     string? DockerImageName = null,
     bool DockerImageValidated = false,
     string? DockerfilePath = null,
