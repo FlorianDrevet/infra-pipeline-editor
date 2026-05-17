@@ -25,6 +25,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="InfraFlowSculptor.Api.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\InfraFlowSculptor.Contracts\InfraFlowSculptor.Contracts.csproj" />
         <ProjectReference Include="..\InfraFlowSculptor.Application\InfraFlowSculptor.Application.csproj" />
         <ProjectReference Include="..\InfraFlowSculptor.Infrastructure\InfraFlowSculptor.Infrastructure.csproj" />
