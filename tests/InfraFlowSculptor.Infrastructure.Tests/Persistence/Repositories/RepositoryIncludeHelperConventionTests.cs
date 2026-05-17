@@ -107,6 +107,30 @@ public sealed class RepositoryIncludeHelperConventionTests
                     ".Include(ac => ac.ConfigurationKeys)",
                     ".ThenInclude(ck => ck.EnvironmentValues)",
                 ]),
+            new RepositoryIncludeExpectation(
+                "StorageAccountRepository.cs",
+                ["private static IQueryable<StorageAccount> WithSubResources"],
+                [
+                    ".Include(s => s.DependsOn)",
+                    ".Include(s => s.EnvironmentSettings)",
+                    ".Include(s => s.BlobContainers)",
+                    ".Include(s => s.AllCorsRules)",
+                    ".Include(s => s.LifecycleRules)",
+                    ".Include(s => s.Queues)",
+                    ".Include(s => s.Tables)",
+                ]),
+            new RepositoryIncludeExpectation(
+                "AzureResourceBaseRepository.cs",
+                [
+                    "private static IQueryable<AzureResource> WithAppSettings",
+                    "private static IQueryable<AzureResource> WithPrivateEndpoints",
+                ],
+                [
+                    ".Include(r => r.AppSettings)",
+                    ".ThenInclude(s => s.EnvironmentValues)",
+                    ".Include(r => r.ResourceGroup)",
+                    ".Include(r => r.PrivateEndpointConfigs)",
+                ]),
         ];
     }
 

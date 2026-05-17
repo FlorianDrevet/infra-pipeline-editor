@@ -167,6 +167,7 @@ public sealed class RateLimitingTests
         application.UseBicepGenerationController();
         application.UsePipelineGenerationController();
         application.UseProjectController();
+        application.UseProjectGenerationController();
 
         var endpoints = application.Services
             .GetRequiredService<IEnumerable<EndpointDataSource>>()

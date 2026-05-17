@@ -58,6 +58,11 @@ app.UseMiddleware<UserProvisioningMiddleware>();
 
 //Controllers
 app.UseProjectController();
+app.UseProjectMemberController();
+app.UseProjectEnvironmentController();
+app.UseProjectNamingController();
+app.UseProjectRepositoryController();
+app.UseProjectGenerationController();
 app.UseInfrastructureConfigController();
 app.UseNamingTemplateController();
 app.UseKeyVaultController();
