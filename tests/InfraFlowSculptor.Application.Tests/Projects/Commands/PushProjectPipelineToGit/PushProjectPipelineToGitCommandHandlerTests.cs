@@ -9,7 +9,8 @@ using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;using NSubstitute;
+using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
+using NSubstitute;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
 namespace InfraFlowSculptor.Application.Tests.Projects.Commands.PushProjectPipelineToGit;

@@ -12,7 +12,6 @@ using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using NSubstitute;
-using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using DomainInfrastructureConfig = InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
