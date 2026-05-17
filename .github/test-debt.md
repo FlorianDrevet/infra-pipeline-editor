@@ -20,16 +20,16 @@
 
 | Projet de tests | Tests réussis | Ignorés | Échoués | Fichiers tests | Fichiers source | Ratio |
 |-----------------|--------------|---------|---------|----------------|-----------------|-------|
-| Domain.Tests | 609 | 0 | 0 | 89 | 254 | 35% |
+| Domain.Tests | 670 | 0 | 0 | 92 | 254 | 36% |
 | Application.Tests | 444 | 0 | 0 | 162 | 855 | 19% |
 | BicepGeneration.Tests | 888 | 0 | 0 | 48 | 115 | 42% |
 | PipelineGeneration.Tests | 98 | 0 | 0 | 25 | 49 | 51% |
 | Infrastructure.Tests | 79 | 9 | 0 | 17 | 297 | 6% |
-| Contracts.Tests | 117 | 0 | **1** | 22 | 206 | 11% |
+| Contracts.Tests | 321 | 0 | 0 | 57 | 206 | 28% |
 | Api.Tests | 32 | 0 | 0 | 10 | 127 | 8% |
-| GenerationCore.Tests | 12 | 0 | 0 | 3 | 24 | 13% |
+| GenerationCore.Tests | 99 | 0 | 0 | 9 | 24 | 38% |
 | Mcp.Tests | 90 | 0 | 0 | 15 | 49 | 31% |
-| **TOTAL** | **2,369** | **9** | **1** | **391** | **1,976** | **20%** |
+| **TOTAL** | **2,721** | **9** | **0** | **435** | **1,976** | **22%** |
 
 ### Cibles Stryker
 
@@ -55,11 +55,11 @@
 | **TOTAL Phase 1** | | **~260** |
 
 **Critères de succès Phase 1 :**
-- [ ] 0 test en échec sur toute la solution
-- [ ] 27/27 agrégats Domain couverts
-- [ ] GenerationCore : chaque classe publique a au moins 1 test
-- [ ] Contracts : tous les request types avec attributs de validation couverts
-- [ ] `dotnet test .\InfraFlowSculptor.slnx` = 0 failure
+- [x] 0 test en échec sur toute la solution
+- [x] 27/27 agrégats Domain couverts (FrontDoor, NetworkSecurityGroup, PrivateDnsZone ajoutés — 51 tests)
+- [x] GenerationCore : chaque classe publique a au moins 1 test (87 tests ajoutés : KeyVaultSecretNameRules, PathSanitizer, AzureResourceDefaults, GenerationErrors, DeploymentModes, AcrAuthModes)
+- [x] Contracts : tous les request types avec attributs de validation couverts (203 tests ajoutés : 15 Create + 35 Add/Update/Set/Import/Push/Check)
+- [x] `dotnet test .\InfraFlowSculptor.slnx` = 0 failure (2,721 passing, 9 skipped Infrastructure)
 
 ---
 
@@ -211,7 +211,7 @@
 
 | Phase | Focus | Tests estimés | Tests cumulés | Coverage cible |
 |-------|-------|---------------|---------------|----------------|
-| 1 | Foundation (Domain+GenerationCore+Contracts) | ~260 | ~2,630 | 25% |
+| 1 | Foundation (Domain+GenerationCore+Contracts) | ~260 | ~2,630 | 25% | ✅ Done (351 tests added → 2,721 total) |
 | 2 | Application Validators (121) | ~485 | ~3,115 | 35% |
 | 3 | Application Handlers (128) | ~603 | ~3,718 | 55% |
 | 4 | Infrastructure+BicepGen+Api+Mcp | ~360 | ~4,078 | 70%+ |
