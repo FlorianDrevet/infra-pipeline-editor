@@ -59,7 +59,7 @@
 - [x] 27/27 agrégats Domain couverts (FrontDoor, NetworkSecurityGroup, PrivateDnsZone ajoutés — 51 tests)
 - [x] GenerationCore : chaque classe publique a au moins 1 test (87 tests ajoutés : KeyVaultSecretNameRules, PathSanitizer, AzureResourceDefaults, GenerationErrors, DeploymentModes, AcrAuthModes)
 - [x] Contracts : tous les request types avec attributs de validation couverts (203 tests ajoutés : 15 Create + 35 Add/Update/Set/Import/Push/Check)
-- [x] `dotnet test .\InfraFlowSculptor.slnx` = 0 failure (2,721 passing, 9 skipped Infrastructure)
+- [x] `dotnet test .\InfraFlowSculptor.slnx` = 0 failure (3,294 passing, 9 skipped Infrastructure)
 
 ---
 
@@ -113,11 +113,14 @@
 </details>
 
 **Critères de succès Phase 2 :**
-- [ ] 121/121 validators couverts (au moins happy path + chaque règle violée individuellement)
-- [ ] Tests `InlineData`/`MemberData` pour les combinatoires (enum, longueur, format)
-- [ ] Chaque `RuleFor` a au minimum 1 test positif + 1 test négatif
-- [ ] `dotnet test .\tests\InfraFlowSculptor.Application.Tests` = 0 failure
+- [x] 121/121 validators couverts (au moins happy path + chaque règle violée individuellement)
+- [x] Tests `InlineData`/`MemberData` pour les combinatoires (enum, longueur, format)
+- [x] Chaque `RuleFor` a au minimum 1 test positif + 1 test négatif
+- [x] `dotnet test .\tests\InfraFlowSculptor.Application.Tests` = 0 failure (1011 passing)
 - [ ] Stryker mutation score > 80% sur le namespace Validators
+
+**Phase 2 complétée le 2026-05-17 : +567 tests (444 → 1011 dans Application.Tests)**
+**Total solution : 3,294 tests passing, 0 failures, 9 skipped (Infrastructure pre-existing)**
 
 ---
 
