@@ -22,6 +22,8 @@ internal static class ProjectRouteNames
     internal const string SetProjectTags = nameof(SetProjectTags);
     internal const string DeleteProject = nameof(DeleteProject);
     internal const string ValidateRecentItems = nameof(ValidateRecentItems);
+    internal const string SetProjectGitPat = nameof(SetProjectGitPat);
+    internal const string SetRepositoryGitPat = nameof(SetRepositoryGitPat);
     internal const string TestGitConnection = nameof(TestGitConnection);
     internal const string ListGitBranches = nameof(ListGitBranches);
     internal const string ListCodeRepoBranches = nameof(ListCodeRepoBranches);
@@ -31,6 +33,7 @@ internal static class ProjectRouteNames
     internal const string AddProjectRepository = nameof(AddProjectRepository);
     internal const string UpdateProjectRepository = nameof(UpdateProjectRepository);
     internal const string RemoveProjectRepository = nameof(RemoveProjectRepository);
+    internal const string TestProjectRepositoryConnection = nameof(TestProjectRepositoryConnection);
     internal const string SetProjectLayoutPreset = nameof(SetProjectLayoutPreset);
     internal const string SetInfraConfigLayoutMode = nameof(SetInfraConfigLayoutMode);
     internal const string AddInfraConfigRepository = nameof(AddInfraConfigRepository);

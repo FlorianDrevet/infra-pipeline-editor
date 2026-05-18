@@ -2,6 +2,9 @@
 
 ## UI Refresh 2026-05 — Vagues complètes [2026-05-11]
 
+- **DS autocomplete rollout [2026-05-18]** : `shared/components/ds/ds-autocomplete/` is now the standard search/autocomplete primitive for frontend dialogs that previously exposed raw `MatAutocomplete` panels. The component keeps the DS text-field shell, injects a branded loading state plus a compact empty state inside the suggestion panel, and is the only remaining place where `MatAutocompleteModule` is allowed in `src/Front/src/**`. The former raw usages in `add-project-member-dialog`, `push-to-git-dialog`, and `multi-repo-push-dialog` were migrated to `app-ds-autocomplete`; no feature template should render `<mat-autocomplete>` directly anymore.
+- **DS autocomplete anchor/layout guard [2026-05-18]** : `app-ds-autocomplete` must anchor the Material trigger on a full-width input, not on the reduced text box between prefix/suffix affordances. Keep the prefix icon, spinner, and clear button absolutely positioned over the control shell, otherwise the suggestion panel starts after the icon and renders narrower than the field. The loading/empty-state row should also use vertical centering (`align-items: center`) so the icon shell and copy stay visually aligned.
+
 - **Blue-presence theme refresh [2026-05-12]** : la base dark globale a été réchauffée vers un bleu plus assumé sans revenir au glassmorphism applicatif. `src/Front/src/scss/_tokens.scss` pousse désormais une famille brand plus vive (`--ifs-brand-500: #4e86f4`), un accent plus lumineux (`--ifs-accent-500: #46b5ff`), des surfaces dark bleutées (`--ifs-bg/#08111d`, `--ifs-surface-1/#0f1928`, `--ifs-surface-2/#142033`, `--ifs-surface-3/#1b2a41`), des gradients login/CTA plus clairs, et un nouveau token `--ifs-app-backdrop` basé sur des halos radiaux bleus + un voile sombre. `src/Front/src/styles.scss` applique ce backdrop globalement sur `body` et `.mat-app-background`, ce qui redonne de la présence colorée au shell, à la navigation et aux écrans de détail sans retouche écran par écran. Validation : `npm run typecheck`, `npm run build`.
 
 - **Vague 6 (polish, livrée 2026-05-11)** : 5 nouvelles primitives DS créées et exportées via `ds/index.ts` :
@@ -58,7 +61,7 @@
 ## Component Suite
 
 - Layout and CTA primitives: `app-ds-button`, `app-ds-card`, `app-ds-alert`, `app-ds-section-header`, `app-ds-page-header`.
-- CVA form controls: `app-ds-text-field`, `app-ds-textarea`, `app-ds-select`, `app-ds-toggle`, `app-ds-checkbox`, `app-ds-radio-group`.
+- CVA form controls: `app-ds-text-field`, `app-ds-textarea`, `app-ds-autocomplete`, `app-ds-select`, `app-ds-toggle`, `app-ds-checkbox`, `app-ds-radio-group`.
 - Support controls: `app-ds-chip`, `app-ds-icon-button`, `app-ds-panel-action-button`, `app-ds-date-picker`.
 - `DsSelectComponent` uses `cdkConnectedOverlay` so dropdowns escape scrollable/tabbed containers instead of creating nested scrollbars.
 - `DsSelectComponent` panel must explicitly use `width: 100%` and `min-width: 100%` so the rendered dropdown matches the trigger width instead of collapsing to its intrinsic menu width. [2026-05-11]

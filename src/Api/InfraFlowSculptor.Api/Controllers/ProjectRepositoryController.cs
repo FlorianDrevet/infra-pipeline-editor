@@ -2,10 +2,14 @@ using InfraFlowSculptor.Api.Controllers.Constants;
 using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectRepository;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectRepository;
+using InfraFlowSculptor.Application.Projects.Commands.SetProjectGitPat;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectLayoutPreset;
+using InfraFlowSculptor.Application.Projects.Commands.TestProjectRepositoryConnection;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectRepository;
 using InfraFlowSculptor.Contracts.Projects.Requests;
+using InfraFlowSculptor.Contracts.Projects.Responses;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
+using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -111,6 +115,57 @@ public static class ProjectRepositoryController
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
+
+        group.MapPost("/{projectId:guid}/repositories/{repoId:guid}/test-connection",
+                async ([FromRoute] Guid projectId,
+                    [FromRoute] Guid repoId,
+                    IMediator mediator,
+                    IMapper mapper) =>
+                {
+                    var command = new TestProjectRepositoryConnectionCommand(
+                        new ProjectId(projectId),
+                        new ProjectRepositoryId(repoId));
+                    var result = await mediator.Send(command);
+
+                    return result.Match(
+                        value => Results.Ok(mapper.Map<TestGitConnectionResponse>(value)),
+                        errors => errors.Result()
+                    );
+                })
+            .WithName(ProjectRouteNames.TestProjectRepositoryConnection)
+            .WithSummary("Test a specific project repository connection")
+            .WithDescription("Tests the selected project repository using the repository-scoped Git personal access token stored in Key Vault. Requires Owner or Contributor access.")
+            .Produces<TestGitConnectionResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
+
+        group.MapPut("/{projectId:guid}/repositories/{repoId:guid}/git-pat",
+                async ([FromRoute] Guid projectId,
+                    [FromRoute] Guid repoId,
+                    [FromBody] SetProjectGitPatRequest request,
+                    IMediator mediator) =>
+                {
+                    var command = new SetProjectGitPatCommand(
+                        new ProjectId(projectId),
+                        new ProjectRepositoryId(repoId),
+                        request.PersonalAccessToken);
+                    var result = await mediator.Send(command);
+
+                    return result.Match(
+                        _ => Results.NoContent(),
+                        errors => errors.Result()
+                    );
+                })
+            .WithName(ProjectRouteNames.SetRepositoryGitPat)
+            .WithSummary("Set a repository-scoped Git personal access token")
+            .WithDescription("Stores or updates the personal access token for a specific project repository in Key Vault. Requires Owner access.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden);
 
         group.MapPut("/{projectId:guid}/layout-preset",

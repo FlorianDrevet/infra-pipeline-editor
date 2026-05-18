@@ -1,12 +1,14 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { DsButtonComponent, DsTextFieldComponent } from '../../../shared/components/ds';
+import {
+  DsAutocompleteComponent,
+  DsAutocompleteOption,
+  DsButtonComponent,
+  DsTextFieldComponent,
+} from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import axios from 'axios';
@@ -43,15 +45,13 @@ interface PushErrorInfo {
   selector: 'app-push-to-git-dialog',
   standalone: true,
   imports: [
-    MatAutocompleteModule,
     MatDialogModule,
     MatButtonModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
+    DsAutocompleteComponent,
     DsButtonComponent,
     DsTextFieldComponent,
   ],
@@ -93,6 +93,9 @@ export class PushToGitDialogComponent implements OnInit {
   protected readonly allBranches = signal<string[]>([]);
   protected readonly filteredBranches = signal<string[]>([]);
   protected readonly branchesLoading = signal(true);
+  protected readonly branchOptions = computed<DsAutocompleteOption<string>[]>(() =>
+    this.filteredBranches().map((branch) => ({ value: branch, label: branch })),
+  );
 
   private readonly lastBranchKey = `ifs-push-branch-${this.data.projectId}`;
 
@@ -132,6 +135,10 @@ export class PushToGitDialogComponent implements OnInit {
     const lower = search.toLowerCase();
     const filtered = this.allBranches().filter(b => b.toLowerCase().includes(lower));
     this.filteredBranches.set(filtered);
+  }
+
+  protected showAllBranches(): void {
+    this.filteredBranches.set(this.allBranches());
   }
 
   protected async onPush(): Promise<void> {

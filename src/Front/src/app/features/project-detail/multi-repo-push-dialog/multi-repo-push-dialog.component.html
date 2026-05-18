@@ -102,32 +102,18 @@
               </div>
             } @else {
               <form [formGroup]="infraForm" class="mr-form">
-                <mat-form-field appearance="outline" class="mr-branch-field">
-                  <mat-label>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate }}</mat-label>
-                  <input
-                    matInput
-                    formControlName="branch"
-                    [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate"
-                    [matAutocomplete]="infraBranchAuto"
-                    (focus)="showAllInfraBranches()" />
-                  <mat-autocomplete #infraBranchAuto="matAutocomplete">
-                    @if (branchesLoading()) {
-                      <mat-option disabled>
-                        <div class="mr-branch-loading">
-                          <mat-spinner diameter="18"></mat-spinner>
-                          <span>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.LOADING_BRANCHES' | translate }}</span>
-                        </div>
-                      </mat-option>
-                    } @else {
-                      @for (branch of filteredInfraBranches(); track branch) {
-                        <mat-option [value]="branch">{{ branch }}</mat-option>
-                      }
-                      @if (filteredInfraBranches().length === 0) {
-                        <mat-option disabled>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.NO_BRANCHES' | translate }}</mat-option>
-                      }
-                    }
-                  </mat-autocomplete>
-                </mat-form-field>
+                <app-ds-autocomplete
+                  class="mr-branch-field"
+                  formControlName="branch"
+                  [label]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate"
+                  [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate"
+                  [options]="infraBranchOptions()"
+                  [loading]="branchesLoading()"
+                  [loadingStateLabel]="'CONFIG_DETAIL.PUSH_TO_GIT.LOADING_BRANCHES' | translate"
+                  [emptyStateLabel]="'CONFIG_DETAIL.PUSH_TO_GIT.NO_BRANCHES' | translate"
+                  prefixIcon="account_tree"
+                  [clearable]="true"
+                  (inputFocused)="showAllInfraBranches()" />
 
                 <app-ds-textarea
                   formControlName="commit"
@@ -215,32 +201,18 @@
               </div>
             } @else {
               <form [formGroup]="codeForm" class="mr-form">
-                <mat-form-field appearance="outline" class="mr-branch-field">
-                  <mat-label>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate }}</mat-label>
-                  <input
-                    matInput
-                    formControlName="branch"
-                    [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate"
-                    [matAutocomplete]="codeBranchAuto"
-                    (focus)="showAllCodeBranches()" />
-                  <mat-autocomplete #codeBranchAuto="matAutocomplete">
-                    @if (branchesLoading()) {
-                      <mat-option disabled>
-                        <div class="mr-branch-loading">
-                          <mat-spinner diameter="18"></mat-spinner>
-                          <span>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.LOADING_BRANCHES' | translate }}</span>
-                        </div>
-                      </mat-option>
-                    } @else {
-                      @for (branch of filteredCodeBranches(); track branch) {
-                        <mat-option [value]="branch">{{ branch }}</mat-option>
-                      }
-                      @if (filteredCodeBranches().length === 0) {
-                        <mat-option disabled>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.NO_BRANCHES' | translate }}</mat-option>
-                      }
-                    }
-                  </mat-autocomplete>
-                </mat-form-field>
+                <app-ds-autocomplete
+                  class="mr-branch-field"
+                  formControlName="branch"
+                  [label]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate"
+                  [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate"
+                  [options]="codeBranchOptions()"
+                  [loading]="branchesLoading()"
+                  [loadingStateLabel]="'CONFIG_DETAIL.PUSH_TO_GIT.LOADING_BRANCHES' | translate"
+                  [emptyStateLabel]="'CONFIG_DETAIL.PUSH_TO_GIT.NO_BRANCHES' | translate"
+                  prefixIcon="account_tree"
+                  [clearable]="true"
+                  (inputFocused)="showAllCodeBranches()" />
 
                 <app-ds-textarea
                   formControlName="commit"

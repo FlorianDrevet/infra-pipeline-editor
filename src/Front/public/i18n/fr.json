@@ -1511,6 +1511,17 @@
     },
     "LAYOUT": {
       "TAB_TITLE": "Layout & dépôts",
+      "AUTH": {
+        "TITLE": "Authentification du projet",
+        "DESCRIPTION": "Configurez le jeton d'accès personnel au niveau du projet utilisé pour tester ou pousser les dépôts depuis cet écran de topologie.",
+        "SHARED_SCOPE": "PAT au scope projet",
+        "SHARED_SCOPE_DETAIL": "Ce jeton est partagé entre tous les dépôts du projet. Il n'est pas configuré dépôt par dépôt.",
+        "REPLACE_HINT": "Enregistrer un nouveau jeton remplace le PAT partagé actuellement stocké pour ce projet.",
+        "CTA": "Configurer le PAT",
+        "CTA_SHORT": "PAT",
+        "DIALOG_TITLE": "Configurer le PAT du dépôt",
+        "SAVE_ERROR": "Impossible d'enregistrer le PAT du dépôt."
+      },
       "PRESET": "Preset de layout",
       "PRESET_HELP": "Choisissez comment l'infrastructure et le code applicatif sont répartis entre les dépôts Git.",
       "PRESET_ALL_IN_ONE": "Tout-en-un (mono-repo)",

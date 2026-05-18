@@ -1,8 +1,9 @@
-# Project Snapshot — Infra Flow Sculptor
+# Project Snapshot - Infra Flow Sculptor
 
 > **Project ID:** `fb8699ea-f568-4afb-864b-e82d2efd0905`
-> **Generated:** 2026-05-12
-> **Purpose:** Reference file for Copilot context — load this instead of querying the database.
+> **Generated:** 2026-05-18
+> **Source:** `infraDb` PostgreSQL live database
+> **Purpose:** Reference file for Copilot context - synchronized from the database.
 
 ---
 
@@ -13,20 +14,17 @@
 | **Name** | Infra Flow Sculptor |
 | **ID** | `fb8699ea-f568-4afb-864b-e82d2efd0905` |
 | **DefaultNamingTemplate** | `{name}-{resourceAbbr}{suffix}` |
-| **RepositoryMode** | MonoRepo |
-| **AgentPoolName** | Default (self-hosted) |
+| **LayoutPreset** | SplitInfraCode |
+| **AgentPoolName** | Default |
 
-### Git Configuration
+### Repositories
 
-| Field | Value |
-|-------|-------|
-| **Provider** | AzureDevOps |
-| **RepositoryUrl** | `https://dev.azure.com/floriandrevet0332/Infra%20Flow%20Sculptor/_git/ifs` |
-| **Owner** | `floriandrevet0332/Infra Flow Sculptor` |
-| **RepositoryName** | `ifs` |
-| **DefaultBranch** | `main` |
-| **BasePath** | `infra` |
-| **PipelineBasePath** | *(null — defaults to same as BasePath)* |
+| Alias | Provider | RepositoryUrl | Owner | RepositoryName | DefaultBranch | ContentKinds |
+|-------|----------|---------------|-------|----------------|---------------|--------------|
+| `infra` | AzureDevOps | `https://floriandrevet0332@dev.azure.com/floriandrevet0332/Infra%20Flow%20Sculptor/_git/ifs` | `floriandrevet0332/Infra Flow Sculptor` | `ifs` | `main` | `Infrastructure` |
+| `code` | AzureDevOps | `https://floriandrevet0332@dev.azure.com/floriandrevet0332/Infra%20Flow%20Sculptor/_git/Infra%20Flow%20Sculptor` | `floriandrevet0332/Infra Flow Sculptor` | `Infra Flow Sculptor` | `main` | `ApplicationCode` |
+
+*No config-level repository overrides are configured.*
 
 ### Project-Level Naming Templates
 
@@ -81,7 +79,7 @@
 | infraflowsculptor | ContainerRegistry | `36ba74cb-c0a1-40a3-b224-e3be1c1b4b46` | FranceCentral |
 | ifs | LogAnalyticsWorkspace | `83b21c4d-584c-4e2e-8362-3ddf6aee73c2` | FranceCentral |
 
-##### ContainerRegistry — `infraflowsculptor` (`36ba74cb`)
+##### ContainerRegistry - `infraflowsculptor` (`36ba74cb`)
 
 *No extra properties.*
 
@@ -89,7 +87,7 @@
 |-----|-----|------------------|---------------------|----------------|
 | Development | Basic | false | Enabled | false |
 
-##### LogAnalyticsWorkspace — `ifs` (`83b21c4d`)
+##### LogAnalyticsWorkspace - `ifs` (`83b21c4d`)
 
 *No extra properties.*
 
@@ -118,18 +116,18 @@
 
 | Resource | Type | ID | Location | AssignedIdentity |
 |----------|------|----|----------|------------------|
-| ifs | KeyVault | `fc210d60-9d8a-4899-9f9e-07dced5871c5` | FranceCentral | — |
-| ifs | StorageAccount | `efe669ac-71a9-4884-a6b1-cf16583bbf37` | FranceCentral | — |
-| infra-flow | SqlServer | `9700666f-4771-46f9-aaab-74d9370eee59` | FranceCentral | — |
-| ifs | SqlDatabase | `0ae0ab1e-a076-468d-a7af-41fd6b4d3d20` | FranceCentral | — |
-| ifs | ApplicationInsights | `e8bdb228-bc60-4de6-9d88-4d549b5a64bb` | FranceCentral | — |
-| ifs | ContainerAppEnvironment | `37cfd530-1f07-442a-849c-4c030bb147a4` | FranceCentral | — |
-| ifs-api | ContainerApp | `4615c4e9-1584-472d-b158-bdb41c49e4ed` | FranceCentral | — |
-| ifs-frontend | ContainerApp | `dda2e846-de85-4739-ba0c-ec15f63e48c7` | FranceCentral | — |
-| backend | UserAssignedIdentity | `38cb3416-b0c9-482e-80f9-2332f77974db` | FranceCentral | — |
-| frontend | UserAssignedIdentity | `90097d4d-74a6-4d23-b94a-0392c57f7d14` | FranceCentral | — |
+| ifs | KeyVault | `fc210d60-9d8a-4899-9f9e-07dced5871c5` | FranceCentral | - |
+| ifs | StorageAccount | `efe669ac-71a9-4884-a6b1-cf16583bbf37` | FranceCentral | - |
+| infra-flow | SqlServer | `9700666f-4771-46f9-aaab-74d9370eee59` | FranceCentral | - |
+| ifs | SqlDatabase | `0ae0ab1e-a076-468d-a7af-41fd6b4d3d20` | FranceCentral | - |
+| ifs | ApplicationInsights | `e8bdb228-bc60-4de6-9d88-4d549b5a64bb` | FranceCentral | - |
+| ifs | ContainerAppEnvironment | `37cfd530-1f07-442a-849c-4c030bb147a4` | FranceCentral | - |
+| ifs-api | ContainerApp | `4615c4e9-1584-472d-b158-bdb41c49e4ed` | FranceCentral | `38cb3416` (backend UAI) |
+| ifs-frontend | ContainerApp | `dda2e846-de85-4739-ba0c-ec15f63e48c7` | FranceCentral | `90097d4d` (frontend UAI) |
+| backend | UserAssignedIdentity | `38cb3416-b0c9-482e-80f9-2332f77974db` | FranceCentral | - |
+| frontend | UserAssignedIdentity | `90097d4d-74a6-4d23-b94a-0392c57f7d14` | FranceCentral | - |
 
-##### KeyVault — `ifs` (`fc210d60`)
+##### KeyVault - `ifs` (`fc210d60`)
 
 | Property | Value |
 |----------|-------|
@@ -144,7 +142,7 @@
 |-----|-----|
 | Development | Standard |
 
-##### StorageAccount — `ifs` (`efe669ac`)
+##### StorageAccount - `ifs` (`efe669ac`)
 
 | Property | Value |
 |----------|-------|
@@ -162,9 +160,9 @@
 - `bicep-output` (PublicAccess: None)
 
 **Blob Lifecycle Rules:**
-- `clean-ifs` → containers: `[bicep-output]`, TTL: 1 day
+- `clean-ifs` -> containers: `[bicep-output]`, TTL: 1 day
 
-##### SqlServer — `infra-flow` (`9700666f`)
+##### SqlServer - `infra-flow` (`9700666f`)
 
 | Property | Value |
 |----------|-------|
@@ -175,18 +173,18 @@
 |-----|-------------------|
 | Development | 1.2 |
 
-##### SqlDatabase — `ifs` (`0ae0ab1e`)
+##### SqlDatabase - `ifs` (`0ae0ab1e`)
 
 | Property | Value |
 |----------|-------|
-| SqlServerId | `9700666f-4771-46f9-aaab-74d9370eee59` (ifs SqlServer) |
+| SqlServerId | `9700666f-4771-46f9-aaab-74d9370eee59` (infra-flow SqlServer) |
 | Collation | SQL_Latin1_General_CP1_CI_AS |
 
 | Env | Sku | MaxSizeGb | ZoneRedundant |
 |-----|-----|-----------|---------------|
 | Development | Basic | 5 | false |
 
-##### ApplicationInsights — `ifs` (`e8bdb228`)
+##### ApplicationInsights - `ifs` (`e8bdb228`)
 
 | Property | Value |
 |----------|-------|
@@ -196,7 +194,7 @@
 |-----|-------------------|-----------------|------------------|------------------|---------------|
 | Development | 100 | 30 | true | false | LogAnalytics |
 
-##### ContainerAppEnvironment — `ifs` (`37cfd530`)
+##### ContainerAppEnvironment - `ifs` (`37cfd530`)
 
 | Property | Value |
 |----------|-------|
@@ -206,55 +204,69 @@
 |-----|-----|---------------------|------------|----------------|
 | Development | Consumption | Consumption | false | false |
 
-##### UserAssignedIdentity — `frontend` (`90097d4d`)
+##### UserAssignedIdentity - `backend` (`38cb3416`)
 
 *No extra properties.*
 
-##### UserAssignedIdentity — `backend` (`38cb3416`)
+##### UserAssignedIdentity - `frontend` (`90097d4d`)
 
 *No extra properties.*
 
-##### ContainerApp — `ifs-api` (`4615c4e9`)
+##### ContainerApp - `ifs-api` (`4615c4e9`)
 
 | Property | Value |
 |----------|-------|
 | ContainerAppEnvironmentId | `37cfd530` (ifs CAE) |
-| ContainerRegistryId | *(null)* |
-| DockerImageName | *(null)* |
-| DockerfilePath | *(null)* |
+| ContainerRegistryId | `36ba74cb` (infraflowsculptor ContainerRegistry in Core config) |
+| DockerImageName | `ifs/backend` |
+| DockerfilePath | `src/Api/InfraFlowSculptor.Api/Dockerfile` |
 | ApplicationName | *(null)* |
+| AcrAuthMode | ManagedIdentity |
 
 | Env | CpuCores | MemoryGi | MinReplicas | MaxReplicas | IngressEnabled | IngressPort | External | Transport |
 |-----|----------|----------|-------------|-------------|----------------|-------------|----------|-----------|
 | Development | 0.25 | 0.5Gi | 0 | 1 | true | 80 | true | auto |
 
-##### ContainerApp — `ifs-frontend` (`dda2e846`)
+**Health Probes:**
+
+| Env | Liveness | Readiness | Startup |
+|-----|----------|-----------|---------|
+| Development | *(none)* | `/healthz/ready` on 8080 | `/healthz/startup` on 8080 |
+
+##### ContainerApp - `ifs-frontend` (`dda2e846`)
 
 | Property | Value |
 |----------|-------|
 | ContainerAppEnvironmentId | `37cfd530` (ifs CAE) |
-| ContainerRegistryId | `36ba74cb` (ifs CR in Core config) |
-| DockerImageName | *(null)* |
-| DockerfilePath | *(null)* |
-| ApplicationName | *(null)* |
+| ContainerRegistryId | `36ba74cb` (infraflowsculptor ContainerRegistry in Core config) |
+| DockerImageName | `ifs/frontend` |
+| DockerfilePath | `src/Front/Dockerfile` |
+| ApplicationName | `Ifs frontend` |
+| AcrAuthMode | ManagedIdentity |
 | AssignedUserAssignedIdentityId | `90097d4d` (frontend UAI) |
 
 | Env | CpuCores | MemoryGi | MinReplicas | MaxReplicas | IngressEnabled | IngressPort | External | Transport |
 |-----|----------|----------|-------------|-------------|----------------|-------------|----------|-----------|
-| Development | 0.25 | 0.5Gi | 0 | 1 | true | 80 | true | auto |
+| Development | 0.25 | 0.5Gi | 0 | 1 | true | 81 | true | auto |
+
+**Health Probes:**
+
+| Env | Liveness | Readiness | Startup |
+|-----|----------|-----------|---------|
+| Development | `/healthz/live` on 8080 | `/healthz/ready` on 8080 | `/healthz/startup` on 8080 |
 
 **Custom Domains:**
 
-| Env | DomainName | BindingType |
-|-----|------------|-------------|
-| Development | infraflowsculptor.fr | SniEnabled |
+| Env | DomainName | CertificateMode | DnsValidationStatus |
+|-----|------------|-----------------|---------------------|
+| Development | `infraflowsculptor.fr` | ManagedCertificate | Pending |
 
 ---
 
 ## Cross-Config References
 
-| From Config | → Target Config | Target Resource |
-|-------------|-----------------|-----------------|
+| From Config | -> Target Config | Target Resource |
+|-------------|------------------|-----------------|
 | Infra Flow Sculptor (`3afe7f4f`) | Core (`4ce4be5e`) | LogAnalyticsWorkspace `83b21c4d` |
 
 *ApplicationInsights and ContainerAppEnvironment in "Infra Flow Sculptor" reference the LogAnalyticsWorkspace in "Core".*

@@ -135,6 +135,10 @@ export interface TestGitConnectionResponse {
   errorMessage?: string | null;
 }
 
+export interface SetProjectGitPatRequest {
+  personalAccessToken: string;
+}
+
 export interface GitBranchResponse {
   name: string;
   isProtected: boolean;

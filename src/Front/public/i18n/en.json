@@ -1519,6 +1519,17 @@
     },
     "LAYOUT": {
       "TAB_TITLE": "Layout & Repositories",
+      "AUTH": {
+        "TITLE": "Project authentication",
+        "DESCRIPTION": "Configure the project-level Personal Access Token used when testing or pushing repositories from this topology screen.",
+        "SHARED_SCOPE": "Project-scoped PAT",
+        "SHARED_SCOPE_DETAIL": "This token is shared across all repositories in the project. It is not configured per repository card.",
+        "REPLACE_HINT": "Saving a new token replaces the shared PAT currently stored for this project.",
+        "CTA": "Configure PAT",
+        "CTA_SHORT": "PAT",
+        "DIALOG_TITLE": "Configure repository PAT",
+        "SAVE_ERROR": "Unable to save the repository PAT."
+      },
       "PRESET": "Layout Preset",
       "PRESET_HELP": "Choose how infrastructure and application code are distributed across Git repositories.",
       "PRESET_ALL_IN_ONE": "All-in-one (mono-repo)",

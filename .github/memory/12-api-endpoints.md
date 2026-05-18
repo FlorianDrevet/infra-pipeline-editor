@@ -18,9 +18,11 @@
 | `/projects` | DELETE | `/{id:guid}` | `DeleteProjectCommand` |
 | `/projects` | PUT | `/{id:guid}/agent-pool` | `SetAgentPoolCommand` (moved from /infra-configs) [2026-04-04] |
 | `/projects` | POST/PUT/DELETE | `/{id:guid}/repositories/{repoId?}` | Project repository CRUD |
+| `/projects` | POST | `/{id:guid}/repositories/{repoId:guid}/test-connection` | `TestProjectRepositoryConnectionCommand` (tests a selected project repository with the shared project PAT) [2026-05-18] |
 | `/projects` | PUT | `/{id:guid}/layout-preset` | `SetProjectLayoutPresetCommand` |
 | `/projects` | PUT/POST/PUT/DELETE | `/{id:guid}/configs/{configId:guid}/{layout-mode|repositories/...}` | Config layout mode + config repository CRUD |
 | `/projects` | POST | `/validate-recent` | `ValidateRecentItemsQuery` |
+| `/projects` | PUT | `/{id:guid}/git-pat` | `SetProjectGitPatCommand` (stores the shared project Git PAT in Key Vault) [2026-05-18] |
 | `/projects` | POST | `/{id:guid}/git-config/test` | `TestGitConnectionCommand` (resolver-backed, V3) |
 | `/projects` | GET | `/{id:guid}/git-config/branches` | `ListGitBranchesQuery` (resolver-backed, V3) |
 | `/projects` | GET | `/{id:guid}/git-config/code-branches` | `ListCodeRepoBranchesQuery` (code-repo, optional `?configId=`) [2026-04-26] |

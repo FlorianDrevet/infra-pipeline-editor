@@ -1,5 +1,10 @@
-<h2 mat-dialog-title>
+<h2 mat-dialog-title class="repo-dialog-title">
   {{ (isEditMode ? 'PROJECT_DETAIL.LAYOUT.EDIT_REPO' : 'PROJECT_DETAIL.LAYOUT.ADD_REPO') | translate }}
+  @if (lockedKinds.length > 0) {
+    @for (kind of lockedKinds; track kind) {
+      <span class="repo-dialog-title__tag">{{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}</span>
+    }
+  }
 </h2>
 
 <mat-dialog-content>
@@ -26,24 +31,21 @@
       [label]="'PROJECT_DETAIL.LAYOUT.FORM.DEFAULT_BRANCH' | translate"
       placeholder="main" />
 
-    <div class="content-kinds">
-      <span class="content-kinds__label">{{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KINDS' | translate }}</span>
-      <div class="content-kinds__list" formArrayName="contentKinds">
-        @for (kind of contentKinds; track kind; let i = $index) {
-          <mat-checkbox [formControlName]="i">
-            {{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}
-            @if (isContentKindLocked(kind)) {
-              <span class="content-kinds__locked">
-                {{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KIND_LOCKED' | translate }}
-              </span>
-            }
-          </mat-checkbox>
+    @if (!hasLockedKinds) {
+      <div class="content-kinds">
+        <span class="content-kinds__label">{{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KINDS' | translate }}</span>
+        <div class="content-kinds__list" formArrayName="contentKinds">
+          @for (kind of contentKinds; track kind; let i = $index) {
+            <mat-checkbox [formControlName]="i">
+              {{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}
+            </mat-checkbox>
+          }
+        </div>
+        @if (contentKindsArray.hasError('required') && contentKindsArray.touched) {
+          <p class="content-kinds__error">{{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KINDS_REQUIRED' | translate }}</p>
         }
       </div>
-      @if (contentKindsArray.hasError('required') && contentKindsArray.touched) {
-        <p class="content-kinds__error">{{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KINDS_REQUIRED' | translate }}</p>
-      }
-    </div>
+    }
 
     @if (errorKey()) {
       <p class="dialog-error">{{ errorKey() | translate }}</p>

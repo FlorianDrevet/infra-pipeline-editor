@@ -70,23 +70,21 @@
       </ul>
 
       <!-- Favorites section -->
-      @if (favoriteIds().length > 0) {
+      @if (favoriteProjects().length > 0) {
         <div class="sidebar__section">
           <span class="sidebar__section-label">{{ 'SIDEBAR.FAVORITES' | translate }}</span>
         </div>
         <ul class="sidebar__list">
-          @for (fav of recentItems().slice(0, 4); track fav.id) {
-            @if (favoriteIds().includes(fav.id)) {
-              <li class="sidebar__item">
-                <a
-                  class="sidebar__link"
-                  [routerLink]="fav.type === 'project' ? ['/projects', fav.id] : ['/config', fav.id]"
-                >
-                  <mat-icon class="sidebar__icon" aria-hidden="true">star</mat-icon>
-                  <span class="sidebar__label">{{ fav.name }}</span>
-                </a>
-              </li>
-            }
+          @for (fav of favoriteProjects(); track fav.id) {
+            <li class="sidebar__item">
+              <a
+                class="sidebar__link"
+                [routerLink]="['/projects', fav.id]"
+              >
+                <mat-icon class="sidebar__icon" aria-hidden="true">star</mat-icon>
+                <span class="sidebar__label">{{ fav.name }}</span>
+              </a>
+            </li>
           }
         </ul>
       }

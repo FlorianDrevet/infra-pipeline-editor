@@ -69,6 +69,22 @@
               </div>
 
               <div class="repo-card__actions">
+                <button class="repo-card__action-btn"
+                  [class.repo-card__action-btn--success]="testResultMap()[repo.id] === 'success'"
+                  [class.repo-card__action-btn--failure]="testResultMap()[repo.id] === 'failure'"
+                  (click)="testRepositoryConnection(repo)"
+                  [disabled]="repoActionId() === repo.id">
+                  <mat-icon>published_with_changes</mat-icon>
+                  @if (testingRepoId() === repo.id) {
+                    {{ 'PROJECT_DETAIL.GIT_CONFIG.TESTING' | translate }}
+                  } @else {
+                    {{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_CONNECTION' | translate }}
+                  }
+                </button>
+                <button class="repo-card__action-btn" (click)="openPatDialog(repo)" [disabled]="repoActionId() === repo.id">
+                  <mat-icon>vpn_key</mat-icon>
+                  {{ 'PROJECT_DETAIL.LAYOUT.AUTH.CTA_SHORT' | translate }}
+                </button>
                 <button class="repo-card__action-btn" (click)="openAllInOneDialog()" [disabled]="repoActionId() === repo.id">
                   <mat-icon>edit</mat-icon>
                   {{ 'PROJECT_DETAIL.LAYOUT.EDIT' | translate }}
@@ -78,6 +94,13 @@
                   {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
                 </button>
               </div>
+
+              @if (testResultMap()[repo.id] === 'failure' && testErrorMap()[repo.id]) {
+                <div class="repo-card__test-error">
+                  <mat-icon>error_outline</mat-icon>
+                  <span>{{ testErrorMap()[repo.id] }}</span>
+                </div>
+              }
             </div>
           } @else {
             <button type="button" class="slot-empty" (click)="openAllInOneDialog()">
@@ -126,6 +149,22 @@
                   </div>
 
                   <div class="repo-card__actions">
+                    <button class="repo-card__action-btn"
+                      [class.repo-card__action-btn--success]="testResultMap()[repo.id] === 'success'"
+                      [class.repo-card__action-btn--failure]="testResultMap()[repo.id] === 'failure'"
+                      (click)="testRepositoryConnection(repo)"
+                      [disabled]="repoActionId() === repo.id">
+                      <mat-icon>published_with_changes</mat-icon>
+                      @if (testingRepoId() === repo.id) {
+                        {{ 'PROJECT_DETAIL.GIT_CONFIG.TESTING' | translate }}
+                      } @else {
+                        {{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_CONNECTION' | translate }}
+                      }
+                    </button>
+                    <button class="repo-card__action-btn" (click)="openPatDialog(repo)" [disabled]="repoActionId() === repo.id">
+                      <mat-icon>vpn_key</mat-icon>
+                      {{ 'PROJECT_DETAIL.LAYOUT.AUTH.CTA_SHORT' | translate }}
+                    </button>
                     <button class="repo-card__action-btn" (click)="openSlotDialog(slot)" [disabled]="repoActionId() === repo.id">
                       <mat-icon>edit</mat-icon>
                       {{ 'PROJECT_DETAIL.LAYOUT.EDIT' | translate }}
@@ -135,6 +174,13 @@
                       {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
                     </button>
                   </div>
+
+                  @if (testResultMap()[repo.id] === 'failure' && testErrorMap()[repo.id]) {
+                    <div class="repo-card__test-error">
+                      <mat-icon>error_outline</mat-icon>
+                      <span>{{ testErrorMap()[repo.id] }}</span>
+                    </div>
+                  }
                 </div>
               } @else {
                 <button type="button" class="slot-empty" (click)="openSlotDialog(slot)">

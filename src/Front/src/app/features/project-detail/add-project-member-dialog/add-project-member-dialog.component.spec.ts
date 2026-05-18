@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
 import { AddProjectMemberDialogComponent, AddProjectMemberDialogData } from './add-project-member-dialog.component';
+import { DsAutocompleteComponent } from '../../../shared/components/ds';
 import { ProjectService } from '../../../shared/services/project.service';
 
 describe('AddProjectMemberDialogComponent', () => {
@@ -33,5 +35,13 @@ describe('AddProjectMemberDialogComponent', () => {
   it('should create', () => {
     fixture.detectChanges();
     expect(component).toBeTruthy();
+  });
+
+  it('renders the shared design-system autocomplete for user search', () => {
+    fixture.detectChanges();
+
+    const autocomplete = fixture.debugElement.query(By.directive(DsAutocompleteComponent));
+
+    expect(autocomplete).not.toBeNull();
   });
 });

@@ -23,6 +23,7 @@ import {
   AddProjectPipelineVariableGroupRequest,
   SetProjectTagsRequest,
   SetAgentPoolRequest,
+  SetProjectGitPatRequest,
 } from '../interfaces/project.interface';
 import {
   PushBicepToGitRequest,
@@ -287,6 +288,21 @@ export class ProjectService {
     return this.axios.request$<TestGitConnectionResponse>(
       MethodEnum.POST,
       `/projects/${projectId}/git-config/test`
+    );
+  }
+
+  setGitPat(projectId: string, repoId: string, request: SetProjectGitPatRequest): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/repositories/${repoId}/git-pat`,
+      request
+    );
+  }
+
+  testRepositoryConnection(projectId: string, repoId: string): Promise<TestGitConnectionResponse> {
+    return this.axios.request$<TestGitConnectionResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/repositories/${repoId}/test-connection`
     );
   }
 

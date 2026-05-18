@@ -18,7 +18,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AxiosError } from 'axios';
-import { ProjectResponse } from '../../../shared/interfaces/project.interface';
+import {
+  ProjectResponse,
+} from '../../../shared/interfaces/project.interface';
 import {
   ProjectLayoutPreset,
   ProjectRepositoryResponse,
@@ -33,7 +35,16 @@ import {
   RepositoryDialogComponent,
   RepositoryDialogData,
 } from './repository-dialog/repository-dialog.component';
-import { DsOptionCardComponent } from '../../../shared/components/ds';
+import {
+  DsAlertComponent,
+  DsButtonComponent,
+  DsCardComponent,
+  DsOptionCardComponent,
+} from '../../../shared/components/ds';
+import {
+  ProjectGitPatDialogComponent,
+  ProjectGitPatDialogData,
+} from './project-git-pat-dialog/project-git-pat-dialog.component';
 
 interface PresetOption {
   value: ProjectLayoutPreset;
@@ -90,6 +101,9 @@ function normalizeLayoutPreset(preset?: string): ProjectLayoutPreset {
     MatProgressSpinnerModule,
     MatSelectModule,
     MatTooltipModule,
+    DsAlertComponent,
+    DsButtonComponent,
+    DsCardComponent,
     DsOptionCardComponent,
   ],
   templateUrl: './layout-repositories.component.html',
@@ -110,6 +124,9 @@ export class LayoutRepositoriesComponent implements OnInit {
   protected readonly isLoading = signal(false);
   protected readonly presetSaving = signal(false);
   protected readonly repoActionId = signal<string | null>(null);
+  protected readonly testingRepoId = signal<string | null>(null);
+  protected readonly testResultMap = signal<Record<string, 'success' | 'failure'>>({});
+  protected readonly testErrorMap = signal<Record<string, string>>({});
   protected readonly optimisticPreset = signal<ProjectLayoutPreset | null>(null);
 
   protected readonly layoutPresets = LAYOUT_PRESETS;
@@ -222,6 +239,15 @@ export class LayoutRepositoriesComponent implements OnInit {
     });
   }
 
+  protected openPatDialog(repo: ProjectRepositoryResponse): void {
+    const data: ProjectGitPatDialogData = {
+      projectId: this.projectId(),
+      repositoryId: repo.id,
+      providerTypes: repo.providerType ? [repo.providerType] : [],
+    };
+    this.dialog.open(ProjectGitPatDialogComponent, { data, width: '520px' });
+  }
+
   protected openSlotDialog(slot: RepoSlot): void {
     const data: RepositoryDialogData = {
       projectId: this.projectId(),
@@ -264,8 +290,64 @@ export class LayoutRepositoriesComponent implements OnInit {
     });
   }
 
+  protected async testRepositoryConnection(repo: ProjectRepositoryResponse): Promise<void> {
+    this.repoActionId.set(repo.id);
+    this.testingRepoId.set(repo.id);
+
+    // Clear previous result for this repo
+    this.testResultMap.update((map) => {
+      const next = { ...map };
+      delete next[repo.id];
+      return next;
+    });
+    this.testErrorMap.update((map) => {
+      const next = { ...map };
+      delete next[repo.id];
+      return next;
+    });
+
+    try {
+      const response = await this.projectService.testRepositoryConnection(this.projectId(), repo.id);
+
+      if (response.success) {
+        this.testResultMap.update((map) => ({ ...map, [repo.id]: 'success' }));
+      } else {
+        this.testResultMap.update((map) => ({ ...map, [repo.id]: 'failure' }));
+        if (response.errorMessage) {
+          this.testErrorMap.update((map) => ({ ...map, [repo.id]: response.errorMessage! }));
+        }
+      }
+    } catch (error) {
+      this.testResultMap.update((map) => ({ ...map, [repo.id]: 'failure' }));
+      const errorMessage = this.extractConnectionErrorMessage(error);
+      if (errorMessage) {
+        this.testErrorMap.update((map) => ({ ...map, [repo.id]: errorMessage! }));
+      }
+    } finally {
+      this.testingRepoId.set(null);
+      this.repoActionId.set(null);
+    }
+  }
+
   private isConflict(error: unknown): boolean {
     return error instanceof AxiosError && error.response?.status === 409;
+  }
+
+  private extractConnectionErrorMessage(error: unknown): string | null {
+    if (error instanceof AxiosError) {
+      const responseData = error.response?.data as {
+        errorMessage?: string;
+        message?: string;
+      } | undefined;
+
+      return responseData?.errorMessage ?? responseData?.message ?? error.message ?? null;
+    }
+
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    return null;
   }
 
   private mapError(error: unknown, fallbackKey: string): string {

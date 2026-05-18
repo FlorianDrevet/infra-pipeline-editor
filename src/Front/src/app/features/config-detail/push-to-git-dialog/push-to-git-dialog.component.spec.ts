@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
 import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog.component';
+import { DsAutocompleteComponent } from '../../../shared/components/ds';
 import { BicepGeneratorService } from '../../../shared/services/bicep-generator.service';
 import { PipelineGeneratorService } from '../../../shared/services/pipeline-generator.service';
 import { ProjectService } from '../../../shared/services/project.service';
@@ -40,5 +42,13 @@ describe('PushToGitDialogComponent', () => {
   it('should create', () => {
     fixture.detectChanges();
     expect(component).toBeTruthy();
+  });
+
+  it('renders the shared design-system autocomplete for branch selection', () => {
+    fixture.detectChanges();
+
+    const autocomplete = fixture.debugElement.query(By.directive(DsAutocompleteComponent));
+
+    expect(autocomplete).not.toBeNull();
   });
 });

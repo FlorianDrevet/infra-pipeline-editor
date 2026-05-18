@@ -5,6 +5,7 @@ export * from './ds-section-header/ds-section-header.component';
 export * from './ds-page-header/ds-page-header.component';
 export * from './ds-text-field/ds-text-field.component';
 export * from './ds-textarea/ds-textarea.component';
+export * from './ds-autocomplete/ds-autocomplete.component';
 export * from './ds-select/ds-select.component';
 export * from './ds-toggle/ds-toggle.component';
 export * from './ds-checkbox/ds-checkbox.component';

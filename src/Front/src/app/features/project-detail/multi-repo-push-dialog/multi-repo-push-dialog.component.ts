@@ -1,14 +1,16 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { DsButtonComponent, DsTextareaComponent } from '../../../shared/components/ds';
+import {
+  DsAutocompleteComponent,
+  DsAutocompleteOption,
+  DsButtonComponent,
+  DsTextareaComponent,
+} from '../../../shared/components/ds';
 import { MatCardModule } from '@angular/material/card';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -87,17 +89,15 @@ const MULTI_REPO_PUSH_MODE_CONTENT: Record<MultiRepoPushMode, MultiRepoPushModeC
   selector: 'app-multi-repo-push-dialog',
   standalone: true,
   imports: [
-    MatAutocompleteModule,
     MatButtonModule,
     MatCardModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
     ReactiveFormsModule,
     TranslateModule,
+    DsAutocompleteComponent,
     DsButtonComponent,
     DsTextareaComponent,
   ],
@@ -120,6 +120,12 @@ export class MultiRepoPushDialogComponent implements OnInit {
   protected readonly filteredInfraBranches = signal<string[]>([]);
   protected readonly filteredCodeBranches = signal<string[]>([]);
   protected readonly branchesLoading = signal(true);
+  protected readonly infraBranchOptions = computed<DsAutocompleteOption<string>[]>(() =>
+    this.filteredInfraBranches().map((branch) => ({ value: branch, label: branch })),
+  );
+  protected readonly codeBranchOptions = computed<DsAutocompleteOption<string>[]>(() =>
+    this.filteredCodeBranches().map((branch) => ({ value: branch, label: branch })),
+  );
 
   private readonly infraBranchKey = `ifs-push-branch-multi-${this.data.projectId}-${this.data.infraAlias}`;
   private readonly codeBranchKey = `ifs-push-branch-multi-${this.data.projectId}-${this.data.codeAlias}`;

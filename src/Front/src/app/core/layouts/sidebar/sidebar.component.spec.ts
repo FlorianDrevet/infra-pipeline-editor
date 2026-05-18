@@ -4,7 +4,9 @@ import { provideRouter, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { CONFIG_DETAIL_ROUTE_TABS } from '../../../shared/enums/detail-route-tabs';
+import { ProjectResponse } from '../../../shared/interfaces/project.interface';
 import { FavoritesService } from '../../../shared/services/favorites.service';
+import { ProjectService } from '../../../shared/services/project.service';
 import { RecentlyViewedItem, RecentlyViewedService } from '../../../shared/services/recently-viewed.service';
 import { SidebarContextService } from './sidebar-context.service';
 import { SidebarComponent } from './sidebar.component';
@@ -43,6 +45,7 @@ class DummyRouteComponent {
 describe('SidebarComponent', () => {
   let fixture: ComponentFixture<SidebarComponent>;
   let router: Router;
+  let projectServiceSpy: jasmine.SpyObj<ProjectService>;
 
   const contextState = signal<SidebarTestState>({
     mode: 'project',
@@ -60,6 +63,9 @@ describe('SidebarComponent', () => {
   });
 
   beforeEach(async () => {
+    projectServiceSpy = jasmine.createSpyObj<ProjectService>('ProjectService', ['getMyProjects']);
+    projectServiceSpy.getMyProjects.and.resolveTo([]);
+
     await TestBed.configureTestingModule({
       imports: [SidebarComponent, TranslateModule.forRoot()],
       providers: [
@@ -77,6 +83,10 @@ describe('SidebarComponent', () => {
             favoriteIds: signal<string[]>([]).asReadonly(),
             recentItems: signal<RecentlyViewedItem[]>([]).asReadonly(),
           } satisfies Pick<SidebarContextService, 'contextState' | 'mode' | 'favoriteIds' | 'recentItems'>,
+        },
+        {
+          provide: ProjectService,
+          useValue: projectServiceSpy,
         },
       ],
     }).compileComponents();
@@ -139,8 +149,12 @@ describe('SidebarComponent config mode', () => {
   let fixture: ComponentFixture<SidebarComponent>;
   let router: Router;
   let contextService: SidebarContextService;
+  let projectServiceSpy: jasmine.SpyObj<ProjectService>;
 
   beforeEach(async () => {
+    projectServiceSpy = jasmine.createSpyObj<ProjectService>('ProjectService', ['getMyProjects']);
+    projectServiceSpy.getMyProjects.and.resolveTo([]);
+
     await TestBed.configureTestingModule({
       imports: [SidebarComponent, TranslateModule.forRoot()],
       providers: [
@@ -160,6 +174,10 @@ describe('SidebarComponent config mode', () => {
           useValue: {
             recentItems: signal<RecentlyViewedItem[]>([]).asReadonly(),
           } satisfies Pick<RecentlyViewedService, 'recentItems'>,
+        },
+        {
+          provide: ProjectService,
+          useValue: projectServiceSpy,
         },
       ],
     }).compileComponents();
@@ -200,6 +218,77 @@ describe('SidebarComponent config mode', () => {
   });
 });
 
+describe('SidebarComponent global mode favorites', () => {
+  let fixture: ComponentFixture<SidebarComponent>;
+  let projectServiceSpy: jasmine.SpyObj<ProjectService>;
+
+  const globalContextState = signal({
+    mode: 'global' as const,
+    items: [
+      { id: 'home', icon: 'home', labelKey: 'SIDEBAR.HOME', routerLink: '/', exact: true },
+      { id: 'projects', icon: 'folder', labelKey: 'SIDEBAR.PROJECTS', routerLink: '/projects', exact: false },
+    ],
+  });
+  const favoriteIds = signal<string[]>(['project-1', 'project-2']);
+  const recentItems = signal<RecentlyViewedItem[]>([
+    { id: 'project-1', name: 'Alpha', type: 'project', timestamp: 1 },
+    { id: 'config-1', name: 'Shared config', type: 'config', timestamp: 2 },
+  ]);
+
+  beforeEach(async () => {
+    projectServiceSpy = jasmine.createSpyObj<ProjectService>('ProjectService', ['getMyProjects']);
+    projectServiceSpy.getMyProjects.and.resolveTo([
+      createProjectResponse('project-1', 'Alpha'),
+      createProjectResponse('project-2', 'Beta'),
+    ]);
+
+    await TestBed.configureTestingModule({
+      imports: [SidebarComponent, TranslateModule.forRoot()],
+      providers: [
+        provideRouter([
+          { path: '', component: DummyRouteComponent },
+          { path: 'projects', component: DummyRouteComponent },
+          { path: 'projects/:id', component: DummyRouteComponent },
+          { path: 'config/:id', component: DummyRouteComponent },
+        ]),
+        {
+          provide: SidebarContextService,
+          useValue: {
+            contextState: globalContextState.asReadonly(),
+            mode: computed(() => globalContextState().mode),
+            favoriteIds: favoriteIds.asReadonly(),
+            recentItems: recentItems.asReadonly(),
+          } satisfies Pick<SidebarContextService, 'contextState' | 'mode' | 'favoriteIds' | 'recentItems'>,
+        },
+        {
+          provide: ProjectService,
+          useValue: projectServiceSpy,
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(SidebarComponent);
+  });
+
+  it('Given_FavoriteProjectsOutsideRecentItems_When_Rendered_Then_FavoritesSectionStillDisplaysAllFavoriteProjects', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const favoriteLinks = findSectionLinks(fixture, 'SIDEBAR.FAVORITES');
+
+    expect(favoriteLinks.length).toBe(2);
+    expect(favoriteLinks.map((link) => link.getAttribute('href'))).toEqual([
+      '/projects/project-1',
+      '/projects/project-2',
+    ]);
+    expect(favoriteLinks.map((link) => link.querySelector('.sidebar__label')?.textContent?.trim())).toEqual([
+      'Alpha',
+      'Beta',
+    ]);
+  });
+});
+
 function setConfigContext(
   service: SidebarContextService,
   id: string,
@@ -208,4 +297,34 @@ function setConfigContext(
   isProjectMultiRepo = false
 ): void {
   (service as ConfigContextCapableSidebarContextService).setConfigContext(id, name, projectId, isProjectMultiRepo);
+}
+
+function findSectionLinks(
+  fixture: ComponentFixture<SidebarComponent>,
+  sectionLabel: string
+): HTMLAnchorElement[] {
+  const sections = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('.sidebar__section'));
+  const section = sections.find((candidate) => candidate.textContent?.includes(sectionLabel));
+
+  expect(section).withContext(`missing sidebar section ${sectionLabel}`).toBeDefined();
+
+  const list = section?.nextElementSibling;
+
+  expect(list).withContext(`missing sidebar list for section ${sectionLabel}`).not.toBeNull();
+
+  return Array.from(list!.querySelectorAll<HTMLAnchorElement>('.sidebar__link'));
+}
+
+function createProjectResponse(id: string, name: string): ProjectResponse {
+  return {
+    id,
+    name,
+    members: [],
+    environmentDefinitions: [],
+    defaultNamingTemplate: null,
+    resourceNamingTemplates: [],
+    resourceAbbreviations: [],
+    tags: [],
+    agentPoolName: null,
+  };
 }

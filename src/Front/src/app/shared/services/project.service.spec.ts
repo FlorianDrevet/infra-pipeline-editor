@@ -6,8 +6,11 @@ import { AxiosService } from './axios.service';
 import { ProjectService } from './project.service';
 
 const PROJECT_ID = 'project-1';
+const REPOSITORY_ID = 'repo-1';
 const PROJECT_URL = `/projects/${PROJECT_ID}`;
 const LATEST_GENERATION_URL = `${PROJECT_URL}/latest-generation`;
+const PROJECT_REPOSITORY_PAT_URL = `${PROJECT_URL}/repositories/${REPOSITORY_ID}/git-pat`;
+const PROJECT_REPOSITORY_TEST_URL = `${PROJECT_URL}/repositories/${REPOSITORY_ID}/test-connection`;
 
 interface ProjectMutationCase {
   readonly description: string;
@@ -148,6 +151,39 @@ describe('ProjectService', () => {
     } catch (error) {
       expect(error).toBe(serverError);
     }
+  });
+
+  it('stores the repository PAT through the repository-scoped endpoint', async () => {
+    const request = {
+      personalAccessToken: 'ghp_project_shared_token',
+    };
+    axiosServiceSpy.request$.and.resolveTo(undefined);
+
+    await service.setGitPat(PROJECT_ID, REPOSITORY_ID, request);
+
+    expect(axiosServiceSpy.request$).toHaveBeenCalledOnceWith(
+      MethodEnum.PUT,
+      PROJECT_REPOSITORY_PAT_URL,
+      request,
+    );
+  });
+
+  it('tests a specific repository connection through the repository-scoped endpoint', async () => {
+    const response = {
+      success: true,
+      repositoryFullName: 'example/repo-1',
+      defaultBranch: 'main',
+      errorMessage: null,
+    };
+    axiosServiceSpy.request$.and.resolveTo(response);
+
+    const result = await service.testRepositoryConnection(PROJECT_ID, REPOSITORY_ID);
+
+    expect(result).toEqual(response);
+    expect(axiosServiceSpy.request$).toHaveBeenCalledOnceWith(
+      MethodEnum.POST,
+      PROJECT_REPOSITORY_TEST_URL,
+    );
   });
 
   async function expectProjectReloadAfterMutation(

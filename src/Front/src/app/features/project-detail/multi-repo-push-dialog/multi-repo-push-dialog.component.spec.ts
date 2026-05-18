@@ -4,7 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { DsTextareaComponent } from '../../../shared/components/ds';
+import { DsAutocompleteComponent, DsTextareaComponent } from '../../../shared/components/ds';
 import { GitBranchResponse } from '../../../shared/interfaces/project.interface';
 import { MultiRepoPushResponse } from '../../../shared/interfaces/multi-repo-push.interface';
 import { ProjectService } from '../../../shared/services/project.service';
@@ -180,5 +180,11 @@ describe('MultiRepoPushDialogComponent', () => {
 
     expect(componentTestApi.filteredInfraBranches()).toEqual(['release/1.0']);
     expect(componentTestApi.filteredCodeBranches()).toEqual(['main']);
+  });
+
+  it('renders one shared design-system autocomplete per visible repo card', () => {
+    const autocompleteComponents = fixture.debugElement.queryAll(By.directive(DsAutocompleteComponent));
+
+    expect(autocompleteComponents.length).toBe(2);
   });
 });

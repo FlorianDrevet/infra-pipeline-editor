@@ -66,6 +66,7 @@ export class RepositoryDialogComponent {
   protected readonly providerOptions = PROVIDER_OPTIONS;
   protected readonly contentKinds = CONTENT_KINDS;
   protected readonly lockedKinds: ReadonlyArray<RepositoryContentKind> = this.data.lockedKinds ?? [];
+  protected readonly hasLockedKinds = this.lockedKinds.length > 0;
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
 
@@ -75,10 +76,6 @@ export class RepositoryDialogComponent {
 
   protected get contentKindsArray(): FormArray<FormControl<boolean>> {
     return this.form.controls.contentKinds;
-  }
-
-  protected isContentKindLocked(kind: RepositoryContentKind): boolean {
-    return this.lockedKinds.includes(kind);
   }
 
   protected async onSubmit(): Promise<void> {

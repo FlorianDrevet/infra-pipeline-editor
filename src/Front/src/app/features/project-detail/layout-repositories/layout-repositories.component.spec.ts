@@ -12,6 +12,7 @@ import {
 } from '../../../shared/interfaces/project-repository.interface';
 import { ProjectService } from '../../../shared/services/project.service';
 import { LayoutRepositoriesComponent } from './layout-repositories.component';
+import { ProjectGitPatDialogComponent } from './project-git-pat-dialog/project-git-pat-dialog.component';
 
 interface DeferredPromise<T> {
   readonly promise: Promise<T>;
@@ -22,9 +23,13 @@ interface DeferredPromise<T> {
 interface LayoutRepositoriesComponentTestApi {
   readonly currentPreset: () => ProjectLayoutPreset;
   readonly onPresetChange: (preset: ProjectLayoutPreset) => Promise<void>;
+  readonly openPatDialog: (repo: ProjectRepositoryResponse) => void;
   readonly openAllInOneDialog: () => void;
   readonly openSlotDialog: (slot: LayoutRepositoriesRepoSlot) => void;
   readonly openRemoveRepoDialog: (repo: ProjectRepositoryResponse) => void;
+  readonly testRepositoryConnection: (repo: ProjectRepositoryResponse) => Promise<void>;
+  readonly testResultMap: () => Record<string, 'success' | 'failure'>;
+  readonly testErrorMap: () => Record<string, string>;
   readonly splitSlots: () => LayoutRepositoriesRepoSlot[];
   readonly presetChanged: {
     subscribe(callback: (value: ProjectLayoutPreset) => void): { unsubscribe(): void };
@@ -55,8 +60,10 @@ describe('LayoutRepositoriesComponent', () => {
     projectServiceSpy = jasmine.createSpyObj<ProjectService>('ProjectService', [
       'getProject',
       'setLayoutPreset',
+      'setGitPat',
       'invalidateProjectCache',
       'removeRepository',
+      'testRepositoryConnection',
     ]);
     dialogSpy = jasmine.createSpyObj<MatDialog>('MatDialog', ['open']);
     snackBarSpy = jasmine.createSpyObj<MatSnackBar>('MatSnackBar', ['open']);
@@ -66,11 +73,18 @@ describe('LayoutRepositoriesComponent', () => {
       return projectResponse;
     });
     projectServiceSpy.setLayoutPreset.and.resolveTo();
+    projectServiceSpy.setGitPat.and.resolveTo();
     projectServiceSpy.invalidateProjectCache.and.callFake(() => {
       loadSequence.push('invalidateProjectCache');
     });
     projectServiceSpy.removeRepository.and.callFake(async () => {
       loadSequence.push('removeRepository');
+    });
+    projectServiceSpy.testRepositoryConnection.and.resolveTo({
+      success: true,
+      repositoryFullName: 'example/repo-1',
+      defaultBranch: 'main',
+      errorMessage: null,
     });
 
     await TestBed.configureTestingModule({
@@ -227,6 +241,67 @@ describe('LayoutRepositoriesComponent', () => {
       'getProject',
     ]);
     expect(emittedProjects).toEqual([refreshedProject]);
+  });
+
+  it('opens the PAT dialog with the repository id and provider', async () => {
+    const closeSubject = new Subject<boolean | undefined>();
+    const repository = createRepositoryResponse('repo-1', ['Infrastructure', 'ApplicationCode']);
+
+    projectResponse = createProjectResponse('AllInOne', [repository]);
+    dialogSpy.open.and.returnValue(createDialogRef(closeSubject.asObservable()));
+    await createComponent();
+    dialogSpy.open.calls.reset();
+
+    getComponentTestApi().openPatDialog(repository);
+
+    expect(dialogSpy.open).toHaveBeenCalledTimes(1);
+    const [componentType, config] = dialogSpy.open.calls.mostRecent().args;
+    expect(componentType).toBe(ProjectGitPatDialogComponent);
+    expect(config).toEqual(jasmine.objectContaining({
+      width: '520px',
+      data: {
+        projectId: 'project-1',
+        repositoryId: 'repo-1',
+        providerTypes: ['GitHub'],
+      },
+    }));
+  });
+
+  it('tests a repository connection and sets success state', async () => {
+    const repository = createRepositoryResponse('repo-1', ['Infrastructure', 'ApplicationCode']);
+
+    projectResponse = createProjectResponse('AllInOne', [repository]);
+    projectServiceSpy.testRepositoryConnection.and.resolveTo({
+      success: true,
+      repositoryFullName: 'example/repo-1',
+      defaultBranch: 'main',
+      errorMessage: null,
+    });
+    await createComponent();
+
+    await getComponentTestApi().testRepositoryConnection(repository);
+
+    expect(projectServiceSpy.testRepositoryConnection).toHaveBeenCalledOnceWith('project-1', 'repo-1');
+    expect(getComponentTestApi().testResultMap()['repo-1']).toBe('success');
+  });
+
+  it('surfaces repository connection failures in the error map', async () => {
+    const repository = createRepositoryResponse('repo-1', ['Infrastructure', 'ApplicationCode']);
+
+    projectResponse = createProjectResponse('AllInOne', [repository]);
+    projectServiceSpy.testRepositoryConnection.and.resolveTo({
+      success: false,
+      repositoryFullName: null,
+      defaultBranch: null,
+      errorMessage: 'Permission denied',
+    });
+    await createComponent();
+
+    await getComponentTestApi().testRepositoryConnection(repository);
+
+    expect(projectServiceSpy.testRepositoryConnection).toHaveBeenCalledOnceWith('project-1', 'repo-1');
+    expect(getComponentTestApi().testResultMap()['repo-1']).toBe('failure');
+    expect(getComponentTestApi().testErrorMap()['repo-1']).toBe('Permission denied');
   });
 
   async function createComponent(): Promise<void> {
