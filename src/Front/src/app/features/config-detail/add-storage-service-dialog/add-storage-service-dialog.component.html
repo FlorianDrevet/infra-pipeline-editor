@@ -22,9 +22,9 @@
         </div>
       </mat-dialog-content>
       <mat-dialog-actions align="end">
-        <button mat-stroked-button (click)="onCancel()">
+        <app-ds-button variant="ghost" (clicked)="onCancel()">
           {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
     @case ('config') {

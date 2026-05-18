@@ -1,6 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { DsButtonComponent, DsSelectComponent, DsTextFieldComponent } from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,15 +17,14 @@ export interface AddResourceGroupDialogData {
   selector: 'app-add-resource-group-dialog',
   standalone: true,
   imports: [
-    MatButtonModule,
     MatDialogModule,
     MatIconModule,
     MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
-      DsButtonComponent,
-      DsSelectComponent,
-      DsTextFieldComponent,
+    DsButtonComponent,
+    DsSelectComponent,
+    DsTextFieldComponent,
   ],
   templateUrl: './add-resource-group-dialog.component.html',
   styleUrl: './add-resource-group-dialog.component.scss',

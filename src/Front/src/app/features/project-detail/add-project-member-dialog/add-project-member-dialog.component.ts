@@ -1,7 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
 import { DsButtonComponent, DsSelectComponent, DsSelectOption } from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -26,7 +25,6 @@ const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
   imports: [
     MatAutocompleteModule,
     MatDialogModule,
-    MatButtonModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,

@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { DsButtonComponent, DsTextFieldComponent } from '../../../shared/components/ds';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { TranslateModule } from '@ngx-translate/core';
@@ -9,12 +8,11 @@ import { TranslateModule } from '@ngx-translate/core';
   selector: 'app-add-variable-group-dialog',
   standalone: true,
   imports: [
-    MatButtonModule,
     MatDialogModule,
     ReactiveFormsModule,
     TranslateModule,
-      DsButtonComponent,
-      DsTextFieldComponent,
+    DsButtonComponent,
+    DsTextFieldComponent,
   ],
   templateUrl: './add-variable-group-dialog.component.html',
   styleUrl: './add-variable-group-dialog.component.scss',

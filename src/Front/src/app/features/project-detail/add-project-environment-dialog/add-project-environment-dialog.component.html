@@ -118,14 +118,13 @@
   </mat-dialog-content>
 
   <mat-dialog-actions class="dialog-actions dialog-actions--compact">
-    <button
-      mat-stroked-button
+    <app-ds-button
       class="dialog-action dialog-action--cancel"
-      type="button"
-      (click)="onCancel()"
+      variant="ghost"
+      (clicked)="onCancel()"
       [disabled]="isSubmitting()">
       {{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.CANCEL' | translate }}
-    </button>
+    </app-ds-button>
     <app-ds-button
       class="dialog-action dialog-action--submit"
       variant="primary"

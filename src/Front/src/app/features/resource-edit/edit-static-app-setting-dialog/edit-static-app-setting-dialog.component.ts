@@ -1,6 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
 import { DsButtonComponent, DsTextFieldComponent } from '../../../shared/components/ds';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -24,11 +23,10 @@ export interface EditStaticAppSettingDialogData {
     TranslateModule,
     FormsModule,
     MatDialogModule,
-    MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-      DsButtonComponent,
-      DsTextFieldComponent,
+    DsButtonComponent,
+    DsTextFieldComponent,
   ],
   templateUrl: './edit-static-app-setting-dialog.component.html',
   styleUrl: './edit-static-app-setting-dialog.component.scss',

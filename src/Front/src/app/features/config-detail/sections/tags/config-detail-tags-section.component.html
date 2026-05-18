@@ -61,9 +61,9 @@
       }
 
       <div class="tags-edit-card__actions">
-        <button mat-stroked-button (click)="section().cancelEdit()">
+        <app-ds-button variant="ghost" (clicked)="section().cancelEdit()">
           {{ 'CONFIG_DETAIL.TAGS.CANCEL' | translate }}
-        </button>
+        </app-ds-button>
         <app-ds-button
           variant="primary"
           (clicked)="section().save()"

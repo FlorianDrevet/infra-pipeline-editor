@@ -16,6 +16,6 @@
   }
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-stroked-button (click)="onCancel()">{{ data.cancelKey | translate }}</button>
+  <app-ds-button variant="ghost" (clicked)="onCancel()">{{ data.cancelKey | translate }}</app-ds-button>
   <app-ds-button variant="danger" (clicked)="onConfirm()">{{ data.confirmKey | translate }}</app-ds-button>
 </mat-dialog-actions>

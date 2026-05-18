@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
 import { DsButtonComponent } from '../../../shared/components/ds';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
@@ -18,9 +17,8 @@ export interface RoleAssignmentImpactDialogData {
   imports: [
     TranslateModule,
     MatDialogModule,
-    MatButtonModule,
     MatIconModule,
-      DsButtonComponent,
+    DsButtonComponent,
   ],
   templateUrl: './role-assignment-impact-dialog.component.html',
   styleUrl: './role-assignment-impact-dialog.component.scss',

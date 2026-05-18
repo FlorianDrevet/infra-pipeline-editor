@@ -52,9 +52,9 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+  <app-ds-button variant="ghost" (clicked)="onCancel()" [disabled]="isSubmitting()">
     {{ 'PROJECT_DETAIL.LAYOUT.FORM.CANCEL' | translate }}
-  </button>
+  </app-ds-button>
   <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="form.invalid" (clicked)="onSubmit()">
     {{ 'PROJECT_DETAIL.LAYOUT.FORM.SAVE' | translate }}
   </app-ds-button>

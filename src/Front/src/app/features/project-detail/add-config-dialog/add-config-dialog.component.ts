@@ -1,10 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
-import { DsTextFieldComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent } from '../../../shared/components/ds';
 import { InfraConfigService } from '../../../shared/services/infra-config.service';
 
 export interface AddConfigDialogData {
@@ -16,10 +14,9 @@ export interface AddConfigDialogData {
   standalone: true,
   imports: [
     MatDialogModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
+    DsButtonComponent,
     DsTextFieldComponent,
   ],
   templateUrl: './add-config-dialog.component.html',

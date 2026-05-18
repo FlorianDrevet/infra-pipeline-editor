@@ -1,6 +1,5 @@
 import { Component, computed, ElementRef, inject, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { DsButtonComponent, DsSelectComponent } from '../../../shared/components/ds';
 import { MatChipsModule } from '@angular/material/chips';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -38,7 +37,6 @@ export interface AddProjectNamingTemplateDialogResult {
   selector: 'app-add-project-naming-template-dialog',
   standalone: true,
   imports: [
-    MatButtonModule,
     MatChipsModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -47,8 +45,8 @@ export interface AddProjectNamingTemplateDialogResult {
     MatTooltipModule,
     ReactiveFormsModule,
     TranslateModule,
-      DsButtonComponent,
-      DsSelectComponent,
+    DsButtonComponent,
+    DsSelectComponent,
   ],
   templateUrl: './add-project-naming-template-dialog.component.html',
   styleUrl: './add-project-naming-template-dialog.component.scss',

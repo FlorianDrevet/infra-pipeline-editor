@@ -36,9 +36,9 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+  <app-ds-button variant="ghost" (clicked)="onCancel()" [disabled]="isSubmitting()">
     {{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_CANCEL' | translate }}
-  </button>
+  </app-ds-button>
   <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="form.invalid || !selectedUser()" (clicked)="onSubmit()">
     {{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_ADD' | translate }}
   </app-ds-button>

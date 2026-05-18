@@ -5,7 +5,6 @@ import {
   FormControl,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent } from '../../../shared/components/ds';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import {
@@ -43,7 +42,6 @@ export interface InfraConfigRepositoryDialogData {
   standalone: true,
   imports: [
     MatDialogModule,
-    MatButtonModule,
     MatCheckboxModule,
     MatProgressSpinnerModule,
     ReactiveFormsModule,

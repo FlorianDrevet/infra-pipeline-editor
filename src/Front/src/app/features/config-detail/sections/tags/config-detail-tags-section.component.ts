@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
@@ -11,7 +10,7 @@ import { ConfigDetailTagsSection } from './config-detail-tags-section.interface'
 @Component({
   selector: 'app-config-detail-tags-section',
   standalone: true,
-  imports: [DsButtonComponent, DsTextFieldComponent, MatButtonModule, MatIconModule, MatTooltipModule, ReactiveFormsModule, TranslateModule],
+  imports: [DsButtonComponent, DsTextFieldComponent, MatIconModule, MatTooltipModule, ReactiveFormsModule, TranslateModule],
   templateUrl: './config-detail-tags-section.component.html',
   styleUrl: './config-detail-tags-section.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

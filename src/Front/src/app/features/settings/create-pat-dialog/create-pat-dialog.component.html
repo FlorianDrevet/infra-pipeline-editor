@@ -40,9 +40,9 @@
     </mat-dialog-content>
 
     <mat-dialog-actions class="create-pat-dialog__actions" align="end">
-      <button mat-stroked-button (click)="onCancel()" [disabled]="isSubmitting()">
+      <app-ds-button variant="ghost" (clicked)="onCancel()" [disabled]="isSubmitting()">
         {{ 'SETTINGS.CREATE_DIALOG.CANCEL' | translate }}
-      </button>
+      </app-ds-button>
       <app-ds-button
         variant="primary"
         icon="add"
