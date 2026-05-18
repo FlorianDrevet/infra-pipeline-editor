@@ -45,6 +45,35 @@ public sealed class ProjectDbContextBaselineHistorySynchronizerTests
     }
 
     [Fact]
+    public async Task Given_BaselinedLegacyProjectSchemaMissingAcrPullIdentityColumns_When_SynchronizeAsync_Then_RepairsComputeTablesAsync()
+    {
+        // Arrange
+        var connection = new BaselineRecordingDbConnection(existingMarkerTableCount: 4, appliedBaselineMigrationCount: 1);
+        await using var context = CreateRelationalContext(connection);
+
+        // Act
+        var wasSynchronized = await ProjectDbContextBaselineHistorySynchronizer.SynchronizeAsync(context);
+
+        // Assert
+        wasSynchronized.Should().BeFalse();
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("ALTER TABLE IF EXISTS \"ContainerApps\" ADD COLUMN IF NOT EXISTS \"AcrPullIdentityId\"", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("ALTER TABLE IF EXISTS \"FunctionApps\" ADD COLUMN IF NOT EXISTS \"AcrPullIdentityId\"", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("ALTER TABLE IF EXISTS \"WebApps\" ADD COLUMN IF NOT EXISTS \"AcrPullIdentityId\"", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("UPDATE \"ContainerApps\" AS computeResource", StringComparison.Ordinal)
+            && command.CommandText.Contains("\"AssignedUserAssignedIdentityId\"", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("UPDATE \"FunctionApps\" AS computeResource", StringComparison.Ordinal)
+            && command.CommandText.Contains("\"AssignedUserAssignedIdentityId\"", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("UPDATE \"WebApps\" AS computeResource", StringComparison.Ordinal)
+            && command.CommandText.Contains("\"AssignedUserAssignedIdentityId\"", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task Given_EmptyDatabase_When_SynchronizeAsync_Then_DoesNotTouchMigrationHistoryAsync()
     {
         // Arrange

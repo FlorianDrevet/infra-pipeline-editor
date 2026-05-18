@@ -29,7 +29,7 @@
 | `NetworkSecurityGroup` | extends `AzureResource` | `NsgRule` | TPT; abbreviation `nsg`; Rules have priority/direction/access/protocol/CIDR |
 | `PrivateDnsZone` | extends `AzureResource` | `VirtualNetworkLink` | TPT; abbreviation `pdnsz`; VNet links with auto-registration flag |
 | `FrontDoor` | extends `AzureResource` | `FrontDoorOrigin`, `FrontDoorEnvironmentSettings` | TPT; abbreviation `afd`; WAF policy flag; Origins with target resource, private link, weight/priority; per-env SKU (Standard/Premium) |
-| `PersonalAccessToken` | `PersonalAccessToken` | `TokenHash` (VO), `PersonalAccessTokenId` (VO) | PAT for MCP auth. `ifs_` prefix + SHA-256 hash stored, plaintext returned once. `UserId` FK. `Revoke()`, `RecordUsage()`, `IsValid()` methods. |
+| `PersonalAccessToken` | `PersonalAccessToken` | `TokenHash` (VO), `PersonalAccessTokenId` (VO), `PatScope` (VO) | PAT for MCP auth. `ifs_` prefix + SHA-256 hash stored, plaintext returned once. `UserId` FK. Owns `PatScope` values (`Read` default, `Write`, `Generate`). Methods: `Revoke()`, `RecordUsage()`, `IsValid()`, `HasScope()`. |
 | `User` | `User` | — | Azure AD user info |
 
 ## Shared Base Entities (Common/BaseModels/Entites)
@@ -112,17 +112,13 @@ These reusable entity types are owned by multiple aggregates:
 
 ## Domain Code Quality Rules [2026-03-30]
 
-- All domain classes must have XML `<summary>` docs.
-- Concrete aggregates inheriting from `AzureResource` must be declared `sealed`.
-- All `EnumValueObject<T>`-derived classes must be declared `sealed` [2026-04-16].
+- Domain classes must keep XML `<summary>` docs, concrete aggregates inheriting from `AzureResource` must be `sealed`, and all `EnumValueObject<T>`-derived classes stay `sealed` [2026-04-16].
 - Value object properties must use `private set`.
 - `tests/InfraFlowSculptor.Domain.Tests/Common/Models/ValueObjectEqualityComponentsCoverageTests.cs` is the DOM-012 guardrail: every covered concrete `ValueObject` must change structural equality when one meaningful public instance property changes. Keep computed/read-only projections out of that guard by leaving them without a writable path or compiler-generated backing field [2026-05-13].
-- `Name` rejects `null`, empty, and whitespace strings, and `EntraId` rejects `Guid.Empty`; keep these guards local to the owning value objects and do not generalize them to every `SingleValueObject<string>` / `SingleValueObject<Guid>` because some setup flows still rely on `Guid.Empty` sentinels such as `SubscriptionId` [2026-05-13].
-- `SingleValueObject<T>.ToString()` now returns the wrapped value string (or `string.Empty` for `null`) instead of the CLR type name [2026-05-12].
+- `Name` rejects `null`, empty, and whitespace strings, `EntraId` rejects `Guid.Empty`, and `SingleValueObject<T>.ToString()` returns the wrapped value string (or `string.Empty` for `null`) instead of the CLR type name [2026-05-12/13].
 - Regex-backed domain validation must declare an explicit timeout; `VirtualNetworkAggregate.Entities.Subnet.ServiceEndpointPattern` (100 ms) is the current reference fix for regex guards in the domain layer [2026-05-15].
-- Error strings must be in English.
+- Error strings must stay in English.
 - `Location` is the canonical source for Azure wire-format region keys: use `Location.DefaultAzureRegionKey` for the default region and `Location.ToAzureRegionKey(...)` instead of hardcoding values like `westeurope` or `francecentral` [2026-04-29].
-
 ## IsExisting Resources [2026-04-23]
 
 All 18 concrete `AzureResource` aggregates support `IsExisting` (bool, `protected set`, default `false`):
@@ -140,9 +136,6 @@ Two-level abbreviation override system matching NamingTemplate precedence:
 - **Resolution precedence** in Bicep/Pipeline generation: Config override → Project override → `ResourceAbbreviationCatalog` default.
 - Validation: regex `^[a-z0-9]+$`, max 10 chars.
 - `NamingContextReadModel` includes `ResourceAbbreviations` dictionary (already merged at read time). All 4 generator handlers + `InfrastructureConfigReadRepository.BuildNamingContext` use `MergeAbbreviations()` helper.
-- Collection initializers: prefer `= []` over `= new()`.
-- `EnumValueObject` types: use primary constructor pattern.
-
 ## Layout-Driven Repository Topology [2026-04-23]
 
 - `Project.LayoutPreset` is now the top-level switch: `AllInOne`, `SplitInfraCode`, or `MultiRepo`. Switching preset clears `Project.Repositories` so the repository slots can be reconfigured safely.
@@ -151,7 +144,6 @@ Two-level abbreviation override system matching NamingTemplate precedence:
 - `InfrastructureConfig.SetLayoutMode(...)` clears config-level repositories whenever the mode changes, mirroring the project-level reset behavior.
 - `Project.CanGenerateAllFromProjectLevel(...)` now returns `false` for `MultiRepo`; project-level generate-all remains reserved for layouts where the project itself owns the effective repositories.
 - Legacy `GitRepositoryConfiguration`, `RepositoryMode`, `RepositoryBinding`, and `CommonsStrategy` were removed during the V3/layout-driven cleanup. Only persisted data repair remains relevant (see `06-persistence.md`).
-
 ## Error Definitions
 
 Errors live in `src/Api/InfraFlowSculptor.Domain/Common/Errors/Errors.*.cs` as partial static classes. When adding a new aggregate, add `Errors.AggregateName.cs`. Convention: no inline `Error.*()` calls in handlers — always use `Errors.AggregateName.MethodName()`. New in V1: `Errors.ProjectRepository.cs` (`InvalidAlias`, `DuplicateAlias`, `NotFound(id|alias)`, `NoContentKind`, `UnsupportedCommonsStrategy`, `RepositoryInUse`); extensions `Errors.Project.InvalidLayoutPreset`, `Errors.Project.InvalidCommonsStrategy`.

@@ -16,6 +16,8 @@
 - **Defaults:** `McpOptions` resolve to `http://127.0.0.1:5258` + `/mcp`; override via `Mcp:ListenUrl`, `MCP__LISTENURL`, and `Mcp:Route`.
 - **Primary doc:** `docs/architecture/mcp-integration.md`.
 - **Usage persistence throttling [2026-05-13]:** `PersonalAccessTokenAuthenticationHandler` no longer persists `LastUsedAt` on every authenticated request. It writes only when the elapsed interval exceeds `PersonalAccessTokenAuthenticationDefaults.UsagePersistenceInterval`, which is the current write-amplification guard for PAT auth.
+- **Scopes model [2026-05-17]:** `PersonalAccessToken` now owns a `Scopes` collection persisted in `PersonalAccessTokenScopes`, with `Read`, `Write`, and `Generate` values; token creation defaults to `Read` when the caller omits scopes.
+- **Current enforcement boundary:** scopes are modeled and persisted, but the auth path still authenticates the PAT as a whole. Do not assume per-scope authorization exists unless the consuming handler/endpoint explicitly checks `HasScope(...)`.
 
 ## API User Provisioning [2026-05-13]
 
@@ -69,6 +71,8 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - API health endpoints now have their own `HealthChecks` rate-limiting policy with a dedicated typed options bucket; keep health throttling separate from the broader `Expensive` generation routes.
 - Focused coverage lives in `tests/InfraFlowSculptor.Api.Tests/RateLimiting/RateLimitingTests.cs`.
 - `Program.cs` now binds request-body limits through `AddApiRequestLimits(builder.Configuration)`; default max body size is `52_428_800` bytes (50 MB).
+- Outside Development, `InfraFlowSculptor.Api` now adds Azure Key Vault as an extra configuration source when `KeyVault:VaultUri` is set, using `DefaultAzureCredential`; keep this additive and optional for local/dev hosts.
+- Output caching is opt-in: the base policy is `NoCache()`, and the `ShortLived` policy is `5s` with `Authorization` vary-by-header. Current reference usage is selective Project GET endpoints, not blanket caching for every GET route.
 
 ## API Security Perimeter [2026-05-12]
 

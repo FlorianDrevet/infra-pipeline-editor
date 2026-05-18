@@ -144,7 +144,7 @@
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">label_important</mat-icon>
           <span>{{ 'PROJECT_DETAIL.TABS.TAGS' | translate }}</span>
-          <span class="tab-count">{{ (project()!.tags ?? []).length }}</span>
+          <span class="tab-count">{{ project()!.tags.length }}</span>
         </ng-template>
         <div class="tab-content">
           <app-project-detail-tags-section

@@ -10,6 +10,7 @@ namespace InfraFlowSculptor.Infrastructure.Extensions;
 internal static class ProjectDbContextBaselineHistorySynchronizer
 {
     private const string InitialCreateMigrationId = "20260517074017_InitialCreate";
+        private const string ManagedIdentityAcrAuthMode = "ManagedIdentity";
     private const int RequiredMarkerTableCount = 4;
     private const string ExistingSchemaMarkerTablesSql = """
         SELECT COUNT(*)
@@ -17,6 +18,37 @@ internal static class ProjectDbContextBaselineHistorySynchronizer
         WHERE table_schema = current_schema()
           AND table_name IN ('Projects', 'InfrastructureConfigs', 'PersonalAccessTokens', 'User');
         """;
+        private const string RepairLegacyComputeAcrPullIdentityColumnsSql = """
+                ALTER TABLE IF EXISTS "ContainerApps" ADD COLUMN IF NOT EXISTS "AcrPullIdentityId" uuid;
+                UPDATE "ContainerApps" AS computeResource
+                SET "AcrPullIdentityId" = azureResource."AssignedUserAssignedIdentityId"
+                FROM "AzureResource" AS azureResource
+                WHERE azureResource."Id" = computeResource."Id"
+                    AND computeResource."AcrPullIdentityId" IS NULL
+                    AND computeResource."ContainerRegistryId" IS NOT NULL
+                    AND computeResource."AcrAuthMode" = @managedIdentityAcrAuthMode
+                    AND azureResource."AssignedUserAssignedIdentityId" IS NOT NULL;
+
+                ALTER TABLE IF EXISTS "FunctionApps" ADD COLUMN IF NOT EXISTS "AcrPullIdentityId" uuid;
+                UPDATE "FunctionApps" AS computeResource
+                SET "AcrPullIdentityId" = azureResource."AssignedUserAssignedIdentityId"
+                FROM "AzureResource" AS azureResource
+                WHERE azureResource."Id" = computeResource."Id"
+                    AND computeResource."AcrPullIdentityId" IS NULL
+                    AND computeResource."ContainerRegistryId" IS NOT NULL
+                    AND computeResource."AcrAuthMode" = @managedIdentityAcrAuthMode
+                    AND azureResource."AssignedUserAssignedIdentityId" IS NOT NULL;
+
+                ALTER TABLE IF EXISTS "WebApps" ADD COLUMN IF NOT EXISTS "AcrPullIdentityId" uuid;
+                UPDATE "WebApps" AS computeResource
+                SET "AcrPullIdentityId" = azureResource."AssignedUserAssignedIdentityId"
+                FROM "AzureResource" AS azureResource
+                WHERE azureResource."Id" = computeResource."Id"
+                    AND computeResource."AcrPullIdentityId" IS NULL
+                    AND computeResource."ContainerRegistryId" IS NOT NULL
+                    AND computeResource."AcrAuthMode" = @managedIdentityAcrAuthMode
+                    AND azureResource."AssignedUserAssignedIdentityId" IS NOT NULL;
+                """;
     private const string CreateHistoryTableSql = """
         CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
             "MigrationId" character varying(150) NOT NULL,
@@ -51,6 +83,11 @@ internal static class ProjectDbContextBaselineHistorySynchronizer
             {
                 return false;
             }
+
+            await ExecuteNonQueryAsync(
+                connection,
+                RepairLegacyComputeAcrPullIdentityColumnsSql,
+                CreateParameter(connection, "managedIdentityAcrAuthMode", ManagedIdentityAcrAuthMode));
 
             await ExecuteNonQueryAsync(connection, CreateHistoryTableSql);
 
