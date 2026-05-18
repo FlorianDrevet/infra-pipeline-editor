@@ -103,6 +103,7 @@
 ## UI Caveats
 
 - Standalone shared components (e.g. `DockerfilePickerComponent`) embedded in light DS forms must use brand-palette colors (`#0d65c0` family) for triggers/borders, not white-on-white styling. The resource-edit form surfaces are light translucent (`rgba(255,255,255,0.84)`); white triggers become invisible. Verify trigger contrast on the actual host form before shipping a new shared icon control.
+- The `/settings` PAT creation success state in `features/settings/create-pat-dialog` now uses a dedicated token toolbar plus `app-ds-button` variant `subtle` for the copy action until the token is copied. Avoid `secondary` on that light token-reveal card: the transparent dark-theme treatment reads as disabled or washed out against the pale surface.
 
 ## Shared SCSS Mixins [2026-04-28]
 

@@ -62,6 +62,16 @@
 				"graphify.serve",
 				"graphify-out/graph.json"
 			]
+		},
+		"com.microsoft/nuget": {
+			"type": "stdio",
+			"command": "dnx",
+			"args": [
+				"NuGet.Mcp.Server@1.2.3",
+				"--yes",
+				"--source",
+				"https://api.nuget.org/v3/index.json"
+			]
 		}
 	},
 	"inputs": [
