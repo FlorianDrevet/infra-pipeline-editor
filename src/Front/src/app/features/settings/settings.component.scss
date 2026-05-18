@@ -430,14 +430,38 @@
   border-radius: var(--ifs-radius-md);
 
   app-ds-table {
-    min-width: 980px;
+    min-width: 1040px;
+  }
+
+  :host ::ng-deep & {
+    .ds-table__header-cell,
+    .ds-table__cell {
+      padding-inline: var(--ifs-space-10);
+    }
+
+    .ds-table__header-cell {
+      min-height: var(--ds-table-row-height);
+      height: auto;
+      padding-block: 0.45rem;
+    }
+
+    .ds-table__header-label {
+      overflow: visible;
+      text-overflow: clip;
+      white-space: normal;
+      line-height: 1.3;
+    }
+
+    .pat-table__cell--actions {
+      padding-inline-end: var(--ifs-space-8);
+    }
   }
 }
 
 .pat-cell {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.45rem;
   min-width: 0;
   width: 100%;
 
@@ -462,6 +486,12 @@
 
 .pat-cell__date {
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  &--with-time {
+    font-size: 0.8rem;
+    letter-spacing: 0.01em;
+  }
 }
 
 .pat-cell__muted {
@@ -469,10 +499,17 @@
 }
 
 .pat-token-icon {
-  font-size: 1.125rem;
-  width: 1.125rem;
-  height: 1.125rem;
-  color: var(--ifs-brand-500);
+  font-size: 0.95rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--ifs-brand-400);
+}
+
+:host ::ng-deep .pat-table .pat-action-button .ds-btn {
+  height: 24px;
+  padding-inline: 0.45rem;
+  font-size: 12px;
+  border-radius: 0.55rem;
 }
 
 @media (max-width: 960px) {
@@ -486,7 +523,7 @@
   }
 
   .pat-table app-ds-table {
-    min-width: 860px;
+    min-width: 920px;
   }
 }
 

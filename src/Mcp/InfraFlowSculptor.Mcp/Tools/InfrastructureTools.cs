@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddCrossConfigReference;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
-using InfraFlowSculptor.Application.ResourceGroups.Commands.CreateResourceGroup;
+using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Mcp.Common;
@@ -128,7 +128,7 @@ public sealed class InfrastructureTools
             reference => JsonSerializer.Serialize(new
             {
                 status = "success",
-                crossConfigReferenceId = reference.Id.ToString(),
+                crossConfigReferenceId = reference.ReferenceId.ToString(),
                 infraConfigId,
                 targetResourceId,
             }, McpJsonDefaults.SerializerOptions),

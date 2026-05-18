@@ -118,6 +118,68 @@ public sealed class AppSettingsTools
     }
 
     /// <summary>
+    /// Adds a KeyVault secret reference app setting.
+    /// The secret value is read from a Key Vault at deployment time.
+    /// </summary>
+    [McpServerTool(Name = "add_keyvault_secret_app_setting")]
+    [Description(
+        "Adds an app setting whose value comes from a Key Vault secret. " +
+        "Use this for secrets like JWT keys, connection strings with passwords, API keys. " +
+        "secretValueAssignment: 'ViaBicepparam' (value injected at deployment via pipeline variable) or 'DirectInKeyVault' (value managed directly in KV). " +
+        "When 'ViaBicepparam', also provide pipelineVariableName.")]
+    public static async Task<string> AddKeyVaultSecretAppSetting(
+        ISender mediator,
+        [Description("The resource ID (GUID) of the compute resource receiving the setting.")] string resourceId,
+        [Description("The app setting name (e.g. 'JwtSettings__Secret').")] string name,
+        [Description("The Key Vault resource ID (GUID) that stores the secret.")] string keyVaultResourceId,
+        [Description("The secret name in Key Vault (e.g. 'jwt-secret').")] string secretName,
+        [Description("How the secret value is assigned: 'ViaBicepparam' or 'DirectInKeyVault'.")] string secretValueAssignment = "ViaBicepparam",
+        [Description("Pipeline variable name (required for 'ViaBicepparam' mode).")] string? pipelineVariableName = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(resourceId, out var id))
+        {
+            return McpJsonDefaults.Error(InvalidResourceIdError, "The resourceId must be a valid GUID.");
+        }
+
+        if (!Guid.TryParse(keyVaultResourceId, out var kvId))
+        {
+            return McpJsonDefaults.Error("invalid_keyvault_id", "The keyVaultResourceId must be a valid GUID.");
+        }
+
+        if (!Enum.TryParse<SecretValueAssignment>(secretValueAssignment, ignoreCase: true, out var assignment))
+        {
+            return McpJsonDefaults.Error("invalid_assignment", $"'{secretValueAssignment}' is not valid. Use 'ViaBicepparam' or 'DirectInKeyVault'.");
+        }
+
+        var command = new AddAppSettingCommand(
+            ResourceId: AzureResourceId.Create(id),
+            Name: name,
+            EnvironmentValues: null,
+            SourceResourceId: null,
+            SourceOutputName: null,
+            KeyVaultResourceId: AzureResourceId.Create(kvId),
+            SecretName: secretName,
+            ExportToKeyVault: true,
+            SecretValueAssignment: assignment,
+            PipelineVariableName: pipelineVariableName);
+
+        var result = await mediator.Send(command, cancellationToken);
+
+        return result.Match(
+            appSetting => JsonSerializer.Serialize(new
+            {
+                status = "success",
+                appSettingId = appSetting.Id.Value.ToString(),
+                name = appSetting.Name,
+                keyVaultResourceId,
+                secretName,
+                secretValueAssignment,
+            }, McpJsonDefaults.SerializerOptions),
+            errors => McpJsonDefaults.Error("command_failed", string.Join("; ", errors.Select(e => e.Description))));
+    }
+
+    /// <summary>
     /// Lists all app settings configured on a resource.
     /// </summary>
     [McpServerTool(Name = "list_app_settings")]

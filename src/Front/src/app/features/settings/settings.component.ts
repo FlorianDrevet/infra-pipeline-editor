@@ -32,6 +32,45 @@ const PAT_TABLE_COLUMN_KEYS = {
   actions: 'actions',
 } as const;
 
+const PAT_TABLE_DENSITY = 'compact' as const;
+
+const PAT_TABLE_COLUMN_WIDTHS = {
+  name: 'minmax(220px, 2fr)',
+  tokenPrefix: 'minmax(140px, 1.15fr)',
+  createdAt: 'minmax(140px, 1fr)',
+  lastUsedAt: 'minmax(220px, 1.35fr)',
+  expiresAt: 'minmax(140px, 1fr)',
+  status: 'minmax(120px, 0.9fr)',
+  actions: 'max-content',
+} as const;
+
+const PAT_TABLE_CELL_CLASSES = {
+  name: 'pat-table__cell--name',
+  lastUsedAt: 'pat-table__cell--datetime',
+  actions: 'pat-table__cell--actions',
+} as const;
+
+const SETTINGS_LOCALE_BY_LANGUAGE = {
+  fr: 'fr-FR',
+  en: 'en-US',
+} as const;
+
+const DATE_ONLY_FORMAT_OPTIONS = {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
+} as const satisfies Intl.DateTimeFormatOptions;
+
+const DATE_TIME_FORMAT_OPTIONS = {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'UTC',
+} as const satisfies Intl.DateTimeFormatOptions;
+
 const BICEP_THEME_PREVIEW_LINES = [
   {
     id: 'decorator',
@@ -127,6 +166,7 @@ export class SettingsComponent implements OnInit {
   protected readonly currentAppTheme = this.userPreferencesService.appTheme;
   protected readonly appThemeOptions = this.userPreferencesService.appThemeOptions;
   protected readonly bicepPreviewLines = BICEP_THEME_PREVIEW_LINES;
+  protected readonly patTableDensity = PAT_TABLE_DENSITY;
   protected readonly patTableColumns = computed((): readonly DsTableColumn<PersonalAccessTokenResponse>[] => {
     this.currentLanguage();
 
@@ -134,39 +174,42 @@ export class SettingsComponent implements OnInit {
       {
         key: PAT_TABLE_COLUMN_KEYS.name,
         header: this.translate.instant('SETTINGS.TABLE.NAME'),
-        width: 'minmax(220px, 2fr)',
+        width: PAT_TABLE_COLUMN_WIDTHS.name,
+        cellClass: PAT_TABLE_CELL_CLASSES.name,
       },
       {
         key: PAT_TABLE_COLUMN_KEYS.tokenPrefix,
         header: this.translate.instant('SETTINGS.TABLE.PREFIX'),
-        width: 'minmax(140px, 1.15fr)',
+        width: PAT_TABLE_COLUMN_WIDTHS.tokenPrefix,
         mono: true,
       },
       {
         key: PAT_TABLE_COLUMN_KEYS.createdAt,
         header: this.translate.instant('SETTINGS.TABLE.CREATED'),
-        width: 'minmax(130px, 1fr)',
+        width: PAT_TABLE_COLUMN_WIDTHS.createdAt,
       },
       {
         key: PAT_TABLE_COLUMN_KEYS.lastUsedAt,
         header: this.translate.instant('SETTINGS.TABLE.LAST_USED'),
-        width: 'minmax(130px, 1fr)',
+        width: PAT_TABLE_COLUMN_WIDTHS.lastUsedAt,
+        cellClass: PAT_TABLE_CELL_CLASSES.lastUsedAt,
       },
       {
         key: PAT_TABLE_COLUMN_KEYS.expiresAt,
         header: this.translate.instant('SETTINGS.TABLE.EXPIRES'),
-        width: 'minmax(130px, 1fr)',
+        width: PAT_TABLE_COLUMN_WIDTHS.expiresAt,
       },
       {
         key: PAT_TABLE_COLUMN_KEYS.status,
         header: this.translate.instant('SETTINGS.TABLE.STATUS'),
-        width: 'minmax(120px, 0.9fr)',
+        width: PAT_TABLE_COLUMN_WIDTHS.status,
       },
       {
         key: PAT_TABLE_COLUMN_KEYS.actions,
         header: this.translate.instant('SETTINGS.TABLE.ACTIONS'),
-        width: 'max-content',
+        width: PAT_TABLE_COLUMN_WIDTHS.actions,
         align: 'end',
+        cellClass: PAT_TABLE_CELL_CLASSES.actions,
       },
     ];
   });
@@ -249,14 +292,29 @@ export class SettingsComponent implements OnInit {
   }
 
   protected formatDate(dateStr: string | null): string {
+    return this.formatLocalizedDate(dateStr, DATE_ONLY_FORMAT_OPTIONS);
+  }
+
+  protected formatDateTime(dateStr: string | null): string {
+    return this.formatLocalizedDate(dateStr, DATE_TIME_FORMAT_OPTIONS);
+  }
+
+  private formatLocalizedDate(dateStr: string | null, options: Intl.DateTimeFormatOptions): string {
     if (!dateStr) {
       return '';
     }
-    return new Date(dateStr).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+
+    const dateValue = new Date(dateStr);
+
+    if (Number.isNaN(dateValue.getTime())) {
+      return '';
+    }
+
+    const currentLanguage = this.currentLanguage();
+    const locale = SETTINGS_LOCALE_BY_LANGUAGE[currentLanguage]
+      ?? SETTINGS_LOCALE_BY_LANGUAGE.fr;
+
+    return new Intl.DateTimeFormat(locale, options).format(dateValue);
   }
 
   protected selectBicepViewerTheme(theme: BicepViewerTheme): void {

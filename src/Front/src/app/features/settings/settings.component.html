@@ -173,7 +173,7 @@
 
           <ng-template #patLastUsedAtTemplate let-token>
             @if (token.lastUsedAt) {
-              <span class="pat-cell__date">{{ formatDate(token.lastUsedAt) }}</span>
+              <span class="pat-cell__date pat-cell__date--with-time">{{ formatDateTime(token.lastUsedAt) }}</span>
             } @else {
               <span class="pat-cell__muted">{{ 'SETTINGS.TABLE.NEVER' | translate }}</span>
             }
@@ -210,7 +210,7 @@
           <ng-template #patActionsTemplate let-token>
             <span class="pat-cell pat-cell--actions">
               @if (getTokenStatus(token) === 'active') {
-                <app-ds-button variant="danger" size="sm" (clicked)="openRevokeDialog(token)">
+                <app-ds-button class="pat-action-button" variant="danger" size="sm" (clicked)="openRevokeDialog(token)">
                   {{ 'SETTINGS.REVOKE' | translate }}
                 </app-ds-button>
               } @else {
@@ -222,6 +222,7 @@
           <app-ds-table
             [columns]="patTableColumns()"
             [rows]="tokens()"
+            [density]="patTableDensity"
             [trackBy]="trackByTokenId"
             [ariaLabel]="'SETTINGS.PAT_SECTION_TITLE' | translate"
             [cellTemplates]="{

@@ -1,9 +1,11 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { MatDialog } from '@angular/material/dialog';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { LanguageService } from '../../shared/services/language.service';
+import { DsTableComponent } from '../../shared/components/ds';
 import {
   AppTheme,
   AppThemeOption,
@@ -24,6 +26,26 @@ const ACTIVE_TOKEN: PersonalAccessTokenResponse = {
   expiresAt: '2026-06-01T12:00:00.000Z',
   isRevoked: false,
 };
+
+const SETTINGS_TRANSLATIONS_FR = {
+  SETTINGS: {
+    TABLE: {
+      NAME: 'Nom',
+      PREFIX: 'Préfixe',
+      CREATED: 'Cree le',
+      LAST_USED: 'Derniere utilisation',
+      EXPIRES: 'Expire le',
+      STATUS: 'Statut',
+      ACTIONS: 'Actions',
+      NEVER: 'Jamais',
+      NO_EXPIRY: 'Sans expiration',
+      ACTIVE: 'Actif',
+      REVOKED: 'Revoque',
+      EXPIRED: 'Expire',
+    },
+    REVOKE: 'Revoquer',
+  },
+} as const;
 
 describe('SettingsComponent', () => {
   let fixture: ComponentFixture<SettingsComponent>;
@@ -60,6 +82,10 @@ describe('SettingsComponent', () => {
         },
       ],
     }).compileComponents();
+
+    const translateService = TestBed.inject(TranslateService);
+    translateService.setTranslation('fr', SETTINGS_TRANSLATIONS_FR);
+    translateService.use('fr');
 
     fixture = TestBed.createComponent(SettingsComponent);
     fixture.detectChanges();
@@ -103,6 +129,36 @@ describe('SettingsComponent', () => {
     expect(dsTable).not.toBeNull();
     expect(legacyHeader).toBeNull();
     expect(dsTable?.textContent).toContain('Terraform Bot');
+  });
+
+  it('configures the PAT table in compact density with a wider last-used column', () => {
+    const dsTable = fixture.debugElement.query(By.directive(DsTableComponent)).componentInstance as DsTableComponent<PersonalAccessTokenResponse>;
+    const lastUsedColumn = dsTable.columns.find((column) => column.key === 'lastUsedAt');
+
+    expect(dsTable.density).toBe('compact');
+    expect(lastUsedColumn?.width).toBe('minmax(220px, 1.35fr)');
+  });
+
+  it('renders the full French last-used header with a detailed date-time value', () => {
+    const headerLabels = Array.from(
+      fixture.nativeElement.querySelectorAll('.ds-table__header-label'),
+    ).map((element: any) => element.textContent?.trim());
+    const lastUsedValue = fixture.nativeElement.querySelector('.pat-cell__date--with-time') as HTMLElement | null;
+
+    expect(headerLabels).toContain('Derniere utilisation');
+    expect(lastUsedValue).not.toBeNull();
+    expect(lastUsedValue?.textContent).toContain('08:00');
+  });
+
+  it('adds PAT-local styling hooks for value alignment and the revoke action', () => {
+    const dsTable = fixture.debugElement.query(By.directive(DsTableComponent)).componentInstance as DsTableComponent<PersonalAccessTokenResponse>;
+    const nameColumn = dsTable.columns.find((column) => column.key === 'name');
+    const actionsColumn = dsTable.columns.find((column) => column.key === 'actions');
+    const revokeButton = fixture.nativeElement.querySelector('app-ds-button.pat-action-button');
+
+    expect(nameColumn?.cellClass).toBe('pat-table__cell--name');
+    expect(actionsColumn?.cellClass).toBe('pat-table__cell--actions');
+    expect(revokeButton).not.toBeNull();
   });
 });
 

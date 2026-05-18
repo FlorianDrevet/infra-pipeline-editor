@@ -108,6 +108,7 @@
 ## Shared SCSS Mixins [2026-04-28]
 
 - `@include ifs-data-table` (in `src/Front/src/scss/_tables.scss`) remains available for legacy flex-table surfaces with `.ifs-table__header`, `.ifs-table__row`, `.ifs-table__col`, `.ifs-table__muted`, `.ifs-table__mono`, but new dense tabular UIs should prefer `app-ds-table`. The `/settings` PAT list is now the reference migration: DS grid columns + typed cell templates + horizontal overflow wrapper instead of hand-rolled `ifs-table` markup.
+- The `/settings` PAT list is also the reference for compact admin-action tables: use `app-ds-table` with `density="compact"`, widen long date-time columns enough for full localized labels, allow header wrapping instead of clipping when FR copy is longer, and keep destructive row actions visually secondary through page-local sizing instead of changing the shared DS button scale.
 - The `/settings` Bicep-theme chooser is also a DS-aligned reference for theme previews: keep the sample snippet local to the page, but reuse the same syntax-color CSS variables as `shared/components/bicep-file-panel/` so the chooser matches the real generated-file viewer.
 - `DsTextFieldComponent` now supports `type="date"` and a `min` input for date constraints.
 - `DsDatePickerComponent` provides a fully custom calendar date picker (CDK overlay, brand gradient header, 42-day grid, min/max constraints, locale-aware formatting via `Intl.DateTimeFormat`, CVA support). Used in PAT creation dialog.
