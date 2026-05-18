@@ -49,7 +49,7 @@
 
   &__token-content {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.875rem;
     min-width: 0;
   }
@@ -74,7 +74,8 @@
   }
 
   &__token-value {
-    display: block;
+    display: flex;
+    align-items: center;
     flex: 1;
     min-width: 0;
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
@@ -97,17 +98,37 @@
     justify-content: space-between;
     gap: 0.75rem;
     width: 100%;
-    padding-top: 0.75rem;
+    padding-top: 1rem;
+    margin-top: 0.25rem;
+    border-top: 1px solid color-mix(in srgb, var(--ifs-border-strong, #cbd5e1) 55%, transparent);
+  }
+
+  &__action {
+    display: flex;
+    flex: 1 1 0;
+  }
+
+  &__action--copy {
+    justify-content: flex-start;
+  }
+
+  &__action--done {
+    justify-content: flex-end;
   }
 
   @media (max-width: 599px) {
     &__token-content {
       flex-direction: column;
+      align-items: stretch;
     }
 
     &__actions--success {
       flex-direction: column;
       align-items: stretch;
+    }
+
+    &__action {
+      width: 100%;
     }
 
     &__actions--success app-ds-button {

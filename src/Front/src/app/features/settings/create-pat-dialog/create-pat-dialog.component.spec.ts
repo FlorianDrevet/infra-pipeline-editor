@@ -58,6 +58,8 @@ describe('CreatePatDialogComponent', () => {
     const tokenMarker = fixture.nativeElement.querySelector('.create-pat-dialog__token-marker');
     const tokenValue = fixture.nativeElement.querySelector('.create-pat-dialog__token-value');
     const successActions = fixture.debugElement.query(By.css('.create-pat-dialog__actions--success'));
+    const copyAction = fixture.nativeElement.querySelector('.create-pat-dialog__action--copy');
+    const doneAction = fixture.nativeElement.querySelector('.create-pat-dialog__action--done');
     const actionButtons = successActions
       ? successActions
         .queryAll(By.directive(DsButtonComponent))
@@ -70,10 +72,13 @@ describe('CreatePatDialogComponent', () => {
     expect(tokenMarker).not.toBeNull();
     expect(tokenValue?.textContent?.trim()).toBe('ifs_pat_live_123456789');
     expect(successActions).not.toBeNull();
+    expect(copyAction).not.toBeNull();
+    expect(doneAction).not.toBeNull();
     expect(actionButtons.length).toBe(2);
     expect(copyButton).toBeDefined();
     expect(doneButton).toBeDefined();
     expect(copyButton?.icon()).toBe('content_copy');
+    expect(copyButton?.size()).toBe('md');
     expect(copyButton?.variant()).toBe('subtle');
     expect(doneButton?.variant()).toBe('primary');
   });

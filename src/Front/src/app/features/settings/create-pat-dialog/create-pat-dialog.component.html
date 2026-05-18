@@ -75,20 +75,23 @@
     </mat-dialog-content>
 
     <mat-dialog-actions class="create-pat-dialog__actions create-pat-dialog__actions--success">
-      <app-ds-button
-        [variant]="copied() ? 'success' : 'subtle'"
-        size="sm"
-        [icon]="copied() ? 'check' : 'content_copy'"
-        (clicked)="copyToken()">
-        @if (copied()) {
-          {{ 'SETTINGS.TOKEN_CREATED.COPIED' | translate }}
-        } @else {
-          {{ 'SETTINGS.TOKEN_CREATED.COPY' | translate }}
-        }
-      </app-ds-button>
-      <app-ds-button variant="primary" (clicked)="onDone()">
-        {{ 'SETTINGS.TOKEN_CREATED.DONE' | translate }}
-      </app-ds-button>
+      <div class="create-pat-dialog__action create-pat-dialog__action--copy">
+        <app-ds-button
+          [variant]="copied() ? 'success' : 'subtle'"
+          [icon]="copied() ? 'check' : 'content_copy'"
+          (clicked)="copyToken()">
+          @if (copied()) {
+            {{ 'SETTINGS.TOKEN_CREATED.COPIED' | translate }}
+          } @else {
+            {{ 'SETTINGS.TOKEN_CREATED.COPY' | translate }}
+          }
+        </app-ds-button>
+      </div>
+      <div class="create-pat-dialog__action create-pat-dialog__action--done">
+        <app-ds-button variant="primary" (clicked)="onDone()">
+          {{ 'SETTINGS.TOKEN_CREATED.DONE' | translate }}
+        </app-ds-button>
+      </div>
     </mat-dialog-actions>
   }
 </div>

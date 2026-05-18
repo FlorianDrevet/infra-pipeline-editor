@@ -103,7 +103,7 @@
 ## UI Caveats
 
 - Standalone shared components (e.g. `DockerfilePickerComponent`) embedded in light DS forms must use brand-palette colors (`#0d65c0` family) for triggers/borders, not white-on-white styling. The resource-edit form surfaces are light translucent (`rgba(255,255,255,0.84)`); white triggers become invisible. Verify trigger contrast on the actual host form before shipping a new shared icon control.
-- The `/settings` PAT creation success state in `features/settings/create-pat-dialog` should keep the one-time token reveal visually split between content and actions: the key marker sits on the same row as the token value inside the reveal card, while the footer actions place the copy CTA on the left and the final confirmation CTA on the right. Keep the copy action on `app-ds-button` variant `subtle` until the token is copied, then switch to `success`; avoid `secondary` on that light token-reveal surface because the transparent dark-theme treatment reads as disabled or washed out.
+- The `/settings` PAT creation success state in `features/settings/create-pat-dialog` should keep the one-time token reveal visually split between content and actions: the key marker sits on the same row as the token value inside the reveal card and should stay vertically centered against it, while the footer actions place the copy CTA on the left and the final confirmation CTA on the right. Keep the copy action on a regular-size `app-ds-button` using variant `subtle` until the token is copied, then switch to `success`; avoid `secondary` on that light token-reveal surface because the transparent dark-theme treatment reads as disabled or washed out.
 
 ## Shared SCSS Mixins [2026-04-28]
 
