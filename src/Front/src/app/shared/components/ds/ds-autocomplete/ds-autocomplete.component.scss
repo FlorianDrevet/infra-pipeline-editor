@@ -308,7 +308,7 @@ app-ds-autocomplete .ds-autocomplete__spinner--with-clear {
 }
 
 .ds-autocomplete__state-copy {
-  flex: 1;
+  flex: none;
   min-width: 0;
   display: flex;
   flex-direction: column;

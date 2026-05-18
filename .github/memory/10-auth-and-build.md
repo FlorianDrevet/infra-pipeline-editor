@@ -125,6 +125,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 
 - ACR role assignments in ARM/Bicep require `Owner` or `User Access Administrator`; `Contributor` is insufficient.
 - GitHub Git provider uses Refit (`IGitHubTreeApi`).
+- `KeyVaultSecretClient.SetSecretAsync(...)` now logs PAT-write exceptions and maps Azure Key Vault write failures to the dedicated `GitRepository.SecretStorageFailed` error. Frontend repository-PAT flows rely on that description being human-readable enough to show directly in the modal.
 - Azure DevOps Git support covers Git operations only; pipeline/library security provisioning remains a manual prerequisite around the generated bootstrap YAML.
 - `AppPipelineGenerationEngine` normalizes redundant `apps/{appName}/{resourceName}/...` paths down to `apps/{appName}/...`.
 - Diagnostics rely on `IDiagnosticRule.EvaluateAsync()`; current rules cover ACR Pull, Key Vault access, and DNS name availability.

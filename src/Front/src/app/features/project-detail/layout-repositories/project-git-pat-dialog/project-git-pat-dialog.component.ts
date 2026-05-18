@@ -5,7 +5,7 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import {
   SetProjectGitPatRequest,
@@ -16,6 +16,7 @@ import {
   DsTextFieldComponent,
 } from '../../../../shared/components/ds';
 import { ProjectService } from '../../../../shared/services/project.service';
+import { extractLayoutRepositoriesApiErrorMessage } from '../layout-repositories-api-error';
 
 const GITHUB_PROVIDER = 'GitHub';
 const AZURE_DEVOPS_PROVIDER = 'AzureDevOps';
@@ -56,9 +57,10 @@ export class ProjectGitPatDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<ProjectGitPatDialogComponent>);
   private readonly data: ProjectGitPatDialogData = inject(MAT_DIALOG_DATA);
   private readonly projectService = inject(ProjectService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly isSubmitting = signal(false);
-  protected readonly errorKey = signal('');
+  protected readonly errorMessage = signal('');
   protected readonly providerTypes = [...new Set(this.data.providerTypes)];
   protected readonly form: ProjectGitPatDialogForm = new FormGroup({
     personalAccessToken: new FormControl('', {
@@ -77,7 +79,7 @@ export class ProjectGitPatDialogComponent {
     }
 
     this.isSubmitting.set(true);
-    this.errorKey.set('');
+    this.errorMessage.set('');
 
     const request: SetProjectGitPatRequest = {
       personalAccessToken: this.form.controls.personalAccessToken.value.trim(),
@@ -86,8 +88,11 @@ export class ProjectGitPatDialogComponent {
     try {
       await this.projectService.setGitPat(this.data.projectId, this.data.repositoryId, request);
       this.dialogRef.close(true);
-    } catch {
-      this.errorKey.set('PROJECT_DETAIL.LAYOUT.AUTH.SAVE_ERROR');
+    } catch (error) {
+      this.errorMessage.set(
+        extractLayoutRepositoriesApiErrorMessage(error)
+        ?? this.translate.instant('PROJECT_DETAIL.LAYOUT.AUTH.SAVE_ERROR'),
+      );
     } finally {
       this.isSubmitting.set(false);
     }

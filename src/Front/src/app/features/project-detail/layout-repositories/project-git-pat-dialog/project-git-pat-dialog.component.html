@@ -23,9 +23,9 @@
       </div>
     }
 
-    @if (errorKey()) {
+    @if (errorMessage()) {
       <app-ds-alert severity="error">
-        {{ errorKey() | translate }}
+        {{ errorMessage() }}
       </app-ds-alert>
     }
   </form>

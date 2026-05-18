@@ -57,6 +57,41 @@ describe('ProjectGitPatDialogComponent', () => {
     expect(dialogRefSpy.close).toHaveBeenCalledOnceWith(true);
   });
 
+  it('surfaces the backend error description when saving the repository PAT fails', async () => {
+    const component = fixture.componentInstance as ProjectGitPatDialogComponent & {
+      form: {
+        controls: {
+          personalAccessToken: { setValue(value: string): void };
+        };
+      };
+      onSubmit(): Promise<void>;
+    };
+
+    const apiError = Object.assign(new Error('Request failed with status code 400'), {
+      response: {
+        data: {
+          errors: [
+            {
+              code: 'GitRepository.SecretStorageFailed',
+              description: 'The application is not allowed to write secrets to the configured Key Vault.',
+            },
+          ],
+        },
+      },
+    });
+    projectServiceSpy.setGitPat.and.returnValue(Promise.reject(apiError));
+
+    component.form.controls.personalAccessToken.setValue('ghp_repo_token');
+
+    await component.onSubmit();
+    fixture.detectChanges();
+
+    expect(dialogRefSpy.close).not.toHaveBeenCalledWith(true);
+    expect(fixture.nativeElement.textContent).toContain(
+      'The application is not allowed to write secrets to the configured Key Vault.',
+    );
+  });
+
   it('reuses the existing provider help keys for supported providers', () => {
     const dialogText = fixture.nativeElement.textContent ?? '';
 

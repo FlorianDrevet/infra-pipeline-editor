@@ -12,6 +12,10 @@
 - **P2 — Important** : Code infrastructure/services non testé, impact modéré (repositories, mappers, transformers)
 - **P3 — Souhaitable** : Code utilitaire ou configuration non testé, impact faible (extensions, options, helpers)
 
+## Incremental Entries
+
+- [2026-05-18] **P2 — Infrastructure / KeyVaultSecretClient**: `tests/InfraFlowSculptor.Infrastructure.Tests/Services/KeyVault/KeyVaultSecretClientTests.cs` now covers only the PAT write failure mapping in `SetSecretAsync(...)`; `GetSecretAsync(...)` and `DeleteSecretAsync(...)` still lack focused regression tests for exception logging and human-readable error mapping.
+
 ---
 
 ## Audit complet — 2026-05-17

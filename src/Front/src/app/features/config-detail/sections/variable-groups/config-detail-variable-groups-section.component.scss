@@ -1,1 +1,300 @@
-@use "../../config-detail.component.scss";
+@use 'scss/main' as *;
+
+:host {
+  display: block;
+}
+
+// ─── Local button placeholder ───────────────────────────────────────────────
+
+%cd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ifs-space-6);
+  height: 32px;
+  padding: 0 var(--ifs-space-12);
+  border-radius: var(--ifs-radius-md);
+  border: 1px solid var(--ifs-border-strong);
+  background: var(--ifs-surface-2);
+  color: var(--ifs-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    color var(--ifs-duration-fast) var(--ifs-ease-standard);
+
+  &:hover {
+    background: var(--ifs-surface-3);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ifs-focus-ring);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  mat-icon,
+  .mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// ─── Tab content ────────────────────────────────────────────────────────────
+
+.tab-content {
+  padding: var(--ifs-space-16) var(--ifs-space-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-16);
+}
+
+.tab-content__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--ifs-space-8);
+  flex-wrap: wrap;
+}
+
+// ─── Buttons ────────────────────────────────────────────────────────────────
+
+.add-rg-btn {
+  @extend %cd-btn;
+
+  &__icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// ─── Error ──────────────────────────────────────────────────────────────────
+
+.rg-error {
+  margin: 0;
+  padding: var(--ifs-space-8) var(--ifs-space-12);
+  background: var(--ifs-danger-bg);
+  border: 1px solid rgba(210, 74, 74, 0.4);
+  border-radius: var(--ifs-radius-md);
+  color: var(--ifs-danger);
+  font-size: 13px;
+}
+
+// ─── Info banner ────────────────────────────────────────────────────────────
+
+.settings-info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ifs-space-8);
+  padding: var(--ifs-space-12);
+  background: var(--ifs-info-bg);
+  border: 1px solid rgba(58, 163, 201, 0.3);
+  border-radius: var(--ifs-radius-md);
+  color: var(--ifs-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+
+  &__icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--ifs-accent-500);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+// ─── Variable group list ────────────────────────────────────────────────────
+
+.vg-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-12);
+}
+
+.vg-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-8);
+  padding: var(--ifs-space-16);
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ifs-space-8);
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ifs-space-8);
+    min-width: 0;
+  }
+
+  &__icon {
+    color: var(--ifs-text-secondary);
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ifs-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__count {
+    color: var(--ifs-text-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__delete {
+    @extend %cd-btn;
+    height: 28px;
+    width: 28px;
+    padding: 0;
+    justify-content: center;
+    color: var(--ifs-danger);
+
+    &:hover {
+      background: var(--ifs-danger-bg);
+      border-color: var(--ifs-danger);
+    }
+  }
+
+  &__empty {
+    display: flex;
+    align-items: center;
+    gap: var(--ifs-space-8);
+    padding: var(--ifs-space-12);
+    background: var(--ifs-surface-2);
+    border-radius: var(--ifs-radius-sm);
+    color: var(--ifs-text-secondary);
+    font-size: 13px;
+  }
+
+  &__empty-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--ifs-text-muted);
+  }
+
+  &__table {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--ifs-border-subtle);
+    border-radius: var(--ifs-radius-sm);
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  &__table-header,
+  &__table-row {
+    display: grid;
+    grid-template-columns:
+      minmax(12rem, 1.6fr)
+      minmax(14rem, 2fr)
+      minmax(10rem, 1.2fr)
+      minmax(10rem, 1fr)
+      minmax(10rem, 1fr);
+    gap: var(--ifs-space-12);
+    min-width: 64rem;
+    padding: var(--ifs-space-8) var(--ifs-space-12);
+    align-items: center;
+    border-bottom: 1px solid var(--ifs-border-subtle);
+  }
+
+  &__table-row:last-child {
+    border-bottom: none;
+  }
+
+  &__table-header {
+    background: var(--ifs-surface-2);
+    color: var(--ifs-text-secondary);
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    .vg-col {
+      white-space: nowrap;
+    }
+  }
+}
+
+.vg-col {
+  font-size: 13px;
+  color: var(--ifs-text-primary);
+  min-width: 0;
+}
+
+.vg-type-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--ifs-radius-pill);
+  background: var(--ifs-surface-3);
+  border: 1px solid var(--ifs-border-subtle);
+  color: var(--ifs-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.vg-variable-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--ifs-text-primary);
+  background: var(--ifs-surface-2);
+  padding: 2px 6px;
+  border-radius: var(--ifs-radius-sm);
+}
+
+// ─── Empty state ────────────────────────────────────────────────────────────
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ifs-space-8);
+  padding: var(--ifs-space-32);
+  background: var(--ifs-surface-2);
+  border: 1px dashed var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
+  text-align: center;
+
+  &__icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: var(--ifs-text-muted);
+  }
+
+  &__hint {
+    margin: 0;
+    color: var(--ifs-text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 360px;
+  }
+}

@@ -45,6 +45,7 @@ import {
   ProjectGitPatDialogComponent,
   ProjectGitPatDialogData,
 } from './project-git-pat-dialog/project-git-pat-dialog.component';
+import { extractLayoutRepositoriesApiErrorMessage } from './layout-repositories-api-error';
 
 interface PresetOption {
   value: ProjectLayoutPreset;
@@ -334,20 +335,7 @@ export class LayoutRepositoriesComponent implements OnInit {
   }
 
   private extractConnectionErrorMessage(error: unknown): string | null {
-    if (error instanceof AxiosError) {
-      const responseData = error.response?.data as {
-        errorMessage?: string;
-        message?: string;
-      } | undefined;
-
-      return responseData?.errorMessage ?? responseData?.message ?? error.message ?? null;
-    }
-
-    if (error instanceof Error) {
-      return error.message;
-    }
-
-    return null;
+    return extractLayoutRepositoriesApiErrorMessage(error);
   }
 
   private mapError(error: unknown, fallbackKey: string): string {

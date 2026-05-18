@@ -1,1 +1,217 @@
-@use "../../config-detail.component.scss";
+@use 'scss/main' as *;
+
+:host {
+  display: block;
+}
+
+// ─── Local button placeholder ───────────────────────────────────────────────
+
+%cd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ifs-space-6);
+  height: 32px;
+  padding: 0 var(--ifs-space-12);
+  border-radius: var(--ifs-radius-md);
+  border: 1px solid var(--ifs-border-strong);
+  background: var(--ifs-surface-2);
+  color: var(--ifs-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    color var(--ifs-duration-fast) var(--ifs-ease-standard);
+
+  &:hover {
+    background: var(--ifs-surface-3);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ifs-focus-ring);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  mat-icon,
+  .mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// ─── Tab content ────────────────────────────────────────────────────────────
+
+.tab-content {
+  padding: var(--ifs-space-16) var(--ifs-space-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-16);
+}
+
+.tab-content__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--ifs-space-8);
+  flex-wrap: wrap;
+}
+
+// ─── Buttons ────────────────────────────────────────────────────────────────
+
+.template-action-btn {
+  @extend %cd-btn;
+  height: 28px;
+  padding: 0 var(--ifs-space-8);
+  font-size: 12px;
+}
+
+.template-action-btn--add {
+  color: var(--ifs-accent-400);
+  border-color: var(--ifs-border-strong);
+  background: var(--ifs-surface-2);
+}
+
+.template-action-btn--delete {
+  color: var(--ifs-danger);
+
+  &:hover {
+    background: var(--ifs-danger-bg);
+    border-color: var(--ifs-danger);
+  }
+}
+
+// ─── Tags display ───────────────────────────────────────────────────────────
+
+.tags-view-list,
+.tags-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-6);
+}
+
+.tag-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--ifs-space-8);
+  padding: var(--ifs-space-6) var(--ifs-space-8);
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-sm);
+  align-items: center;
+  font-size: 12px;
+  color: var(--ifs-text-primary);
+
+  &__indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ifs-accent-500);
+  }
+
+  &__meta {
+    color: var(--ifs-text-secondary);
+    font-size: 11px;
+  }
+
+  &__value {
+    color: var(--ifs-text-primary);
+  }
+}
+
+// ─── Tags edit card ─────────────────────────────────────────────────────────
+
+.tags-edit-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-12);
+  padding: var(--ifs-space-12);
+  background: var(--ifs-surface-2);
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: var(--ifs-space-8);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ifs-text-primary);
+  }
+
+  &__icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--ifs-accent-500);
+  }
+
+  &__form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--ifs-space-8);
+  }
+
+  &__name,
+  &__value {
+    width: 100%;
+  }
+
+  &__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ifs-space-6);
+    justify-content: flex-end;
+  }
+
+  &__hint {
+    margin: 0;
+    color: var(--ifs-text-muted);
+    font-size: 11px;
+  }
+
+  &__error {
+    margin: 0;
+    color: var(--ifs-danger);
+    font-size: 12px;
+  }
+}
+
+// ─── Empty state ────────────────────────────────────────────────────────────
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ifs-space-8);
+  padding: var(--ifs-space-32);
+  background: var(--ifs-surface-2);
+  border: 1px dashed var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
+  text-align: center;
+
+  &__icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: var(--ifs-text-muted);
+  }
+
+  &__hint {
+    margin: 0;
+    color: var(--ifs-text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 360px;
+  }
+}

@@ -304,6 +304,34 @@ describe('LayoutRepositoriesComponent', () => {
     expect(getComponentTestApi().testErrorMap()['repo-1']).toBe('Permission denied');
   });
 
+  it('reads the first backend error description when repository connection testing throws', async () => {
+    const repository = createRepositoryResponse('repo-1', ['Infrastructure', 'ApplicationCode']);
+
+    projectResponse = createProjectResponse('AllInOne', [repository]);
+    const apiError = Object.assign(new Error('Request failed with status code 400'), {
+      response: {
+        data: {
+          errors: [
+            {
+              code: 'GitRepository.SecretRetrievalFailed',
+              description: 'The repository PAT could not be read from Key Vault.',
+            },
+          ],
+        },
+      },
+    });
+    projectServiceSpy.testRepositoryConnection.and.returnValue(Promise.reject(apiError));
+    await createComponent();
+
+    await getComponentTestApi().testRepositoryConnection(repository);
+
+    expect(projectServiceSpy.testRepositoryConnection).toHaveBeenCalledOnceWith('project-1', 'repo-1');
+    expect(getComponentTestApi().testResultMap()['repo-1']).toBe('failure');
+    expect(getComponentTestApi().testErrorMap()['repo-1']).toBe(
+      'The repository PAT could not be read from Key Vault.',
+    );
+  });
+
   async function createComponent(): Promise<void> {
     fixture = TestBed.createComponent(LayoutRepositoriesComponent);
     fixture.componentRef.setInput('projectId', 'project-1');

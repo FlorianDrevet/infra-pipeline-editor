@@ -1,3 +1,172 @@
+@use 'scss/main' as *;
+
 :host {
   display: block;
+}
+
+// ─── Local button placeholder ───────────────────────────────────────────────
+
+%pd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ifs-space-6);
+  height: 32px;
+  padding: 0 var(--ifs-space-12);
+  border-radius: var(--ifs-radius-md);
+  border: 1px solid var(--ifs-border-strong);
+  background: var(--ifs-surface-2);
+  color: var(--ifs-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    color var(--ifs-duration-fast) var(--ifs-ease-standard);
+
+  &:hover {
+    background: var(--ifs-surface-3);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ifs-focus-ring);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  mat-icon,
+  .mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// ─── Settings section ───────────────────────────────────────────────────────
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-12);
+  padding: var(--ifs-space-16);
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ifs-space-8);
+  }
+
+  &__title {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ifs-space-8);
+    min-width: 0;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 600;
+    color: var(--ifs-text-primary);
+  }
+
+  &__title-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--ifs-text-secondary);
+  }
+
+  &__description {
+    margin: 0;
+    color: var(--ifs-text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+}
+
+// ─── Buttons ────────────────────────────────────────────────────────────────
+
+.template-action-btn {
+  @extend %pd-btn;
+  height: 28px;
+  padding: 0 var(--ifs-space-8);
+  font-size: 12px;
+}
+
+.template-action-btn--inline {
+  color: var(--ifs-accent-400);
+  border-color: var(--ifs-border-strong);
+  background: var(--ifs-surface-2);
+}
+
+// ─── Tags display ───────────────────────────────────────────────────────────
+
+.tags-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ifs-space-6);
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--ifs-radius-pill);
+  background: var(--ifs-surface-3);
+  border: 1px solid var(--ifs-border-subtle);
+  color: var(--ifs-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.tags-empty {
+  color: var(--ifs-text-muted);
+  font-size: 12px;
+}
+
+// ─── Tags editor ────────────────────────────────────────────────────────────
+
+.tags-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-8);
+}
+
+.tags-add-row {
+  display: flex;
+  gap: var(--ifs-space-8);
+  align-items: flex-end;
+}
+
+.tag-name-field,
+.tag-value-field {
+  flex: 1;
+}
+
+.tags-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ifs-space-6);
+}
+
+// ─── Error ──────────────────────────────────────────────────────────────────
+
+.action-error {
+  margin: 0;
+  padding: var(--ifs-space-8) var(--ifs-space-12);
+  background: var(--ifs-danger-bg);
+  border: 1px solid rgba(210, 74, 74, 0.4);
+  border-radius: var(--ifs-radius-md);
+  color: var(--ifs-danger);
+  font-size: 13px;
 }

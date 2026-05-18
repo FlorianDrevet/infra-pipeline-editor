@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { MatAutocomplete } from '@angular/material/autocomplete';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { DsAutocompleteComponent, DsAutocompleteOption } from './ds-autocomplete.component';
@@ -18,6 +20,7 @@ import { DsAutocompleteComponent, DsAutocompleteOption } from './ds-autocomplete
           prefixIcon="search"
           emptyStateLabel="Aucun utilisateur trouve"
           [clearable]="true"
+          [loading]="loading"
           [options]="options"
           (optionSelected)="onOptionSelected($event)"
           (searchChanged)="onSearchChanged($event)" />
@@ -42,6 +45,7 @@ class DsAutocompleteHostComponent {
     search: new FormControl('', { nonNullable: true }),
   });
 
+  public loading = false;
   public selectedOption: DsAutocompleteOption<string> | null = null;
   public latestSearch = '';
 
@@ -130,5 +134,29 @@ describe('DsAutocompleteComponent', () => {
     expect(host.form.controls.search.value).toBe('');
     expect(host.latestSearch).toBe('');
     expect(input?.value).toBe('');
+  });
+
+  it('renders the autocomplete panel at least as wide as the field control', async () => {
+    const autocomplete = fixture.debugElement.query(By.directive(MatAutocomplete)).componentInstance as MatAutocomplete;
+
+    expect(autocomplete.panelWidth).withContext('panel width should defer to the trigger width').toBeUndefined();
+  });
+
+  it('keeps the empty-state copy centered instead of stretching across the row', async () => {
+    const input = fixture.nativeElement.querySelector('.ds-autocomplete__input') as HTMLInputElement | null;
+
+    expect(input).withContext('autocomplete input should exist').not.toBeNull();
+
+    if (input) {
+      input.value = 'zzzz';
+      input.dispatchEvent(new Event('input'));
+    }
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const emptyStateCopy = fixture.debugElement.query(By.css('.ds-autocomplete__state-copy'))?.nativeElement as HTMLElement | undefined;
+
+    expect(emptyStateCopy).withContext('empty-state copy should render').not.toBeNull();
+    expect(getComputedStyle(emptyStateCopy as HTMLElement).flexGrow).toBe('0');
   });
 });
