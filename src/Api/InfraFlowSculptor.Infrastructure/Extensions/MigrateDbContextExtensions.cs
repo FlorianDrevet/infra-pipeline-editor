@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -53,19 +52,6 @@ internal static class MigrateDbContextExtensions
         where TContext : DbContext
     {
         using var activity = ActivitySource.StartActivity($"Migrating {typeof(TContext).Name}");
-        if (context is ProjectDbContext projectDbContext)
-        {
-            var baselineWasSynchronized = await ProjectDbContextBaselineHistorySynchronizer.SynchronizeAsync(projectDbContext);
-
-            if (baselineWasSynchronized)
-            {
-                var logger = services.GetRequiredService<ILogger<TContext>>();
-                logger.LogInformation(
-                    "Synchronized migration history for existing {DbContextName} schema before applying EF Core migrations.",
-                    typeof(TContext).Name);
-            }
-        }
-
         await context.Database.MigrateAsync();
         await seeder(context, services);
     }
