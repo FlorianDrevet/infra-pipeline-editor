@@ -439,6 +439,12 @@
       padding-inline: var(--ifs-space-10);
     }
 
+    .ds-table__cell {
+      min-height: var(--ds-table-row-height);
+      height: auto;
+      padding-block: 0.3rem;
+    }
+
     .ds-table__header-cell {
       min-height: var(--ds-table-row-height);
       height: auto;

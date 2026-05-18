@@ -8,6 +8,8 @@ using InfraFlowSculptor.Mcp.Prompts;
 using InfraFlowSculptor.Mcp.RateLimiting;
 using InfraFlowSculptor.Mcp.Resources;
 using InfraFlowSculptor.Mcp.Tools;
+using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,6 +54,12 @@ builder.Services
     .AddInfrastructure(builder.Configuration, builder.Environment, includeAuthentication: false)
     .AddPatAuthentication()
     .AddMcpRateLimiting();
+
+var mapsterConfig = TypeAdapterConfig.GlobalSettings;
+mapsterConfig.Default.PreserveReference(true);
+mapsterConfig.Compile();
+builder.Services.AddSingleton(mapsterConfig);
+builder.Services.AddScoped<IMapper, ServiceMapper>();
 
 var app = builder.Build();
 
