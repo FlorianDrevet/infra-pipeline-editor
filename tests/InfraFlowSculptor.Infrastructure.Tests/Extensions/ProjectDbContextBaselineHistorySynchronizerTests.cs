@@ -74,6 +74,33 @@ public sealed class ProjectDbContextBaselineHistorySynchronizerTests
     }
 
     [Fact]
+    public async Task Given_BaselinedLegacyProjectSchemaMissingFrontDoorTables_When_SynchronizeAsync_Then_RepairsFrontDoorSchemaAsync()
+    {
+        // Arrange
+        var connection = new BaselineRecordingDbConnection(existingMarkerTableCount: 4, appliedBaselineMigrationCount: 1);
+        await using var context = CreateRelationalContext(connection);
+
+        // Act
+        var wasSynchronized = await ProjectDbContextBaselineHistorySynchronizer.SynchronizeAsync(context);
+
+        // Assert
+        wasSynchronized.Should().BeFalse();
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE TABLE IF NOT EXISTS \"FrontDoors\"", StringComparison.Ordinal)
+            && command.CommandText.Contains("\"WafPolicyEnabled\" boolean NOT NULL", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE TABLE IF NOT EXISTS \"FrontDoorEnvironmentSettings\"", StringComparison.Ordinal)
+            && command.CommandText.Contains("\"EnvironmentName\" character varying(100) NOT NULL", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE TABLE IF NOT EXISTS \"FrontDoorOrigins\"", StringComparison.Ordinal)
+            && command.CommandText.Contains("\"TargetResourceId\" uuid NOT NULL", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE UNIQUE INDEX IF NOT EXISTS \"IX_FrontDoorEnvironmentSettings_FrontDoorId_EnvironmentName\"", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE INDEX IF NOT EXISTS \"IX_FrontDoorOrigins_FrontDoorId\"", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task Given_EmptyDatabase_When_SynchronizeAsync_Then_DoesNotTouchMigrationHistoryAsync()
     {
         // Arrange

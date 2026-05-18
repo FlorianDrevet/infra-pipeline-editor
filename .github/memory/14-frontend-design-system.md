@@ -121,5 +121,4 @@
 ## DS Integration Rule [2026-04-28]
 
 - **Mandatory**: Any new screen/dialog/form MUST use existing `app-ds-*` components. If a UI pattern has no DS component yet, create a reusable one in `shared/components/ds/` BEFORE using it.
-- **Cancel actions [2026-05-18]**: dialog and inline-edit `Annuler` actions now standardize on `app-ds-button variant="ghost"` with `(clicked)`, including shared confirm/cascade dialogs, project/config/resource dialogs, tag edit sections, resource-group creation, role-assignment impact confirmation, and project environment editing. Treat any new raw `mat-stroked-button`/`mat-button` cancel action as DS migration drift.
 - This rule is enforced in `copilot-instructions.md` (pitfall #12) and `angular-patterns/SKILL.md`.

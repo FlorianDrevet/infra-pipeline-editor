@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Infrastructure.Extensions;
 internal static class ProjectDbContextBaselineHistorySynchronizer
 {
     private const string InitialCreateMigrationId = "20260517074017_InitialCreate";
-        private const string ManagedIdentityAcrAuthMode = "ManagedIdentity";
+    private const string ManagedIdentityAcrAuthMode = "ManagedIdentity";
     private const int RequiredMarkerTableCount = 4;
     private const string ExistingSchemaMarkerTablesSql = """
         SELECT COUNT(*)
@@ -18,37 +18,75 @@ internal static class ProjectDbContextBaselineHistorySynchronizer
         WHERE table_schema = current_schema()
           AND table_name IN ('Projects', 'InfrastructureConfigs', 'PersonalAccessTokens', 'User');
         """;
-        private const string RepairLegacyComputeAcrPullIdentityColumnsSql = """
-                ALTER TABLE IF EXISTS "ContainerApps" ADD COLUMN IF NOT EXISTS "AcrPullIdentityId" uuid;
-                UPDATE "ContainerApps" AS computeResource
-                SET "AcrPullIdentityId" = azureResource."AssignedUserAssignedIdentityId"
-                FROM "AzureResource" AS azureResource
-                WHERE azureResource."Id" = computeResource."Id"
-                    AND computeResource."AcrPullIdentityId" IS NULL
-                    AND computeResource."ContainerRegistryId" IS NOT NULL
-                    AND computeResource."AcrAuthMode" = @managedIdentityAcrAuthMode
-                    AND azureResource."AssignedUserAssignedIdentityId" IS NOT NULL;
+    private const string RepairLegacyComputeAcrPullIdentityColumnsSql = """
+        ALTER TABLE IF EXISTS "ContainerApps" ADD COLUMN IF NOT EXISTS "AcrPullIdentityId" uuid;
+        UPDATE "ContainerApps" AS computeResource
+        SET "AcrPullIdentityId" = azureResource."AssignedUserAssignedIdentityId"
+        FROM "AzureResource" AS azureResource
+        WHERE azureResource."Id" = computeResource."Id"
+            AND computeResource."AcrPullIdentityId" IS NULL
+            AND computeResource."ContainerRegistryId" IS NOT NULL
+            AND computeResource."AcrAuthMode" = @managedIdentityAcrAuthMode
+            AND azureResource."AssignedUserAssignedIdentityId" IS NOT NULL;
 
-                ALTER TABLE IF EXISTS "FunctionApps" ADD COLUMN IF NOT EXISTS "AcrPullIdentityId" uuid;
-                UPDATE "FunctionApps" AS computeResource
-                SET "AcrPullIdentityId" = azureResource."AssignedUserAssignedIdentityId"
-                FROM "AzureResource" AS azureResource
-                WHERE azureResource."Id" = computeResource."Id"
-                    AND computeResource."AcrPullIdentityId" IS NULL
-                    AND computeResource."ContainerRegistryId" IS NOT NULL
-                    AND computeResource."AcrAuthMode" = @managedIdentityAcrAuthMode
-                    AND azureResource."AssignedUserAssignedIdentityId" IS NOT NULL;
+        ALTER TABLE IF EXISTS "FunctionApps" ADD COLUMN IF NOT EXISTS "AcrPullIdentityId" uuid;
+        UPDATE "FunctionApps" AS computeResource
+        SET "AcrPullIdentityId" = azureResource."AssignedUserAssignedIdentityId"
+        FROM "AzureResource" AS azureResource
+        WHERE azureResource."Id" = computeResource."Id"
+            AND computeResource."AcrPullIdentityId" IS NULL
+            AND computeResource."ContainerRegistryId" IS NOT NULL
+            AND computeResource."AcrAuthMode" = @managedIdentityAcrAuthMode
+            AND azureResource."AssignedUserAssignedIdentityId" IS NOT NULL;
 
-                ALTER TABLE IF EXISTS "WebApps" ADD COLUMN IF NOT EXISTS "AcrPullIdentityId" uuid;
-                UPDATE "WebApps" AS computeResource
-                SET "AcrPullIdentityId" = azureResource."AssignedUserAssignedIdentityId"
-                FROM "AzureResource" AS azureResource
-                WHERE azureResource."Id" = computeResource."Id"
-                    AND computeResource."AcrPullIdentityId" IS NULL
-                    AND computeResource."ContainerRegistryId" IS NOT NULL
-                    AND computeResource."AcrAuthMode" = @managedIdentityAcrAuthMode
-                    AND azureResource."AssignedUserAssignedIdentityId" IS NOT NULL;
-                """;
+        ALTER TABLE IF EXISTS "WebApps" ADD COLUMN IF NOT EXISTS "AcrPullIdentityId" uuid;
+        UPDATE "WebApps" AS computeResource
+        SET "AcrPullIdentityId" = azureResource."AssignedUserAssignedIdentityId"
+        FROM "AzureResource" AS azureResource
+        WHERE azureResource."Id" = computeResource."Id"
+            AND computeResource."AcrPullIdentityId" IS NULL
+            AND computeResource."ContainerRegistryId" IS NOT NULL
+            AND computeResource."AcrAuthMode" = @managedIdentityAcrAuthMode
+            AND azureResource."AssignedUserAssignedIdentityId" IS NOT NULL;
+        """;
+    private const string RepairLegacyFrontDoorSchemaSql = """
+        CREATE TABLE IF NOT EXISTS "FrontDoors" (
+            "Id" uuid NOT NULL,
+            "WafPolicyEnabled" boolean NOT NULL,
+            CONSTRAINT "PK_FrontDoors" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_FrontDoors_AzureResource_Id"
+                FOREIGN KEY ("Id") REFERENCES "AzureResource" ("Id") ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS "FrontDoorEnvironmentSettings" (
+            "Id" uuid NOT NULL,
+            "FrontDoorId" uuid NOT NULL,
+            "EnvironmentName" character varying(100) NOT NULL,
+            "Sku" text NOT NULL,
+            CONSTRAINT "PK_FrontDoorEnvironmentSettings" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_FrontDoorEnvironmentSettings_FrontDoors_FrontDoorId"
+                FOREIGN KEY ("FrontDoorId") REFERENCES "FrontDoors" ("Id") ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS "FrontDoorOrigins" (
+            "Id" uuid NOT NULL,
+            "FrontDoorId" uuid NOT NULL,
+            "TargetResourceId" uuid NOT NULL,
+            "HostName" character varying(260),
+            "PrivateLinkEnabled" boolean NOT NULL,
+            "Weight" integer NOT NULL,
+            "Priority" integer NOT NULL,
+            CONSTRAINT "PK_FrontDoorOrigins" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_FrontDoorOrigins_FrontDoors_FrontDoorId"
+                FOREIGN KEY ("FrontDoorId") REFERENCES "FrontDoors" ("Id") ON DELETE CASCADE
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_FrontDoorEnvironmentSettings_FrontDoorId_EnvironmentName"
+            ON "FrontDoorEnvironmentSettings" ("FrontDoorId", "EnvironmentName");
+
+        CREATE INDEX IF NOT EXISTS "IX_FrontDoorOrigins_FrontDoorId"
+            ON "FrontDoorOrigins" ("FrontDoorId");
+        """;
     private const string CreateHistoryTableSql = """
         CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
             "MigrationId" character varying(150) NOT NULL,
@@ -88,6 +126,8 @@ internal static class ProjectDbContextBaselineHistorySynchronizer
                 connection,
                 RepairLegacyComputeAcrPullIdentityColumnsSql,
                 CreateParameter(connection, "managedIdentityAcrAuthMode", ManagedIdentityAcrAuthMode));
+
+            await ExecuteNonQueryAsync(connection, RepairLegacyFrontDoorSchemaSql);
 
             await ExecuteNonQueryAsync(connection, CreateHistoryTableSql);
 
