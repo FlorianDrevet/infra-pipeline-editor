@@ -304,7 +304,7 @@ describe('LayoutRepositoriesComponent', () => {
     expect(getComponentTestApi().testErrorMap()['repo-1']).toBe('Permission denied');
   });
 
-  it('reads the first backend error description when repository connection testing throws', async () => {
+  it('shows the generic connection error when repository connection testing throws a technical Key Vault retrieval failure', async () => {
     const repository = createRepositoryResponse('repo-1', ['Infrastructure', 'ApplicationCode']);
 
     projectResponse = createProjectResponse('AllInOne', [repository]);
@@ -327,9 +327,7 @@ describe('LayoutRepositoriesComponent', () => {
 
     expect(projectServiceSpy.testRepositoryConnection).toHaveBeenCalledOnceWith('project-1', 'repo-1');
     expect(getComponentTestApi().testResultMap()['repo-1']).toBe('failure');
-    expect(getComponentTestApi().testErrorMap()['repo-1']).toBe(
-      'The repository PAT could not be read from Key Vault.',
-    );
+    expect(getComponentTestApi().testErrorMap()['repo-1']).toBe('PROJECT_DETAIL.LAYOUT.AUTH.CONNECTION_ERROR');
   });
 
   async function createComponent(): Promise<void> {

@@ -90,7 +90,10 @@ export class ProjectGitPatDialogComponent {
       this.dialogRef.close(true);
     } catch (error) {
       this.errorMessage.set(
-        extractLayoutRepositoriesApiErrorMessage(error)
+        extractLayoutRepositoriesApiErrorMessage(
+          error,
+          this.translate.instant('PROJECT_DETAIL.LAYOUT.AUTH.SAVE_ERROR'),
+        )
         ?? this.translate.instant('PROJECT_DETAIL.LAYOUT.AUTH.SAVE_ERROR'),
       );
     } finally {

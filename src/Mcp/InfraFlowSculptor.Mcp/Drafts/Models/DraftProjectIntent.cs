@@ -17,15 +17,21 @@ public sealed class DraftProjectIntent
     /// <summary>Inferred environment definitions.</summary>
     public List<DraftEnvironmentIntent>? Environments { get; set; }
 
-    /// <summary>Inferred Azure resource types.</summary>
+    /// <summary>Inferred Azure resource types (supports multiple instances of the same type).</summary>
     public List<DraftResourceIntent>? Resources { get; set; }
 
     /// <summary>Inferred repository definitions.</summary>
     public List<DraftRepositoryIntent>? Repositories { get; set; }
+
+    /// <summary>Resource group topology when multiple RGs are requested.</summary>
+    public List<DraftResourceGroupAssignment>? ResourceGroupAssignments { get; set; }
 
     /// <summary>Agent pool name for pipeline execution.</summary>
     public string? AgentPoolName { get; set; }
 
     /// <summary>Pricing intent extracted from the prompt.</summary>
     public string? PricingIntent { get; set; }
+
+    /// <summary>Whether the user explicitly requested a multi-resource-group topology.</summary>
+    public bool HasMultiResourceGroupTopology => ResourceGroupAssignments is { Count: > 1 };
 }

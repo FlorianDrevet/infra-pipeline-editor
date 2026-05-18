@@ -1520,6 +1520,7 @@
         "CTA": "Configurer le PAT",
         "CTA_SHORT": "PAT",
         "DIALOG_TITLE": "Configurer le PAT du dépôt",
+        "CONNECTION_ERROR": "Impossible de tester la connexion du dépôt pour le moment.",
         "SAVE_ERROR": "Impossible d'enregistrer le PAT du dépôt."
       },
       "PRESET": "Preset de layout",

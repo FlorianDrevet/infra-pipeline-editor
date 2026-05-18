@@ -335,7 +335,10 @@ export class LayoutRepositoriesComponent implements OnInit {
   }
 
   private extractConnectionErrorMessage(error: unknown): string | null {
-    return extractLayoutRepositoriesApiErrorMessage(error);
+    return extractLayoutRepositoriesApiErrorMessage(
+      error,
+      this.translate.instant('PROJECT_DETAIL.LAYOUT.AUTH.CONNECTION_ERROR'),
+    );
   }
 
   private mapError(error: unknown, fallbackKey: string): string {

@@ -57,7 +57,7 @@ describe('ProjectGitPatDialogComponent', () => {
     expect(dialogRefSpy.close).toHaveBeenCalledOnceWith(true);
   });
 
-  it('surfaces the backend error description when saving the repository PAT fails', async () => {
+  it('shows the generic save error when the backend returns a technical Key Vault storage failure', async () => {
     const component = fixture.componentInstance as ProjectGitPatDialogComponent & {
       form: {
         controls: {
@@ -87,7 +87,8 @@ describe('ProjectGitPatDialogComponent', () => {
     fixture.detectChanges();
 
     expect(dialogRefSpy.close).not.toHaveBeenCalledWith(true);
-    expect(fixture.nativeElement.textContent).toContain(
+    expect(fixture.nativeElement.textContent).toContain('PROJECT_DETAIL.LAYOUT.AUTH.SAVE_ERROR');
+    expect(fixture.nativeElement.textContent).not.toContain(
       'The application is not allowed to write secrets to the configured Key Vault.',
     );
   });

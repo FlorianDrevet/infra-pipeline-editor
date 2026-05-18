@@ -18,9 +18,20 @@ interface ErrorWithResponse {
   };
 }
 
-export function extractLayoutRepositoriesApiErrorMessage(error: unknown): string | null {
+const TECHNICAL_KEY_VAULT_ERROR_CODES = new Set([
+  'GitRepository.SecretRetrievalFailed',
+  'GitRepository.SecretStorageFailed',
+]);
+
+export function extractLayoutRepositoriesApiErrorMessage(
+  error: unknown,
+  technicalErrorFallbackMessage?: string,
+): string | null {
   const errorWithResponse = asErrorWithResponse(error);
-  const responseMessage = extractResponseMessage(errorWithResponse?.response?.data);
+  const responseMessage = extractResponseMessage(
+    errorWithResponse?.response?.data,
+    technicalErrorFallbackMessage,
+  );
   if (responseMessage) {
     return responseMessage;
   }
@@ -36,13 +47,25 @@ export function extractLayoutRepositoriesApiErrorMessage(error: unknown): string
   return null;
 }
 
-function extractResponseMessage(data: ApiErrorResponse | string | undefined): string | null {
+function extractResponseMessage(
+  data: ApiErrorResponse | string | undefined,
+  technicalErrorFallbackMessage?: string,
+): string | null {
   if (typeof data === 'string') {
     return data.trim() || null;
   }
 
   if (!data) {
     return null;
+  }
+
+  const firstErrorCode = extractFirstErrorCode(data.errors);
+  if (
+    technicalErrorFallbackMessage
+    && firstErrorCode
+    && TECHNICAL_KEY_VAULT_ERROR_CODES.has(firstErrorCode)
+  ) {
+    return technicalErrorFallbackMessage;
   }
 
   const firstErrorDescription = extractFirstErrorDescription(data.errors);
@@ -68,6 +91,15 @@ function extractFirstErrorDescription(errors: ApiErrorResponse['errors']): strin
     .find((message) => typeof message === 'string' && message.trim());
 
   return firstValidationMessage?.trim() || null;
+}
+
+function extractFirstErrorCode(errors: ApiErrorResponse['errors']): string | null {
+  if (!Array.isArray(errors)) {
+    return null;
+  }
+
+  const firstError = errors.find((error) => typeof error.code === 'string' && error.code.trim());
+  return firstError?.code?.trim() || null;
 }
 
 function firstNonEmptyString(...values: Array<string | undefined>): string | null {

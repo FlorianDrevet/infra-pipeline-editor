@@ -14,7 +14,7 @@
 
 ## Incremental Entries
 
-- [2026-05-18] **P2 — Infrastructure / KeyVaultSecretClient**: `tests/InfraFlowSculptor.Infrastructure.Tests/Services/KeyVault/KeyVaultSecretClientTests.cs` now covers only the PAT write failure mapping in `SetSecretAsync(...)`; `GetSecretAsync(...)` and `DeleteSecretAsync(...)` still lack focused regression tests for exception logging and human-readable error mapping.
+- [2026-05-18] **P2 — Infrastructure / KeyVaultSecretClient**: `tests/InfraFlowSculptor.Infrastructure.Tests/Services/KeyVault/KeyVaultSecretClientTests.cs` now covers PAT write failure mapping in `SetSecretAsync(...)` and PAT read failure logging in `GetSecretAsync(...)`; `DeleteSecretAsync(...)` still lacks a focused regression test for exception logging and error mapping.
 
 ---
 

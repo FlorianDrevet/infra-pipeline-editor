@@ -22,8 +22,14 @@ public sealed class KeyVaultSecretClient(SecretClient client, ILogger<KeyVaultSe
             var response = await client.GetSecretAsync(secretName, cancellationToken: cancellationToken);
             return response.Value.Value;
         }
-        catch (Exception)
+        catch (RequestFailedException exception)
         {
+            logger.LogError(exception, "Failed to retrieve secret {SecretName} from Azure Key Vault.", secretName);
+            return Errors.GitRepository.SecretRetrievalFailed();
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Failed to retrieve secret {SecretName} from Azure Key Vault.", secretName);
             return Errors.GitRepository.SecretRetrievalFailed();
         }
     }

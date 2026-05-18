@@ -1528,6 +1528,7 @@
         "CTA": "Configure PAT",
         "CTA_SHORT": "PAT",
         "DIALOG_TITLE": "Configure repository PAT",
+        "CONNECTION_ERROR": "Unable to test the repository connection right now.",
         "SAVE_ERROR": "Unable to save the repository PAT."
       },
       "PRESET": "Layout Preset",

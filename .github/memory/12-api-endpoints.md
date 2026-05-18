@@ -18,11 +18,11 @@
 | `/projects` | DELETE | `/{id:guid}` | `DeleteProjectCommand` |
 | `/projects` | PUT | `/{id:guid}/agent-pool` | `SetAgentPoolCommand` (moved from /infra-configs) [2026-04-04] |
 | `/projects` | POST/PUT/DELETE | `/{id:guid}/repositories/{repoId?}` | Project repository CRUD |
-| `/projects` | POST | `/{id:guid}/repositories/{repoId:guid}/test-connection` | `TestProjectRepositoryConnectionCommand` (tests a selected project repository with its own repository-scoped PAT and returns a human-readable failure reason when available) [2026-05-18] |
+| `/projects` | POST | `/{id:guid}/repositories/{repoId:guid}/test-connection` | `TestProjectRepositoryConnectionCommand` (tests a selected project repository with its own repository-scoped PAT; frontend unwraps business errors but masks technical Key Vault retrieval errors with a generic localized message) [2026-05-18] |
 | `/projects` | PUT | `/{id:guid}/layout-preset` | `SetProjectLayoutPresetCommand` |
 | `/projects` | PUT/POST/PUT/DELETE | `/{id:guid}/configs/{configId:guid}/{layout-mode|repositories/...}` | Config layout mode + config repository CRUD |
 | `/projects` | POST | `/validate-recent` | `ValidateRecentItemsQuery` |
-| `/projects` | PUT | `/{id:guid}/repositories/{repoId:guid}/git-pat` | `SetProjectGitPatCommand` (stores the selected repository PAT in Key Vault and returns a readable Key Vault write failure description when possible) [2026-05-18] |
+| `/projects` | PUT | `/{id:guid}/repositories/{repoId:guid}/git-pat` | `SetProjectGitPatCommand` (stores the selected repository PAT in Key Vault; frontend masks technical Key Vault write errors with a generic localized message while backend logs keep the detail) [2026-05-18] |
 | `/projects` | POST | `/{id:guid}/git-config/test` | `TestGitConnectionCommand` (resolver-backed, V3) |
 | `/projects` | GET | `/{id:guid}/git-config/branches` | `ListGitBranchesQuery` (resolver-backed, V3) |
 | `/projects` | GET | `/{id:guid}/git-config/code-branches` | `ListCodeRepoBranchesQuery` (code-repo, optional `?configId=`) [2026-04-26] |
