@@ -87,6 +87,108 @@ internal static class ProjectDbContextBaselineHistorySynchronizer
         CREATE INDEX IF NOT EXISTS "IX_FrontDoorOrigins_FrontDoorId"
             ON "FrontDoorOrigins" ("FrontDoorId");
         """;
+    private const string RepairLegacyNetworkingSchemaSql = """
+        CREATE TABLE IF NOT EXISTS "NetworkSecurityGroups" (
+            "Id" uuid NOT NULL,
+            CONSTRAINT "PK_NetworkSecurityGroups" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_NetworkSecurityGroups_AzureResource_Id"
+                FOREIGN KEY ("Id") REFERENCES "AzureResource" ("Id") ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS "PrivateDnsZones" (
+            "Id" uuid NOT NULL,
+            CONSTRAINT "PK_PrivateDnsZones" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_PrivateDnsZones_AzureResource_Id"
+                FOREIGN KEY ("Id") REFERENCES "AzureResource" ("Id") ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS "VirtualNetworks" (
+            "Id" uuid NOT NULL,
+            "EnableDdosProtection" boolean NOT NULL,
+            CONSTRAINT "PK_VirtualNetworks" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_VirtualNetworks_AzureResource_Id"
+                FOREIGN KEY ("Id") REFERENCES "AzureResource" ("Id") ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS "PrivateEndpointConfigs" (
+            "Id" uuid NOT NULL,
+            "ResourceId" uuid NOT NULL,
+            "SubnetId" uuid NOT NULL,
+            "GroupId" character varying(100) NOT NULL,
+            "AutoApproval" boolean NOT NULL,
+            "PrivateDnsZoneId" uuid,
+            "CustomNetworkInterfaceName" character varying(260),
+            CONSTRAINT "PK_PrivateEndpointConfigs" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_PrivateEndpointConfigs_AzureResource_ResourceId"
+                FOREIGN KEY ("ResourceId") REFERENCES "AzureResource" ("Id") ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS "NsgRules" (
+            "Id" uuid NOT NULL,
+            "NetworkSecurityGroupId" uuid NOT NULL,
+            "Name" character varying(260) NOT NULL,
+            "Priority" integer NOT NULL,
+            "Direction" text NOT NULL,
+            "Access" text NOT NULL,
+            "Protocol" text NOT NULL,
+            "SourceAddressPrefix" character varying(100) NOT NULL,
+            "DestinationAddressPrefix" character varying(100) NOT NULL,
+            "SourcePortRange" character varying(50) NOT NULL,
+            "DestinationPortRange" character varying(50) NOT NULL,
+            CONSTRAINT "PK_NsgRules" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_NsgRules_NetworkSecurityGroups_NetworkSecurityGroupId"
+                FOREIGN KEY ("NetworkSecurityGroupId") REFERENCES "NetworkSecurityGroups" ("Id") ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS "VirtualNetworkLinks" (
+            "Id" uuid NOT NULL,
+            "PrivateDnsZoneId" uuid NOT NULL,
+            "VirtualNetworkId" uuid NOT NULL,
+            "EnableAutoRegistration" boolean NOT NULL,
+            CONSTRAINT "PK_VirtualNetworkLinks" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_VirtualNetworkLinks_PrivateDnsZones_PrivateDnsZoneId"
+                FOREIGN KEY ("PrivateDnsZoneId") REFERENCES "PrivateDnsZones" ("Id") ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS "Subnets" (
+            "Id" uuid NOT NULL,
+            "VirtualNetworkId" uuid NOT NULL,
+            "Name" character varying(260) NOT NULL,
+            "Delegation" text,
+            "ServiceEndpoints" jsonb NOT NULL,
+            "PrivateEndpointNetworkPolicies" text NOT NULL,
+            "NsgId" uuid,
+            CONSTRAINT "PK_Subnets" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_Subnets_VirtualNetworks_VirtualNetworkId"
+                FOREIGN KEY ("VirtualNetworkId") REFERENCES "VirtualNetworks" ("Id") ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS "VirtualNetworkEnvironmentSettings" (
+            "Id" uuid NOT NULL,
+            "VirtualNetworkId" uuid NOT NULL,
+            "EnvironmentName" character varying(100) NOT NULL,
+            "AddressSpaces" jsonb NOT NULL,
+            "DnsServers" jsonb,
+            CONSTRAINT "PK_VirtualNetworkEnvironmentSettings" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_VirtualNetworkEnvironmentSettings_VirtualNetworks_VirtualNetworkId"
+                FOREIGN KEY ("VirtualNetworkId") REFERENCES "VirtualNetworks" ("Id") ON DELETE CASCADE
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_NsgRules_NetworkSecurityGroupId_Priority_Direction"
+            ON "NsgRules" ("NetworkSecurityGroupId", "Priority", "Direction");
+
+        CREATE INDEX IF NOT EXISTS "IX_PrivateEndpointConfigs_ResourceId"
+            ON "PrivateEndpointConfigs" ("ResourceId");
+
+        CREATE INDEX IF NOT EXISTS "IX_Subnets_VirtualNetworkId"
+            ON "Subnets" ("VirtualNetworkId");
+
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_VirtualNetworkEnvironmentSettings_VirtualNetworkId_EnvironmentName"
+            ON "VirtualNetworkEnvironmentSettings" ("VirtualNetworkId", "EnvironmentName");
+
+        CREATE INDEX IF NOT EXISTS "IX_VirtualNetworkLinks_PrivateDnsZoneId"
+            ON "VirtualNetworkLinks" ("PrivateDnsZoneId");
+        """;
     private const string CreateHistoryTableSql = """
         CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
             "MigrationId" character varying(150) NOT NULL,
@@ -128,6 +230,7 @@ internal static class ProjectDbContextBaselineHistorySynchronizer
                 CreateParameter(connection, "managedIdentityAcrAuthMode", ManagedIdentityAcrAuthMode));
 
             await ExecuteNonQueryAsync(connection, RepairLegacyFrontDoorSchemaSql);
+            await ExecuteNonQueryAsync(connection, RepairLegacyNetworkingSchemaSql);
 
             await ExecuteNonQueryAsync(connection, CreateHistoryTableSql);
 

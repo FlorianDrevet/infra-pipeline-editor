@@ -101,6 +101,51 @@ public sealed class ProjectDbContextBaselineHistorySynchronizerTests
     }
 
     [Fact]
+    public async Task Given_BaselinedLegacyProjectSchemaMissingNetworkingTables_When_SynchronizeAsync_Then_RepairsNetworkingSchemaAsync()
+    {
+        // Arrange
+        var connection = new BaselineRecordingDbConnection(existingMarkerTableCount: 4, appliedBaselineMigrationCount: 1);
+        await using var context = CreateRelationalContext(connection);
+
+        // Act
+        var wasSynchronized = await ProjectDbContextBaselineHistorySynchronizer.SynchronizeAsync(context);
+
+        // Assert
+        wasSynchronized.Should().BeFalse();
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE TABLE IF NOT EXISTS \"NetworkSecurityGroups\"", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE TABLE IF NOT EXISTS \"PrivateDnsZones\"", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE TABLE IF NOT EXISTS \"VirtualNetworks\"", StringComparison.Ordinal)
+            && command.CommandText.Contains("\"EnableDdosProtection\" boolean NOT NULL", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE TABLE IF NOT EXISTS \"PrivateEndpointConfigs\"", StringComparison.Ordinal)
+            && command.CommandText.Contains("\"GroupId\" character varying(100) NOT NULL", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE TABLE IF NOT EXISTS \"NsgRules\"", StringComparison.Ordinal)
+            && command.CommandText.Contains("\"DestinationPortRange\" character varying(50) NOT NULL", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE TABLE IF NOT EXISTS \"VirtualNetworkLinks\"", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE TABLE IF NOT EXISTS \"Subnets\"", StringComparison.Ordinal)
+            && command.CommandText.Contains("\"ServiceEndpoints\" jsonb NOT NULL", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE TABLE IF NOT EXISTS \"VirtualNetworkEnvironmentSettings\"", StringComparison.Ordinal)
+            && command.CommandText.Contains("\"AddressSpaces\" jsonb NOT NULL", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE UNIQUE INDEX IF NOT EXISTS \"IX_NsgRules_NetworkSecurityGroupId_Priority_Direction\"", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE INDEX IF NOT EXISTS \"IX_PrivateEndpointConfigs_ResourceId\"", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE INDEX IF NOT EXISTS \"IX_Subnets_VirtualNetworkId\"", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE UNIQUE INDEX IF NOT EXISTS \"IX_VirtualNetworkEnvironmentSettings_VirtualNetworkId_EnvironmentName\"", StringComparison.Ordinal));
+        connection.ExecutedCommands.Should().Contain(command =>
+            command.CommandText.Contains("CREATE INDEX IF NOT EXISTS \"IX_VirtualNetworkLinks_PrivateDnsZoneId\"", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task Given_EmptyDatabase_When_SynchronizeAsync_Then_DoesNotTouchMigrationHistoryAsync()
     {
         // Arrange
