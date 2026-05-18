@@ -65,27 +65,27 @@
       </app-ds-alert>
 
       <div class="create-pat-dialog__token-display">
-        <div class="create-pat-dialog__token-toolbar">
+        <div class="create-pat-dialog__token-content">
           <div class="create-pat-dialog__token-marker" aria-hidden="true">
             <mat-icon>vpn_key</mat-icon>
           </div>
-          <app-ds-button
-            [variant]="copied() ? 'success' : 'subtle'"
-            size="sm"
-            [icon]="copied() ? 'check' : 'content_copy'"
-            (clicked)="copyToken()">
-            @if (copied()) {
-              {{ 'SETTINGS.TOKEN_CREATED.COPIED' | translate }}
-            } @else {
-              {{ 'SETTINGS.TOKEN_CREATED.COPY' | translate }}
-            }
-          </app-ds-button>
+          <code class="create-pat-dialog__token-value">{{ createdToken() }}</code>
         </div>
-        <code class="create-pat-dialog__token-value">{{ createdToken() }}</code>
       </div>
     </mat-dialog-content>
 
-    <mat-dialog-actions class="create-pat-dialog__actions" align="end">
+    <mat-dialog-actions class="create-pat-dialog__actions create-pat-dialog__actions--success">
+      <app-ds-button
+        [variant]="copied() ? 'success' : 'subtle'"
+        size="sm"
+        [icon]="copied() ? 'check' : 'content_copy'"
+        (clicked)="copyToken()">
+        @if (copied()) {
+          {{ 'SETTINGS.TOKEN_CREATED.COPIED' | translate }}
+        } @else {
+          {{ 'SETTINGS.TOKEN_CREATED.COPY' | translate }}
+        }
+      </app-ds-button>
       <app-ds-button variant="primary" (clicked)="onDone()">
         {{ 'SETTINGS.TOKEN_CREATED.DONE' | translate }}
       </app-ds-button>

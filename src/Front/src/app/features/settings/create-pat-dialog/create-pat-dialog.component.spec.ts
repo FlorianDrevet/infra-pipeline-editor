@@ -44,7 +44,7 @@ describe('CreatePatDialogComponent', () => {
     expect(datePicker.max()).toBe('2027-05-02');
   });
 
-  it('uses a dedicated token toolbar and a filled copy action in the success state', () => {
+  it('renders the success state with token content and bottom actions aligned', () => {
     const component = fixture.componentInstance as CreatePatDialogComponent & {
       createdToken: { set(value: string): void };
       tokenCreated: { set(value: boolean): void };
@@ -54,14 +54,27 @@ describe('CreatePatDialogComponent', () => {
     component.tokenCreated.set(true);
     fixture.detectChanges();
 
-    const toolbar = fixture.nativeElement.querySelector('.create-pat-dialog__token-toolbar');
-    const copyButton = fixture.debugElement
-      .queryAll(By.directive(DsButtonComponent))
-      .map(debugElement => debugElement.componentInstance as DsButtonComponent)
-      .find(button => button.icon() === 'content_copy');
+    const tokenContent = fixture.nativeElement.querySelector('.create-pat-dialog__token-content');
+    const tokenMarker = fixture.nativeElement.querySelector('.create-pat-dialog__token-marker');
+    const tokenValue = fixture.nativeElement.querySelector('.create-pat-dialog__token-value');
+    const successActions = fixture.debugElement.query(By.css('.create-pat-dialog__actions--success'));
+    const actionButtons = successActions
+      ? successActions
+        .queryAll(By.directive(DsButtonComponent))
+        .map(debugElement => debugElement.componentInstance as DsButtonComponent)
+      : [];
+    const [copyButton, doneButton] = actionButtons;
 
-    expect(toolbar).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.create-pat-dialog__token-toolbar')).toBeNull();
+    expect(tokenContent).not.toBeNull();
+    expect(tokenMarker).not.toBeNull();
+    expect(tokenValue?.textContent?.trim()).toBe('ifs_pat_live_123456789');
+    expect(successActions).not.toBeNull();
+    expect(actionButtons.length).toBe(2);
     expect(copyButton).toBeDefined();
+    expect(doneButton).toBeDefined();
+    expect(copyButton?.icon()).toBe('content_copy');
     expect(copyButton?.variant()).toBe('subtle');
+    expect(doneButton?.variant()).toBe('primary');
   });
 });
