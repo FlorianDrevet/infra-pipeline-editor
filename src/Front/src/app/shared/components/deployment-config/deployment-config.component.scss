@@ -271,6 +271,84 @@
   }
 }
 
+// ─── ACR Access Section ────
+
+.acr-access-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 0.9rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid rgba(58, 180, 217, 0.18);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(58, 180, 217, 0.08) 0%, rgba(58, 180, 217, 0.02) 100%),
+    var(--ifs-surface-1);
+  box-shadow: var(--ifs-shadow-sm);
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid rgba(58, 180, 217, 0.12);
+  }
+
+  &__title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-inline-size: 0;
+  }
+
+  &__eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ifs-accent-500);
+  }
+
+  &__title-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  &__title-icon {
+    font-size: 1.05rem;
+    width: 1.05rem;
+    height: 1.05rem;
+    color: var(--ifs-accent-500);
+    flex-shrink: 0;
+  }
+
+  &__title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ifs-text-primary);
+    line-height: 1.3;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__status {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .acr-identity-card,
+  .acr-inline-status {
+    margin-top: 0;
+  }
+}
+
 // ─── ACR Inline Status (checking / ok) ────
 
 .acr-inline-status {
@@ -318,6 +396,18 @@
   border-radius: 12px;
   margin-top: 0.75rem;
   transition: background-color var(--ifs-duration-base) var(--ifs-ease-standard), border-color var(--ifs-duration-base) var(--ifs-ease-standard), box-shadow var(--ifs-duration-base) var(--ifs-ease-standard);
+
+  &--selector {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--ifs-border-subtle);
+    box-shadow: none;
+
+    .acr-identity-card__identity-section {
+      background: transparent;
+      padding: 0;
+      gap: 0.55rem;
+    }
+  }
 
   &--warn {
     background: rgba(245, 166, 35, 0.08);

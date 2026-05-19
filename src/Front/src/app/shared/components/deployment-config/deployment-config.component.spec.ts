@@ -57,6 +57,21 @@ describe('DeploymentConfigComponent', () => {
     expect(selectLabel?.textContent).toContain('RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL');
   });
 
+  it('renders the ACR pull identity UI inside a dedicated visual section', async () => {
+    fixture.componentRef.setInput('showAcrPullIdentitySelector', true);
+    fixture.componentRef.setInput('containerRegistryId', 'acr-1');
+    fixture.componentRef.setInput('acrAuthMode', 'ManagedIdentity');
+    fixture.componentRef.setInput('acrUaiState', 'ok');
+    fixture.componentRef.setInput('uaiOptions', [
+      { value: 'uai-1', label: 'UAI One' },
+    ]);
+    await flushComponent();
+
+    const section = fixture.nativeElement.querySelector('.acr-access-section') as HTMLElement | null;
+    expect(section).toBeTruthy();
+    expect(section?.querySelector('.acr-identity-card')).toBeTruthy();
+  });
+
   it('hides UAI select for ACR pull by default', async () => {
     fixture.componentRef.setInput('containerRegistryId', 'acr-1');
     fixture.componentRef.setInput('acrAuthMode', 'ManagedIdentity');
