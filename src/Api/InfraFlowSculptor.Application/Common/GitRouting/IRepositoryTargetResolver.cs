@@ -20,12 +20,11 @@ public interface IRepositoryTargetResolver
     /// </param>
     /// <param name="config">
     /// The target infrastructure configuration, or <c>null</c> for a project-level operation.
-    /// When <c>null</c>, the resolver falls back to the alias <c>"default"</c>.
-    /// When provided, the resolver honors <see cref="InfrastructureConfig.RepositoryBinding"/>.
+    /// When provided, the resolver uses the configuration-level repositories.
     /// </param>
     /// <param name="kind">The artifact kind, used to pick the appropriate path override.</param>
     /// <returns>
-    /// The resolved target, or a routing error (<c>GitRouting.AliasNotFound</c>,
+    /// The resolved target, or a routing error (<c>GitRouting.RepositoryRoleNotConfigured</c>,
     /// <c>GitRouting.NoRepositoryConfigured</c>).
     /// </returns>
     ErrorOr<ResolvedRepositoryTarget> Resolve(Project project, global::InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig? config, ArtifactKind kind);

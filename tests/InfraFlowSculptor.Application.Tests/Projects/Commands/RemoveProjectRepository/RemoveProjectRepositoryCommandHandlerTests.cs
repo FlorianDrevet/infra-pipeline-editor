@@ -84,11 +84,9 @@ public sealed class RemoveProjectRepositoryCommandHandlerTests
     {
         // Arrange — switch to AllInOne layout, add a repository, then remove it
         _project.SetLayoutPreset(new LayoutPreset(LayoutPresetEnum.AllInOne));
-        var alias = RepositoryAlias.Create("infra-repo").Value;
         var contentKinds = RepositoryContentKinds.Create(
             RepositoryContentKindsEnum.Infrastructure | RepositoryContentKindsEnum.ApplicationCode).Value;
         var addResult = _project.AddRepository(
-            alias,
             new GitProviderType(GitProviderTypeEnum.GitHub),
             "https://github.com/test/repo",
             "main",

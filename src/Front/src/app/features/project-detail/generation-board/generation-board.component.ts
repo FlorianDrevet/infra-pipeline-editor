@@ -22,6 +22,7 @@ import {
   ProjectResponse,
 } from '../../../shared/interfaces/project.interface';
 import { InfrastructureConfigResponse } from '../../../shared/interfaces/infra-config.interface';
+import { InfraConfigRepositoryResponse } from '../../../shared/interfaces/infra-config-repository.interface';
 import {
   ProjectLayoutPreset,
   ProjectRepositoryResponse,
@@ -72,9 +73,9 @@ interface ConfigSummary {
   readonly sharedPipelineCount: number;
 }
 
-interface AliasGroup {
-  readonly alias: string;
-  readonly repo: ProjectRepositoryResponse | null;
+interface RepositoryGroup {
+  readonly key: string;
+  readonly repo: ProjectRepositoryResponse | InfraConfigRepositoryResponse | null;
   readonly configs: readonly InfrastructureConfigResponse[];
   readonly resourceGroupCount: number;
   readonly resourceCount: number;
@@ -108,7 +109,7 @@ interface MonoRepoTab extends MonoRepoTabDefinition {
   readonly retry: () => Promise<void>;
 }
 
-const DEFAULT_ALIAS = 'default';
+const DEFAULT_REPOSITORY_KEY = 'default';
 const ALL_IN_ONE_LAYOUT: ProjectLayoutPreset = 'AllInOne';
 const MULTI_REPO_LAYOUT: ProjectLayoutPreset = 'MultiRepo';
 const SPLIT_INFRA_CODE_LAYOUT: ProjectLayoutPreset = 'SplitInfraCode';
@@ -391,7 +392,7 @@ export class GenerationBoardComponent implements OnInit {
     },
   ];
 
-  protected readonly groupedByAlias = computed<AliasGroup[]>(() => {
+  protected readonly groupedByRepository = computed<RepositoryGroup[]>(() => {
     const configs = this.configs();
     const project = this.project();
     const repos = project?.repositories ?? [];
@@ -400,7 +401,7 @@ export class GenerationBoardComponent implements OnInit {
       const summary = summarizeConfigs(configs);
 
       return repos.map((repo) => ({
-        alias: repo.alias,
+        key: repo.id,
         repo,
         configs,
         resourceGroupCount: summary.resourceGroupCount,
@@ -411,33 +412,32 @@ export class GenerationBoardComponent implements OnInit {
       }));
     }
 
-    const repoByAlias = new Map(repos.map((r) => [r.alias, r]));
+    const repoById = new Map(repos.map((repository) => [repository.id, repository]));
     const isMultiRepo = project?.layoutPreset === MULTI_REPO_LAYOUT;
 
-    const byAlias = new Map<string, InfrastructureConfigResponse[]>();
+    const byRepositoryKey = new Map<string, InfrastructureConfigResponse[]>();
     for (const config of configs) {
-      // MultiRepo: bucket by the first config-level repo alias (or fallback to config name).
-      // Mono-repo layouts: all configs share project-level repos, bucket by first project repo alias.
-      const alias = isMultiRepo
-        ? (config.repositories?.[0]?.alias ?? config.name ?? DEFAULT_ALIAS)
-        : (repos[0]?.alias ?? DEFAULT_ALIAS);
-      const bucket = byAlias.get(alias);
+      const configRepository = config.repositories?.[0] ?? null;
+      const repositoryKey = isMultiRepo
+        ? (configRepository?.id ?? config.id ?? config.name ?? DEFAULT_REPOSITORY_KEY)
+        : (repos[0]?.id ?? DEFAULT_REPOSITORY_KEY);
+      const bucket = byRepositoryKey.get(repositoryKey);
       if (bucket) {
         bucket.push(config);
       } else {
-        byAlias.set(alias, [config]);
+        byRepositoryKey.set(repositoryKey, [config]);
       }
     }
 
-    return Array.from(byAlias.entries())
-      .map<AliasGroup>(([alias, items]) => {
+    return Array.from(byRepositoryKey.entries())
+      .map<RepositoryGroup>(([key, items]) => {
         const summary = summarizeConfigs(items);
 
         return {
-          alias,
-          repo: repoByAlias.get(alias)
+          key,
+          repo: repoById.get(key)
             ?? (isMultiRepo
-              ? (items[0]?.repositories?.find((r) => r.alias === alias) ?? null)
+              ? (items[0]?.repositories?.find((repository) => repository.id === key) ?? null)
               : null),
           configs: items,
           resourceGroupCount: summary.resourceGroupCount,
@@ -445,13 +445,13 @@ export class GenerationBoardComponent implements OnInit {
           metrics: buildInfrastructureMetrics(items.length, summary),
         };
       })
-      .sort((a, b) => a.alias.localeCompare(b.alias));
+        .sort((a, b) => a.key.localeCompare(b.key));
   });
 
   protected readonly topology = computed<BoardTopology>(() => {
     const project = this.project();
     if (project?.layoutPreset === SPLIT_INFRA_CODE_LAYOUT) return 'split-infra-code';
-    const groups = this.groupedByAlias();
+    const groups = this.groupedByRepository();
     if (groups.length === 0) return 'empty';
     if (groups.length === 1) return 'single';
     return groups.every((g) => g.configs.length === 1) ? 'split' : 'mixed';
@@ -462,7 +462,7 @@ export class GenerationBoardComponent implements OnInit {
   protected readonly canGenerateProject = computed(() => this.canGenerateAll() && this.hasProjectLevelRepositories());
 
   protected readonly repositoryCount = computed(() => Math.max(
-    this.groupedByAlias().length,
+    this.groupedByRepository().length,
     this.project()?.repositories?.length ?? 0,
   ));
 

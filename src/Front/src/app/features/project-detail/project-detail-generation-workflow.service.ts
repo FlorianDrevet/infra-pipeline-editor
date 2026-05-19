@@ -47,7 +47,7 @@ import {
 import {
   ensureProjectArchiveEntrySizeWithinLimits,
   ensureProjectArchiveSourceSizeWithinLimits,
-  resolveProjectDetailSplitRepoAliases,
+  resolveProjectDetailSplitRepoTargets,
   tryGetProjectArchiveEntryUncompressedSize,
 } from './project-detail-generation.helper';
 import { shouldDeferMonoRepoBatchReveal } from './project-generation-visibility.helper';
@@ -394,16 +394,18 @@ export class ProjectDetailGenerationWorkflowService {
 
   readonly openProjectMultiRepoPushDialog = (mode: MultiRepoPushMode): void => {
     const project = this.project();
-    const aliases = project ? resolveProjectDetailSplitRepoAliases(project) : null;
-    if (!project || !aliases) {
+    const targets = project ? resolveProjectDetailSplitRepoTargets(project) : null;
+    if (!project || !targets) {
       this.showProjectActionError('PROJECT_DETAIL.MULTI_REPO_PUSH.MISSING_SLOTS');
       return;
     }
 
     const data: MultiRepoPushDialogData = {
       projectId: project.id,
-      infraAlias: aliases.infraAlias,
-      codeAlias: aliases.codeAlias,
+      infraRepositoryId: targets.infraRepositoryId,
+      codeRepositoryId: targets.codeRepositoryId,
+      infraRepositoryLabel: targets.infraRepositoryLabel,
+      codeRepositoryLabel: targets.codeRepositoryLabel,
       mode,
     };
 

@@ -13,8 +13,8 @@ namespace InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 /// via its <c>RepositoryBinding</c>.
 /// </summary>
 /// <remarks>
-/// A repository can be created in a "slot" state where only the <see cref="Alias"/> and
-/// <see cref="ContentKinds"/> are known. The Git connection details
+/// A repository can be created in a "slot" state where only the <see cref="ContentKinds"/>
+/// are known. The Git connection details
 /// (<see cref="ProviderType"/>, <see cref="RepositoryUrl"/>, <see cref="DefaultBranch"/>)
 /// can be filled in later via <see cref="Update"/>. Generation and push flows that need
 /// connection details should check <see cref="IsConfigured"/> before using the repository.
@@ -23,9 +23,6 @@ public sealed class ProjectRepository : Entity<ProjectRepositoryId>
 {
     /// <summary>Gets the parent project identifier.</summary>
     public ProjectId ProjectId { get; private set; } = null!;
-
-    /// <summary>Gets the project-scoped logical alias of this repository (slug).</summary>
-    public RepositoryAlias Alias { get; private set; } = null!;
 
     /// <summary>Gets the Git hosting provider type, or <c>null</c> if not yet configured.</summary>
     public GitProviderType? ProviderType { get; private set; }
@@ -65,7 +62,6 @@ public sealed class ProjectRepository : Entity<ProjectRepositoryId>
     /// Partially-supplied connection details are rejected.
     /// </summary>
     /// <param name="projectId">The parent project identifier.</param>
-    /// <param name="alias">The project-scoped alias of the repository.</param>
     /// <param name="providerType">The Git hosting provider type, or <c>null</c> for an unconfigured slot.</param>
     /// <param name="repositoryUrl">The full repository URL, or <c>null</c>/empty for an unconfigured slot.</param>
     /// <param name="defaultBranch">The default branch name, or <c>null</c>/empty for an unconfigured slot.</param>
@@ -73,7 +69,6 @@ public sealed class ProjectRepository : Entity<ProjectRepositoryId>
     /// <returns>The created entity or a validation error.</returns>
     public static ErrorOr<ProjectRepository> Create(
         ProjectId projectId,
-        RepositoryAlias alias,
         GitProviderType? providerType,
         string? repositoryUrl,
         string? defaultBranch,
@@ -83,7 +78,6 @@ public sealed class ProjectRepository : Entity<ProjectRepositoryId>
         {
             Id = ProjectRepositoryId.CreateUnique(),
             ProjectId = projectId,
-            Alias = alias,
             ContentKinds = contentKinds,
         };
 

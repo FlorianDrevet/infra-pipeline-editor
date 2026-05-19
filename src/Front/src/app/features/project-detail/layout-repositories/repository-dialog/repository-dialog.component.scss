@@ -33,6 +33,27 @@
   width: 100%;
 }
 
+.verification-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+
+  &__status {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ifs-text-secondary);
+  }
+
+  &__status--success {
+    color: var(--ifs-success);
+  }
+
+  &__status--error {
+    color: var(--ifs-danger);
+  }
+}
+
 .content-kinds {
   display: flex;
   flex-direction: column;

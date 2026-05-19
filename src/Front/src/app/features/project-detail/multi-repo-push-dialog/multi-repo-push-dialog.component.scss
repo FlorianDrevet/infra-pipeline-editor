@@ -173,7 +173,7 @@
   font-weight: 700;
 }
 
-.mr-card__alias {
+.mr-card__repository {
   @include ifs-truncate;
 
   display: inline-block;
@@ -187,7 +187,7 @@
   font-weight: 600;
 }
 
-.mr-card--code .mr-card__alias {
+.mr-card--code .mr-card__repository {
   background: rgba(var(--ifs-accent-500), 0.12);
 }
 

@@ -1,7 +1,7 @@
 export type MultiRepoPushMode = 'both' | 'infra' | 'code';
 
 export interface RepoPushTarget {
-  alias: string;
+  repositoryId: string;
   branchName: string;
   commitMessage: string;
 }
@@ -12,7 +12,7 @@ export interface MultiRepoPushRequest {
 }
 
 export interface RepoPushResult {
-  alias: string;
+  repositoryId: string;
   success: boolean;
   branchUrl: string | null;
   commitSha: string | null;

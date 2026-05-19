@@ -18,6 +18,7 @@ public sealed class MultiRepoProjectArtifactsPushServiceTests
     private const string PersonalAccessToken = "pat-token";
 
     private readonly IGitProviderFactory _gitProviderFactory;
+    private readonly IKeyVaultSecretClient _keyVaultSecretClient;
     private readonly IBlobService _blobService;
     private readonly IRepositoryTargetResolver _targetResolver;
     private readonly IGitProviderService _gitProvider;
@@ -31,14 +32,17 @@ public sealed class MultiRepoProjectArtifactsPushServiceTests
     public MultiRepoProjectArtifactsPushServiceTests()
     {
         _gitProviderFactory = Substitute.For<IGitProviderFactory>();
+        _keyVaultSecretClient = Substitute.For<IKeyVaultSecretClient>();
         _blobService = Substitute.For<IBlobService>();
         _targetResolver = Substitute.For<IRepositoryTargetResolver>();
         _gitProvider = Substitute.For<IGitProviderService, IGitMultiScopePushProviderService>();
         _multiScopeGitProvider = (IGitMultiScopePushProviderService)_gitProvider;
 
         _project = CreateConfiguredSplitProject();
+        var infraRepository = _project.Repositories.Single(repository => repository.ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure));
+        var appRepository = _project.Repositories.Single(repository => repository.ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode));
         _infraTarget = new ResolvedRepositoryTarget(
-            Alias: "infra",
+            RepositoryId: infraRepository.Id.Value.ToString(),
             ProviderType: new GitProviderType(GitProviderTypeEnum.GitHub),
             RepositoryUrl: "https://github.com/octo-org/retail-platform-infra",
             Owner: "octo-org",
@@ -46,9 +50,9 @@ public sealed class MultiRepoProjectArtifactsPushServiceTests
             Branch: "main",
             BasePath: "infra-root",
             PipelineBasePath: "pipelines",
-            PatSecretName: null);
+            PatSecretName: ProjectGitSecretNames.GetRepositoryPatSecretName(infraRepository.Id));
         _appTarget = new ResolvedRepositoryTarget(
-            Alias: "code",
+            RepositoryId: appRepository.Id.Value.ToString(),
             ProviderType: new GitProviderType(GitProviderTypeEnum.GitHub),
             RepositoryUrl: "https://github.com/octo-org/retail-platform-app",
             Owner: "octo-org",
@@ -56,20 +60,21 @@ public sealed class MultiRepoProjectArtifactsPushServiceTests
             Branch: "main",
             BasePath: string.Empty,
             PipelineBasePath: "app-pipelines",
-            PatSecretName: null);
+            PatSecretName: ProjectGitSecretNames.GetRepositoryPatSecretName(appRepository.Id));
         _command = new PushProjectArtifactsToMultiRepoCommand(
             _project.Id,
             Infra: new RepoPushTarget(
-                Alias: "infra",
+                RepositoryId: infraRepository.Id,
                 BranchName: "feature/generated-infra",
                 CommitMessage: "Update infra artifacts"),
             Code: new RepoPushTarget(
-                Alias: "code",
+                RepositoryId: appRepository.Id,
                 BranchName: "feature/generated-code",
                 CommitMessage: "Update app artifacts"));
 
         _sut = new MultiRepoProjectArtifactsPushService(
             new MultiScopeGitPushExecutor(_gitProviderFactory),
+            _keyVaultSecretClient,
             _blobService,
             _targetResolver);
     }
@@ -87,21 +92,21 @@ public sealed class MultiRepoProjectArtifactsPushServiceTests
         _gitProviderFactory.Create(Arg.Any<GitProviderType>()).Returns(unsupportedProvider);
 
         // Act
-        var result = await _sut.PushAsync(_command, _project, PersonalAccessToken, CancellationToken.None);
+        var result = await _sut.PushAsync(_command, _project, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.Results.Should().SatisfyRespectively(
             infraResult =>
             {
-                infraResult.Alias.Should().Be("infra");
+                infraResult.RepositoryId.Should().Be(_command.Infra!.RepositoryId);
                 infraResult.Success.Should().BeFalse();
                 infraResult.ErrorCode.Should().Be(expectedError.Code);
                 infraResult.ErrorDescription.Should().Be(expectedError.Description);
             },
             codeResult =>
             {
-                codeResult.Alias.Should().Be("code");
+                codeResult.RepositoryId.Should().Be(_command.Code!.RepositoryId);
                 codeResult.Success.Should().BeFalse();
                 codeResult.ErrorCode.Should().Be(expectedError.Code);
                 codeResult.ErrorDescription.Should().Be(expectedError.Description);
@@ -127,14 +132,14 @@ public sealed class MultiRepoProjectArtifactsPushServiceTests
                     FileCount: 2));
 
         // Act
-        var result = await _sut.PushAsync(_command, _project, PersonalAccessToken, CancellationToken.None);
+        var result = await _sut.PushAsync(_command, _project, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.Results.Should().SatisfyRespectively(
             infraResult =>
             {
-                infraResult.Alias.Should().Be("infra");
+                infraResult.RepositoryId.Should().Be(_command.Infra!.RepositoryId);
                 infraResult.Success.Should().BeFalse();
                 infraResult.ErrorCode.Should().Be(infraPushError.Code);
                 infraResult.ErrorDescription.Should().Be(infraPushError.Description);
@@ -142,7 +147,7 @@ public sealed class MultiRepoProjectArtifactsPushServiceTests
             },
             codeResult =>
             {
-                codeResult.Alias.Should().Be("code");
+                codeResult.RepositoryId.Should().Be(_command.Code!.RepositoryId);
                 codeResult.Success.Should().BeTrue();
                 codeResult.BranchUrl.Should().Be("https://github.com/octo-org/retail-platform-app/tree/feature/generated-code");
                 codeResult.CommitSha.Should().Be("def456");
@@ -158,6 +163,8 @@ public sealed class MultiRepoProjectArtifactsPushServiceTests
             .Returns(_infraTarget);
         _targetResolver.Resolve(_project, config: null, ArtifactKind.ApplicationPipeline)
             .Returns(_appTarget);
+        _keyVaultSecretClient.GetSecretAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(PersonalAccessToken);
     }
 
     private void ConfigureGeneratedArtifacts()
@@ -202,14 +209,6 @@ public sealed class MultiRepoProjectArtifactsPushServiceTests
         if (layoutResult.IsError)
             throw new InvalidOperationException(layoutResult.FirstError.Description);
 
-        var infraAlias = RepositoryAlias.Create("infra");
-        if (infraAlias.IsError)
-            throw new InvalidOperationException(infraAlias.FirstError.Description);
-
-        var codeAlias = RepositoryAlias.Create("code");
-        if (codeAlias.IsError)
-            throw new InvalidOperationException(codeAlias.FirstError.Description);
-
         var infraKinds = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure);
         if (infraKinds.IsError)
             throw new InvalidOperationException(infraKinds.FirstError.Description);
@@ -219,7 +218,6 @@ public sealed class MultiRepoProjectArtifactsPushServiceTests
             throw new InvalidOperationException(codeKinds.FirstError.Description);
 
         var infraRepositoryResult = project.AddRepository(
-            infraAlias.Value,
             new GitProviderType(GitProviderTypeEnum.GitHub),
             "https://github.com/octo-org/retail-platform-infra",
             "main",
@@ -228,7 +226,6 @@ public sealed class MultiRepoProjectArtifactsPushServiceTests
             throw new InvalidOperationException(infraRepositoryResult.FirstError.Description);
 
         var codeRepositoryResult = project.AddRepository(
-            codeAlias.Value,
             new GitProviderType(GitProviderTypeEnum.GitHub),
             "https://github.com/octo-org/retail-platform-app",
             "main",

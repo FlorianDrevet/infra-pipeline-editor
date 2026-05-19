@@ -31,6 +31,7 @@ public sealed class UpdateProjectRepositoryCommandValidatorTests
             providerType,
             repositoryUrl,
             defaultBranch,
+            null,
             contentKinds ?? ValidContentKinds);
     }
 
@@ -72,6 +73,7 @@ public sealed class UpdateProjectRepositoryCommandValidatorTests
             ValidProviderType,
             ValidRepositoryUrl,
             ValidDefaultBranch,
+            null,
             ValidContentKinds);
 
         // Act
@@ -92,6 +94,7 @@ public sealed class UpdateProjectRepositoryCommandValidatorTests
             ValidProviderType,
             ValidRepositoryUrl,
             ValidDefaultBranch,
+            null,
             ValidContentKinds);
 
         // Act
@@ -151,6 +154,7 @@ public sealed class UpdateProjectRepositoryCommandValidatorTests
             ValidProviderType,
             ValidRepositoryUrl,
             ValidDefaultBranch,
+            null,
             null!);
 
         // Act

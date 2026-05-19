@@ -136,7 +136,6 @@ public sealed class SetProjectGitPatCommandHandlerTests
         var contentKinds = RepositoryContentKinds.Create(
             RepositoryContentKindsEnum.Infrastructure | RepositoryContentKindsEnum.ApplicationCode).Value;
         project.AddRepository(
-            RepositoryAlias.Create("infra").Value,
             new GitProviderType(GitProviderTypeEnum.GitHub),
             "https://github.com/owner/repo",
             "main",

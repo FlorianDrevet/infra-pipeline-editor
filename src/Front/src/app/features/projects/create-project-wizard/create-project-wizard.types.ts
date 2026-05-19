@@ -16,7 +16,6 @@ export interface EnvironmentDraft {
 }
 
 export interface RepositoryDraft {
-  alias: string;
   contentKinds: string[];
   providerType: '' | 'GitHub' | 'AzureDevOps';
   repositoryUrl: string;
@@ -56,7 +55,6 @@ export function createEmptyEnvironment(order: number): EnvironmentDraft {
 
 export function createEmptyRepository(contentKinds: string[]): RepositoryDraft {
   return {
-    alias: '',
     contentKinds,
     providerType: '',
     repositoryUrl: '',
@@ -71,7 +69,7 @@ export function isDraftMeaningful(draft: CreateProjectWizardDraft): boolean {
   if (draft.environments.some((env) => env.name.trim() || env.shortName.trim())) {
     return true;
   }
-  if (draft.repositories.some((repo) => repo.alias.trim() || repo.repositoryUrl.trim())) {
+  if (draft.repositories.some((repo) => repo.repositoryUrl.trim())) {
     return true;
   }
   return false;

@@ -5,7 +5,7 @@ namespace InfraFlowSculptor.Contracts.Projects.Responses;
 public sealed record PushMultiRepoArtifactsResponse(IReadOnlyList<RepoPushResultResponse> Results);
 
 /// <summary>Outcome of a single repository push.</summary>
-/// <param name="Alias">The repository alias that was targeted.</param>
+/// <param name="RepositoryId">The repository id that was targeted.</param>
 /// <param name="Success">Whether the push succeeded.</param>
 /// <param name="BranchUrl">The created or updated branch URL when successful.</param>
 /// <param name="CommitSha">The commit SHA when successful.</param>
@@ -13,7 +13,7 @@ public sealed record PushMultiRepoArtifactsResponse(IReadOnlyList<RepoPushResult
 /// <param name="ErrorCode">An error code when the push failed.</param>
 /// <param name="ErrorDescription">A human-readable error description when the push failed.</param>
 public sealed record RepoPushResultResponse(
-    string Alias,
+    string RepositoryId,
     bool Success,
     string? BranchUrl,
     string? CommitSha,

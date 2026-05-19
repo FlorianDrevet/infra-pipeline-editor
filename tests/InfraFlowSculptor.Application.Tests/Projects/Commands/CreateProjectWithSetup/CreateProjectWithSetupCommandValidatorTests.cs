@@ -8,7 +8,6 @@ public sealed class CreateProjectWithSetupCommandValidatorTests
     private const string LayoutPresetProperty = nameof(CreateProjectWithSetupCommand.LayoutPreset);
     private const string EnvironmentsProperty = nameof(CreateProjectWithSetupCommand.Environments);
     private const string RepositoriesProperty = nameof(CreateProjectWithSetupCommand.Repositories);
-    private const string AliasProperty = nameof(RepositorySetupItem.Alias);
     private const string ContentKindsProperty = nameof(RepositorySetupItem.ContentKinds);
     private const string RepositoryConnectionDetailsProperty = nameof(RepositorySetupItem.ProviderType);
 
@@ -117,27 +116,6 @@ public sealed class CreateProjectWithSetupCommandValidatorTests
         result.Errors.Should().Contain(e => e.PropertyName == RepositoriesProperty);
     }
 
-    [Fact]
-    public void Given_RepositoryAliasWithUppercaseCharacters_When_Validate_Then_FailsOnAlias()
-    {
-        // Arrange
-        var command = CreateAllInOneCommand() with
-        {
-            Repositories =
-            [
-                ValidRepository() with { Alias = "InfraRepo" },
-            ],
-        };
-
-        // Act
-        var result = _sut.Validate(command);
-
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName.Contains(AliasProperty, StringComparison.Ordinal));
-    }
-
-    [Fact]
     public void Given_RepositoryWithoutContentKinds_When_Validate_Then_FailsOnContentKinds()
     {
         // Arrange
@@ -198,12 +176,10 @@ public sealed class CreateProjectWithSetupCommandValidatorTests
         [
             ValidRepository() with
             {
-                Alias = "infrastructure",
                 ContentKinds = ["Infrastructure"],
             },
             ValidRepository() with
             {
-                Alias = "application-code",
                 ContentKinds = ["ApplicationCode"],
             },
         ]);
@@ -226,7 +202,6 @@ public sealed class CreateProjectWithSetupCommandValidatorTests
         RequiresApproval: false);
 
     private static RepositorySetupItem ValidRepository() => new(
-        Alias: "infra-repo",
         ContentKinds: ["Infrastructure"],
         ProviderType: "GitHub",
         RepositoryUrl: "https://github.com/floriandrevet/infra-repo",
@@ -234,6 +209,6 @@ public sealed class CreateProjectWithSetupCommandValidatorTests
 
     private static IReadOnlyList<RepositorySetupItem> CreateRepositories(int count)
         => Enumerable.Range(0, count)
-            .Select(index => ValidRepository() with { Alias = $"infra-repo-{index}" })
+            .Select(_ => ValidRepository())
             .ToArray();
 }

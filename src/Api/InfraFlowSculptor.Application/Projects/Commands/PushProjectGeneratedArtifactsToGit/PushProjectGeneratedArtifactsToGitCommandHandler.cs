@@ -13,7 +13,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.PushProjectGeneratedAr
 /// Handles the <see cref="PushProjectGeneratedArtifactsToGitCommand"/>.
 /// V2 routing via <see cref="IRepositoryTargetResolver"/>:
 /// <list type="bullet">
-/// <item><description>Resolves Infrastructure and Pipeline targets at the project level (alias <c>"default"</c>).</description></item>
+/// <item><description>Resolves Infrastructure and Pipeline targets at the project level.</description></item>
 /// <item><description>If the project declares a heterogeneous multi-repo topology (more than one
 /// <c>ProjectRepository</c>), this single-commit mono-repo operation is rejected with
 /// <see cref="Errors.GitRouting.AmbiguousProjectLevelGeneration"/>. Consumers must fall back to
@@ -50,12 +50,12 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
             return Errors.Project.NotFoundError(command.ProjectId);
 
         // V2-lite ambiguity gate: mono-repo single-commit push is only defined for a single target repository.
-        // A project declaring multiple ProjectRepository aliases is a heterogeneous multi-repo topology and
+        // A project declaring multiple repository roles is a heterogeneous multi-repo topology and
         // must use the per-config push endpoints (Bicep/Pipeline/Bootstrap) instead.
         if (project.Repositories.Count > 1)
             return Errors.GitRouting.AmbiguousProjectLevelGeneration;
 
-        // Resolve the project-level target (alias "default") for the pipeline kind — this populates both
+        // Resolve the project-level target for the pipeline kind — this populates both
         // BasePath (used by the Bicep scope) and PipelineBasePath (used by pipeline + bootstrap scopes).
         var targetResult = targetResolver.Resolve(project, config: null, ArtifactKind.Pipeline);
         if (targetResult.IsError)
@@ -64,7 +64,7 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
         var target = targetResult.Value;
 
         var secretResult = await keyVaultSecretClient.GetSecretAsync(
-            $"git-pat-{project.Id.Value}",
+            target.PatSecretName ?? $"git-pat-{project.Id.Value}",
             cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;

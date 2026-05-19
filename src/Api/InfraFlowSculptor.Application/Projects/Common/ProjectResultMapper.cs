@@ -76,7 +76,6 @@ public static class ProjectResultMapper
     private static ProjectRepositoryResult MapRepository(ProjectRepository repository)
         => new(
             repository.Id,
-            repository.Alias.Value,
             repository.ProviderType?.Value.ToString(),
             repository.RepositoryUrl,
             repository.Owner,

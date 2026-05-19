@@ -24,8 +24,8 @@ interface GroupMetricExpectation {
   readonly value: number;
 }
 
-interface AliasGroupExpectation {
-  readonly alias: string;
+interface RepositoryGroupExpectation {
+  readonly key: string;
   readonly metrics: readonly GroupMetricExpectation[];
 }
 
@@ -239,12 +239,12 @@ describe('GenerationBoardComponent', () => {
 
     await createComponent();
 
-    const groups = getGroupedByAlias(component);
+    const groups = getGroupedByRepository(component);
     const repositoryCount = (component as unknown as {
       repositoryCount(): number;
     }).repositoryCount();
 
-    expect(groups.map((group) => group.alias)).toEqual(['infra', 'code']);
+    expect(groups.map((group) => group.key)).toEqual(['repo-infra', 'repo-code']);
     expect(repositoryCount).toBe(2);
   });
 
@@ -284,9 +284,9 @@ describe('GenerationBoardComponent', () => {
 
     await createComponent();
 
-    const groups = getGroupedByAlias(component);
-    const infraGroup = groups.find((group) => group.alias === 'infra');
-    const codeGroup = groups.find((group) => group.alias === 'code');
+    const groups = getGroupedByRepository(component);
+    const infraGroup = groups.find((group) => group.key === 'repo-infra');
+    const codeGroup = groups.find((group) => group.key === 'repo-code');
 
     expect(infraGroup?.metrics).toEqual([
       { labelKey: 'PROJECT_DETAIL.BOARD.SUMMARY_CONFIGS', value: 2 },
@@ -354,10 +354,10 @@ function createSplitProject(): ProjectResponse {
   return createProject('SplitInfraCode');
 }
 
-function getGroupedByAlias(component: GenerationBoardComponent): readonly AliasGroupExpectation[] {
+function getGroupedByRepository(component: GenerationBoardComponent): readonly RepositoryGroupExpectation[] {
   return (component as unknown as {
-    groupedByAlias(): readonly AliasGroupExpectation[];
-  }).groupedByAlias();
+    groupedByRepository(): readonly RepositoryGroupExpectation[];
+  }).groupedByRepository();
 }
 
 function getMonoRepoTabs(component: GenerationBoardComponent): readonly MonoRepoTabExpectation[] {
@@ -379,17 +379,17 @@ function createProjectRepositories(layoutPreset: ProjectLayoutPreset): ProjectRe
 
 function createRepository(
   id: string,
-  alias: string,
+  repositoryName: string,
   contentKinds: ProjectRepositoryResponse['contentKinds'],
 ): ProjectRepositoryResponse {
   return {
     id,
-    alias,
     providerType: 'GitHub',
-    repositoryUrl: `https://example.test/org/${alias}`,
+    repositoryUrl: `https://example.test/org/${repositoryName}`,
     owner: 'org',
-    repositoryName: alias,
+    repositoryName,
     defaultBranch: 'main',
+    isConfigured: true,
     contentKinds,
   };
 }

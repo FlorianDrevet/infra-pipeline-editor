@@ -6,12 +6,11 @@ namespace InfraFlowSculptor.Application.Tests.Projects.Commands.AddProjectReposi
 
 public sealed class AddProjectRepositoryCommandValidatorTests
 {
-    private const string ValidAlias = "infra-repo";
     private const string ValidProviderType = "GitHub";
     private const string ValidRepositoryUrl = "https://github.com/org/repo";
     private const string ValidDefaultBranch = "main";
+    private const string ValidPersonalAccessToken = "token";
     private const string ProjectIdProperty = nameof(AddProjectRepositoryCommand.ProjectId);
-    private const string AliasProperty = nameof(AddProjectRepositoryCommand.Alias);
     private const string ContentKindsProperty = nameof(AddProjectRepositoryCommand.ContentKinds);
 
     private static readonly IReadOnlyList<string> ValidContentKinds = ["Infrastructure"];
@@ -51,7 +50,7 @@ public sealed class AddProjectRepositoryCommandValidatorTests
     {
         // Arrange
         var command = new AddProjectRepositoryCommand(
-            null!, ValidAlias, ValidProviderType, ValidRepositoryUrl, ValidDefaultBranch, ValidContentKinds);
+            null!, ValidProviderType, ValidRepositoryUrl, ValidDefaultBranch, ValidPersonalAccessToken, ValidContentKinds);
 
         // Act
         var result = _sut.Validate(command);
@@ -61,65 +60,6 @@ public sealed class AddProjectRepositoryCommandValidatorTests
         result.Errors.Should().Contain(e => e.PropertyName == ProjectIdProperty);
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData(null)]
-    public void Given_EmptyAlias_When_Validate_Then_FailsOnAlias(string? alias)
-    {
-        // Arrange
-        var command = CreateCommand(alias: alias!);
-
-        // Act
-        var result = _sut.Validate(command);
-
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == AliasProperty);
-    }
-
-    [Fact]
-    public void Given_AliasLongerThan50Characters_When_Validate_Then_FailsOnAlias()
-    {
-        // Arrange
-        var command = CreateCommand(alias: new string('a', 51));
-
-        // Act
-        var result = _sut.Validate(command);
-
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == AliasProperty);
-    }
-
-    [Fact]
-    public void Given_AliasWithUppercase_When_Validate_Then_FailsOnAlias()
-    {
-        // Arrange
-        var command = CreateCommand(alias: "Infra-Repo");
-
-        // Act
-        var result = _sut.Validate(command);
-
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == AliasProperty);
-    }
-
-    [Fact]
-    public void Given_AliasWithSpecialChars_When_Validate_Then_FailsOnAlias()
-    {
-        // Arrange
-        var command = CreateCommand(alias: "infra_repo!");
-
-        // Act
-        var result = _sut.Validate(command);
-
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == AliasProperty);
-    }
-
-    [Fact]
     public void Given_InvalidProviderType_When_Validate_Then_Fails()
     {
         // Arrange
@@ -163,7 +103,7 @@ public sealed class AddProjectRepositoryCommandValidatorTests
     {
         // Arrange
         var command = new AddProjectRepositoryCommand(
-            ProjectId.CreateUnique(), ValidAlias, ValidProviderType, ValidRepositoryUrl, ValidDefaultBranch, null!);
+            ProjectId.CreateUnique(), ValidProviderType, ValidRepositoryUrl, ValidDefaultBranch, ValidPersonalAccessToken, null!);
 
         // Act
         var result = _sut.Validate(command);
@@ -189,18 +129,18 @@ public sealed class AddProjectRepositoryCommandValidatorTests
 
     private static AddProjectRepositoryCommand CreateCommand(
         ProjectId? projectId = null,
-        string alias = ValidAlias,
         string? providerType = ValidProviderType,
         string? repositoryUrl = ValidRepositoryUrl,
         string? defaultBranch = ValidDefaultBranch,
+        string? personalAccessToken = ValidPersonalAccessToken,
         IReadOnlyList<string>? contentKinds = null)
     {
         return new AddProjectRepositoryCommand(
             projectId ?? ProjectId.CreateUnique(),
-            alias,
             providerType,
             repositoryUrl,
             defaultBranch,
+            personalAccessToken,
             contentKinds ?? ValidContentKinds);
     }
 }

@@ -12,7 +12,6 @@ import {
 } from '../../../shared/interfaces/project-repository.interface';
 import { ProjectService } from '../../../shared/services/project.service';
 import { LayoutRepositoriesComponent } from './layout-repositories.component';
-import { ProjectGitPatDialogComponent } from './project-git-pat-dialog/project-git-pat-dialog.component';
 
 interface DeferredPromise<T> {
   readonly promise: Promise<T>;
@@ -23,7 +22,6 @@ interface DeferredPromise<T> {
 interface LayoutRepositoriesComponentTestApi {
   readonly currentPreset: () => ProjectLayoutPreset;
   readonly onPresetChange: (preset: ProjectLayoutPreset) => Promise<void>;
-  readonly openPatDialog: (repo: ProjectRepositoryResponse) => void;
   readonly openAllInOneDialog: () => void;
   readonly openSlotDialog: (slot: LayoutRepositoriesRepoSlot) => void;
   readonly openRemoveRepoDialog: (repo: ProjectRepositoryResponse) => void;
@@ -60,7 +58,6 @@ describe('LayoutRepositoriesComponent', () => {
     projectServiceSpy = jasmine.createSpyObj<ProjectService>('ProjectService', [
       'getProject',
       'setLayoutPreset',
-      'setGitPat',
       'invalidateProjectCache',
       'removeRepository',
       'testRepositoryConnection',
@@ -73,7 +70,6 @@ describe('LayoutRepositoriesComponent', () => {
       return projectResponse;
     });
     projectServiceSpy.setLayoutPreset.and.resolveTo();
-    projectServiceSpy.setGitPat.and.resolveTo();
     projectServiceSpy.invalidateProjectCache.and.callFake(() => {
       loadSequence.push('invalidateProjectCache');
     });
@@ -243,28 +239,16 @@ describe('LayoutRepositoriesComponent', () => {
     expect(emittedProjects).toEqual([refreshedProject]);
   });
 
-  it('opens the PAT dialog with the repository id and provider', async () => {
-    const closeSubject = new Subject<boolean | undefined>();
+  it('does not render repository-card PAT actions', async () => {
     const repository = createRepositoryResponse('repo-1', ['Infrastructure', 'ApplicationCode']);
 
     projectResponse = createProjectResponse('AllInOne', [repository]);
-    dialogSpy.open.and.returnValue(createDialogRef(closeSubject.asObservable()));
     await createComponent();
-    dialogSpy.open.calls.reset();
 
-    getComponentTestApi().openPatDialog(repository);
+    const cardText = fixture.nativeElement.textContent ?? '';
 
-    expect(dialogSpy.open).toHaveBeenCalledTimes(1);
-    const [componentType, config] = dialogSpy.open.calls.mostRecent().args;
-    expect(componentType).toBe(ProjectGitPatDialogComponent);
-    expect(config).toEqual(jasmine.objectContaining({
-      width: '520px',
-      data: {
-        projectId: 'project-1',
-        repositoryId: 'repo-1',
-        providerTypes: ['GitHub'],
-      },
-    }));
+    expect(cardText).not.toContain('PROJECT_DETAIL.LAYOUT.AUTH.CTA_SHORT');
+    expect(fixture.nativeElement.querySelector('.repo-card__actions mat-icon')?.textContent).not.toContain('vpn_key');
   });
 
   it('tests a repository connection and sets success state', async () => {
@@ -420,12 +404,12 @@ function createRepositoryResponse(
 ): ProjectRepositoryResponse {
   return {
     id,
-    alias: `alias-${id}`,
     providerType: 'GitHub',
     repositoryUrl: `https://github.com/example/${id}`,
     owner: 'example',
     repositoryName: id,
     defaultBranch: 'main',
+    isConfigured: true,
     contentKinds,
   };
 }

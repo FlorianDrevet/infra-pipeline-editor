@@ -43,21 +43,21 @@
                   <mat-icon>folder_open</mat-icon>
                 </div>
                 <div class="repo-card__header-info">
-                  <span class="repo-card__name">{{ repo.alias }}</span>
-                  <span class="repo-card__provider">{{ repo.providerType }}</span>
+                  <span class="repo-card__name">{{ repositoryDisplayName(repo) }}</span>
+                  <span class="repo-card__provider">{{ repositoryProviderLabel(repo) }}</span>
                 </div>
               </div>
 
               <div class="repo-card__body">
                 <div class="repo-card__meta-row">
                   <span class="repo-card__meta-label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
-                  <a class="repo-card__meta-value repo-card__meta-value--link" [href]="repo.repositoryUrl" target="_blank" rel="noopener">
-                    {{ repo.owner }}/{{ repo.repositoryName }}
+                  <a class="repo-card__meta-value repo-card__meta-value--link" [href]="repo.repositoryUrl ?? undefined" target="_blank" rel="noopener">
+                    {{ repositoryDisplayName(repo) }}
                   </a>
                 </div>
                 <div class="repo-card__meta-row">
                   <span class="repo-card__meta-label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
-                  <span class="repo-card__meta-value repo-card__meta-value--mono">{{ repo.defaultBranch }}</span>
+                  <span class="repo-card__meta-value repo-card__meta-value--mono">{{ repo.defaultBranch ?? ('PROJECT_DETAIL.LAYOUT.REPOSITORY_NOT_CONFIGURED' | translate) }}</span>
                 </div>
                 @if (repo.contentKinds.length > 0) {
                   <div class="repo-card__chips">
@@ -80,10 +80,6 @@
                   } @else {
                     {{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_CONNECTION' | translate }}
                   }
-                </button>
-                <button class="repo-card__action-btn" (click)="openPatDialog(repo)" [disabled]="repoActionId() === repo.id">
-                  <mat-icon>vpn_key</mat-icon>
-                  {{ 'PROJECT_DETAIL.LAYOUT.AUTH.CTA_SHORT' | translate }}
                 </button>
                 <button class="repo-card__action-btn" (click)="openAllInOneDialog()" [disabled]="repoActionId() === repo.id">
                   <mat-icon>edit</mat-icon>
@@ -131,20 +127,20 @@
                     </div>
                     <div class="repo-card__header-info">
                       <span class="repo-card__name">{{ slot.labelKey | translate }}</span>
-                      <span class="repo-card__provider">{{ repo.alias }} · {{ repo.providerType }}</span>
+                      <span class="repo-card__provider">{{ repositoryDisplayName(repo) }} · {{ repositoryProviderLabel(repo) }}</span>
                     </div>
                   </div>
 
                   <div class="repo-card__body">
                     <div class="repo-card__meta-row">
                       <span class="repo-card__meta-label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
-                      <a class="repo-card__meta-value repo-card__meta-value--link" [href]="repo.repositoryUrl" target="_blank" rel="noopener">
-                        {{ repo.owner }}/{{ repo.repositoryName }}
+                      <a class="repo-card__meta-value repo-card__meta-value--link" [href]="repo.repositoryUrl ?? undefined" target="_blank" rel="noopener">
+                        {{ repositoryDisplayName(repo) }}
                       </a>
                     </div>
                     <div class="repo-card__meta-row">
                       <span class="repo-card__meta-label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
-                      <span class="repo-card__meta-value repo-card__meta-value--mono">{{ repo.defaultBranch }}</span>
+                      <span class="repo-card__meta-value repo-card__meta-value--mono">{{ repo.defaultBranch ?? ('PROJECT_DETAIL.LAYOUT.REPOSITORY_NOT_CONFIGURED' | translate) }}</span>
                     </div>
                   </div>
 
@@ -160,10 +156,6 @@
                       } @else {
                         {{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_CONNECTION' | translate }}
                       }
-                    </button>
-                    <button class="repo-card__action-btn" (click)="openPatDialog(repo)" [disabled]="repoActionId() === repo.id">
-                      <mat-icon>vpn_key</mat-icon>
-                      {{ 'PROJECT_DETAIL.LAYOUT.AUTH.CTA_SHORT' | translate }}
                     </button>
                     <button class="repo-card__action-btn" (click)="openSlotDialog(slot)" [disabled]="repoActionId() === repo.id">
                       <mat-icon>edit</mat-icon>

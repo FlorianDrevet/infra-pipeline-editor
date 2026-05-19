@@ -37,14 +37,10 @@ public sealed class AddInfraConfigRepositoryCommandHandler(
             Errors.GitRepository.InvalidProviderType);
         if (providerTypeResult.IsError) return providerTypeResult.Errors;
 
-        var aliasResult = RepositoryAlias.Create(command.Alias);
-        if (aliasResult.IsError) return aliasResult.Errors;
-
         var contentKinds = RepositoryContentKindsParser.Parse(command.ContentKinds);
         if (contentKinds.IsError) return contentKinds.Errors;
 
         var added = config.AddRepository(
-            aliasResult.Value,
             providerTypeResult.Value,
             command.RepositoryUrl,
             command.DefaultBranch,

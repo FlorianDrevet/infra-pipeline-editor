@@ -9,7 +9,6 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddInfraCo
 public sealed record AddInfraConfigRepositoryCommand(
     ProjectId ProjectId,
     InfrastructureConfigId ConfigId,
-    string Alias,
     string ProviderType,
     string RepositoryUrl,
     string DefaultBranch,

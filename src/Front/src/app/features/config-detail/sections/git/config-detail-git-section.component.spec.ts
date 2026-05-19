@@ -2,6 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { ConfigDetailGitSectionComponent } from './config-detail-git-section.component';
+import { ConfigDetailGitSectionViewModel } from './config-detail-git-section.view-model';
+import { InfraConfigRepositoryResponse } from '../../../../shared/interfaces/infra-config-repository.interface';
 
 describe('ConfigDetailGitSectionComponent', () => {
   let fixture: ComponentFixture<ConfigDetailGitSectionComponent>;
@@ -57,7 +59,7 @@ describe('ConfigDetailGitSectionComponent', () => {
   }
 });
 
-function createViewModel(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+function createViewModel(overrides: Partial<ConfigDetailGitSectionViewModel> = {}): ConfigDetailGitSectionViewModel {
   return {
     gitActionError: '',
     layoutMode: 'SplitInfraCode',
@@ -77,14 +79,13 @@ function createViewModel(overrides: Partial<Record<string, unknown>> = {}): Reco
   };
 }
 
-function createRepository(alias: string, contentKinds: string[]): Record<string, unknown> {
+function createRepository(repositoryName: string, contentKinds: InfraConfigRepositoryResponse['contentKinds']): InfraConfigRepositoryResponse {
   return {
-    id: `${alias}-id`,
-    alias,
+    id: `${repositoryName}-id`,
     providerType: 'GitHub',
-    repositoryUrl: `https://github.com/example/${alias}`,
+    repositoryUrl: `https://github.com/example/${repositoryName}`,
     owner: 'example',
-    repositoryName: alias,
+    repositoryName,
     defaultBranch: 'main',
     contentKinds,
   };

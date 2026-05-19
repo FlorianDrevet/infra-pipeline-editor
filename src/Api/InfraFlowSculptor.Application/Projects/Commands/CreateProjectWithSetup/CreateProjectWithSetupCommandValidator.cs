@@ -95,10 +95,6 @@ public sealed class CreateProjectWithSetupCommandValidator
     {
         RuleForEach(x => x.Repositories).ChildRules(repo =>
         {
-            repo.RuleFor(r => r.Alias)
-                .NotEmpty().MaximumLength(50)
-                .Matches("^[a-z0-9-]+$")
-                .WithMessage("Alias must contain only lowercase letters, digits and hyphens.");
             repo.RuleFor(r => r.ContentKinds)
                 .NotNull().Must(c => c is { Count: > 0 })
                 .WithMessage("At least one content kind is required per repository.");

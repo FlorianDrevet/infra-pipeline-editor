@@ -8,7 +8,7 @@ namespace InfraFlowSculptor.Domain.ProjectAggregate.Common;
 /// owner / repository components, and for normalizing optional sub-paths.
 /// Shared by <see cref="Entities.ProjectRepository"/>.
 /// </summary>
-internal static class RepositoryUrlHelper
+public static class RepositoryUrlHelper
 {
     private static readonly TimeSpan RegexMatchTimeout = TimeSpan.FromMilliseconds(250);
 

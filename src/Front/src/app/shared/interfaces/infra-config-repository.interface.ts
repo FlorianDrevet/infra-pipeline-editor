@@ -4,17 +4,15 @@ export type ConfigLayoutMode = 'AllInOne' | 'SplitInfraCode';
 
 export interface InfraConfigRepositoryResponse {
   id: string;
-  alias: string;
-  providerType: string;
-  repositoryUrl: string;
-  owner: string;
-  repositoryName: string;
-  defaultBranch: string;
+  providerType: string | null;
+  repositoryUrl: string | null;
+  owner: string | null;
+  repositoryName: string | null;
+  defaultBranch: string | null;
   contentKinds: RepositoryContentKind[];
 }
 
 export interface AddInfraConfigRepositoryRequest {
-  alias: string;
   providerType: string;
   repositoryUrl: string;
   defaultBranch: string;

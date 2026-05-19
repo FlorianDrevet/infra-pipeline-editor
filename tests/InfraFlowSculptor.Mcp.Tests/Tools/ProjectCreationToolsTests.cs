@@ -82,7 +82,7 @@ public sealed class ProjectCreationToolsTests
                 ],
                 Repositories =
                 [
-                    new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "ApplicationCode"] },
+                    new DraftRepositoryIntent { ContentKinds = ["Infrastructure", "ApplicationCode"] },
                 ],
             },
         };
@@ -136,7 +136,7 @@ public sealed class ProjectCreationToolsTests
                 ProjectName = "RetailApi",
                 LayoutPreset = LayoutPresetEnum.AllInOne,
                 Environments = [new DraftEnvironmentIntent()],
-                Repositories = [new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "ApplicationCode"] }],
+                Repositories = [new DraftRepositoryIntent { ContentKinds = ["Infrastructure", "ApplicationCode"] }],
             },
         };
         _draftService.GetDraft("draft_abc12345").Returns(draft);
@@ -171,7 +171,7 @@ public sealed class ProjectCreationToolsTests
                 ],
                 Repositories =
                 [
-                    new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "ApplicationCode"] },
+                    new DraftRepositoryIntent { ContentKinds = ["Infrastructure", "ApplicationCode"] },
                 ],
             },
         };
@@ -225,7 +225,7 @@ public sealed class ProjectCreationToolsTests
                 ],
                 Repositories =
                 [
-                    new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "ApplicationCode"] },
+                    new DraftRepositoryIntent { ContentKinds = ["Infrastructure", "ApplicationCode"] },
                 ],
                 Resources =
                 [
@@ -319,7 +319,7 @@ public sealed class ProjectCreationToolsTests
         doc.RootElement.GetProperty("status").GetString().Should().Be("created");
         doc.RootElement.GetProperty("createdResources").EnumerateArray()
             .Select(resource => resource.GetProperty("resourceType").GetString())
-            .Should().BeEquivalentTo([AzureResourceTypes.ContainerAppEnvironment, AzureResourceTypes.ContainerApp]);
+            .Should().BeEquivalentTo(AzureResourceTypes.ContainerAppEnvironment, AzureResourceTypes.ContainerApp);
         doc.RootElement.GetProperty("skippedResources").EnumerateArray().Should().BeEmpty();
 
         await _mediator.Received(1).Send(

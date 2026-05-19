@@ -6,6 +6,7 @@ using InfraFlowSculptor.Application.Projects.Commands.SetProjectGitPat;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectLayoutPreset;
 using InfraFlowSculptor.Application.Projects.Commands.TestProjectRepositoryConnection;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectRepository;
+using InfraFlowSculptor.Application.Projects.Commands.VerifyProjectRepositoryConnection;
 using InfraFlowSculptor.Contracts.Projects.Requests;
 using InfraFlowSculptor.Contracts.Projects.Responses;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -41,10 +42,10 @@ public static class ProjectRepositoryController
                 {
                     var command = new AddProjectRepositoryCommand(
                         new ProjectId(projectId),
-                        request.Alias,
                         request.ProviderType,
                         request.RepositoryUrl,
                         request.DefaultBranch,
+                        request.PersonalAccessToken,
                         request.ContentKinds);
                     var result = await mediator.Send(command);
 
@@ -57,7 +58,7 @@ public static class ProjectRepositoryController
                 })
             .WithName(ProjectRouteNames.AddProjectRepository)
             .WithSummary("Add a project-level Git repository declaration")
-            .WithDescription("Declares a new Git repository at the project level. Each repository has a project-scoped alias and one or more content kinds (Infrastructure, ApplicationCode, Pipelines). Requires Owner access.")
+            .WithDescription("Declares a new Git repository at the project level. Configured repositories are verified against the supplied PAT before being saved. Requires Owner access.")
             .Produces(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -76,6 +77,7 @@ public static class ProjectRepositoryController
                         request.ProviderType,
                         request.RepositoryUrl,
                         request.DefaultBranch,
+                        request.PersonalAccessToken,
                         request.ContentKinds);
                     var result = await mediator.Send(command);
 
@@ -86,8 +88,65 @@ public static class ProjectRepositoryController
                 })
             .WithName(ProjectRouteNames.UpdateProjectRepository)
             .WithSummary("Update a project-level Git repository declaration")
-            .WithDescription("Updates an existing project repository (alias is immutable). Requires Owner access.")
+            .WithDescription("Updates an existing project repository. Configured repositories are verified before being saved. Requires Owner access.")
             .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
+
+        group.MapPost("/{projectId:guid}/repositories/verify",
+                async ([FromRoute] Guid projectId,
+                    [FromBody] VerifyProjectRepositoryConnectionRequest request,
+                    IMediator mediator,
+                    IMapper mapper) =>
+                {
+                    var command = new VerifyProjectRepositoryConnectionCommand(
+                        new ProjectId(projectId),
+                        RepositoryId: null,
+                        request.ProviderType,
+                        request.RepositoryUrl,
+                        request.PersonalAccessToken);
+                    var result = await mediator.Send(command);
+
+                    return result.Match(
+                        value => Results.Ok(mapper.Map<ProjectRepositoryConnectionVerificationResponse>(value)),
+                        errors => errors.Result()
+                    );
+                })
+            .WithName(ProjectRouteNames.VerifyProjectRepository)
+            .WithSummary("Verify a project repository connection")
+            .WithDescription("Verifies a new repository configuration and returns available branches without saving changes. Requires Owner or Contributor access.")
+            .Produces<ProjectRepositoryConnectionVerificationResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
+
+        group.MapPost("/{projectId:guid}/repositories/{repoId:guid}/verify",
+                async ([FromRoute] Guid projectId,
+                    [FromRoute] Guid repoId,
+                    [FromBody] VerifyProjectRepositoryConnectionRequest request,
+                    IMediator mediator,
+                    IMapper mapper) =>
+                {
+                    var command = new VerifyProjectRepositoryConnectionCommand(
+                        new ProjectId(projectId),
+                        new ProjectRepositoryId(repoId),
+                        request.ProviderType,
+                        request.RepositoryUrl,
+                        request.PersonalAccessToken);
+                    var result = await mediator.Send(command);
+
+                    return result.Match(
+                        value => Results.Ok(mapper.Map<ProjectRepositoryConnectionVerificationResponse>(value)),
+                        errors => errors.Result()
+                    );
+                })
+            .WithName(ProjectRouteNames.VerifyExistingProjectRepository)
+            .WithSummary("Verify an existing project repository connection")
+            .WithDescription("Verifies repository edit details and returns available branches without saving changes. Uses the stored repository PAT when no token is supplied. Requires Owner or Contributor access.")
+            .Produces<ProjectRepositoryConnectionVerificationResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound)

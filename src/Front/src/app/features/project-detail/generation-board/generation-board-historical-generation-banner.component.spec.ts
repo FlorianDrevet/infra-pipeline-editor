@@ -207,12 +207,12 @@ function createProject(layoutPreset: ProjectLayoutPreset = 'AllInOne'): ProjectR
     repositories: [
       {
         id: 'repo-1',
-        alias: 'default',
         providerType: 'GitHub',
         repositoryUrl: 'https://example.test/org/default',
         owner: 'org',
         repositoryName: 'default',
         defaultBranch: 'main',
+        isConfigured: true,
         contentKinds: ['Infrastructure'],
       },
     ],

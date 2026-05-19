@@ -401,13 +401,13 @@ public static class ProjectGenerationController
                         request.Infra is null
                             ? null
                             : new RepoPushTarget(
-                                request.Infra.Alias,
+                                new ProjectRepositoryId(request.Infra.RepositoryId),
                                 request.Infra.BranchName,
                                 request.Infra.CommitMessage),
                         request.Code is null
                             ? null
                             : new RepoPushTarget(
-                                request.Code.Alias,
+                                new ProjectRepositoryId(request.Code.RepositoryId),
                                 request.Code.BranchName,
                                 request.Code.CommitMessage));
 
@@ -419,7 +419,7 @@ public static class ProjectGenerationController
                             var response = new PushMultiRepoArtifactsResponse(
                                 value.Results
                                     .Select(r => new RepoPushResultResponse(
-                                        r.Alias,
+                                        r.RepositoryId.Value.ToString(),
                                         r.Success,
                                         r.BranchUrl,
                                         r.CommitSha,

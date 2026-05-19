@@ -10,10 +10,6 @@ namespace InfraFlowSculptor.Contracts.Projects.Requests;
 /// </remarks>
 public sealed class AddProjectRepositoryRequest
 {
-    /// <summary>Project-scoped slug-like alias (lowercase letters, digits and hyphens), unique per project.</summary>
-    [Required, StringLength(50)]
-    public required string Alias { get; init; }
-
     /// <summary>Git provider type: <c>GitHub</c> or <c>AzureDevOps</c>. Optional.</summary>
     public string? ProviderType { get; init; }
 
@@ -24,6 +20,10 @@ public sealed class AddProjectRepositoryRequest
     /// <summary>Default branch name (e.g. <c>main</c>). Optional.</summary>
     [StringLength(200)]
     public string? DefaultBranch { get; init; }
+
+    /// <summary>Transient personal access token used to verify and persist configured repositories.</summary>
+    [StringLength(2048)]
+    public string? PersonalAccessToken { get; init; }
 
     /// <summary>List of content kinds hosted by the repository
     /// (<c>Infrastructure</c>, <c>ApplicationCode</c>).</summary>

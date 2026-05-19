@@ -26,11 +26,6 @@ public sealed class InfraConfigRepositoryConfiguration : IEntityTypeConfiguratio
             .HasConversion(new IdValueConverter<InfrastructureConfigId>())
             .IsRequired();
 
-        builder.Property(x => x.Alias)
-            .HasConversion(new RepositoryAliasConverter())
-            .HasMaxLength(50)
-            .IsRequired();
-
         builder.Property(x => x.ProviderType)
             .HasConversion(new EnumValueConverter<GitProviderType, GitProviderTypeEnum>())
             .IsRequired();
@@ -56,8 +51,5 @@ public sealed class InfraConfigRepositoryConfiguration : IEntityTypeConfiguratio
             .HasConversion(new RepositoryContentKindsConverter())
             .HasMaxLength(100)
             .IsRequired();
-
-        builder.HasIndex(x => new { x.InfrastructureConfigId, x.Alias })
-            .IsUnique();
     }
 }

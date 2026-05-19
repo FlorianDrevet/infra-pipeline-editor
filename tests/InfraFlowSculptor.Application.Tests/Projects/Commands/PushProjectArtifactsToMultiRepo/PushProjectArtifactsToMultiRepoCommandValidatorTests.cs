@@ -6,13 +6,12 @@ namespace InfraFlowSculptor.Application.Tests.Projects.Commands.PushProjectArtif
 
 public sealed class PushProjectArtifactsToMultiRepoCommandValidatorTests
 {
-    private const string ValidAlias = "infra-repo";
     private const string ValidBranchName = "feature/deploy";
     private const string ValidCommitMessage = "Push artifacts";
     private const string ProjectIdProperty = nameof(PushProjectArtifactsToMultiRepoCommand.ProjectId);
 
-    private static readonly RepoPushTarget ValidInfra = new(ValidAlias, ValidBranchName, ValidCommitMessage);
-    private static readonly RepoPushTarget ValidCode = new("app-repo", "main", "Push app code");
+    private static readonly RepoPushTarget ValidInfra = new(ProjectRepositoryId.CreateUnique(), ValidBranchName, ValidCommitMessage);
+    private static readonly RepoPushTarget ValidCode = new(ProjectRepositoryId.CreateUnique(), "main", "Push app code");
 
     private readonly PushProjectArtifactsToMultiRepoCommandValidator _sut = new();
 
@@ -86,10 +85,10 @@ public sealed class PushProjectArtifactsToMultiRepoCommandValidatorTests
     }
 
     [Fact]
-    public void Given_InfraEmptyAlias_When_Validate_Then_Fails()
+    public void Given_InfraEmptyRepositoryId_When_Validate_Then_Fails()
     {
         // Arrange
-        var infra = new RepoPushTarget("", ValidBranchName, ValidCommitMessage);
+        var infra = new RepoPushTarget(new ProjectRepositoryId(Guid.Empty), ValidBranchName, ValidCommitMessage);
         var command = new PushProjectArtifactsToMultiRepoCommand(ProjectId.CreateUnique(), infra, null);
 
         // Act
@@ -97,14 +96,14 @@ public sealed class PushProjectArtifactsToMultiRepoCommandValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == "Infra.Alias");
+        result.Errors.Should().Contain(e => e.PropertyName == "Infra.RepositoryId.Value");
     }
 
     [Fact]
     public void Given_InfraEmptyBranchName_When_Validate_Then_Fails()
     {
         // Arrange
-        var infra = new RepoPushTarget(ValidAlias, "", ValidCommitMessage);
+        var infra = new RepoPushTarget(ProjectRepositoryId.CreateUnique(), "", ValidCommitMessage);
         var command = new PushProjectArtifactsToMultiRepoCommand(ProjectId.CreateUnique(), infra, null);
 
         // Act
@@ -119,7 +118,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandValidatorTests
     public void Given_InfraEmptyCommitMessage_When_Validate_Then_Fails()
     {
         // Arrange
-        var infra = new RepoPushTarget(ValidAlias, ValidBranchName, "");
+        var infra = new RepoPushTarget(ProjectRepositoryId.CreateUnique(), ValidBranchName, "");
         var command = new PushProjectArtifactsToMultiRepoCommand(ProjectId.CreateUnique(), infra, null);
 
         // Act
@@ -131,10 +130,10 @@ public sealed class PushProjectArtifactsToMultiRepoCommandValidatorTests
     }
 
     [Fact]
-    public void Given_CodeEmptyAlias_When_Validate_Then_Fails()
+    public void Given_CodeEmptyRepositoryId_When_Validate_Then_Fails()
     {
         // Arrange
-        var code = new RepoPushTarget("", "main", "Push");
+        var code = new RepoPushTarget(new ProjectRepositoryId(Guid.Empty), "main", "Push");
         var command = new PushProjectArtifactsToMultiRepoCommand(ProjectId.CreateUnique(), null, code);
 
         // Act
@@ -142,6 +141,6 @@ public sealed class PushProjectArtifactsToMultiRepoCommandValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == "Code.Alias");
+        result.Errors.Should().Contain(e => e.PropertyName == "Code.RepositoryId.Value");
     }
 }

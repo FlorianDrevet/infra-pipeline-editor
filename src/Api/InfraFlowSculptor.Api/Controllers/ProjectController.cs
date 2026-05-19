@@ -436,7 +436,6 @@ public static class ProjectController
                     var command = new AddInfraConfigRepositoryCommand(
                         new ProjectId(projectId),
                         new InfrastructureConfigId(configId),
-                        request.Alias,
                         request.ProviderType,
                         request.RepositoryUrl,
                         request.DefaultBranch,

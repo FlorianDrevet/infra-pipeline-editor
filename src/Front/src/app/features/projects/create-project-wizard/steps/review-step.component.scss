@@ -110,9 +110,14 @@
     min-width: 0;
   }
 
-  &__repo-alias {
+  &__repo-name {
     font-weight: 600;
     color: var(--ifs-text-primary);
+  }
+
+  &__repo-subtitle {
+    color: var(--ifs-text-secondary);
+    font-size: 0.82rem;
   }
 
   &__repo-kinds {

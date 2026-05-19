@@ -1,22 +1,38 @@
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
+import { ProjectRepositoryResponse } from '../../shared/interfaces/project-repository.interface';
 
-export interface ProjectDetailSplitRepoAliases {
-  readonly infraAlias: string;
-  readonly codeAlias: string;
+export interface ProjectDetailSplitRepoTargets {
+  readonly infraRepositoryId: string;
+  readonly codeRepositoryId: string;
+  readonly infraRepositoryLabel: string;
+  readonly codeRepositoryLabel: string;
 }
 
 const MAX_PROJECT_ARCHIVE_SOURCE_BYTES = 10 * 1024 * 1024;
 const MAX_PROJECT_ARCHIVE_ENTRY_BYTES = 2 * 1024 * 1024;
 const MAX_PROJECT_ARCHIVE_TOTAL_BYTES = 25 * 1024 * 1024;
 
-export function resolveProjectDetailSplitRepoAliases(project: ProjectResponse): ProjectDetailSplitRepoAliases | null {
+export function resolveProjectDetailSplitRepoTargets(project: ProjectResponse): ProjectDetailSplitRepoTargets | null {
   const repositories = project.repositories ?? [];
-  const infraAlias = repositories.find((repository) => repository.contentKinds?.includes('Infrastructure'))?.alias;
-  const codeAlias = repositories.find((repository) => repository.contentKinds?.includes('ApplicationCode'))?.alias;
+  const infraRepository = repositories.find((repository) => repository.contentKinds?.includes('Infrastructure'));
+  const codeRepository = repositories.find((repository) => repository.contentKinds?.includes('ApplicationCode'));
 
-  return infraAlias && codeAlias
-    ? { infraAlias, codeAlias }
+  return infraRepository && codeRepository
+    ? {
+        infraRepositoryId: infraRepository.id,
+        codeRepositoryId: codeRepository.id,
+        infraRepositoryLabel: getProjectDetailRepositoryLabel(infraRepository),
+        codeRepositoryLabel: getProjectDetailRepositoryLabel(codeRepository),
+      }
     : null;
+}
+
+function getProjectDetailRepositoryLabel(repository: ProjectRepositoryResponse): string {
+  if (repository.owner && repository.repositoryName) {
+    return `${repository.owner}/${repository.repositoryName}`;
+  }
+
+  return repository.repositoryName ?? repository.repositoryUrl ?? repository.id;
 }
 
 export function tryGetProjectArchiveEntryUncompressedSize(entry: object): number | null {

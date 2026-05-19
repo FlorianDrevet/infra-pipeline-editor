@@ -15,7 +15,6 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
 {
     private const string ProjectName = "Retail Platform";
     private const string ProjectDescription = "Provision the retail platform.";
-    private const string ProjectAlias = "platform";
     private const string GitHubProvider = "GitHub";
     private const string MainBranch = "main";
     private const string DevelopmentEnvironment = "Development";
@@ -70,8 +69,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
             && environment.ShortName == DevelopmentShortName
             && environment.Location == WestEuropeLocation);
         result.Value.Repositories.Should().ContainSingle(repository =>
-            repository.Alias == ProjectAlias
-            && repository.ProviderType == GitHubProvider
+            repository.ProviderType == GitHubProvider
             && repository.DefaultBranch == MainBranch
             && repository.IsConfigured);
         result.Value.Repositories![0].ContentKinds.Should().BeEquivalentTo("Infrastructure", "ApplicationCode");
@@ -211,7 +209,6 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         RequiresApproval: false);
 
     private static RepositorySetupItem ValidRepository() => new(
-        Alias: ProjectAlias,
         ContentKinds: ["Infrastructure", "ApplicationCode"],
         ProviderType: GitHubProvider,
         RepositoryUrl: "https://github.com/floriandrevet/platform",

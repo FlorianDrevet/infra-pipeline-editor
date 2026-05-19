@@ -13,11 +13,8 @@ namespace InfraFlowSculptor.Application.Tests.Projects.Commands.PushProjectArtif
 
 public sealed class PushProjectArtifactsToMultiRepoCommandHandlerTests
 {
-    private const string PersonalAccessToken = "pat-token";
-
     private readonly IProjectAccessService _accessService;
     private readonly IProjectRepository _projectRepository;
-    private readonly IKeyVaultSecretClient _keyVaultSecretClient;
     private readonly IMultiRepoProjectArtifactsPushService _pushService;
     private readonly Project _project;
     private readonly PushProjectArtifactsToMultiRepoCommand _command;
@@ -27,25 +24,25 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandlerTests
     {
         _accessService = Substitute.For<IProjectAccessService>();
         _projectRepository = Substitute.For<IProjectRepository>();
-        _keyVaultSecretClient = Substitute.For<IKeyVaultSecretClient>();
         _pushService = Substitute.For<IMultiRepoProjectArtifactsPushService>();
 
         _project = CreateConfiguredSplitProject();
+        var infraRepository = _project.Repositories.Single(repository => repository.ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure));
+        var codeRepository = _project.Repositories.Single(repository => repository.ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode));
         _command = new PushProjectArtifactsToMultiRepoCommand(
             _project.Id,
             Infra: new RepoPushTarget(
-                Alias: "infra",
+                RepositoryId: infraRepository.Id,
                 BranchName: "feature/generated-infra",
                 CommitMessage: "Update infra artifacts"),
             Code: new RepoPushTarget(
-                Alias: "code",
+                RepositoryId: codeRepository.Id,
                 BranchName: "feature/generated-code",
                 CommitMessage: "Update app artifacts"));
 
         _sut = new PushProjectArtifactsToMultiRepoCommandHandler(
             _accessService,
             _projectRepository,
-            _keyVaultSecretClient,
             _pushService);
     }
 
@@ -55,17 +52,15 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandlerTests
         // Arrange
         var expected = new PushProjectArtifactsToMultiRepoResult(
         [
-            new RepoPushResult("infra", true, "https://example/infra", "abc123", 3, null, null),
-            new RepoPushResult("code", true, "https://example/code", "def456", 2, null, null),
+            new RepoPushResult(_command.Infra!.RepositoryId, true, "https://example/infra", "abc123", 3, null, null),
+            new RepoPushResult(_command.Code!.RepositoryId, true, "https://example/code", "def456", 2, null, null),
         ]);
 
         _accessService.VerifyWriteAccessAsync(_project.Id, Arg.Any<CancellationToken>())
             .Returns(_project);
         _projectRepository.GetByIdWithAllAsync(_project.Id, Arg.Any<CancellationToken>())
             .Returns(_project);
-        _keyVaultSecretClient.GetSecretAsync($"git-pat-{_project.Id.Value}", Arg.Any<CancellationToken>())
-            .Returns(PersonalAccessToken);
-        _pushService.PushAsync(_command, _project, PersonalAccessToken, Arg.Any<CancellationToken>())
+        _pushService.PushAsync(_command, _project, Arg.Any<CancellationToken>())
             .Returns(expected);
 
         // Act
@@ -76,7 +71,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandlerTests
         result.Value.Should().BeEquivalentTo(expected);
 
         await _pushService.Received(1)
-            .PushAsync(_command, _project, PersonalAccessToken, Arg.Any<CancellationToken>());
+            .PushAsync(_command, _project, Arg.Any<CancellationToken>());
     }
 
     private static Project CreateConfiguredSplitProject()
@@ -85,14 +80,6 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandlerTests
         var layoutResult = project.SetLayoutPreset(new LayoutPreset(LayoutPresetEnum.SplitInfraCode));
         if (layoutResult.IsError)
             throw new InvalidOperationException(layoutResult.FirstError.Description);
-
-        var infraAlias = RepositoryAlias.Create("infra");
-        if (infraAlias.IsError)
-            throw new InvalidOperationException(infraAlias.FirstError.Description);
-
-        var codeAlias = RepositoryAlias.Create("code");
-        if (codeAlias.IsError)
-            throw new InvalidOperationException(codeAlias.FirstError.Description);
 
         var infraKinds = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure);
         if (infraKinds.IsError)
@@ -103,7 +90,6 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandlerTests
             throw new InvalidOperationException(codeKinds.FirstError.Description);
 
         var infraRepositoryResult = project.AddRepository(
-            infraAlias.Value,
             new GitProviderType(GitProviderTypeEnum.GitHub),
             "https://github.com/octo-org/retail-platform-infra",
             "main",
@@ -112,7 +98,6 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandlerTests
             throw new InvalidOperationException(infraRepositoryResult.FirstError.Description);
 
         var codeRepositoryResult = project.AddRepository(
-            codeAlias.Value,
             new GitProviderType(GitProviderTypeEnum.GitHub),
             "https://github.com/octo-org/retail-platform-app",
             "main",

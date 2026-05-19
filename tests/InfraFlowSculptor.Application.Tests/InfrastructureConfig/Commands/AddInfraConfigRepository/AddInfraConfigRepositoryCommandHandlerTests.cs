@@ -49,7 +49,6 @@ public sealed class AddInfraConfigRepositoryCommandHandlerTests
         var command = new AddInfraConfigRepositoryCommand(
             _project.Id,
             _config.Id,
-            Alias: "infra",
             ProviderType: "Unsupported",
             RepositoryUrl: "https://github.com/floriandrevet/infra",
             DefaultBranch: "main",
@@ -71,7 +70,6 @@ public sealed class AddInfraConfigRepositoryCommandHandlerTests
         var command = new AddInfraConfigRepositoryCommand(
             _project.Id,
             _config.Id,
-            Alias: "infra",
             ProviderType: nameof(GitProviderTypeEnum.GitHub),
             RepositoryUrl: "https://github.com/floriandrevet/infra",
             DefaultBranch: "main",

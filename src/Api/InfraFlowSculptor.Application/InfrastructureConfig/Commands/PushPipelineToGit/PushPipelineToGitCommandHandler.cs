@@ -50,7 +50,7 @@ public sealed class PushPipelineToGitCommandHandler(
         var target = targetResult.Value;
 
         var secretResult = await keyVaultClient.GetSecretAsync(
-            $"git-pat-{project.Id.Value}", cancellationToken);
+            target.PatSecretName ?? $"git-pat-{project.Id.Value}", cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;
 

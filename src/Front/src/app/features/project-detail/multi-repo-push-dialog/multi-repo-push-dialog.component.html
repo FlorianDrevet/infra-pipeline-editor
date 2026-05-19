@@ -43,7 +43,7 @@
             <div class="mr-card__header-copy">
               <div class="mr-card__title-row">
                 <h3 class="mr-card__title">{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.INFRA_CARD_TITLE' | translate }}</h3>
-                <code class="mr-card__alias">{{ data.infraAlias }}</code>
+                <code class="mr-card__repository">{{ data.infraRepositoryLabel }}</code>
               </div>
             </div>
           </div>
@@ -79,7 +79,7 @@
                   <div class="mr-card__row">
                     <span>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_URL_LABEL' | translate }}</span>
                     <a class="mr-card__link" [href]="infraResult()!.branchUrl!" target="_blank" rel="noopener">
-                      <span>{{ data.infraAlias }}</span>
+                      <span>{{ data.infraRepositoryLabel }}</span>
                       <mat-icon>open_in_new</mat-icon>
                     </a>
                   </div>
@@ -142,7 +142,7 @@
             <div class="mr-card__header-copy">
               <div class="mr-card__title-row">
                 <h3 class="mr-card__title">{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CODE_CARD_TITLE' | translate }}</h3>
-                <code class="mr-card__alias">{{ data.codeAlias }}</code>
+                <code class="mr-card__repository">{{ data.codeRepositoryLabel }}</code>
               </div>
             </div>
           </div>
@@ -178,7 +178,7 @@
                   <div class="mr-card__row">
                     <span>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_URL_LABEL' | translate }}</span>
                     <a class="mr-card__link" [href]="codeResult()!.branchUrl!" target="_blank" rel="noopener">
-                      <span>{{ data.codeAlias }}</span>
+                      <span>{{ data.codeRepositoryLabel }}</span>
                       <mat-icon>open_in_new</mat-icon>
                     </a>
                   </div>

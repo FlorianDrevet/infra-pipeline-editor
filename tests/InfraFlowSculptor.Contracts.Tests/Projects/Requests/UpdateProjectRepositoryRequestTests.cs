@@ -14,6 +14,7 @@ public sealed class UpdateProjectRepositoryRequestTests
         {
             RepositoryUrl = "https://github.com/org/repo",
             DefaultBranch = "main",
+            PersonalAccessToken = "token",
             ContentKinds = ["Infrastructure"],
         };
 

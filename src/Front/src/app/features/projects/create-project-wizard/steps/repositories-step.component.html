@@ -21,17 +21,6 @@
             </div>
           </div>
 
-          <div class="repo-card__row">
-            <app-ds-text-field
-              [label]="'PROJECT_CREATE.STEP.REPOSITORIES.ALIAS' | translate"
-              [hint]="'PROJECT_CREATE.STEP.REPOSITORIES.ALIAS_HINT' | translate"
-              [required]="true"
-              [error]="aliasError(repo) ? ('PROJECT_CREATE.STEP.REPOSITORIES.ALIAS_HINT' | translate) : undefined"
-              [ngModel]="repo.alias"
-              (ngModelChange)="updateField(label.index, 'alias', $event)"
-            ></app-ds-text-field>
-          </div>
-
           <div class="repo-card__row repo-card__row--triple">
             <app-ds-select
               [label]="'PROJECT_CREATE.STEP.REPOSITORIES.PROVIDER' | translate"

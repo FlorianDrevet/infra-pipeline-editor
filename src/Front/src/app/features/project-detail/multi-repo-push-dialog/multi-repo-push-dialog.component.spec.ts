@@ -45,7 +45,7 @@ function createPushResponse(): MultiRepoPushResponse {
   return {
     results: [
       {
-        alias: 'infra-repo',
+        repositoryId: 'repo-infra',
         success: true,
         branchUrl: 'https://example.test/infra',
         commitSha: '12345678',
@@ -54,7 +54,7 @@ function createPushResponse(): MultiRepoPushResponse {
         errorDescription: null,
       },
       {
-        alias: 'code-repo',
+        repositoryId: 'repo-code',
         success: true,
         branchUrl: 'https://example.test/code',
         commitSha: '87654321',
@@ -84,8 +84,10 @@ describe('MultiRepoPushDialogComponent', () => {
           provide: MAT_DIALOG_DATA,
           useValue: {
             projectId: 'project-42',
-            infraAlias: 'infra-repo',
-            codeAlias: 'code-repo',
+            infraRepositoryId: 'repo-infra',
+            codeRepositoryId: 'repo-code',
+            infraRepositoryLabel: 'example/infra-repo',
+            codeRepositoryLabel: 'example/code-repo',
             mode: 'both',
           } satisfies MultiRepoPushDialogData,
         },
@@ -113,8 +115,8 @@ describe('MultiRepoPushDialogComponent', () => {
   });
 
   afterEach(() => {
-    localStorage.removeItem('ifs-push-branch-multi-project-42-infra-repo');
-    localStorage.removeItem('ifs-push-branch-multi-project-42-code-repo');
+    localStorage.removeItem('ifs-push-branch-multi-project-42-repo-infra');
+    localStorage.removeItem('ifs-push-branch-multi-project-42-repo-code');
   });
 
   it('requires commit messages before enabling push in both mode', () => {
@@ -186,5 +188,26 @@ describe('MultiRepoPushDialogComponent', () => {
     const autocompleteComponents = fixture.debugElement.queryAll(By.directive(DsAutocompleteComponent));
 
     expect(autocompleteComponents.length).toBe(2);
+  });
+
+  it('pushes using repository ids', async () => {
+    componentTestApi.infraForm.controls.commit.setValue('chore: update infra artifacts');
+    componentTestApi.codeForm.controls.commit.setValue('chore: update app artifacts');
+    fixture.detectChanges();
+
+    await componentTestApi.onPush();
+
+    expect(projectServiceSpy.pushProjectArtifactsToMultiRepo).toHaveBeenCalledOnceWith('project-42', {
+      infra: {
+        repositoryId: 'repo-infra',
+        branchName: 'main',
+        commitMessage: 'chore: update infra artifacts',
+      },
+      code: {
+        repositoryId: 'repo-code',
+        branchName: 'main',
+        commitMessage: 'chore: update app artifacts',
+      },
+    });
   });
 });

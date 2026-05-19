@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectRepository;
@@ -86,13 +87,17 @@ public sealed class ProjectManagementTools
     [Description(
         "Adds a git repository configuration to a project. " +
         "Specify the provider type (AzureDevOps, GitHub), repository URL, default branch, and content kinds.")]
+    [SuppressMessage(
+        "Major Code Smell",
+        "S107:Methods should not have too many parameters",
+        Justification = "MCP tool signatures intentionally expose tool schema parameters directly.")]
     public static async Task<string> SetGitConfiguration(
         ISender mediator,
         [Description("The project ID (GUID).")] string projectId,
-        [Description("Repository alias (e.g. 'main', 'infra').")] string alias,
         [Description("Git provider type: 'AzureDevOps' or 'GitHub'.")] string? providerType = null,
         [Description("Full repository URL.")] string? repositoryUrl = null,
         [Description("Default branch name (e.g. 'main').")] string? defaultBranch = null,
+        [Description("Personal access token used to verify and store the repository credential.")] string? personalAccessToken = null,
         [Description("JSON array of content kinds: [\"Infrastructure\", \"ApplicationCode\"].")] string? contentKinds = null,
         CancellationToken cancellationToken = default)
     {
@@ -105,10 +110,10 @@ public sealed class ProjectManagementTools
 
         var command = new AddProjectRepositoryCommand(
             ProjectId: new ProjectId(id),
-            Alias: alias,
             ProviderType: providerType,
             RepositoryUrl: repositoryUrl,
             DefaultBranch: defaultBranch,
+            PersonalAccessToken: personalAccessToken,
             ContentKinds: kinds);
 
         var result = await mediator.Send(command, cancellationToken);
@@ -118,7 +123,6 @@ public sealed class ProjectManagementTools
             {
                 status = "success",
                 repositoryId = repoId.Value.ToString(),
-                alias,
                 providerType,
             }, McpJsonDefaults.SerializerOptions),
             errors => McpJsonDefaults.Error("command_failed", string.Join("; ", errors.Select(e => e.Description))));

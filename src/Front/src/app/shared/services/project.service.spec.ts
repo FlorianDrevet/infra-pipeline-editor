@@ -11,6 +11,8 @@ const PROJECT_URL = `/projects/${PROJECT_ID}`;
 const LATEST_GENERATION_URL = `${PROJECT_URL}/latest-generation`;
 const PROJECT_REPOSITORY_PAT_URL = `${PROJECT_URL}/repositories/${REPOSITORY_ID}/git-pat`;
 const PROJECT_REPOSITORY_TEST_URL = `${PROJECT_URL}/repositories/${REPOSITORY_ID}/test-connection`;
+const PROJECT_REPOSITORY_VERIFY_URL = `${PROJECT_URL}/repositories/verify`;
+const EXISTING_PROJECT_REPOSITORY_VERIFY_URL = `${PROJECT_URL}/repositories/${REPOSITORY_ID}/verify`;
 
 interface ProjectMutationCase {
   readonly description: string;
@@ -100,11 +102,11 @@ describe('ProjectService', () => {
     {
       description: 'adding a repository',
       run: (currentService) => currentService.addRepository(PROJECT_ID, {
-        alias: 'infra',
         contentKinds: ['Infrastructure'],
         providerType: 'GitHub',
         repositoryUrl: 'https://github.com/org/infra',
         defaultBranch: 'main',
+        personalAccessToken: 'token',
       }),
     },
     {
@@ -114,6 +116,7 @@ describe('ProjectService', () => {
         providerType: 'GitHub',
         repositoryUrl: 'https://github.com/org/infra',
         defaultBranch: 'main',
+        personalAccessToken: 'token',
       }),
     },
     {
@@ -186,6 +189,53 @@ describe('ProjectService', () => {
     );
   });
 
+  it('verifies a new repository connection through the stateless project endpoint', async () => {
+    const request = {
+      providerType: 'GitHub',
+      repositoryUrl: 'https://github.com/org/infra',
+      personalAccessToken: 'token',
+    };
+    const response = {
+      owner: 'org',
+      repositoryName: 'infra',
+      branches: [{ name: 'main', isProtected: true }],
+      defaultBranchCandidate: 'main',
+    };
+    axiosServiceSpy.request$.and.resolveTo(response);
+
+    const result = await service.verifyRepositoryConnection(PROJECT_ID, request);
+
+    expect(result).toEqual(response);
+    expect(axiosServiceSpy.request$).toHaveBeenCalledOnceWith(
+      MethodEnum.POST,
+      PROJECT_REPOSITORY_VERIFY_URL,
+      request,
+    );
+  });
+
+  it('verifies an existing repository connection through the repository-scoped endpoint', async () => {
+    const request = {
+      providerType: 'GitHub',
+      repositoryUrl: 'https://github.com/org/infra',
+    };
+    const response = {
+      owner: 'org',
+      repositoryName: 'infra',
+      branches: [{ name: 'main', isProtected: false }],
+      defaultBranchCandidate: 'main',
+    };
+    axiosServiceSpy.request$.and.resolveTo(response);
+
+    const result = await service.verifyRepositoryConnection(PROJECT_ID, request, REPOSITORY_ID);
+
+    expect(result).toEqual(response);
+    expect(axiosServiceSpy.request$).toHaveBeenCalledOnceWith(
+      MethodEnum.POST,
+      EXISTING_PROJECT_REPOSITORY_VERIFY_URL,
+      request,
+    );
+  });
+
   async function expectProjectReloadAfterMutation(
     runMutation: (currentService: ProjectService) => Promise<unknown>,
   ): Promise<void> {
@@ -252,17 +302,19 @@ function createAxiosError(status: number): Error & {
     readonly status: number;
   };
 } {
-  return {
+  const error: Error & {
+    readonly isAxiosError: boolean;
+    readonly response: {
+      readonly status: number;
+    };
+  } = {
     name: 'AxiosError',
     message: `Request failed with status code ${status}`,
     isAxiosError: true,
     response: {
       status,
     },
-  } as Error & {
-    readonly isAxiosError: boolean;
-    readonly response: {
-      readonly status: number;
-    };
   };
+
+  return error;
 }

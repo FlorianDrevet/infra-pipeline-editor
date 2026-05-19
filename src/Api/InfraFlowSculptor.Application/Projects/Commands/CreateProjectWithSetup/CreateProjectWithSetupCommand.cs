@@ -45,13 +45,11 @@ public record EnvironmentSetupItem(
     bool RequiresApproval);
 
 /// <summary>One project-level repository slot inside a <see cref="CreateProjectWithSetupCommand"/>.</summary>
-/// <param name="Alias">Project-scoped slug (lowercase, digits, hyphens).</param>
 /// <param name="ContentKinds">Repository content kinds (e.g. <c>Infrastructure</c>, <c>ApplicationCode</c>).</param>
 /// <param name="ProviderType">Optional provider (<c>GitHub</c>/<c>AzureDevOps</c>) — fill later if null.</param>
 /// <param name="RepositoryUrl">Optional repository URL — fill later if null/empty.</param>
 /// <param name="DefaultBranch">Optional default branch — fill later if null/empty.</param>
 public record RepositorySetupItem(
-    string Alias,
     IReadOnlyList<string> ContentKinds,
     string? ProviderType,
     string? RepositoryUrl,

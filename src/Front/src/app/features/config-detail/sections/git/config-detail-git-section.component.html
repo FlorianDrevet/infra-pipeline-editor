@@ -45,21 +45,21 @@
               <mat-card-header>
                 <mat-card-title class="repo-card__title">
                   <mat-icon class="repo-card__icon">folder_open</mat-icon>
-                  <span>{{ repo.alias }}</span>
+                  <span>{{ repositoryDisplayName(repo) }}</span>
                 </mat-card-title>
-                <mat-card-subtitle>{{ repo.providerType }}</mat-card-subtitle>
+                <mat-card-subtitle>{{ repo.providerType ?? (repositoryProviderLabel(repo) | translate) }}</mat-card-subtitle>
               </mat-card-header>
 
               <mat-card-content class="repo-card__content">
                 <div class="repo-card__row">
                   <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
-                  <a class="repo-card__link" [href]="repo.repositoryUrl" target="_blank" rel="noopener">
-                    {{ repo.owner }}/{{ repo.repositoryName }}
+                  <a class="repo-card__link" [href]="repo.repositoryUrl ?? undefined" target="_blank" rel="noopener">
+                    {{ repositoryDisplayName(repo) }}
                   </a>
                 </div>
                 <div class="repo-card__row">
                   <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
-                  <strong>{{ repo.defaultBranch }}</strong>
+                  <strong>{{ repo.defaultBranch ?? ('CONFIG_DETAIL.REPOSITORIES.UNCONFIGURED' | translate) }}</strong>
                 </div>
                 <div class="repo-card__chips">
                   @for (kind of repo.contentKinds; track kind) {
@@ -109,19 +109,19 @@
                       <mat-icon class="repo-card__icon">folder_open</mat-icon>
                       <span>{{ slot.labelKey | translate }}</span>
                     </mat-card-title>
-                    <mat-card-subtitle>{{ repo.alias }} · {{ repo.providerType }}</mat-card-subtitle>
+                    <mat-card-subtitle>{{ repositoryDisplayName(repo) }} · {{ repo.providerType ?? (repositoryProviderLabel(repo) | translate) }}</mat-card-subtitle>
                   </mat-card-header>
 
                   <mat-card-content class="repo-card__content">
                     <div class="repo-card__row">
                       <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
-                      <a class="repo-card__link" [href]="repo.repositoryUrl" target="_blank" rel="noopener">
-                        {{ repo.owner }}/{{ repo.repositoryName }}
+                      <a class="repo-card__link" [href]="repo.repositoryUrl ?? undefined" target="_blank" rel="noopener">
+                        {{ repositoryDisplayName(repo) }}
                       </a>
                     </div>
                     <div class="repo-card__row">
                       <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
-                      <strong>{{ repo.defaultBranch }}</strong>
+                      <strong>{{ repo.defaultBranch ?? ('CONFIG_DETAIL.REPOSITORIES.UNCONFIGURED' | translate) }}</strong>
                     </div>
                   </mat-card-content>
 

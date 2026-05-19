@@ -22,18 +22,17 @@ export const CONTENT_KINDS: ReadonlyArray<RepositoryContentKind> = [
 ];
 
 export interface RepositoryFormExisting {
-  alias?: string;
-  providerType?: string;
-  repositoryUrl?: string;
-  defaultBranch?: string;
+  providerType?: string | null;
+  repositoryUrl?: string | null;
+  defaultBranch?: string | null;
   contentKinds?: RepositoryContentKind[];
 }
 
 export type RepositoryFormGroup = FormGroup<{
-  alias: FormControl<string>;
   providerType: FormControl<string>;
   repositoryUrl: FormControl<string>;
   defaultBranch: FormControl<string>;
+  personalAccessToken: FormControl<string>;
   contentKinds: FormArray<FormControl<boolean>>;
 }>;
 
@@ -44,13 +43,6 @@ export function buildRepositoryForm(
   lockedKinds: ReadonlyArray<RepositoryContentKind>,
 ): RepositoryFormGroup {
   return fb.group({
-    alias: new FormControl<string>(
-      { value: existing?.alias ?? '', disabled: isEditMode },
-      {
-        nonNullable: true,
-        validators: [Validators.required, Validators.pattern(/^[a-z0-9-]+$/)],
-      }
-    ),
     providerType: new FormControl<string>(
       existing?.providerType ?? 'AzureDevOps',
       { nonNullable: true, validators: [Validators.required] }
@@ -63,6 +55,7 @@ export function buildRepositoryForm(
       existing?.defaultBranch ?? 'main',
       { nonNullable: true, validators: [Validators.required] }
     ),
+    personalAccessToken: new FormControl<string>('', { nonNullable: true }),
     contentKinds: fb.array<FormControl<boolean>>(
       CONTENT_KINDS.map((kind) => {
         const isLocked = lockedKinds.includes(kind);

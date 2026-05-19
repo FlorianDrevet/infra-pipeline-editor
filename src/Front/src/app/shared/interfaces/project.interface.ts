@@ -65,7 +65,6 @@ export interface EnvironmentSetupRequest {
 }
 
 export interface RepositorySetupRequest {
-  alias: string;
   contentKinds: string[];
   providerType?: 'GitHub' | 'AzureDevOps';
   repositoryUrl?: string;

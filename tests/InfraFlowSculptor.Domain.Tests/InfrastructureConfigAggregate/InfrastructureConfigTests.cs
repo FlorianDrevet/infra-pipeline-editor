@@ -397,10 +397,9 @@ public sealed class InfrastructureConfigTests
         // Arrange
         var sut = CreateValidConfig();
         sut.SetLayoutMode(new ConfigLayoutMode(ConfigLayoutModeEnum.AllInOne));
-        var alias = RepositoryAlias.Create("everything").Value;
         var contentKinds = RepositoryContentKinds.Create(
             RepositoryContentKindsEnum.Infrastructure | RepositoryContentKindsEnum.ApplicationCode).Value;
-        sut.AddRepository(alias, new GitProviderType(GitProviderTypeEnum.GitHub), AllInOneRepoUrl, DefaultBranch, contentKinds);
+        sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), AllInOneRepoUrl, DefaultBranch, contentKinds);
 
         // Act
         sut.SetLayoutMode(new ConfigLayoutMode(ConfigLayoutModeEnum.SplitInfraCode));
@@ -416,10 +415,9 @@ public sealed class InfrastructureConfigTests
         var sut = CreateValidConfig();
         var mode = new ConfigLayoutMode(ConfigLayoutModeEnum.AllInOne);
         sut.SetLayoutMode(mode);
-        var alias = RepositoryAlias.Create("everything").Value;
         var contentKinds = RepositoryContentKinds.Create(
             RepositoryContentKindsEnum.Infrastructure | RepositoryContentKindsEnum.ApplicationCode).Value;
-        sut.AddRepository(alias, new GitProviderType(GitProviderTypeEnum.GitHub), AllInOneRepoUrl, DefaultBranch, contentKinds);
+        sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), AllInOneRepoUrl, DefaultBranch, contentKinds);
 
         // Act
         sut.SetLayoutMode(new ConfigLayoutMode(ConfigLayoutModeEnum.AllInOne));
@@ -435,11 +433,10 @@ public sealed class InfrastructureConfigTests
     {
         // Arrange
         var sut = CreateValidConfig();
-        var alias = RepositoryAlias.Create("infra").Value;
         var contentKinds = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
 
         // Act
-        var result = sut.AddRepository(alias, new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, contentKinds);
+        var result = sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, contentKinds);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -452,12 +449,11 @@ public sealed class InfrastructureConfigTests
         // Arrange
         var sut = CreateValidConfig();
         sut.SetLayoutMode(new ConfigLayoutMode(ConfigLayoutModeEnum.AllInOne));
-        var alias = RepositoryAlias.Create("everything").Value;
         var contentKinds = RepositoryContentKinds.Create(
             RepositoryContentKindsEnum.Infrastructure | RepositoryContentKindsEnum.ApplicationCode).Value;
 
         // Act
-        var result = sut.AddRepository(alias, new GitProviderType(GitProviderTypeEnum.GitHub), AllInOneRepoUrl, DefaultBranch, contentKinds);
+        var result = sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), AllInOneRepoUrl, DefaultBranch, contentKinds);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -470,11 +466,10 @@ public sealed class InfrastructureConfigTests
         // Arrange
         var sut = CreateValidConfig();
         sut.SetLayoutMode(new ConfigLayoutMode(ConfigLayoutModeEnum.AllInOne));
-        var alias = RepositoryAlias.Create("infra-only").Value;
         var contentKinds = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
 
         // Act
-        var result = sut.AddRepository(alias, new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, contentKinds);
+        var result = sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, contentKinds);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -489,12 +484,10 @@ public sealed class InfrastructureConfigTests
         sut.SetLayoutMode(new ConfigLayoutMode(ConfigLayoutModeEnum.AllInOne));
         var bothKinds = RepositoryContentKinds.Create(
             RepositoryContentKindsEnum.Infrastructure | RepositoryContentKindsEnum.ApplicationCode).Value;
-        sut.AddRepository(RepositoryAlias.Create("first").Value,
-            new GitProviderType(GitProviderTypeEnum.GitHub), AllInOneRepoUrl, DefaultBranch, bothKinds);
+        sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), AllInOneRepoUrl, DefaultBranch, bothKinds);
 
         // Act
-        var result = sut.AddRepository(RepositoryAlias.Create("second").Value,
-            new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, bothKinds);
+        var result = sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, bothKinds);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -511,10 +504,8 @@ public sealed class InfrastructureConfigTests
         var appOnly = RepositoryContentKinds.Create(RepositoryContentKindsEnum.ApplicationCode).Value;
 
         // Act
-        var first = sut.AddRepository(RepositoryAlias.Create("infra").Value,
-            new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, infraOnly);
-        var second = sut.AddRepository(RepositoryAlias.Create("app").Value,
-            new GitProviderType(GitProviderTypeEnum.GitHub), AppRepoUrl, DefaultBranch, appOnly);
+        var first = sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, infraOnly);
+        var second = sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), AppRepoUrl, DefaultBranch, appOnly);
 
         // Assert
         first.IsError.Should().BeFalse();
@@ -532,8 +523,7 @@ public sealed class InfrastructureConfigTests
             RepositoryContentKindsEnum.Infrastructure | RepositoryContentKindsEnum.ApplicationCode).Value;
 
         // Act
-        var result = sut.AddRepository(RepositoryAlias.Create("hybrid").Value,
-            new GitProviderType(GitProviderTypeEnum.GitHub), AllInOneRepoUrl, DefaultBranch, bothKinds);
+        var result = sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), AllInOneRepoUrl, DefaultBranch, bothKinds);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -546,12 +536,10 @@ public sealed class InfrastructureConfigTests
         var sut = CreateValidConfig();
         sut.SetLayoutMode(new ConfigLayoutMode(ConfigLayoutModeEnum.SplitInfraCode));
         var infraOnly = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
-        sut.AddRepository(RepositoryAlias.Create("infra-1").Value,
-            new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, infraOnly);
+        sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, infraOnly);
 
         // Act
-        var result = sut.AddRepository(RepositoryAlias.Create("infra-2").Value,
-            new GitProviderType(GitProviderTypeEnum.GitHub), AppRepoUrl, DefaultBranch, infraOnly);
+        var result = sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), AppRepoUrl, DefaultBranch, infraOnly);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -559,23 +547,22 @@ public sealed class InfrastructureConfigTests
     }
 
     [Fact]
-    public void Given_DuplicateAlias_When_AddRepository_Then_ReturnsConflict()
+    public void Given_SplitInfraCodeLayoutWithSameRepositoryUrlAndDifferentRoles_When_AddBoth_Then_Succeeds()
     {
         // Arrange
         var sut = CreateValidConfig();
         sut.SetLayoutMode(new ConfigLayoutMode(ConfigLayoutModeEnum.SplitInfraCode));
         var infraOnly = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
         var appOnly = RepositoryContentKinds.Create(RepositoryContentKindsEnum.ApplicationCode).Value;
-        var alias = RepositoryAlias.Create("shared").Value;
-        sut.AddRepository(alias, new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, infraOnly);
 
         // Act
-        var result = sut.AddRepository(alias,
-            new GitProviderType(GitProviderTypeEnum.GitHub), AppRepoUrl, DefaultBranch, appOnly);
+        var first = sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, infraOnly);
+        var second = sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, appOnly);
 
         // Assert
-        result.IsError.Should().BeTrue();
-        sut.Repositories.Should().ContainSingle();
+        first.IsError.Should().BeFalse();
+        second.IsError.Should().BeFalse();
+        sut.Repositories.Should().HaveCount(2);
     }
 
     [Fact]
@@ -585,8 +572,7 @@ public sealed class InfrastructureConfigTests
         var sut = CreateValidConfig();
         sut.SetLayoutMode(new ConfigLayoutMode(ConfigLayoutModeEnum.SplitInfraCode));
         var infraOnly = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
-        var added = sut.AddRepository(RepositoryAlias.Create("infra").Value,
-            new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, infraOnly);
+        var added = sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, infraOnly);
         const string updatedUrl = "https://github.com/acme/infra-renamed";
 
         // Act
@@ -621,8 +607,7 @@ public sealed class InfrastructureConfigTests
         var sut = CreateValidConfig();
         sut.SetLayoutMode(new ConfigLayoutMode(ConfigLayoutModeEnum.SplitInfraCode));
         var infraOnly = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
-        var added = sut.AddRepository(RepositoryAlias.Create("infra").Value,
-            new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, infraOnly);
+        var added = sut.AddRepository(new GitProviderType(GitProviderTypeEnum.GitHub), InfraRepoUrl, DefaultBranch, infraOnly);
 
         // Act
         var result = sut.RemoveRepository(added.Value.Id);

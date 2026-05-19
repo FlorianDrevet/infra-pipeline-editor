@@ -88,7 +88,7 @@
 - Use `GetByContainedResourceIdAsync`-style names for parent-by-child lookups; avoid ambiguous `GetByResourceIdAsync`.
 - `ProjectRepositories` and `InfraConfigRepositories` persist `RepositoryContentKinds` via `RepositoryContentKindsConverter`; valid flags are now `Infrastructure` and `ApplicationCode`.
 - `InfrastructureConfigs.LayoutMode` is nullable and uses `NullableEnumValueConverter<ConfigLayoutMode, ConfigLayoutModeEnum>()`.
-- `InfraConfigRepositories` owns the current config-level repo topology with cascade delete and unique `(InfrastructureConfigId, Alias)`.
+- Since 2026-05-19, active repository tables no longer persist alias columns. `ProjectRepositories` and `InfraConfigRepositories` are identified by their typed ids plus `ContentKinds`; do not add unique `(ProjectId, Alias)` or `(InfrastructureConfigId, Alias)` indexes back. Migration `20260519120000_RemoveRepositoryAliases` drops the old alias columns and indexes while historical migrations keep their original snapshot.
 
 ## Legacy Repair And Snapshot Invariants
 - `scripts/fix-legacy-repository-topology.ps1` is the one-off repair for legacy `Pipelines` content-kind rows and pre-layout-driven repository topologies.
@@ -116,3 +116,4 @@
 - EF-generated migration analyzer pitfall [2026-05-17]: this repository treats IDE0005 as an error, and `dotnet ef migrations add` can emit an unused `using System;` in the root migration `.cs` file even when the designer still needs `System`. Remove the unused import from the non-designer migration file before running `dotnet build` or follow-up `dotnet ef migrations remove/add` commands can fail.
 - Do not squash a sub-range in the middle of the active EF Core migration chain. The DB-008 closure decision is now explicit: the only safe squash is a full baseline reset on an empty database, coordinated as release engineering, not a partial rewrite inside a feature branch with later migrations already layered on top.
 - User directive [2026-05-18]: keep the full EF Core migration history going forward; do not condense or squash migrations into a single baseline migration unless the user explicitly asks for that exceptional workflow.
+- Repository alias removal migration [2026-05-19]: `20260519120000_RemoveRepositoryAliases` is the additive schema step for removing `Alias` from project/config repository tables. Keep historical migration files intact; only the current model snapshot should be alias-free.

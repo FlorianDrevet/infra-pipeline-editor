@@ -37,7 +37,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        // Resolve the project-level target (alias "default") for bootstrap artifacts.
+        // Resolve the project-level target for bootstrap artifacts.
         var targetResult = targetResolver.Resolve(project, config: null, ArtifactKind.Bootstrap);
         if (targetResult.IsError)
             return targetResult.Errors;

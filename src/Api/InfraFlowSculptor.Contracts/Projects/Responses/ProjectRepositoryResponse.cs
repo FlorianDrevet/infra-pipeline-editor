@@ -2,7 +2,6 @@ namespace InfraFlowSculptor.Contracts.Projects.Responses;
 
 /// <summary>Project-level Git repository declaration.</summary>
 /// <param name="Id">Unique identifier of the repository declaration.</param>
-/// <param name="Alias">Project-scoped slug-like alias (unique per project).</param>
 /// <param name="ProviderType">Git hosting provider type (<c>GitHub</c> or <c>AzureDevOps</c>), or <c>null</c> if the slot is not configured yet.</param>
 /// <param name="RepositoryUrl">Full repository URL, or <c>null</c> if the slot is not configured yet.</param>
 /// <param name="Owner">Repository owner extracted from the URL, or <c>null</c> if the slot is not configured yet.</param>
@@ -13,7 +12,6 @@ namespace InfraFlowSculptor.Contracts.Projects.Responses;
 /// (e.g. <c>Infrastructure</c>, <c>ApplicationCode</c>).</param>
 public record ProjectRepositoryResponse(
     string Id,
-    string Alias,
     string? ProviderType,
     string? RepositoryUrl,
     string? Owner,

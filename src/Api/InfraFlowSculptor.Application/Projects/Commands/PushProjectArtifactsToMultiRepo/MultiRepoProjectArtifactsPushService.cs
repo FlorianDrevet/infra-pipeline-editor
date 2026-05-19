@@ -5,6 +5,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ProjectAggregate;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.PushProjectArtifactsToMultiRepo;
 
@@ -13,6 +14,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.PushProjectArtifactsTo
 /// </summary>
 public sealed class MultiRepoProjectArtifactsPushService(
     IMultiScopeGitPushExecutor multiScopeGitPushExecutor,
+    IKeyVaultSecretClient keyVaultSecretClient,
     IBlobService blobService,
     IRepositoryTargetResolver targetResolver)
     : IMultiRepoProjectArtifactsPushService
@@ -31,7 +33,6 @@ public sealed class MultiRepoProjectArtifactsPushService(
     public async Task<ErrorOr<PushProjectArtifactsToMultiRepoResult>> PushAsync(
         PushProjectArtifactsToMultiRepoCommand command,
         Project project,
-        string token,
         CancellationToken cancellationToken)
     {
         var targetsResult = ResolveTargets(project, command);
@@ -61,7 +62,6 @@ public sealed class MultiRepoProjectArtifactsPushService(
         if (command.Infra is not null)
         {
             results.Add(await PushInfraAsync(
-                    token,
                     infraTarget!,
                     command.Infra,
                     infraArtifactsResult.Value.Bicep!,
@@ -74,7 +74,6 @@ public sealed class MultiRepoProjectArtifactsPushService(
         if (command.Code is not null)
         {
             results.Add(await PushAppAsync(
-                    token,
                     appTarget!,
                     command.Code,
                     appPipelineFiles,
@@ -98,8 +97,8 @@ public sealed class MultiRepoProjectArtifactsPushService(
                 return infraTargetResult.Errors;
 
             infraTarget = infraTargetResult.Value;
-            if (!string.Equals(infraTarget.Alias, command.Infra.Alias, StringComparison.Ordinal))
-                return Errors.GitRouting.AliasNotFound(command.Infra.Alias);
+            if (!string.Equals(infraTarget.RepositoryId, command.Infra.RepositoryId.Value.ToString(), StringComparison.Ordinal))
+                return Errors.GitRouting.RepositoryRoleMismatch(command.Infra.RepositoryId, RepositoryContentKindsEnum.Infrastructure);
         }
 
         ResolvedRepositoryTarget? appTarget = null;
@@ -110,8 +109,8 @@ public sealed class MultiRepoProjectArtifactsPushService(
                 return appTargetResult.Errors;
 
             appTarget = appTargetResult.Value;
-            if (!string.Equals(appTarget.Alias, command.Code.Alias, StringComparison.Ordinal))
-                return Errors.GitRouting.AliasNotFound(command.Code.Alias);
+            if (!string.Equals(appTarget.RepositoryId, command.Code.RepositoryId.Value.ToString(), StringComparison.Ordinal))
+                return Errors.GitRouting.RepositoryRoleMismatch(command.Code.RepositoryId, RepositoryContentKindsEnum.ApplicationCode);
         }
 
         return (infraTarget, appTarget);
@@ -146,8 +145,7 @@ public sealed class MultiRepoProjectArtifactsPushService(
     {
         if (command.Code is null)
         {
-            return ErrorOrFactory.From<IReadOnlyDictionary<string, string>>(
-                new Dictionary<string, string>());
+            return new Dictionary<string, string>();
         }
 
         var appBootstrapFilesResult = await LoadLatestBootstrapFilesAsync(
@@ -157,11 +155,10 @@ public sealed class MultiRepoProjectArtifactsPushService(
         if (appBootstrapFilesResult.IsError)
             return appBootstrapFilesResult.Errors;
 
-        return ErrorOrFactory.From(appBootstrapFilesResult.Value);
+        return appBootstrapFilesResult.Value.ToDictionary(pair => pair.Key, pair => pair.Value);
     }
 
     private async Task<RepoPushResult> PushInfraAsync(
-        string token,
         ResolvedRepositoryTarget infraTarget,
         RepoPushTarget infraPushTarget,
         IReadOnlyDictionary<string, string> bicepFiles,
@@ -169,8 +166,12 @@ public sealed class MultiRepoProjectArtifactsPushService(
         IReadOnlyDictionary<string, string> bootstrapFiles,
         CancellationToken cancellationToken)
     {
+        var tokenResult = await GetPersonalAccessTokenAsync(infraTarget, cancellationToken).ConfigureAwait(false);
+        if (tokenResult.IsError)
+            return BuildFailedResult(infraPushTarget.RepositoryId, tokenResult.Errors[0]);
+
         var infraPushRequest = MultiScopeGitPushRequestBuilder.Build(
-            token: token,
+            token: tokenResult.Value,
             owner: infraTarget.Owner,
             repositoryName: infraTarget.RepositoryName,
             baseBranch: infraTarget.Branch,
@@ -183,12 +184,11 @@ public sealed class MultiRepoProjectArtifactsPushService(
                 (infraTarget.PipelineBasePath, bootstrapFiles),
             ]);
 
-        return await PushOneAsync(infraTarget, infraPushTarget.Alias, infraPushRequest, cancellationToken)
+        return await PushOneAsync(infraTarget, infraPushTarget.RepositoryId, infraPushRequest, cancellationToken)
             .ConfigureAwait(false);
     }
 
     private async Task<RepoPushResult> PushAppAsync(
-        string token,
         ResolvedRepositoryTarget appTarget,
         RepoPushTarget codePushTarget,
         IReadOnlyDictionary<string, string> appPipelineFiles,
@@ -198,7 +198,7 @@ public sealed class MultiRepoProjectArtifactsPushService(
         if (appPipelineFiles.Count == 0 && appBootstrapFiles.Count == 0)
         {
             return new RepoPushResult(
-                Alias: codePushTarget.Alias,
+                RepositoryId: codePushTarget.RepositoryId,
                 Success: true,
                 BranchUrl: null,
                 CommitSha: null,
@@ -207,8 +207,12 @@ public sealed class MultiRepoProjectArtifactsPushService(
                 ErrorDescription: NoApplicationFilesToPushMessage);
         }
 
+        var tokenResult = await GetPersonalAccessTokenAsync(appTarget, cancellationToken).ConfigureAwait(false);
+        if (tokenResult.IsError)
+            return BuildFailedResult(codePushTarget.RepositoryId, tokenResult.Errors[0]);
+
         var appPushRequest = MultiScopeGitPushRequestBuilder.Build(
-            token: token,
+            token: tokenResult.Value,
             owner: appTarget.Owner,
             repositoryName: appTarget.RepositoryName,
             baseBranch: appTarget.Branch,
@@ -220,27 +224,30 @@ public sealed class MultiRepoProjectArtifactsPushService(
                 (appTarget.PipelineBasePath, appBootstrapFiles),
             ]);
 
-        return await PushOneAsync(appTarget, codePushTarget.Alias, appPushRequest, cancellationToken)
+        return await PushOneAsync(appTarget, codePushTarget.RepositoryId, appPushRequest, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private async Task<ErrorOr<string>> GetPersonalAccessTokenAsync(
+        ResolvedRepositoryTarget target,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(target.PatSecretName))
+            return Errors.GitRepository.SecretRetrievalFailed();
+
+        return await keyVaultSecretClient.GetSecretAsync(target.PatSecretName, cancellationToken)
             .ConfigureAwait(false);
     }
 
     private async Task<RepoPushResult> PushOneAsync(
         ResolvedRepositoryTarget target,
-        string alias,
+        ProjectRepositoryId repositoryId,
         ErrorOr<MultiScopeGitPushRequest> requestResult,
         CancellationToken cancellationToken)
     {
         if (requestResult.IsError)
         {
-            var first = requestResult.Errors[0];
-            return new RepoPushResult(
-                alias,
-                Success: false,
-                BranchUrl: null,
-                CommitSha: null,
-                FileCount: 0,
-                ErrorCode: first.Code,
-                ErrorDescription: first.Description);
+            return BuildFailedResult(repositoryId, requestResult.Errors[0]);
         }
 
         try
@@ -254,19 +261,12 @@ public sealed class MultiRepoProjectArtifactsPushService(
             if (pushResult.IsError)
             {
                 var first = pushResult.Errors[0];
-                return new RepoPushResult(
-                    alias,
-                    Success: false,
-                    BranchUrl: null,
-                    CommitSha: null,
-                    FileCount: 0,
-                    ErrorCode: first.Code,
-                    ErrorDescription: first.Description);
+                return BuildFailedResult(repositoryId, first);
             }
 
             var value = pushResult.Value;
             return new RepoPushResult(
-                alias,
+                repositoryId,
                 Success: true,
                 BranchUrl: value.BranchUrl,
                 CommitSha: value.CommitSha,
@@ -277,7 +277,7 @@ public sealed class MultiRepoProjectArtifactsPushService(
         catch (Exception ex)
         {
             return new RepoPushResult(
-                alias,
+                repositoryId,
                 Success: false,
                 BranchUrl: null,
                 CommitSha: null,
@@ -285,6 +285,18 @@ public sealed class MultiRepoProjectArtifactsPushService(
                 ErrorCode: UnexpectedGitProviderErrorCode,
                 ErrorDescription: ex.Message);
         }
+    }
+
+    private static RepoPushResult BuildFailedResult(ProjectRepositoryId repositoryId, Error error)
+    {
+        return new RepoPushResult(
+            repositoryId,
+            Success: false,
+            BranchUrl: null,
+            CommitSha: null,
+            FileCount: 0,
+            ErrorCode: error.Code,
+            ErrorDescription: error.Description);
     }
 
     private async Task<ErrorOr<(IReadOnlyDictionary<string, string> Infra, IReadOnlyDictionary<string, string> App)>>

@@ -104,7 +104,6 @@ public sealed class ApplyImportPreviewCommandHandlerTests
                 && request.Environments[0].Name == "Development"
                 && request.Environments[0].ShortName == "dev"
                 && request.Repositories.Count == 1
-                && request.Repositories[0].Alias == ProjectSetupDefaults.RepoAliasMain
                 && request.Repositories[0].ContentKinds.Count == 2
                 && request.Repositories[0].ContentKinds[0] == nameof(RepositoryContentKindsEnum.Infrastructure)
                 && request.Repositories[0].ContentKinds[1] == nameof(RepositoryContentKindsEnum.ApplicationCode)),

@@ -38,4 +38,18 @@ export class ReviewStepComponent {
   protected isRepoConfigured(repo: RepositoryDraft): boolean {
     return Boolean(repo.providerType && repo.repositoryUrl.trim() && repo.defaultBranch.trim());
   }
+
+  protected repositoryTitleKey(repo: RepositoryDraft): string {
+    if (repo.contentKinds.includes('Infrastructure') && repo.contentKinds.includes('ApplicationCode')) {
+      return 'PROJECT_CREATE.STEP.REPOSITORIES.MAIN';
+    }
+
+    return repo.contentKinds.includes('Infrastructure')
+      ? 'PROJECT_CREATE.STEP.REPOSITORIES.INFRA'
+      : 'PROJECT_CREATE.STEP.REPOSITORIES.APP';
+  }
+
+  protected repositorySubtitle(repo: RepositoryDraft): string {
+    return repo.repositoryUrl.trim() || repo.contentKinds.join(' / ');
+  }
 }

@@ -34,7 +34,7 @@ public sealed class TestProjectRepositoryConnectionCommandHandlerTests
         _gitProviderFactory = Substitute.For<IGitProviderFactory>();
         _gitProviderService = Substitute.For<IGitProviderService>();
         _project = CreateProject();
-        _repository = AddRepository(_project, alias: "infra", providerType: new GitProviderType(GitProviderTypeEnum.GitHub));
+        _repository = AddRepository(_project, providerType: new GitProviderType(GitProviderTypeEnum.GitHub));
         _sut = new TestProjectRepositoryConnectionCommandHandler(
             _projectRepository,
             _accessService,
@@ -100,7 +100,7 @@ public sealed class TestProjectRepositoryConnectionCommandHandlerTests
     {
         // Arrange
         var project = CreateProject();
-        var repository = AddRepository(project, alias: "infra", providerType: null);
+        var repository = AddRepository(project, providerType: null);
         var command = new TestProjectRepositoryConnectionCommand(project.Id, repository.Id);
 
         _accessService.VerifyWriteAccessAsync(project.Id, Arg.Any<CancellationToken>())
@@ -113,7 +113,7 @@ public sealed class TestProjectRepositoryConnectionCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be(Errors.GitRouting.RepositorySlotNotConfigured(repository.Alias.Value).Code);
+        result.FirstError.Code.Should().Be(Errors.GitRouting.RepositorySlotNotConfigured(repository.Id).Code);
     }
 
     [Fact]
@@ -176,12 +176,11 @@ public sealed class TestProjectRepositoryConnectionCommandHandlerTests
         return project;
     }
 
-    private static ProjectRepository AddRepository(Project project, string alias, GitProviderType? providerType)
+    private static ProjectRepository AddRepository(Project project, GitProviderType? providerType)
     {
         var contentKinds = RepositoryContentKinds.Create(
             RepositoryContentKindsEnum.Infrastructure | RepositoryContentKindsEnum.ApplicationCode).Value;
         var repositoryResult = project.AddRepository(
-            RepositoryAlias.Create(alias).Value,
             providerType,
             providerType is null ? null : "https://github.com/owner/repo",
             providerType is null ? null : "main",

@@ -37,10 +37,9 @@ public sealed class ProjectResultMapperTests
                 AzureResourceManagerConnection: "arm-dev",
                 Tags: [new Tag("environment", "dev")]));
 
-        var repositoryAlias = RepositoryAlias.Create("main").Value;
         var repositoryKinds = RepositoryContentKinds.Create(
             RepositoryContentKindsEnum.Infrastructure | RepositoryContentKindsEnum.ApplicationCode).Value;
-        project.AddRepository(repositoryAlias, null, null, null, repositoryKinds);
+        project.AddRepository(null, null, null, repositoryKinds);
 
         // Act
         var result = ProjectResultMapper.ToProjectResult(project);
@@ -67,13 +66,14 @@ public sealed class ProjectResultMapperTests
         environment.Tags.Should().ContainSingle(tag => tag.Name == "environment" && tag.Value == "dev");
 
         var repository = result.Repositories.Should().ContainSingle().Which;
-        repository.Alias.Should().Be("main");
+        repository.Id.Should().Be(project.Repositories.Single().Id);
         repository.ProviderType.Should().BeNull();
         repository.RepositoryUrl.Should().BeNull();
         repository.DefaultBranch.Should().BeNull();
         repository.IsConfigured.Should().BeFalse();
         repository.ContentKinds.Should().BeEquivalentTo(
-            [nameof(RepositoryContentKindsEnum.Infrastructure), nameof(RepositoryContentKindsEnum.ApplicationCode)]);
+            nameof(RepositoryContentKindsEnum.Infrastructure),
+            nameof(RepositoryContentKindsEnum.ApplicationCode));
     }
 
     [Fact]

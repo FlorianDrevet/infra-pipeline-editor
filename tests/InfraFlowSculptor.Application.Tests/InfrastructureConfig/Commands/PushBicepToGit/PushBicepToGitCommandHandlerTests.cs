@@ -48,7 +48,7 @@ public sealed class PushBicepToGitCommandHandlerTests
         _project = Project.Create(new Name("test-project"), "Test project", UserId.CreateUnique());
         _config = DomainInfrastructureConfig.Create(new Name("test-config"), _project.Id);
         _target = new ResolvedRepositoryTarget(
-            Alias: "default",
+            RepositoryId: ProjectRepositoryId.CreateUnique().Value.ToString(),
             ProviderType: new GitProviderType(GitProviderTypeEnum.GitHub),
             RepositoryUrl: "https://github.com/owner/repo",
             Owner: "owner",

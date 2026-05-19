@@ -47,7 +47,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        // Resolve the project-level target (alias "default") to determine base paths within the repo.
+        // Resolve the project-level target to determine base paths within the repo.
         // Heterogeneous multi-repo projects will simply fall back to null paths here — the per-config
         // push handlers are responsible for enforcing the routing at push time.
         string? bicepBasePath = null;

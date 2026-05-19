@@ -10,12 +10,9 @@ import {
 } from '@angular/core';
 
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AxiosError } from 'axios';
 import {
@@ -36,15 +33,8 @@ import {
   RepositoryDialogData,
 } from './repository-dialog/repository-dialog.component';
 import {
-  DsAlertComponent,
-  DsButtonComponent,
-  DsCardComponent,
   DsOptionCardComponent,
 } from '../../../shared/components/ds';
-import {
-  ProjectGitPatDialogComponent,
-  ProjectGitPatDialogData,
-} from './project-git-pat-dialog/project-git-pat-dialog.component';
 import { extractLayoutRepositoriesApiErrorMessage } from './layout-repositories-api-error';
 
 interface PresetOption {
@@ -97,14 +87,8 @@ function normalizeLayoutPreset(preset?: string): ProjectLayoutPreset {
   imports: [
     TranslateModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
-    MatTooltipModule,
-    DsAlertComponent,
-    DsButtonComponent,
-    DsCardComponent,
     DsOptionCardComponent,
   ],
   templateUrl: './layout-repositories.component.html',
@@ -240,15 +224,6 @@ export class LayoutRepositoriesComponent implements OnInit {
     });
   }
 
-  protected openPatDialog(repo: ProjectRepositoryResponse): void {
-    const data: ProjectGitPatDialogData = {
-      projectId: this.projectId(),
-      repositoryId: repo.id,
-      providerTypes: repo.providerType ? [repo.providerType] : [],
-    };
-    this.dialog.open(ProjectGitPatDialogComponent, { data, width: '520px' });
-  }
-
   protected openSlotDialog(slot: RepoSlot): void {
     const data: RepositoryDialogData = {
       projectId: this.projectId(),
@@ -268,7 +243,7 @@ export class LayoutRepositoriesComponent implements OnInit {
     const data: ConfirmDialogData = {
       titleKey: 'PROJECT_DETAIL.LAYOUT.DELETE_CONFIRM_TITLE',
       messageKey: 'PROJECT_DETAIL.LAYOUT.DELETE_CONFIRM_MESSAGE',
-      messageParams: { alias: repo.alias },
+      messageParams: { repositoryName: this.repositoryDisplayName(repo) },
       confirmKey: 'PROJECT_DETAIL.LAYOUT.DELETE_CONFIRM_YES',
       cancelKey: 'PROJECT_DETAIL.LAYOUT.DELETE_CONFIRM_CANCEL',
     };
@@ -322,12 +297,24 @@ export class LayoutRepositoriesComponent implements OnInit {
       this.testResultMap.update((map) => ({ ...map, [repo.id]: 'failure' }));
       const errorMessage = this.extractConnectionErrorMessage(error);
       if (errorMessage) {
-        this.testErrorMap.update((map) => ({ ...map, [repo.id]: errorMessage! }));
+        this.testErrorMap.update((map) => ({ ...map, [repo.id]: errorMessage }));
       }
     } finally {
       this.testingRepoId.set(null);
       this.repoActionId.set(null);
     }
+  }
+
+  protected repositoryDisplayName(repo: ProjectRepositoryResponse): string {
+    if (repo.owner && repo.repositoryName) {
+      return `${repo.owner}/${repo.repositoryName}`;
+    }
+
+    return repo.repositoryName ?? repo.repositoryUrl ?? repo.id;
+  }
+
+  protected repositoryProviderLabel(repo: ProjectRepositoryResponse): string {
+    return repo.providerType ?? this.translate.instant('PROJECT_DETAIL.LAYOUT.REPOSITORY_NOT_CONFIGURED');
   }
 
   private isConflict(error: unknown): boolean {

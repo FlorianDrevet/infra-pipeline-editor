@@ -950,11 +950,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Alias")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.Property<string>("ContentKinds")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -990,9 +985,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("character varying(500)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("InfrastructureConfigId", "Alias")
-                        .IsUnique();
 
                     b.ToTable("InfraConfigRepositories", (string)null);
                 });
@@ -1355,11 +1347,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Alias")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.Property<string>("ContentKinds")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1388,9 +1375,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("character varying(500)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProjectId", "Alias")
-                        .IsUnique();
 
                     b.ToTable("ProjectRepositories", (string)null);
                 });

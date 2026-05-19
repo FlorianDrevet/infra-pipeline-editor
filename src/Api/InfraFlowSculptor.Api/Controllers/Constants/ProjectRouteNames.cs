@@ -33,6 +33,8 @@ internal static class ProjectRouteNames
     internal const string AddProjectRepository = nameof(AddProjectRepository);
     internal const string UpdateProjectRepository = nameof(UpdateProjectRepository);
     internal const string RemoveProjectRepository = nameof(RemoveProjectRepository);
+    internal const string VerifyProjectRepository = nameof(VerifyProjectRepository);
+    internal const string VerifyExistingProjectRepository = nameof(VerifyExistingProjectRepository);
     internal const string TestProjectRepositoryConnection = nameof(TestProjectRepositoryConnection);
     internal const string SetProjectLayoutPreset = nameof(SetProjectLayoutPreset);
     internal const string SetInfraConfigLayoutMode = nameof(SetInfraConfigLayoutMode);

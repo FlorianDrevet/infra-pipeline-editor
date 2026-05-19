@@ -39,7 +39,7 @@ public sealed class TestProjectRepositoryConnectionCommandHandler(
             || string.IsNullOrWhiteSpace(repository.Owner)
             || string.IsNullOrWhiteSpace(repository.RepositoryName))
         {
-            return Errors.GitRouting.RepositorySlotNotConfigured(repository.Alias.Value);
+            return Errors.GitRouting.RepositorySlotNotConfigured(repository.Id);
         }
 
         var secretResult = await keyVaultSecretClient.GetSecretAsync(

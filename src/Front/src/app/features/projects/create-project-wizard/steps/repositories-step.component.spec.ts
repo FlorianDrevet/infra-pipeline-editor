@@ -22,4 +22,24 @@ describe('RepositoriesStepComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('does not render the removed repository label field', () => {
+    fixture.componentRef.setInput('draft', {
+      ...EMPTY_DRAFT,
+      layoutPreset: 'AllInOne',
+      repositories: [
+        {
+          contentKinds: ['Infrastructure', 'ApplicationCode'],
+          providerType: '',
+          repositoryUrl: '',
+          defaultBranch: '',
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+
+    expect(text).not.toContain('PROJECT_CREATE.STEP.REPOSITORIES.REMOVED_REPOSITORY_LABEL');
+  });
 });

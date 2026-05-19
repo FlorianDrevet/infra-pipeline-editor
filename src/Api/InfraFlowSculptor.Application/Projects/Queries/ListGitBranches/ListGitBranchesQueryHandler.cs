@@ -36,7 +36,7 @@ public sealed class ListGitBranchesQueryHandler(
         var target = targetResult.Value;
 
         var secretResult = await keyVaultSecretClient.GetSecretAsync(
-            $"git-pat-{project.Id.Value}", cancellationToken);
+            target.PatSecretName ?? $"git-pat-{project.Id.Value}", cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;
 

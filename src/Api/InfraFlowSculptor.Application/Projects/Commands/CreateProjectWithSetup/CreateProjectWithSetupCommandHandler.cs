@@ -148,16 +148,11 @@ public sealed class CreateProjectWithSetupCommandHandler(
         if (providerTypeResult.IsError)
             return providerTypeResult.Errors;
 
-        var aliasResult = RepositoryAlias.Create(repositoryItem.Alias);
-        if (aliasResult.IsError)
-            return aliasResult.Errors;
-
         var contentKindsResult = ParseContentKinds(repositoryItem.ContentKinds);
         if (contentKindsResult.IsError)
             return contentKindsResult.Errors;
 
         var addResult = project.AddRepository(
-            aliasResult.Value,
             providerType,
             repositoryItem.RepositoryUrl,
             repositoryItem.DefaultBranch,

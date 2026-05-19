@@ -206,11 +206,10 @@ export class CreateProjectWizardDialogComponent implements OnInit {
       };
       const repo: RepositoryDraft = {
         ...createEmptyRepository(['Infrastructure', 'ApplicationCode']),
-        alias: 'main-repo',
       };
       return {
         ...d,
-        layoutPreset: 'AllInOne' as LayoutPreset,
+        layoutPreset: 'AllInOne',
         environments: [env],
         repositories: [repo],
       };
@@ -317,7 +316,6 @@ export class CreateProjectWizardDialogComponent implements OnInit {
       const url = repo.repositoryUrl.trim() ? repo.repositoryUrl.trim() : undefined;
       const branch = repo.defaultBranch.trim() ? repo.defaultBranch.trim() : undefined;
       return {
-        alias: repo.alias.trim(),
         contentKinds: repo.contentKinds,
         providerType: provider,
         repositoryUrl: url,

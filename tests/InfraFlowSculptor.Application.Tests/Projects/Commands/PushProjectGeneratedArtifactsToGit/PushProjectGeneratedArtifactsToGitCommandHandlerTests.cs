@@ -43,7 +43,7 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandlerTests
 
         _project = CreateConfiguredProject();
         _target = new ResolvedRepositoryTarget(
-            Alias: "default",
+            RepositoryId: _project.Repositories.Single().Id.Value.ToString(),
             ProviderType: new GitProviderType(GitProviderTypeEnum.GitHub),
             RepositoryUrl: "https://github.com/octo-org/retail-platform",
             Owner: "octo-org",
@@ -191,17 +191,12 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandlerTests
         if (layoutResult.IsError)
             throw new InvalidOperationException(layoutResult.FirstError.Description);
 
-        var alias = RepositoryAlias.Create("default");
-        if (alias.IsError)
-            throw new InvalidOperationException(alias.FirstError.Description);
-
         var contentKinds = RepositoryContentKinds.Create(
             RepositoryContentKindsEnum.Infrastructure | RepositoryContentKindsEnum.ApplicationCode);
         if (contentKinds.IsError)
             throw new InvalidOperationException(contentKinds.FirstError.Description);
 
         var repositoryResult = project.AddRepository(
-            alias.Value,
             new GitProviderType(GitProviderTypeEnum.GitHub),
             "https://github.com/octo-org/retail-platform",
             "main",

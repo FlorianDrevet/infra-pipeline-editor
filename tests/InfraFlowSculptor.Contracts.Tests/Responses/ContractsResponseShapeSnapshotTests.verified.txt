@@ -1,5 +1,5 @@
 Contracts response DTO public shape snapshot
-Count: 104
+Count: 105
 
 Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
 Type: AppConfigurationKeyResponse
@@ -486,9 +486,8 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
 Type: InfraConfigRepositoryResponse
 Constructors:
-  InfraConfigRepositoryResponse(string Id, string Alias, string ProviderType, string RepositoryUrl, string Owner, string RepositoryName, string DefaultBranch, System.Collections.Generic.IReadOnlyList<string> ContentKinds)
+  InfraConfigRepositoryResponse(string Id, string ProviderType, string RepositoryUrl, string Owner, string RepositoryName, string DefaultBranch, System.Collections.Generic.IReadOnlyList<string> ContentKinds)
 Properties:
-  Alias: string
   ContentKinds: System.Collections.Generic.IReadOnlyList<string>
   DefaultBranch: string
   Id: string
@@ -822,11 +821,20 @@ Properties:
   Variables: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.PipelineVariableUsageResponse>
 
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: ProjectRepositoryConnectionVerificationResponse
+Constructors:
+  ProjectRepositoryConnectionVerificationResponse(string Owner, string RepositoryName, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.GitBranchResponse> Branches, string? DefaultBranchCandidate)
+Properties:
+  Branches: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.GitBranchResponse>
+  DefaultBranchCandidate: string?
+  Owner: string
+  RepositoryName: string
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
 Type: ProjectRepositoryResponse
 Constructors:
-  ProjectRepositoryResponse(string Id, string Alias, string? ProviderType, string? RepositoryUrl, string? Owner, string? RepositoryName, string? DefaultBranch, bool IsConfigured, System.Collections.Generic.IReadOnlyList<string> ContentKinds)
+  ProjectRepositoryResponse(string Id, string? ProviderType, string? RepositoryUrl, string? Owner, string? RepositoryName, string? DefaultBranch, bool IsConfigured, System.Collections.Generic.IReadOnlyList<string> ContentKinds)
 Properties:
-  Alias: string
   ContentKinds: System.Collections.Generic.IReadOnlyList<string>
   DefaultBranch: string?
   Id: string
@@ -887,14 +895,14 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
 Type: RepoPushResultResponse
 Constructors:
-  RepoPushResultResponse(string Alias, bool Success, string? BranchUrl, string? CommitSha, int FileCount, string? ErrorCode, string? ErrorDescription)
+  RepoPushResultResponse(string RepositoryId, bool Success, string? BranchUrl, string? CommitSha, int FileCount, string? ErrorCode, string? ErrorDescription)
 Properties:
-  Alias: string
   BranchUrl: string?
   CommitSha: string?
   ErrorCode: string?
   ErrorDescription: string?
   FileCount: int
+  RepositoryId: string
   Success: bool
 
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses

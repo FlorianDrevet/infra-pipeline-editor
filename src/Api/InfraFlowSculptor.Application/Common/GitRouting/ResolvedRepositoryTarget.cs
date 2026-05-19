@@ -8,9 +8,7 @@ namespace InfraFlowSculptor.Application.Common.GitRouting;
 /// the <see cref="Domain.InfrastructureConfigAggregate.ValueObjects.RepositoryBinding"/> overrides
 /// with the project-level <see cref="Domain.ProjectAggregate.Entities.ProjectRepository"/> definition.
 /// </summary>
-/// <param name="Alias">
-/// The alias of the resolved <c>ProjectRepository</c>.
-/// </param>
+/// <param name="RepositoryId">Identifier of the resolved repository.</param>
 /// <param name="ProviderType">The Git hosting provider (GitHub, AzureDevOps, …).</param>
 /// <param name="RepositoryUrl">Full repository URL, normalized (no trailing slash).</param>
 /// <param name="Owner">Repository owner (org/user) extracted from the URL.</param>
@@ -27,10 +25,9 @@ namespace InfraFlowSculptor.Application.Common.GitRouting;
 /// </param>
 /// <param name="PatSecretName">
 /// Optional Key Vault secret name storing the Personal Access Token used to authenticate.
-/// Reserved for a future PAT-per-repository feature; currently always <c>null</c>.
 /// </param>
 public sealed record ResolvedRepositoryTarget(
-    string Alias,
+    string RepositoryId,
     GitProviderType ProviderType,
     string RepositoryUrl,
     string Owner,

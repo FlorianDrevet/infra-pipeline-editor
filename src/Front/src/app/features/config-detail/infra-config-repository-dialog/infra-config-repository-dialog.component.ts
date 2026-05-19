@@ -105,7 +105,6 @@ export class InfraConfigRepositoryDialogComponent {
         this.dialogRef.close({ updated: true });
       } else {
         const req: AddInfraConfigRepositoryRequest = {
-          alias: raw.alias,
           providerType: raw.providerType,
           repositoryUrl: raw.repositoryUrl,
           defaultBranch: raw.defaultBranch,

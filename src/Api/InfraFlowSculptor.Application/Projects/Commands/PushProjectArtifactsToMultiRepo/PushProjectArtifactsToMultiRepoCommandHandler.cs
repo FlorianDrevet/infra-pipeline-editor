@@ -1,7 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
@@ -15,7 +14,6 @@ namespace InfraFlowSculptor.Application.Projects.Commands.PushProjectArtifactsTo
 public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
-    IKeyVaultSecretClient keyVaultSecretClient,
     IMultiRepoProjectArtifactsPushService pushService)
     : ICommandHandler<PushProjectArtifactsToMultiRepoCommand, PushProjectArtifactsToMultiRepoResult>
 {
@@ -35,13 +33,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
         if (project.LayoutPreset.Value != LayoutPresetEnum.SplitInfraCode)
             return Errors.GitRouting.LayoutNotSupportedForMultiRepoPush;
 
-        var secretResult = await keyVaultSecretClient.GetSecretAsync(
-            $"git-pat-{project.Id.Value}",
-            cancellationToken);
-        if (secretResult.IsError)
-            return secretResult.Errors;
-
-        return await pushService.PushAsync(command, project, secretResult.Value, cancellationToken)
+        return await pushService.PushAsync(command, project, cancellationToken)
             .ConfigureAwait(false);
     }
 

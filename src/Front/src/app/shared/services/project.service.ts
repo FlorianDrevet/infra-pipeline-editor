@@ -45,6 +45,8 @@ import {
   AddProjectRepositoryRequest,
   UpdateProjectRepositoryRequest,
   ProjectLayoutPreset,
+  VerifyProjectRepositoryRequest,
+  VerifyProjectRepositoryResponse,
 } from '../interfaces/project-repository.interface';
 import {
   AddInfraConfigRepositoryRequest,
@@ -303,6 +305,22 @@ export class ProjectService {
     return this.axios.request$<TestGitConnectionResponse>(
       MethodEnum.POST,
       `/projects/${projectId}/repositories/${repoId}/test-connection`
+    );
+  }
+
+  verifyRepositoryConnection(
+    projectId: string,
+    request: VerifyProjectRepositoryRequest,
+    repoId?: string,
+  ): Promise<VerifyProjectRepositoryResponse> {
+    const url = repoId
+      ? `/projects/${projectId}/repositories/${repoId}/verify`
+      : `/projects/${projectId}/repositories/verify`;
+
+    return this.axios.request$<VerifyProjectRepositoryResponse>(
+      MethodEnum.POST,
+      url,
+      request
     );
   }
 

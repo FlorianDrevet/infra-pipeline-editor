@@ -26,8 +26,10 @@ import {
 
 export interface MultiRepoPushDialogData {
   projectId: string;
-  infraAlias: string;
-  codeAlias: string;
+  infraRepositoryId: string;
+  codeRepositoryId: string;
+  infraRepositoryLabel: string;
+  codeRepositoryLabel: string;
   mode?: MultiRepoPushMode;
 }
 
@@ -127,8 +129,8 @@ export class MultiRepoPushDialogComponent implements OnInit {
     this.filteredCodeBranches().map((branch) => ({ value: branch, label: branch })),
   );
 
-  private readonly infraBranchKey = `ifs-push-branch-multi-${this.data.projectId}-${this.data.infraAlias}`;
-  private readonly codeBranchKey = `ifs-push-branch-multi-${this.data.projectId}-${this.data.codeAlias}`;
+  private readonly infraBranchKey = `ifs-push-branch-multi-${this.data.projectId}-${this.data.infraRepositoryId}`;
+  private readonly codeBranchKey = `ifs-push-branch-multi-${this.data.projectId}-${this.data.codeRepositoryId}`;
 
   protected readonly infraForm = new FormGroup({
     branch: new FormControl<string>(localStorage.getItem(this.infraBranchKey) ?? 'main', { nonNullable: true, validators: [Validators.required] }),
@@ -200,7 +202,7 @@ export class MultiRepoPushDialogComponent implements OnInit {
       const infraBranch = this.infraForm.controls.branch.value;
       localStorage.setItem(this.infraBranchKey, infraBranch);
       request.infra = {
-        alias: this.data.infraAlias,
+        repositoryId: this.data.infraRepositoryId,
         branchName: infraBranch,
         commitMessage: this.infraForm.controls.commit.value,
       };
@@ -210,7 +212,7 @@ export class MultiRepoPushDialogComponent implements OnInit {
       const codeBranch = this.codeForm.controls.branch.value;
       localStorage.setItem(this.codeBranchKey, codeBranch);
       request.code = {
-        alias: this.data.codeAlias,
+        repositoryId: this.data.codeRepositoryId,
         branchName: codeBranch,
         commitMessage: this.codeForm.controls.commit.value,
       };
@@ -222,8 +224,8 @@ export class MultiRepoPushDialogComponent implements OnInit {
         request,
       );
 
-      const infra = response.results.find(r => r.alias === this.data.infraAlias) ?? null;
-      const code = response.results.find(r => r.alias === this.data.codeAlias) ?? null;
+      const infra = response.results.find(r => r.repositoryId === this.data.infraRepositoryId) ?? null;
+      const code = response.results.find(r => r.repositoryId === this.data.codeRepositoryId) ?? null;
       this.infraResult.set(infra);
       this.codeResult.set(code);
 

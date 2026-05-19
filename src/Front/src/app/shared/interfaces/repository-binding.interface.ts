@@ -1,12 +1,12 @@
 export interface RepositoryBindingResponse {
-  alias: string;
+  repositoryId: string;
   branch: string | null;
   infraPath: string | null;
   pipelinePath: string | null;
 }
 
 export interface SetInfraConfigRepositoryBindingRequest {
-  repositoryAlias: string | null;
+  repositoryId: string | null;
   branch: string | null;
   infraPath: string | null;
   pipelinePath: string | null;
