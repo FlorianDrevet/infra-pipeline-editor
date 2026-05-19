@@ -41,10 +41,10 @@
 
     <!-- ��������� Success / Error banners ��������� -->
     @if (saveSuccess()) {
-      <div class="feedback-banner feedback-banner--success" role="status">
+      <output class="feedback-banner feedback-banner--success">
         <mat-icon>check_circle</mat-icon>
         {{ 'RESOURCE_EDIT.FEEDBACK.SAVE_SUCCESS' | translate }}
-      </div>
+      </output>
     }
     @if (saveError()) {
       <div class="feedback-banner feedback-banner--error" role="alert">
@@ -188,6 +188,7 @@
                   [acrUaiState]="acrUaiState()"
                   [acrAssignedUaiName]="acrAssignedUaiName()"
                   [acrSelectedUaiId]="acrSelectedUaiId()"
+                  [showAcrPullIdentitySelector]="true"
                   [acrRoleAssigning]="acrRoleAssigning()"
                   [uaiOptions]="identityAccessSection.uaiOptions()"
                   [canWrite]="canWrite()"
@@ -198,7 +199,7 @@
                   (acrAuthModeChange)="onAcrAuthModeChange($event)"
                   (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
                   (dockerImageValidatedChange)="generalForm.patchValue({ dockerImageValidated: $event }); formsDirty.set(true)"
-                  (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
+                  (acrSelectedUaiIdChange)="onAcrSelectedUaiChange($event)"
                   (addAcrPullRole)="addAcrPullRoleAssignment()"
                   (createUai)="createNewUai()">
                 </app-deployment-config>
@@ -232,6 +233,7 @@
                   [acrUaiState]="acrUaiState()"
                   [acrAssignedUaiName]="acrAssignedUaiName()"
                   [acrSelectedUaiId]="acrSelectedUaiId()"
+                  [showAcrPullIdentitySelector]="true"
                   [acrRoleAssigning]="acrRoleAssigning()"
                   [uaiOptions]="identityAccessSection.uaiOptions()"
                   [canWrite]="canWrite()"
@@ -242,7 +244,7 @@
                   (acrAuthModeChange)="onAcrAuthModeChange($event)"
                   (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
                   (dockerImageValidatedChange)="generalForm.patchValue({ dockerImageValidated: $event }); formsDirty.set(true)"
-                  (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
+                  (acrSelectedUaiIdChange)="onAcrSelectedUaiChange($event)"
                   (addAcrPullRole)="addAcrPullRoleAssignment()"
                   (createUai)="createNewUai()">
                 </app-deployment-config>
@@ -269,6 +271,7 @@
                   [acrUaiState]="acrUaiState()"
                   [acrAssignedUaiName]="acrAssignedUaiName()"
                   [acrSelectedUaiId]="acrSelectedUaiId()"
+                  [showAcrPullIdentitySelector]="true"
                   [acrRoleAssigning]="acrRoleAssigning()"
                   [uaiOptions]="identityAccessSection.uaiOptions()"
                   [canWrite]="canWrite()"
@@ -276,7 +279,7 @@
                   (dockerImageValidatedChange)="generalForm.patchValue({ dockerImageValidated: $event }); formsDirty.set(true)"
                   (containerRegistryChange)="onContainerRegistryChange($event)"
                   (acrAuthModeChange)="onAcrAuthModeChange($event)"
-                  (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
+                  (acrSelectedUaiIdChange)="onAcrSelectedUaiChange($event)"
                   (addAcrPullRole)="addAcrPullRoleAssignment()"
                   (createUai)="createNewUai()">
                 </app-deployment-config>

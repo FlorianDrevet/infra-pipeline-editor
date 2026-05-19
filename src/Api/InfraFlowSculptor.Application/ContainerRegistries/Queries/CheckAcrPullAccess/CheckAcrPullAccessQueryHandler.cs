@@ -13,6 +13,8 @@ public sealed class CheckAcrPullAccessQueryHandler(
     IAzureResourceRepository azureResourceRepository)
     : IQueryHandler<CheckAcrPullAccessQuery, CheckAcrPullAccessResult>
 {
+    private const string AcrPullRoleName = "AcrPull";
+
     /// <inheritdoc />
     public async Task<ErrorOr<CheckAcrPullAccessResult>> Handle(
         CheckAcrPullAccessQuery request,
@@ -20,14 +22,7 @@ public sealed class CheckAcrPullAccessQueryHandler(
     {
         if (string.Equals(request.AcrAuthMode, AcrAuthMode.AcrAuthModeType.AdminCredentials.ToString(), StringComparison.OrdinalIgnoreCase))
         {
-            return new CheckAcrPullAccessResult(
-                HasAccess: true,
-                MissingRoleDefinitionId: null,
-                MissingRoleName: null,
-                AssignedUserAssignedIdentityId: null,
-                AssignedUserAssignedIdentityName: null,
-                HasUserAssignedIdentity: false,
-                AcrAuthMode: AcrAuthMode.AcrAuthModeType.AdminCredentials.ToString());
+            return CreateAdminCredentialsResult();
         }
 
         var resource = await azureResourceRepository.GetByIdWithRoleAssignmentsReadOnlyAsync(
@@ -36,9 +31,74 @@ public sealed class CheckAcrPullAccessQueryHandler(
         if (resource is null)
             return Errors.ContainerRegistry.NotFoundError(request.ResourceId);
 
+        // If a specific ACR pull identity is requested, validate that specific identity
+        if (request.AcrPullIdentityId is not null)
+        {
+            return await ValidateSpecificAcrPullIdentityAsync(
+                request.AcrPullIdentityId,
+                request.ContainerRegistryId,
+                request.AcrAuthMode,
+                resource,
+                cancellationToken);
+        }
+
+        // Backward compatibility: find any UAI with AcrPull role on this registry
+        return await ValidateAnyAcrPullIdentityAsync(
+            request.ContainerRegistryId,
+            request.AcrAuthMode,
+            resource,
+            cancellationToken);
+    }
+
+    private static CheckAcrPullAccessResult CreateAdminCredentialsResult()
+    {
+        return new CheckAcrPullAccessResult(
+            HasAccess: true,
+            MissingRoleDefinitionId: null,
+            MissingRoleName: null,
+            AssignedUserAssignedIdentityId: null,
+            AssignedUserAssignedIdentityName: null,
+            HasUserAssignedIdentity: false,
+            AcrAuthMode: AcrAuthMode.AcrAuthModeType.AdminCredentials.ToString());
+    }
+
+    private async Task<CheckAcrPullAccessResult> ValidateSpecificAcrPullIdentityAsync(
+        AzureResourceId selectedIdentityId,
+        AzureResourceId containerRegistryId,
+        string? acrAuthMode,
+        Domain.Common.BaseModels.AzureResource resource,
+        CancellationToken cancellationToken)
+    {
+        var roleAssignment = resource.RoleAssignments.FirstOrDefault(ra =>
+            ra.UserAssignedIdentityId == selectedIdentityId &&
+            ra.TargetResourceId == containerRegistryId &&
+            ra.RoleDefinitionId == AzureRoleDefinitionCatalog.AcrPull &&
+            ra.ManagedIdentityType.Value == ManagedIdentityType.IdentityTypeEnum.UserAssigned);
+
+        var uaiResource = await azureResourceRepository.GetByIdReadOnlyAsync(
+            selectedIdentityId, cancellationToken);
+
+        var hasAccess = roleAssignment is not null;
+
+        return new CheckAcrPullAccessResult(
+            HasAccess: hasAccess,
+            MissingRoleDefinitionId: hasAccess ? null : AzureRoleDefinitionCatalog.AcrPull,
+            MissingRoleName: hasAccess ? null : AcrPullRoleName,
+            AssignedUserAssignedIdentityId: selectedIdentityId.Value.ToString(),
+            AssignedUserAssignedIdentityName: uaiResource?.Name.Value,
+            HasUserAssignedIdentity: true,
+            AcrAuthMode: acrAuthMode);
+    }
+
+    private async Task<CheckAcrPullAccessResult> ValidateAnyAcrPullIdentityAsync(
+        AzureResourceId containerRegistryId,
+        string? acrAuthMode,
+        Domain.Common.BaseModels.AzureResource resource,
+        CancellationToken cancellationToken)
+    {
         // Look for a UAI-based AcrPull role assignment targeting this container registry
         var uaiAcrPull = resource.RoleAssignments.FirstOrDefault(ra =>
-            ra.TargetResourceId == request.ContainerRegistryId &&
+            ra.TargetResourceId == containerRegistryId &&
             ra.RoleDefinitionId == AzureRoleDefinitionCatalog.AcrPull &&
             ra.ManagedIdentityType.Value == ManagedIdentityType.IdentityTypeEnum.UserAssigned &&
             ra.UserAssignedIdentityId is not null);
@@ -55,12 +115,12 @@ public sealed class CheckAcrPullAccessQueryHandler(
                 AssignedUserAssignedIdentityId: uaiAcrPull.UserAssignedIdentityId!.Value.ToString(),
                 AssignedUserAssignedIdentityName: uaiResource?.Name.Value,
                 HasUserAssignedIdentity: true,
-                AcrAuthMode: request.AcrAuthMode);
+                AcrAuthMode: acrAuthMode);
         }
 
         // Look for any UAI-based role assignment targeting this container registry (but not AcrPull)
         var uaiOnAcr = resource.RoleAssignments.FirstOrDefault(ra =>
-            ra.TargetResourceId == request.ContainerRegistryId &&
+            ra.TargetResourceId == containerRegistryId &&
             ra.ManagedIdentityType.Value == ManagedIdentityType.IdentityTypeEnum.UserAssigned &&
             ra.UserAssignedIdentityId is not null);
 
@@ -96,10 +156,10 @@ public sealed class CheckAcrPullAccessQueryHandler(
         return new CheckAcrPullAccessResult(
             HasAccess: false,
             MissingRoleDefinitionId: AzureRoleDefinitionCatalog.AcrPull,
-            MissingRoleName: "AcrPull",
+            MissingRoleName: AcrPullRoleName,
             AssignedUserAssignedIdentityId: assignedUaiId,
             AssignedUserAssignedIdentityName: assignedUaiName,
             HasUserAssignedIdentity: hasUai,
-            AcrAuthMode: request.AcrAuthMode);
+            AcrAuthMode: acrAuthMode);
     }
 }

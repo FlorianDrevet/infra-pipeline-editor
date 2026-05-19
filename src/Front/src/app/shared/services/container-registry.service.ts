@@ -7,6 +7,7 @@ import {
   CreateContainerRegistryRequest,
   UpdateContainerRegistryRequest,
   CheckAcrPullAccessResponse,
+  CheckAcrPullAccessQueryParams,
 } from '../interfaces/container-registry.interface';
 
 @Injectable({
@@ -42,11 +43,23 @@ export class ContainerRegistryService {
     return this.axios.request$<void>(MethodEnum.DELETE, `/container-registry/${id}`);
   }
 
-  checkAcrPullAccess(resourceId: string, containerRegistryId: string, acrAuthMode?: AcrAuthMode | null): Promise<CheckAcrPullAccessResponse> {
+  checkAcrPullAccess(
+    resourceId: string,
+    containerRegistryId: string,
+    acrAuthMode?: AcrAuthMode | null,
+    acrPullIdentityId?: string | null,
+  ): Promise<CheckAcrPullAccessResponse> {
+    const params: CheckAcrPullAccessQueryParams = {};
+    if (acrAuthMode) {
+      params.acrAuthMode = acrAuthMode;
+    }
+    if (acrPullIdentityId) {
+      params.acrPullIdentityId = acrPullIdentityId;
+    }
     return this.axios.request$<CheckAcrPullAccessResponse>(
       MethodEnum.GET,
       `/azure-resources/${resourceId}/check-acr-pull-access/${containerRegistryId}`,
-      acrAuthMode ? { acrAuthMode } : undefined,
+      Object.keys(params).length > 0 ? params : undefined,
     );
   }
 }

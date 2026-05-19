@@ -102,7 +102,7 @@
           <span class="acr-auth-mode__label">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE' | translate }}</span>
           <span class="acr-auth-mode__hint">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_HINT' | translate }}</span>
         </div>
-        <div class="acr-auth-mode__toggle" role="group" [attr.aria-label]="'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE' | translate">
+        <fieldset class="acr-auth-mode__toggle" [attr.aria-label]="'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE' | translate">
           <button
             type="button"
             class="acr-auth-mode__option"
@@ -120,11 +120,11 @@
             (click)="acrAuthModeChange.emit('AdminCredentials')">
             <span class="acr-auth-mode__option-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_ADMIN_CREDENTIALS' | translate }}</span>
           </button>
-        </div>
+        </fieldset>
       </div>
     }
 
-    <!-- ACR Pull access check banner (UAI flow) -->
+    <!-- ACR Admin Credentials info banner -->
     @if (hasContainerRegistrySelected && isAdminCredentialsAcrMode) {
       <div class="acr-inline-status acr-inline-status--info">
         <mat-icon>vpn_key</mat-icon>
@@ -132,7 +132,33 @@
       </div>
     }
 
-    @if (hasContainerRegistrySelected && isManagedIdentityAcrMode) {
+    <!-- ACR Managed Identity flow: UAI selection block + status cards -->
+    @if (hasContainerRegistrySelected && isManagedIdentityAcrMode && showAcrPullIdentitySelector()) {
+      <!-- Common UAI selection block (visible in all states) -->
+      <div class="acr-identity-card">
+        <div class="acr-identity-card__header">
+          <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
+          <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
+        </div>
+        <div class="acr-identity-card__identity-section">
+          <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
+          <div class="acr-identity-card__identity-row">
+            <app-ds-select
+              [options]="uaiOptions()"
+              [ngModel]="acrSelectedUaiId()"
+              (ngModelChange)="acrSelectedUaiIdChange.emit($event)"
+              [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
+              [clearable]="true">
+            </app-ds-select>
+            <button class="acr-identity-card__create-link" (click)="createUai.emit()" type="button">
+              <mat-icon>add_circle_outline</mat-icon>
+              {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status cards (based on state) -->
       @switch (acrUaiState()) {
         @case ('checking') {
           <div class="acr-inline-status acr-inline-status--checking">
@@ -148,28 +174,8 @@
         }
         @case ('uai-missing-role') {
           <div class="acr-identity-card acr-identity-card--warn">
-            <div class="acr-identity-card__header">
-              <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
-              <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
-            </div>
             <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}</p>
-            <div class="acr-identity-card__identity-section">
-              <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
-              <div class="acr-identity-card__identity-row">
-                <app-compact-select
-                  [options]="uaiOptions()"
-                  [value]="acrSelectedUaiId()"
-                  [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
-                  [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
-                  (valueChange)="acrSelectedUaiIdChange.emit($event)">
-                </app-compact-select>
-                <button class="acr-identity-card__create-link" (click)="createUai.emit()">
-                  <mat-icon>add_circle_outline</mat-icon>
-                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                </button>
-              </div>
-            </div>
-            <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()">
+            <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()" type="button">
               @if (acrRoleAssigning()) {
                 <mat-spinner diameter="14"></mat-spinner>
               } @else {
@@ -196,29 +202,9 @@
         }
         @case ('no-uai') {
           <div class="acr-identity-card acr-identity-card--warn">
-            <div class="acr-identity-card__header">
-              <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
-              <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
-            </div>
             <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI_MSG' | translate }}</p>
-            <div class="acr-identity-card__identity-section">
-              <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
-              <div class="acr-identity-card__identity-row">
-                <app-compact-select
-                  [options]="uaiOptions()"
-                  [value]="acrSelectedUaiId()"
-                  [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
-                  [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
-                  (valueChange)="acrSelectedUaiIdChange.emit($event)">
-                </app-compact-select>
-                <button class="acr-identity-card__create-link" (click)="createUai.emit()">
-                  <mat-icon>add_circle_outline</mat-icon>
-                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                </button>
-              </div>
-            </div>
             @if (acrSelectedUaiId()) {
-              <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()">
+              <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()" type="button">
                 @if (acrRoleAssigning()) {
                   <mat-spinner diameter="14"></mat-spinner>
                 } @else {

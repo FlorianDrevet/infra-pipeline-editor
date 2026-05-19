@@ -36,6 +36,22 @@ describe('resource edit form builders helpers', () => {
     expect(form.get('readinessProbePath')?.value).toBe('/ready');
     expect(form.get('startupProbeEnabled')?.value).toBeFalse();
   });
+
+  it('builds general container app form with acrPullIdentityId control from response', () => {
+    const resource = {
+      ...createContainerAppResource(),
+      acrPullIdentityId: 'uai-123',
+    };
+
+    const result = buildResourceEditGeneralForm({
+      fb: new FormBuilder(),
+      resourceType: 'ContainerApp',
+      resource,
+      resolveAcrAuthMode: () => 'ManagedIdentity',
+    });
+
+    expect(result.form.get('acrPullIdentityId')?.value).toBe('uai-123');
+  });
 });
 
 function createStorageAccountResource() {

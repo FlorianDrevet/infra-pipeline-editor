@@ -29,6 +29,7 @@ export interface FunctionAppResponse {
   deploymentMode: string;
   containerRegistryId: string | null;
   acrAuthMode?: AcrAuthMode | null;
+  acrPullIdentityId?: string | null;
   dockerImageName: string | null;
   dockerImageValidated: boolean;
   dockerfilePath: string | null;
@@ -53,6 +54,7 @@ export interface CreateFunctionAppRequest {
   deploymentMode?: string;
   containerRegistryId?: string | null;
   acrAuthMode?: AcrAuthMode | null;
+  acrPullIdentityId?: string | null;
   dockerImageName?: string | null;
   dockerImageValidated?: boolean;
   dockerfilePath?: string | null;
@@ -74,6 +76,7 @@ export interface UpdateFunctionAppRequest {
   deploymentMode?: string;
   containerRegistryId?: string | null;
   acrAuthMode?: AcrAuthMode | null;
+  acrPullIdentityId?: string | null;
   dockerImageName?: string | null;
   dockerImageValidated?: boolean;
   dockerfilePath?: string | null;

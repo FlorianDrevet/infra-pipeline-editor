@@ -7,7 +7,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { CompactSelectComponent, CompactSelectOption } from '../compact-select/compact-select.component';
 import { AcrAuthMode } from '../../interfaces/container-registry.interface';
 import {
   DsSelectComponent,
@@ -29,10 +28,9 @@ export type AcrUaiStateValue = 'idle' | 'checking' | 'ok' | 'uai-missing-role' |
     MatProgressSpinnerModule,
     TranslateModule,
     MatTooltipModule,
-    CompactSelectComponent,
     DsSelectComponent,
     DsTextFieldComponent,
-],
+  ],
   templateUrl: './deployment-config.component.html',
   styleUrl: './deployment-config.component.scss',
 })
@@ -53,8 +51,9 @@ export class DeploymentConfigComponent {
   readonly acrUaiState = input<AcrUaiStateValue>('idle');
   readonly acrAssignedUaiName = input<string | null>(null);
   readonly acrSelectedUaiId = input<string | null>(null);
+  readonly showAcrPullIdentitySelector = input(false);
   readonly acrRoleAssigning = input(false);
-  readonly uaiOptions = input<CompactSelectOption[]>([]);
+  readonly uaiOptions = input<DsSelectOption[]>([]);
   readonly canWrite = input(true);
   readonly disabled = input(false);
 

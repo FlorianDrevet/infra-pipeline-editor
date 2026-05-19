@@ -93,4 +93,146 @@ public sealed class CheckAcrPullAccessQueryHandlerTests
         await _azureResourceRepository.DidNotReceive()
             .GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Given_SpecificAcrPullIdentity_When_IdentityHasAcrPullRole_Then_ReturnsAccessWithSelectedIdentityAsync()
+    {
+        // Arrange
+        var config = DomainInfrastructureConfig.Create(new Name("test-config"), ProjectId.CreateUnique());
+        var rg = DomainResourceGroup.Create(
+            new Name("rg-test"),
+            config.Id,
+            new Location(Location.LocationEnum.FranceCentral));
+
+        var selectedUai = UserAssignedIdentity.Create(
+            rg.Id,
+            new Name("uai-selected"),
+            new Location(Location.LocationEnum.FranceCentral));
+
+        var testRegistry = ContainerRegistry.Create(
+            rg.Id,
+            new Name("acrtest"),
+            new Location(Location.LocationEnum.FranceCentral));
+
+        var testSourceResource = WebApp.Create(
+            rg.Id,
+            new Name("web-test"),
+            new Location(Location.LocationEnum.FranceCentral),
+            AzureResourceId.CreateUnique(),
+            new WebAppRuntimeStack(WebAppRuntimeStack.WebAppRuntimeStackEnum.DotNet),
+            "8.0",
+            alwaysOn: true,
+            httpsOnly: true,
+            new DeploymentMode(DeploymentMode.DeploymentModeType.Code),
+            containerRegistryId: testRegistry.Id,
+            acrAuthMode: new AcrAuthMode(AcrAuthMode.AcrAuthModeType.ManagedIdentity),
+            dockerImageName: null);
+
+        testSourceResource.AddRoleAssignment(
+            testRegistry.Id,
+            new ManagedIdentityType(ManagedIdentityType.IdentityTypeEnum.UserAssigned),
+            AzureRoleDefinitionCatalog.AcrPull,
+            selectedUai.Id);
+
+        var queryWithSpecificIdentity = new CheckAcrPullAccessQuery(
+            testSourceResource.Id,
+            testRegistry.Id,
+            AcrAuthMode.AcrAuthModeType.ManagedIdentity.ToString(),
+            selectedUai.Id);
+
+        _azureResourceRepository.GetByIdWithRoleAssignmentsReadOnlyAsync(testSourceResource.Id, Arg.Any<CancellationToken>())
+            .Returns(testSourceResource);
+        _azureResourceRepository.GetByIdReadOnlyAsync(selectedUai.Id, Arg.Any<CancellationToken>())
+            .Returns(selectedUai);
+
+        // Act
+        var result = await _sut.Handle(queryWithSpecificIdentity, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.HasAccess.Should().BeTrue();
+        result.Value.AssignedUserAssignedIdentityId.Should().Be(selectedUai.Id.Value.ToString());
+        result.Value.AssignedUserAssignedIdentityName.Should().Be(selectedUai.Name.Value);
+        result.Value.HasUserAssignedIdentity.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Given_SpecificAcrPullIdentity_When_IdentityMissingAcrPullRole_Then_ReturnsMissingAccessWithSelectedIdentityAsync()
+    {
+        // Arrange - Create a source resource that has a role assignment for _identity, but we'll check a different UAI
+        var selectedUai = UserAssignedIdentity.Create(
+            _identity.ResourceGroupId,
+            new Name("uai-without-access"),
+            new Location(Location.LocationEnum.FranceCentral));
+
+        // _sourceResource from constructor already has AcrPull role for _identity, but NOT for selectedUai
+        var queryWithSpecificIdentity = new CheckAcrPullAccessQuery(
+            _sourceResource.Id,
+            _registry.Id,
+            AcrAuthMode.AcrAuthModeType.ManagedIdentity.ToString(),
+            selectedUai.Id);
+
+        _azureResourceRepository.GetByIdWithRoleAssignmentsReadOnlyAsync(_sourceResource.Id, Arg.Any<CancellationToken>())
+            .Returns(_sourceResource);
+        _azureResourceRepository.GetByIdReadOnlyAsync(selectedUai.Id, Arg.Any<CancellationToken>())
+            .Returns(selectedUai);
+
+        // Act
+        var result = await _sut.Handle(queryWithSpecificIdentity, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.HasAccess.Should().BeFalse();
+        result.Value.MissingRoleDefinitionId.Should().Be(AzureRoleDefinitionCatalog.AcrPull);
+        result.Value.MissingRoleName.Should().Be("AcrPull");
+        result.Value.AssignedUserAssignedIdentityId.Should().Be(selectedUai.Id.Value.ToString());
+        result.Value.AssignedUserAssignedIdentityName.Should().Be(selectedUai.Name.Value);
+        result.Value.HasUserAssignedIdentity.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Given_AdminCredentials_When_AcrPullIdentitySpecified_Then_IgnoresIdentityAndReturnsAccessAsync()
+    {
+        // Arrange
+        var selectedUai = UserAssignedIdentity.Create(
+            _identity.ResourceGroupId,
+            new Name("uai-ignored"),
+            new Location(Location.LocationEnum.FranceCentral));
+
+        var queryAdminWithIdentity = new CheckAcrPullAccessQuery(
+            _sourceResource.Id,
+            _registry.Id,
+            AcrAuthMode.AcrAuthModeType.AdminCredentials.ToString(),
+            selectedUai.Id);
+
+        // Act
+        var result = await _sut.Handle(queryAdminWithIdentity, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.HasAccess.Should().BeTrue();
+        result.Value.AssignedUserAssignedIdentityId.Should().BeNull();
+        result.Value.AssignedUserAssignedIdentityName.Should().BeNull();
+        result.Value.HasUserAssignedIdentity.Should().BeFalse();
+        result.Value.AcrAuthMode.Should().Be(AcrAuthMode.AcrAuthModeType.AdminCredentials.ToString());
+    }
+
+    [Fact]
+    public async Task Given_NoAcrPullIdentity_When_Handle_Then_UsesBackwardCompatibleBehaviorAsync()
+    {
+        // Arrange - No AcrPullIdentityId specified, should find any UAI with AcrPull (backward compat)
+        _azureResourceRepository.GetByIdWithRoleAssignmentsReadOnlyAsync(_sourceResource.Id, Arg.Any<CancellationToken>())
+            .Returns(_sourceResource);
+        _azureResourceRepository.GetByIdReadOnlyAsync(_identity.Id, Arg.Any<CancellationToken>())
+            .Returns(_identity);
+
+        // Act
+        var result = await _sut.Handle(_query, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.HasAccess.Should().BeTrue();
+        result.Value.AssignedUserAssignedIdentityId.Should().Be(_identity.Id.Value.ToString());
+        result.Value.AssignedUserAssignedIdentityName.Should().Be(_identity.Name.Value);
+    }
 }

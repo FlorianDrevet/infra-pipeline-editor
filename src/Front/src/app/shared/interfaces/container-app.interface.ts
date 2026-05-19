@@ -50,6 +50,7 @@ export interface ContainerAppResponse {
   containerAppEnvironmentId: string;
   containerRegistryId: string | null;
   acrAuthMode?: AcrAuthMode | null;
+  acrPullIdentityId?: string | null;
   dockerImageName: string | null;
   dockerImageValidated: boolean;
   dockerfilePath: string | null;
@@ -68,6 +69,7 @@ export interface CreateContainerAppRequest {
   containerAppEnvironmentId: string;
   containerRegistryId?: string | null;
   acrAuthMode?: AcrAuthMode | null;
+  acrPullIdentityId?: string | null;
   dockerImageName?: string | null;
   dockerImageValidated?: boolean;
   dockerfilePath?: string | null;
@@ -83,6 +85,7 @@ export interface UpdateContainerAppRequest {
   containerAppEnvironmentId: string;
   containerRegistryId?: string | null;
   acrAuthMode?: AcrAuthMode | null;
+  acrPullIdentityId?: string | null;
   dockerImageName?: string | null;
   dockerImageValidated?: boolean;
   dockerfilePath?: string | null;

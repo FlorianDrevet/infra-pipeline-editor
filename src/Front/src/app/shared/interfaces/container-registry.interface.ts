@@ -48,6 +48,11 @@ export interface UpdateContainerRegistryRequest {
 
 // ─── ACR Access Check ────────────────────────────────────────────────────────
 
+export interface CheckAcrPullAccessQueryParams {
+  acrAuthMode?: AcrAuthMode;
+  acrPullIdentityId?: string;
+}
+
 export interface CheckAcrPullAccessResponse {
   hasAccess: boolean;
   acrAuthMode?: AcrAuthMode | null;

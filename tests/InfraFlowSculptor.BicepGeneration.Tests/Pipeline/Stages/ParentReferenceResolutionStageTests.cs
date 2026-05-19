@@ -419,6 +419,59 @@ public sealed class ParentReferenceResolutionStageTests
     }
 
     [Fact]
+    public void Given_ContainerAppWithAcrPullIdentityId_When_Execute_Then_ResolvesAcrManagedIdentityClientIdFromParentModule()
+    {
+        // Arrange
+        var uaiId = Guid.NewGuid();
+        var containerAppResource = new ResourceDefinition
+        {
+            ResourceId = Guid.NewGuid(),
+            Name = "my-container-app",
+            Type = AzureResourceTypes.ArmTypes.ContainerAppType,
+            Properties = new Dictionary<string, string>
+            {
+                ["acrPullIdentityId"] = uaiId.ToString(),
+            },
+        };
+
+        var context = new BicepGenerationContext
+        {
+            Request = new GenerationRequest
+            {
+                Resources = [containerAppResource],
+            },
+            ResourceIdToInfo = new Dictionary<Guid, (string Name, string ResourceTypeName)>
+            {
+                [uaiId] = ("uai-acr-pull", AzureResourceTypes.UserAssignedIdentity),
+            },
+        };
+
+        context.WorkItems.Add(new ModuleWorkItem
+        {
+            Resource = containerAppResource,
+            Module = new GeneratedTypeModule
+            {
+                Parameters = new Dictionary<string, object>
+                {
+                    ["acrManagedIdentityClientId"] = string.Empty,
+                },
+            },
+            Spec = CreateMinimalSpec(),
+        });
+
+        // Act
+        _sut.Execute(context);
+
+        // Assert
+        var module = context.WorkItems[0].Module;
+        module.ParentModuleOutputReferences.Should().ContainKey("acrManagedIdentityClientId");
+        module.ParentModuleOutputReferences["acrManagedIdentityClientId"].Name.Should().Be("uai-acr-pull");
+        module.ParentModuleOutputReferences["acrManagedIdentityClientId"].ResourceTypeName.Should().Be(AzureResourceTypes.UserAssignedIdentity);
+        module.ParentModuleOutputReferences["acrManagedIdentityClientId"].OutputName.Should().Be("clientId");
+        module.Parameters.Should().NotContainKey("acrManagedIdentityClientId");
+    }
+
+    [Fact]
     public void Given_UnresolvableParentGuid_When_Execute_Then_SilentlyDropped()
     {
         // Arrange

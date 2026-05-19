@@ -90,6 +90,7 @@ export function buildResourceEditGeneralForm(request: ResourceEditGeneralFormBui
     base['deploymentMode'] = [deploymentMode];
     base['containerRegistryId'] = [selectedContainerRegistryId];
     base['acrAuthMode'] = [acrAuthMode];
+    base['acrPullIdentityId'] = [webApp.acrPullIdentityId ?? null];
     base['dockerImageName'] = [webApp.dockerImageName ?? null];
     base['dockerImageValidated'] = [webApp.dockerImageValidated ?? false];
     base['runtimeStack'] = [webApp.runtimeStack, [Validators.required]];
@@ -109,6 +110,7 @@ export function buildResourceEditGeneralForm(request: ResourceEditGeneralFormBui
     base['deploymentMode'] = [deploymentMode];
     base['containerRegistryId'] = [selectedContainerRegistryId];
     base['acrAuthMode'] = [acrAuthMode];
+    base['acrPullIdentityId'] = [functionApp.acrPullIdentityId ?? null];
     base['dockerImageName'] = [functionApp.dockerImageName ?? null];
     base['dockerImageValidated'] = [functionApp.dockerImageValidated ?? false];
     base['runtimeStack'] = [functionApp.runtimeStack, [Validators.required]];
@@ -135,6 +137,7 @@ export function buildResourceEditGeneralForm(request: ResourceEditGeneralFormBui
     base['containerAppEnvironmentId'] = [containerApp.containerAppEnvironmentId];
     base['containerRegistryId'] = [selectedContainerRegistryId];
     base['acrAuthMode'] = [acrAuthMode];
+    base['acrPullIdentityId'] = [containerApp.acrPullIdentityId ?? null];
     base['dockerImageName'] = [containerApp.dockerImageName ?? null];
     base['dockerImageValidated'] = [containerApp.dockerImageValidated ?? false];
     base['dockerfilePath'] = [containerApp.dockerfilePath ?? ''];

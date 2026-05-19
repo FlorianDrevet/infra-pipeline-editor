@@ -820,6 +820,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.storageCorsRulesDraft.set(buildResult.storageCorsRulesDraft);
     this.storageTableCorsRulesDraft.set(buildResult.storageTableCorsRulesDraft);
     this.lifecycleRulesDraft.set(buildResult.lifecycleRulesDraft);
+    this.acrSelectedUaiId.set(this.getCurrentAcrPullIdentityId());
 
     // Hydrate pipeline step options for compute resources
     if (this.supportsAppPipeline()) {
@@ -877,14 +878,30 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
   }
 
-  private resetAcrPullAccessState(): void { // NOSONAR S3776 - tracked under test-debt #22
+  private getCurrentAcrPullIdentityId(): string | null {
+    const identityId = this.generalForm?.get('acrPullIdentityId')?.value;
+    return typeof identityId === 'string' && identityId.length > 0 ? identityId : null;
+  }
+
+  private resolveAcrPullIdentityId(containerRegistryId: string | null, acrAuthMode: AcrAuthMode | null): string | null {
+    return containerRegistryId && acrAuthMode === 'ManagedIdentity' ? this.getCurrentAcrPullIdentityId() : null;
+  }
+
+  private patchAcrPullIdentityId(identityId: string | null, emitEvent = true): void {
+    this.acrSelectedUaiId.set(identityId);
+    this.generalForm.get('acrPullIdentityId')?.setValue(identityId, { emitEvent });
+  }
+
+  private resetAcrPullAccessState(preserveSelectedIdentity = false): void { // NOSONAR S3776 - tracked under test-debt #22
     this.acrHasAccess.set(null);
     this.acrMissingRoleName.set(null);
     this.acrMissingRoleDefinitionId.set(null);
     this.acrAssignedUaiId.set(null);
     this.acrAssignedUaiName.set(null);
     this.acrHasUai.set(false);
-    this.acrSelectedUaiId.set(null);
+    if (!preserveSelectedIdentity) {
+      this.acrSelectedUaiId.set(null);
+    }
   }
 
   protected async onSave(): Promise<void> {
@@ -967,6 +984,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             deploymentMode: general.deploymentMode || 'Code',
             containerRegistryId: general.deploymentMode === 'Container' ? (general.containerRegistryId || null) : null,
             acrAuthMode,
+            acrPullIdentityId: general.deploymentMode === 'Container' && acrAuthMode === 'ManagedIdentity' ? this.resolveAcrPullIdentityId(general.containerRegistryId, acrAuthMode) : null,
             dockerImageName: general.deploymentMode === 'Container' ? (general.dockerImageName || null) : null,
             dockerImageValidated: general.deploymentMode === 'Container' ? (general.dockerImageValidated ?? false) : false,
             dockerfilePath: general.dockerfilePath || null,
@@ -994,6 +1012,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             deploymentMode: general.deploymentMode || 'Code',
             containerRegistryId: general.deploymentMode === 'Container' ? (general.containerRegistryId || null) : null,
             acrAuthMode,
+            acrPullIdentityId: general.deploymentMode === 'Container' && acrAuthMode === 'ManagedIdentity' ? this.resolveAcrPullIdentityId(general.containerRegistryId, acrAuthMode) : null,
             dockerImageName: general.deploymentMode === 'Container' ? (general.dockerImageName || null) : null,
             dockerImageValidated: general.deploymentMode === 'Container' ? (general.dockerImageValidated ?? false) : false,
             dockerfilePath: general.dockerfilePath || null,
@@ -1038,6 +1057,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             containerAppEnvironmentId: general.containerAppEnvironmentId,
             containerRegistryId: general.containerRegistryId || null,
             acrAuthMode,
+            acrPullIdentityId: general.containerRegistryId && acrAuthMode === 'ManagedIdentity' ? this.resolveAcrPullIdentityId(general.containerRegistryId, acrAuthMode) : null,
             dockerImageName: general.dockerImageName || null,
             dockerImageValidated: general.dockerImageValidated ?? false,
             dockerfilePath: general.dockerfilePath || null,
@@ -1212,6 +1232,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.acrAccessChecking.set(false);
     this.resetAcrPullAccessState();
     this.setAcrAuthMode(nextAcrAuthMode, true);
+
+    if (mode === 'Code') {
+      // Clear ACR pull identity when switching to code mode
+      this.patchAcrPullIdentityId(null);
+    }
+
     this.formsDirty.set(true);
 
     if (mode === 'Container' && currentRegistryId && nextAcrAuthMode === 'ManagedIdentity') {
@@ -1232,6 +1258,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   protected async onContainerRegistryChange(acrId: string | null): Promise<void> {
+    const previousRegistryId = this.selectedContainerRegistryId() ?? this.generalForm.get('containerRegistryId')?.value ?? null;
+    const registryChanged = previousRegistryId !== acrId;
     const nextAcrAuthMode = this.resolveAcrAuthMode(acrId, this.acrAuthMode() ?? (this.generalForm.get('acrAuthMode')?.value as AcrAuthMode | null | undefined));
 
     this.selectedContainerRegistryId.set(acrId);
@@ -1239,6 +1267,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.acrAccessChecking.set(false);
     this.resetAcrPullAccessState();
     this.setAcrAuthMode(nextAcrAuthMode, true);
+
+    if (registryChanged || !acrId || nextAcrAuthMode !== 'ManagedIdentity') {
+      this.patchAcrPullIdentityId(null);
+    }
+
     if (!acrId || nextAcrAuthMode !== 'ManagedIdentity') return;
     await this.checkAcrPullAccess(acrId, nextAcrAuthMode);
   }
@@ -1250,13 +1283,42 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.acrAccessChecking.set(false);
     this.resetAcrPullAccessState();
     this.setAcrAuthMode(nextAcrAuthMode, true);
+
+    if (nextAcrAuthMode !== 'ManagedIdentity') {
+      // Clear ACR pull identity when not in managed identity mode
+      this.patchAcrPullIdentityId(null);
+    }
+
     if (!currentRegistryId || nextAcrAuthMode !== 'ManagedIdentity') return;
     await this.checkAcrPullAccess(currentRegistryId, nextAcrAuthMode);
   }
 
-  protected async checkAcrPullAccess(acrId?: string, acrAuthMode?: AcrAuthMode | null): Promise<void> {
+  protected async onAcrSelectedUaiChange(identityId: string | null): Promise<void> {
+    this.patchAcrPullIdentityId(identityId);
+    this.formsDirty.set(true);
+
+    const registryId = this.selectedContainerRegistryId() ?? this.generalForm.get('containerRegistryId')?.value ?? null;
+    const currentAuthMode = this.acrAuthMode();
+
+    if (!registryId || currentAuthMode !== 'ManagedIdentity') {
+      this.resetAcrPullAccessState(true);
+      return;
+    }
+
+    if (!identityId) {
+      this.resetAcrPullAccessState(true);
+      this.acrHasAccess.set(false);
+      return;
+    }
+
+    await this.checkAcrPullAccess(registryId, currentAuthMode, identityId);
+  }
+
+  protected async checkAcrPullAccess(acrId?: string, acrAuthMode?: AcrAuthMode | null, acrPullIdentityId?: string | null): Promise<void> {
     const registryId = acrId ?? this.generalForm.get('containerRegistryId')?.value;
     const requestedAcrAuthMode = this.resolveAcrAuthMode(registryId, acrAuthMode ?? this.acrAuthMode());
+    const selectedIdentityId = acrPullIdentityId ?? this.acrSelectedUaiId() ?? this.getCurrentAcrPullIdentityId();
+
     if (!registryId || requestedAcrAuthMode !== 'ManagedIdentity') {
       this.resetAcrPullAccessState();
       return;
@@ -1264,10 +1326,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
     this.acrAuthMode.set(requestedAcrAuthMode);
     this.acrAccessChecking.set(true);
-    this.resetAcrPullAccessState();
+    this.resetAcrPullAccessState(true);
 
     try {
-      const result = await this.containerRegistryService.checkAcrPullAccess(this.resourceId, registryId, requestedAcrAuthMode);
+      const result = await this.containerRegistryService.checkAcrPullAccess(
+        this.resourceId,
+        registryId,
+        requestedAcrAuthMode,
+        selectedIdentityId,
+      );
       if (this.selectedContainerRegistryId() !== registryId || this.acrAuthMode() !== requestedAcrAuthMode) {
         return;
       }
@@ -1279,9 +1346,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       this.acrAssignedUaiName.set(result.assignedUserAssignedIdentityName ?? null);
       this.acrHasUai.set(result.hasUserAssignedIdentity);
       this.acrAuthMode.set(this.resolveAcrAuthMode(registryId, result.acrAuthMode ?? requestedAcrAuthMode));
-      // Pre-select the assigned UAI if one exists
-      if (result.assignedUserAssignedIdentityId) {
-        this.acrSelectedUaiId.set(result.assignedUserAssignedIdentityId);
+
+      if (requestedAcrAuthMode === 'ManagedIdentity' && result.assignedUserAssignedIdentityId) {
+        this.patchAcrPullIdentityId(result.assignedUserAssignedIdentityId, false);
       }
     } catch {
       this.acrHasAccess.set(null);
@@ -1293,7 +1360,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected async addAcrPullRoleAssignment(): Promise<void> {
     const acrId = this.generalForm.get('containerRegistryId')?.value;
     const roleDefId = this.acrMissingRoleDefinitionId();
-    const uaiId = this.acrSelectedUaiId() ?? this.acrAssignedUaiId();
+    const uaiId = this.acrSelectedUaiId();
     if (!acrId || !roleDefId || !uaiId) return;
 
     this.acrRoleAssigning.set(true);
@@ -1304,7 +1371,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         roleDefinitionId: roleDefId,
         userAssignedIdentityId: uaiId,
       });
-      await this.checkAcrPullAccess(acrId);
+      await this.checkAcrPullAccess(acrId, this.acrAuthMode(), uaiId);
       await this.identityAccessSection.loadRoleAssignments();
     } catch {
       // Error handled silently; the UI will still show the missing role
@@ -1327,7 +1394,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(async (result: UserAssignedIdentityResponse | undefined) => {
       if (!result) return;
       await this.identityAccessSection.loadAllResources();
-      this.acrSelectedUaiId.set(result.id);
+      await this.onAcrSelectedUaiChange(result.id);
     });
   }
 
