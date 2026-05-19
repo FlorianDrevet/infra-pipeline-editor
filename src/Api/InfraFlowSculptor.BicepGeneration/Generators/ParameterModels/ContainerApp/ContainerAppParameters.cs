@@ -23,9 +23,6 @@ internal sealed record ContainerAppParameters
     [JsonPropertyName("acrLoginServer")]
     public string? AcrLoginServer { get; init; }
 
-    [JsonPropertyName("acrManagedIdentityClientId")]
-    public string? AcrManagedIdentityClientId { get; init; }
-
     [JsonPropertyName("customDomains")]
     public IReadOnlyList<CustomDomainParameter>? CustomDomains { get; init; }
 }

@@ -200,9 +200,6 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @description('ACR login server (e.g. myregistry.azurecr.io)')
         param acrLoginServer string
 
-        @description('Client ID of the managed identity for ACR pull')
-        param acrManagedIdentityClientId string = ''
-
         {{CustomDomainDeclarationsPlaceholder}}
 
         resource containerApp '{{ContainerAppArmType}}' = {
@@ -214,7 +211,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
               registries: [
                 {
                   server: acrLoginServer
-                  identity: !empty(acrManagedIdentityClientId) ? acrManagedIdentityClientId : 'system'
+                  identity: userAssignedIdentityId
                 }
               ]
               ingress: ingress.enabled ? {

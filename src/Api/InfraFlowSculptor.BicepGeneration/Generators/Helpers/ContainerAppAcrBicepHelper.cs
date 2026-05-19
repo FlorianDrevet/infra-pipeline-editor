@@ -10,14 +10,12 @@ internal static class ContainerAppAcrBicepHelper
 {
     internal const string AcrLoginServerParameterName = "acrLoginServer";
     internal const string AcrPasswordParameterName = "acrPassword";
-    internal const string AcrManagedIdentityClientIdParameterName = "acrManagedIdentityClientId";
     internal const string AcrUsernameVariableName = "acrUsername";
     internal const string AcrPasswordSecretNameVariableName = "acrPasswordSecretName";
     internal const string AcrPasswordSecretNameValue = "acr-password";
     internal const string AcrUsernameExpression = "split(acrLoginServer, '.')[0]";
-    internal const string ManagedIdentityClientIdConditionExpression = "!empty(acrManagedIdentityClientId)";
 
-    private const string SystemManagedIdentityValue = "system";
+    private const string UserAssignedIdentityIdParameterName = "userAssignedIdentityId";
     private const string SecretsPropertyName = "secrets";
     private const string RegistriesPropertyName = "registries";
     private const string ServerPropertyName = "server";
@@ -42,12 +40,6 @@ internal static class ContainerAppAcrBicepHelper
         {
             builder.Param(AcrPasswordParameterName, BicepType.String,
                 "Admin password for the Container Registry", secure: true);
-        }
-        else
-        {
-            builder.Param(AcrManagedIdentityClientIdParameterName, BicepType.String,
-                "Client ID of the managed identity for ACR pull",
-                defaultValue: new BicepStringLiteral(EmptyParameterValue));
         }
 
         return builder;
@@ -91,10 +83,7 @@ internal static class ContainerAppAcrBicepHelper
             props.Add(new BicepPropertyAssignment(RegistriesPropertyName, new BicepArrayExpression([
                 new BicepObjectExpression([
                     new BicepPropertyAssignment(ServerPropertyName, new BicepReference(AcrLoginServerParameterName)),
-                    new BicepPropertyAssignment(IdentityPropertyName, new BicepConditionalExpression(
-                        new BicepRawExpression(ManagedIdentityClientIdConditionExpression),
-                        new BicepReference(AcrManagedIdentityClientIdParameterName),
-                        new BicepStringLiteral(SystemManagedIdentityValue))),
+                    new BicepPropertyAssignment(IdentityPropertyName, new BicepReference(UserAssignedIdentityIdParameterName)),
                 ]),
             ])));
         }

@@ -110,7 +110,6 @@ public sealed class ParentReferenceResolutionStageTests
                 Parameters = new Dictionary<string, object>
                 {
                     ["acrLoginServer"] = string.Empty,
-                    ["acrManagedIdentityClientId"] = string.Empty,
                 },
             },
             Spec = CreateMinimalSpec(),
@@ -126,7 +125,6 @@ public sealed class ParentReferenceResolutionStageTests
         module.ParentModuleOutputReferences["acrLoginServer"].ResourceTypeName.Should().Be(AzureResourceTypes.ContainerRegistry);
         module.ParentModuleOutputReferences["acrLoginServer"].OutputName.Should().Be("loginServer");
         module.Parameters.Should().NotContainKey("acrLoginServer");
-        module.Parameters.Should().ContainKey("acrManagedIdentityClientId");
     }
 
     [Fact]
@@ -172,7 +170,6 @@ public sealed class ParentReferenceResolutionStageTests
                 Parameters = new Dictionary<string, object>
                 {
                     ["acrLoginServer"] = string.Empty,
-                    ["acrManagedIdentityClientId"] = string.Empty,
                 },
             },
             Spec = CreateMinimalSpec(),
@@ -187,7 +184,6 @@ public sealed class ParentReferenceResolutionStageTests
         module.ExistingResourcePropertyReferences["acrLoginServer"].ResourceName.Should().Be("infraflowsculptor");
         module.ExistingResourcePropertyReferences["acrLoginServer"].PropertyPath.Should().Be("properties.loginServer");
         module.Parameters.Should().NotContainKey("acrLoginServer");
-        module.Parameters.Should().ContainKey("acrManagedIdentityClientId");
     }
 
     [Fact]
@@ -246,7 +242,6 @@ public sealed class ParentReferenceResolutionStageTests
                 Parameters = new Dictionary<string, object>
                 {
                     ["acrLoginServer"] = string.Empty,
-                    ["acrManagedIdentityClientId"] = string.Empty,
                 },
             },
             Spec = CreateMinimalSpec(),
@@ -419,9 +414,10 @@ public sealed class ParentReferenceResolutionStageTests
     }
 
     [Fact]
-    public void Given_ContainerAppWithAcrPullIdentityId_When_Execute_Then_ResolvesAcrManagedIdentityClientIdFromParentModule()
+    public void Given_ContainerAppWithAcrPullIdentityId_When_Execute_Then_DoesNotResolveAcrManagedIdentityClientId()
     {
-        // Arrange
+        // Arrange — Container App modules no longer have acrManagedIdentityClientId param.
+        // Registry identity uses userAssignedIdentityId directly (ARM resource ID).
         var uaiId = Guid.NewGuid();
         var containerAppResource = new ResourceDefinition
         {
@@ -453,7 +449,56 @@ public sealed class ParentReferenceResolutionStageTests
             {
                 Parameters = new Dictionary<string, object>
                 {
-                    ["acrManagedIdentityClientId"] = string.Empty,
+                    ["acrLoginServer"] = string.Empty,
+                },
+            },
+            Spec = CreateMinimalSpec(),
+        });
+
+        // Act
+        _sut.Execute(context);
+
+        // Assert — no output references for identity since Container App uses userAssignedIdentityId directly
+        var module = context.WorkItems[0].Module;
+        module.ParentModuleOutputReferences.Should().NotContainKey("acrManagedIdentityClientId");
+    }
+
+    [Fact]
+    public void Given_FunctionAppWithAcrPullIdentityId_When_Execute_Then_ResolvesAcrUserManagedIdentityIdFromParentModule()
+    {
+        // Arrange — FunctionApp modules still use acrUserManagedIdentityId param
+        var uaiId = Guid.NewGuid();
+        var functionAppResource = new ResourceDefinition
+        {
+            ResourceId = Guid.NewGuid(),
+            Name = "my-function-app",
+            Type = AzureResourceTypes.ArmTypes.FunctionAppType,
+            Properties = new Dictionary<string, string>
+            {
+                ["acrPullIdentityId"] = uaiId.ToString(),
+            },
+        };
+
+        var context = new BicepGenerationContext
+        {
+            Request = new GenerationRequest
+            {
+                Resources = [functionAppResource],
+            },
+            ResourceIdToInfo = new Dictionary<Guid, (string Name, string ResourceTypeName)>
+            {
+                [uaiId] = ("uai-acr-pull", AzureResourceTypes.UserAssignedIdentity),
+            },
+        };
+
+        context.WorkItems.Add(new ModuleWorkItem
+        {
+            Resource = functionAppResource,
+            Module = new GeneratedTypeModule
+            {
+                Parameters = new Dictionary<string, object>
+                {
+                    ["acrUserManagedIdentityId"] = string.Empty,
                 },
             },
             Spec = CreateMinimalSpec(),
@@ -464,11 +509,11 @@ public sealed class ParentReferenceResolutionStageTests
 
         // Assert
         var module = context.WorkItems[0].Module;
-        module.ParentModuleOutputReferences.Should().ContainKey("acrManagedIdentityClientId");
-        module.ParentModuleOutputReferences["acrManagedIdentityClientId"].Name.Should().Be("uai-acr-pull");
-        module.ParentModuleOutputReferences["acrManagedIdentityClientId"].ResourceTypeName.Should().Be(AzureResourceTypes.UserAssignedIdentity);
-        module.ParentModuleOutputReferences["acrManagedIdentityClientId"].OutputName.Should().Be("clientId");
-        module.Parameters.Should().NotContainKey("acrManagedIdentityClientId");
+        module.ParentModuleOutputReferences.Should().ContainKey("acrUserManagedIdentityId");
+        module.ParentModuleOutputReferences["acrUserManagedIdentityId"].Name.Should().Be("uai-acr-pull");
+        module.ParentModuleOutputReferences["acrUserManagedIdentityId"].ResourceTypeName.Should().Be(AzureResourceTypes.UserAssignedIdentity);
+        module.ParentModuleOutputReferences["acrUserManagedIdentityId"].OutputName.Should().Be("resourceId");
+        module.Parameters.Should().NotContainKey("acrUserManagedIdentityId");
     }
 
     [Fact]

@@ -225,10 +225,6 @@ public sealed partial class ContainerAppTypeBicepGenerator
         if (hasAcr)
         {
             parameters = parameters with { AcrLoginServer = EmptyParameterValue };
-            if (!useAdminCredentials)
-            {
-                parameters = parameters with { AcrManagedIdentityClientId = EmptyParameterValue };
-            }
         }
 
         if (hasValidatedCustomDomains)

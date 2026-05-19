@@ -23,9 +23,8 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
     private const string AppServicePlanIdPropertyName = "appServicePlanId";
     private const string AcrLoginServerParameterName = "acrLoginServer";
     private const string AcrPullIdentityIdPropertyName = "acrPullIdentityId";
-    private const string AcrManagedIdentityClientIdParameterName = "acrManagedIdentityClientId";
     private const string AcrUserManagedIdentityIdParameterName = "acrUserManagedIdentityId";
-    private const string UserAssignedIdentityClientIdOutputName = "clientId";
+    private const string UserAssignedIdentityResourceIdOutputName = "resourceId";
     private const string ContainerRegistryIdPropertyName = "containerRegistryId";
     private const string ContainerRegistryLoginServerOutputName = "loginServer";
     private const string ContainerRegistryLoginServerPropertyPath = "properties.loginServer";
@@ -237,17 +236,14 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
             return;
         }
 
-        var targetParameterName = module.Parameters.ContainsKey(AcrManagedIdentityClientIdParameterName)
-            ? AcrManagedIdentityClientIdParameterName
-            : module.Parameters.ContainsKey(AcrUserManagedIdentityIdParameterName)
-                ? AcrUserManagedIdentityIdParameterName
-                : null;
-
-        if (targetParameterName is null)
+        // Container App modules no longer use acrManagedIdentityClientId — they reference
+        // userAssignedIdentityId directly for registry identity (ARM resource ID).
+        // FunctionApp modules still use acrUserManagedIdentityId.
+        if (!module.Parameters.ContainsKey(AcrUserManagedIdentityIdParameterName))
         {
             return;
         }
 
-        parentModuleOutputRefs[targetParameterName] = (uaiInfo.Name, AzureResourceTypes.UserAssignedIdentity, UserAssignedIdentityClientIdOutputName);
+        parentModuleOutputRefs[AcrUserManagedIdentityIdParameterName] = (uaiInfo.Name, AzureResourceTypes.UserAssignedIdentity, UserAssignedIdentityResourceIdOutputName);
     }
 }

@@ -346,10 +346,10 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     }
 
     [Fact]
-    public void Given_AcrMiResource_When_GenerateSpec_Then_HasTenParamsWhenNoValidatedCustomDomains()
+    public void Given_AcrMiResource_When_GenerateSpec_Then_HasNineParamsWhenNoValidatedCustomDomains()
     {
         var spec = _sut.GenerateSpec(CreateAcrMiResource());
-        spec.Parameters.Should().HaveCount(10);
+        spec.Parameters.Should().HaveCount(9);
     }
 
     [Fact]
@@ -361,12 +361,10 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     }
 
     [Fact]
-    public void Given_AcrMiResource_When_GenerateSpec_Then_HasAcrManagedIdentityClientIdParamWithEmptyDefault()
+    public void Given_AcrMiResource_When_GenerateSpec_Then_NoAcrManagedIdentityClientIdParam()
     {
         var spec = _sut.GenerateSpec(CreateAcrMiResource());
-        var param = spec.Parameters.Should().Contain(p => p.Name == "acrManagedIdentityClientId").Subject;
-        param.Type.Should().Be(BicepType.String);
-        param.DefaultValue.Should().BeOfType<BicepStringLiteral>().Which.Value.Should().Be("");
+        spec.Parameters.Should().NotContain(p => p.Name == "acrManagedIdentityClientId");
     }
 
     [Fact]
@@ -390,7 +388,7 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     }
 
     [Fact]
-    public void Given_AcrMiResource_When_GenerateSpec_Then_RegistriesHasIdentityConditional()
+    public void Given_AcrMiResource_When_GenerateSpec_Then_RegistriesHasIdentityReferenceToUserAssignedIdentityId()
     {
         var spec = _sut.GenerateSpec(CreateAcrMiResource());
         var properties = (BicepObjectExpression)spec.Resource.Body.First(p => p.Key == "properties").Value;
@@ -399,7 +397,8 @@ public sealed class ContainerAppTypeBicepGeneratorTests
         var registry = (BicepObjectExpression)registries.Items[0];
         var identity = registry.Properties.Should().Contain(p => p.Key == "identity").Subject;
 
-        identity.Value.Should().BeOfType<BicepConditionalExpression>();
+        identity.Value.Should().BeOfType<BicepReference>()
+            .Which.Symbol.Should().Be("userAssignedIdentityId");
     }
 
     [Fact]
@@ -415,7 +414,7 @@ public sealed class ContainerAppTypeBicepGeneratorTests
         var spec = _sut.GenerateSpec(CreateAcrDefaultAuthResource());
 
         spec.ModuleFileName.Should().Be("containerApp");
-        spec.Parameters.Should().Contain(p => p.Name == "acrManagedIdentityClientId");
+        spec.Parameters.Should().NotContain(p => p.Name == "acrManagedIdentityClientId");
         spec.Parameters.Should().NotContain(p => p.Name == "acrPassword");
     }
 

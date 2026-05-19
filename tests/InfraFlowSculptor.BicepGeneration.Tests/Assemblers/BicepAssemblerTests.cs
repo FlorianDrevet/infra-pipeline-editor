@@ -141,7 +141,7 @@ public sealed class BicepAssemblerTests
                 ResourceAbbreviation = "ca",
                 Parameters = new Dictionary<string, object>
                 {
-                    ["acrManagedIdentityClientId"] = string.Empty,
+                    ["acrLoginServer"] = string.Empty,
                 },
                 ExistingResourcePropertyReferences = new Dictionary<string, (string ResourceName, string PropertyPath)>
                 {
