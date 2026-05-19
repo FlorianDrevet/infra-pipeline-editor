@@ -49,6 +49,12 @@ src/
 - `InfraFlowSculptor.GenerationCore` is now treated as a contracts/helpers-only assembly [2026-05-13]. Do not add runtime `Engine`, `Generator`, or `Assembler` implementations there; `GenerationCoreBoundaryTests` is the guardrail.
 - `tests/InfraFlowSculptor.Application.Tests/` [2026-04-28] now exists as a dedicated xUnit project and currently covers the import apply handler slice.
 
+## MCP Tool Surface [2026-05-18]
+
+- The MCP host now exposes read-oriented topology helpers (`get_project_structure`, `list_project_resources`, `list_available_role_definitions`, `suggest_architecture`) plus container shortcuts (`link_container_app_to_acr`, `set_container_app_docker_config`) on top of the earlier draft/create/import/generation tools.
+- Conversational draft parsing now understands multi-instance prompts, French quantifiers, semantic resource names, environment extraction, resource-group topology extraction, and a larger alias catalog before the clarification loop runs.
+- `project_creation_guide` is the durable MCP prompt reference for multi-resource-group setups, Docker/ACR wiring, and post-creation workflows.
+
 ## Automation Scripts
 
 - `scripts/create-audit-labels.ps1` is the Windows-first entry point for creating the GitHub audit labels via `gh`.

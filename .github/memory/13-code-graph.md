@@ -21,7 +21,7 @@ Ce dépôt utilise **deux graphes complémentaires** :
 ## Index status
 
 - **Repo indexé :** `infra-pipeline-editor`
-- **Workspace instruction snapshot [2026-05-14] :** 24 772 symbols, 104 593 relationships, 300 execution flows.
+- **Workspace instruction snapshot [2026-05-19] :** 25 133 symbols, 138 821 relationships, 300 execution flows.
 - **Règle pratique :** pour les noms partagés entre entités métier et classes d'erreur, fournir `file_path` à `gitnexus_context()` pour obtenir le bon symbole du premier coup.
 
 ## Symboles à haut risque (beaucoup de dépendants upstream)

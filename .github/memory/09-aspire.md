@@ -64,6 +64,12 @@ builder.AddJavaScriptApp("angular-frontend", "../../Front", "start:aspire")
 - The concrete failure observed on 2026-05-14 was `PendingModelChangesWarning` first, then a PostgreSQL `0A000`/`42601` migration failure while applying `20260514104001_SyncPendingModelChanges` because `vw_ResourceEnvironmentEntries` depended on the `EnvironmentName` columns being altered.
 - The durable fix is not to relax EF warnings or disable migrations: add the missing migration, then drop/recreate `vw_ResourceEnvironmentEntries` inside that migration before/after the affected `ALTER COLUMN` statements. Once corrected, both API and MCP return to `Running` under Aspire.
 
+## Key Vault Emulator Package Compatibility Trap [2026-05-19]
+- `AzureKeyVaultEmulator.Aspire.Hosting` `2.9.0` pulls `Aspire.Hosting.Azure.KeyVault` `13.2.0`, which is binary-incompatible with the AppHost package family already aligned on Aspire `13.3.3`.
+- The concrete symptom is an AppHost startup crash before any resources come up: `System.MissingMethodException: Method not found: 'System.String Aspire.Hosting.Azure.IAzurePrivateEndpointTarget.GetPrivateDnsZoneName()'`.
+- The failure is triggered as soon as `src/Aspire/InfraFlowSculptor.AppHost/AppHost.cs` wires `AddAzureKeyVault("keyvault").RunAsEmulator(...)`.
+- Durable fix: bump `AzureKeyVaultEmulator.Aspire.Hosting` to `3.1.0` in `Directory.Packages.props`, which realigns the resolved `Aspire.Hosting.Azure.KeyVault` package to the Aspire `13.3.x` family and restores AppHost startup.
+
 ## MCP Detection Trap [2026-04-20]
 - Aspire MCP tooling in this environment explicitly reports that tools require `aspire run` from the AppHost project directory; a plain `dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj` can start the dashboard and AppHost process without becoming MCP-detectable.
 - Observed locally with Aspire CLI `13.1.3` and repo Aspire packages `13.2.0`: `aspire run` starts `InfraFlowSculptor.AppHost` and the dashboard, but MCP `list_apphosts` / `list_resources` may still report `No Aspire AppHost is currently running`.
