@@ -57,6 +57,7 @@ public sealed class CreateContainerAppCommandHandler(
             request.DockerImageName,
             request.DockerfilePath,
             request.ApplicationName,
+            request.SourceCodePath,
             request.EnvironmentSettings?
                 .Select(MapEnvironmentSettings)
                 .ToList(),

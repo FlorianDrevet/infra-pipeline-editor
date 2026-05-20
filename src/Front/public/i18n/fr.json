@@ -1660,6 +1660,7 @@
       "APPLICATION_NAME_HINT": "Nom affich\u00e9 dans Azure DevOps lors des ex\u00e9cutions de pipeline (par d\u00e9faut : nom de la ressource)",
       "BROWSE_DOCKERFILE": "Parcourir",
       "SELECT_BRANCH": "Branche",
+      "NO_BRANCHES": "Aucune branche correspondante",
       "NO_REPO_CONFIGURED": "Aucun d\u00e9p\u00f4t Git configur\u00e9",
       "NO_DOCKERFILES_FOUND": "Aucun Dockerfile trouv\u00e9 sur cette branche",
       "LOADING_BRANCHES": "Chargement des branches\u2026",

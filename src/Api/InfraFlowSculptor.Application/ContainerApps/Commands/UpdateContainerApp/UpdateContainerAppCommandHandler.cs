@@ -58,7 +58,8 @@ public sealed class UpdateContainerAppCommandHandler(
             request.DockerImageName,
             request.DockerImageValidated,
             request.DockerfilePath,
-            request.ApplicationName);
+            request.ApplicationName,
+            request.SourceCodePath);
 
         if (request.EnvironmentSettings is not null)
             containerApp.SetAllEnvironmentSettings(

@@ -4,7 +4,7 @@ import { CdkConnectedOverlay, CdkOverlayOrigin, ConnectedPosition } from '@angul
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
-import { DsSelectComponent, DsSelectOption } from '../ds/ds-select/ds-select.component';
+import { DsAutocompleteComponent, DsAutocompleteOption } from '../ds/ds-autocomplete/ds-autocomplete.component';
 import { ProjectService } from '../../services/project.service';
 import { GitBranchResponse, GitFileResponse } from '../../interfaces/project.interface';
 
@@ -18,7 +18,7 @@ import { GitBranchResponse, GitFileResponse } from '../../interfaces/project.int
     MatIconModule,
     MatProgressSpinnerModule,
     TranslateModule,
-    DsSelectComponent,
+    DsAutocompleteComponent,
   ],
   templateUrl: './dockerfile-picker.component.html',
   styleUrl: './dockerfile-picker.component.scss',
@@ -42,14 +42,25 @@ export class DockerfilePickerComponent {
   protected readonly branches = signal<GitBranchResponse[]>([]);
   protected readonly files = signal<GitFileResponse[]>([]);
   protected readonly selectedBranch = signal<string | null>(null);
+  protected readonly branchQuery = signal('');
   protected readonly loadingBranches = signal(false);
   protected readonly loadingFiles = signal(false);
   protected readonly error = signal<string | null>(null);
 
   protected readonly hasFiles = computed(() => this.files().length > 0);
 
-  protected readonly branchSelectOptions = computed<DsSelectOption[]>(() =>
-    this.branches().map((b) => ({ value: b.name, label: b.name, icon: b.isProtected ? 'lock' : 'account_tree' }))
+  protected readonly branchOptions = computed<ReadonlyArray<DsAutocompleteOption<string>>>(() =>
+    this.branches()
+      .filter((branch) => {
+        const query = this.branchQuery().trim().toLocaleLowerCase();
+
+        return !query || branch.name.toLocaleLowerCase().includes(query);
+      })
+      .map((branch) => ({
+        value: branch.name,
+        label: branch.name,
+        icon: branch.isProtected ? 'lock' : 'account_tree',
+      }))
   );
 
   protected readonly overlayPositions: ConnectedPosition[] = [
@@ -110,10 +121,12 @@ export class DockerfilePickerComponent {
     }
   }
 
-  protected onBranchSelect(value: string | number | null): void {
-    if (value != null) {
-      this.selectBranch(String(value));
-    }
+  protected onBranchSelected(option: DsAutocompleteOption<unknown>): void {
+    this.selectBranch(String(option.value));
+  }
+
+  protected onBranchSearchChanged(query: string): void {
+    this.branchQuery.set(query);
   }
 
   protected selectFile(file: GitFileResponse): void {

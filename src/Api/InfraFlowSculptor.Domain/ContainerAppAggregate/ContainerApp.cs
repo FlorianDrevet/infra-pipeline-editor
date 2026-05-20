@@ -42,6 +42,9 @@ public sealed class ContainerApp : AzureResource
     /// <summary>Gets the user-friendly application name displayed in Azure DevOps pipeline runs.</summary>
     public string? ApplicationName { get; private set; }
 
+    /// <summary>Gets the optional relative path to the source code directory used as Docker build context.</summary>
+    public string? SourceCodePath { get; private set; }
+
     /// <summary>Gets the configurable CI/CD pipeline step options for this Container App.</summary>
     public AppPipelineStepOptions PipelineStepOptions { get; private set; } = new();
 
@@ -66,7 +69,8 @@ public sealed class ContainerApp : AzureResource
     /// <param name="dockerImageValidated">Whether the user has confirmed the Docker image exists.</param>
     /// <param name="dockerfilePath">The optional relative path to the Dockerfile in the repository.</param>
     /// <param name="applicationName">The optional user-friendly application name for pipeline display.</param>
-    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, AcrAuthMode? acrAuthMode, AzureResourceId? acrPullIdentityId, string? dockerImageName, bool dockerImageValidated, string? dockerfilePath, string? applicationName) // NOSONAR S107
+    /// <param name="sourceCodePath">The optional relative path to the source code directory used as Docker build context.</param>
+    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, AcrAuthMode? acrAuthMode, AzureResourceId? acrPullIdentityId, string? dockerImageName, bool dockerImageValidated, string? dockerfilePath, string? applicationName, string? sourceCodePath) // NOSONAR S107
     {
         SetNameAndLocation(name, location);
 
@@ -81,6 +85,7 @@ public sealed class ContainerApp : AzureResource
         DockerImageValidated = dockerImageValidated;
         DockerfilePath = dockerfilePath;
         ApplicationName = applicationName;
+        SourceCodePath = sourceCodePath;
     }
 
     /// <summary>Sets the pipeline step options for this Container App.</summary>
@@ -157,6 +162,7 @@ public sealed class ContainerApp : AzureResource
         string? dockerImageName = null,
         string? dockerfilePath = null,
         string? applicationName = null,
+        string? sourceCodePath = null,
         IReadOnlyList<ContainerAppEnvironmentSettingsData>? environmentSettings = null,
         bool isExisting = false)
     {
@@ -176,7 +182,8 @@ public sealed class ContainerApp : AzureResource
             DockerImageName = dockerImageName,
             DockerImageValidated = false,
             DockerfilePath = dockerfilePath,
-            ApplicationName = applicationName
+            ApplicationName = applicationName,
+            SourceCodePath = sourceCodePath
         };
 
         if (!isExisting && environmentSettings is not null)

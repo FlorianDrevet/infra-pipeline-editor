@@ -46,6 +46,10 @@ public abstract class ContainerAppRequestBase
     [MaxLength(200)]
     public string? ApplicationName { get; init; }
 
+    /// <summary>Relative path to the source code directory used as Docker build context.</summary>
+    [MaxLength(500)]
+    public string? SourceCodePath { get; init; }
+
     /// <summary>Optional pipeline step options for CI/CD generation.</summary>
     public PipelineStepOptionsDto? PipelineStepOptions { get; init; }
 

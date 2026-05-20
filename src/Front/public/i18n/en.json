@@ -1668,6 +1668,7 @@
       "APPLICATION_NAME_HINT": "Name displayed in Azure DevOps during pipeline runs (defaults to resource name)",
       "BROWSE_DOCKERFILE": "Browse",
       "SELECT_BRANCH": "Branch",
+      "NO_BRANCHES": "No matching branches",
       "NO_REPO_CONFIGURED": "No Git repository configured",
       "NO_DOCKERFILES_FOUND": "No Dockerfile found on this branch",
       "LOADING_BRANCHES": "Loading branches…",

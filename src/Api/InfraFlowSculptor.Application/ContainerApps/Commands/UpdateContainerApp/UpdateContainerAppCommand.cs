@@ -19,6 +19,7 @@ public record UpdateContainerAppCommand(
     bool DockerImageValidated = false,
     string? DockerfilePath = null,
     string? ApplicationName = null,
+    string? SourceCodePath = null,
     IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null,
     PipelineStepOptionsDto? PipelineStepOptions = null
 ) : ICommand<ContainerAppResult>;

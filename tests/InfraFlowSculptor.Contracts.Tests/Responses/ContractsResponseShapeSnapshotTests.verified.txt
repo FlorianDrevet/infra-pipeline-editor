@@ -148,7 +148,7 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.ContainerApps.Responses
 Type: ContainerAppResponse
 Constructors:
-  ContainerAppResponse(string Id, string ResourceGroupId, string Name, string Location, string ContainerAppEnvironmentId, string? ContainerRegistryId, string? AcrAuthMode, string? AcrPullIdentityId, string? DockerImageName, bool DockerImageValidated, string? DockerfilePath, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Responses.ContainerAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+  ContainerAppResponse(string Id, string ResourceGroupId, string Name, string Location, string ContainerAppEnvironmentId, string? ContainerRegistryId, string? AcrAuthMode, string? AcrPullIdentityId, string? DockerImageName, bool DockerImageValidated, string? DockerfilePath, string? ApplicationName, string? SourceCodePath, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Responses.ContainerAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
 Properties:
   AcrAuthMode: string?
   AcrPullIdentityId: string?
@@ -165,6 +165,7 @@ Properties:
   Name: string
   PipelineStepOptions: InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto?
   ResourceGroupId: string
+  SourceCodePath: string?
 
 Namespace: InfraFlowSculptor.Contracts.ContainerRegistries.Responses
 Type: CheckAcrPullAccessResponse

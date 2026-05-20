@@ -126,6 +126,7 @@ public sealed class ResourceConfigurationTools
             current.Value.DockerImageValidated,
             current.Value.DockerfilePath,
             current.Value.ApplicationName,
+            current.Value.SourceCodePath,
             envConfigData);
 
         var result = await mediator.Send(command, cancellationToken);

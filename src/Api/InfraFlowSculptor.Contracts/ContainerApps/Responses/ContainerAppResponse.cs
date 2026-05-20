@@ -16,6 +16,7 @@ public record ContainerAppResponse(
     bool DockerImageValidated,
     string? DockerfilePath,
     string? ApplicationName,
+    string? SourceCodePath,
     PipelineStepOptionsDto? PipelineStepOptions,
     IReadOnlyList<ContainerAppEnvironmentConfigResponse> EnvironmentSettings,
 

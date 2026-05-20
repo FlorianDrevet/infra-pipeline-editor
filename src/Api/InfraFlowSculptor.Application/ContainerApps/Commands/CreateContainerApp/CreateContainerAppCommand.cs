@@ -19,6 +19,7 @@ public record CreateContainerAppCommand(
     bool DockerImageValidated = false,
     string? DockerfilePath = null,
     string? ApplicationName = null,
+    string? SourceCodePath = null,
     IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null,
     bool IsExisting = false,
     PipelineStepOptionsDto? PipelineStepOptions = null

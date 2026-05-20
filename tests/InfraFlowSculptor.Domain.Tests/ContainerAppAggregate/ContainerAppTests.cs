@@ -193,7 +193,8 @@ public sealed class ContainerAppTests
             "newimage",
             true,
             "src/New/Dockerfile",
-            "NewApp");
+            "NewApp",
+            "src/New");
 
         // Assert
         sut.Name.Value.Should().Be("ca-renamed");
@@ -226,7 +227,8 @@ public sealed class ContainerAppTests
             dockerImageName: null,
             dockerImageValidated: false,
             dockerfilePath: null,
-            applicationName: null);
+            applicationName: null,
+            sourceCodePath: null);
 
         // Assert
         sut.ContainerRegistryId.Should().BeNull();
@@ -251,7 +253,8 @@ public sealed class ContainerAppTests
             dockerImageName: "newimage",
             dockerImageValidated: true,
             dockerfilePath: null,
-            applicationName: null);
+            applicationName: null,
+            sourceCodePath: null);
 
         // Assert
         sut.Name.Value.Should().Be("renamed");

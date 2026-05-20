@@ -30,14 +30,19 @@
     } @else {
       <!-- Branch selector -->
       <div class="picker-panel__section">
-        <app-ds-select
+        <app-ds-autocomplete
           [label]="'RESOURCE_EDIT.APP_PIPELINE.SELECT_BRANCH' | translate"
-          [options]="branchSelectOptions()"
-          [searchable]="true"
-          [disabled]="loadingBranches()"
+          [options]="branchOptions()"
+          [loading]="loadingBranches()"
+          [loadingStateLabel]="'RESOURCE_EDIT.APP_PIPELINE.LOADING_BRANCHES' | translate"
+          [emptyStateLabel]="'RESOURCE_EDIT.APP_PIPELINE.NO_BRANCHES' | translate"
+          prefixIcon="account_tree"
+          [clearable]="true"
           [ngModel]="selectedBranch()"
           [ngModelOptions]="{ standalone: true }"
-          (ngModelChange)="onBranchSelect($event)" />
+          (optionSelected)="onBranchSelected($event)"
+          (searchChanged)="onBranchSearchChanged($event)"
+          (inputFocused)="onBranchSearchChanged('')" />
       </div>
 
       <!-- File list -->

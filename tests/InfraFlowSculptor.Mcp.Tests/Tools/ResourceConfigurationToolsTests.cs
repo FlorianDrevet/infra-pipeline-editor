@@ -175,6 +175,7 @@ public sealed class ResourceConfigurationToolsTests
             DockerImageValidated: false,
             DockerfilePath: null,
             ApplicationName: null,
+            SourceCodePath: null,
             PipelineStepOptions: null,
             EnvironmentSettings: []);
 
@@ -220,8 +221,7 @@ public sealed class ResourceConfigurationToolsTests
             DockerImageName: null,
             DockerImageValidated: false,
             DockerfilePath: null,
-            ApplicationName: null,
-            PipelineStepOptions: null,
+            ApplicationName: null,            SourceCodePath: null,            PipelineStepOptions: null,
             EnvironmentSettings: []);
 
         _mediator

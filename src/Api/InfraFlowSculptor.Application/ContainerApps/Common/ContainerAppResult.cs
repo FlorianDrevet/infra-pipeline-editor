@@ -21,6 +21,7 @@ public record ContainerAppResult(
     bool DockerImageValidated,
     string? DockerfilePath,
     string? ApplicationName,
+    string? SourceCodePath,
     PipelineStepOptionsDto? PipelineStepOptions,
     IReadOnlyList<ContainerAppEnvironmentConfigData> EnvironmentSettings,
     bool IsExisting = false
