@@ -2,6 +2,9 @@
 
 # --- Build stage --------------------------------------------------------------
 FROM node:22-alpine AS build
+# Note: lockfile generated with npm 11 (Node 24). npm ci on Node 22 (npm 10)
+# still supports lockfileVersion 3 but --ignore-scripts MUST NOT be used to
+# allow esbuild postinstall to resolve its platform-specific binary on Alpine.
 
 WORKDIR /app
 
