@@ -48,7 +48,7 @@ public sealed class AppPipelineWindowsShellCompatibilityTests
         files[".azuredevops/steps/app-docker-buildx-validate.step.yml"].Should().Contain(
             """
               - powershell: |
-                  docker buildx inspect ifs-builder *> $null
+                  $imageTag = '${{ parameters.imageRepository }}:pr-$(Build.BuildId)'
             """);
 
         files[".azuredevops/steps/app-build-code.step.yml"].Should().Contain(

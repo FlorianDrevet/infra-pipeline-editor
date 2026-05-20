@@ -12,26 +12,12 @@ parameters:
 
 steps:
   - powershell: |
-      docker buildx inspect ifs-builder *> $null
-      if ($LASTEXITCODE -ne 0) {
-          docker buildx create --name ifs-builder --use | Out-Null
-          if ($LASTEXITCODE -ne 0) {
-              throw 'Docker buildx create failed.'
-          }
-      }
-
-      docker buildx use ifs-builder | Out-Null
-      if ($LASTEXITCODE -ne 0) {
-          throw 'Docker buildx use failed.'
-      }
-
       $imageTag = '${{ parameters.imageRepository }}:pr-$(Build.BuildId)'
-      docker buildx build `
+      docker build `
         --file "${{ parameters.dockerfilePath }}" `
         --label "org.opencontainers.image.revision=$(Build.SourceVersion)" `
         --label "org.opencontainers.image.source=$(Build.Repository.Uri)" `
         --tag "$imageTag" `
-        --load `
         "${{ parameters.buildContext }}"
       if ($LASTEXITCODE -ne 0) {
           throw 'Docker build validation failed.'
