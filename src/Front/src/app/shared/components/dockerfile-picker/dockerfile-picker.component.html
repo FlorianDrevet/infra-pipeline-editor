@@ -33,6 +33,7 @@
         <app-ds-select
           [label]="'RESOURCE_EDIT.APP_PIPELINE.SELECT_BRANCH' | translate"
           [options]="branchSelectOptions()"
+          [searchable]="true"
           [disabled]="loadingBranches()"
           [ngModel]="selectedBranch()"
           [ngModelOptions]="{ standalone: true }"

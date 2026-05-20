@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkConnectedOverlay, CdkOverlayOrigin, ConnectedPosition } from '@angular/cdk/overlay';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,10 +9,18 @@ import { DsSelectComponent, DsSelectOption } from '../ds/ds-select/ds-select.com
 import { ProjectService } from '../../services/project.service';
 import { GitBranchResponse, GitFileResponse } from '../../interfaces/project.interface';
 
+export interface DirectoryTreeNode {
+  name: string;
+  path: string;
+  children: DirectoryTreeNode[];
+  expanded: boolean;
+}
+
 @Component({
   selector: 'app-build-context-picker',
   standalone: true,
   imports: [
+    NgTemplateOutlet,
     FormsModule,
     CdkConnectedOverlay,
     CdkOverlayOrigin,
@@ -37,13 +46,13 @@ export class BuildContextPickerComponent {
 
   protected readonly isOpen = signal(false);
   protected readonly branches = signal<GitBranchResponse[]>([]);
-  protected readonly directories = signal<GitFileResponse[]>([]);
+  protected readonly treeRoots = signal<DirectoryTreeNode[]>([]);
   protected readonly selectedBranch = signal<string | null>(null);
   protected readonly loadingBranches = signal(false);
   protected readonly loadingDirectories = signal(false);
   protected readonly error = signal<string | null>(null);
 
-  protected readonly hasDirectories = computed(() => this.directories().length > 0);
+  protected readonly hasDirectories = computed(() => this.treeRoots().length > 0);
 
   protected readonly branchSelectOptions = computed<DsSelectOption[]>(() =>
     this.branches().map((b) => ({ value: b.name, label: b.name, icon: b.isProtected ? 'lock' : 'account_tree' }))
@@ -91,7 +100,7 @@ export class BuildContextPickerComponent {
   protected async selectBranch(branchName: string): Promise<void> {
     this.selectedBranch.set(branchName);
     this.loadingDirectories.set(true);
-    this.directories.set([]);
+    this.treeRoots.set([]);
     try {
       const dirs = await this.projectService.searchCodeDirectories(
         this.projectId(),
@@ -99,9 +108,9 @@ export class BuildContextPickerComponent {
         undefined,
         this.configId()
       );
-      this.directories.set(dirs);
+      this.treeRoots.set(this.buildTree(dirs));
     } catch {
-      this.directories.set([]);
+      this.treeRoots.set([]);
     } finally {
       this.loadingDirectories.set(false);
     }
@@ -113,13 +122,57 @@ export class BuildContextPickerComponent {
     }
   }
 
-  protected selectDirectory(dir: GitFileResponse): void {
-    this.pathSelected.emit(dir.path);
+  protected toggleNode(node: DirectoryTreeNode, event: Event): void {
+    event.stopPropagation();
+    node.expanded = !node.expanded;
+    // Trigger change detection by replacing the array
+    this.treeRoots.set([...this.treeRoots()]);
+  }
+
+  protected selectNode(node: DirectoryTreeNode): void {
+    this.pathSelected.emit(node.path);
     this.close();
   }
 
   protected selectRoot(): void {
     this.pathSelected.emit('.');
     this.close();
+  }
+
+  private buildTree(dirs: GitFileResponse[]): DirectoryTreeNode[] {
+    const nodeMap = new Map<string, DirectoryTreeNode>();
+
+    // Sort by path to ensure parents are processed before children
+    const sorted = [...dirs].sort((a, b) => a.path.localeCompare(b.path));
+
+    for (const dir of sorted) {
+      const node: DirectoryTreeNode = {
+        name: dir.name,
+        path: dir.path,
+        children: [],
+        expanded: false,
+      };
+      nodeMap.set(dir.path, node);
+    }
+
+    const roots: DirectoryTreeNode[] = [];
+
+    for (const dir of sorted) {
+      const node = nodeMap.get(dir.path)!;
+      const lastSlash = dir.path.lastIndexOf('/');
+      if (lastSlash === -1) {
+        roots.push(node);
+      } else {
+        const parentPath = dir.path.substring(0, lastSlash);
+        const parent = nodeMap.get(parentPath);
+        if (parent) {
+          parent.children.push(node);
+        } else {
+          roots.push(node);
+        }
+      }
+    }
+
+    return roots;
   }
 }

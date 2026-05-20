@@ -474,9 +474,11 @@
     display: flex;
     align-items: flex-start;
     gap: var(--ifs-space-8);
+    grid-column: span 2;
 
     app-ds-text-field { flex: 1; }
-    app-dockerfile-picker { margin-top: 22px; }
+    app-dockerfile-picker,
+    app-build-context-picker { margin-top: 22px; }
   }
 }
 

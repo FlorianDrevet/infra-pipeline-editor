@@ -72,30 +72,72 @@
     padding: 8px 0;
   }
 
-  &__file-list {
+  &__tree {
     list-style: none;
     margin: 0;
     padding: 0;
   }
 
-  &__file-item {
+  &__tree-children {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__tree-item {
+    margin: 0;
+  }
+
+  &__tree-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: 8px;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
     cursor: pointer;
     transition: background 0.15s ease;
     color: var(--ifs-text-primary);
 
-    &:hover,
-    &:focus {
+    &:hover {
       background: rgba(58, 180, 217, 0.12);
-      outline: none;
     }
   }
 
-  &__file-icon {
+  &__tree-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--ifs-text-secondary);
+    flex-shrink: 0;
+    border-radius: 4px;
+
+    &:hover {
+      background: rgba(58, 180, 217, 0.15);
+      color: var(--ifs-accent-500);
+    }
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    &--leaf {
+      cursor: default;
+      &:hover {
+        background: none;
+        color: var(--ifs-text-secondary);
+      }
+    }
+  }
+
+  &__tree-icon {
     font-size: 18px;
     width: 18px;
     height: 18px;
@@ -103,10 +145,19 @@
     flex-shrink: 0;
   }
 
-  &__file-path {
+  &__tree-label {
     font-size: 13px;
     font-family: 'Fira Code', 'Consolas', monospace;
-    word-break: break-all;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 4px;
+    outline: none;
+
+    &:hover,
+    &:focus {
+      text-decoration: underline;
+      color: var(--ifs-accent-500);
+    }
   }
 
   &__empty,

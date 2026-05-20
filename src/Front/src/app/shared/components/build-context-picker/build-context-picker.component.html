@@ -33,13 +33,14 @@
         <app-ds-select
           [label]="'RESOURCE_EDIT.APP_PIPELINE.SELECT_BRANCH' | translate"
           [options]="branchSelectOptions()"
+          [searchable]="true"
           [disabled]="loadingBranches()"
           [ngModel]="selectedBranch()"
           [ngModelOptions]="{ standalone: true }"
           (ngModelChange)="onBranchSelect($event)" />
       </div>
 
-      <!-- Directory list -->
+      <!-- Directory tree -->
       <div class="picker-panel__section">
         <label class="picker-panel__label">{{ 'RESOURCE_EDIT.APP_PIPELINE.DIRECTORIES' | translate }}</label>
         @if (loadingDirectories()) {
@@ -48,30 +49,20 @@
             <span>{{ 'RESOURCE_EDIT.APP_PIPELINE.LOADING_DIRECTORIES' | translate }}</span>
           </div>
         } @else if (hasDirectories()) {
-          <ul class="picker-panel__file-list" role="listbox">
+          <ul class="picker-panel__tree" role="tree">
             <li
-              class="picker-panel__file-item"
-              role="option"
+              class="picker-panel__tree-item"
+              role="treeitem"
               tabindex="0"
-              aria-label="."
               (click)="selectRoot()"
-              (keydown.enter)="selectRoot()"
-              (keydown.space)="selectRoot()">
-              <mat-icon class="picker-panel__file-icon">home</mat-icon>
-              <span class="picker-panel__file-path">. ({{ 'RESOURCE_EDIT.APP_PIPELINE.REPO_ROOT' | translate }})</span>
+              (keydown.enter)="selectRoot()">
+              <div class="picker-panel__tree-row">
+                <mat-icon class="picker-panel__tree-icon">home</mat-icon>
+                <span class="picker-panel__tree-label">. ({{ 'RESOURCE_EDIT.APP_PIPELINE.REPO_ROOT' | translate }})</span>
+              </div>
             </li>
-            @for (dir of directories(); track dir.path) {
-              <li
-                class="picker-panel__file-item"
-                role="option"
-                tabindex="0"
-                [attr.aria-label]="dir.path"
-                (click)="selectDirectory(dir)"
-                (keydown.enter)="selectDirectory(dir)"
-                (keydown.space)="selectDirectory(dir)">
-                <mat-icon class="picker-panel__file-icon">folder</mat-icon>
-                <span class="picker-panel__file-path">{{ dir.path }}</span>
-              </li>
+            @for (node of treeRoots(); track node.path) {
+              <ng-container *ngTemplateOutlet="treeNode; context: { $implicit: node, depth: 0 }"></ng-container>
             }
           </ul>
         } @else {
@@ -83,4 +74,35 @@
       </div>
     }
   </div>
+</ng-template>
+
+<ng-template #treeNode let-node let-depth="depth">
+  <li class="picker-panel__tree-item" role="treeitem" [attr.aria-expanded]="node.expanded">
+    <div class="picker-panel__tree-row" [style.padding-left.px]="depth * 20">
+      @if (node.children.length > 0) {
+        <button
+          type="button"
+          class="picker-panel__tree-toggle"
+          (click)="toggleNode(node, $event)"
+          [attr.aria-label]="node.expanded ? 'Collapse' : 'Expand'">
+          <mat-icon>{{ node.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
+        </button>
+      } @else {
+        <span class="picker-panel__tree-toggle picker-panel__tree-toggle--leaf"></span>
+      }
+      <mat-icon class="picker-panel__tree-icon">folder</mat-icon>
+      <span
+        class="picker-panel__tree-label"
+        tabindex="0"
+        (click)="selectNode(node)"
+        (keydown.enter)="selectNode(node)">{{ node.name }}</span>
+    </div>
+    @if (node.expanded && node.children.length > 0) {
+      <ul class="picker-panel__tree-children" role="group">
+        @for (child of node.children; track child.path) {
+          <ng-container *ngTemplateOutlet="treeNode; context: { $implicit: child, depth: depth + 1 }"></ng-container>
+        }
+      </ul>
+    }
+  </li>
 </ng-template>

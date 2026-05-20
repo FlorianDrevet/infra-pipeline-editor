@@ -442,7 +442,6 @@ public sealed class AzureDevOpsGitProviderService(
                     return string.IsNullOrEmpty(pathPrefix)
                         || path.StartsWith(pathPrefix, StringComparison.OrdinalIgnoreCase);
                 })
-                .Take(200)
                 .Select(item =>
                 {
                     var path = item.Path!.TrimStart('/');

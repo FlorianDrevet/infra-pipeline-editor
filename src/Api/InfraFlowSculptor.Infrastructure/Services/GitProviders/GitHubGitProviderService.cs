@@ -257,7 +257,6 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
                     return string.IsNullOrEmpty(pathPrefix)
                         || item.Path.StartsWith(pathPrefix, StringComparison.OrdinalIgnoreCase);
                 })
-                .Take(200)
                 .Select(item => new GitFileResult(item.Path, System.IO.Path.GetFileName(item.Path)))
                 .ToList();
 
