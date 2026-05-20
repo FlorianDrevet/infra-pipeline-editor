@@ -1,4 +1,4 @@
-<div class="bicep-workspace">
+<div class="bicep-workspace" [class.bicep-workspace--embedded]="embedded()">
   <div class="bicep-workspace__bar">
     <div class="bicep-workspace__bar-copy">
       <mat-icon class="bicep-workspace__bar-icon">folder_open</mat-icon>
@@ -60,7 +60,11 @@
 </div>
 
 @if (viewerFile()) {
-  <div class="bicep-viewer" #viewerSectionRef [attr.data-theme]="bicepViewerTheme()">
+  <div
+    class="bicep-viewer"
+    #viewerSectionRef
+    [class.bicep-viewer--embedded]="embedded()"
+    [attr.data-theme]="bicepViewerTheme()">
     <div class="bicep-viewer__bar">
       <div class="bicep-viewer__file-meta">
         <mat-icon class="bicep-viewer__file-icon">description</mat-icon>

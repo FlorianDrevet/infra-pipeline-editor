@@ -108,15 +108,15 @@ public sealed class ProjectBootstrapDefinitionBuilder(
         return
         [
             new BootstrapPipelineDefinition(
-                Name: $"{sanitizedConfigName} - CI",
+                Name: AzureDevOpsPipelineNameHelper.BuildInfrastructureCiName(sanitizedConfigName),
                 YamlPath: $"/{basePrefix}.azuredevops/{sanitizedConfigName}/ci.pipeline.yml",
                 Folder: $"\\{sanitizedConfigName}"),
             new BootstrapPipelineDefinition(
-                Name: $"{sanitizedConfigName} - PR",
+                Name: AzureDevOpsPipelineNameHelper.BuildInfrastructurePrName(sanitizedConfigName),
                 YamlPath: $"/{basePrefix}.azuredevops/{sanitizedConfigName}/pr.pipeline.yml",
                 Folder: $"\\{sanitizedConfigName}"),
             new BootstrapPipelineDefinition(
-                Name: $"{sanitizedConfigName} - Release",
+                Name: AzureDevOpsPipelineNameHelper.BuildInfrastructureReleaseName(sanitizedConfigName),
                 YamlPath: $"/{basePrefix}.azuredevops/{sanitizedConfigName}/release.pipeline.yml",
                 Folder: $"\\{sanitizedConfigName}"),
         ];
@@ -144,12 +144,12 @@ public sealed class ProjectBootstrapDefinitionBuilder(
             var folder = $"\\{sanitizedConfigName}\\Applications\\{sanitizedAppName}";
 
             pipelines.Add(new BootstrapPipelineDefinition(
-                Name: $"{config.Name} - {resource.Name} - CI",
+                Name: AzureDevOpsPipelineNameHelper.BuildApplicationCiName(config.Name, resource.Name),
                 YamlPath: $"{yamlBasePath}/ci.app-pipeline.yml",
                 Folder: folder));
 
             pipelines.Add(new BootstrapPipelineDefinition(
-                Name: $"{config.Name} - {resource.Name} - Release",
+                Name: AzureDevOpsPipelineNameHelper.BuildApplicationReleaseName(config.Name, resource.Name),
                 YamlPath: $"{yamlBasePath}/release.app-pipeline.yml",
                 Folder: folder));
         }

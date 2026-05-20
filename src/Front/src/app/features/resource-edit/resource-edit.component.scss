@@ -30,6 +30,10 @@
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
+
+  &--has-save-bar {
+    padding-bottom: calc(var(--ifs-space-24) + 72px);
+  }
 }
 
 // ─── Header ─────────────────────────────────────────────────────────────────
@@ -1854,6 +1858,8 @@
   left: calc(var(--ifs-sidebar-width) + var(--ifs-space-24));
   right: var(--ifs-space-24);
   max-width: calc(1440px - 2 * var(--ifs-space-24));
+  margin-left: auto;
+  margin-right: auto;
   z-index: var(--ifs-z-sticky);
   animation: save-bar-slide-up var(--ifs-duration-normal, 200ms) var(--ifs-ease-standard, ease-out);
 

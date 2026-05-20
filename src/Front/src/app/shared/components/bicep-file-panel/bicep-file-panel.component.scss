@@ -8,6 +8,13 @@
   box-shadow: var(--ifs-shadow-md);
 }
 
+.bicep-workspace--embedded {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .bicep-workspace__bar {
   display: flex;
   align-items: center;
@@ -238,6 +245,13 @@
   margin-top: 0.85rem;
   box-shadow: var(--ifs-shadow-md);
   animation: bicepViewerSlideIn 0.25s ease-out;
+}
+
+.bicep-viewer--embedded {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .bicep-viewer[data-theme='graphite-frost'] {

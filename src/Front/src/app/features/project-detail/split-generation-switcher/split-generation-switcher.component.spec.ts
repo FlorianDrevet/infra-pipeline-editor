@@ -47,7 +47,7 @@ class DsPanelActionButtonStubComponent {
 @Component({
   selector: 'app-bicep-file-panel',
   standalone: true,
-  template: '<div class="bicep-file-panel-stub">{{ barTitle() }}</div>',
+  template: '<div class="bicep-file-panel-stub" [attr.data-embedded]="embedded()">{{ barTitle() }}</div>',
 })
 class BicepFilePanelStubComponent {
   readonly nodes = input<readonly unknown[]>([]);
@@ -56,6 +56,7 @@ class BicepFilePanelStubComponent {
   readonly fileLoadingText = input('');
   readonly fileErrorText = input('');
   readonly loadFile = input<(filePath: string) => Promise<string>>(() => Promise.resolve(''));
+  readonly embedded = input(false);
 }
 
 @Component({
@@ -120,6 +121,21 @@ describe('SplitGenerationSwitcherComponent', () => {
     expect(getChipText('.split-switcher__chip--infra')).toBe('1');
   });
 
+  it('renders every split file panel in embedded mode', async () => {
+    fixture.componentRef.setInput('bicepResult', createBicepResult());
+    fixture.componentRef.setInput('pipelineResult', createPipelineResult());
+    fixture.componentRef.setInput('bootstrapResult', createBootstrapResult());
+
+    await detectChanges();
+
+    const panelElements = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.bicep-file-panel-stub'),
+    ) as HTMLElement[];
+
+    expect(panelElements.length).toBeGreaterThan(0);
+    expect(panelElements.every(panelElement => panelElement.dataset['embedded'] === 'true')).toBeTrue();
+  });
+
   it('keeps split generation errors hidden until the batch reveal settles', async () => {
     fixture.componentRef.setInput('deferBatchReveal', true);
     fixture.componentRef.setInput('bicepGenerationError', 'PROJECT_DETAIL.BICEP.ERROR');
@@ -161,5 +177,29 @@ function createBicepResult(): GenerateProjectBicepResponse {
       'Common/main.bicep': 'artifact://Common/main.bicep',
     },
     configFileUris: {},
+  };
+}
+
+function createPipelineResult() {
+  return {
+    infraCommonFileUris: {
+      'infra/pipeline.yml': 'artifact://infra/pipeline.yml',
+    },
+    infraConfigFileUris: {},
+    appCommonFileUris: {
+      'app/pipeline.yml': 'artifact://app/pipeline.yml',
+    },
+    appConfigFileUris: {},
+  };
+}
+
+function createBootstrapResult() {
+  return {
+    infraFileUris: {
+      '.ado/bootstrap-infra.yml': 'artifact://.ado/bootstrap-infra.yml',
+    },
+    appFileUris: {
+      '.ado/bootstrap-app.yml': 'artifact://.ado/bootstrap-app.yml',
+    },
   };
 }

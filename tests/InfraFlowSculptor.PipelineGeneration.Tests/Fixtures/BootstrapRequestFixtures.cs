@@ -34,7 +34,7 @@ internal static class BootstrapRequestFixtures
         Pipelines =
         [
             new BootstrapPipelineDefinition(
-                Name: "Core - CI",
+                Name: "[Infra] Core - CI",
                 YamlPath: ".azuredevops/core/ci.pipeline.yml",
                 Folder: "\\Core"),
         ],
@@ -68,7 +68,7 @@ internal static class BootstrapRequestFixtures
         Pipelines =
         [
             new BootstrapPipelineDefinition(
-                Name: "Core - CI",
+                Name: "[Infra] Core - CI",
                 YamlPath: ".azuredevops/core/ci.pipeline.yml",
                 Folder: "\\Core"),
         ],
@@ -85,7 +85,7 @@ internal static class BootstrapRequestFixtures
         Pipelines =
         [
             new BootstrapPipelineDefinition(
-                Name: "App - CI",
+                Name: "[Code] App - CI",
                 YamlPath: ".azuredevops/apps/ci.pipeline.yml",
                 Folder: "\\Apps"),
         ],
@@ -118,7 +118,7 @@ internal static class BootstrapRequestFixtures
         Pipelines =
         [
             new BootstrapPipelineDefinition(
-                Name: "App - CI",
+                Name: "[Code] App - CI",
                 YamlPath: ".azuredevops/apps/ci.pipeline.yml",
                 Folder: "\\Apps"),
         ],
@@ -135,7 +135,7 @@ internal static class BootstrapRequestFixtures
         Pipelines =
         [
             new BootstrapPipelineDefinition(
-                Name: "Core - CI",
+                Name: "[Infra] Core - CI",
                 YamlPath: ".azuredevops/core/ci.pipeline.yml",
                 Folder: "\\Core"),
         ],

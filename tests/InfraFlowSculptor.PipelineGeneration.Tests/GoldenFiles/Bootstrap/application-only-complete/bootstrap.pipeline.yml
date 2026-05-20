@@ -97,12 +97,12 @@ stages:
   # ── Create pipeline definitions ─────────────────────────────────────────
         - powershell: |
             $ErrorActionPreference = 'Stop'
-            $existing = az pipelines list --folder-path '\Apps' --query "[?name=='App - CI'].id | [0]" -o tsv --detect false
+            $existing = az pipelines list --folder-path '\Apps' --query "[?name=='[Code] App - CI'].id | [0]" -o tsv --detect false
             if ([string]::IsNullOrWhiteSpace($existing)) {
               $previousErrorActionPreference = $ErrorActionPreference
               try {
                 $ErrorActionPreference = 'Continue'
-                $createOutput = @(az pipelines create --name 'App - CI' --repository "$(repositoryName)" --repository-type tfsgit --branch "$(defaultBranch)" --yml-path '.azuredevops/apps/ci.pipeline.yml' --folder-path '\Apps' --skip-first-run true --query 'id' -o tsv --only-show-errors --detect false 2>&1)
+                $createOutput = @(az pipelines create --name '[Code] App - CI' --repository "$(repositoryName)" --repository-type tfsgit --branch "$(defaultBranch)" --yml-path '.azuredevops/apps/ci.pipeline.yml' --folder-path '\Apps' --skip-first-run true --query 'id' -o tsv --only-show-errors --detect false 2>&1)
                 $createExitCode = $LASTEXITCODE
               }
               finally {
@@ -114,14 +114,14 @@ stages:
                 if ([string]::IsNullOrWhiteSpace($details)) {
                   $details = 'No output returned by Azure DevOps CLI.'
                 }
-                throw 'Failed to create pipeline App - CI. Ensure the Azure DevOps identity used by System.AccessToken has the Create build pipeline permission on path \Apps and Use permission on the agent pool referenced by .azuredevops/apps/ci.pipeline.yml. Azure DevOps CLI output: ' + $details
+                throw 'Failed to create pipeline [Code] App - CI. Ensure the Azure DevOps identity used by System.AccessToken has the Create build pipeline permission on path \Apps and Use permission on the agent pool referenced by .azuredevops/apps/ci.pipeline.yml. Azure DevOps CLI output: ' + $details
               }
-              Write-Host ('Created pipeline: App - CI (ID: ' + $createdId + ')')
+              Write-Host ('Created pipeline: [Code] App - CI (ID: ' + $createdId + ')')
             }
             else {
-              Write-Host ('Pipeline already exists: App - CI (ID: ' + $existing + ')')
+              Write-Host ('Pipeline already exists: [Code] App - CI (ID: ' + $existing + ')')
             }
-          displayName: 'Create Pipeline: App - CI'
+          displayName: 'Create Pipeline: [Code] App - CI'
           env:
             AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
             SYSTEM_ACCESSTOKEN: $(System.AccessToken)

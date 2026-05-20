@@ -103,6 +103,8 @@ export class BicepFilePanelComponent {
   readonly fileLoadingText = input<string>('');
   /** Text shown in the viewer when a file fails to load. */
   readonly fileErrorText = input<string>('');
+  /** Removes the outer shell when the panel is rendered inside another workspace container. */
+  readonly embedded = input(false);
   /**
    * Function used to load file content.
    * Config-detail uses the Bicep API; project-detail uses native fetch() on SAS URLs.

@@ -80,6 +80,7 @@
                 [terminalDoneText]="'PROJECT_DETAIL.BICEP.TERMINAL_DONE' | translate"
                 [fileLoadingText]="'PROJECT_DETAIL.BICEP.FILE_LOADING' | translate"
                 [fileErrorText]="'PROJECT_DETAIL.BICEP.FILE_ERROR' | translate"
+                [embedded]="true"
                 [loadFile]="loadBicepFile()">
               </app-bicep-file-panel>
             } @else if (!isGeneratingBicep() && !bicepGenerationError() && !deferBatchReveal()) {
@@ -117,6 +118,7 @@
                 [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
                 [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
                 [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
+                [embedded]="true"
                 [loadFile]="loadPipelineFile()">
               </app-bicep-file-panel>
             } @else if (!isGeneratingPipeline() && !pipelineGenerationError() && !deferBatchReveal()) {
@@ -154,6 +156,7 @@
                 [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
                 [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
                 [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
+                [embedded]="true"
                 [loadFile]="loadBootstrapFile()">
               </app-bicep-file-panel>
             } @else if (!isGeneratingBootstrap() && !bootstrapGenerationError() && !deferBatchReveal()) {
@@ -242,6 +245,7 @@
                 [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
                 [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
                 [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
+                [embedded]="true"
                 [loadFile]="loadPipelineFile()">
               </app-bicep-file-panel>
             } @else if (!isGeneratingPipeline() && !pipelineGenerationError() && !deferBatchReveal()) {
@@ -300,6 +304,7 @@
                 [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
                 [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
                 [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
+                [embedded]="true"
                 [loadFile]="loadBootstrapFile()">
               </app-bicep-file-panel>
             } @else if (!isGeneratingBootstrap() && !bootstrapGenerationError() && !deferBatchReveal()) {

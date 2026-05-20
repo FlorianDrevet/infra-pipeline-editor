@@ -168,6 +168,17 @@ describe('BicepFilePanelComponent', () => {
     expect(getViewerElement()?.dataset['theme']).toBe('sand-dusk');
   });
 
+  it('renders workspace and viewer in embedded mode when the input is enabled', async () => {
+    fixture.componentRef.setInput('embedded', true);
+    await flushComponent();
+
+    expect(getWorkspaceElement()?.classList.contains('bicep-workspace--embedded')).toBeTrue();
+
+    await clickFile('main.bicep');
+
+    expect(getViewerElement()?.classList.contains('bicep-viewer--embedded')).toBeTrue();
+  });
+
   async function clickFile(path: string): Promise<void> {
     getFileButton(path).click();
     await flushComponent();
@@ -189,6 +200,10 @@ describe('BicepFilePanelComponent', () => {
 
   function getViewerElement(): HTMLElement | null {
     return fixture.nativeElement.querySelector('.bicep-viewer') as HTMLElement | null;
+  }
+
+  function getWorkspaceElement(): HTMLElement | null {
+    return fixture.nativeElement.querySelector('.bicep-workspace') as HTMLElement | null;
   }
 
   function queryViewerElement(): HTMLElement | null {

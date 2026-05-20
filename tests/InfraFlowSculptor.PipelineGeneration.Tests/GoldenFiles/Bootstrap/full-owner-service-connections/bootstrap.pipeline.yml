@@ -85,12 +85,12 @@ stages:
   # ── Create pipeline definitions ─────────────────────────────────────────
         - powershell: |
             $ErrorActionPreference = 'Stop'
-            $existing = az pipelines list --folder-path '\Core' --query "[?name=='Core - CI'].id | [0]" -o tsv --detect false
+            $existing = az pipelines list --folder-path '\Core' --query "[?name=='[Infra] Core - CI'].id | [0]" -o tsv --detect false
             if ([string]::IsNullOrWhiteSpace($existing)) {
               $previousErrorActionPreference = $ErrorActionPreference
               try {
                 $ErrorActionPreference = 'Continue'
-                $createOutput = @(az pipelines create --name 'Core - CI' --repository "$(repositoryName)" --repository-type tfsgit --branch "$(defaultBranch)" --yml-path '.azuredevops/core/ci.pipeline.yml' --folder-path '\Core' --skip-first-run true --query 'id' -o tsv --only-show-errors --detect false 2>&1)
+                $createOutput = @(az pipelines create --name '[Infra] Core - CI' --repository "$(repositoryName)" --repository-type tfsgit --branch "$(defaultBranch)" --yml-path '.azuredevops/core/ci.pipeline.yml' --folder-path '\Core' --skip-first-run true --query 'id' -o tsv --only-show-errors --detect false 2>&1)
                 $createExitCode = $LASTEXITCODE
               }
               finally {
@@ -102,14 +102,14 @@ stages:
                 if ([string]::IsNullOrWhiteSpace($details)) {
                   $details = 'No output returned by Azure DevOps CLI.'
                 }
-                throw 'Failed to create pipeline Core - CI. Ensure the Azure DevOps identity used by System.AccessToken has the Create build pipeline permission on path \Core and Use permission on the agent pool referenced by .azuredevops/core/ci.pipeline.yml. Azure DevOps CLI output: ' + $details
+                throw 'Failed to create pipeline [Infra] Core - CI. Ensure the Azure DevOps identity used by System.AccessToken has the Create build pipeline permission on path \Core and Use permission on the agent pool referenced by .azuredevops/core/ci.pipeline.yml. Azure DevOps CLI output: ' + $details
               }
-              Write-Host ('Created pipeline: Core - CI (ID: ' + $createdId + ')')
+              Write-Host ('Created pipeline: [Infra] Core - CI (ID: ' + $createdId + ')')
             }
             else {
-              Write-Host ('Pipeline already exists: Core - CI (ID: ' + $existing + ')')
+              Write-Host ('Pipeline already exists: [Infra] Core - CI (ID: ' + $existing + ')')
             }
-          displayName: 'Create Pipeline: Core - CI'
+          displayName: 'Create Pipeline: [Infra] Core - CI'
           env:
             AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
             SYSTEM_ACCESSTOKEN: $(System.AccessToken)

@@ -1,4 +1,4 @@
-<div class="resource-page">
+<div class="resource-page" [class.resource-page--has-save-bar]="showSaveBar()">
   @if (isLoading()) {
     <div class="state-card state-card--loading" aria-live="polite">
       <div class="pulse-dot"></div>
