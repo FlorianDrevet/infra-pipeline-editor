@@ -106,6 +106,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - CI/release split remains build-once then promote.
 - Container delivery uses immutable tags and optional Trivy/Syft scans.
 - Shared app step templates now emit Windows-compatible `powershell` steps and AzureCLI `scriptType: ps` for inline scripts (`app-compute-release-tag`, `app-acr-login`, `app-docker-buildx-push`, `app-trivy-scan`, `app-syft-sbom`, `app-load-metadata`, `app-build-code`, `app-acr-promote`, `app-deploy-container`). Trivy and Syft install their Windows zip assets directly from GitHub releases instead of piping shell installers through Bash.
+- In shared app step templates, the body of every `powershell: |` literal block must remain indented under the pipe token. `DockerBuildxPushStep` and the Node/Python branches in `BuildCodeStep` are the current reference fix for Azure DevOps YAML parse failures such as `While scanning a simple key, could not find expected ':'`.
 - Container App ACR Docker service connections are per-environment settings on `ContainerAppEnvironmentSettings.ContainerRegistryServiceConnection`, not Common variables or `AppPipelineStepOptions`. The generated app CI wrapper passes `containerRegistryServiceConnection` explicitly to the shared pipeline/job/ACR-login templates, and the shared templates keep `$(containerRegistryServiceConnection)` as the compatibility fallback.
 - App pipeline templates that use Azure DevOps `extends:` must not place `pool:` at the root; put the pool on the generated stage/job level.
 - Do not embed Azure DevOps compile-time directives such as `${{ if }}` inside multiline script strings. Use YAML-level directives for complete nodes or runtime script conditionals.
@@ -117,6 +118,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 
 - Generated YAML must use `powershell` steps, not Bash or `pwsh`, because self-hosted Windows agents may not have `pwsh.exe`.
 - App pipeline shared-template stability is now guarded by `AppPipelineWindowsShellCompatibilityTests`, which must stay green whenever a step template introduces or changes inline script execution.
+- `AppPipelineWindowsShellCompatibilityTests` also guards literal-block indentation for the generated PowerShell shared steps; update it alongside any future multiline script edits in the app templates.
 - Bootstrap auth uses `$(System.AccessToken)`; do not bake PATs into YAML, and do not pass `--detect false` to `az devops configure`.
 - Decode `%20`-style URL segments before feeding org/project/repo names to Azure DevOps CLI defaults.
 - Pipeline creation on Windows PowerShell 5.1 must temporarily relax `$ErrorActionPreference`, capture `$LASTEXITCODE`, and use `--only-show-errors` around `az pipelines create`.

@@ -127,38 +127,38 @@ internal static class AppPipelineStepTemplates
 
         steps:
           - powershell: |
-            $registryLoginServer = '$(containerRegistryLoginServer)'
-            if ([string]::IsNullOrWhiteSpace($registryLoginServer) -or $registryLoginServer -eq '$(containerRegistryLoginServer)') {
-              $registryLoginServer = '${{ parameters.containerRegistryName }}.azurecr.io'
-            }
-
-            docker buildx inspect ifs-builder *> $null
-            if ($LASTEXITCODE -ne 0) {
-              docker buildx create --name ifs-builder --use | Out-Null
-              if ($LASTEXITCODE -ne 0) {
-                throw 'Docker buildx create failed.'
+              $registryLoginServer = '$(containerRegistryLoginServer)'
+              if ([string]::IsNullOrWhiteSpace($registryLoginServer) -or $registryLoginServer -eq '$(containerRegistryLoginServer)') {
+                  $registryLoginServer = '${{ parameters.containerRegistryName }}.azurecr.io'
               }
-            }
 
-            docker buildx use ifs-builder | Out-Null
-            if ($LASTEXITCODE -ne 0) {
-              throw 'Docker buildx use failed.'
-            }
+              docker buildx inspect ifs-builder *> $null
+              if ($LASTEXITCODE -ne 0) {
+                  docker buildx create --name ifs-builder --use | Out-Null
+                  if ($LASTEXITCODE -ne 0) {
+                      throw 'Docker buildx create failed.'
+                  }
+              }
 
-            $createdAt = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
-            docker buildx build `
-            --file "${{ parameters.dockerfilePath }}" `
-            --label "org.opencontainers.image.revision=$(Build.SourceVersion)" `
-            --label "org.opencontainers.image.version=$(ReleaseTag)" `
-            --label "org.opencontainers.image.source=$(Build.Repository.Uri)" `
-            --label "org.opencontainers.image.created=$createdAt" `
-            --tag "$registryLoginServer/${{ parameters.imageRepository }}:$(ReleaseTag)" `
-            --tag "$registryLoginServer/${{ parameters.imageRepository }}:sha-$(ShortSha)" `
-            --push `
-            "${{ parameters.buildContext }}"
-            if ($LASTEXITCODE -ne 0) {
-              throw 'Docker buildx build failed.'
-            }
+              docker buildx use ifs-builder | Out-Null
+              if ($LASTEXITCODE -ne 0) {
+                  throw 'Docker buildx use failed.'
+              }
+
+              $createdAt = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+              docker buildx build `
+                --file "${{ parameters.dockerfilePath }}" `
+                --label "org.opencontainers.image.revision=$(Build.SourceVersion)" `
+                --label "org.opencontainers.image.version=$(ReleaseTag)" `
+                --label "org.opencontainers.image.source=$(Build.Repository.Uri)" `
+                --label "org.opencontainers.image.created=$createdAt" `
+                --tag "$registryLoginServer/${{ parameters.imageRepository }}:$(ReleaseTag)" `
+                --tag "$registryLoginServer/${{ parameters.imageRepository }}:sha-$(ShortSha)" `
+                --push `
+                "${{ parameters.buildContext }}"
+              if ($LASTEXITCODE -ne 0) {
+                  throw 'Docker buildx build failed.'
+              }
             displayName: 'Build and push immutable image tags'
         """;
 
@@ -492,33 +492,33 @@ internal static class AppPipelineStepTemplates
           - ${{ if and(eq(parameters.buildCommand, ''), or(eq(parameters.runtimeStack, 'NODE'), eq(parameters.runtimeStack, 'NODEJS'))) }}:
             - powershell: |
                 npm ci
-              if ($LASTEXITCODE -ne 0) {
-                throw 'npm ci failed.'
-              }
-
-              if ('${{ eq(parameters.testCommand, '') }}' -eq 'True') {
-                  npm run test --if-present
                 if ($LASTEXITCODE -ne 0) {
-                  throw 'npm run test failed.'
+                    throw 'npm ci failed.'
                 }
-              }
+
+                if ('${{ eq(parameters.testCommand, '') }}' -eq 'True') {
+                    npm run test --if-present
+                    if ($LASTEXITCODE -ne 0) {
+                        throw 'npm run test failed.'
+                    }
+                }
 
                 npm run build
-              if ($LASTEXITCODE -ne 0) {
-                throw 'npm run build failed.'
-              }
+                if ($LASTEXITCODE -ne 0) {
+                    throw 'npm run build failed.'
+                }
 
-              $packagePath = '$(Build.ArtifactStagingDirectory)/application-package'
-              New-Item -ItemType Directory -Path $packagePath -Force | Out-Null
-              if (Test-Path -LiteralPath 'dist') {
-                Copy-Item -Path 'dist/*' -Destination $packagePath -Recurse -Force
-              }
-              elseif (Test-Path -LiteralPath 'build') {
-                Copy-Item -Path 'build/*' -Destination $packagePath -Recurse -Force
-              }
-              else {
-                Get-ChildItem -Force | Copy-Item -Destination $packagePath -Recurse -Force
-              }
+                $packagePath = '$(Build.ArtifactStagingDirectory)/application-package'
+                New-Item -ItemType Directory -Path $packagePath -Force | Out-Null
+                if (Test-Path -LiteralPath 'dist') {
+                    Copy-Item -Path 'dist/*' -Destination $packagePath -Recurse -Force
+                }
+                elseif (Test-Path -LiteralPath 'build') {
+                    Copy-Item -Path 'build/*' -Destination $packagePath -Recurse -Force
+                }
+                else {
+                    Get-ChildItem -Force | Copy-Item -Destination $packagePath -Recurse -Force
+                }
               displayName: 'Build and package Node.js application'
               workingDirectory: ${{ parameters.sourcePath }}
 
@@ -526,13 +526,13 @@ internal static class AppPipelineStepTemplates
           - ${{ if and(eq(parameters.buildCommand, ''), eq(parameters.runtimeStack, 'PYTHON')) }}:
             - powershell: |
                 python -m pip install -r requirements.txt
-              if ($LASTEXITCODE -ne 0) {
-                throw 'python -m pip install failed.'
-              }
+                if ($LASTEXITCODE -ne 0) {
+                    throw 'python -m pip install failed.'
+                }
 
-              $packagePath = '$(Build.ArtifactStagingDirectory)/application-package'
-              New-Item -ItemType Directory -Path $packagePath -Force | Out-Null
-              Get-ChildItem -Force | Copy-Item -Destination $packagePath -Recurse -Force
+                $packagePath = '$(Build.ArtifactStagingDirectory)/application-package'
+                New-Item -ItemType Directory -Path $packagePath -Force | Out-Null
+                Get-ChildItem -Force | Copy-Item -Destination $packagePath -Recurse -Force
               displayName: 'Build and package Python application'
               workingDirectory: ${{ parameters.sourcePath }}
         """;

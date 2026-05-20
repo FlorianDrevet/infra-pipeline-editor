@@ -15,36 +15,36 @@ parameters:
 
 steps:
   - powershell: |
-    $registryLoginServer = '$(containerRegistryLoginServer)'
-    if ([string]::IsNullOrWhiteSpace($registryLoginServer) -or $registryLoginServer -eq '$(containerRegistryLoginServer)') {
-      $registryLoginServer = '${{ parameters.containerRegistryName }}.azurecr.io'
-    }
-
-    docker buildx inspect ifs-builder *> $null
-    if ($LASTEXITCODE -ne 0) {
-      docker buildx create --name ifs-builder --use | Out-Null
-      if ($LASTEXITCODE -ne 0) {
-        throw 'Docker buildx create failed.'
+      $registryLoginServer = '$(containerRegistryLoginServer)'
+      if ([string]::IsNullOrWhiteSpace($registryLoginServer) -or $registryLoginServer -eq '$(containerRegistryLoginServer)') {
+          $registryLoginServer = '${{ parameters.containerRegistryName }}.azurecr.io'
       }
-    }
 
-    docker buildx use ifs-builder | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-      throw 'Docker buildx use failed.'
-    }
+      docker buildx inspect ifs-builder *> $null
+      if ($LASTEXITCODE -ne 0) {
+          docker buildx create --name ifs-builder --use | Out-Null
+          if ($LASTEXITCODE -ne 0) {
+              throw 'Docker buildx create failed.'
+          }
+      }
 
-    $createdAt = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
-    docker buildx build `
-    --file "${{ parameters.dockerfilePath }}" `
-    --label "org.opencontainers.image.revision=$(Build.SourceVersion)" `
-    --label "org.opencontainers.image.version=$(ReleaseTag)" `
-    --label "org.opencontainers.image.source=$(Build.Repository.Uri)" `
-    --label "org.opencontainers.image.created=$createdAt" `
-    --tag "$registryLoginServer/${{ parameters.imageRepository }}:$(ReleaseTag)" `
-    --tag "$registryLoginServer/${{ parameters.imageRepository }}:sha-$(ShortSha)" `
-    --push `
-    "${{ parameters.buildContext }}"
-    if ($LASTEXITCODE -ne 0) {
-      throw 'Docker buildx build failed.'
-    }
+      docker buildx use ifs-builder | Out-Null
+      if ($LASTEXITCODE -ne 0) {
+          throw 'Docker buildx use failed.'
+      }
+
+      $createdAt = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+      docker buildx build `
+        --file "${{ parameters.dockerfilePath }}" `
+        --label "org.opencontainers.image.revision=$(Build.SourceVersion)" `
+        --label "org.opencontainers.image.version=$(ReleaseTag)" `
+        --label "org.opencontainers.image.source=$(Build.Repository.Uri)" `
+        --label "org.opencontainers.image.created=$createdAt" `
+        --tag "$registryLoginServer/${{ parameters.imageRepository }}:$(ReleaseTag)" `
+        --tag "$registryLoginServer/${{ parameters.imageRepository }}:sha-$(ShortSha)" `
+        --push `
+        "${{ parameters.buildContext }}"
+      if ($LASTEXITCODE -ne 0) {
+          throw 'Docker buildx build failed.'
+      }
     displayName: 'Build and push immutable image tags'

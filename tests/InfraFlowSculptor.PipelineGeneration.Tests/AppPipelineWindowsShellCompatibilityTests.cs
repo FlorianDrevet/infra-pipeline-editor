@@ -30,4 +30,32 @@ public sealed class AppPipelineWindowsShellCompatibilityTests
         files[".azuredevops/steps/app-acr-promote.step.yml"].Should().Contain("scriptType: ps").And.NotContain("scriptType: bash");
         files[".azuredevops/steps/app-deploy-container.step.yml"].Should().Contain("scriptType: ps").And.NotContain("scriptType: bash");
     }
+
+    [Fact]
+    public void Given_SharedTemplates_When_GenerateAll_Then_PowerShellLiteralBlocksIndentTheirBodies()
+    {
+        // Act
+        var files = AppPipelineGenerationEngine.GenerateSharedTemplates();
+
+        // Assert
+        files[".azuredevops/steps/app-docker-buildx-push.step.yml"].Should().Contain(
+            """
+              - powershell: |
+                  $registryLoginServer = '$(containerRegistryLoginServer)'
+            """);
+
+        files[".azuredevops/steps/app-build-code.step.yml"].Should().Contain(
+            """
+              - ${{ if and(eq(parameters.buildCommand, ''), or(eq(parameters.runtimeStack, 'NODE'), eq(parameters.runtimeStack, 'NODEJS'))) }}:
+                - powershell: |
+                    npm ci
+            """);
+
+        files[".azuredevops/steps/app-build-code.step.yml"].Should().Contain(
+            """
+              - ${{ if and(eq(parameters.buildCommand, ''), eq(parameters.runtimeStack, 'PYTHON')) }}:
+                - powershell: |
+                    python -m pip install -r requirements.txt
+            """);
+    }
 }
