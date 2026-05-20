@@ -7,6 +7,7 @@ namespace InfraFlowSculptor.Contracts.Tests.ContainerApps.Requests;
 public sealed class CreateContainerAppRequestTests
 {
     private const string ValidLocation = "WestEurope";
+    private const int MaxServiceConnectionLength = 200;
     private static readonly Guid ValidResourceGroupId = Guid.Parse("11111111-1111-1111-1111-111111111111");
     private static readonly Guid ValidContainerAppEnvironmentId = Guid.Parse("22222222-2222-2222-2222-222222222222");
 
@@ -122,5 +123,22 @@ public sealed class CreateContainerAppRequestTests
 
         // Assert
         results.HasErrorForMember(nameof(CreateContainerAppRequest.ContainerAppEnvironmentId)).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Given_TooLongEnvironmentContainerRegistryServiceConnection_When_ValidateEntry_Then_Error()
+    {
+        // Arrange
+        var sut = new ContainerAppEnvironmentConfigEntry
+        {
+            EnvironmentName = "dev",
+            ContainerRegistryServiceConnection = new string('a', MaxServiceConnectionLength + 1),
+        };
+
+        // Act
+        var results = RequestValidator.Validate(sut);
+
+        // Assert
+        results.HasErrorForMember(nameof(ContainerAppEnvironmentConfigEntry.ContainerRegistryServiceConnection)).Should().BeTrue();
     }
 }

@@ -3,6 +3,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.OwnedEntities;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate.Entities;
+using InfraFlowSculptor.Domain.ContainerAppAggregate.Models;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.ContainerAppAggregate;
@@ -94,37 +95,21 @@ public sealed class ContainerApp : AzureResource
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
-    public void SetEnvironmentSettings(
-        string environmentName,
-        string? cpuCores,
-        string? memoryGi,
-        int? minReplicas,
-        int? maxReplicas,
-        bool? ingressEnabled,
-        int? ingressTargetPort,
-        bool? ingressExternal,
-        string? transportMethod,
-        string? readinessProbePath = null,
-        int? readinessProbePort = null,
-        string? livenessProbePath = null,
-        int? livenessProbePort = null,
-        string? startupProbePath = null,
-        int? startupProbePort = null) // NOSONAR S107
+    public void SetEnvironmentSettings(ContainerAppEnvironmentSettingsData settings)
     {
         if (IsExisting)
             return;
         var existing = _environmentSettings.FirstOrDefault(
-            es => es.EnvironmentName == environmentName);
+            es => es.EnvironmentName == settings.EnvironmentName);
 
         if (existing is not null)
         {
-            existing.Update(cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod, readinessProbePath, readinessProbePort, livenessProbePath, livenessProbePort, startupProbePath, startupProbePort);
+            existing.Update(settings);
         }
         else
         {
             _environmentSettings.Add(
-                ContainerAppEnvironmentSettings.Create(
-                    Id, environmentName, cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod, readinessProbePath, readinessProbePort, livenessProbePath, livenessProbePort, startupProbePath, startupProbePort));
+                ContainerAppEnvironmentSettings.Create(Id, settings));
         }
     }
 
@@ -133,17 +118,16 @@ public sealed class ContainerApp : AzureResource
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod, string? ReadinessProbePath, int? ReadinessProbePort, string? LivenessProbePath, int? LivenessProbePort, string? StartupProbePath, int? StartupProbePort)> settings)
+        IReadOnlyList<ContainerAppEnvironmentSettingsData> settings)
     {
         if (IsExisting)
             return;
 
         _environmentSettings.Clear();
-        foreach (var s in settings)
+        foreach (var setting in settings)
         {
             _environmentSettings.Add(
-                ContainerAppEnvironmentSettings.Create(
-                    Id, s.EnvironmentName, s.CpuCores, s.MemoryGi, s.MinReplicas, s.MaxReplicas, s.IngressEnabled, s.IngressTargetPort, s.IngressExternal, s.TransportMethod, s.ReadinessProbePath, s.ReadinessProbePort, s.LivenessProbePath, s.LivenessProbePort, s.StartupProbePath, s.StartupProbePort));
+                ContainerAppEnvironmentSettings.Create(Id, setting));
         }
     }
 
@@ -173,7 +157,7 @@ public sealed class ContainerApp : AzureResource
         string? dockerImageName = null,
         string? dockerfilePath = null,
         string? applicationName = null,
-        IReadOnlyList<(string EnvironmentName, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod, string? ReadinessProbePath, int? ReadinessProbePort, string? LivenessProbePath, int? LivenessProbePort, string? StartupProbePath, int? StartupProbePort)>? environmentSettings = null,
+        IReadOnlyList<ContainerAppEnvironmentSettingsData>? environmentSettings = null,
         bool isExisting = false)
     {
         var resolvedAcrAuthMode = containerRegistryId is null ? null : acrAuthMode;

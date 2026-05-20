@@ -77,6 +77,9 @@ internal static class AppPipelineStepTemplates
           - name: acrAuthMode
             type: string
             default: 'ServiceConnection'
+          - name: containerRegistryServiceConnection
+            type: string
+            default: '$(containerRegistryServiceConnection)'
 
         steps:
           - ${{ if eq(parameters.acrAuthMode, 'AdminCredentials') }}:
@@ -90,7 +93,7 @@ internal static class AppPipelineStepTemplates
               displayName: 'Authenticate to ACR'
               inputs:
                 command: login
-                containerRegistry: $(containerRegistryServiceConnection)
+                containerRegistry: ${{ parameters.containerRegistryServiceConnection }}
         """;
 
     internal const string DockerBuildxPushStep = """

@@ -2,6 +2,7 @@ using FluentAssertions;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
+using InfraFlowSculptor.Domain.ContainerAppAggregate.Models;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.Tests.ContainerAppAggregate;
@@ -14,6 +15,7 @@ public sealed class ContainerAppTests
     private const string DefaultApplicationName = "MyApi";
     private const string DevEnvironment = "dev";
     private const string ProdEnvironment = "prod";
+    private const string DevContainerRegistryServiceConnection = "ifs-dev-acr-sc";
     private const Location.LocationEnum DefaultLocationValue = Location.LocationEnum.WestEurope;
 
     private static ContainerApp CreateValidContainerApp(
@@ -105,7 +107,18 @@ public sealed class ContainerAppTests
         // Arrange
         var settings = new[]
         {
-            (DevEnvironment, (string?)"0.5", (string?)"1.0Gi", (int?)1, (int?)3, (bool?)true, (int?)80, (bool?)true, (string?)"http", (string?)null, (int?)null, (string?)null, (int?)null, (string?)null, (int?)null),
+            CreateEnvironmentSettings(DevEnvironment) with
+            {
+                CpuCores = "0.5",
+                MemoryGi = "1.0Gi",
+                MinReplicas = 1,
+                MaxReplicas = 3,
+                IngressEnabled = true,
+                IngressTargetPort = 80,
+                IngressExternal = true,
+                TransportMethod = "http",
+                ContainerRegistryServiceConnection = DevContainerRegistryServiceConnection,
+            },
         };
 
         // Act
@@ -120,6 +133,7 @@ public sealed class ContainerAppTests
 
         // Assert
         sut.EnvironmentSettings.Should().ContainSingle();
+        sut.EnvironmentSettings.Single().ContainerRegistryServiceConnection.Should().Be(DevContainerRegistryServiceConnection);
     }
 
     [Fact]
@@ -128,7 +142,18 @@ public sealed class ContainerAppTests
         // Arrange
         var settings = new[]
         {
-            (DevEnvironment, (string?)"0.5", (string?)"1.0Gi", (int?)1, (int?)3, (bool?)true, (int?)80, (bool?)true, (string?)"http", (string?)null, (int?)null, (string?)null, (int?)null, (string?)null, (int?)null),
+            CreateEnvironmentSettings(DevEnvironment) with
+            {
+                CpuCores = "0.5",
+                MemoryGi = "1.0Gi",
+                MinReplicas = 1,
+                MaxReplicas = 3,
+                IngressEnabled = true,
+                IngressTargetPort = 80,
+                IngressExternal = true,
+                TransportMethod = "http",
+                ContainerRegistryServiceConnection = DevContainerRegistryServiceConnection,
+            },
         };
 
         // Act
@@ -243,8 +268,18 @@ public sealed class ContainerAppTests
         var sut = CreateValidContainerApp();
 
         // Act
-        sut.SetEnvironmentSettings(
-            DevEnvironment, "0.5", "1.0Gi", 1, 3, true, 80, true, "http");
+        sut.SetEnvironmentSettings(CreateEnvironmentSettings(DevEnvironment) with
+        {
+            CpuCores = "0.5",
+            MemoryGi = "1.0Gi",
+            MinReplicas = 1,
+            MaxReplicas = 3,
+            IngressEnabled = true,
+            IngressTargetPort = 80,
+            IngressExternal = true,
+            TransportMethod = "http",
+            ContainerRegistryServiceConnection = DevContainerRegistryServiceConnection,
+        });
 
         // Assert
         sut.EnvironmentSettings.Should().ContainSingle();
@@ -258,6 +293,7 @@ public sealed class ContainerAppTests
         entry.IngressTargetPort.Should().Be(80);
         entry.IngressExternal.Should().BeTrue();
         entry.TransportMethod.Should().Be("http");
+        entry.ContainerRegistryServiceConnection.Should().Be(DevContainerRegistryServiceConnection);
     }
 
     [Fact]
@@ -265,10 +301,32 @@ public sealed class ContainerAppTests
     {
         // Arrange
         var sut = CreateValidContainerApp();
-        sut.SetEnvironmentSettings(DevEnvironment, "0.25", "0.5Gi", 1, 2, false, 80, false, "auto");
+        sut.SetEnvironmentSettings(CreateEnvironmentSettings(DevEnvironment) with
+        {
+            CpuCores = "0.25",
+            MemoryGi = "0.5Gi",
+            MinReplicas = 1,
+            MaxReplicas = 2,
+            IngressEnabled = false,
+            IngressTargetPort = 80,
+            IngressExternal = false,
+            TransportMethod = "auto",
+            ContainerRegistryServiceConnection = "old-sc",
+        });
 
         // Act
-        sut.SetEnvironmentSettings(DevEnvironment, "1.0", "2.0Gi", 2, 5, true, 8080, true, "http2");
+        sut.SetEnvironmentSettings(CreateEnvironmentSettings(DevEnvironment) with
+        {
+            CpuCores = "1.0",
+            MemoryGi = "2.0Gi",
+            MinReplicas = 2,
+            MaxReplicas = 5,
+            IngressEnabled = true,
+            IngressTargetPort = 8080,
+            IngressExternal = true,
+            TransportMethod = "http2",
+            ContainerRegistryServiceConnection = DevContainerRegistryServiceConnection,
+        });
 
         // Assert
         sut.EnvironmentSettings.Should().ContainSingle();
@@ -281,6 +339,7 @@ public sealed class ContainerAppTests
         entry.IngressTargetPort.Should().Be(8080);
         entry.IngressExternal.Should().BeTrue();
         entry.TransportMethod.Should().Be("http2");
+        entry.ContainerRegistryServiceConnection.Should().Be(DevContainerRegistryServiceConnection);
     }
 
     [Fact]
@@ -290,7 +349,18 @@ public sealed class ContainerAppTests
         var sut = CreateValidContainerApp(isExisting: true);
 
         // Act
-        sut.SetEnvironmentSettings(DevEnvironment, "0.5", "1.0Gi", 1, 3, true, 80, true, "http");
+        sut.SetEnvironmentSettings(CreateEnvironmentSettings(DevEnvironment) with
+        {
+            CpuCores = "0.5",
+            MemoryGi = "1.0Gi",
+            MinReplicas = 1,
+            MaxReplicas = 3,
+            IngressEnabled = true,
+            IngressTargetPort = 80,
+            IngressExternal = true,
+            TransportMethod = "http",
+            ContainerRegistryServiceConnection = DevContainerRegistryServiceConnection,
+        });
 
         // Assert
         sut.EnvironmentSettings.Should().BeEmpty();
@@ -301,11 +371,39 @@ public sealed class ContainerAppTests
     {
         // Arrange
         var sut = CreateValidContainerApp();
-        sut.SetEnvironmentSettings(DevEnvironment, "0.25", "0.5Gi", 1, 1, false, null, null, null);
+        sut.SetEnvironmentSettings(CreateEnvironmentSettings(DevEnvironment) with
+        {
+            CpuCores = "0.25",
+            MemoryGi = "0.5Gi",
+            MinReplicas = 1,
+            MaxReplicas = 1,
+            IngressEnabled = false,
+        });
         var settings = new[]
         {
-            ("staging", (string?)"0.5", (string?)"1Gi", (int?)1, (int?)2, (bool?)true, (int?)80, (bool?)false, (string?)"http", (string?)null, (int?)null, (string?)null, (int?)null, (string?)null, (int?)null),
-            (ProdEnvironment, (string?)"1.0", (string?)"2Gi", (int?)2, (int?)10, (bool?)true, (int?)443, (bool?)true, (string?)"http2", (string?)null, (int?)null, (string?)null, (int?)null, (string?)null, (int?)null),
+            CreateEnvironmentSettings("staging") with
+            {
+                CpuCores = "0.5",
+                MemoryGi = "1Gi",
+                MinReplicas = 1,
+                MaxReplicas = 2,
+                IngressEnabled = true,
+                IngressTargetPort = 80,
+                IngressExternal = false,
+                TransportMethod = "http",
+            },
+            CreateEnvironmentSettings(ProdEnvironment) with
+            {
+                CpuCores = "1.0",
+                MemoryGi = "2Gi",
+                MinReplicas = 2,
+                MaxReplicas = 10,
+                IngressEnabled = true,
+                IngressTargetPort = 443,
+                IngressExternal = true,
+                TransportMethod = "http2",
+                ContainerRegistryServiceConnection = DevContainerRegistryServiceConnection,
+            },
         };
 
         // Act
@@ -314,6 +412,7 @@ public sealed class ContainerAppTests
         // Assert
         sut.EnvironmentSettings.Should().HaveCount(2);
         sut.EnvironmentSettings.Should().NotContain(es => es.EnvironmentName == DevEnvironment);
+        sut.EnvironmentSettings.Single(es => es.EnvironmentName == ProdEnvironment).ContainerRegistryServiceConnection.Should().Be(DevContainerRegistryServiceConnection);
     }
 
     [Fact]
@@ -323,7 +422,18 @@ public sealed class ContainerAppTests
         var sut = CreateValidContainerApp(isExisting: true);
         var settings = new[]
         {
-            (DevEnvironment, (string?)"0.5", (string?)"1Gi", (int?)1, (int?)3, (bool?)true, (int?)80, (bool?)true, (string?)"http", (string?)null, (int?)null, (string?)null, (int?)null, (string?)null, (int?)null),
+            CreateEnvironmentSettings(DevEnvironment) with
+            {
+                CpuCores = "0.5",
+                MemoryGi = "1Gi",
+                MinReplicas = 1,
+                MaxReplicas = 3,
+                IngressEnabled = true,
+                IngressTargetPort = 80,
+                IngressExternal = true,
+                TransportMethod = "http",
+                ContainerRegistryServiceConnection = DevContainerRegistryServiceConnection,
+            },
         };
 
         // Act
@@ -332,4 +442,7 @@ public sealed class ContainerAppTests
         // Assert
         sut.EnvironmentSettings.Should().BeEmpty();
     }
+
+    private static ContainerAppEnvironmentSettingsData CreateEnvironmentSettings(string environmentName)
+        => new(environmentName);
 }

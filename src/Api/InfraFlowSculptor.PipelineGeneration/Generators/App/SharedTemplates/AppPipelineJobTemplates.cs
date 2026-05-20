@@ -29,6 +29,9 @@ internal static class AppPipelineJobTemplates
           - name: containerRegistryName
             type: string
             default: ''
+          - name: containerRegistryServiceConnection
+            type: string
+            default: '$(containerRegistryServiceConnection)'
           - name: acrAuthMode
             type: string
             default: 'ServiceConnection'
@@ -60,6 +63,7 @@ internal static class AppPipelineJobTemplates
               - template: ../steps/app-acr-login.step.yml
                 parameters:
                   acrAuthMode: ${{ parameters.acrAuthMode }}
+                  containerRegistryServiceConnection: ${{ parameters.containerRegistryServiceConnection }}
 
               - template: ../steps/app-docker-buildx-push.step.yml
                 parameters:

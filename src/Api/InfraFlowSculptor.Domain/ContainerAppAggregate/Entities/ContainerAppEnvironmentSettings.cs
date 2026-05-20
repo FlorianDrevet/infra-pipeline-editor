@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
+using InfraFlowSculptor.Domain.ContainerAppAggregate.Models;
 using InfraFlowSculptor.Domain.ContainerAppAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.ContainerAppAggregate.Entities;
@@ -58,98 +59,53 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
     /// <summary>Gets or sets the startup probe port.</summary>
     public int? StartupProbePort { get; private set; }
 
+    /// <summary>Gets the Azure DevOps Docker/ACR service connection name used by the application CI pipeline.</summary>
+    public string? ContainerRegistryServiceConnection { get; private set; }
+
     private ContainerAppEnvironmentSettings() { }
 
     internal ContainerAppEnvironmentSettings(
         AzureResourceId containerAppId,
-        string environmentName,
-        string? cpuCores,
-        string? memoryGi,
-        int? minReplicas,
-        int? maxReplicas,
-        bool? ingressEnabled,
-        int? ingressTargetPort,
-        bool? ingressExternal,
-        string? transportMethod,
-        string? readinessProbePath,
-        int? readinessProbePort,
-        string? livenessProbePath,
-        int? livenessProbePort,
-        string? startupProbePath,
-        int? startupProbePort) // NOSONAR S107
+        ContainerAppEnvironmentSettingsData settings)
         : base(ContainerAppEnvironmentSettingsId.CreateUnique())
     {
         ContainerAppId = containerAppId;
-        EnvironmentName = environmentName;
-        CpuCores = cpuCores;
-        MemoryGi = memoryGi;
-        MinReplicas = minReplicas;
-        MaxReplicas = maxReplicas;
-        IngressEnabled = ingressEnabled;
-        IngressTargetPort = ingressTargetPort;
-        IngressExternal = ingressExternal;
-        TransportMethod = transportMethod;
-        ReadinessProbePath = readinessProbePath;
-        ReadinessProbePort = readinessProbePort;
-        LivenessProbePath = livenessProbePath;
-        LivenessProbePort = livenessProbePort;
-        StartupProbePath = startupProbePath;
-        StartupProbePort = startupProbePort;
+        EnvironmentName = settings.EnvironmentName;
+        Update(settings);
     }
 
     /// <summary>
-    /// Creates a new <see cref="ContainerAppEnvironmentSettings"/> for the specified Container App and environment.
+    /// Creates a new <see cref="ContainerAppEnvironmentSettings"/> from typed per-environment configuration data.
     /// </summary>
+    /// <param name="containerAppId">The parent Container App identifier.</param>
+    /// <param name="settings">The typed per-environment settings to apply.</param>
+    /// <returns>The initialized per-environment settings entity.</returns>
     public static ContainerAppEnvironmentSettings Create(
         AzureResourceId containerAppId,
-        string environmentName,
-        string? cpuCores,
-        string? memoryGi,
-        int? minReplicas,
-        int? maxReplicas,
-        bool? ingressEnabled,
-        int? ingressTargetPort,
-        bool? ingressExternal,
-        string? transportMethod,
-        string? readinessProbePath = null,
-        int? readinessProbePort = null,
-        string? livenessProbePath = null,
-        int? livenessProbePort = null,
-        string? startupProbePath = null,
-        int? startupProbePort = null) // NOSONAR S107
-        => new(containerAppId, environmentName, cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod, readinessProbePath, readinessProbePort, livenessProbePath, livenessProbePort, startupProbePath, startupProbePort);
+        ContainerAppEnvironmentSettingsData settings)
+        => new(containerAppId, settings);
 
-    /// <summary>Updates the configuration overrides for this environment.</summary>
-    public void Update(
-        string? cpuCores,
-        string? memoryGi,
-        int? minReplicas,
-        int? maxReplicas,
-        bool? ingressEnabled,
-        int? ingressTargetPort,
-        bool? ingressExternal,
-        string? transportMethod,
-        string? readinessProbePath = null,
-        int? readinessProbePort = null,
-        string? livenessProbePath = null,
-        int? livenessProbePort = null,
-        string? startupProbePath = null,
-        int? startupProbePort = null) // NOSONAR S107
+    /// <summary>
+    /// Updates the configuration overrides for this environment from typed data.
+    /// </summary>
+    /// <param name="settings">The typed per-environment settings to apply.</param>
+    public void Update(ContainerAppEnvironmentSettingsData settings)
     {
-        CpuCores = cpuCores;
-        MemoryGi = memoryGi;
-        MinReplicas = minReplicas;
-        MaxReplicas = maxReplicas;
-        IngressEnabled = ingressEnabled;
-        IngressTargetPort = ingressTargetPort;
-        IngressExternal = ingressExternal;
-        TransportMethod = transportMethod;
-        ReadinessProbePath = readinessProbePath;
-        ReadinessProbePort = readinessProbePort;
-        LivenessProbePath = livenessProbePath;
-        LivenessProbePort = livenessProbePort;
-        StartupProbePath = startupProbePath;
-        StartupProbePort = startupProbePort;
+        CpuCores = settings.CpuCores;
+        MemoryGi = settings.MemoryGi;
+        MinReplicas = settings.MinReplicas;
+        MaxReplicas = settings.MaxReplicas;
+        IngressEnabled = settings.IngressEnabled;
+        IngressTargetPort = settings.IngressTargetPort;
+        IngressExternal = settings.IngressExternal;
+        TransportMethod = settings.TransportMethod;
+        ReadinessProbePath = settings.ReadinessProbePath;
+        ReadinessProbePort = settings.ReadinessProbePort;
+        LivenessProbePath = settings.LivenessProbePath;
+        LivenessProbePort = settings.LivenessProbePort;
+        StartupProbePath = settings.StartupProbePath;
+        StartupProbePort = settings.StartupProbePort;
+        ContainerRegistryServiceConnection = settings.ContainerRegistryServiceConnection;
     }
 
     /// <summary>

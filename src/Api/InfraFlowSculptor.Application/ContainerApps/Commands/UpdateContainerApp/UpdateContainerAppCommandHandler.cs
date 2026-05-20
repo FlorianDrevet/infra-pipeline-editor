@@ -6,6 +6,7 @@ using InfraFlowSculptor.Application.ContainerApps.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.ContainerAppAggregate.Models;
 using MapsterMapper;
 
 namespace InfraFlowSculptor.Application.ContainerApps.Commands.UpdateContainerApp;
@@ -62,7 +63,7 @@ public sealed class UpdateContainerAppCommandHandler(
         if (request.EnvironmentSettings is not null)
             containerApp.SetAllEnvironmentSettings(
                 request.EnvironmentSettings
-                    .Select(ec => (ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod, ec.ReadinessProbePath, ec.ReadinessProbePort, ec.LivenessProbePath, ec.LivenessProbePort, ec.StartupProbePath, ec.StartupProbePort))
+                    .Select(MapEnvironmentSettings)
                     .ToList());
 
         if (request.PipelineStepOptions is { } opts)
@@ -74,4 +75,23 @@ public sealed class UpdateContainerAppCommandHandler(
 
         return mapper.Map<ContainerAppResult>(updated);
     }
+
+    private static ContainerAppEnvironmentSettingsData MapEnvironmentSettings(ContainerAppEnvironmentConfigData settings)
+        => new(
+            settings.EnvironmentName,
+            settings.CpuCores,
+            settings.MemoryGi,
+            settings.MinReplicas,
+            settings.MaxReplicas,
+            settings.IngressEnabled,
+            settings.IngressTargetPort,
+            settings.IngressExternal,
+            settings.TransportMethod,
+            settings.ReadinessProbePath,
+            settings.ReadinessProbePort,
+            settings.LivenessProbePath,
+            settings.LivenessProbePort,
+            settings.StartupProbePath,
+            settings.StartupProbePort,
+            settings.ContainerRegistryServiceConnection);
 }

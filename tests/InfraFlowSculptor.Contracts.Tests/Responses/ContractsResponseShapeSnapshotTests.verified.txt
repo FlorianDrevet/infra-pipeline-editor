@@ -1,5 +1,5 @@
 Contracts response DTO public shape snapshot
-Count: 105
+Count: 106
 
 Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
 Type: AppConfigurationKeyResponse
@@ -124,9 +124,31 @@ Properties:
   ResourceGroupId: string
 
 Namespace: InfraFlowSculptor.Contracts.ContainerApps.Responses
+Type: ContainerAppEnvironmentConfigResponse
+Constructors:
+  ContainerAppEnvironmentConfigResponse(string EnvironmentName, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod, string? ReadinessProbePath, int? ReadinessProbePort, string? LivenessProbePath, int? LivenessProbePort, string? StartupProbePath, int? StartupProbePort, string? ContainerRegistryServiceConnection)
+Properties:
+  ContainerRegistryServiceConnection: string?
+  CpuCores: string?
+  EnvironmentName: string
+  IngressEnabled: bool?
+  IngressExternal: bool?
+  IngressTargetPort: int?
+  LivenessProbePath: string?
+  LivenessProbePort: int?
+  MaxReplicas: int?
+  MemoryGi: string?
+  MinReplicas: int?
+  ReadinessProbePath: string?
+  ReadinessProbePort: int?
+  StartupProbePath: string?
+  StartupProbePort: int?
+  TransportMethod: string?
+
+Namespace: InfraFlowSculptor.Contracts.ContainerApps.Responses
 Type: ContainerAppResponse
 Constructors:
-  ContainerAppResponse(string Id, string ResourceGroupId, string Name, string Location, string ContainerAppEnvironmentId, string? ContainerRegistryId, string? AcrAuthMode, string? AcrPullIdentityId, string? DockerImageName, bool DockerImageValidated, string? DockerfilePath, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Requests.ContainerAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+  ContainerAppResponse(string Id, string ResourceGroupId, string Name, string Location, string ContainerAppEnvironmentId, string? ContainerRegistryId, string? AcrAuthMode, string? AcrPullIdentityId, string? DockerImageName, bool DockerImageValidated, string? DockerfilePath, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Responses.ContainerAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
 Properties:
   AcrAuthMode: string?
   AcrPullIdentityId: string?
@@ -136,7 +158,7 @@ Properties:
   DockerImageName: string?
   DockerImageValidated: bool
   DockerfilePath: string?
-  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Requests.ContainerAppEnvironmentConfigResponse>
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Responses.ContainerAppEnvironmentConfigResponse>
   Id: string
   IsExisting: bool
   Location: string

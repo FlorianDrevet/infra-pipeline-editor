@@ -1,5 +1,4 @@
 using InfraFlowSculptor.Contracts.Common.Requests;
-using InfraFlowSculptor.Contracts.ContainerApps.Requests;
 
 namespace InfraFlowSculptor.Contracts.ContainerApps.Responses;
 

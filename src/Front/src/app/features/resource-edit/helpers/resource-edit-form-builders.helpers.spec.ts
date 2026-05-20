@@ -37,6 +37,19 @@ describe('resource edit form builders helpers', () => {
     expect(form.get('startupProbeEnabled')?.value).toBeFalse();
   });
 
+  it('builds container app environment forms with ACR service connection from environment settings', () => {
+    const forms = buildResourceEditEnvironmentForms(
+      new FormBuilder(),
+      'ContainerApp',
+      createContainerAppResource(),
+      [
+        { id: 'env-dev', name: 'Development', shortName: 'dev', prefix: 'dev', suffix: 'svc', location: 'westeurope', subscriptionId: 'sub-1', order: 1, requiresApproval: false, azureResourceManagerConnection: null, tags: [] },
+      ],
+    );
+
+    expect(forms[0].form.get('containerRegistryServiceConnection')?.value).toBe('acr-dev-docker');
+  });
+
   it('builds general container app form with acrPullIdentityId control from response', () => {
     const resource = {
       ...createContainerAppResource(),
@@ -118,6 +131,7 @@ function createContainerAppResource() {
         livenessProbePort: 8080,
         startupProbePath: null,
         startupProbePort: null,
+        containerRegistryServiceConnection: 'acr-dev-docker',
       },
     ],
   } as const;

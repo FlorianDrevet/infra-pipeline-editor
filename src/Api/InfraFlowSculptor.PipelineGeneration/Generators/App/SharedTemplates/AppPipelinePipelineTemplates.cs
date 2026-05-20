@@ -30,6 +30,9 @@ internal static class AppPipelinePipelineTemplates
           - name: containerRegistryName
             type: string
             default: ''
+          - name: containerRegistryServiceConnection
+            type: string
+            default: '$(containerRegistryServiceConnection)'
           - name: acrAuthMode
             type: string
             default: 'ServiceConnection'
@@ -73,6 +76,7 @@ internal static class AppPipelinePipelineTemplates
                   dockerfilePath: ${{ parameters.dockerfilePath }}
                   buildContext: ${{ parameters.buildContext }}
                   containerRegistryName: ${{ parameters.containerRegistryName }}
+                  containerRegistryServiceConnection: ${{ parameters.containerRegistryServiceConnection }}
                   acrAuthMode: ${{ parameters.acrAuthMode }}
                   enableSecurityScans: ${{ parameters.enableSecurityScans }}
                   promotionStrategy: ${{ parameters.promotionStrategy }}

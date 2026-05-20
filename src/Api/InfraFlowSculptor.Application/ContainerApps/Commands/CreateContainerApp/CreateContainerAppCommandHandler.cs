@@ -6,6 +6,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
+using InfraFlowSculptor.Domain.ContainerAppAggregate.Models;
 using MapsterMapper;
 using ErrorOr;
 
@@ -57,7 +58,7 @@ public sealed class CreateContainerAppCommandHandler(
             request.DockerfilePath,
             request.ApplicationName,
             request.EnvironmentSettings?
-                .Select(ec => (ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod, ec.ReadinessProbePath, ec.ReadinessProbePort, ec.LivenessProbePath, ec.LivenessProbePort, ec.StartupProbePath, ec.StartupProbePort))
+                .Select(MapEnvironmentSettings)
                 .ToList(),
             isExisting: request.IsExisting);
 
@@ -70,4 +71,23 @@ public sealed class CreateContainerAppCommandHandler(
 
         return mapper.Map<ContainerAppResult>(saved);
     }
+
+    private static ContainerAppEnvironmentSettingsData MapEnvironmentSettings(ContainerAppEnvironmentConfigData settings)
+        => new(
+            settings.EnvironmentName,
+            settings.CpuCores,
+            settings.MemoryGi,
+            settings.MinReplicas,
+            settings.MaxReplicas,
+            settings.IngressEnabled,
+            settings.IngressTargetPort,
+            settings.IngressExternal,
+            settings.TransportMethod,
+            settings.ReadinessProbePath,
+            settings.ReadinessProbePort,
+            settings.LivenessProbePath,
+            settings.LivenessProbePort,
+            settings.StartupProbePath,
+            settings.StartupProbePort,
+            settings.ContainerRegistryServiceConnection);
 }

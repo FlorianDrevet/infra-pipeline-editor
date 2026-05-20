@@ -81,6 +81,7 @@ import { ResourceEditUsedBySectionComponent } from './sections/identity-access/r
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
+import { ContainerAppAcrServiceConnectionsComponent } from './components/container-app-acr-service-connections/container-app-acr-service-connections.component';
 import { PipelineOptionsComponent } from './components/pipeline-options/pipeline-options.component';
 import { NetworkingTabComponent } from './components/networking-tab/networking-tab.component';
 import { PipelineStepOptions } from './models/pipeline-step-options.model';
@@ -188,6 +189,7 @@ type CorsFieldKey = CorsListField | CorsMethodField | 'maxAgeInSeconds';
     DsTextFieldComponent,
     DockerfilePickerComponent,
     DsSelectComponent,
+    ContainerAppAcrServiceConnectionsComponent,
     PipelineOptionsComponent,
     NetworkingTabComponent,
   ],
@@ -274,7 +276,17 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   // ─── App Pipeline ───
 
+  private static readonly CONTAINER_APP_RESOURCE_TYPE = 'ContainerApp';
+  private static readonly ACR_ADMIN_CREDENTIALS_AUTH_MODE: AcrAuthMode = 'AdminCredentials';
+
   protected readonly pipelineStepOptions = signal<PipelineStepOptions | null>(null);
+
+  protected readonly showContainerAppAcrServiceConnections = computed(() =>
+    this.resourceType === ResourceEditComponent.CONTAINER_APP_RESOURCE_TYPE &&
+    !this.isExistingResource() &&
+    !!this.selectedContainerRegistryId() &&
+    this.acrAuthMode() !== ResourceEditComponent.ACR_ADMIN_CREDENTIALS_AUTH_MODE,
+  );
 
   protected supportsAppPipeline(): boolean {
     return this.resourceType === 'WebApp'

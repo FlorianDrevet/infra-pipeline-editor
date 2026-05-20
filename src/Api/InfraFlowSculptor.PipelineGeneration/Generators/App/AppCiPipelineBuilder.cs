@@ -12,6 +12,7 @@ internal static class AppCiPipelineBuilder
 {
     private const string ContainerTemplatePath = "../../../Common/pipelines/app-ci-container.pipeline.yml";
     private const string CodeTemplatePath = "../../../Common/pipelines/app-ci-code.pipeline.yml";
+    private const string ContainerRegistryServiceConnectionParameterName = "containerRegistryServiceConnection";
 
     internal static string BuildContainerPipeline(AppPipelineGenerationRequest request)
     {
@@ -23,6 +24,7 @@ internal static class AppCiPipelineBuilder
         var dockerfilePath = request.DockerfilePath ?? "Dockerfile";
         var buildContext = request.SourceCodePath ?? ".";
         var acrAuthMode = request.AcrAuthMode ?? "ServiceConnection";
+        var containerRegistryServiceConnection = ResolveContainerRegistryServiceConnection(request, buildSourceEnvironment);
         var buildSourceEnvVariablesPath = string.IsNullOrWhiteSpace(buildSourceEnvKey)
             ? string.Empty
             : AppHeaderEmitter.GetEnvironmentVariablesPath(buildSourceEnvKey, request.IsMonoRepo);
@@ -40,6 +42,7 @@ internal static class AppCiPipelineBuilder
         sb.AppendLine($"    dockerfilePath: '{AppNamingHelper.EscapeForSingleQuotedYaml(dockerfilePath)}'");
         sb.AppendLine($"    buildContext: '{AppNamingHelper.EscapeForSingleQuotedYaml(buildContext)}'");
         sb.AppendLine($"    containerRegistryName: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.ContainerRegistryName ?? string.Empty)}'");
+        AppendStringParam(sb, ContainerRegistryServiceConnectionParameterName, containerRegistryServiceConnection);
         sb.AppendLine($"    acrAuthMode: '{AppNamingHelper.EscapeForSingleQuotedYaml(acrAuthMode)}'");
         sb.AppendLine($"    enableSecurityScans: {(request.EnableSecurityScans ? "true" : "false")}");
         sb.AppendLine($"    promotionStrategy: '{request.PromotionStrategy}'");
@@ -126,6 +129,26 @@ internal static class AppCiPipelineBuilder
         {
             sb.AppendLine($"    agentPoolName: '{AppNamingHelper.EscapeForSingleQuotedYaml(agentPoolName)}'");
         }
+    }
+
+    private static string? ResolveContainerRegistryServiceConnection(
+        AppPipelineGenerationRequest request,
+        EnvironmentDefinition? buildSourceEnvironment)
+    {
+        if (buildSourceEnvironment is null || request.ContainerRegistryServiceConnections.Count == 0)
+            return null;
+
+        return request.ContainerRegistryServiceConnections
+            .FirstOrDefault(connection => MatchesBuildSourceEnvironment(connection, buildSourceEnvironment))
+            ?.ServiceConnectionName;
+    }
+
+    private static bool MatchesBuildSourceEnvironment(
+        ContainerRegistryServiceConnectionDefinition connection,
+        EnvironmentDefinition buildSourceEnvironment)
+    {
+        return string.Equals(connection.EnvironmentName, buildSourceEnvironment.ShortName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(connection.EnvironmentName, buildSourceEnvironment.Name, StringComparison.OrdinalIgnoreCase);
     }
 
     private static void AppendPipelineStepOptionsParameters(StringBuilder sb, AppPipelineGenerationRequest request)

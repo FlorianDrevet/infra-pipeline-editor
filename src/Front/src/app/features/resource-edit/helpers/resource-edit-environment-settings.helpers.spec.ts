@@ -11,6 +11,58 @@ import {
 describe('resource edit environment settings helpers', () => {
   const fb = new FormBuilder();
 
+  it('builds container app environment payloads with ACR service connection names', () => {
+    const envForms = [
+      createEnvironmentFormEntry('Development', {
+        containerRegistryServiceConnection: 'acr-dev-docker',
+      }),
+      createEnvironmentFormEntry('Production', {
+        containerRegistryServiceConnection: '',
+      }),
+    ];
+
+    const payload = buildContainerAppEnvironmentSettings(envForms);
+
+    expect(payload).toEqual([
+      {
+        environmentName: 'Development',
+        cpuCores: null,
+        memoryGi: null,
+        minReplicas: null,
+        maxReplicas: null,
+        ingressEnabled: null,
+        ingressTargetPort: null,
+        ingressExternal: null,
+        transportMethod: null,
+        readinessProbePath: null,
+        readinessProbePort: null,
+        livenessProbePath: null,
+        livenessProbePort: null,
+        startupProbePath: null,
+        startupProbePort: null,
+        containerRegistryServiceConnection: 'acr-dev-docker',
+      },
+      {
+        environmentName: 'Production',
+        cpuCores: null,
+        memoryGi: null,
+        minReplicas: null,
+        maxReplicas: null,
+        ingressEnabled: null,
+        ingressTargetPort: null,
+        ingressExternal: null,
+        transportMethod: null,
+        readinessProbePath: null,
+        readinessProbePort: null,
+        livenessProbePath: null,
+        livenessProbePort: null,
+        startupProbePath: null,
+        startupProbePort: null,
+        containerRegistryServiceConnection: null,
+      },
+    ]);
+  });
+
   it('builds container app environment payloads with null-safe numeric conversion', () => {
     const envForms = [
       createEnvironmentFormEntry('Development', {
@@ -48,6 +100,7 @@ describe('resource edit environment settings helpers', () => {
         livenessProbePort: null,
         startupProbePath: null,
         startupProbePort: null,
+        containerRegistryServiceConnection: null,
       },
     ]);
   });

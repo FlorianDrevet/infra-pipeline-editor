@@ -105,6 +105,10 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - Azure DevOps resolves `template:` relative to the template file, not the wrapper; keep helper path generation aligned with `.azuredevops/pipelines/`.
 - CI/release split remains build-once then promote.
 - Container delivery uses immutable tags and optional Trivy/Syft scans.
+- Container App ACR Docker service connections are per-environment settings on `ContainerAppEnvironmentSettings.ContainerRegistryServiceConnection`, not Common variables or `AppPipelineStepOptions`. The generated app CI wrapper passes `containerRegistryServiceConnection` explicitly to the shared pipeline/job/ACR-login templates, and the shared templates keep `$(containerRegistryServiceConnection)` as the compatibility fallback.
+- App pipeline templates that use Azure DevOps `extends:` must not place `pool:` at the root; put the pool on the generated stage/job level.
+- Do not embed Azure DevOps compile-time directives such as `${{ if }}` inside multiline script strings. Use YAML-level directives for complete nodes or runtime script conditionals.
+- In `SplitInfraCode`, the app/code blob bucket must include any Common variable files referenced by app wrappers/templates, because the target code repo receives only the app bucket.
 - `AppPipelineBuilderCommon` still contains removable dead inline YAML helpers; it is cleanup-only debt.
 - `PipelineGenerationEngine` must map only known validation-style `InvalidOperationException` prefixes to `ErrorOr` validation errors (currently the variable-group-name guard). Unexpected `InvalidOperationException` instances must bubble so handlers/global error handling treat them as internal failures instead of `Generation.InvalidInfrastructurePipelineConfiguration` user errors.
 

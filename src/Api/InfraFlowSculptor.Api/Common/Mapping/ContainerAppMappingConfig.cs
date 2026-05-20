@@ -3,6 +3,7 @@ using InfraFlowSculptor.Application.ContainerApps.Commands.UpdateContainerApp;
 using InfraFlowSculptor.Application.ContainerApps.Common;
 using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.ContainerApps.Requests;
+using InfraFlowSculptor.Contracts.ContainerApps.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
@@ -21,7 +22,7 @@ public sealed class ContainerAppMappingConfig : IRegister
                 src => src.EnvironmentSettings == null
                     ? null
                     : src.EnvironmentSettings.Select(ec => new ContainerAppEnvironmentConfigData(
-                        ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod, ec.ReadinessProbePath, ec.ReadinessProbePort, ec.LivenessProbePath, ec.LivenessProbePort, ec.StartupProbePath, ec.StartupProbePort)).ToList());
+                        ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod, ec.ReadinessProbePath, ec.ReadinessProbePort, ec.LivenessProbePath, ec.LivenessProbePort, ec.StartupProbePath, ec.StartupProbePort, ec.ContainerRegistryServiceConnection)).ToList());
 
         config.NewConfig<(Guid Id, UpdateContainerAppRequest Request), UpdateContainerAppCommand>()
             .MapWith(src => new UpdateContainerAppCommand(
@@ -39,7 +40,7 @@ public sealed class ContainerAppMappingConfig : IRegister
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new ContainerAppEnvironmentConfigData(
-                        ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod, ec.ReadinessProbePath, ec.ReadinessProbePort, ec.LivenessProbePath, ec.LivenessProbePort, ec.StartupProbePath, ec.StartupProbePort)).ToList(),
+                        ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod, ec.ReadinessProbePath, ec.ReadinessProbePort, ec.LivenessProbePath, ec.LivenessProbePort, ec.StartupProbePath, ec.StartupProbePort, ec.ContainerRegistryServiceConnection)).ToList(),
                 src.Request.PipelineStepOptions));
 
         config.NewConfig<ContainerApp, ContainerAppResult>()
@@ -59,7 +60,8 @@ public sealed class ContainerAppMappingConfig : IRegister
                     es.LivenessProbePath,
                     es.LivenessProbePort,
                     es.StartupProbePath,
-                    es.StartupProbePort)).ToList())
+                    es.StartupProbePort,
+                    es.ContainerRegistryServiceConnection)).ToList())
             .Map(dest => dest.PipelineStepOptions, src => src.PipelineStepOptions.Adapt<PipelineStepOptionsDto>())
             .Map(dest => dest.ContainerAppEnvironmentId, src => src.ContainerAppEnvironmentId.Value)
                     .Map(dest => dest.ContainerRegistryId, src => src.ContainerRegistryId != null ? src.ContainerRegistryId.Value : (Guid?)null)
@@ -68,6 +70,6 @@ public sealed class ContainerAppMappingConfig : IRegister
 
         config.NewConfig<ContainerAppEnvironmentConfigData, ContainerAppEnvironmentConfigResponse>()
             .MapWith(src => new ContainerAppEnvironmentConfigResponse(
-                src.EnvironmentName, src.CpuCores, src.MemoryGi, src.MinReplicas, src.MaxReplicas, src.IngressEnabled, src.IngressTargetPort, src.IngressExternal, src.TransportMethod, src.ReadinessProbePath, src.ReadinessProbePort, src.LivenessProbePath, src.LivenessProbePort, src.StartupProbePath, src.StartupProbePort));
+                src.EnvironmentName, src.CpuCores, src.MemoryGi, src.MinReplicas, src.MaxReplicas, src.IngressEnabled, src.IngressTargetPort, src.IngressExternal, src.TransportMethod, src.ReadinessProbePath, src.ReadinessProbePort, src.LivenessProbePath, src.LivenessProbePort, src.StartupProbePath, src.StartupProbePort, src.ContainerRegistryServiceConnection));
     }
 }

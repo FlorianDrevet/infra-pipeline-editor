@@ -1,10 +1,7 @@
-namespace InfraFlowSculptor.Application.ContainerApps.Common;
+namespace InfraFlowSculptor.Contracts.ContainerApps.Responses;
 
-/// <summary>
-/// Carries typed per-environment Container App configuration data within CQRS commands and results.
-/// Only non-null values represent overrides for the target environment.
-/// </summary>
-public record ContainerAppEnvironmentConfigData(
+/// <summary>Response DTO for a typed per-environment Container App configuration.</summary>
+public sealed record ContainerAppEnvironmentConfigResponse(
     string EnvironmentName,
     string? CpuCores,
     string? MemoryGi,

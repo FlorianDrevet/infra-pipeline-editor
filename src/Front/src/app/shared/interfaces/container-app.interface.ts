@@ -19,6 +19,7 @@ export interface ContainerAppEnvironmentConfigEntry {
   livenessProbePort?: number | null;
   startupProbePath?: string | null;
   startupProbePort?: number | null;
+  containerRegistryServiceConnection?: string | null;
 }
 
 export interface ContainerAppEnvironmentConfigResponse {
@@ -37,6 +38,7 @@ export interface ContainerAppEnvironmentConfigResponse {
   livenessProbePort: number | null;
   startupProbePath: string | null;
   startupProbePort: number | null;
+  containerRegistryServiceConnection?: string | null;
   isExisting?: boolean;
 }
 

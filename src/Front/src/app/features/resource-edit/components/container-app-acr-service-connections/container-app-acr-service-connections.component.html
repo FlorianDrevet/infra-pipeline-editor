@@ -1,0 +1,56 @@
+<section class="acr-service-connections">
+  <div class="acr-service-connections__header">
+    <div class="acr-service-connections__copy">
+      <h3 class="acr-service-connections__title">
+        {{ 'RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.TITLE' | translate }}
+      </h3>
+      <p class="acr-service-connections__description">
+        {{ 'RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.DESCRIPTION' | translate }}
+      </p>
+    </div>
+
+    <app-ds-segmented-control
+      class="acr-service-connections__mode"
+      size="sm"
+      [ariaLabel]="'RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.MODE_ARIA_LABEL' | translate"
+      [options]="[
+        {
+          value: modeValues.shared,
+          label: ('RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.MODE_SHARED' | translate),
+          icon: 'join_inner'
+        },
+        {
+          value: modeValues.perEnvironment,
+          label: ('RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.MODE_PER_ENVIRONMENT' | translate),
+          icon: 'account_tree'
+        }
+      ]"
+      [ngModel]="mode()"
+      [ngModelOptions]="{ standalone: true }"
+      (ngModelChange)="onModeChanged($event)" />
+  </div>
+
+  @if (isSharedMode()) {
+    <div class="acr-service-connections__shared-field">
+      <app-ds-text-field
+        [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.SHARED_LABEL' | translate"
+        [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.FIELD_HINT' | translate"
+        [placeholder]="'RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.PLACEHOLDER' | translate"
+        [ngModel]="sharedServiceConnectionName()"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="onSharedServiceConnectionNameChanged($event)" />
+    </div>
+  } @else {
+    <div class="acr-service-connections__environment-grid">
+      @for (envForm of envForms(); track envForm.envName) {
+        <div class="acr-service-connections__environment-field" [formGroup]="envForm.form">
+          <app-ds-text-field
+            [formControlName]="serviceConnectionControlName"
+            [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.ENVIRONMENT_LABEL' | translate: { envName: envForm.envName }"
+            [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.FIELD_HINT' | translate"
+            [placeholder]="'RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.PLACEHOLDER' | translate" />
+        </div>
+      }
+    </div>
+  }
+</section>

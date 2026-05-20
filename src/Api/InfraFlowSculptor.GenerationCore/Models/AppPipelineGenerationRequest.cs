@@ -33,6 +33,9 @@ public class AppPipelineGenerationRequest
     /// <summary>Name of the ACR resource (e.g., "myregistry").</summary>
     public string? ContainerRegistryName { get; set; }
 
+    /// <summary>Environment-scoped Azure DevOps Docker/ACR service connections used by container CI pipelines.</summary>
+    public IReadOnlyList<ContainerRegistryServiceConnectionDefinition> ContainerRegistryServiceConnections { get; set; } = [];
+
     /// <summary>
     /// Immutable tag pattern used by CI metadata generation.
     /// Supported tokens are <c>{buildNumber}</c>, <c>{shortSha}</c>, and <c>{branch}</c>.

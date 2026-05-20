@@ -1969,6 +1969,10 @@
               </div>
             </form>
 
+            @if (showContainerAppAcrServiceConnections()) {
+              <app-container-app-acr-service-connections [envForms]="envForms()" />
+            }
+
             <!-- Pipeline Step Options -->
             <app-pipeline-options
               [pipelineStepOptions]="pipelineStepOptions()"

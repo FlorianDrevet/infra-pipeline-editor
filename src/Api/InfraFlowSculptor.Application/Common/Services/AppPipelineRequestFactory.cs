@@ -56,6 +56,7 @@ public sealed class AppPipelineRequestFactory(
             DockerfilePath = containerApp.DockerfilePath,
             DockerImageName = containerApp.DockerImageName,
             ContainerRegistryName = containerRegistryName,
+            ContainerRegistryServiceConnections = BuildContainerRegistryServiceConnections(containerApp.EnvironmentSettings),
             AcrAuthMode = containerApp.AcrAuthMode?.Value.ToString(),
             PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
             EnableSecurityScans = true,
@@ -198,5 +199,16 @@ public sealed class AppPipelineRequestFactory(
             .ConfigureAwait(false);
 
         return containerRegistry?.Name.Value;
+    }
+
+    private static IReadOnlyList<ContainerRegistryServiceConnectionDefinition> BuildContainerRegistryServiceConnections(
+        IEnumerable<Domain.ContainerAppAggregate.Entities.ContainerAppEnvironmentSettings> environmentSettings)
+    {
+        return environmentSettings
+            .Where(settings => !string.IsNullOrWhiteSpace(settings.ContainerRegistryServiceConnection))
+            .Select(settings => new ContainerRegistryServiceConnectionDefinition(
+                settings.EnvironmentName,
+                settings.ContainerRegistryServiceConnection!))
+            .ToList();
     }
 }

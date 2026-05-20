@@ -282,6 +282,7 @@ function buildSingleEnvironmentForm(
         startupProbeEnabled: [Boolean(settings?.startupProbePath)],
         startupProbePath: [settings?.startupProbePath ?? null],
         startupProbePort: [settings?.startupProbePort ?? null],
+        containerRegistryServiceConnection: [settings?.containerRegistryServiceConnection ?? null],
       });
     }
     case 'LogAnalyticsWorkspace': {

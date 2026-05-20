@@ -1684,6 +1684,17 @@
     },
     "PIPELINE_OPTIONS": {
       "DESCRIPTION": "Configurez les étapes optionnelles du pipeline : tests, analyse de code, linting et validation post-déploiement.",
+      "ACR_SERVICE_CONNECTIONS": {
+        "TITLE": "Connexion de service ACR",
+        "DESCRIPTION": "Nom de la connexion Azure DevOps Docker/ACR utilisée pour pousser l'image vers le registre lié.",
+        "MODE_ARIA_LABEL": "Mode de configuration des connexions ACR",
+        "MODE_SHARED": "Même valeur",
+        "MODE_PER_ENVIRONMENT": "Par environnement",
+        "SHARED_LABEL": "Connexion Docker/ACR",
+        "ENVIRONMENT_LABEL": "Connexion Docker/ACR - {{ envName }}",
+        "FIELD_HINT": "Nom exact de la service connection Azure DevOps.",
+        "PLACEHOLDER": "acr-prod-docker"
+      },
       "TESTS": {
         "TITLE": "Tests unitaires",
         "SUBTITLE": "Exécuter les tests unitaires dans le pipeline",
