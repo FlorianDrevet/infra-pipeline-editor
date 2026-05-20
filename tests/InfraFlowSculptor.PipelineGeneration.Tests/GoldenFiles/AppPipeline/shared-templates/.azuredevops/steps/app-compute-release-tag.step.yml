@@ -34,14 +34,15 @@ steps:
       releaseTag=${releaseTag//\{shortSha\}/$shortSha}
       releaseTag=${releaseTag//\{branch\}/$sanitizedBranch}
       releaseTag=$(echo "$releaseTag" | tr '[:upper:]' '[:lower:]')
-      ${{ if parameters.includeRegistryMetadata }}:
+      if [ "${{ parameters.includeRegistryMetadata }}" = "True" ]; then
         sourceRegistryName="$(containerRegistryName)"
         if [ -z "$sourceRegistryName" ] || [ "$sourceRegistryName" = '$(containerRegistryName)' ]; then sourceRegistryName="${{ parameters.containerRegistryName }}"; fi
         sourceRegistryLoginServer="$(containerRegistryLoginServer)"
         if [ -z "$sourceRegistryLoginServer" ] || [ "$sourceRegistryLoginServer" = '$(containerRegistryLoginServer)' ]; then sourceRegistryLoginServer="${{ parameters.containerRegistryName }}.azurecr.io"; fi
-      ${{ if not(parameters.includeRegistryMetadata) }}:
+      else
         sourceRegistryName=""
         sourceRegistryLoginServer=""
+      fi
       mkdir -p "$(Build.ArtifactStagingDirectory)/app-metadata"
       cat > "$(Build.ArtifactStagingDirectory)/app-metadata/metadata.json" <<EOF
       {
