@@ -61,6 +61,17 @@ public static class AzureDevOpsPipelineNameHelper
     }
 
     /// <summary>
+    /// Builds the application PR validation pipeline definition name for a configuration/resource pair.
+    /// </summary>
+    /// <param name="configName">The infrastructure configuration name.</param>
+    /// <param name="resourceName">The application resource name.</param>
+    /// <returns>The prefixed Azure DevOps pipeline definition name.</returns>
+    public static string BuildApplicationPrName(string configName, string resourceName)
+    {
+        return BuildName(CodePrefix, PathSanitizer.Sanitize(configName), PathSanitizer.Sanitize(resourceName), PrSuffix);
+    }
+
+    /// <summary>
     /// Builds the application release pipeline definition name for a configuration/resource pair.
     /// </summary>
     /// <param name="configName">The infrastructure configuration name.</param>

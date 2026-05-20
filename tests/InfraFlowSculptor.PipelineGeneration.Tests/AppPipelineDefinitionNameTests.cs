@@ -32,4 +32,38 @@ public sealed class AppPipelineDefinitionNameTests
         result.Value.Files["release.app-pipeline.yml"].Should().Contain("# Expected CI pipeline definition name: [Code] core - myweb - CI");
         result.Value.Files["release.app-pipeline.yml"].Should().Contain("source: '[Code] core - myweb - CI'");
     }
+
+    [Fact]
+    public void Given_WebAppCodeRequest_When_Generate_Then_PrPipelineUsesCodePrefixedPrName()
+    {
+        // Arrange
+        var request = AppPipelineRequestFixtures.WebAppCode();
+
+        // Act
+        var result = _sut.Generate(request);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.Files.Should().ContainKey("pr.app-pipeline.yml");
+        result.Value.Files["pr.app-pipeline.yml"].Should().Contain("# Expected PR pipeline definition name: [Code] core - myweb - PR");
+        result.Value.Files["pr.app-pipeline.yml"].Should().Contain("pr:");
+        result.Value.Files["pr.app-pipeline.yml"].Should().Contain("template: ../../../Common/pipelines/app-pr-code.pipeline.yml");
+    }
+
+    [Fact]
+    public void Given_ContainerAppRequest_When_Generate_Then_PrPipelineValidatesWithoutRegistryConnection()
+    {
+        // Arrange
+        var request = AppPipelineRequestFixtures.ContainerApp();
+
+        // Act
+        var result = _sut.Generate(request);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.Files.Should().ContainKey("pr.app-pipeline.yml");
+        result.Value.Files["pr.app-pipeline.yml"].Should().Contain("template: ../../../Common/pipelines/app-pr-container.pipeline.yml");
+        result.Value.Files["pr.app-pipeline.yml"].Should().NotContain("containerRegistryServiceConnection");
+        result.Value.Files["pr.app-pipeline.yml"].Should().NotContain("app-acr-login");
+    }
 }

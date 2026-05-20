@@ -21,6 +21,7 @@ public sealed class AppPipelineSharedTemplatesStabilityTests
         ".azuredevops/steps/app-compute-release-tag.step.yml",
         ".azuredevops/steps/app-acr-login.step.yml",
         ".azuredevops/steps/app-docker-buildx-push.step.yml",
+        ".azuredevops/steps/app-docker-buildx-validate.step.yml",
         ".azuredevops/steps/app-trivy-scan.step.yml",
         ".azuredevops/steps/app-syft-sbom.step.yml",
         ".azuredevops/steps/app-load-metadata.step.yml",
@@ -33,12 +34,16 @@ public sealed class AppPipelineSharedTemplatesStabilityTests
         // ── Job templates ──────────────────────────────────────────────
         ".azuredevops/jobs/app-ci-container.job.yml",
         ".azuredevops/jobs/app-ci-code.job.yml",
+        ".azuredevops/jobs/app-pr-container.job.yml",
+        ".azuredevops/jobs/app-pr-code.job.yml",
         ".azuredevops/jobs/app-release-container.job.yml",
         ".azuredevops/jobs/app-release-code.job.yml",
 
         // ── Pipeline templates (extends: targets) ──────────────────────
         ".azuredevops/pipelines/app-ci-container.pipeline.yml",
         ".azuredevops/pipelines/app-ci-code.pipeline.yml",
+        ".azuredevops/pipelines/app-pr-container.pipeline.yml",
+        ".azuredevops/pipelines/app-pr-code.pipeline.yml",
         ".azuredevops/pipelines/app-release-container.pipeline.yml",
         ".azuredevops/pipelines/app-release-code.pipeline.yml",
     };

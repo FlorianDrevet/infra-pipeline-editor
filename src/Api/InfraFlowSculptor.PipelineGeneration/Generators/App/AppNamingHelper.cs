@@ -31,6 +31,16 @@ internal static class AppNamingHelper
     }
 
     /// <summary>
+    /// Builds the PR validation pipeline definition name from the configuration and resource names.
+    /// </summary>
+    /// <param name="request">The application pipeline generation request.</param>
+    /// <returns>A human-readable PR validation pipeline definition name.</returns>
+    internal static string BuildPrPipelineDefinitionName(AppPipelineGenerationRequest request)
+    {
+        return AzureDevOpsPipelineNameHelper.BuildApplicationPrName(request.ConfigName, request.ResourceName);
+    }
+
+    /// <summary>
     /// Resolves the container image repository name.
     /// Uses the explicit <see cref="AppPipelineGenerationRequest.DockerImageName"/> when set,
     /// otherwise falls back to the lower-cased resource name.

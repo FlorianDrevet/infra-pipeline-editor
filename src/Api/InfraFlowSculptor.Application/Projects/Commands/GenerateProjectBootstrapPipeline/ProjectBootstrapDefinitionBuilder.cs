@@ -146,12 +146,17 @@ public sealed class ProjectBootstrapDefinitionBuilder(
 
             pipelines.Add(new BootstrapPipelineDefinition(
                 Name: AzureDevOpsPipelineNameHelper.BuildApplicationCiName(config.Name, resource.Name),
-                YamlPath: $"{yamlBasePath}/ci.app-pipeline.yml",
+                YamlPath: $"{yamlBasePath}/{AppPipelineFileNames.Ci}",
+                Folder: folder));
+
+            pipelines.Add(new BootstrapPipelineDefinition(
+                Name: AzureDevOpsPipelineNameHelper.BuildApplicationPrName(config.Name, resource.Name),
+                YamlPath: $"{yamlBasePath}/{AppPipelineFileNames.Pr}",
                 Folder: folder));
 
             pipelines.Add(new BootstrapPipelineDefinition(
                 Name: AzureDevOpsPipelineNameHelper.BuildApplicationReleaseName(config.Name, resource.Name),
-                YamlPath: $"{yamlBasePath}/release.app-pipeline.yml",
+                YamlPath: $"{yamlBasePath}/{AppPipelineFileNames.Release}",
                 Folder: folder));
         }
 
@@ -265,15 +270,13 @@ public sealed class ProjectBootstrapDefinitionBuilder(
         var definitions = new List<BootstrapServiceConnectionDefinition>();
 
         // ARM service connections from project environment definitions.
-        foreach (var env in project.EnvironmentDefinitions)
+        foreach (var env in project.EnvironmentDefinitions.Where(
+                 env => !string.IsNullOrWhiteSpace(env.AzureResourceManagerConnection)))
         {
-            if (!string.IsNullOrWhiteSpace(env.AzureResourceManagerConnection))
-            {
-                definitions.Add(new BootstrapServiceConnectionDefinition(
-                    env.AzureResourceManagerConnection,
-                    BootstrapServiceConnectionTypes.AzureRM,
-                    env.ShortName.Value));
-            }
+            definitions.Add(new BootstrapServiceConnectionDefinition(
+                env.AzureResourceManagerConnection!,
+                BootstrapServiceConnectionTypes.AzureRM,
+                env.ShortName.Value));
         }
 
         // Container Registry service connections from Container App environment settings.
@@ -293,15 +296,13 @@ public sealed class ProjectBootstrapDefinitionBuilder(
             if (containerApp is null)
                 continue;
 
-            foreach (var envSettings in containerApp.EnvironmentSettings)
+            foreach (var envSettings in containerApp.EnvironmentSettings.Where(
+                         envSettings => !string.IsNullOrWhiteSpace(envSettings.ContainerRegistryServiceConnection)))
             {
-                if (!string.IsNullOrWhiteSpace(envSettings.ContainerRegistryServiceConnection))
-                {
-                    definitions.Add(new BootstrapServiceConnectionDefinition(
-                        envSettings.ContainerRegistryServiceConnection,
-                        BootstrapServiceConnectionTypes.DockerRegistry,
-                        envSettings.EnvironmentName));
-                }
+                definitions.Add(new BootstrapServiceConnectionDefinition(
+                    envSettings.ContainerRegistryServiceConnection!,
+                    BootstrapServiceConnectionTypes.DockerRegistry,
+                    envSettings.EnvironmentName));
             }
         }
 

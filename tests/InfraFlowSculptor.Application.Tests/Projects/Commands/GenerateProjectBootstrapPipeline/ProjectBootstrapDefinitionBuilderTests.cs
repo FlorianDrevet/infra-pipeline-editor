@@ -172,6 +172,7 @@ public sealed class ProjectBootstrapDefinitionBuilderTests
         result.AppPipelines.Should().BeEquivalentTo(
         [
             new BootstrapPipelineDefinition("[Code] primary-config - orders-api - CI", "/app-pipelines/.azuredevops/primary-config/apps/orders-api/ci.app-pipeline.yml", "\\primary-config\\Applications\\orders-api"),
+            new BootstrapPipelineDefinition("[Code] primary-config - orders-api - PR", "/app-pipelines/.azuredevops/primary-config/apps/orders-api/pr.app-pipeline.yml", "\\primary-config\\Applications\\orders-api"),
             new BootstrapPipelineDefinition("[Code] primary-config - orders-api - Release", "/app-pipelines/.azuredevops/primary-config/apps/orders-api/release.app-pipeline.yml", "\\primary-config\\Applications\\orders-api"),
         ]);
 
