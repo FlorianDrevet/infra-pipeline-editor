@@ -31,42 +31,52 @@ internal static class AppPipelineStepTemplates
             default: false
 
         steps:
-          - bash: |
-              set -euo pipefail
-              sourceVersion="$(Build.SourceVersion)"
-              shortSha=$(echo "$sourceVersion" | cut -c1-7)
-              branchName="$(Build.SourceBranchName)"
-              sanitizedBranch=$(echo "$branchName" | tr '/_' '-' | tr '[:upper:]' '[:lower:]')
-              releaseTagPattern="${{ parameters.imageTagPattern }}"
-              releaseTag=${releaseTagPattern//\{buildNumber\}/$(Build.BuildNumber)}
-              releaseTag=${releaseTag//\{shortSha\}/$shortSha}
-              releaseTag=${releaseTag//\{branch\}/$sanitizedBranch}
-              releaseTag=$(echo "$releaseTag" | tr '[:upper:]' '[:lower:]')
-              if [ "${{ parameters.includeRegistryMetadata }}" = "True" ]; then
-                sourceRegistryName="$(containerRegistryName)"
-                if [ -z "$sourceRegistryName" ] || [ "$sourceRegistryName" = '$(containerRegistryName)' ]; then sourceRegistryName="${{ parameters.containerRegistryName }}"; fi
-                sourceRegistryLoginServer="$(containerRegistryLoginServer)"
-                if [ -z "$sourceRegistryLoginServer" ] || [ "$sourceRegistryLoginServer" = '$(containerRegistryLoginServer)' ]; then sourceRegistryLoginServer="${{ parameters.containerRegistryName }}.azurecr.io"; fi
-              else
-                sourceRegistryName=""
-                sourceRegistryLoginServer=""
-              fi
-              mkdir -p "$(Build.ArtifactStagingDirectory)/app-metadata"
-              cat > "$(Build.ArtifactStagingDirectory)/app-metadata/metadata.json" <<EOF
-              {
-                "releaseTag": "$releaseTag",
-                "shortSha": "$shortSha",
-                "imageRepository": "${{ parameters.imageRepository }}",
-                "sourceRegistryName": "$sourceRegistryName",
-                "sourceRegistryLoginServer": "$sourceRegistryLoginServer",
-                "configName": "${{ parameters.configName }}",
-                "resourceName": "${{ parameters.resourceName }}",
-                "resourceType": "${{ parameters.resourceType }}",
-                "promotionStrategy": "${{ parameters.promotionStrategy }}"
+          - powershell: |
+              $sourceVersion = '$(Build.SourceVersion)'
+              $shortShaLength = [Math]::Min(7, $sourceVersion.Length)
+              $shortSha = $sourceVersion.Substring(0, $shortShaLength)
+              $branchName = '$(Build.SourceBranchName)'
+              $sanitizedBranch = $branchName.Replace('/', '-').Replace('_', '-').ToLowerInvariant()
+              $releaseTag = '${{ parameters.imageTagPattern }}'
+              $releaseTag = $releaseTag.Replace('{buildNumber}', '$(Build.BuildNumber)')
+              $releaseTag = $releaseTag.Replace('{shortSha}', $shortSha)
+              $releaseTag = $releaseTag.Replace('{branch}', $sanitizedBranch)
+              $releaseTag = $releaseTag.ToLowerInvariant()
+
+              if ('${{ parameters.includeRegistryMetadata }}' -eq 'True') {
+                  $sourceRegistryName = '$(containerRegistryName)'
+                  if ([string]::IsNullOrWhiteSpace($sourceRegistryName) -or $sourceRegistryName -eq '$(containerRegistryName)') {
+                      $sourceRegistryName = '${{ parameters.containerRegistryName }}'
+                  }
+
+                  $sourceRegistryLoginServer = '$(containerRegistryLoginServer)'
+                  if ([string]::IsNullOrWhiteSpace($sourceRegistryLoginServer) -or $sourceRegistryLoginServer -eq '$(containerRegistryLoginServer)') {
+                      $sourceRegistryLoginServer = '${{ parameters.containerRegistryName }}.azurecr.io'
+                  }
               }
-              EOF
-              echo "##vso[task.setvariable variable=ReleaseTag]$releaseTag"
-              echo "##vso[task.setvariable variable=ShortSha]$shortSha"
+              else {
+                  $sourceRegistryName = ''
+                  $sourceRegistryLoginServer = ''
+              }
+
+              $metadataDirectory = '$(Build.ArtifactStagingDirectory)/app-metadata'
+              New-Item -ItemType Directory -Path $metadataDirectory -Force | Out-Null
+
+              $metadata = [ordered]@{
+                  releaseTag = $releaseTag
+                  shortSha = $shortSha
+                  imageRepository = '${{ parameters.imageRepository }}'
+                  sourceRegistryName = $sourceRegistryName
+                  sourceRegistryLoginServer = $sourceRegistryLoginServer
+                  configName = '${{ parameters.configName }}'
+                  resourceName = '${{ parameters.resourceName }}'
+                  resourceType = '${{ parameters.resourceType }}'
+                  promotionStrategy = '${{ parameters.promotionStrategy }}'
+              }
+
+              $metadata | ConvertTo-Json | Set-Content -LiteralPath "$metadataDirectory/metadata.json" -Encoding utf8
+              Write-Host "##vso[task.setvariable variable=ReleaseTag]$releaseTag"
+              Write-Host "##vso[task.setvariable variable=ShortSha]$shortSha"
             displayName: 'Compute immutable release tag'
         """;
 
@@ -83,9 +93,12 @@ internal static class AppPipelineStepTemplates
 
         steps:
           - ${{ if eq(parameters.acrAuthMode, 'AdminCredentials') }}:
-            - bash: |
-                set -euo pipefail
-                echo "$(containerRegistryPassword)" | docker login "$(containerRegistryLoginServer)" --username "$(containerRegistryUsername)" --password-stdin
+            - powershell: |
+                $password = '$(containerRegistryPassword)'
+                $password | docker login "$(containerRegistryLoginServer)" --username "$(containerRegistryUsername)" --password-stdin
+                if ($LASTEXITCODE -ne 0) {
+                    throw 'Docker login failed.'
+                }
               displayName: 'Authenticate to ACR with admin credentials'
 
           - ${{ if ne(parameters.acrAuthMode, 'AdminCredentials') }}:
@@ -113,22 +126,39 @@ internal static class AppPipelineStepTemplates
             default: ''
 
         steps:
-          - bash: |
-              set -euo pipefail
-              registryLoginServer="$(containerRegistryLoginServer)"
-              if [ -z "$registryLoginServer" ] || [ "$registryLoginServer" = '$(containerRegistryLoginServer)' ]; then registryLoginServer="${{ parameters.containerRegistryName }}.azurecr.io"; fi
-              docker buildx inspect ifs-builder >/dev/null 2>&1 || docker buildx create --name ifs-builder --use >/dev/null
-              docker buildx use ifs-builder >/dev/null
-              docker buildx build \
-                --file "${{ parameters.dockerfilePath }}" \
-                --label "org.opencontainers.image.revision=$(Build.SourceVersion)" \
-                --label "org.opencontainers.image.version=$(ReleaseTag)" \
-                --label "org.opencontainers.image.source=$(Build.Repository.Uri)" \
-                --label "org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-                --tag "${registryLoginServer}/${{ parameters.imageRepository }}:$(ReleaseTag)" \
-                --tag "${registryLoginServer}/${{ parameters.imageRepository }}:sha-$(ShortSha)" \
-                --push \
-                "${{ parameters.buildContext }}"
+          - powershell: |
+            $registryLoginServer = '$(containerRegistryLoginServer)'
+            if ([string]::IsNullOrWhiteSpace($registryLoginServer) -or $registryLoginServer -eq '$(containerRegistryLoginServer)') {
+              $registryLoginServer = '${{ parameters.containerRegistryName }}.azurecr.io'
+            }
+
+            docker buildx inspect ifs-builder *> $null
+            if ($LASTEXITCODE -ne 0) {
+              docker buildx create --name ifs-builder --use | Out-Null
+              if ($LASTEXITCODE -ne 0) {
+                throw 'Docker buildx create failed.'
+              }
+            }
+
+            docker buildx use ifs-builder | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Docker buildx use failed.'
+            }
+
+            $createdAt = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+            docker buildx build `
+            --file "${{ parameters.dockerfilePath }}" `
+            --label "org.opencontainers.image.revision=$(Build.SourceVersion)" `
+            --label "org.opencontainers.image.version=$(ReleaseTag)" `
+            --label "org.opencontainers.image.source=$(Build.Repository.Uri)" `
+            --label "org.opencontainers.image.created=$createdAt" `
+            --tag "$registryLoginServer/${{ parameters.imageRepository }}:$(ReleaseTag)" `
+            --tag "$registryLoginServer/${{ parameters.imageRepository }}:sha-$(ShortSha)" `
+            --push `
+            "${{ parameters.buildContext }}"
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Docker buildx build failed.'
+            }
             displayName: 'Build and push immutable image tags'
         """;
 
@@ -146,20 +176,34 @@ internal static class AppPipelineStepTemplates
             default: 'HIGH,CRITICAL'
 
         steps:
-          - bash: |
-              set -euo pipefail
-              toolDir="$(Agent.TempDirectory)/supply-chain-tools"
-              mkdir -p "$toolDir"
-              curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b "$toolDir"
-              echo "##vso[task.prependpath]$toolDir"
+          - powershell: |
+              $toolDirectory = '$(Agent.TempDirectory)/supply-chain-tools'
+              New-Item -ItemType Directory -Path $toolDirectory -Force | Out-Null
+
+              $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/aquasecurity/trivy/releases/latest'
+              $asset = $release.assets | Where-Object { $_.name -match 'windows.*(64bit|amd64|x86_64).*\.zip$' } | Select-Object -First 1
+              if ($null -eq $asset) {
+                  throw 'Could not resolve a Trivy Windows zip asset.'
+              }
+
+              $archivePath = Join-Path $toolDirectory $asset.name
+              Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $archivePath
+              Expand-Archive -Path $archivePath -DestinationPath $toolDirectory -Force
+              Write-Host "##vso[task.prependpath]$toolDirectory"
             displayName: 'Install Trivy'
 
-          - bash: |
-              set -euo pipefail
-              registryLoginServer="$(containerRegistryLoginServer)"
-              if [ -z "$registryLoginServer" ] || [ "$registryLoginServer" = '$(containerRegistryLoginServer)' ]; then registryLoginServer="${{ parameters.containerRegistryName }}.azurecr.io"; fi
-              mkdir -p "$(Build.ArtifactStagingDirectory)/supply-chain"
-              trivy image --scanners vuln --severity ${{ parameters.severity }} --ignore-unfixed --format json --output "$(Build.ArtifactStagingDirectory)/supply-chain/trivy-report.json" --exit-code 1 "${registryLoginServer}/${{ parameters.imageRepository }}:$(ReleaseTag)"
+          - powershell: |
+              $registryLoginServer = '$(containerRegistryLoginServer)'
+              if ([string]::IsNullOrWhiteSpace($registryLoginServer) -or $registryLoginServer -eq '$(containerRegistryLoginServer)') {
+                  $registryLoginServer = '${{ parameters.containerRegistryName }}.azurecr.io'
+              }
+
+              $artifactDirectory = '$(Build.ArtifactStagingDirectory)/supply-chain'
+              New-Item -ItemType Directory -Path $artifactDirectory -Force | Out-Null
+              trivy image --scanners vuln --severity ${{ parameters.severity }} --ignore-unfixed --format json --output "$artifactDirectory/trivy-report.json" --exit-code 1 "$registryLoginServer/${{ parameters.imageRepository }}:$(ReleaseTag)"
+              if ($LASTEXITCODE -ne 0) {
+                  throw 'Trivy scan failed.'
+              }
             displayName: 'Scan image with Trivy'
         """;
 
@@ -174,16 +218,32 @@ internal static class AppPipelineStepTemplates
             default: ''
 
         steps:
-          - bash: |
-              set -euo pipefail
-              toolDir="$(Agent.TempDirectory)/supply-chain-tools"
-              mkdir -p "$toolDir"
-              curl -sfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b "$toolDir"
-              echo "##vso[task.prependpath]$toolDir"
-              registryLoginServer="$(containerRegistryLoginServer)"
-              if [ -z "$registryLoginServer" ] || [ "$registryLoginServer" = '$(containerRegistryLoginServer)' ]; then registryLoginServer="${{ parameters.containerRegistryName }}.azurecr.io"; fi
-              mkdir -p "$(Build.ArtifactStagingDirectory)/supply-chain"
-              syft "${registryLoginServer}/${{ parameters.imageRepository }}:$(ReleaseTag)" -o cyclonedx-json > "$(Build.ArtifactStagingDirectory)/supply-chain/sbom.cyclonedx.json"
+          - powershell: |
+            $toolDirectory = '$(Agent.TempDirectory)/supply-chain-tools'
+            New-Item -ItemType Directory -Path $toolDirectory -Force | Out-Null
+
+            $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/anchore/syft/releases/latest'
+            $asset = $release.assets | Where-Object { $_.name -match 'windows.*(amd64|x86_64).*\.zip$' } | Select-Object -First 1
+            if ($null -eq $asset) {
+              throw 'Could not resolve a Syft Windows zip asset.'
+            }
+
+            $archivePath = Join-Path $toolDirectory $asset.name
+            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $archivePath
+            Expand-Archive -Path $archivePath -DestinationPath $toolDirectory -Force
+            Write-Host "##vso[task.prependpath]$toolDirectory"
+
+            $registryLoginServer = '$(containerRegistryLoginServer)'
+            if ([string]::IsNullOrWhiteSpace($registryLoginServer) -or $registryLoginServer -eq '$(containerRegistryLoginServer)') {
+              $registryLoginServer = '${{ parameters.containerRegistryName }}.azurecr.io'
+            }
+
+            $artifactDirectory = '$(Build.ArtifactStagingDirectory)/supply-chain'
+            New-Item -ItemType Directory -Path $artifactDirectory -Force | Out-Null
+            syft "$registryLoginServer/${{ parameters.imageRepository }}:$(ReleaseTag)" -o cyclonedx-json | Set-Content -LiteralPath "$artifactDirectory/sbom.cyclonedx.json" -Encoding utf8
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Syft SBOM generation failed.'
+            }
             displayName: 'Generate SBOM'
         """;
 
@@ -195,7 +255,7 @@ internal static class AppPipelineStepTemplates
             artifact: app-metadata
             displayName: 'Download CI metadata'
 
-          - pwsh: |
+          - powershell: |
               $metadataPath = '$(Pipeline.Workspace)/app-metadata/metadata.json'
               if (-not (Test-Path -LiteralPath $metadataPath)) {
                   throw "Metadata artifact not found: $metadataPath"
@@ -225,16 +285,25 @@ internal static class AppPipelineStepTemplates
             displayName: 'Promote image in ACR'
             inputs:
               azureSubscription: $(azureResourceManagerConnection)
-              scriptType: bash
+              scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
-                set -euo pipefail
-                imageRepository="$(ImageRepository)"
-                if [ -z "$imageRepository" ] || [ "$imageRepository" = '$(ImageRepository)' ]; then imageRepository="${{ parameters.imageRepository }}"; fi
-                if [ "${{ parameters.promotionStrategy }}" = "AcrImport" ] && [ "$(containerRegistryLoginServer)" != "$(SourceRegistryLoginServer)" ]; then
-                  az acr import --name "$(containerRegistryName)" --source "$(SourceRegistryLoginServer)/${imageRepository}:$(ReleaseTag)" --image "${imageRepository}:$(ReleaseTag)" --force
-                fi
-                az acr import --name "$(containerRegistryName)" --source "$(containerRegistryLoginServer)/${imageRepository}:$(ReleaseTag)" --image "${imageRepository}:env-${{ parameters.envShortName }}" --force
+                $imageRepository = '$(ImageRepository)'
+                if ([string]::IsNullOrWhiteSpace($imageRepository) -or $imageRepository -eq '$(ImageRepository)') {
+                    $imageRepository = '${{ parameters.imageRepository }}'
+                }
+
+                if ('${{ parameters.promotionStrategy }}' -eq 'AcrImport' -and '$(containerRegistryLoginServer)' -ne '$(SourceRegistryLoginServer)') {
+                    az acr import --name "$(containerRegistryName)" --source "$(SourceRegistryLoginServer)/$imageRepository:$(ReleaseTag)" --image "$imageRepository:$(ReleaseTag)" --force
+                    if ($LASTEXITCODE -ne 0) {
+                        throw 'ACR immutable tag promotion failed.'
+                    }
+                }
+
+                az acr import --name "$(containerRegistryName)" --source "$(containerRegistryLoginServer)/$imageRepository:$(ReleaseTag)" --image "$imageRepository:env-${{ parameters.envShortName }}" --force
+                if ($LASTEXITCODE -ne 0) {
+                    throw 'ACR environment tag promotion failed.'
+                }
         """;
 
     internal const string DeployContainerStep = """
@@ -252,13 +321,18 @@ internal static class AppPipelineStepTemplates
               displayName: 'Deploy image to Container App'
               inputs:
                 azureSubscription: $(azureResourceManagerConnection)
-                scriptType: bash
+                scriptType: ps
                 scriptLocation: inlineScript
                 inlineScript: |
-                  set -euo pipefail
-                  imageRepository="$(ImageRepository)"
-                  if [ -z "$imageRepository" ] || [ "$imageRepository" = '$(ImageRepository)' ]; then imageRepository="${{ parameters.imageRepository }}"; fi
-                  az containerapp update --name "$(containerAppName)" --resource-group "$(resourceGroupName)" --image "$(containerRegistryLoginServer)/${imageRepository}:$(ReleaseTag)"
+                  $imageRepository = '$(ImageRepository)'
+                  if ([string]::IsNullOrWhiteSpace($imageRepository) -or $imageRepository -eq '$(ImageRepository)') {
+                      $imageRepository = '${{ parameters.imageRepository }}'
+                  }
+
+                  az containerapp update --name "$(containerAppName)" --resource-group "$(resourceGroupName)" --image "$(containerRegistryLoginServer)/$imageRepository:$(ReleaseTag)"
+                  if ($LASTEXITCODE -ne 0) {
+                      throw 'Container App image deployment failed.'
+                  }
 
           - ${{ if eq(parameters.resourceType, 'WebApp') }}:
             - task: AzureWebApp@1
@@ -370,27 +444,27 @@ internal static class AppPipelineStepTemplates
         steps:
           # ── Test (custom command, runs before build) ─────────────────
           - ${{ if ne(parameters.testCommand, '') }}:
-            - pwsh: |
+            - powershell: |
                 ${{ parameters.testCommand }}
               displayName: 'Run application tests'
               workingDirectory: ${{ parameters.sourcePath }}
 
           # ── Build (custom command — overrides defaults) ──────────────
           - ${{ if ne(parameters.buildCommand, '') }}:
-            - pwsh: |
+            - powershell: |
                 ${{ parameters.buildCommand }}
               displayName: 'Build and package application'
               workingDirectory: ${{ parameters.sourcePath }}
 
           # ── Build (.NET default) ─────────────────────────────────────
           - ${{ if and(eq(parameters.buildCommand, ''), or(eq(parameters.runtimeStack, 'DOTNETCORE'), eq(parameters.runtimeStack, 'DOTNET'))) }}:
-            - pwsh: |
+            - powershell: |
                 dotnet restore
                 dotnet build --configuration Release --no-restore
               displayName: 'Restore and build .NET application'
               workingDirectory: ${{ parameters.sourcePath }}
 
-            - pwsh: |
+            - powershell: |
                 dotnet test --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory "$(Common.TestResultsDirectory)" --collect "XPlat Code Coverage"
               displayName: 'Run automated tests'
               workingDirectory: ${{ parameters.sourcePath }}
@@ -409,31 +483,56 @@ internal static class AppPipelineStepTemplates
                 summaryFileLocation: '$(Common.TestResultsDirectory)/**/coverage.cobertura.xml'
                 failIfCoverageEmpty: false
 
-            - pwsh: |
+            - powershell: |
                 dotnet publish --configuration Release --no-build --output "$(Build.ArtifactStagingDirectory)/application-package"
               displayName: 'Publish application package'
               workingDirectory: ${{ parameters.sourcePath }}
 
           # ── Build (Node.js default) ──────────────────────────────────
           - ${{ if and(eq(parameters.buildCommand, ''), or(eq(parameters.runtimeStack, 'NODE'), eq(parameters.runtimeStack, 'NODEJS'))) }}:
-            - bash: |
-                set -euo pipefail
+            - powershell: |
                 npm ci
-                ${{ if eq(parameters.testCommand, '') }}:
+              if ($LASTEXITCODE -ne 0) {
+                throw 'npm ci failed.'
+              }
+
+              if ('${{ eq(parameters.testCommand, '') }}' -eq 'True') {
                   npm run test --if-present
+                if ($LASTEXITCODE -ne 0) {
+                  throw 'npm run test failed.'
+                }
+              }
+
                 npm run build
-                mkdir -p "$(Build.ArtifactStagingDirectory)/application-package"
-                if [ -d dist ]; then cp -R dist/. "$(Build.ArtifactStagingDirectory)/application-package"; elif [ -d build ]; then cp -R build/. "$(Build.ArtifactStagingDirectory)/application-package"; else cp -R . "$(Build.ArtifactStagingDirectory)/application-package"; fi
+              if ($LASTEXITCODE -ne 0) {
+                throw 'npm run build failed.'
+              }
+
+              $packagePath = '$(Build.ArtifactStagingDirectory)/application-package'
+              New-Item -ItemType Directory -Path $packagePath -Force | Out-Null
+              if (Test-Path -LiteralPath 'dist') {
+                Copy-Item -Path 'dist/*' -Destination $packagePath -Recurse -Force
+              }
+              elseif (Test-Path -LiteralPath 'build') {
+                Copy-Item -Path 'build/*' -Destination $packagePath -Recurse -Force
+              }
+              else {
+                Get-ChildItem -Force | Copy-Item -Destination $packagePath -Recurse -Force
+              }
               displayName: 'Build and package Node.js application'
               workingDirectory: ${{ parameters.sourcePath }}
 
           # ── Build (Python default) ───────────────────────────────────
           - ${{ if and(eq(parameters.buildCommand, ''), eq(parameters.runtimeStack, 'PYTHON')) }}:
-            - bash: |
-                set -euo pipefail
+            - powershell: |
                 python -m pip install -r requirements.txt
-                mkdir -p "$(Build.ArtifactStagingDirectory)/application-package"
-                cp -R . "$(Build.ArtifactStagingDirectory)/application-package"
+              if ($LASTEXITCODE -ne 0) {
+                throw 'python -m pip install failed.'
+              }
+
+              $packagePath = '$(Build.ArtifactStagingDirectory)/application-package'
+              New-Item -ItemType Directory -Path $packagePath -Force | Out-Null
+              Get-ChildItem -Force | Copy-Item -Destination $packagePath -Recurse -Force
               displayName: 'Build and package Python application'
               workingDirectory: ${{ parameters.sourcePath }}
         """;

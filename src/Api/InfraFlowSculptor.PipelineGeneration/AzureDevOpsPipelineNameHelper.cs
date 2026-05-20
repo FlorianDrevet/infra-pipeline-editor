@@ -1,4 +1,6 @@
-namespace InfraFlowSculptor.GenerationCore;
+using InfraFlowSculptor.GenerationCore;
+
+namespace InfraFlowSculptor.PipelineGeneration;
 
 /// <summary>
 /// Builds Azure DevOps pipeline definition names that must stay aligned across

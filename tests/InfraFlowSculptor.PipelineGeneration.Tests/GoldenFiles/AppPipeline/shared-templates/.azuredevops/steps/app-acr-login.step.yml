@@ -10,9 +10,12 @@ parameters:
 
 steps:
   - ${{ if eq(parameters.acrAuthMode, 'AdminCredentials') }}:
-    - bash: |
-        set -euo pipefail
-        echo "$(containerRegistryPassword)" | docker login "$(containerRegistryLoginServer)" --username "$(containerRegistryUsername)" --password-stdin
+    - powershell: |
+        $password = '$(containerRegistryPassword)'
+        $password | docker login "$(containerRegistryLoginServer)" --username "$(containerRegistryUsername)" --password-stdin
+        if ($LASTEXITCODE -ne 0) {
+            throw 'Docker login failed.'
+        }
       displayName: 'Authenticate to ACR with admin credentials'
 
   - ${{ if ne(parameters.acrAuthMode, 'AdminCredentials') }}:
