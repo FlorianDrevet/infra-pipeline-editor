@@ -1,8 +1,10 @@
 <div class="mr-dialog" [class.mr-dialog--single]="!isBothMode()">
   <header class="mr-dialog__header" mat-dialog-title>
     <mat-icon class="mr-dialog__title-icon" aria-hidden="true">{{ titleIcon() }}</mat-icon>
-    <h2 class="mr-dialog__title">{{ titleKey() | translate }}</h2>
-    <p class="mr-dialog__subtitle">{{ subtitleKey() | translate }}</p>
+    <div class="mr-dialog__header-text">
+      <h2 class="mr-dialog__title">{{ titleKey() | translate }}</h2>
+      <p class="mr-dialog__subtitle">{{ subtitleKey() | translate }}</p>
+    </div>
   </header>
 
   <mat-dialog-content class="mr-dialog__content">

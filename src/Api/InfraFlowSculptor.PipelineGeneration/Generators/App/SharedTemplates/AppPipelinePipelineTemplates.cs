@@ -49,15 +49,14 @@ internal static class AppPipelinePipelineTemplates
             type: string
             default: ''
 
-        pool:
-          ${{ if eq(parameters.agentPoolName, '') }}:
-            vmImage: 'ubuntu-latest'
-          ${{ if ne(parameters.agentPoolName, '') }}:
-            name: '${{ parameters.agentPoolName }}'
-
         stages:
           - stage: Build
             displayName: 'Build, scan and publish image'
+            pool:
+              ${{ if eq(parameters.agentPoolName, '') }}:
+                vmImage: 'ubuntu-latest'
+              ${{ if ne(parameters.agentPoolName, '') }}:
+                name: '${{ parameters.agentPoolName }}'
             ${{ if ne(parameters.buildSourceEnvVariablesPath, '') }}:
               variables:
                 - template: ${{ parameters.buildSourceEnvVariablesPath }}
@@ -117,15 +116,14 @@ internal static class AppPipelinePipelineTemplates
             type: string
             default: ''
 
-        pool:
-          ${{ if eq(parameters.agentPoolName, '') }}:
-            vmImage: 'ubuntu-latest'
-          ${{ if ne(parameters.agentPoolName, '') }}:
-            name: '${{ parameters.agentPoolName }}'
-
         stages:
           - stage: Build
             displayName: 'Build, test and publish package'
+            pool:
+              ${{ if eq(parameters.agentPoolName, '') }}:
+                vmImage: 'ubuntu-latest'
+              ${{ if ne(parameters.agentPoolName, '') }}:
+                name: '${{ parameters.agentPoolName }}'
             jobs:
               - template: ../jobs/app-ci-code.job.yml
                 parameters:
@@ -166,16 +164,15 @@ internal static class AppPipelinePipelineTemplates
             type: object
             default: []
 
-        pool:
-          ${{ if eq(parameters.agentPoolName, '') }}:
-            vmImage: 'ubuntu-latest'
-          ${{ if ne(parameters.agentPoolName, '') }}:
-            name: '${{ parameters.agentPoolName }}'
-
         stages:
           - ${{ each env in parameters.environments }}:
             - stage: Deploy_${{ env.shortName }}
               displayName: 'Promote and deploy to ${{ env.name }}'
+              pool:
+                ${{ if eq(parameters.agentPoolName, '') }}:
+                  vmImage: 'ubuntu-latest'
+                ${{ if ne(parameters.agentPoolName, '') }}:
+                  name: '${{ parameters.agentPoolName }}'
               lockBehavior: sequential
               variables:
                 - template: ${{ env.variablesPath }}
@@ -208,16 +205,15 @@ internal static class AppPipelinePipelineTemplates
             type: object
             default: []
 
-        pool:
-          ${{ if eq(parameters.agentPoolName, '') }}:
-            vmImage: 'ubuntu-latest'
-          ${{ if ne(parameters.agentPoolName, '') }}:
-            name: '${{ parameters.agentPoolName }}'
-
         stages:
           - ${{ each env in parameters.environments }}:
             - stage: Deploy_${{ env.shortName }}
               displayName: 'Deploy to ${{ env.name }}'
+              pool:
+                ${{ if eq(parameters.agentPoolName, '') }}:
+                  vmImage: 'ubuntu-latest'
+                ${{ if ne(parameters.agentPoolName, '') }}:
+                  name: '${{ parameters.agentPoolName }}'
               lockBehavior: sequential
               variables:
                 - template: ${{ env.variablesPath }}

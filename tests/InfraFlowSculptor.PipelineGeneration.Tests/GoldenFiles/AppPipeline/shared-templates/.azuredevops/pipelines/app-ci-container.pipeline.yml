@@ -41,15 +41,14 @@ parameters:
     type: string
     default: ''
 
-pool:
-  ${{ if eq(parameters.agentPoolName, '') }}:
-    vmImage: 'ubuntu-latest'
-  ${{ if ne(parameters.agentPoolName, '') }}:
-    name: '${{ parameters.agentPoolName }}'
-
 stages:
   - stage: Build
     displayName: 'Build, scan and publish image'
+    pool:
+      ${{ if eq(parameters.agentPoolName, '') }}:
+        vmImage: 'ubuntu-latest'
+      ${{ if ne(parameters.agentPoolName, '') }}:
+        name: '${{ parameters.agentPoolName }}'
     ${{ if ne(parameters.buildSourceEnvVariablesPath, '') }}:
       variables:
         - template: ${{ parameters.buildSourceEnvVariablesPath }}

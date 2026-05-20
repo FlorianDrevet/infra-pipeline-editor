@@ -413,6 +413,7 @@ export class ProjectDetailGenerationWorkflowService {
       width: mode === 'both' ? '68rem' : '38rem',
       maxWidth: '96vw',
       panelClass: 'ifs-multi-repo-push-dialog',
+      autoFocus: false,
       data,
     });
   };

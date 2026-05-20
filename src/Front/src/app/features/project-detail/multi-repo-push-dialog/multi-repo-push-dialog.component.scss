@@ -23,35 +23,40 @@
 
 .mr-dialog__header {
   display: flex;
-  align-items: center;
-  gap: var(--ifs-space-8);
-  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--ifs-space-12);
   margin: 0;
-  padding: var(--ifs-space-20) var(--ifs-space-20) var(--ifs-space-12);
+  padding: var(--ifs-space-16) var(--ifs-space-20);
+  border-bottom: 1px solid var(--ifs-border-subtle);
 }
 
 .mr-dialog__title-icon {
   flex: none;
+  margin-top: 0.15rem;
   color: var(--ifs-brand-500);
   font-size: 1.25rem;
   width: 1.25rem;
   height: 1.25rem;
 }
 
+.mr-dialog__header-text {
+  flex: 1;
+  min-width: 0;
+}
+
 .mr-dialog__title {
   margin: 0;
   color: var(--ifs-text-primary);
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1.3;
 }
 
 .mr-dialog__subtitle {
-  width: 100%;
-  margin: var(--ifs-space-4) 0 0;
+  margin: var(--ifs-space-2) 0 0;
   color: var(--ifs-text-secondary);
-  font-size: 0.84rem;
-  line-height: 1.45;
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
 .mr-dialog__content {
