@@ -15,7 +15,8 @@ namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBootstr
 /// </summary>
 public sealed class ProjectBootstrapDefinitionBuilder(
     IProjectRepository projectRepository,
-    IApplicationFolderNameResolver applicationFolderNameResolver)
+    IApplicationFolderNameResolver applicationFolderNameResolver,
+    IContainerAppRepository containerAppRepository)
     : IProjectBootstrapDefinitionBuilder
 {
     /// <inheritdoc />
@@ -53,11 +54,15 @@ public sealed class ProjectBootstrapDefinitionBuilder(
 
         var bootstrapEnvironments = BuildEnvironmentDefinitions(project.EnvironmentDefinitions, configs);
 
+        var serviceConnections = await BuildServiceConnectionDefinitionsAsync(project, configs, cancellationToken)
+            .ConfigureAwait(false);
+
         return new ProjectBootstrapDefinitions(
             infraPipelines,
             appPipelines,
             variableGroups,
-            bootstrapEnvironments);
+            bootstrapEnvironments,
+            serviceConnections);
     }
 
     private async Task<(IReadOnlyList<BootstrapPipelineDefinition> Infra, IReadOnlyList<BootstrapPipelineDefinition> App)>
@@ -249,5 +254,59 @@ public sealed class ProjectBootstrapDefinitionBuilder(
         return environments
             .Select(environment => groupName.Replace("{env}", environment.ShortName, StringComparison.OrdinalIgnoreCase))
             .Distinct(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private async Task<IReadOnlyList<BootstrapServiceConnectionDefinition>> BuildServiceConnectionDefinitionsAsync(
+        Project project,
+        IReadOnlyList<InfrastructureConfigReadModel> configs,
+        CancellationToken cancellationToken)
+    {
+        var definitions = new List<BootstrapServiceConnectionDefinition>();
+
+        // ARM service connections from project environment definitions.
+        foreach (var env in project.EnvironmentDefinitions)
+        {
+            if (!string.IsNullOrWhiteSpace(env.AzureResourceManagerConnection))
+            {
+                definitions.Add(new BootstrapServiceConnectionDefinition(
+                    env.AzureResourceManagerConnection,
+                    BootstrapServiceConnectionTypes.AzureRM,
+                    env.ShortName.Value));
+            }
+        }
+
+        // Container Registry service connections from Container App environment settings.
+        var containerAppResourceIds = configs
+            .SelectMany(config => config.ResourceGroups)
+            .SelectMany(rg => rg.Resources)
+            .Where(resource => !resource.IsExisting
+                               && resource.ResourceType == AzureResourceTypes.ArmTypes.ContainerAppType)
+            .Select(resource => new AzureResourceId(resource.Id))
+            .ToList();
+
+        foreach (var resourceId in containerAppResourceIds)
+        {
+            var containerApp = await containerAppRepository.GetByIdReadOnlyAsync(resourceId, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (containerApp is null)
+                continue;
+
+            foreach (var envSettings in containerApp.EnvironmentSettings)
+            {
+                if (!string.IsNullOrWhiteSpace(envSettings.ContainerRegistryServiceConnection))
+                {
+                    definitions.Add(new BootstrapServiceConnectionDefinition(
+                        envSettings.ContainerRegistryServiceConnection,
+                        BootstrapServiceConnectionTypes.DockerRegistry,
+                        envSettings.EnvironmentName));
+                }
+            }
+        }
+
+        return definitions
+            .DistinctBy(sc => sc.Name, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(sc => sc.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 }

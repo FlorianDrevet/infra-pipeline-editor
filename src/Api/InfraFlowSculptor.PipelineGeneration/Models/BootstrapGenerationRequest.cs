@@ -34,6 +34,9 @@ public sealed record BootstrapGenerationRequest
     /// <summary>Gets the list of Azure DevOps variable groups to be created by the bootstrap pipeline.</summary>
     public IReadOnlyList<BootstrapVariableGroupDefinition> VariableGroups { get; init; } = [];
 
+    /// <summary>Gets the service connections that must exist in Azure DevOps before pipelines can run.</summary>
+    public IReadOnlyList<BootstrapServiceConnectionDefinition> ServiceConnections { get; init; } = [];
+
     /// <summary>
     /// Gets the bootstrap mode. <see cref="BootstrapMode.FullOwner"/> creates everything (pipelines,
     /// environments, variable groups). <see cref="BootstrapMode.ApplicationOnly"/> creates only the

@@ -123,4 +123,27 @@ internal static class BootstrapRequestFixtures
                 Folder: "\\Apps"),
         ],
     };
+
+    /// <summary>FullOwner mode with service connections to validate.</summary>
+    public static BootstrapGenerationRequest FullOwnerWithServiceConnections() => new()
+    {
+        OrganizationName = Org,
+        ProjectName = Project,
+        RepositoryName = Repo,
+        DefaultBranch = Branch,
+        Mode = BootstrapMode.FullOwner,
+        Pipelines =
+        [
+            new BootstrapPipelineDefinition(
+                Name: "Core - CI",
+                YamlPath: ".azuredevops/core/ci.pipeline.yml",
+                Folder: "\\Core"),
+        ],
+        ServiceConnections =
+        [
+            new BootstrapServiceConnectionDefinition("arm-sc-dev", BootstrapServiceConnectionTypes.AzureRM, "dev"),
+            new BootstrapServiceConnectionDefinition("arm-sc-prod", BootstrapServiceConnectionTypes.AzureRM, "prod"),
+            new BootstrapServiceConnectionDefinition("acr-docker-dev", BootstrapServiceConnectionTypes.DockerRegistry, "dev"),
+        ],
+    };
 }

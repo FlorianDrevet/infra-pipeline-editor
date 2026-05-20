@@ -19,6 +19,7 @@ public sealed class ProjectBootstrapDefinitionBuilderTests
 {
     private readonly IProjectRepository _projectRepository;
     private readonly IApplicationFolderNameResolver _applicationFolderNameResolver;
+    private readonly IContainerAppRepository _containerAppRepository;
     private readonly Project _project;
     private readonly ProjectPipelineVariableGroup _variableGroup;
     private readonly InfrastructureConfigReadModel _config;
@@ -28,6 +29,7 @@ public sealed class ProjectBootstrapDefinitionBuilderTests
     {
         _projectRepository = Substitute.For<IProjectRepository>();
         _applicationFolderNameResolver = Substitute.For<IApplicationFolderNameResolver>();
+        _containerAppRepository = Substitute.For<IContainerAppRepository>();
 
         _project = Project.Create(new Name("Retail Platform"), "Provision retail assets.", UserId.CreateUnique());
         _variableGroup = _project.AddPipelineVariableGroup("shared-{env}").Value;
@@ -127,7 +129,7 @@ public sealed class ProjectBootstrapDefinitionBuilderTests
                     PipelineVariableName: "acr-password")
             ]);
 
-        _sut = new ProjectBootstrapDefinitionBuilder(_projectRepository, _applicationFolderNameResolver);
+        _sut = new ProjectBootstrapDefinitionBuilder(_projectRepository, _applicationFolderNameResolver, _containerAppRepository);
     }
 
     [Fact]

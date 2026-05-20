@@ -16,8 +16,7 @@
 .acr-service-connections__header {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--ifs-space-16);
+  gap: var(--ifs-space-12);
 }
 
 .acr-service-connections__copy {
@@ -42,14 +41,6 @@
   line-height: 1.5;
 }
 
-.acr-service-connections__mode {
-  flex: 0 0 auto;
-}
-
-.acr-service-connections__shared-field {
-  max-width: 34rem;
-}
-
 .acr-service-connections__environment-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
@@ -62,12 +53,6 @@
 
 @media (max-width: 48rem) {
   .acr-service-connections__header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .acr-service-connections__mode,
-  .acr-service-connections__shared-field {
-    width: 100%;
+    gap: var(--ifs-space-8);
   }
 }

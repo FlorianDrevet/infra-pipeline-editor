@@ -78,6 +78,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         var appPipelines = definitions.AppPipelines;
         var variableGroups = definitions.VariableGroups;
         var bootstrapEnvironments = definitions.Environments;
+        var serviceConnections = definitions.ServiceConnections;
 
         var prefix = $"bootstrap/project/{command.ProjectId.Value}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
         var unionFileUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
@@ -97,6 +98,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
                 Pipelines = infraPipelines,
                 Environments = bootstrapEnvironments,
                 VariableGroups = variableGroups,
+                ServiceConnections = serviceConnections,
                 Mode = BootstrapMode.FullOwner,
             };
 
@@ -119,6 +121,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
                 Pipelines = appPipelines,
                 Environments = bootstrapEnvironments,
                 VariableGroups = variableGroups,
+                ServiceConnections = serviceConnections,
                 Mode = BootstrapMode.ApplicationOnly,
             };
 
@@ -147,6 +150,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
                 Pipelines = allPipelines,
                 Environments = bootstrapEnvironments,
                 VariableGroups = variableGroups,
+                ServiceConnections = serviceConnections,
                 Mode = BootstrapMode.FullOwner,
             };
 
