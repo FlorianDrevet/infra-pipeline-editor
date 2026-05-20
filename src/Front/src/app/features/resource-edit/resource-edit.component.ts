@@ -1075,6 +1075,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             dockerImageName: general.dockerImageName || null,
             dockerImageValidated: general.dockerImageValidated ?? false,
             dockerfilePath: general.dockerfilePath || null,
+            sourceCodePath: general.sourceCodePath || null,
             applicationName: general.applicationName || null,
             pipelineStepOptions: this.pipelineStepOptions(),
             environmentSettings: buildContainerAppEnvironmentSettings(envForms),
