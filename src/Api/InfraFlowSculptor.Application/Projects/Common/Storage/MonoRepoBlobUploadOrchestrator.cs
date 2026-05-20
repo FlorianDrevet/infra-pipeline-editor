@@ -87,6 +87,22 @@ public sealed class MonoRepoBlobUploadOrchestrator(IBlobService blobService) : I
                     .ConfigureAwait(false);
                 appCommonUris[repoRelativePath] = uri;
             }
+
+            // Include environment variables files in the app bucket — app CI pipelines reference them
+            // via template includes resolved relative to the pipeline template path.
+            foreach (var (path, content) in generationResult.CommonFiles)
+            {
+                if (!path.StartsWith("variables/", StringComparison.Ordinal))
+                    continue;
+
+                var repoRelativePath = $".azuredevops/Common/{path}";
+                var uri = await blobService.UploadContentAsync(
+                        $"{prefix}/app/{repoRelativePath}",
+                        content,
+                        PlainTextContentType)
+                    .ConfigureAwait(false);
+                appCommonUris[repoRelativePath] = uri;
+            }
         }
 
         var infraConfigUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>(StringComparer.Ordinal);
