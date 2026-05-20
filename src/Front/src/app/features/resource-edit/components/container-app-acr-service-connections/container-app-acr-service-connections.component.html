@@ -13,10 +13,10 @@
   <div class="acr-service-connections__environment-grid">
     @for (envForm of envForms(); track envForm.envName) {
       <div class="acr-service-connections__environment-field" [formGroup]="envForm.form">
-      <app-ds-text-field
+        <app-ds-text-field
           [formControlName]="serviceConnectionControlName"
           [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.ENVIRONMENT_LABEL' | translate: { envName: envForm.envName }"
-        [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.FIELD_HINT' | translate"
+          [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.FIELD_HINT' | translate"
           [placeholder]="'RESOURCE_EDIT.PIPELINE_OPTIONS.ACR_SERVICE_CONNECTIONS.PLACEHOLDER' | translate" />
       </div>
     }

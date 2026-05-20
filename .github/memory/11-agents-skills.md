@@ -49,6 +49,12 @@
 - Guardrails now repeated across `dev`, `architect`, `dotnet-dev`, `angular-front`, `vibe-coding-refractaire`, `dotnet-patterns`, and `angular-patterns`.
 - Mandatory rules: no magic strings, one public top-level type/class per file, strongly typed contracts/models/persistence before `object` / `Dictionary` / `JsonDocument` / weak JSON, and explicit design-pattern choice based on readability, maintainability, and scalability.
 
+## Request Contradiction Pass [2026-05-20]
+
+- `.github/copilot-instructions.md`, `.github/agents/dev.agent.md`, and `.github/prompts/InfraFlowProject.prompt.md` now require an explicit contradiction pass for Bicep generation, Azure DevOps pipelines, bootstrap flows, service connections, repository layouts, and multi-environment configuration requests.
+- Agents must challenge technically false or architecture-breaking asks before coding, instead of treating the latest user wording as a sufficient specification.
+- Hidden compatibility fallbacks or UI shortcuts that weaken environment isolation are now treated as risks to question, not conveniences to preserve by default.
+
 ## Unit Test Routing [2026-04-27]
 
 - `dotnet-dev` must load `tdd-workflow` + `xunit-unit-testing` for any code modification task (not just test-only tasks).
