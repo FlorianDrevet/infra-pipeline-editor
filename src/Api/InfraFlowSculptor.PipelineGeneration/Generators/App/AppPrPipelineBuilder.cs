@@ -76,7 +76,15 @@ internal static class AppPrPipelineBuilder
         sb.AppendLine($"# Expected PR pipeline definition name: {AppNamingHelper.BuildPrPipelineDefinitionName(request)}");
         sb.AppendLine("name: $(Date:yyyyMMdd).$(Rev:r)");
         sb.AppendLine();
-        sb.AppendLine("trigger: none");
+        sb.AppendLine("trigger:");
+        sb.AppendLine("  branches:");
+        sb.AppendLine("    include:");
+        sb.AppendLine("      - '*'");
+        sb.AppendLine("  paths:");
+        sb.AppendLine("    include:");
+        sb.AppendLine($"      - {configName}/{resourceName}/*");
+        sb.AppendLine("      - .azuredevops/Common/*");
+        sb.AppendLine($"      - .azuredevops/{configName}/apps/{appFolderName}/*");
         sb.AppendLine();
         sb.AppendLine("pr:");
         sb.AppendLine("  branches:");

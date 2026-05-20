@@ -2,7 +2,15 @@
 # Expected PR pipeline definition name: [Code] core - myfunc - PR
 name: $(Date:yyyyMMdd).$(Rev:r)
 
-trigger: none
+trigger:
+  branches:
+    include:
+      - '*'
+  paths:
+    include:
+      - core/myfunc/*
+      - .azuredevops/Common/*
+      - .azuredevops/core/apps/MyFunc/*
 
 pr:
   branches:
