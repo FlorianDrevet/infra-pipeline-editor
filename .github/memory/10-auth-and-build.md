@@ -104,6 +104,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - Shared YAML templates live under `.azuredevops/{pipelines,jobs,steps}/`; per-resource wrappers live under `apps/{appName}/...`.
 - Azure DevOps resolves `template:` relative to the template file, not the wrapper; keep helper path generation aligned with `.azuredevops/pipelines/`.
 - CI/release split remains build-once then promote.
+- `AppPipelineRequestFactory` must propagate `ContainerApp.SourceCodePath` into `AppPipelineGenerationRequest.SourceCodePath`; otherwise generated Container App CI/PR/release wrappers silently fall back to `buildContext: '.'` even when the resource stores a custom build context.
 - App pipeline generation now emits CI, PR, and release wrappers for every generated app (`ci.app-pipeline.yml`, `pr.app-pipeline.yml`, `release.app-pipeline.yml`). Bootstrap app definitions must provision all three; app PR templates validate code or Docker builds without ACR login/push.
 - Container delivery uses immutable tags and optional Trivy/Syft scans.
 - Shared app step templates now emit Windows-compatible `powershell` steps and AzureCLI `scriptType: ps` for inline scripts (`app-compute-release-tag`, `app-acr-login`, `app-docker-buildx-push`, `app-docker-buildx-validate`, `app-trivy-scan`, `app-syft-sbom`, `app-load-metadata`, `app-build-code`, `app-acr-promote`, `app-deploy-container`). Trivy and Syft install their Windows zip assets directly from GitHub releases instead of piping shell installers through Bash.

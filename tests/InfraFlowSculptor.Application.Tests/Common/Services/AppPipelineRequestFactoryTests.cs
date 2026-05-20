@@ -91,6 +91,33 @@ public sealed class AppPipelineRequestFactoryTests
     }
 
     [Fact]
+    public async Task Given_ContainerAppWithSourceCodePath_When_CreateAsync_Then_ReturnsPipelineRequestWithSourceCodePathAsync()
+    {
+        // Arrange
+        const string sourceCodePath = "src/front";
+        var containerApp = ContainerApp.Create(
+            _resourceGroup.Id,
+            new Name("ca-source"),
+            new Location(Location.LocationEnum.FranceCentral),
+            AzureResourceId.CreateUnique(),
+            containerRegistryId: null,
+            acrAuthMode: null,
+            sourceCodePath: sourceCodePath);
+        _containerAppRepository.GetByIdReadOnlyAsync(containerApp.Id, Arg.Any<CancellationToken>())
+            .Returns(containerApp);
+
+        // Act
+        var result = await _sut.CreateAsync(
+            containerApp.Id,
+            AzureResourceTypes.ArmTypes.ContainerAppType,
+            CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.SourceCodePath.Should().Be(sourceCodePath);
+    }
+
+    [Fact]
     public async Task Given_ContainerAppWithEnvironmentAcrServiceConnection_When_CreateAsync_Then_ReturnsPipelineRequestWithConnectionAsync()
     {
         // Arrange

@@ -54,6 +54,7 @@ public sealed class AppPipelineRequestFactory(
             ResourceType = AzureResourceTypes.ContainerApp,
             DeploymentMode = DeploymentMode.DeploymentModeType.Container.ToString(),
             DockerfilePath = containerApp.DockerfilePath,
+            SourceCodePath = containerApp.SourceCodePath,
             DockerImageName = containerApp.DockerImageName,
             ContainerRegistryName = containerRegistryName,
             ContainerRegistryServiceConnections = BuildContainerRegistryServiceConnections(containerApp.EnvironmentSettings),

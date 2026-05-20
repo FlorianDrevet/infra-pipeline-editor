@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Install deps in their own layer for better caching.
 COPY package.json package-lock.json angular.json tsconfig.json tsconfig.app.json tsconfig.spec.json tailwind.config.js proxy.conf.js ./
-RUN --mount=type=cache,target=/root/.npm npm ci --ignore-scripts --no-audit --no-fund
+RUN npm ci --no-audit --no-fund
 
 COPY public ./public
 COPY src ./src
