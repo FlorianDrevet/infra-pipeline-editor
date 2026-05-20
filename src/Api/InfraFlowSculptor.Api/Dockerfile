@@ -7,6 +7,9 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+COPY Directory.Build.props .
+COPY Directory.Packages.props .
+COPY NuGet.config .
 COPY ["src/Api/InfraFlowSculptor.Api/InfraFlowSculptor.Api.csproj", "InfraFlowSculptor.Api/"]
 COPY ["src/Api/InfraFlowSculptor.Application/InfraFlowSculptor.Application.csproj", "InfraFlowSculptor.Application/"]
 COPY ["src/Api/InfraFlowSculptor.Domain/InfraFlowSculptor.Domain.csproj", "InfraFlowSculptor.Domain/"]
