@@ -141,6 +141,7 @@ export function buildResourceEditGeneralForm(request: ResourceEditGeneralFormBui
     base['dockerImageName'] = [containerApp.dockerImageName ?? null];
     base['dockerImageValidated'] = [containerApp.dockerImageValidated ?? false];
     base['dockerfilePath'] = [containerApp.dockerfilePath ?? ''];
+    base['sourceCodePath'] = [containerApp.sourceCodePath ?? ''];
     base['applicationName'] = [containerApp.applicationName ?? ''];
   } else if (resourceType === 'ContainerAppEnvironment') {
     const containerAppEnvironment = resource as ContainerAppEnvironmentResponse;

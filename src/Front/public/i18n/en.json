@@ -1671,7 +1671,14 @@
       "NO_REPO_CONFIGURED": "No Git repository configured",
       "NO_DOCKERFILES_FOUND": "No Dockerfile found on this branch",
       "LOADING_BRANCHES": "Loading branches…",
-      "LOADING_FILES": "Searching for Dockerfiles…"
+      "LOADING_FILES": "Searching for Dockerfiles…",
+      "BUILD_CONTEXT": "Build context",
+      "BUILD_CONTEXT_HINT": "Relative path to the Docker build context directory (defaults to repository root)",
+      "BROWSE_BUILD_CONTEXT": "Browse build context",
+      "DIRECTORIES": "Directories",
+      "LOADING_DIRECTORIES": "Loading directories...",
+      "NO_DIRECTORIES_FOUND": "No directories found",
+      "REPO_ROOT": "repository root"
     },
     "NETWORKING": {
       "TITLE": "Networking",

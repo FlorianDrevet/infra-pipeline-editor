@@ -1663,7 +1663,14 @@
       "NO_REPO_CONFIGURED": "Aucun d\u00e9p\u00f4t Git configur\u00e9",
       "NO_DOCKERFILES_FOUND": "Aucun Dockerfile trouv\u00e9 sur cette branche",
       "LOADING_BRANCHES": "Chargement des branches\u2026",
-      "LOADING_FILES": "Recherche des Dockerfiles\u2026"
+      "LOADING_FILES": "Recherche des Dockerfiles\u2026",
+      "BUILD_CONTEXT": "Contexte de build",
+      "BUILD_CONTEXT_HINT": "Chemin relatif vers le r\u00e9pertoire de contexte Docker build (par d\u00e9faut la racine du d\u00e9p\u00f4t)",
+      "BROWSE_BUILD_CONTEXT": "Parcourir le contexte de build",
+      "DIRECTORIES": "R\u00e9pertoires",
+      "LOADING_DIRECTORIES": "Chargement des r\u00e9pertoires...",
+      "NO_DIRECTORIES_FOUND": "Aucun r\u00e9pertoire trouv\u00e9",
+      "REPO_ROOT": "racine du d\u00e9p\u00f4t"
     },
     "NETWORKING": {
       "TITLE": "R\u00e9seau",

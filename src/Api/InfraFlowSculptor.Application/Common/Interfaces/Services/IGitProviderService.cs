@@ -33,4 +33,12 @@ public interface IGitProviderService
         string token, string owner, string repositoryName,
         string branch, string? filenamePattern,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists directories in the repository on a specific branch, optionally filtered by path prefix.
+    /// </summary>
+    Task<ErrorOr<IReadOnlyList<GitFileResult>>> SearchDirectoriesAsync(
+        string token, string owner, string repositoryName,
+        string branch, string? pathPrefix,
+        CancellationToken cancellationToken = default);
 }

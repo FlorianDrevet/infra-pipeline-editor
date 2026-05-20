@@ -81,6 +81,7 @@ import { ResourceEditUsedBySectionComponent } from './sections/identity-access/r
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
+import { BuildContextPickerComponent } from '../../shared/components/build-context-picker/build-context-picker.component';
 import { ContainerAppAcrServiceConnectionsComponent } from './components/container-app-acr-service-connections/container-app-acr-service-connections.component';
 import { PipelineOptionsComponent } from './components/pipeline-options/pipeline-options.component';
 import { NetworkingTabComponent } from './components/networking-tab/networking-tab.component';
@@ -188,6 +189,7 @@ type CorsFieldKey = CorsListField | CorsMethodField | 'maxAgeInSeconds';
     DsButtonComponent,
     DsTextFieldComponent,
     DockerfilePickerComponent,
+    BuildContextPickerComponent,
     DsSelectComponent,
     ContainerAppAcrServiceConnectionsComponent,
     PipelineOptionsComponent,

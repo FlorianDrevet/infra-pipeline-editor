@@ -16,6 +16,7 @@ using InfraFlowSculptor.Application.Projects.Queries.GetProject;
 using InfraFlowSculptor.Application.Projects.Queries.ListGitBranches;
 using InfraFlowSculptor.Application.Projects.Queries.ListCodeRepoBranches;
 using InfraFlowSculptor.Application.Projects.Queries.SearchCodeRepoFiles;
+using InfraFlowSculptor.Application.Projects.Queries.SearchCodeRepoDirectories;
 using InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectConfigs;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectResources;
@@ -350,6 +351,33 @@ public static class ProjectController
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
+
+        group.MapGet("/{projectId:guid}/git-config/code-directories",
+                async ([FromRoute] Guid projectId, [FromQuery] string branch, [FromQuery] string? prefix, [FromQuery] Guid? configId, IMediator mediator, IMapper mapper) =>
+                {
+                    var query = new SearchCodeRepoDirectoriesQuery(
+                        new ProjectId(projectId),
+                        branch,
+                        prefix,
+                        configId.HasValue ? new InfrastructureConfigId(configId.Value) : null);
+                    var result = await mediator.Send(query);
+
+                    return result.Match(
+                        dirs =>
+                        {
+                            var responses = dirs.Select(d => mapper.Map<GitFileResponse>(d)).ToList();
+                            return TypedResults.Ok(responses);
+                        },
+                        errors => errors.Result()
+                    );
+                })
+            .WithName(ProjectRouteNames.SearchCodeRepoDirectories)
+            .WithSummary("List directories in code repository")
+            .WithDescription("Lists directories in the application-code Git repository on a specific branch. Requires read access to the project.")
+            .Produces<IReadOnlyList<GitFileResponse>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
     }
 
     private static void MapResourceAndAgentPoolEndpoints(RouteGroupBuilder group)

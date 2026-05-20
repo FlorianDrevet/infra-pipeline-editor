@@ -28,6 +28,7 @@ internal static class ProjectRouteNames
     internal const string ListGitBranches = nameof(ListGitBranches);
     internal const string ListCodeRepoBranches = nameof(ListCodeRepoBranches);
     internal const string SearchCodeRepoFiles = nameof(SearchCodeRepoFiles);
+    internal const string SearchCodeRepoDirectories = nameof(SearchCodeRepoDirectories);
     internal const string ListProjectResources = nameof(ListProjectResources);
     internal const string SetProjectAgentPool = nameof(SetProjectAgentPool);
     internal const string AddProjectRepository = nameof(AddProjectRepository);

@@ -415,6 +415,50 @@ public sealed class AzureDevOpsGitProviderService(
         }
     }
 
+    /// <inheritdoc />
+    public async Task<ErrorOr<IReadOnlyList<GitFileResult>>> SearchDirectoriesAsync(
+        string token, string owner, string repositoryName,
+        string branch, string? pathPrefix,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var client = CreateClient(token);
+            var (org, project) = ParseOwner(owner);
+
+            var url = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{repositoryName}/items?recursionLevel=full&versionDescriptor.version={Uri.EscapeDataString(branch)}&versionDescriptor.versionType=branch&api-version={ApiVersion}";
+            var response = await client.GetFromJsonAsync<AdoItemList>(url, cancellationToken);
+
+            var results = (response?.Value ?? [])
+                .Where(item => item is { IsFolder: true, Path: not null })
+                .Where(item =>
+                {
+                    var path = item.Path!.TrimStart('/');
+                    if (string.IsNullOrEmpty(path))
+                        return false;
+                    var name = System.IO.Path.GetFileName(path);
+                    if (name.StartsWith('.'))
+                        return false;
+                    return string.IsNullOrEmpty(pathPrefix)
+                        || path.StartsWith(pathPrefix, StringComparison.OrdinalIgnoreCase);
+                })
+                .Take(200)
+                .Select(item =>
+                {
+                    var path = item.Path!.TrimStart('/');
+                    var name = System.IO.Path.GetFileName(path);
+                    return new GitFileResult(path, name);
+                })
+                .ToList();
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            return Errors.GitRepository.SearchFilesFailed(ex.Message);
+        }
+    }
+
     private HttpClient CreateClient(string token)
     {
         var client = httpClientFactory.CreateClient();

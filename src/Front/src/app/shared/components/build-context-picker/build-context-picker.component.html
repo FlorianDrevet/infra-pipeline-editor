@@ -6,7 +6,7 @@
   [class.picker-trigger--disabled]="isDisabled()"
   [disabled]="isDisabled()"
   (click)="toggle()"
-  [attr.aria-label]="'RESOURCE_EDIT.APP_PIPELINE.BROWSE_DOCKERFILE' | translate">
+  [attr.aria-label]="'RESOURCE_EDIT.APP_PIPELINE.BROWSE_BUILD_CONTEXT' | translate">
   <mat-icon>folder_open</mat-icon>
 </button>
 
@@ -17,7 +17,7 @@
   [cdkConnectedOverlayPositions]="overlayPositions"
   [cdkConnectedOverlayMinWidth]="320"
   [cdkConnectedOverlayHasBackdrop]="true"
-  cdkConnectedOverlayBackdropClass="dockerfile-picker__backdrop"
+  cdkConnectedOverlayBackdropClass="build-context-picker__backdrop"
   (backdropClick)="close()"
   (detach)="close()">
 
@@ -39,35 +39,45 @@
           (ngModelChange)="onBranchSelect($event)" />
       </div>
 
-      <!-- File list -->
+      <!-- Directory list -->
       <div class="picker-panel__section">
-        <label class="picker-panel__label">Dockerfiles</label>
-        @if (loadingFiles()) {
+        <label class="picker-panel__label">{{ 'RESOURCE_EDIT.APP_PIPELINE.DIRECTORIES' | translate }}</label>
+        @if (loadingDirectories()) {
           <div class="picker-panel__loading">
             <mat-spinner diameter="20"></mat-spinner>
-            <span>{{ 'RESOURCE_EDIT.APP_PIPELINE.LOADING_FILES' | translate }}</span>
+            <span>{{ 'RESOURCE_EDIT.APP_PIPELINE.LOADING_DIRECTORIES' | translate }}</span>
           </div>
-        } @else if (hasFiles()) {
+        } @else if (hasDirectories()) {
           <ul class="picker-panel__file-list" role="listbox">
-            @for (file of files(); track file.path) {
+            <li
+              class="picker-panel__file-item"
+              role="option"
+              tabindex="0"
+              aria-label="."
+              (click)="selectRoot()"
+              (keydown.enter)="selectRoot()"
+              (keydown.space)="selectRoot()">
+              <mat-icon class="picker-panel__file-icon">home</mat-icon>
+              <span class="picker-panel__file-path">. ({{ 'RESOURCE_EDIT.APP_PIPELINE.REPO_ROOT' | translate }})</span>
+            </li>
+            @for (dir of directories(); track dir.path) {
               <li
                 class="picker-panel__file-item"
                 role="option"
                 tabindex="0"
-                [attr.aria-label]="file.path"
-                [attr.aria-selected]="false"
-                (click)="selectFile(file)"
-                (keydown.enter)="selectFile(file)"
-                (keydown.space)="selectFile(file)">
-                <mat-icon class="picker-panel__file-icon">description</mat-icon>
-                <span class="picker-panel__file-path">{{ file.path }}</span>
+                [attr.aria-label]="dir.path"
+                (click)="selectDirectory(dir)"
+                (keydown.enter)="selectDirectory(dir)"
+                (keydown.space)="selectDirectory(dir)">
+                <mat-icon class="picker-panel__file-icon">folder</mat-icon>
+                <span class="picker-panel__file-path">{{ dir.path }}</span>
               </li>
             }
           </ul>
         } @else {
           <div class="picker-panel__empty">
             <mat-icon>search_off</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.APP_PIPELINE.NO_DOCKERFILES_FOUND' | translate }}</span>
+            <span>{{ 'RESOURCE_EDIT.APP_PIPELINE.NO_DIRECTORIES_FOUND' | translate }}</span>
           </div>
         }
       </div>

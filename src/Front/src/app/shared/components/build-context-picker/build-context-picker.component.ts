@@ -9,7 +9,7 @@ import { ProjectService } from '../../services/project.service';
 import { GitBranchResponse, GitFileResponse } from '../../interfaces/project.interface';
 
 @Component({
-  selector: 'app-dockerfile-picker',
+  selector: 'app-build-context-picker',
   standalone: true,
   imports: [
     FormsModule,
@@ -20,33 +20,30 @@ import { GitBranchResponse, GitFileResponse } from '../../interfaces/project.int
     TranslateModule,
     DsSelectComponent,
   ],
-  templateUrl: './dockerfile-picker.component.html',
-  styleUrl: './dockerfile-picker.component.scss',
+  templateUrl: './build-context-picker.component.html',
+  styleUrl: './build-context-picker.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DockerfilePickerComponent {
+export class BuildContextPickerComponent {
   private readonly projectService = inject(ProjectService);
 
-  // Inputs
   readonly projectId = input<string>('');
   readonly configId = input<string | undefined>(undefined);
   readonly disabled = input(false);
 
   protected readonly isDisabled = computed(() => this.disabled() || !this.projectId());
 
-  // Output
   readonly pathSelected = output<string>();
 
-  // State
   protected readonly isOpen = signal(false);
   protected readonly branches = signal<GitBranchResponse[]>([]);
-  protected readonly files = signal<GitFileResponse[]>([]);
+  protected readonly directories = signal<GitFileResponse[]>([]);
   protected readonly selectedBranch = signal<string | null>(null);
   protected readonly loadingBranches = signal(false);
-  protected readonly loadingFiles = signal(false);
+  protected readonly loadingDirectories = signal(false);
   protected readonly error = signal<string | null>(null);
 
-  protected readonly hasFiles = computed(() => this.files().length > 0);
+  protected readonly hasDirectories = computed(() => this.directories().length > 0);
 
   protected readonly branchSelectOptions = computed<DsSelectOption[]>(() =>
     this.branches().map((b) => ({ value: b.name, label: b.name, icon: b.isProtected ? 'lock' : 'account_tree' }))
@@ -93,20 +90,20 @@ export class DockerfilePickerComponent {
 
   protected async selectBranch(branchName: string): Promise<void> {
     this.selectedBranch.set(branchName);
-    this.loadingFiles.set(true);
-    this.files.set([]);
+    this.loadingDirectories.set(true);
+    this.directories.set([]);
     try {
-      const files = await this.projectService.searchCodeFiles(
+      const dirs = await this.projectService.searchCodeDirectories(
         this.projectId(),
         branchName,
-        'Dockerfile',
+        undefined,
         this.configId()
       );
-      this.files.set(files);
+      this.directories.set(dirs);
     } catch {
-      this.files.set([]);
+      this.directories.set([]);
     } finally {
-      this.loadingFiles.set(false);
+      this.loadingDirectories.set(false);
     }
   }
 
@@ -116,8 +113,13 @@ export class DockerfilePickerComponent {
     }
   }
 
-  protected selectFile(file: GitFileResponse): void {
-    this.pathSelected.emit(file.path);
+  protected selectDirectory(dir: GitFileResponse): void {
+    this.pathSelected.emit(dir.path);
+    this.close();
+  }
+
+  protected selectRoot(): void {
+    this.pathSelected.emit('.');
     this.close();
   }
 }

@@ -56,6 +56,7 @@ export interface ContainerAppResponse {
   dockerImageName: string | null;
   dockerImageValidated: boolean;
   dockerfilePath: string | null;
+  sourceCodePath?: string | null;
   applicationName: string | null;
   pipelineStepOptions?: PipelineStepOptions | null;
   environmentSettings: ContainerAppEnvironmentConfigResponse[];
@@ -75,6 +76,7 @@ export interface CreateContainerAppRequest {
   dockerImageName?: string | null;
   dockerImageValidated?: boolean;
   dockerfilePath?: string | null;
+  sourceCodePath?: string | null;
   applicationName?: string | null;
   pipelineStepOptions?: PipelineStepOptions | null;
   environmentSettings?: ContainerAppEnvironmentConfigEntry[];
@@ -91,6 +93,7 @@ export interface UpdateContainerAppRequest {
   dockerImageName?: string | null;
   dockerImageValidated?: boolean;
   dockerfilePath?: string | null;
+  sourceCodePath?: string | null;
   applicationName?: string | null;
   pipelineStepOptions?: PipelineStepOptions | null;
   environmentSettings?: ContainerAppEnvironmentConfigEntry[];

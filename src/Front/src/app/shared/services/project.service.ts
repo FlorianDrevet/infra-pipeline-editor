@@ -351,6 +351,16 @@ export class ProjectService {
     );
   }
 
+  searchCodeDirectories(projectId: string, branch: string, prefix?: string, configId?: string): Promise<GitFileResponse[]> {
+    const params = new URLSearchParams({ branch });
+    if (prefix) params.set('prefix', prefix);
+    if (configId) params.set('configId', configId);
+    return this.axios.request$<GitFileResponse[]>(
+      MethodEnum.GET,
+      `/projects/${projectId}/git-config/code-directories?${params.toString()}`
+    );
+  }
+
   // ─── Project Resources ───
 
   getProjectResources(projectId: string): Promise<ProjectResourceResponse[]> {

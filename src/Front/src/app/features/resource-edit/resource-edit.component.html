@@ -1953,6 +1953,17 @@
                         [configId]="configId"
                         (pathSelected)="generalForm.get('dockerfilePath')?.setValue($event); generalForm.markAsDirty()" />
                     </div>
+                    <div class="form-field form-field--with-action">
+                      <app-ds-text-field
+                        formControlName="sourceCodePath"
+                        [label]="'RESOURCE_EDIT.APP_PIPELINE.BUILD_CONTEXT' | translate"
+                        [hint]="'RESOURCE_EDIT.APP_PIPELINE.BUILD_CONTEXT_HINT' | translate"
+                        placeholder="." />
+                      <app-build-context-picker
+                        [projectId]="config()?.projectId ?? ''"
+                        [configId]="configId"
+                        (pathSelected)="generalForm.get('sourceCodePath')?.setValue($event); generalForm.markAsDirty()" />
+                    </div>
                   } @else {
                     <app-ds-text-field class="form-field"
                       formControlName="sourceCodePath"
