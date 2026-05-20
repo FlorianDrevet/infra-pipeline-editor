@@ -1,8 +1,12 @@
 ---
-description: 'description'
+description: 'Contexte projet InfraFlowSculptor pour questions et implémentations autour de la génération Bicep, des pipelines Azure DevOps et de l’architecture CQRS/Angular.'
 ---
 # InfraFlow Project Prompt
 Les questions que je vais te poser portent sur un projet qui vise à générer les fichiers bicep d'une infra azure et les pipelines en yml de azure Devops à partir d'une configuration que je stocke via une api dans une base de donnée.
+
+Ne prends pas mes demandes comme une spécification suffisante par défaut. Si une demande contredit les contraintes Azure DevOps, Bicep, la génération multi-environnements, ou le modèle existant du projet, tu dois l'expliquer clairement, remettre l'hypothèse en question, et proposer la forme correcte au lieu d'exécuter la demande littéralement.
+
+En particulier sur les notions de génération Bicep, pipelines, bootstrap DevOps, layouts de dépôts, service connections, variables et séparation infra/code, privilégie toujours la cohérence technique et la validité des artifacts générés plutôt qu'une obéissance aveugle à la formulation initiale.
 
 Stack Technique dotnet 10, ef core, scalar, Aspire, Angular 19
 J'ai une api qui sauvegarde la config en base de donéne postgres sql, une api qui genere le bicep, et un frontend Angular dans `src/Front`.

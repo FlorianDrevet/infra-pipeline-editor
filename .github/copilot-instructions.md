@@ -37,6 +37,13 @@
 - `src\Shared` holds reusable cross-cutting pieces used by both APIs: base DDD model types, shared application abstractions, shared API middleware/options, and persistence converters/repository helpers.
 - The main request flow is: Minimal API endpoint in `Api\Controllers` -> Mapster/request mapping -> MediatR command/query in `Application` -> handler/repository/service calls -> domain model changes or reads -> EF Core persistence -> Mapster/typed response DTO back to HTTP.
 
+## Request challenge rules
+
+- Do not treat the user's latest instruction as a sufficient specification when it touches Bicep generation, Azure DevOps pipelines, bootstrap flows, repository topology, or service connections.
+- For those topics, first check the request against the existing domain model, generation architecture, Azure DevOps/Bicep constraints, and project memory. If the request is inconsistent, incomplete, or technically false, say so explicitly and propose the corrected direction.
+- Do not preserve or introduce a "temporary" compatibility fallback, shared shortcut, or UI convenience when it weakens environment isolation or hides an invalid pipeline/Bicep assumption.
+- If a user request would produce invalid generated artifacts, cross-environment leakage, or a misleading UX that suggests an impossible infrastructure/pipeline concept, challenge the request before coding and prefer the coherent implementation over literal compliance.
+
 ## Specialized agents
 
 - **Main entry point** — Use the `dev` agent (`.github/agents/dev.agent.md`) as the primary entry point for any task. It reads `MEMORY.md` + thematic memory files in `.github/memory/`, routes to the right specialist, loads relevant Skills, and updates memory at the end.

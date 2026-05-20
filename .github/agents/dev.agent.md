@@ -55,6 +55,21 @@ Après lecture de `MEMORY.md`, identifier :
 - **Quel(s) agent(s) spécialisé(s)** à invoquer → voir table de routage ci-dessous
 - **Quel(s) skill(s)** à charger → voir section Skills ci-dessous
 
+### 2a. Passe de contradiction obligatoire
+
+**Avant de planifier ou coder**, faire une passe de contradiction sur la demande utilisateur si elle touche :
+- la génération Bicep
+- les pipelines Azure DevOps
+- le bootstrap DevOps
+- les service connections, repositories, layouts, ou flux multi-environnements
+
+Pour cette passe :
+1. vérifier la demande contre l'architecture existante, la mémoire projet, et les contraintes réelles Azure DevOps / Bicep
+2. expliciter toute hypothèse fragile, notion fausse, ou simplification trompeuse
+3. proposer l'implémentation cohérente si la demande brute est incorrecte
+
+**Règle absolue :** ne jamais exécuter littéralement une demande sur Bicep/pipelines si elle introduit un concept invalide, un fallback qui masque une incohérence, ou une fuite de configuration entre environnements.
+
 ### 2bis. Phase Research — Explorer le codebase avant de déléguer
 
 **Pour les tâches complexes ou cross-cutting**, commencer par GitNexus puis compléter avec `@Explore`.
@@ -189,6 +204,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 > 4. Le **résultat attendu** décrit de façon non ambiguë
 > 5. Le **résultat de `gitnexus_impact()`** si la tâche modifie un symbole partagé (pour que le sous-agent connaisse le blast radius)
 > 6. **L'instruction TDD** : rappeler que le skill `tdd-workflow` est obligatoire et que les tests doivent être écrits AVANT le code de production
+> 7. **Le résultat de la passe de contradiction** : ce qui, dans la demande utilisateur, est confirmé, douteux, ou invalide, surtout sur Bicep/pipelines/bootstrap/service connections
 >
 > Un prompt vague produit du code générique qui diverge des conventions du projet.
 
