@@ -126,6 +126,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - ACR role assignments in ARM/Bicep require `Owner` or `User Access Administrator`; `Contributor` is insufficient.
 - GitHub Git provider uses Refit (`IGitHubTreeApi`).
 - GitHub Create Tree request/response payloads are strongly typed under `Infrastructure/Services/GitProviders/Models`; preserve the tests that assert create items omit `sha` and delete items serialize `sha: null`.
+- GitHub/Azure DevOps push-provider request payloads should stay strongly typed model records, not anonymous `object` graphs or weak dictionaries; this is part of the repository-wide weak-object cleanup [2026-05-19].
 - `KeyVaultSecretClient.SetSecretAsync(...)` and `GetSecretAsync(...)` now both log Azure Key Vault failures for PAT storage/retrieval. The frontend repository-PAT flows must treat the returned `GitRepository.SecretStorageFailed` / `GitRepository.SecretRetrievalFailed` codes as technical diagnostics: keep the detail in backend logs, but show only generic localized UI messages.
 - Azure DevOps Git support covers Git operations only; pipeline/library security provisioning remains a manual prerequisite around the generated bootstrap YAML.
 - `AppPipelineGenerationEngine` normalizes redundant `apps/{appName}/{resourceName}/...` paths down to `apps/{appName}/...`.

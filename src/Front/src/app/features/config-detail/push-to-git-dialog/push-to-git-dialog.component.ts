@@ -28,6 +28,7 @@ export interface PushToGitDialogData {
 type DialogState = 'form' | 'pushing' | 'success' | 'error';
 
 const AMBIGUOUS_PROJECT_LEVEL_GENERATION_CODE = 'GitRouting.AmbiguousProjectLevelGeneration';
+const DEFAULT_GIT_BRANCH_NAME = 'main';
 
 interface PushToGitResultSummary {
   branchName: string;
@@ -99,10 +100,10 @@ export class PushToGitDialogComponent implements OnInit {
 
   private readonly lastBranchKey = `ifs-push-branch-${this.data.projectId}`;
 
-  protected readonly branchControl = new FormControl(
-    localStorage.getItem(this.lastBranchKey) ?? 'main',
-    Validators.required,
-  );
+  protected readonly branchControl = new FormControl<string>('', {
+    nonNullable: true,
+    validators: [Validators.required],
+  });
 
   protected readonly form = this.fb.group({
     branchName: this.branchControl,
@@ -110,10 +111,10 @@ export class PushToGitDialogComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadBranches();
     this.branchControl.valueChanges.subscribe(value => {
-      this.filterBranches(value ?? '');
+      this.filterBranches(value);
     });
+    void this.loadBranches();
   }
 
   private async loadBranches(): Promise<void> {
@@ -122,13 +123,17 @@ export class PushToGitDialogComponent implements OnInit {
       const branches = await this.projectService.listBranches(this.data.projectId);
       const names = branches.map(b => b.name);
       this.allBranches.set(names);
-      this.filterBranches(this.branchControl.value ?? '');
+      this.applyPreferredBranch();
     } catch {
       this.allBranches.set([]);
       this.filteredBranches.set([]);
     } finally {
       this.branchesLoading.set(false);
     }
+  }
+
+  private applyPreferredBranch(): void {
+    this.branchControl.setValue(localStorage.getItem(this.lastBranchKey) ?? DEFAULT_GIT_BRANCH_NAME);
   }
 
   private filterBranches(search: string): void { // NOSONAR S3776 - tracked under test-debt #22
@@ -142,6 +147,7 @@ export class PushToGitDialogComponent implements OnInit {
   }
 
   protected async onPush(): Promise<void> {
+    if (this.branchesLoading()) return;
     if (this.form.invalid) return;
 
     this.beginPush();
@@ -165,7 +171,7 @@ export class PushToGitDialogComponent implements OnInit {
     const value = this.form.getRawValue();
 
     return {
-      branchName: value.branchName!,
+      branchName: value.branchName,
       commitMessage: value.commitMessage ?? '',
     };
   }

@@ -35,6 +35,8 @@ export interface MultiRepoPushDialogData {
 
 type DialogState = 'form' | 'pushing' | 'success' | 'partial' | 'error';
 
+const DEFAULT_GIT_BRANCH_NAME = 'main';
+
 interface MultiRepoPushModeContent {
   titleIcon: string;
   titleKey: string;
@@ -118,7 +120,8 @@ export class MultiRepoPushDialogComponent implements OnInit {
   protected readonly infraResult = signal<RepoPushResult | null>(null);
   protected readonly codeResult = signal<RepoPushResult | null>(null);
   protected readonly errorKey = signal('');
-  protected readonly allBranches = signal<string[]>([]);
+  protected readonly allInfraBranches = signal<string[]>([]);
+  protected readonly allCodeBranches = signal<string[]>([]);
   protected readonly filteredInfraBranches = signal<string[]>([]);
   protected readonly filteredCodeBranches = signal<string[]>([]);
   protected readonly branchesLoading = signal(true);
@@ -133,12 +136,12 @@ export class MultiRepoPushDialogComponent implements OnInit {
   private readonly codeBranchKey = `ifs-push-branch-multi-${this.data.projectId}-${this.data.codeRepositoryId}`;
 
   protected readonly infraForm = new FormGroup({
-    branch: new FormControl<string>(localStorage.getItem(this.infraBranchKey) ?? 'main', { nonNullable: true, validators: [Validators.required] }),
+    branch: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
     commit: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
   });
 
   protected readonly codeForm = new FormGroup({
-    branch: new FormControl<string>(localStorage.getItem(this.codeBranchKey) ?? 'main', { nonNullable: true, validators: [Validators.required] }),
+    branch: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
     commit: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
   });
   private readonly infraFormStatus = toSignal(
@@ -166,10 +169,12 @@ export class MultiRepoPushDialogComponent implements OnInit {
 
   protected readonly canPush = computed(() => {
     const isPushing = this.state() === 'pushing';
+    const areBranchesLoading = this.branchesLoading();
     const infraFormStatus = this.infraFormStatus();
     const codeFormStatus = this.codeFormStatus();
 
     return !isPushing
+      && !areBranchesLoading
       && (!this.showsInfraCard() || infraFormStatus === 'VALID')
       && (!this.showsCodeCard() || codeFormStatus === 'VALID');
   });
@@ -285,13 +290,20 @@ export class MultiRepoPushDialogComponent implements OnInit {
   private async loadBranches(): Promise<void> {
     this.branchesLoading.set(true);
     try {
-      const branches = await this.projectService.listBranches(this.data.projectId);
-      const branchNames = branches.map(branch => branch.name);
-      this.allBranches.set(branchNames);
-      this.filterInfraBranches(this.infraForm.controls.branch.value);
-      this.filterCodeBranches(this.codeForm.controls.branch.value);
+      const [infraBranches, codeBranches] = await Promise.all([
+        this.showsInfraCard()
+          ? this.projectService.listBranches(this.data.projectId)
+          : Promise.resolve([]),
+        this.showsCodeCard()
+          ? this.projectService.listCodeBranches(this.data.projectId)
+          : Promise.resolve([]),
+      ]);
+      this.allInfraBranches.set(infraBranches.map(b => b.name));
+      this.allCodeBranches.set(codeBranches.map(b => b.name));
+      this.applyPreferredBranches();
     } catch {
-      this.allBranches.set([]);
+      this.allInfraBranches.set([]);
+      this.allCodeBranches.set([]);
       this.filteredInfraBranches.set([]);
       this.filteredCodeBranches.set([]);
     } finally {
@@ -299,20 +311,29 @@ export class MultiRepoPushDialogComponent implements OnInit {
     }
   }
 
+  private applyPreferredBranches(): void {
+    this.infraForm.controls.branch.setValue(this.readPreferredBranch(this.infraBranchKey));
+    this.codeForm.controls.branch.setValue(this.readPreferredBranch(this.codeBranchKey));
+  }
+
+  private readPreferredBranch(storageKey: string): string {
+    return localStorage.getItem(storageKey) ?? DEFAULT_GIT_BRANCH_NAME;
+  }
+
   private filterInfraBranches(search: string): void {
-    this.filteredInfraBranches.set(this.filterBranches(search));
+    this.filteredInfraBranches.set(this.filterBranchesFrom(this.allInfraBranches(), search));
   }
 
   private filterCodeBranches(search: string): void {
-    this.filteredCodeBranches.set(this.filterBranches(search));
+    this.filteredCodeBranches.set(this.filterBranchesFrom(this.allCodeBranches(), search));
   }
 
-  private filterBranches(search: string): string[] {
+  private filterBranchesFrom(branches: string[], search: string): string[] {
     const normalizedSearch = search.trim().toLowerCase();
     if (normalizedSearch === '') {
-      return this.allBranches();
+      return branches;
     }
 
-    return this.allBranches().filter(branch => branch.toLowerCase().includes(normalizedSearch));
+    return branches.filter(branch => branch.toLowerCase().includes(normalizedSearch));
   }
 }

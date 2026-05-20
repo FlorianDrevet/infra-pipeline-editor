@@ -75,7 +75,7 @@
       <button mat-stroked-button type="button" (click)="onClose()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.CLOSE' | translate }}
       </button>
-      <app-ds-button variant="primary" icon="rocket_launch" [disabled]="form.invalid" (clicked)="onPush()">
+      <app-ds-button variant="primary" icon="rocket_launch" [disabled]="form.invalid || branchesLoading()" (clicked)="onPush()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.PUSH' | translate }}
       </app-ds-button>
     }

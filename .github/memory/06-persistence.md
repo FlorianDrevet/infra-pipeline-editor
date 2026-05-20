@@ -41,6 +41,7 @@
 - `IdValueConverter<TId>` and `NullableIdValueConverter<TId>` map typed IDs to `Guid` / nullable `Guid`.
 - `SingleValueConverter<TValueObject, TPrimitive>` maps single-value objects.
 - `EnumValueConverter<TEnumValueObject, TEnum>` and `NullableEnumValueConverter<TEnumValueObject, TEnum>` map enum value objects.
+- Converter expressions must stay expression-tree-safe: avoid `(object?)` casts in null checks and prefer direct nullable/value comparisons compatible with EF translation [2026-05-19].
 - DB-015 closure rule [2026-05-13]: reuse `NullableIdValueConverter<TId>` for nullable strongly typed identifiers instead of cloning local `Guid?` converters. The current reference usages are `ContainerAppConfiguration`, `ContainerAppEnvironmentConfiguration`, `FunctionAppConfiguration`, and `WebAppConfiguration`.
 
 ## Repository Pattern
