@@ -23,7 +23,7 @@ public sealed class ProjectDraftService : IProjectDraftService
     private static readonly Dictionary<string, string> ResourceTypeAliases = BuildResourceTypeAliases();
 
     private readonly ConcurrentDictionary<string, ProjectCreationDraft> _drafts = new();
-    private readonly object _syncRoot = new();
+    private readonly System.Threading.Lock _syncRoot = new();
     private readonly int _maxDraftCount;
 
     /// <summary>

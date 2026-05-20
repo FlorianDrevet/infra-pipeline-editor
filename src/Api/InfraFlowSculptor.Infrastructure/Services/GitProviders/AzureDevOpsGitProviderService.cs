@@ -20,6 +20,10 @@ public sealed class AzureDevOpsGitProviderService(
     : IGitProviderService, IGitMultiScopePushProviderService
 {
     private const string ApiVersion = "7.1";
+    private const string ChangeTypeAdd = "add";
+    private const string ChangeTypeDelete = "delete";
+    private const string ChangeTypeEdit = "edit";
+    private const string ContentTypeRawText = "rawtext";
 
     /// <inheritdoc />
     public async Task<ErrorOr<TestGitConnectionResult>> TestConnectionAsync(
@@ -191,19 +195,17 @@ public sealed class AzureDevOpsGitProviderService(
         return (existingFilePaths, allExistingFilesInCleanupRoots);
     }
 
-    private static List<object> BuildChangeList(
+    private static List<AzureDevOpsPushChange> BuildChangeList(
         PreparedAzureDevOpsPush pushData,
         (HashSet<string> ExistingFilePaths, HashSet<string> AllExistingFilesInCleanupRoots) existing)
     {
-        var changes = new List<object>(pushData.FilesByPath.Count + existing.AllExistingFilesInCleanupRoots.Count);
+        var changes = new List<AzureDevOpsPushChange>(pushData.FilesByPath.Count + existing.AllExistingFilesInCleanupRoots.Count);
         foreach (var (filePath, content) in pushData.FilesByPath)
         {
-            changes.Add(new
-            {
-                changeType = existing.ExistingFilePaths.Contains(filePath) ? "edit" : "add",
-                item = new { path = $"/{filePath}" },
-                newContent = new { content, contentType = "rawtext" },
-            });
+            changes.Add(new AzureDevOpsPushChange(
+                existing.ExistingFilePaths.Contains(filePath) ? ChangeTypeEdit : ChangeTypeAdd,
+                new AzureDevOpsPushItem($"/{filePath}"),
+                new AzureDevOpsPushContent(content, ContentTypeRawText)));
         }
 
         foreach (var existingFile in existing.AllExistingFilesInCleanupRoots)
@@ -211,11 +213,10 @@ public sealed class AzureDevOpsGitProviderService(
             if (pushData.FilesByPath.ContainsKey(existingFile))
                 continue;
 
-            changes.Add(new
-            {
-                changeType = "delete",
-                item = new { path = $"/{existingFile}" },
-            });
+            changes.Add(new AzureDevOpsPushChange(
+                ChangeTypeDelete,
+                new AzureDevOpsPushItem($"/{existingFile}"),
+                NewContent: null));
         }
 
         return changes;
@@ -487,7 +488,21 @@ public sealed class AzureDevOpsGitProviderService(
         PreparedAzureDevOpsPush PushData,
         string ParentSha,
         bool TargetBranchExists,
-        List<object> Changes);
+        List<AzureDevOpsPushChange> Changes);
+
+    private sealed record AzureDevOpsPushChange(
+        [property: JsonPropertyName("changeType")] string ChangeType,
+        [property: JsonPropertyName("item")] AzureDevOpsPushItem Item,
+        [property: JsonPropertyName("newContent")]
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        AzureDevOpsPushContent? NewContent);
+
+    private sealed record AzureDevOpsPushItem(
+        [property: JsonPropertyName("path")] string Path);
+
+    private sealed record AzureDevOpsPushContent(
+        [property: JsonPropertyName("content")] string Content,
+        [property: JsonPropertyName("contentType")] string ContentType);
 
     // â”€â”€â”€ ADO API response models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

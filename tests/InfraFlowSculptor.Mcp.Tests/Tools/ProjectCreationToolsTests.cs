@@ -113,6 +113,8 @@ public sealed class ProjectCreationToolsTests
         doc.RootElement.GetProperty("status").GetString().Should().Be("created");
         doc.RootElement.GetProperty("projectId").GetString().Should().Be(projectId.Value.ToString());
         doc.RootElement.GetProperty("projectName").GetString().Should().Be("RetailApi");
+        doc.RootElement.GetProperty("createdResources").GetArrayLength().Should().Be(0);
+        doc.RootElement.GetProperty("skippedResources").GetArrayLength().Should().Be(0);
 
         await _mediator.Received(1).Send(
             Arg.Is<CreateProjectWithSetupCommand>(command =>
@@ -151,6 +153,54 @@ public sealed class ProjectCreationToolsTests
         var doc = JsonDocument.Parse(json);
         doc.RootElement.GetProperty("error").GetString().Should().Be("creation_failed");
         doc.RootElement.GetProperty("message").GetString().Should().Contain("already exists");
+    }
+
+    [Fact]
+    public async Task Given_ReadyDraftWithResources_When_InfrastructureCreationFails_Then_ReturnsEmptyResourceArraysAsync()
+    {
+        // Arrange
+        var draft = new ProjectCreationDraft
+        {
+            DraftId = "draft_infra_failure",
+            Status = DraftStatus.ReadyToCreate,
+            Intent = new DraftProjectIntent
+            {
+                ProjectName = "RetailApi",
+                LayoutPreset = LayoutPresetEnum.AllInOne,
+                Environments = [new DraftEnvironmentIntent { Name = "Production", ShortName = "prod" }],
+                Repositories = [new DraftRepositoryIntent { ContentKinds = ["Infrastructure", "ApplicationCode"] }],
+                Resources = [new DraftResourceIntent { ResourceType = AzureResourceTypes.KeyVault, Name = "vault-main" }],
+            },
+        };
+        _draftService.GetDraft(draft.DraftId).Returns(draft);
+
+        var projectResult = new ProjectResult(
+            new ProjectId(Guid.NewGuid()),
+            new Name("RetailApi"),
+            Description: null,
+            Members: [],
+            EnvironmentDefinitions: [],
+            DefaultNamingTemplate: null,
+            ResourceNamingTemplates: [],
+            ResourceAbbreviations: [],
+            Tags: [],
+            LayoutPreset: "AllInOne");
+
+        _mediator.Send(Arg.Any<CreateProjectWithSetupCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<ProjectResult>>(projectResult));
+        _mediator.Send(Arg.Any<CreateInfrastructureConfigCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<GetInfrastructureConfigResult>>(
+                Error.Failure("Infrastructure.CreateFailed", "Unable to create infrastructure configuration.")));
+
+        // Act
+        var json = await ProjectCreationTools.CreateProjectFromDraft(_draftService, _mediator, draft.DraftId);
+
+        // Assert
+        var doc = JsonDocument.Parse(json);
+        doc.RootElement.GetProperty("status").GetString().Should().Be("created");
+        doc.RootElement.GetProperty("infrastructureError").GetString().Should().Contain("Unable to create infrastructure");
+        doc.RootElement.GetProperty("createdResources").GetArrayLength().Should().Be(0);
+        doc.RootElement.GetProperty("skippedResources").GetArrayLength().Should().Be(0);
     }
 
     [Fact]

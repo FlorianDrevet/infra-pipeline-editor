@@ -36,10 +36,9 @@ public sealed class IacImportTools
                 previewId = (string?)null,
                 sourceFormat,
                 parsedResourceCount = 0,
-                mappedResources = Array.Empty<object>(),
-                gaps = Array.Empty<object>(),
-                unsupportedResources = Array.Empty<object>(),
-                suggestedProjectStructure = (object?)null,
+                mappedResources = Array.Empty<MappedImportResourceResponse>(),
+                gaps = Array.Empty<ImportGapResponse>(),
+                unsupportedResources = Array.Empty<string>(),
                 summary = $"Source format '{sourceFormat}' is not supported in V1. Supported formats: {IacSourceFormat.ArmJson}.",
             }, McpJsonDefaults.SerializerOptions);
         }
@@ -128,25 +127,21 @@ public sealed class IacImportTools
     {
         var mapped = preview.Analysis.Resources
             .Where(r => r.MappedResourceType is not null)
-            .Select(r => new
-            {
+            .Select(r => new MappedImportResourceResponse(
                 r.SourceType,
                 r.SourceName,
-                r.MappedResourceType,
+                r.MappedResourceType!,
                 r.MappedName,
-                confidence = r.Confidence.ToString().ToLowerInvariant(),
-                extractedProperties = r.ExtractedProperties,
-                unmappedProperties = r.UnmappedProperties,
-            })
+                r.Confidence.ToString().ToLowerInvariant(),
+                r.ExtractedProperties,
+                r.UnmappedProperties))
             .ToList();
 
-        var gapsList = preview.Analysis.Gaps.Select(g => new
-        {
-            severity = g.Severity.ToString().ToLowerInvariant(),
+        var gapsList = preview.Analysis.Gaps.Select(g => new ImportGapResponse(
+            g.Severity.ToString().ToLowerInvariant(),
             g.Category,
             g.Message,
-            g.SourceResourceName,
-        }).ToList();
+            g.SourceResourceName)).ToList();
 
         return JsonSerializer.Serialize(new
         {
@@ -156,12 +151,10 @@ public sealed class IacImportTools
             mappedResources = mapped,
             gaps = gapsList,
             unsupportedResources = preview.Analysis.UnsupportedResources,
-            dependencies = preview.Analysis.Dependencies.Select(d => new
-            {
+            dependencies = preview.Analysis.Dependencies.Select(d => new ImportDependencyResponse(
                 d.FromResourceName,
                 d.ToResourceName,
-                d.DependencyType,
-            }),
+                d.DependencyType)),
             metadata = preview.Analysis.Metadata,
             summary = $"Parsed {preview.Analysis.Resources.Count} resource(s): " +
                       $"{mapped.Count} mapped, {preview.Analysis.UnsupportedResources.Count} unsupported.",
@@ -226,4 +219,24 @@ public sealed class IacImportTools
 
     private static string JsonError(string code, string message) =>
         McpJsonDefaults.Error(code, message);
+
+    private sealed record MappedImportResourceResponse(
+        string SourceType,
+        string SourceName,
+        string MappedResourceType,
+        string? MappedName,
+        string Confidence,
+        IReadOnlyDictionary<string, object?> ExtractedProperties,
+        IReadOnlyList<string> UnmappedProperties);
+
+    private sealed record ImportGapResponse(
+        string Severity,
+        string Category,
+        string Message,
+        string? SourceResourceName);
+
+    private sealed record ImportDependencyResponse(
+        string FromResourceName,
+        string ToResourceName,
+        string DependencyType);
 }

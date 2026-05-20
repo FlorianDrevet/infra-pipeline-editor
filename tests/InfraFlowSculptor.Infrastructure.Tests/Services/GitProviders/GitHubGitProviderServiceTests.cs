@@ -1,6 +1,8 @@
+using System.Text.Json;
 using FluentAssertions;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Infrastructure.Services.GitProviders;
+using InfraFlowSculptor.Infrastructure.Services.GitProviders.Models;
 using NSubstitute;
 using Xunit;
 
@@ -14,6 +16,42 @@ public sealed class GitHubGitProviderServiceTests
     public GitHubGitProviderServiceTests()
     {
         _sut = new GitHubGitProviderService(_gitHubTreeApi);
+    }
+
+    [Fact]
+    public void Given_CreateAndDeleteTreeItems_When_SerializedWithWebDefaults_Then_UsesGitHubTreeWireShape()
+    {
+        // Arrange
+        var request = new GitHubCreateTreeRequest(
+            "parent-tree-sha",
+            [
+                GitHubCreateTreeItem.CreateBlob("infra/main.bicep", "module main './main.bicep' = {}"),
+                GitHubCreateTreeItem.DeleteBlob("infra/stale.bicep"),
+            ]);
+
+        // Act
+        var json = JsonSerializer.Serialize(request, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+
+        // Assert
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        root.GetProperty("base_tree").GetString().Should().Be("parent-tree-sha");
+
+        var tree = root.GetProperty("tree").EnumerateArray().ToArray();
+        tree.Should().HaveCount(2);
+
+        tree[0].GetProperty("path").GetString().Should().Be("infra/main.bicep");
+        tree[0].GetProperty("mode").GetString().Should().Be("100644");
+        tree[0].GetProperty("type").GetString().Should().Be("blob");
+        tree[0].GetProperty("content").GetString().Should().Be("module main './main.bicep' = {}");
+        tree[0].TryGetProperty("sha", out _).Should().BeFalse();
+
+        tree[1].GetProperty("path").GetString().Should().Be("infra/stale.bicep");
+        tree[1].GetProperty("mode").GetString().Should().Be("100644");
+        tree[1].GetProperty("type").GetString().Should().Be("blob");
+        tree[1].TryGetProperty("content", out _).Should().BeFalse();
+        tree[1].TryGetProperty("sha", out var sha).Should().BeTrue();
+        sha.ValueKind.Should().Be(JsonValueKind.Null);
     }
 
     // ──────────────────────────────────────────────────

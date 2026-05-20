@@ -54,6 +54,7 @@ src/
 - The MCP host now exposes read-oriented topology helpers (`get_project_structure`, `list_project_resources`, `list_available_role_definitions`, `suggest_architecture`) plus container shortcuts (`link_container_app_to_acr`, `set_container_app_docker_config`) on top of the earlier draft/create/import/generation tools.
 - Conversational draft parsing now understands multi-instance prompts, French quantifiers, semantic resource names, environment extraction, resource-group topology extraction, and a larger alias catalog before the clarification loop runs.
 - `project_creation_guide` is the durable MCP prompt reference for multi-resource-group setups, Docker/ACR wiring, and post-creation workflows.
+- MCP tool JSON responses should keep known local schemas strongly typed with private response records instead of `object` arrays. Current guards cover `ProjectQueryTools`, `ProjectCreationTools`, and `IacImportTools`; `ExtractedProperties` remains a deliberate import-boundary dictionary.
 
 ## Automation Scripts
 

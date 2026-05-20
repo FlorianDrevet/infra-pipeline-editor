@@ -2,6 +2,7 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Infrastructure.Services.GitProviders.Models;
 using Octokit;
 
 namespace InfraFlowSculptor.Infrastructure.Services.GitProviders;
@@ -91,13 +92,7 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
             }
 
             var treeItems = pushData.FilesByPath
-                .Select(file => (object)new
-                {
-                    Path = file.Key,
-                    Mode = "100644",
-                    Type = "blob",
-                    Content = file.Value,
-                })
+                .Select(file => GitHubCreateTreeItem.CreateBlob(file.Key, file.Value))
                 .ToList();
 
             var parentCommit = await client.Git.Commit.Get(request.Owner, request.RepositoryName, parentSha);
@@ -117,13 +112,7 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
 
                     if (ShouldDeleteFile(item.Path, pushData))
                     {
-                        treeItems.Add(new
-                        {
-                            Path = item.Path,
-                            Mode = "100644",
-                            Type = "blob",
-                            Sha = (string?)null,
-                        });
+                        treeItems.Add(GitHubCreateTreeItem.DeleteBlob(item.Path));
                     }
                 }
             }
@@ -174,13 +163,13 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
         string owner,
         string repositoryName,
         string baseTreeSha,
-        IReadOnlyList<object> treeItems,
+        IReadOnlyList<GitHubCreateTreeItem> treeItems,
         CancellationToken cancellationToken)
     {
         var response = await gitHubTreeApi.CreateTreeAsync(
             owner,
             repositoryName,
-            new { base_tree = baseTreeSha, tree = treeItems },
+            new GitHubCreateTreeRequest(baseTreeSha, treeItems),
             token,
             cancellationToken);
 

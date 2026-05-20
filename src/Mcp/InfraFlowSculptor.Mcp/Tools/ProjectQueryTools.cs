@@ -52,54 +52,46 @@ public sealed class ProjectQueryTools
             return McpJsonDefaults.Error("configs_error", string.Join("; ", configsResult.Errors.Select(e => e.Description)));
         }
 
-        var configsWithGroups = new List<object>();
+        var configsWithGroups = new List<ProjectStructureConfigResponse>();
 
         foreach (var config in configsResult.Value)
         {
             var rgResult = await mediator.Send(new ListResourceGroupsByConfigQuery(config.Id), cancellationToken);
 
-            var resourceGroups = rgResult.IsError
+            IReadOnlyList<ProjectResourceGroupResponse> resourceGroups = rgResult.IsError
                 ? []
-                : rgResult.Value.Select(rg => new
-                {
-                    resourceGroupId = rg.Id.Value.ToString(),
-                    name = rg.Name.Value,
-                    location = rg.Location.Value.ToString(),
-                    resources = rg.Resources.Select(r => new
-                    {
-                        resourceId = r.Id.Value.ToString(),
-                        resourceType = r.ResourceType.Value,
-                        name = r.Name.Value,
-                    }).ToArray(),
-                    resourceCount = rg.Resources.Length,
-                }).ToArray();
+                : rgResult.Value.Select(rg => new ProjectResourceGroupResponse(
+                    rg.Id.Value.ToString(),
+                    rg.Name.Value,
+                    rg.Location.Value.ToString(),
+                    rg.Resources.Select(r => new ProjectResourceSummaryResponse(
+                        r.Id.Value.ToString(),
+                        r.ResourceType.Value,
+                        r.Name.Value)).ToArray(),
+                    rg.Resources.Length)).ToArray();
 
-            configsWithGroups.Add(new
-            {
-                infraConfigId = config.Id.Value.ToString(),
-                name = config.Name.Value,
-                resourceGroupCount = config.ResourceGroupCount,
-                resourceCount = config.ResourceCount,
-                crossConfigReferenceCount = config.CrossConfigReferenceCount,
-                resourceGroups,
-            });
+            configsWithGroups.Add(new ProjectStructureConfigResponse(
+                config.Id.Value.ToString(),
+                config.Name.Value,
+                config.ResourceGroupCount,
+                config.ResourceCount,
+                config.CrossConfigReferenceCount,
+                resourceGroups));
         }
 
-        return JsonSerializer.Serialize(new
-        {
-            projectId = project.Id.Value.ToString(),
-            projectName = project.Name.Value,
-            layoutPreset = project.LayoutPreset,
-            environmentCount = project.EnvironmentDefinitions.Count,
-            environments = project.EnvironmentDefinitions.Select(e => new
-            {
-                name = e.Name.Value,
-                shortName = e.ShortName,
-                location = e.Location,
-            }),
-            infrastructureConfigs = configsWithGroups,
-            totalConfigs = configsWithGroups.Count,
-        }, McpJsonDefaults.SerializerOptions);
+        var response = new ProjectStructureResponse(
+            project.Id.Value.ToString(),
+            project.Name.Value,
+            project.LayoutPreset,
+            project.EnvironmentDefinitions.Count,
+            project.EnvironmentDefinitions.Select(e => new ProjectEnvironmentResponse(
+                e.Name.Value,
+                e.ShortName,
+                e.Location)).ToArray(),
+            configsWithGroups,
+            configsWithGroups.Count);
+
+        return JsonSerializer.Serialize(response, McpJsonDefaults.SerializerOptions);
     }
 
     /// <summary>
@@ -129,7 +121,7 @@ public sealed class ProjectQueryTools
             return McpJsonDefaults.Error("configs_error", string.Join("; ", configsResult.Errors.Select(e => e.Description)));
         }
 
-        var allResources = new List<object>();
+        var allResources = new List<ProjectResourceResponse>();
 
         foreach (var config in configsResult.Value)
         {
@@ -146,25 +138,68 @@ public sealed class ProjectQueryTools
                         continue;
                     }
 
-                    allResources.Add(new
-                    {
-                        resourceId = resource.Id.Value.ToString(),
-                        resourceType = resource.ResourceType.Value,
-                        name = resource.Name.Value,
-                        resourceGroupId = rg.Id.Value.ToString(),
-                        resourceGroupName = rg.Name.Value,
-                        infraConfigId = config.Id.Value.ToString(),
-                        infraConfigName = config.Name.Value,
-                    });
+                    allResources.Add(new ProjectResourceResponse(
+                        resource.Id.Value.ToString(),
+                        resource.ResourceType.Value,
+                        resource.Name.Value,
+                        rg.Id.Value.ToString(),
+                        rg.Name.Value,
+                        config.Id.Value.ToString(),
+                        config.Name.Value));
                 }
             }
         }
 
-        return JsonSerializer.Serialize(new
-        {
-            projectId,
-            totalResources = allResources.Count,
-            resources = allResources,
-        }, McpJsonDefaults.SerializerOptions);
+        return JsonSerializer.Serialize(
+            new ProjectResourcesResponse(projectId, allResources.Count, allResources),
+            McpJsonDefaults.SerializerOptions);
     }
+
+    private sealed record ProjectStructureResponse(
+        string ProjectId,
+        string ProjectName,
+        string LayoutPreset,
+        int EnvironmentCount,
+        IReadOnlyList<ProjectEnvironmentResponse> Environments,
+        IReadOnlyList<ProjectStructureConfigResponse> InfrastructureConfigs,
+        int TotalConfigs);
+
+    private sealed record ProjectEnvironmentResponse(
+        string Name,
+        string ShortName,
+        string Location);
+
+    private sealed record ProjectStructureConfigResponse(
+        string InfraConfigId,
+        string Name,
+        int ResourceGroupCount,
+        int ResourceCount,
+        int CrossConfigReferenceCount,
+        IReadOnlyList<ProjectResourceGroupResponse> ResourceGroups);
+
+    private sealed record ProjectResourceGroupResponse(
+        string ResourceGroupId,
+        string Name,
+        string Location,
+        IReadOnlyList<ProjectResourceSummaryResponse> Resources,
+        int ResourceCount);
+
+    private sealed record ProjectResourceSummaryResponse(
+        string ResourceId,
+        string ResourceType,
+        string Name);
+
+    private sealed record ProjectResourcesResponse(
+        string ProjectId,
+        int TotalResources,
+        IReadOnlyList<ProjectResourceResponse> Resources);
+
+    private sealed record ProjectResourceResponse(
+        string ResourceId,
+        string ResourceType,
+        string Name,
+        string ResourceGroupId,
+        string ResourceGroupName,
+        string InfraConfigId,
+        string InfraConfigName);
 }

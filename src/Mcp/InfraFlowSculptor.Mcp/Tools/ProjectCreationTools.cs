@@ -78,8 +78,8 @@ public sealed class ProjectCreationTools
                     projectName,
                     warnings,
                     infrastructureError = string.Join("; ", infraResult.Errors.Select(e => e.Description)),
-                    createdResources = Array.Empty<object>(),
-                    skippedResources = Array.Empty<object>(),
+                    createdResources = Array.Empty<CreatedResourceResponse>(),
+                    skippedResources = Array.Empty<SkippedResourceResponse>(),
                     nextSuggestedActions = new[]
                     {
                         "Create an infrastructure configuration manually via the API or frontend.",
@@ -104,18 +104,14 @@ public sealed class ProjectCreationTools
                 warnings,
                 infrastructureConfigId = configId.Value.ToString(),
                 resourceGroupId = rgId.Value.ToString(),
-                createdResources = created.Select(r => new
-                {
+                createdResources = created.Select(r => new CreatedResourceResponse(
                     r.ResourceType,
                     r.ResourceId,
-                    r.Name,
-                }),
-                skippedResources = skipped.Select(r => new
-                {
+                    r.Name)),
+                skippedResources = skipped.Select(r => new SkippedResourceResponse(
                     r.ResourceType,
                     r.Name,
-                    r.Reason,
-                }),
+                    r.Reason)),
                 nextSuggestedActions = BuildNextActions(created.Count, skipped.Count),
             }, McpJsonDefaults.SerializerOptions);
         }
@@ -130,8 +126,8 @@ public sealed class ProjectCreationTools
             environmentCount = draft.Intent.Environments?.Count ?? 0,
             repositoryCount = draft.Intent.Repositories?.Count ?? 0,
             warnings,
-            createdResources = Array.Empty<object>(),
-            skippedResources = Array.Empty<object>(),
+            createdResources = Array.Empty<CreatedResourceResponse>(),
+            skippedResources = Array.Empty<SkippedResourceResponse>(),
             nextSuggestedActions = new[]
             {
                 "Add resources to the project via the API or frontend.",
@@ -280,4 +276,14 @@ public sealed class ProjectCreationTools
 
     private static string JsonError(string error, string message) =>
         McpJsonDefaults.Error(error, message);
+
+    private sealed record CreatedResourceResponse(
+        string ResourceType,
+        string ResourceId,
+        string Name);
+
+    private sealed record SkippedResourceResponse(
+        string ResourceType,
+        string Name,
+        string Reason);
 }
