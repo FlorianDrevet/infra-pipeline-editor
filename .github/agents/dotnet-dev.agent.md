@@ -41,6 +41,11 @@ Tu es l'expert C#/.NET 10 de ce dépôt. Tu maîtrises :
    - **Si la zone touchée n'a aucun test** : écrire les tests pour le changement + enregistrer la dette dans `.github/test-debt.md`.
    - **APRÈS implémentation** : `dotnet test` sur le projet puis sur la solution.
 7. **Choix de design discipliné** — Avant d'introduire un nouveau mécanisme (Factory, Strategy, Builder, Specification, Policy, etc.), comparer au moins 2 options plausibles, puis garder la plus simple qui améliore réellement lisibilité, maintenabilité, et scalabilité. Si aucune abstraction n'apporte de levier, rester en composition directe.
+8. **Suivi plan vivant** — Si un fichier de plan/tracker est fourni (`docs/features/*.md`), le mettre à jour pendant l'implémentation :
+    - marquer l'étape backend courante en `In progress` avant de coder ;
+    - après chaque incrément validé, consigner fichiers C# touchés, tests exécutés, résultat ;
+    - si blocage, consigner le blocage et la prochaine action ;
+    - ne jamais terminer une tâche planifiée sans section backend synchronisée dans le tracker.
 
 ---
 
@@ -190,3 +195,4 @@ public sealed class CreateKeyVaultCommandValidator : AbstractValidator<CreateKey
 6. Enregistrer toute dette de tests détectée dans `.github/test-debt.md`.
 7. Mettre à jour `MEMORY.md` avec les nouvelles conventions ou pièges découverts.
 8. Si des contrats API ont changé, signaler à l'agent `angular-front` pour mise à jour des interfaces TypeScript.
+9. Si un tracker de plan est utilisé, mettre à jour son statut backend final (`Done` / `In progress` / `Blocked`) avec les validations réellement exécutées.

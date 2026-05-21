@@ -125,6 +125,23 @@ Si la tâche introduit un mécanisme structurel ou un nouveau modèle de donnée
 ## Points d'attention pour MEMORY.md
 
 - [Ce qui devra être ajouté à MEMORY.md après implémentation]
+
+## Fichier de suivi vivant (obligatoire)
+
+**Chemin du tracker :** `docs/features/<slug>-implementation-tracker.md` (ou fichier explicitement fourni par l'utilisateur)
+
+### Statut des lots
+
+| Lot | Contenu | Statut | Owner | Dernière mise à jour | Reste à faire |
+|-----|---------|--------|-------|----------------------|---------------|
+| Lot X | ... | Not started / In progress / Done / Blocked | ... | ... | ... |
+
+### Règle d'exécution
+
+- Le plan doit être rédigé pour pouvoir être suivi sans contexte oral.
+- Chaque étape du plan doit inclure un critère de validation (tests/build/typecheck).
+- Le plan doit indiquer explicitement ce que `dev` doit mettre à jour dans le tracker au fil de l'implémentation.
+- Si la demande couvre plusieurs lots, prévoir une section `Checklist reprise sur un autre PC`.
 ```
 
 ---

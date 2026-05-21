@@ -55,6 +55,14 @@
 - Agents must challenge technically false or architecture-breaking asks before coding, instead of treating the latest user wording as a sufficient specification.
 - Hidden compatibility fallbacks or UI shortcuts that weaken environment isolation are now treated as risks to question, not conveniences to preserve by default.
 
+## Plan vivant multi-PC [2026-05-21]
+
+- `dev.agent.md` impose désormais un **tracker de plan vivant** pour toute implémentation par lots/phases (`plan`, `roadmap`, backlog) : réutiliser le fichier existant ou créer `docs/features/<slug>-implementation-tracker.md`.
+- Le suivi doit être **mis à jour pendant l'exécution** (avant étape = `In progress`, après incrément = validations et résultat, blocage = cause + prochaine action), pas seulement en fin de tâche.
+- Le protocole `dev` inclut maintenant une vérification dédiée (`step 4ter`) pour garantir que le tracker reflète réellement l'état des lots et qu'une reprise sur un autre PC est possible sans contexte oral.
+- `architect.agent.md` doit inclure dans son plan un bloc `Fichier de suivi vivant` avec table de statuts par lot et règles de mise à jour.
+- `dotnet-dev.agent.md` et `angular-front.agent.md` doivent synchroniser le tracker pendant et en fin d'implémentation backend/frontend (`Done` / `In progress` / `Blocked` + validations exécutées).
+
 ## Unit Test Routing [2026-04-27]
 
 - `dotnet-dev` must load `tdd-workflow` + `xunit-unit-testing` for any code modification task (not just test-only tasks).

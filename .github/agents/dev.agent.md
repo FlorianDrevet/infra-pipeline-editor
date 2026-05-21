@@ -139,6 +139,28 @@ Si la tâche touche à la documentation, l'architecture transversale, un audit, 
 
 **Nettoyage :** Supprimer le fichier de session en fin de tâche (les faits durables vont dans `.github/memory/`).
 
+### 2quater. Plan vivant multi-PC — Suivi obligatoire en continu
+
+**Objectif :** quand une implémentation suit un plan (`plan`, `roadmap`, `lot`, backlog), maintenir un suivi exploitable sur n'importe quel PC.
+
+1. **Identifier le fichier de suivi source** :
+  - si l'utilisateur a déjà un fichier de plan/suivi (`docs/features/*.md`), le réutiliser ;
+  - sinon créer `docs/features/<slug>-implementation-tracker.md`.
+2. **Initialiser une structure de suivi minimale** :
+  - `Contexte`
+  - `Statut des lots` (table : lot, statut, owner, dernière mise à jour, reste à faire)
+  - `Journal d'implémentation` (entrées horodatées)
+  - `Prochaines étapes`
+  - `Checklist reprise sur un autre PC` (branche, commit, commandes, migrations, tests à relancer).
+3. **Mettre à jour le suivi au fil de l'eau** (pas uniquement en fin de tâche) :
+  - avant d'implémenter une étape : passer le lot/étape à `In progress` ;
+  - après chaque incrément validé : consigner fichiers touchés, décisions, commandes de validation, résultat ;
+  - en cas de blocage : consigner cause, impact, contournement envisagé, prochaine action.
+4. **Synchroniser toute délégation avec ce fichier** :
+  - passer le chemin du fichier de suivi à chaque sous-agent ;
+  - exiger un retour structuré (delta) pour mise à jour immédiate du tracker.
+5. **Ne jamais clore une implémentation planifiée** sans tracker à jour avec un statut explicite (`Done`, `In progress`, `Blocked`, `Not started`) pour chaque lot connu.
+
 ### 3. Charger les Skills applicables
 
 Avant toute génération de code, si un skill est pertinent :
@@ -159,6 +181,14 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 4. Signaler à l'utilisateur tout écart entre le plan et l'exécution réelle
 
 > Ne jamais clore une tâche planifiée sans avoir relu le plan item par item.
+
+### 4ter. Vérifier la synchronisation du tracker
+
+**Obligatoire pour toute tâche planifiée ou multi-lots** :
+1. Vérifier que le fichier de suivi reflète l'état réel des changements (lots, validations, blocages).
+2. Vérifier qu'aucun lot implémenté n'est laissé en `Not started`.
+3. Vérifier qu'un lot non terminé indique explicitement le reste à faire et la prochaine action.
+4. Vérifier que la section `Checklist reprise sur un autre PC` est exploitable sans contexte oral.
 
 ### 5. Mettre à jour la mémoire projet
 
@@ -370,6 +400,7 @@ Son rôle est de **lire la mémoire, analyser, charger les bons outils de connai
 
 ```
 [ ] Plan vérifié item par item (step 4bis) — tout item manquant complété avant de continuer
+[ ] Tracker de plan mis à jour en continu (step 2quater) et synchronisé (step 4ter)
 [ ] TDD vérifié : tests écrits AVANT le code de production (si code modifié)
 [ ] Tests passés : dotnet test .\InfraFlowSculptor.slnx (si code C# touché)
 [ ] Build vérifié : dotnet build .\InfraFlowSculptor.slnx (si code C# touché)
