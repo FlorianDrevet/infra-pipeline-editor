@@ -65,6 +65,8 @@ These reusable entity types are owned by multiple aggregates:
 - **ContainerApp**: `DockerfilePath` (string?), `ApplicationName` (string?)
 - **WebApp/FunctionApp**: `DockerfilePath`, `SourceCodePath`, `BuildCommand`, `ApplicationName` (all string?)
 - `AppPipelineStepOptions` now lives under `Domain/Common/OwnedEntities/` and is shared by `WebApp`, `FunctionApp`, and `ContainerApp`. Update it through the single `AppPipelineStepOptionsData` payload instead of reintroducing long flat mutator signatures [2026-05-15].
+- `ApplicationStack` is the pipeline-app stack selector and is intentionally distinct from Azure hosting runtime stacks (`WebAppRuntimeStack` / `FunctionAppRuntimeStack`). It lives on `AppPipelineStepOptions` with an optional typed `AppPipelineStackProfile` hierarchy (`DotNet`, `NodeJs`, `Angular`, `Java`, `Python`, `StaticSite`, `Custom`) to drive future stack-aware pipeline options [2026-05-21].
+- `AppPipelineStackProfile` classes are plain owned profile classes, not `ValueObject` derivatives; this avoids treating nested stack payloads as generic structural value objects while keeping one typed profile per application stack [2026-05-21].
 - `ApplicationName` is a user-friendly name displayed in Azure DevOps pipeline runs (fallback: resource name)
 - `InfrastructureConfig` has `AppPipelineMode` enum (`Isolated`/`Combined`) — controls whether app pipelines are generated per-resource or as a single combined pipeline
 - `Project` has `AgentPoolName` (string?) — when set, pipeline YAML uses `pool: name: '<value>'` (self-hosted); when null, `pool: vmImage: ubuntu-latest` (Microsoft-hosted). Endpoint: `PUT /projects/{id}/agent-pool`

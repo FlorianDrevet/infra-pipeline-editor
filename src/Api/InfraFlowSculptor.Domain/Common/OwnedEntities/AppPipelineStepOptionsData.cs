@@ -1,3 +1,5 @@
+using InfraFlowSculptor.Domain.Common.OwnedEntities.Stacks;
+
 namespace InfraFlowSculptor.Domain.Common.OwnedEntities;
 
 /// <summary>
@@ -5,6 +7,12 @@ namespace InfraFlowSculptor.Domain.Common.OwnedEntities;
 /// </summary>
 public sealed class AppPipelineStepOptionsData
 {
+    /// <summary>Gets the application stack used to drive application pipeline behavior.</summary>
+    public ApplicationStack Stack { get; init; } = ApplicationStack.Unknown;
+
+    /// <summary>Gets the typed stack-specific pipeline profile for the selected application stack.</summary>
+    public AppPipelineStackProfile? Profile { get; init; }
+
     /// <summary>Gets or sets whether unit tests run in the CI pipeline.</summary>
     public bool RunUnitTests { get; init; }
 

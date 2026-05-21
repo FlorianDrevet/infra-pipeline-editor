@@ -17,6 +17,10 @@ internal static class AppPrPipelineBuilder
     private const string DefaultBuildContext = ".";
     private const string DefaultRuntimeStack = "DOTNETCORE";
     private const string DefaultRuntimeVersion = "8.0";
+    private const string RunUnitTestsParameterName = "runUnitTests";
+    private const string PublishTestResultsParameterName = "publishTestResults";
+    private const string PublishCodeCoverageParameterName = "publishCodeCoverage";
+    private const string IncludeLine = "    include:";
 
     private static readonly IReadOnlyList<string> PrTriggerBranches = ["main", "develop", "release/*"];
 
@@ -61,6 +65,7 @@ internal static class AppPrPipelineBuilder
         sb.AppendLine($"    sourcePath: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.SourceCodePath ?? DefaultBuildContext)}'");
         sb.AppendLine($"    testCommand: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.TestCommand ?? string.Empty)}'");
         sb.AppendLine($"    buildCommand: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.BuildCommand ?? string.Empty)}'");
+        AppendCodeBuildOptionsParameters(sb, request);
         AppendAgentPoolParameter(sb, request.AgentPoolName);
 
         return sb.ToString();
@@ -79,24 +84,24 @@ internal static class AppPrPipelineBuilder
         sb.AppendLine();
         sb.AppendLine("trigger:");
         sb.AppendLine("  branches:");
-        sb.AppendLine("    include:");
+        sb.AppendLine(IncludeLine);
         sb.AppendLine("      - '*'");
         sb.AppendLine("  paths:");
-        sb.AppendLine("    include:");
+        sb.AppendLine(IncludeLine);
         sb.AppendLine($"      - {triggerPath}/*");
         sb.AppendLine("      - .azuredevops/Common/*");
         sb.AppendLine($"      - .azuredevops/{configName}/apps/{appFolderName}/*");
         sb.AppendLine();
         sb.AppendLine("pr:");
         sb.AppendLine("  branches:");
-        sb.AppendLine("    include:");
+        sb.AppendLine(IncludeLine);
         foreach (var branch in PrTriggerBranches)
         {
             sb.AppendLine($"      - {branch}");
         }
 
         sb.AppendLine("  paths:");
-        sb.AppendLine("    include:");
+        sb.AppendLine(IncludeLine);
         sb.AppendLine($"      - {triggerPath}/*");
         sb.AppendLine("      - .azuredevops/Common/*");
         sb.AppendLine($"      - .azuredevops/{configName}/apps/{appFolderName}/*");
@@ -108,6 +113,21 @@ internal static class AppPrPipelineBuilder
         if (!string.IsNullOrWhiteSpace(agentPoolName))
         {
             sb.AppendLine($"    agentPoolName: '{AppNamingHelper.EscapeForSingleQuotedYaml(agentPoolName)}'");
+        }
+    }
+
+    private static void AppendCodeBuildOptionsParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        AppendBoolParam(sb, RunUnitTestsParameterName, request.RunUnitTests);
+        AppendBoolParam(sb, PublishTestResultsParameterName, request.RunUnitTests && request.PublishTestResults);
+        AppendBoolParam(sb, PublishCodeCoverageParameterName, request.RunUnitTests && request.PublishCodeCoverage);
+    }
+
+    private static void AppendBoolParam(StringBuilder sb, string paramName, bool value)
+    {
+        if (value)
+        {
+            sb.AppendLine($"    {paramName}: true");
         }
     }
 }

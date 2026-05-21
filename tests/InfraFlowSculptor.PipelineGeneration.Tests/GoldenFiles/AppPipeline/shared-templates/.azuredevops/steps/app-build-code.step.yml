@@ -13,10 +13,34 @@ parameters:
   - name: buildCommand
     type: string
     default: ''
+  - name: runUnitTests
+    type: boolean
+    default: false
+  - name: testFramework
+    type: string
+    default: ''
+  - name: testResultsFormat
+    type: string
+    default: 'VSTest'
+  - name: testResultsPath
+    type: string
+    default: '$(Common.TestResultsDirectory)/**/*.trx'
+  - name: publishTestResults
+    type: boolean
+    default: false
+  - name: publishCodeCoverage
+    type: boolean
+    default: false
+  - name: coverageTool
+    type: string
+    default: 'Cobertura'
+  - name: coverageReportPath
+    type: string
+    default: '$(Common.TestResultsDirectory)/**/coverage.cobertura.xml'
 
 steps:
   # ── Test (custom command, runs before build) ─────────────────
-  - ${{ if ne(parameters.testCommand, '') }}:
+  - ${{ if and(eq(parameters.runUnitTests, true), ne(parameters.testCommand, '')) }}:
     - powershell: |
         ${{ parameters.testCommand }}
       displayName: 'Run application tests'
@@ -37,24 +61,34 @@ steps:
       displayName: 'Restore and build .NET application'
       workingDirectory: ${{ parameters.sourcePath }}
 
-    - powershell: |
-        dotnet test --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory "$(Common.TestResultsDirectory)" --collect "XPlat Code Coverage"
-      displayName: 'Run automated tests'
-      workingDirectory: ${{ parameters.sourcePath }}
+    - ${{ if and(eq(parameters.runUnitTests, true), eq(parameters.testCommand, '')) }}:
+      - ${{ if eq(parameters.publishCodeCoverage, true) }}:
+        - powershell: |
+            dotnet test --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory "$(Common.TestResultsDirectory)" --collect "XPlat Code Coverage"
+          displayName: 'Run automated tests'
+          workingDirectory: ${{ parameters.sourcePath }}
 
-    - task: PublishTestResults@2
-      displayName: 'Publish test results'
-      inputs:
-        testResultsFormat: VSTest
-        testResultsFiles: '$(Common.TestResultsDirectory)/**/*.trx'
-        failTaskOnFailedTests: true
+      - ${{ if ne(parameters.publishCodeCoverage, true) }}:
+        - powershell: |
+            dotnet test --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory "$(Common.TestResultsDirectory)"
+          displayName: 'Run automated tests'
+          workingDirectory: ${{ parameters.sourcePath }}
 
-    - task: PublishCodeCoverageResults@2
-      displayName: 'Publish code coverage'
-      inputs:
-        codeCoverageTool: Cobertura
-        summaryFileLocation: '$(Common.TestResultsDirectory)/**/coverage.cobertura.xml'
-        failIfCoverageEmpty: false
+    - ${{ if and(eq(parameters.runUnitTests, true), eq(parameters.publishTestResults, true)) }}:
+      - task: PublishTestResults@2
+        displayName: 'Publish test results'
+        inputs:
+          testResultsFormat: ${{ parameters.testResultsFormat }}
+          testResultsFiles: ${{ parameters.testResultsPath }}
+          failTaskOnFailedTests: true
+
+    - ${{ if and(eq(parameters.runUnitTests, true), eq(parameters.publishCodeCoverage, true)) }}:
+      - task: PublishCodeCoverageResults@2
+        displayName: 'Publish code coverage'
+        inputs:
+          codeCoverageTool: ${{ parameters.coverageTool }}
+          summaryFileLocation: ${{ parameters.coverageReportPath }}
+          failIfCoverageEmpty: false
 
     - powershell: |
         dotnet publish --configuration Release --no-build --output "$(Build.ArtifactStagingDirectory)/application-package"
@@ -69,7 +103,7 @@ steps:
             throw 'npm ci failed.'
         }
 
-        if ('${{ eq(parameters.testCommand, '') }}' -eq 'True') {
+        if ('${{ eq(parameters.runUnitTests, true) }}' -eq 'True' -and '${{ eq(parameters.testCommand, '') }}' -eq 'True') {
             npm run test --if-present
             if ($LASTEXITCODE -ne 0) {
                 throw 'npm run test failed.'

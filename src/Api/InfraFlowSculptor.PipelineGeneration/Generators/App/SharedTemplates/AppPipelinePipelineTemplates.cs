@@ -113,6 +113,30 @@ internal static class AppPipelinePipelineTemplates
           - name: buildCommand
             type: string
             default: ''
+          - name: runUnitTests
+            type: boolean
+            default: false
+          - name: testFramework
+            type: string
+            default: ''
+          - name: testResultsFormat
+            type: string
+            default: 'VSTest'
+          - name: testResultsPath
+            type: string
+            default: '$(Common.TestResultsDirectory)/**/*.trx'
+          - name: publishTestResults
+            type: boolean
+            default: false
+          - name: publishCodeCoverage
+            type: boolean
+            default: false
+          - name: coverageTool
+            type: string
+            default: 'Cobertura'
+          - name: coverageReportPath
+            type: string
+            default: '$(Common.TestResultsDirectory)/**/coverage.cobertura.xml'
           - name: promotionStrategy
             type: string
             default: 'AcrImport'
@@ -141,6 +165,14 @@ internal static class AppPipelinePipelineTemplates
                   sourcePath: ${{ parameters.sourcePath }}
                   testCommand: ${{ parameters.testCommand }}
                   buildCommand: ${{ parameters.buildCommand }}
+                  runUnitTests: ${{ parameters.runUnitTests }}
+                  testFramework: ${{ parameters.testFramework }}
+                  testResultsFormat: ${{ parameters.testResultsFormat }}
+                  testResultsPath: ${{ parameters.testResultsPath }}
+                  publishTestResults: ${{ parameters.publishTestResults }}
+                  publishCodeCoverage: ${{ parameters.publishCodeCoverage }}
+                  coverageTool: ${{ parameters.coverageTool }}
+                  coverageReportPath: ${{ parameters.coverageReportPath }}
                   promotionStrategy: ${{ parameters.promotionStrategy }}
         """;
 
@@ -214,6 +246,30 @@ internal static class AppPipelinePipelineTemplates
           - name: buildCommand
             type: string
             default: ''
+          - name: runUnitTests
+            type: boolean
+            default: false
+          - name: testFramework
+            type: string
+            default: ''
+          - name: testResultsFormat
+            type: string
+            default: 'VSTest'
+          - name: testResultsPath
+            type: string
+            default: '$(Common.TestResultsDirectory)/**/*.trx'
+          - name: publishTestResults
+            type: boolean
+            default: false
+          - name: publishCodeCoverage
+            type: boolean
+            default: false
+          - name: coverageTool
+            type: string
+            default: 'Cobertura'
+          - name: coverageReportPath
+            type: string
+            default: '$(Common.TestResultsDirectory)/**/coverage.cobertura.xml'
           - name: agentPoolName
             type: string
             default: ''
@@ -236,6 +292,14 @@ internal static class AppPipelinePipelineTemplates
                   sourcePath: ${{ parameters.sourcePath }}
                   testCommand: ${{ parameters.testCommand }}
                   buildCommand: ${{ parameters.buildCommand }}
+                  runUnitTests: ${{ parameters.runUnitTests }}
+                  testFramework: ${{ parameters.testFramework }}
+                  testResultsFormat: ${{ parameters.testResultsFormat }}
+                  testResultsPath: ${{ parameters.testResultsPath }}
+                  publishTestResults: ${{ parameters.publishTestResults }}
+                  publishCodeCoverage: ${{ parameters.publishCodeCoverage }}
+                  coverageTool: ${{ parameters.coverageTool }}
+                  coverageReportPath: ${{ parameters.coverageReportPath }}
         """;
 
     internal const string ReleaseContainerPipeline = """
