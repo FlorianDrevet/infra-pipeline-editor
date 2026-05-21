@@ -58,11 +58,11 @@ public abstract class WebAppRequestBase
     public bool DockerImageValidated { get; init; }
 
     /// <summary>Relative path to the Dockerfile in the repository for container pipeline generation.</summary>
-    [MaxLength(500)]
+    [MaxLength(500), SafeRelativePathValidation]
     public string? DockerfilePath { get; init; }
 
     /// <summary>Relative path to the source code folder for code pipeline generation.</summary>
-    [MaxLength(500)]
+    [MaxLength(500), SafeRelativePathValidation]
     public string? SourceCodePath { get; init; }
 
     /// <summary>Optional custom build command for pipeline generation.</summary>

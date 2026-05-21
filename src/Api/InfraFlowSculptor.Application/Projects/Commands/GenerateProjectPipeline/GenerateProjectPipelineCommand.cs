@@ -6,7 +6,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipelin
 /// <summary>Command to generate pipeline YAML files for an entire project in mono-repo mode.</summary>
 public record GenerateProjectPipelineCommand(
     ProjectId ProjectId
-) : ICommand<GenerateProjectPipelineResult>;
+) : IGenerateCommand<GenerateProjectPipelineResult>;
 
 /// <summary>Result of mono-repo pipeline generation, containing URIs organized by common and per-config folders.</summary>
 /// <param name="CommonFileUris">Union of infra and app shared templates (backward compatibility).</param>

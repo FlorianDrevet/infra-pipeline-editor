@@ -15,4 +15,7 @@ public sealed class McpRateLimitingOptions : IRateLimitingOptions
 
     /// <summary>Gets or sets the stricter policy applied to expensive endpoints.</summary>
     public FixedWindowRateLimitingPolicyOptions Expensive { get; set; } = new();
+
+    /// <summary>Gets or sets the dedicated policy applied to MCP health-check endpoints.</summary>
+    public FixedWindowRateLimitingPolicyOptions HealthChecks { get; set; } = new();
 }

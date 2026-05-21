@@ -135,6 +135,32 @@ public sealed class CreateFunctionAppRequestTests
         results.HasErrorForMember(nameof(CreateFunctionAppRequest.DeploymentMode)).Should().BeTrue();
     }
 
+    [Fact]
+    public void Given_TraversingDockerfilePath_When_Validate_Then_Error()
+    {
+        // Arrange
+        var sut = CreateRequest(dockerfilePath: "../src/Func/Dockerfile");
+
+        // Act
+        var results = RequestValidator.Validate(sut);
+
+        // Assert
+        results.HasErrorForMember(nameof(CreateFunctionAppRequest.DockerfilePath)).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Given_TraversingSourceCodePath_When_Validate_Then_Error()
+    {
+        // Arrange
+        var sut = CreateRequest(sourceCodePath: "../src/Func");
+
+        // Act
+        var results = RequestValidator.Validate(sut);
+
+        // Assert
+        results.HasErrorForMember(nameof(CreateFunctionAppRequest.SourceCodePath)).Should().BeTrue();
+    }
+
     private static CreateFunctionAppRequest CreateValidRequest() => CreateRequest();
 
     private static CreateFunctionAppRequest CreateRequest(
@@ -144,7 +170,9 @@ public sealed class CreateFunctionAppRequestTests
         Guid? appServicePlanId = null,
         string? runtimeStack = null,
         string? runtimeVersion = null,
-        string? deploymentMode = null)
+        string? deploymentMode = null,
+        string? dockerfilePath = null,
+        string? sourceCodePath = null)
     {
         return new CreateFunctionAppRequest
         {
@@ -155,6 +183,8 @@ public sealed class CreateFunctionAppRequestTests
             RuntimeStack = runtimeStack ?? ValidRuntimeStack,
             RuntimeVersion = runtimeVersion ?? ValidRuntimeVersion,
             DeploymentMode = deploymentMode ?? ValidDeploymentMode,
+            DockerfilePath = dockerfilePath,
+            SourceCodePath = sourceCodePath,
         };
     }
 }

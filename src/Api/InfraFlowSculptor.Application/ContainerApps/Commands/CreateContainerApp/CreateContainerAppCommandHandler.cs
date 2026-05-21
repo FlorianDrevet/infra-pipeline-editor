@@ -55,6 +55,7 @@ public sealed class CreateContainerAppCommandHandler(
                 ? new AzureResourceId(request.AcrPullIdentityId.Value)
                 : null,
             request.DockerImageName,
+            request.DockerImageValidated,
             request.DockerfilePath,
             request.ApplicationName,
             request.SourceCodePath,

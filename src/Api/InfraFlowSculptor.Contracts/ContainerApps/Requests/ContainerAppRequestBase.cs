@@ -39,7 +39,7 @@ public abstract class ContainerAppRequestBase
     public bool DockerImageValidated { get; init; }
 
     /// <summary>Relative path to the Dockerfile in the repository for pipeline generation.</summary>
-    [MaxLength(500)]
+    [MaxLength(500), SafeRelativePathValidation]
     public string? DockerfilePath { get; init; }
 
     /// <summary>User-friendly application name displayed in Azure DevOps pipeline runs.</summary>
@@ -47,7 +47,7 @@ public abstract class ContainerAppRequestBase
     public string? ApplicationName { get; init; }
 
     /// <summary>Relative path to the source code directory used as Docker build context.</summary>
-    [MaxLength(500)]
+    [MaxLength(500), SafeRelativePathValidation]
     public string? SourceCodePath { get; init; }
 
     /// <summary>Optional pipeline step options for CI/CD generation.</summary>

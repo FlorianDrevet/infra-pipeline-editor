@@ -66,4 +66,20 @@ public sealed class AppPipelineDefinitionNameTests
         result.Value.Files["pr.app-pipeline.yml"].Should().NotContain("containerRegistryServiceConnection");
         result.Value.Files["pr.app-pipeline.yml"].Should().NotContain("app-acr-login");
     }
+
+    [Fact]
+    public void Given_CustomSourceCodePath_When_Generate_Then_CiAndPrTriggersWatchTheSourceFolder()
+    {
+        // Arrange
+        var request = AppPipelineRequestFixtures.ContainerApp();
+        request.SourceCodePath = "src/Api";
+
+        // Act
+        var result = _sut.Generate(request);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.Files["ci.app-pipeline.yml"].Should().Contain("- src/Api/*");
+        result.Value.Files["pr.app-pipeline.yml"].Should().Contain("- src/Api/*");
+    }
 }

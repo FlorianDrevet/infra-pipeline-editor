@@ -10,7 +10,6 @@ using InfraFlowSculptor.Mcp.Resources;
 using InfraFlowSculptor.Mcp.Tools;
 using Mapster;
 using MapsterMapper;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,11 +64,7 @@ var app = builder.Build();
 
 app.UseMcpHttpPipeline();
 
-app.MapHealthChecks("/health").AllowAnonymous();
-app.MapHealthChecks("/alive", new HealthCheckOptions
-{
-    Predicate = registration => registration.Tags.Contains("live")
-}).AllowAnonymous();
+app.MapMcpHealthChecks();
 app.MapMcp(mcpOptions.Route)
     .RequireAuthorization()
     .RequireRateLimiting(RateLimitingPolicyNames.Expensive);

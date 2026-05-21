@@ -5,7 +5,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.GeneratePi
 /// <summary>Command to generate Azure DevOps pipeline YAML files for an infrastructure configuration.</summary>
 public record GeneratePipelineCommand(
     Guid InfrastructureConfigId
-) : ICommand<GeneratePipelineResult>;
+) : IGenerateCommand<GeneratePipelineResult>;
 
 /// <summary>Result of pipeline generation, containing URIs to the generated artifact files.</summary>
 /// <param name="FileUris">Map of relative file paths to their blob URIs.</param>

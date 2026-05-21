@@ -17,7 +17,7 @@
 - **Primary doc:** `docs/architecture/mcp-integration.md`.
 - **Usage persistence throttling [2026-05-13]:** `PersonalAccessTokenAuthenticationHandler` no longer persists `LastUsedAt` on every authenticated request. It writes only when the elapsed interval exceeds `PersonalAccessTokenAuthenticationDefaults.UsagePersistenceInterval`, which is the current write-amplification guard for PAT auth.
 - **Scopes model [2026-05-17]:** `PersonalAccessToken` now owns a `Scopes` collection persisted in `PersonalAccessTokenScopes`, with `Read`, `Write`, and `Generate` values; token creation defaults to `Read` when the caller omits scopes.
-- **Current enforcement boundary:** scopes are modeled and persisted, but the auth path still authenticates the PAT as a whole. Do not assume per-scope authorization exists unless the consuming handler/endpoint explicitly checks `HasScope(...)`.
+- **Enforcement [2026-05-20]:** `PersonalAccessTokenAuthenticationHandler` now emits one `ifs_pat_scope` claim per granted scope, `CurrentUser.HasPersonalAccessTokenScopeAsync(...)` resolves those claims, and `PersonalAccessTokenScopeBehavior` enforces scopes centrally across MediatR requests: `IQuery<T>` requires `Read` (with `Write` also satisfying read), `ICommand<T>` requires `Write`, and `IGenerateCommand<T>` requires `Generate`.
 
 ## API User Provisioning [2026-05-13]
 
@@ -60,6 +60,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - `src/Mcp/InfraFlowSculptor.Mcp/Program.cs` now reuses API rate limiting through `AddRateLimiting()` and the shared security headers middleware through `UseMcpHttpPipeline()`.
 - The MCP HTTP pipeline applies security headers, `UseHsts()` outside Development, `UseRateLimiter()`, and PAT auth/authorization in the same ordering constraints as the API.
 - `MapMcp(mcpOptions.Route)` now requires both authorization and the `RateLimitingPolicyNames.Expensive` policy.
+- MCP health endpoints are now mapped through `MapMcpHealthChecks()` and both `/health` and `/alive` require the dedicated `RateLimitingPolicyNames.HealthChecks` policy while remaining anonymous.
 - Source-controlled MCP rate-limiting defaults live in `src/Mcp/InfraFlowSculptor.Mcp/appsettings.json`.
 - `ProjectDraftService` now enforces `ProjectDraftStorageOptions.MaxDraftCount` and the tool layer returns a structured limit error instead of allowing unbounded in-memory draft growth.
 - `UseMcpHttpPipeline()` logs a warning when `McpOptions.ListenUrl` uses plain HTTP outside Development; keep that guard on the shared pipeline rather than duplicating it in `Program.cs`.
@@ -105,6 +106,8 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - Azure DevOps resolves `template:` relative to the template file, not the wrapper; keep helper path generation aligned with `.azuredevops/pipelines/`.
 - CI/release split remains build-once then promote.
 - `AppPipelineRequestFactory` must propagate `ContainerApp.SourceCodePath` into `AppPipelineGenerationRequest.SourceCodePath`; otherwise generated Container App CI/PR/release wrappers silently fall back to `buildContext: '.'` even when the resource stores a custom build context.
+- CI/PR app-wrapper trigger paths must also honor `AppPipelineGenerationRequest.SourceCodePath`: `AppTriggerPathHelper` normalizes the configured relative source path for YAML path filters and falls back to the legacy `{config}/{resource}` folder only when no source path is provided.
+- `Create*AppRequest` / `Update*AppRequest` DTOs for Container Apps, Web Apps, and Function Apps now reject unsafe `DockerfilePath` / `SourceCodePath` values via `SafeRelativePathValidation`; the API file-reading helper delegates to `Contracts.Common.SafeRelativePath` so request validation and generated-artifact endpoints share the same traversal guard.
 - App pipeline generation now emits CI, PR, and release wrappers for every generated app (`ci.app-pipeline.yml`, `pr.app-pipeline.yml`, `release.app-pipeline.yml`). Bootstrap app definitions must provision all three; app PR templates validate code or Docker builds without ACR login/push.
 - Container delivery uses immutable tags and optional Trivy/Syft scans.
 - Shared app step templates now emit Windows-compatible `powershell` steps and AzureCLI `scriptType: ps` for inline scripts (`app-compute-release-tag`, `app-acr-login`, `app-docker-buildx-push`, `app-docker-buildx-validate`, `app-trivy-scan`, `app-syft-sbom`, `app-load-metadata`, `app-build-code`, `app-acr-promote`, `app-deploy-container`). Trivy and Syft install their Windows zip assets directly from GitHub releases instead of piping shell installers through Bash.

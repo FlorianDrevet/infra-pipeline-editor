@@ -24,6 +24,7 @@ Commands and queries use project-owned marker interfaces:
 ```csharp
 public interface ICommandBase;
 public interface ICommand<TResult> : IRequest<ErrorOr<TResult>>, ICommandBase;
+public interface IGenerateCommand<TResult> : ICommand<TResult>;
 public interface IQuery<TResult> : IRequest<ErrorOr<TResult>>;
 public interface ICommandHandler<in TCommand, TResult> : IRequestHandler<TCommand, ErrorOr<TResult>>
     where TCommand : ICommand<TResult>;
@@ -32,6 +33,7 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 ```
 
 **Convention:** never use `IRequest<ErrorOr<T>>` or `IRequestHandler<,>` directly.
+- `IGenerateCommand<TResult>` is the dedicated marker for artifact-generation commands that must require the PAT `Generate` scope instead of the broader `Write` scope.
 
 ## Typed Dynamic Dispatch [2026-04-29]
 
@@ -43,13 +45,14 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 
 - `IUnitOfWork` / `UnitOfWork` wraps `ProjectDbContext.SaveChangesAsync`
 - `ValidationBehavior` only applies to commands implementing `ICommandBase`; queries must bypass FluentValidation even if a validator exists for the query type.
+- `PersonalAccessTokenScopeBehavior` enforces PAT scopes centrally: `IQuery<T>` requires `Read` (or `Write`), `ICommand<T>` requires `Write`, and `IGenerateCommand<T>` requires `Generate`.
 - `UnitOfWorkBehavior` only applies to `ICommand<T>` (via `ICommandBase` constraint)
-- Pipeline order: `ValidationBehavior` → `UnitOfWorkBehavior` → Handler
+- Pipeline order: `ValidationBehavior` → `PersonalAccessTokenScopeBehavior` → `UnitOfWorkBehavior` → Handler
 - **Critical:** Repositories MUST NOT call `SaveChangesAsync()`.
 
 ## Registration
 
-- `DependencyInjection.cs` (Application) registers MediatR, ValidationBehavior, UnitOfWorkBehavior, validators by assembly scan.
+- `DependencyInjection.cs` (Application) registers MediatR, ValidationBehavior, PersonalAccessTokenScopeBehavior, UnitOfWorkBehavior, validators by assembly scan.
 - `DependencyInjection.cs` (Infrastructure) registers `IUnitOfWork`.
 
 ## Validator Cross-Rules [2026-04-30]

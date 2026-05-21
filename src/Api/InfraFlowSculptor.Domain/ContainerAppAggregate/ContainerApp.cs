@@ -147,6 +147,7 @@ public sealed class ContainerApp : AzureResource
     /// <param name="acrAuthMode">The optional authentication mode used to pull images from Azure Container Registry.</param>
     /// <param name="acrPullIdentityId">The optional User Assigned Identity used exclusively for ACR image pull.</param>
     /// <param name="dockerImageName">The optional base Docker image name without the tag.</param>
+    /// <param name="dockerImageValidated">Whether the Docker image has already been confirmed as available.</param>
     /// <param name="dockerfilePath">The optional relative path to the Dockerfile in the repository.</param>
     /// <param name="applicationName">The optional user-friendly application name for pipeline display.</param>
     /// <param name="environmentSettings">Optional per-environment configuration overrides.</param>
@@ -160,6 +161,7 @@ public sealed class ContainerApp : AzureResource
         AcrAuthMode? acrAuthMode,
         AzureResourceId? acrPullIdentityId = null,
         string? dockerImageName = null,
+        bool dockerImageValidated = false,
         string? dockerfilePath = null,
         string? applicationName = null,
         string? sourceCodePath = null,
@@ -180,7 +182,7 @@ public sealed class ContainerApp : AzureResource
             AcrAuthMode = resolvedAcrAuthMode,
             AcrPullIdentityId = resolvedAcrAuthMode?.Value == AcrAuthMode.AcrAuthModeType.ManagedIdentity ? acrPullIdentityId : null,
             DockerImageName = dockerImageName,
-            DockerImageValidated = false,
+            DockerImageValidated = dockerImageValidated,
             DockerfilePath = dockerfilePath,
             ApplicationName = applicationName,
             SourceCodePath = sourceCodePath

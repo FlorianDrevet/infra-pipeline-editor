@@ -7,4 +7,7 @@ public static class RateLimitingPolicyNames
 {
     /// <summary>Gets the policy name applied to expensive MCP endpoints.</summary>
     public const string Expensive = "Expensive";
+
+    /// <summary>Gets the policy name applied to MCP health-check endpoints.</summary>
+    public const string HealthChecks = "HealthChecks";
 }

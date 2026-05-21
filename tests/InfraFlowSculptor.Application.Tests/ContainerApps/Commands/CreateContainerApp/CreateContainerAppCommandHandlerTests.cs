@@ -118,4 +118,31 @@ public sealed class CreateContainerAppCommandHandlerTests
             && c.ContainerAppEnvironmentId == _environment.Id));
         _mapper.Received(1).Map<ContainerAppResult>(Arg.Any<ContainerApp>());
     }
+
+    [Fact]
+    public async Task Given_ValidatedDockerImage_When_Handle_Then_PersistsValidatedContainerImageAsync()
+    {
+        // Arrange
+        var command = _command with
+        {
+            DockerImageName = "registry.azurecr.io/apps/shared",
+            DockerImageValidated = true,
+        };
+
+        _resourceGroupRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_resourceGroup);
+        _accessService.VerifyWriteAccessAsync(_config.Id, Arg.Any<CancellationToken>())
+            .Returns(_config);
+        _environmentRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_environment);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        _containerAppRepository.Received(1).Add(Arg.Is<ContainerApp>(containerApp =>
+            containerApp.DockerImageName == "registry.azurecr.io/apps/shared"
+            && containerApp.DockerImageValidated));
+    }
 }

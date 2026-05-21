@@ -8,7 +8,7 @@ trigger:
       - '*'
   paths:
     include:
-      - core/myweb/*
+      - src/Web/*
       - .azuredevops/Common/*
       - .azuredevops/core/apps/MyWeb/*
 
@@ -20,7 +20,7 @@ pr:
       - release/*
   paths:
     include:
-      - core/myweb/*
+      - src/Web/*
       - .azuredevops/Common/*
       - .azuredevops/core/apps/MyWeb/*
 

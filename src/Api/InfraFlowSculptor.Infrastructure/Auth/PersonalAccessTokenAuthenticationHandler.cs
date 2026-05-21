@@ -63,10 +63,12 @@ public sealed class PersonalAccessTokenAuthenticationHandler(
         // Populate HttpContext.Items so ICurrentUser resolves the user transparently.
         Context.Items[UserIdItemKey] = pat.UserId;
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, pat.UserId.Value.ToString())
         };
+
+        claims.AddRange(pat.Scopes.Select(scope => new Claim(PersonalAccessTokenClaimNames.Scope, scope.Value.ToString())));
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);
         var principal = new ClaimsPrincipal(identity);

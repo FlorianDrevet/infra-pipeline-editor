@@ -126,6 +126,46 @@ public sealed class CreateContainerAppRequestTests
     }
 
     [Fact]
+    public void Given_TraversingDockerfilePath_When_Validate_Then_Error()
+    {
+        // Arrange
+        var sut = new CreateContainerAppRequest
+        {
+            Name = "ca-api",
+            Location = ValidLocation,
+            ResourceGroupId = ValidResourceGroupId,
+            ContainerAppEnvironmentId = ValidContainerAppEnvironmentId,
+            DockerfilePath = "../src/Api/Dockerfile",
+        };
+
+        // Act
+        var results = RequestValidator.Validate(sut);
+
+        // Assert
+        results.HasErrorForMember(nameof(CreateContainerAppRequest.DockerfilePath)).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Given_TraversingSourceCodePath_When_Validate_Then_Error()
+    {
+        // Arrange
+        var sut = new CreateContainerAppRequest
+        {
+            Name = "ca-api",
+            Location = ValidLocation,
+            ResourceGroupId = ValidResourceGroupId,
+            ContainerAppEnvironmentId = ValidContainerAppEnvironmentId,
+            SourceCodePath = "../src/Api",
+        };
+
+        // Act
+        var results = RequestValidator.Validate(sut);
+
+        // Assert
+        results.HasErrorForMember(nameof(CreateContainerAppRequest.SourceCodePath)).Should().BeTrue();
+    }
+
+    [Fact]
     public void Given_TooLongEnvironmentContainerRegistryServiceConnection_When_ValidateEntry_Then_Error()
     {
         // Arrange

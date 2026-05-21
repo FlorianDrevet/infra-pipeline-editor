@@ -5,7 +5,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.GenerateBi
 
 public record GenerateBicepCommand(
     Guid InfrastructureConfigId
-) : ICommand<GenerateBicepResult>;
+) : IGenerateCommand<GenerateBicepResult>;
 
 /// <summary>Result of Bicep generation, containing URIs to the generated artifact files.</summary>
 /// <param name="MainBicepUri">URI to the main <c>main.bicep</c> file.</param>

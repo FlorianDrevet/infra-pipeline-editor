@@ -89,6 +89,32 @@ public sealed class CreateWebAppRequestTests
     }
 
     [Fact]
+    public void Given_TraversingDockerfilePath_When_Validate_Then_ReturnsPathError()
+    {
+        // Arrange
+        var sut = CreateRequest(dockerfilePath: "../src/Web/Dockerfile");
+
+        // Act
+        var results = RequestValidator.Validate(sut);
+
+        // Assert
+        results.HasErrorForMember(nameof(CreateWebAppRequest.DockerfilePath)).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Given_TraversingSourceCodePath_When_Validate_Then_ReturnsPathError()
+    {
+        // Arrange
+        var sut = CreateRequest(sourceCodePath: "../src/Web");
+
+        // Act
+        var results = RequestValidator.Validate(sut);
+
+        // Assert
+        results.HasErrorForMember(nameof(CreateWebAppRequest.SourceCodePath)).Should().BeTrue();
+    }
+
+    [Fact]
     public void Given_BuildCommandExceedingMaxLength_When_Validate_Then_ReturnsLengthError()
     {
         // Arrange
@@ -109,6 +135,7 @@ public sealed class CreateWebAppRequestTests
         string? runtimeStack = null,
         string? deploymentMode = null,
         string? dockerfilePath = null,
+        string? sourceCodePath = null,
         string? buildCommand = null)
     {
         return new CreateWebAppRequest
@@ -121,6 +148,7 @@ public sealed class CreateWebAppRequestTests
             RuntimeVersion = "8.0",
             DeploymentMode = deploymentMode ?? ValidDeploymentMode,
             DockerfilePath = dockerfilePath,
+            SourceCodePath = sourceCodePath,
             BuildCommand = buildCommand,
         };
     }
