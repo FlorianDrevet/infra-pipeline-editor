@@ -40,7 +40,6 @@ Legacy 920-line `BicepGenerationEngine` → thin facade (~85 LOC) + `BicepGenera
 - **Never** call `BicepOutputPruner` from a stage — pruning is engine-owned (mono-repo cross-config).
 - Mutation stages must use `item.Module = item.Module with { ... }` to avoid losing earlier stage data.
 - `TextManipulation/` helpers must be `internal`/`public static` and pure (no DI).
-- `BicepTagsInjector` regex requires `\n` before first `param` in test modules.
 
 ## Vague 2 — Builder + IR [2026-04-27]
 **All 18 generators migrated** from legacy `const string` → typed `BicepModuleSpec` via `BicepModuleBuilder`. Pipeline is dual-mode (backward-compatible). Phase 6 removed legacy dual-mode branches; `ModuleWorkItem.Spec` is now required.

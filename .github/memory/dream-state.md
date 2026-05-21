@@ -7,8 +7,8 @@
 
 | Gate | Value |
 |------|-------|
-| `lastDreamDate` | 2026-05-20 |
-| `sessionsSinceLastDream` | 11 |
+| `lastDreamDate` | 2026-05-21 |
+| `sessionsSinceLastDream` | 0 |
 
 ## Rules
 

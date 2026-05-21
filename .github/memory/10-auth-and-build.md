@@ -35,8 +35,8 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 ```
 
 - Frontend from `src/Front`: `npm install; npm run start; npm run build; npm run typecheck`.
-- On Windows, stop running `InfraFlowSculptor.Api`, `InfraFlowSculptor.Mcp`, or `InfraFlowSculptor.AppHost` processes before rebuilding or MSBuild can fail with locked `bin\Debug\net10.0` assemblies.
-- Stale PowerShell shells can also lock `InfraFlowSculptor.GenerationCore.dll` after reflection/debug commands and leave `BicepGeneration` building against stale metadata.
+- On Windows, stop running `InfraFlowSculptor.Api`, `InfraFlowSculptor.Mcp`, `InfraFlowSculptor.AppHost`, and stale PowerShell reflection/debug shells before rebuilding, or MSBuild can fail on locked `bin\Debug\net10.0` assemblies such as `InfraFlowSculptor.GenerationCore.dll`.
+- `src/Api/InfraFlowSculptor.Api/Dockerfile` must build from a repo-root context (`WORKDIR /repo`) and copy `.editorconfig`; otherwise central props outside `src/Api` and local warning-severity overrides are missing inside containerized API/PR builds [2026-05-21].
 - `*.csproj.lscache` files are local language-service artifacts and must stay ignored at the repo level; they should never be committed in PRs because they massively inflate diffs without affecting runtime or tests.
 
 ## Tests
@@ -45,15 +45,11 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - `tests/InfraFlowSculptor.GenerationParity.Tests/` is only a placeholder folder; do not put regular unit tests there.
 - Shared coverage collection is now enabled for all test projects via `tests/Directory.Build.props` + `coverlet.collector`; use `dotnet test .\InfraFlowSculptor.slnx --collect:"XPlat Code Coverage"` or `.\scripts\test-coverage.ps1`.
 - `tests/InfraFlowSculptor.Contracts.Tests/Responses/ContractsResponseShapeSnapshotTests.*` is the approval gate for public Contracts response DTO shape. When adding, removing, or splitting response types, update the verified snapshot in strict alphabetical order and keep the `Count` value aligned with the approved list.
-- `tmp/test-output-mcp/` is not ignored by the root `.gitignore`; generated MCP artefacts there can pollute branch diffs.
 
 ## GitHub to Azure DevOps Mirror [2026-05-16]
 
-- `.github/workflows/mirror-to-azure-devops.yml` mirrors all GitHub branches and tags into an Azure DevOps Git repo on every `push`, `create`, `delete`, plus manual `workflow_dispatch`.
-- The workflow is serialized with a dedicated concurrency group so concurrent pushes on different branches do not race while updating the Azure DevOps mirror.
-- Required GitHub configuration: repository variable `AZURE_DEVOPS_MIRROR_URL` for the target clone URL and repository secret `AZURE_DEVOPS_MIRROR_PAT` with Azure DevOps `Code (Read & Write)` scope.
-- The workflow syncs the full branch/tag set, force-updates rewritten refs, and prunes refs deleted from GitHub so the Azure DevOps repo stays aligned instead of only forwarding the triggering branch.
-- Source branches are enumerated from `git ls-remote --heads origin` and each native Git call is wrapped with an explicit exit-code check so a branch-push failure aborts the job before any prune can delete Azure DevOps refs.
+- `.github/workflows/mirror-to-azure-devops.yml` mirrors all GitHub branches and tags into Azure DevOps on `push`, `create`, `delete`, and manual `workflow_dispatch`, guarded by a dedicated concurrency group plus repository settings `AZURE_DEVOPS_MIRROR_URL` and `AZURE_DEVOPS_MIRROR_PAT` (`Code (Read & Write)`).
+- The workflow force-updates rewritten refs, prunes deleted refs, enumerates source branches from `git ls-remote --heads origin`, and aborts on any native Git branch-push failure before prune can run.
 
 ## MCP Runtime Hardening [2026-05-13]
 
@@ -116,7 +112,6 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - App pipeline templates that use Azure DevOps `extends:` must not place `pool:` at the root; put the pool on the generated stage/job level.
 - Do not embed Azure DevOps compile-time directives such as `${{ if }}` inside multiline script strings. Use YAML-level directives for complete nodes or runtime script conditionals.
 - In `SplitInfraCode`, the app/code blob bucket must include any Common variable files referenced by app wrappers/templates, because the target code repo receives only the app bucket.
-- `AppPipelineBuilderCommon` still contains removable dead inline YAML helpers; it is cleanup-only debt.
 - `PipelineGenerationEngine` must map only known validation-style `InvalidOperationException` prefixes to `ErrorOr` validation errors (currently the variable-group-name guard). Unexpected `InvalidOperationException` instances must bubble so handlers/global error handling treat them as internal failures instead of `Generation.InvalidInfrastructurePipelineConfiguration` user errors.
 
 ## Windows PowerShell & Bootstrap ADO Notes
@@ -124,6 +119,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - Generated YAML must use `powershell` steps, not Bash or `pwsh`, because self-hosted Windows agents may not have `pwsh.exe`.
 - App pipeline shared-template stability is now guarded by `AppPipelineWindowsShellCompatibilityTests`, which must stay green whenever a step template introduces or changes inline script execution.
 - `AppPipelineWindowsShellCompatibilityTests` also guards literal-block indentation for the generated PowerShell shared steps; update it alongside any future multiline script edits in the app templates.
+- Bootstrap generation now injects a preflight PowerShell job that validates required ARM and ACR service connections before provisioning resources [2026-05-20].
 - Bootstrap auth uses `$(System.AccessToken)`; do not bake PATs into YAML, and do not pass `--detect false` to `az devops configure`.
 - Decode `%20`-style URL segments before feeding org/project/repo names to Azure DevOps CLI defaults.
 - Pipeline creation on Windows PowerShell 5.1 must temporarily relax `$ErrorActionPreference`, capture `$LASTEXITCODE`, and use `--only-show-errors` around `az pipelines create`.
@@ -148,9 +144,6 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 
 ## Sonar Notes
 
-- Accepted rule exceptions: duplicate strings in migrations (`S1192`) and a `new_duplicated_lines_density` quality-gate threshold of `3%`.
-- SonarCloud PR issue counts can lag behind the current workspace state; after a local fix wave, re-check the exact file contents before chasing the same finding again. On PR `#395`, the last `S1192` generator findings persisted remotely until the PR analysis reran, even though the raw literals were already reduced to single constant definitions locally.
-- Keep `sonar.cpd.exclusions` explicitly aligned with `tmp/**` / `**/tmp/**`; the broader `sonar.exclusions` entry alone did not reliably prevent scratch PowerShell remediation scripts under `tmp/` from surfacing in Sonar duplication metrics.
-- The 2026-04-28 remediation wave also standardized regex timeouts, hardened ZIP extraction guards, pinned GitHub Actions SHAs, and tightened Docker frontend build inputs.
-- On PR `#395`, the last open `S107` on `AppPipelineStepOptions.Update(...)` was closed by introducing a dedicated `AppPipelineStepOptionsData` shape in Domain and a single Application-side mapper from `PipelineStepOptionsDto`, instead of keeping a 21-argument mutator signature.
-- `VirtualNetworkAggregate.Entities.Subnet` now configures an explicit timeout on its compiled service-endpoint regex; this is the reference fix for Sonar hotspot `S6444` in Domain regex validators.
+- Accepted rule exceptions remain duplicate strings in migrations (`S1192`) and `new_duplicated_lines_density` `3%`; keep `sonar.cpd.exclusions` aligned with `tmp/**` and `**/tmp/**` so scratch PowerShell output stays out of duplication metrics.
+- SonarCloud PR issue counts can lag local fixes; on PR `#395`, generator `S1192` findings persisted remotely until the next analysis even after local constant cleanup, so always re-check the actual branch contents before reopening the same slice.
+- Current reference fixes from the recent Sonar waves are regex timeouts, ZIP extraction guards, pinned GitHub Actions SHAs, tightened Docker inputs, `AppPipelineStepOptionsData` replacing the 21-argument `Update(...)` mutator, and `VirtualNetworkAggregate.Entities.Subnet` as the regex-timeout example for hotspot `S6444`.
