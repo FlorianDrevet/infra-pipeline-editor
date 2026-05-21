@@ -637,7 +637,7 @@ public sealed class ProjectDraftService : IProjectDraftService
     {
         var lower = prompt.ToLowerInvariant();
 
-        if (Regex.IsMatch(lower, @"\b(?:\.net|dotnet|asp\.net|csharp)\b|(?<!\w)c#(?!\w)", RegexOptions.None, RegexTimeout))
+        if (Regex.IsMatch(lower, @"(?<!\w)(?:\.net|dotnet|asp\.net|csharp)\b|(?<!\w)c#(?!\w)", RegexOptions.None, RegexTimeout))
         {
             return DraftApplicationStacks.DotNet;
         }
