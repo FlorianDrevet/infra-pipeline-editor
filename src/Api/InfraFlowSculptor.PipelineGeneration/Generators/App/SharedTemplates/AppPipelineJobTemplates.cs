@@ -154,6 +154,15 @@ internal static class AppPipelineJobTemplates
           - name: promotionStrategy
             type: string
             default: 'AcrImport'
+          - name: enableDependencyCache
+            type: boolean
+            default: false
+          - name: runDependencyScan
+            type: boolean
+            default: false
+          - name: dependencyScanTool
+            type: string
+            default: 'OWASPDependencyCheck'
 
         jobs:
           - job: BuildAndPublish
@@ -177,6 +186,11 @@ internal static class AppPipelineJobTemplates
                   runtimeStack: ${{ parameters.runtimeStack }}
                   runtimeVersion: ${{ parameters.runtimeVersion }}
 
+              - ${{ if parameters.enableDependencyCache }}:
+                - template: ../steps/app-dependency-cache.step.yml
+                  parameters:
+                    runtimeStack: ${{ parameters.runtimeStack }}
+
               - template: ../steps/app-build-code.step.yml
                 parameters:
                   runtimeStack: ${{ parameters.runtimeStack }}
@@ -191,6 +205,13 @@ internal static class AppPipelineJobTemplates
                   publishCodeCoverage: ${{ parameters.publishCodeCoverage }}
                   coverageTool: ${{ parameters.coverageTool }}
                   coverageReportPath: ${{ parameters.coverageReportPath }}
+
+              - ${{ if parameters.runDependencyScan }}:
+                - template: ../steps/app-dependency-scan.step.yml
+                  parameters:
+                    dependencyScanTool: ${{ parameters.dependencyScanTool }}
+                    runtimeStack: ${{ parameters.runtimeStack }}
+                    sourcePath: ${{ parameters.sourcePath }}
 
               - task: PublishPipelineArtifact@1
                 displayName: 'Publish app metadata'
@@ -343,6 +364,12 @@ internal static class AppPipelineJobTemplates
             type: string
           - name: envName
             type: string
+          - name: runSmokeTests
+            type: boolean
+            default: false
+          - name: smokeTestCommand
+            type: string
+            default: ''
 
         jobs:
           - deployment: Deploy_${{ parameters.envShortName }}
@@ -366,6 +393,11 @@ internal static class AppPipelineJobTemplates
                       parameters:
                         resourceType: ${{ parameters.resourceType }}
                         imageRepository: ${{ parameters.imageRepository }}
+
+                    - ${{ if parameters.runSmokeTests }}:
+                      - template: ../steps/app-smoke-test.step.yml
+                        parameters:
+                          smokeTestCommand: ${{ parameters.smokeTestCommand }}
         """;
 
     internal const string ReleaseCodeJob = """
@@ -380,6 +412,12 @@ internal static class AppPipelineJobTemplates
             type: string
           - name: envName
             type: string
+          - name: runSmokeTests
+            type: boolean
+            default: false
+          - name: smokeTestCommand
+            type: string
+            default: ''
 
         jobs:
           - deployment: Deploy_${{ parameters.envShortName }}
@@ -396,5 +434,10 @@ internal static class AppPipelineJobTemplates
                     - template: ../steps/app-deploy-code.step.yml
                       parameters:
                         resourceType: ${{ parameters.resourceType }}
+
+                    - ${{ if parameters.runSmokeTests }}:
+                      - template: ../steps/app-smoke-test.step.yml
+                        parameters:
+                          smokeTestCommand: ${{ parameters.smokeTestCommand }}
         """;
 }

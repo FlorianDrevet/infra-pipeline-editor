@@ -81,15 +81,15 @@ jobs:
           promotionStrategy: ${{ parameters.promotionStrategy }}
           includeRegistryMetadata: false
 
-      - ${{ if parameters.enableDependencyCache }}:
-        - template: ../steps/app-dependency-cache.step.yml
-          parameters:
-            runtimeStack: ${{ parameters.runtimeStack }}
-
       - template: ../steps/app-sdk-setup.step.yml
         parameters:
           runtimeStack: ${{ parameters.runtimeStack }}
           runtimeVersion: ${{ parameters.runtimeVersion }}
+
+      - ${{ if parameters.enableDependencyCache }}:
+        - template: ../steps/app-dependency-cache.step.yml
+          parameters:
+            runtimeStack: ${{ parameters.runtimeStack }}
 
       - template: ../steps/app-build-code.step.yml
         parameters:

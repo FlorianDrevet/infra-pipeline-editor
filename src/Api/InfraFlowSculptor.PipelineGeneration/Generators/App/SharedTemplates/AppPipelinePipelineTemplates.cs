@@ -140,6 +140,15 @@ internal static class AppPipelinePipelineTemplates
           - name: promotionStrategy
             type: string
             default: 'AcrImport'
+          - name: enableDependencyCache
+            type: boolean
+            default: false
+          - name: runDependencyScan
+            type: boolean
+            default: false
+          - name: dependencyScanTool
+            type: string
+            default: 'OWASPDependencyCheck'
           - name: agentPoolName
             type: string
             default: ''
@@ -174,6 +183,9 @@ internal static class AppPipelinePipelineTemplates
                   coverageTool: ${{ parameters.coverageTool }}
                   coverageReportPath: ${{ parameters.coverageReportPath }}
                   promotionStrategy: ${{ parameters.promotionStrategy }}
+                  enableDependencyCache: ${{ parameters.enableDependencyCache }}
+                  runDependencyScan: ${{ parameters.runDependencyScan }}
+                  dependencyScanTool: ${{ parameters.dependencyScanTool }}
         """;
 
     internal const string PrContainerPipeline = """
@@ -322,6 +334,12 @@ internal static class AppPipelinePipelineTemplates
           - name: agentPoolName
             type: string
             default: ''
+          - name: runSmokeTests
+            type: boolean
+            default: false
+          - name: smokeTestCommand
+            type: string
+            default: ''
           - name: environments
             type: object
             default: []
@@ -349,6 +367,8 @@ internal static class AppPipelinePipelineTemplates
                     promotionStrategy: ${{ parameters.promotionStrategy }}
                     envShortName: ${{ env.shortName }}
                     envName: ${{ env.name }}
+                    runSmokeTests: ${{ parameters.runSmokeTests }}
+                    smokeTestCommand: ${{ parameters.smokeTestCommand }}
         """;
 
     internal const string ReleaseCodePipeline = """
@@ -361,6 +381,12 @@ internal static class AppPipelinePipelineTemplates
           - name: resourceType
             type: string
           - name: agentPoolName
+            type: string
+            default: ''
+          - name: runSmokeTests
+            type: boolean
+            default: false
+          - name: smokeTestCommand
             type: string
             default: ''
           - name: environments
@@ -388,5 +414,7 @@ internal static class AppPipelinePipelineTemplates
                     resourceType: ${{ parameters.resourceType }}
                     envShortName: ${{ env.shortName }}
                     envName: ${{ env.name }}
+                    runSmokeTests: ${{ parameters.runSmokeTests }}
+                    smokeTestCommand: ${{ parameters.smokeTestCommand }}
         """;
 }

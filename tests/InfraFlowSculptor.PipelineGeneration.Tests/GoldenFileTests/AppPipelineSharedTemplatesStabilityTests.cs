@@ -30,6 +30,9 @@ public sealed class AppPipelineSharedTemplatesStabilityTests
         ".azuredevops/steps/app-deploy-code.step.yml",
         ".azuredevops/steps/app-sdk-setup.step.yml",
         ".azuredevops/steps/app-build-code.step.yml",
+        ".azuredevops/steps/app-dependency-scan.step.yml",
+        ".azuredevops/steps/app-dependency-cache.step.yml",
+        ".azuredevops/steps/app-smoke-test.step.yml",
 
         // ── Job templates ──────────────────────────────────────────────
         ".azuredevops/jobs/app-ci-container.job.yml",
