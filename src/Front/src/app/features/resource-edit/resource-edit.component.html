@@ -1987,7 +1987,8 @@
             <!-- Pipeline Step Options -->
             <app-pipeline-options
               [pipelineStepOptions]="pipelineStepOptions()"
-              (optionsChanged)="onPipelineOptionsChanged($event)" />
+              (optionsChanged)="onPipelineOptionsChanged($event)"
+              (detectOptions)="onDetectPipelineOptions()" />
           </div>
         </mat-tab>
       }

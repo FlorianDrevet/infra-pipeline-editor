@@ -1692,6 +1692,7 @@
     },
     "PIPELINE_OPTIONS": {
       "DESCRIPTION": "Configurez les étapes optionnelles du pipeline : tests, analyse de code, linting et validation post-déploiement.",
+      "AUTO_DETECT": "Détection automatique depuis le dépôt",
       "ACR_SERVICE_CONNECTIONS": {
         "TITLE": "Connexion de service ACR",
         "DESCRIPTION": "Nom de la connexion Azure DevOps Docker/ACR utilisée par chaque environnement pour pousser son image vers le registre lié.",

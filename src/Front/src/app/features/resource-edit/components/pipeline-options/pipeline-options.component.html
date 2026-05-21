@@ -3,6 +3,17 @@
     {{ 'RESOURCE_EDIT.PIPELINE_OPTIONS.DESCRIPTION' | translate }}
   </p>
 
+  <div class="pipeline-options__actions">
+    <button mat-stroked-button color="primary" (click)="onAutoDetect()" [disabled]="detecting()">
+      @if (detecting()) {
+        <mat-spinner diameter="18"></mat-spinner>
+      } @else {
+        <mat-icon>search</mat-icon>
+      }
+      {{ 'RESOURCE_EDIT.PIPELINE_OPTIONS.AUTO_DETECT' | translate }}
+    </button>
+  </div>
+
   <div class="pipeline-options__grid">
     <!-- ─── Tests ─── -->
     <app-toggle-section-card

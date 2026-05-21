@@ -1,5 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { ToggleSectionCardComponent } from '../../../../shared/components/toggle-section-card/toggle-section-card.component';
@@ -17,6 +20,9 @@ import {
   standalone: true,
   imports: [
     FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
     TranslateModule,
     ToggleSectionCardComponent,
     DsTextFieldComponent,
@@ -30,6 +36,9 @@ export class PipelineOptionsComponent {
   readonly pipelineStepOptions = input<PipelineStepOptions | null>(null);
 
   readonly optionsChanged = output<PipelineStepOptions>();
+  readonly detectOptions = output<void>();
+
+  protected readonly detecting = signal(false);
 
   // ─── Internal state (cloned from input) ───
   protected readonly options = signal<PipelineStepOptions>({ ...DEFAULT_PIPELINE_STEP_OPTIONS });
@@ -60,5 +69,9 @@ export class PipelineOptionsComponent {
     const updated = { ...this.options(), ...partial };
     this.options.set(updated);
     this.optionsChanged.emit(updated);
+  }
+
+  protected onAutoDetect(): void {
+    this.detectOptions.emit();
   }
 }

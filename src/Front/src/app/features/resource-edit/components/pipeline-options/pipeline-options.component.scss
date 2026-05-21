@@ -23,6 +23,18 @@
   gap: var(--ifs-space-12);
 }
 
+.pipeline-options__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
 .card-fields {
   display: flex;
   flex-direction: column;

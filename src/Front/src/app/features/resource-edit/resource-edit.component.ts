@@ -54,6 +54,7 @@ import { SqlServerService } from '../../shared/services/sql-server.service';
 import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { NameAvailabilityService } from '../../shared/services/name-availability.service';
+import { PipelineDetectionService } from '../../shared/services/pipeline-detection.service';
 import { EnvironmentNameAvailabilityResponseItem } from '../../shared/interfaces/name-availability.interface';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
@@ -227,6 +228,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly secureParamMappingService = inject(SecureParameterMappingService);
   private readonly nameAvailabilityService = inject(NameAvailabilityService);
+  private readonly pipelineDetectionService = inject(PipelineDetectionService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
   private readonly pageContextService = inject(PageContextService);
@@ -873,6 +875,56 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected onPipelineOptionsChanged(options: PipelineStepOptions): void {
     this.pipelineStepOptions.set(options);
     this.formsDirty.set(true);
+  }
+
+  protected async onDetectPipelineOptions(): Promise<void> {
+    try {
+      const result = await this.pipelineDetectionService.detect(this.resourceId);
+      const patch: Partial<PipelineStepOptions> = {};
+
+      if (result.testFramework) {
+        patch.runUnitTests = true;
+        patch.testFramework = result.testFramework;
+      }
+      if (result.suggestedTestCommand) {
+        patch.testCommand = result.suggestedTestCommand;
+      }
+      if (result.suggestedTestResultsFormat) {
+        patch.testResultsFormat = result.suggestedTestResultsFormat;
+        patch.publishTestResults = true;
+      }
+      if (result.suggestedCoverageTool) {
+        patch.publishCodeCoverage = true;
+        patch.coverageTool = result.suggestedCoverageTool;
+      }
+      if (result.suggestedCoverageReportPath) {
+        patch.coverageReportPath = result.suggestedCoverageReportPath;
+      }
+      if (result.lintingAvailable) {
+        patch.runLinting = true;
+      }
+      if (result.suggestedLintCommand) {
+        patch.lintCommand = result.suggestedLintCommand;
+      }
+      if (result.sonarConfigDetected) {
+        patch.runSonarAnalysis = true;
+      }
+      if (result.suggestedSonarProjectKey) {
+        patch.sonarProjectKey = result.suggestedSonarProjectKey;
+      }
+      if (result.dependencyScanAvailable) {
+        patch.runDependencyScan = true;
+      }
+      if (result.suggestedDependencyScanTool) {
+        patch.dependencyScanTool = result.suggestedDependencyScanTool;
+      }
+
+      const merged = { ...(this.pipelineStepOptions() ?? {}), ...patch } as PipelineStepOptions;
+      this.pipelineStepOptions.set(merged);
+      this.formsDirty.set(true);
+    } catch {
+      // Detection failed silently — user can configure manually
+    }
   }
 
   private resolveAcrAuthMode(containerRegistryId: string | null | undefined, acrAuthMode: AcrAuthMode | null | undefined): AcrAuthMode | null {
