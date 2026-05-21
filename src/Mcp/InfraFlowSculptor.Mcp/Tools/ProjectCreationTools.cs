@@ -201,6 +201,7 @@ public sealed class ProjectCreationTools
                 ResourceType = resource.ResourceType,
                 Name = resource.Name ?? BuildDefaultResourceName(resource.ResourceType),
                 Location = primaryLocation,
+                ApplicationStack = resource.ApplicationStack,
             })
             .ToList();
 

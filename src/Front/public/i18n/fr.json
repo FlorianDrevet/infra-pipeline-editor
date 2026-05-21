@@ -1693,6 +1693,53 @@
     "PIPELINE_OPTIONS": {
       "DESCRIPTION": "Configurez les étapes optionnelles du pipeline : tests, analyse de code, linting et validation post-déploiement.",
       "AUTO_DETECT": "Détection automatique depuis le dépôt",
+      "STACK": {
+        "LABEL": "Stack applicatif",
+        "PROFILE_TITLE": "Profil de stack",
+        "PROFILE_SUBTITLE": "Configuration de build et test spécifique à la stack",
+        "DOTNET": {
+          "TEST_FRAMEWORK": "Framework de test",
+          "COLLECT_COVERAGE": "Collecter la couverture de code",
+          "TEST_PROJECT_GLOB": "Glob des projets de test",
+          "TEST_PROJECT_GLOB_HINT": "Pattern glob pour localiser les projets de test (ex: **/*.Tests.csproj)"
+        },
+        "NODEJS": {
+          "PACKAGE_MANAGER": "Gestionnaire de paquets",
+          "TEST_FRAMEWORK": "Framework de test",
+          "RUN_LINT_SCRIPT": "Exécuter le script lint",
+          "TEST_SCRIPT_NAME": "Nom du script de test",
+          "LINT_SCRIPT_NAME": "Nom du script de lint"
+        },
+        "ANGULAR": {
+          "PACKAGE_MANAGER": "Gestionnaire de paquets",
+          "RUN_NG_TEST": "Exécuter ng test",
+          "RUN_NG_LINT": "Exécuter ng lint",
+          "RUN_NG_BUILD_PROD": "Exécuter ng build --production",
+          "PROJECT_NAME": "Nom du projet Angular",
+          "PROJECT_NAME_HINT": "Nom du projet Angular dans angular.json (laisser vide pour le défaut)"
+        },
+        "JAVA": {
+          "BUILD_TOOL": "Outil de build",
+          "TEST_FRAMEWORK": "Framework de test",
+          "COLLECT_COVERAGE": "Collecter la couverture de code"
+        },
+        "PYTHON": {
+          "PACKAGE_MANAGER": "Gestionnaire de paquets",
+          "TEST_FRAMEWORK": "Framework de test",
+          "COLLECT_COVERAGE": "Collecter la couverture de code"
+        },
+        "STATIC_SITE": {
+          "BUILD_COMMAND": "Commande de build",
+          "BUILD_COMMAND_HINT": "Commande pour construire le site statique (ex: npm run build)",
+          "OUTPUT_DIRECTORY": "Répertoire de sortie",
+          "OUTPUT_DIRECTORY_HINT": "Répertoire contenant les fichiers construits (ex: dist/)"
+        },
+        "CUSTOM": {
+          "TEST_COMMAND": "Commande de test",
+          "LINT_COMMAND": "Commande de lint",
+          "BUILD_COMMAND": "Commande de build"
+        }
+      },
       "ACR_SERVICE_CONNECTIONS": {
         "TITLE": "Connexion de service ACR",
         "DESCRIPTION": "Nom de la connexion Azure DevOps Docker/ACR utilisée par chaque environnement pour pousser son image vers le registre lié.",

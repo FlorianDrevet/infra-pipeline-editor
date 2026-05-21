@@ -134,7 +134,8 @@ public sealed class IacImportTools
                 r.MappedName,
                 r.Confidence.ToString().ToLowerInvariant(),
                 r.ExtractedProperties,
-                r.UnmappedProperties))
+                r.UnmappedProperties,
+                r.SuggestedApplicationStack))
             .ToList();
 
         var gapsList = preview.Analysis.Gaps.Select(g => new ImportGapResponse(
@@ -227,7 +228,8 @@ public sealed class IacImportTools
         string? MappedName,
         string Confidence,
         IReadOnlyDictionary<string, object?> ExtractedProperties,
-        IReadOnlyList<string> UnmappedProperties);
+        IReadOnlyList<string> UnmappedProperties,
+        string? SuggestedApplicationStack);
 
     private sealed record ImportGapResponse(
         string Severity,

@@ -41,4 +41,10 @@ public sealed record ImportedResourceAnalysisResult
     /// Gets the source properties that could not be mapped.
     /// </summary>
     public IReadOnlyList<string> UnmappedProperties { get; init; } = [];
+
+    /// <summary>
+    /// Gets the suggested application stack for compute resources, inferred from IaC metadata (e.g. linuxFxVersion).
+    /// Null for non-compute resources or when the stack cannot be determined.
+    /// </summary>
+    public string? SuggestedApplicationStack { get; init; }
 }

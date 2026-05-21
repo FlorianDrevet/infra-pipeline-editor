@@ -14,4 +14,7 @@ public sealed class DraftResourceIntent
 
     /// <summary>Optional resource group assignment name (links to <see cref="DraftResourceGroupAssignment.GroupName"/>).</summary>
     public string? ResourceGroupName { get; set; }
+
+    /// <summary>Optional application stack inferred from the prompt (e.g. "DotNet", "NodeJs", "Angular").</summary>
+    public string? ApplicationStack { get; set; }
 }

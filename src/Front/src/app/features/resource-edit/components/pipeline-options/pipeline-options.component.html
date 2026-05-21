@@ -14,6 +14,221 @@
     </button>
   </div>
 
+  <!-- ─── Stack Selector ─── -->
+  <div class="pipeline-options__stack-selector">
+    <app-ds-select
+      [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.LABEL' | translate"
+      [options]="applicationStackOptions"
+      [clearable]="true"
+      [ngModel]="selectedStack()"
+      [ngModelOptions]="{ standalone: true }"
+      (ngModelChange)="onStackChange($event)" />
+  </div>
+
+  <!-- ─── Stack Profile Section ─── -->
+  @if (selectedStack()) {
+    <mat-card class="pipeline-options__profile-card">
+      <mat-card-header>
+        <mat-card-title>{{ 'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.PROFILE_TITLE' | translate }}</mat-card-title>
+        <mat-card-subtitle>{{ 'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.PROFILE_SUBTITLE' | translate }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @switch (selectedStack()) {
+          @case ('DotNet') {
+            <div class="card-fields">
+              <app-ds-select
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.DOTNET.TEST_FRAMEWORK' | translate"
+                [options]="dotnetTestFrameworkOptions"
+                [clearable]="true"
+                [ngModel]="dotnetProfile()?.testFramework ?? null"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ testFramework: $event || undefined })" />
+              <app-toggle-section-card
+                icon="bar_chart"
+                [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.DOTNET.COLLECT_COVERAGE' | translate"
+                [enabled]="dotnetProfile()?.collectCoverage ?? false"
+                accentColor="#6a1b9a"
+                (enabledChange)="patchProfile({ collectCoverage: $event })">
+              </app-toggle-section-card>
+              <app-ds-text-field
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.DOTNET.TEST_PROJECT_GLOB' | translate"
+                [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.DOTNET.TEST_PROJECT_GLOB_HINT' | translate"
+                placeholder="**/*.Tests.csproj"
+                [ngModel]="dotnetProfile()?.customTestProjectGlob ?? ''"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ customTestProjectGlob: $event || undefined })" />
+            </div>
+          }
+          @case ('NodeJs') {
+            <div class="card-fields">
+              <app-ds-select
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.NODEJS.PACKAGE_MANAGER' | translate"
+                [options]="nodePackageManagerOptions"
+                [clearable]="true"
+                [ngModel]="nodeJsProfile()?.packageManager ?? null"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ packageManager: $event || undefined })" />
+              <app-ds-select
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.NODEJS.TEST_FRAMEWORK' | translate"
+                [options]="nodeTestFrameworkOptions"
+                [clearable]="true"
+                [ngModel]="nodeJsProfile()?.testFramework ?? null"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ testFramework: $event || undefined })" />
+              <app-toggle-section-card
+                icon="rule"
+                [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.NODEJS.RUN_LINT_SCRIPT' | translate"
+                [enabled]="nodeJsProfile()?.runLintScript ?? false"
+                accentColor="#00838f"
+                (enabledChange)="patchProfile({ runLintScript: $event })">
+              </app-toggle-section-card>
+              <app-ds-text-field
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.NODEJS.TEST_SCRIPT_NAME' | translate"
+                placeholder="test"
+                [ngModel]="nodeJsProfile()?.testScriptName ?? ''"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ testScriptName: $event || undefined })" />
+              <app-ds-text-field
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.NODEJS.LINT_SCRIPT_NAME' | translate"
+                placeholder="lint"
+                [ngModel]="nodeJsProfile()?.lintScriptName ?? ''"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ lintScriptName: $event || undefined })" />
+            </div>
+          }
+          @case ('Angular') {
+            <div class="card-fields">
+              <app-ds-select
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.ANGULAR.PACKAGE_MANAGER' | translate"
+                [options]="nodePackageManagerOptions"
+                [clearable]="true"
+                [ngModel]="angularProfile()?.packageManager ?? null"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ packageManager: $event || undefined })" />
+              <app-toggle-section-card
+                icon="science"
+                [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.ANGULAR.RUN_NG_TEST' | translate"
+                [enabled]="angularProfile()?.runNgTest ?? false"
+                accentColor="#1565c0"
+                (enabledChange)="patchProfile({ runNgTest: $event })">
+              </app-toggle-section-card>
+              <app-toggle-section-card
+                icon="rule"
+                [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.ANGULAR.RUN_NG_LINT' | translate"
+                [enabled]="angularProfile()?.runNgLint ?? false"
+                accentColor="#00838f"
+                (enabledChange)="patchProfile({ runNgLint: $event })">
+              </app-toggle-section-card>
+              <app-toggle-section-card
+                icon="build"
+                [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.ANGULAR.RUN_NG_BUILD_PROD' | translate"
+                [enabled]="angularProfile()?.runNgBuildProduction ?? false"
+                accentColor="#4527a0"
+                (enabledChange)="patchProfile({ runNgBuildProduction: $event })">
+              </app-toggle-section-card>
+              <app-ds-text-field
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.ANGULAR.PROJECT_NAME' | translate"
+                [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.ANGULAR.PROJECT_NAME_HINT' | translate"
+                [ngModel]="angularProfile()?.projectName ?? ''"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ projectName: $event || undefined })" />
+            </div>
+          }
+          @case ('Java') {
+            <div class="card-fields">
+              <app-ds-select
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.JAVA.BUILD_TOOL' | translate"
+                [options]="javaBuildToolOptions"
+                [clearable]="true"
+                [ngModel]="javaProfile()?.buildTool ?? null"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ buildTool: $event || undefined })" />
+              <app-ds-select
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.JAVA.TEST_FRAMEWORK' | translate"
+                [options]="javaTestFrameworkOptions"
+                [clearable]="true"
+                [ngModel]="javaProfile()?.testFramework ?? null"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ testFramework: $event || undefined })" />
+              <app-toggle-section-card
+                icon="bar_chart"
+                [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.JAVA.COLLECT_COVERAGE' | translate"
+                [enabled]="javaProfile()?.collectCoverage ?? false"
+                accentColor="#6a1b9a"
+                (enabledChange)="patchProfile({ collectCoverage: $event })">
+              </app-toggle-section-card>
+            </div>
+          }
+          @case ('Python') {
+            <div class="card-fields">
+              <app-ds-select
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.PYTHON.PACKAGE_MANAGER' | translate"
+                [options]="pythonPackageManagerOptions"
+                [clearable]="true"
+                [ngModel]="pythonProfile()?.packageManager ?? null"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ packageManager: $event || undefined })" />
+              <app-ds-select
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.PYTHON.TEST_FRAMEWORK' | translate"
+                [options]="pythonTestFrameworkOptions"
+                [clearable]="true"
+                [ngModel]="pythonProfile()?.testFramework ?? null"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ testFramework: $event || undefined })" />
+              <app-toggle-section-card
+                icon="bar_chart"
+                [title]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.PYTHON.COLLECT_COVERAGE' | translate"
+                [enabled]="pythonProfile()?.collectCoverage ?? false"
+                accentColor="#6a1b9a"
+                (enabledChange)="patchProfile({ collectCoverage: $event })">
+              </app-toggle-section-card>
+            </div>
+          }
+          @case ('StaticSite') {
+            <div class="card-fields">
+              <app-ds-text-field
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.STATIC_SITE.BUILD_COMMAND' | translate"
+                [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.STATIC_SITE.BUILD_COMMAND_HINT' | translate"
+                placeholder="npm run build"
+                [ngModel]="staticSiteProfile()?.buildCommand ?? ''"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ buildCommand: $event || undefined })" />
+              <app-ds-text-field
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.STATIC_SITE.OUTPUT_DIRECTORY' | translate"
+                [hint]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.STATIC_SITE.OUTPUT_DIRECTORY_HINT' | translate"
+                placeholder="dist/"
+                [ngModel]="staticSiteProfile()?.outputDirectory ?? ''"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ outputDirectory: $event || undefined })" />
+            </div>
+          }
+          @case ('Custom') {
+            <div class="card-fields">
+              <app-ds-text-field
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.CUSTOM.TEST_COMMAND' | translate"
+                placeholder="make test"
+                [ngModel]="customProfile()?.customTestCommand ?? ''"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ customTestCommand: $event || undefined })" />
+              <app-ds-text-field
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.CUSTOM.LINT_COMMAND' | translate"
+                placeholder="make lint"
+                [ngModel]="customProfile()?.customLintCommand ?? ''"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ customLintCommand: $event || undefined })" />
+              <app-ds-text-field
+                [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.CUSTOM.BUILD_COMMAND' | translate"
+                placeholder="make build"
+                [ngModel]="customProfile()?.customBuildCommand ?? ''"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="patchProfile({ customBuildCommand: $event || undefined })" />
+            </div>
+          }
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+
   <div class="pipeline-options__grid">
     <!-- ─── Tests ─── -->
     <app-toggle-section-card

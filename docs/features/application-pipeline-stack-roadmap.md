@@ -141,11 +141,11 @@ Known unrelated output:
 
 ## Remaining Lots
 
-### Lot 3 - Contracts, API, and Application Mapping
+### Done - Lot 3 - Contracts, API, and Application Mapping
 
 Goal: expose the stack/profile model through the existing create/update/read flows.
 
-Status: not implemented.
+Status: implemented and validated.
 
 Scope:
 
@@ -196,11 +196,11 @@ Expected tests:
 - Validator tests for stack/profile mismatch.
 - Roundtrip read-response tests if existing response mapping tests are available.
 
-### Lot 4 - Generation Uses Stack Profiles
+### Done - Lot 4 - Generation Uses Stack Profiles
 
 Goal: generate stack-specific YAML from typed profiles instead of raw commands wherever possible.
 
-Status: not implemented.
+Status: implemented and validated.
 
 Scope:
 
@@ -238,11 +238,11 @@ Expected tests:
 - Golden snapshots for shared templates and representative WebApp/FunctionApp/ContainerApp wrappers.
 - Existing Windows shell compatibility tests must stay green.
 
-### Lot 5 - Frontend Stack-Aware Pipeline UI
+### Done - Lot 5 - Frontend Stack-Aware Pipeline UI
 
 Goal: replace the current generic pipeline option form with a stack-aware UI that feels like application-framework configuration.
 
-Status: not implemented.
+Status: implemented and validated.
 
 Current frontend baseline:
 
@@ -287,11 +287,11 @@ Expected validation:
 - `npm run typecheck`.
 - `npm run build`.
 
-### Lot 6 - Automatic Stack and Framework Detection
+### Done - Lot 6 - Automatic Stack and Framework Detection
 
 Goal: suggest stack/profile settings from repository content.
 
-Status: not implemented.
+Status: implemented and validated.
 
 Scope:
 
@@ -335,11 +335,11 @@ Expected tests:
 - Query handler authorization/access tests.
 - Frontend tests for suggestion apply/dismiss behavior.
 
-### Lot 7 - Sonar, Linting, Dependency Scan, Cache, and Smoke Tests
+### Done - Lot 7 - Sonar, Linting, Dependency Scan, Cache, and Smoke Tests
 
 Goal: finish the non-P0 pipeline options after the stack-aware foundation is stable.
 
-Status: not implemented.
+Status: implemented and validated. All pipeline step options (Sonar, linting, dependency scan, dependency cache, smoke tests) were already wired through shared templates in Phases 4-6. Stack-specific lint/test defaults are now resolved by `StackProfileCommandResolver` in the Application layer.
 
 Scope:
 

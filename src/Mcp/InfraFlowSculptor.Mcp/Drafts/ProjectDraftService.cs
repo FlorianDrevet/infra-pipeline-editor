@@ -77,6 +77,13 @@ public sealed class ProjectDraftService : IProjectDraftService
             intent.Repositories = BuildDefaultRepositories(intent.LayoutPreset.Value);
         }
 
+        // Clarification: compute resources exist but no application stack detected
+        if (intent.Resources is { Count: > 0 }
+            && intent.Resources.Any(r => ComputeResourceTypes.Contains(r.ResourceType) && r.ApplicationStack is null))
+        {
+            clarificationQuestions.Add(BuildApplicationStackQuestion());
+        }
+
         var warnings = ProjectDraftWarnings.Build(intent.Environments, defaultEnvironmentAdded);
 
         var status = missingFields.Count == 0 ? DraftStatus.ReadyToCreate : DraftStatus.RequiresClarification;
@@ -180,6 +187,13 @@ public sealed class ProjectDraftService : IProjectDraftService
         {
             intent.Repositories[0].RepositoryUrl = overrides.RepositoryUrl;
         }
+
+        if (overrides.ApplicationStack is not null
+            && DraftApplicationStacks.IsValid(overrides.ApplicationStack)
+            && intent.Resources is { Count: > 0 })
+        {
+            ApplyStackToComputeResources(intent.Resources, overrides.ApplicationStack);
+        }
     }
 
     private static void Revalidate(ProjectCreationDraft draft)
@@ -249,6 +263,13 @@ public sealed class ProjectDraftService : IProjectDraftService
             });
         }
 
+        // Clarification: compute resources without application stack
+        if (draft.Intent.Resources is { Count: > 0 }
+            && draft.Intent.Resources.Any(r => ComputeResourceTypes.Contains(r.ResourceType) && r.ApplicationStack is null))
+        {
+            clarificationQuestions.Add(BuildApplicationStackQuestion());
+        }
+
         draft.MissingFields = missingFields;
         draft.Errors = errors;
         draft.ClarificationQuestions = clarificationQuestions;
@@ -278,6 +299,13 @@ public sealed class ProjectDraftService : IProjectDraftService
     {
         var resources = ExtractResourceTypes(userPrompt);
         var resourceGroupAssignments = ExtractResourceGroupAssignments(userPrompt, resources);
+
+        // Detect application stack and apply to compute resources
+        var detectedStack = ExtractApplicationStack(userPrompt);
+        if (detectedStack is not null && resources.Count > 0)
+        {
+            ApplyStackToComputeResources(resources, detectedStack);
+        }
 
         return new DraftProjectIntent
         {
@@ -597,6 +625,116 @@ public sealed class ProjectDraftService : IProjectDraftService
         return null;
     }
 
+    private static readonly HashSet<string> ComputeResourceTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        AzureResourceTypes.ContainerApp,
+        AzureResourceTypes.WebApp,
+        AzureResourceTypes.FunctionApp,
+    };
+
+    /// <summary>Detects an application stack from the user's prompt keywords.</summary>
+    internal static string? ExtractApplicationStack(string prompt)
+    {
+        var lower = prompt.ToLowerInvariant();
+
+        if (Regex.IsMatch(lower, @"\b(?:\.net|dotnet|asp\.net|csharp)\b|(?<!\w)c#(?!\w)", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.DotNet;
+        }
+
+        // Angular must be checked before Node to avoid false positives
+        if (Regex.IsMatch(lower, @"\b(?:angular|ng\s+serve|ng\s+build)\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.Angular;
+        }
+
+        if (Regex.IsMatch(lower, @"\b(?:node\.?js|nodejs|express|npm|yarn|bun)\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.NodeJs;
+        }
+
+        if (Regex.IsMatch(lower, @"\b(?:java|spring|maven|gradle|kotlin)\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.Java;
+        }
+
+        if (Regex.IsMatch(lower, @"\b(?:python|django|flask|fastapi|pip)\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.Python;
+        }
+
+        if (Regex.IsMatch(lower, @"\b(?:static\s+site|html|hugo|jekyll|gatsby)\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.StaticSite;
+        }
+
+        return null;
+    }
+
+    /// <summary>Applies a detected application stack to all compute resources that don't already have one.</summary>
+    private static void ApplyStackToComputeResources(List<DraftResourceIntent> resources, string stack)
+    {
+        foreach (var resource in resources)
+        {
+            if (ComputeResourceTypes.Contains(resource.ResourceType) && resource.ApplicationStack is null)
+            {
+                resource.ApplicationStack = stack;
+            }
+        }
+    }
+
+    private static DraftClarificationQuestion BuildApplicationStackQuestion() =>
+        new()
+        {
+            Field = DraftFieldNames.ApplicationStack,
+            Message = "Which application stack does your compute workload use? This determines the CI/CD pipeline profile.",
+            Options =
+            [
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.DotNet,
+                    Label = ".NET",
+                    Description = "C# / .NET application with dotnet build, test, and publish.",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.NodeJs,
+                    Label = "Node.js",
+                    Description = "Node.js application with npm/yarn build and test.",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.Angular,
+                    Label = "Angular",
+                    Description = "Angular frontend with ng build and ng test.",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.Java,
+                    Label = "Java",
+                    Description = "Java application with Maven or Gradle.",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.Python,
+                    Label = "Python",
+                    Description = "Python application with pip and pytest.",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.StaticSite,
+                    Label = "Static Site",
+                    Description = "Static HTML/CSS/JS site or generator (Hugo, Jekyll, etc.).",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.Custom,
+                    Label = "Custom",
+                    Description = "Custom build pipeline — you control all steps.",
+                },
+            ],
+        };
+
     private static List<DraftRepositoryIntent> BuildDefaultRepositories(LayoutPresetEnum layoutPreset)
     {
         return layoutPreset switch
@@ -719,6 +857,7 @@ public sealed class ProjectDraftService : IProjectDraftService
         internal const string Environments = "environments";
         internal const string ResourceNames = "resourceNames";
         internal const string ResourceGroupAssignments = "resourceGroupAssignments";
+        internal const string ApplicationStack = "applicationStack";
     }
 
     /// <inheritdoc />

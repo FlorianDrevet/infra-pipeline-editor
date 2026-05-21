@@ -1701,6 +1701,53 @@
     "PIPELINE_OPTIONS": {
       "DESCRIPTION": "Configure optional pipeline steps such as tests, code analysis, linting, and post-deploy validation.",
       "AUTO_DETECT": "Auto-detect from repository",
+      "STACK": {
+        "LABEL": "Application Stack",
+        "PROFILE_TITLE": "Stack Profile",
+        "PROFILE_SUBTITLE": "Stack-specific build and test configuration",
+        "DOTNET": {
+          "TEST_FRAMEWORK": "Test framework",
+          "COLLECT_COVERAGE": "Collect code coverage",
+          "TEST_PROJECT_GLOB": "Test project glob",
+          "TEST_PROJECT_GLOB_HINT": "Glob pattern to locate test projects (e.g., **/*.Tests.csproj)"
+        },
+        "NODEJS": {
+          "PACKAGE_MANAGER": "Package manager",
+          "TEST_FRAMEWORK": "Test framework",
+          "RUN_LINT_SCRIPT": "Run lint script",
+          "TEST_SCRIPT_NAME": "Test script name",
+          "LINT_SCRIPT_NAME": "Lint script name"
+        },
+        "ANGULAR": {
+          "PACKAGE_MANAGER": "Package manager",
+          "RUN_NG_TEST": "Run ng test",
+          "RUN_NG_LINT": "Run ng lint",
+          "RUN_NG_BUILD_PROD": "Run ng build --production",
+          "PROJECT_NAME": "Angular project name",
+          "PROJECT_NAME_HINT": "Name of the Angular project in angular.json (leave empty for default)"
+        },
+        "JAVA": {
+          "BUILD_TOOL": "Build tool",
+          "TEST_FRAMEWORK": "Test framework",
+          "COLLECT_COVERAGE": "Collect code coverage"
+        },
+        "PYTHON": {
+          "PACKAGE_MANAGER": "Package manager",
+          "TEST_FRAMEWORK": "Test framework",
+          "COLLECT_COVERAGE": "Collect code coverage"
+        },
+        "STATIC_SITE": {
+          "BUILD_COMMAND": "Build command",
+          "BUILD_COMMAND_HINT": "Command to build the static site (e.g., npm run build)",
+          "OUTPUT_DIRECTORY": "Output directory",
+          "OUTPUT_DIRECTORY_HINT": "Directory containing the built files (e.g., dist/)"
+        },
+        "CUSTOM": {
+          "TEST_COMMAND": "Test command",
+          "LINT_COMMAND": "Lint command",
+          "BUILD_COMMAND": "Build command"
+        }
+      },
       "ACR_SERVICE_CONNECTIONS": {
         "TITLE": "ACR service connection",
         "DESCRIPTION": "Azure DevOps Docker/ACR service connection name used by each environment to push its image to the linked registry.",

@@ -31,4 +31,7 @@ public sealed class DraftOverrides
 
     /// <summary>Shortcut: repository URL applied to the first repository slot when set.</summary>
     public string? RepositoryUrl { get; init; }
+
+    /// <summary>Override for the application stack on compute resources (e.g. "DotNet", "NodeJs", "Angular").</summary>
+    public string? ApplicationStack { get; init; }
 }

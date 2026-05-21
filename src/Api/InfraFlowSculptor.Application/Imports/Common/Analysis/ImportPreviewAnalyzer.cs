@@ -108,6 +108,7 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
             Confidence = isMapped ? ImportPreviewMappingConfidence.High : ImportPreviewMappingConfidence.Low,
             ExtractedProperties = extractedProperties,
             UnmappedProperties = unmappedProperties,
+            SuggestedApplicationStack = isMapped ? InferApplicationStack(sourceType, extractedProperties) : null,
         });
 
         ExtractDependencies(armResource, sourceName, dependencies);
@@ -214,5 +215,54 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
             .Select(p => p.Name)
             .ToList();
         return (new Dictionary<string, object?>(), unmapped);
+    }
+
+    private static readonly HashSet<string> ComputeArmTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        AzureResourceTypes.ArmTypes.WebAppType,
+        AzureResourceTypes.ArmTypes.FunctionAppType,
+        AzureResourceTypes.ArmTypes.ContainerAppType,
+    };
+
+    /// <summary>
+    /// Infers an application stack from ARM resource metadata (e.g. linuxFxVersion, container image tags).
+    /// Returns null for non-compute resources or when the stack cannot be determined.
+    /// </summary>
+    private static string? InferApplicationStack(string sourceType, IReadOnlyDictionary<string, object?> properties)
+    {
+        if (!ComputeArmTypes.Contains(sourceType))
+        {
+            return null;
+        }
+
+        // Check linuxFxVersion property (common for WebApp and FunctionApp)
+        if (properties.TryGetValue("linuxFxVersion", out var fxVersionObj) && fxVersionObj is string fxVersion)
+        {
+            var upper = fxVersion.ToUpperInvariant();
+            if (upper.Contains("DOTNET") || upper.Contains("DOTNETCORE"))
+                return "DotNet";
+            if (upper.Contains("NODE"))
+                return "NodeJs";
+            if (upper.Contains("PYTHON"))
+                return "Python";
+            if (upper.Contains("JAVA"))
+                return "Java";
+        }
+
+        // Check runtime property for Container Apps
+        if (properties.TryGetValue("containerImage", out var imageObj) && imageObj is string image)
+        {
+            var imageLower = image.ToLowerInvariant();
+            if (imageLower.Contains("dotnet") || imageLower.Contains("aspnet"))
+                return "DotNet";
+            if (imageLower.Contains("node"))
+                return "NodeJs";
+            if (imageLower.Contains("python"))
+                return "Python";
+            if (imageLower.Contains("java") || imageLower.Contains("openjdk"))
+                return "Java";
+        }
+
+        return null;
     }
 }
