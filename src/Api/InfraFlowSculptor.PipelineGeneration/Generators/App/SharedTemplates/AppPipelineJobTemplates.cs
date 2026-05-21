@@ -163,6 +163,24 @@ internal static class AppPipelineJobTemplates
           - name: dependencyScanTool
             type: string
             default: 'OWASPDependencyCheck'
+          - name: runSonarAnalysis
+            type: boolean
+            default: false
+          - name: sonarProjectKey
+            type: string
+            default: ''
+          - name: sonarOrganization
+            type: string
+            default: ''
+          - name: sonarServiceConnection
+            type: string
+            default: ''
+          - name: runLinting
+            type: boolean
+            default: false
+          - name: lintCommand
+            type: string
+            default: ''
 
         jobs:
           - job: BuildAndPublish
@@ -212,6 +230,18 @@ internal static class AppPipelineJobTemplates
                     dependencyScanTool: ${{ parameters.dependencyScanTool }}
                     runtimeStack: ${{ parameters.runtimeStack }}
                     sourcePath: ${{ parameters.sourcePath }}
+
+              - ${{ if parameters.runSonarAnalysis }}:
+                - template: ../steps/app-sonar-analysis.step.yml
+                  parameters:
+                    sonarProjectKey: ${{ parameters.sonarProjectKey }}
+                    sonarOrganization: ${{ parameters.sonarOrganization }}
+                    sonarServiceConnection: ${{ parameters.sonarServiceConnection }}
+
+              - ${{ if parameters.runLinting }}:
+                - template: ../steps/app-linting.step.yml
+                  parameters:
+                    lintCommand: ${{ parameters.lintCommand }}
 
               - task: PublishPipelineArtifact@1
                 displayName: 'Publish app metadata'

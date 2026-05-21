@@ -32,6 +32,8 @@ internal static class AppPipelineTemplatesGenerator
             [".azuredevops/steps/app-dependency-scan.step.yml"] = AppPipelineStepTemplates.DependencyScanStep,
             [".azuredevops/steps/app-dependency-cache.step.yml"] = AppPipelineStepTemplates.DependencyCacheStep,
             [".azuredevops/steps/app-smoke-test.step.yml"] = AppPipelineStepTemplates.SmokeTestStep,
+            [".azuredevops/steps/app-sonar-analysis.step.yml"] = AppPipelineStepTemplates.SonarAnalysisStep,
+            [".azuredevops/steps/app-linting.step.yml"] = AppPipelineStepTemplates.LintingStep,
             [".azuredevops/jobs/app-ci-container.job.yml"] = AppPipelineJobTemplates.CiContainerJob,
             [".azuredevops/jobs/app-ci-code.job.yml"] = AppPipelineJobTemplates.CiCodeJob,
             [".azuredevops/jobs/app-pr-container.job.yml"] = AppPipelineJobTemplates.PrContainerJob,

@@ -149,6 +149,24 @@ internal static class AppPipelinePipelineTemplates
           - name: dependencyScanTool
             type: string
             default: 'OWASPDependencyCheck'
+          - name: runSonarAnalysis
+            type: boolean
+            default: false
+          - name: sonarProjectKey
+            type: string
+            default: ''
+          - name: sonarOrganization
+            type: string
+            default: ''
+          - name: sonarServiceConnection
+            type: string
+            default: ''
+          - name: runLinting
+            type: boolean
+            default: false
+          - name: lintCommand
+            type: string
+            default: ''
           - name: agentPoolName
             type: string
             default: ''
@@ -186,6 +204,12 @@ internal static class AppPipelinePipelineTemplates
                   enableDependencyCache: ${{ parameters.enableDependencyCache }}
                   runDependencyScan: ${{ parameters.runDependencyScan }}
                   dependencyScanTool: ${{ parameters.dependencyScanTool }}
+                  runSonarAnalysis: ${{ parameters.runSonarAnalysis }}
+                  sonarProjectKey: ${{ parameters.sonarProjectKey }}
+                  sonarOrganization: ${{ parameters.sonarOrganization }}
+                  sonarServiceConnection: ${{ parameters.sonarServiceConnection }}
+                  runLinting: ${{ parameters.runLinting }}
+                  lintCommand: ${{ parameters.lintCommand }}
         """;
 
     internal const string PrContainerPipeline = """
