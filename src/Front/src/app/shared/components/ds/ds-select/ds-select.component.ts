@@ -14,6 +14,8 @@ import { ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 
+export type DsSelectValue = string | number | null;
+
 export interface DsSelectOption {
   value: string | number | null;
   label: string;
@@ -51,7 +53,7 @@ export class DsSelectComponent implements ControlValueAccessor {
   public readonly clearable = input<boolean>(false);
   public readonly searchable = input<boolean>(false);
 
-  protected readonly value = signal<string | number | null>(null);
+  protected readonly value = signal<DsSelectValue>(null);
   protected readonly isOpen = signal(false);
   protected readonly searchTerm = signal('');
   private readonly internalDisabled = signal(false);
@@ -88,14 +90,14 @@ export class DsSelectComponent implements ControlValueAccessor {
     return this.options().filter((o) => o.label.toLowerCase().includes(term));
   });
 
-  private onChangeFn: (v: string | number | null) => void = () => {};
+  private onChangeFn: (v: DsSelectValue) => void = () => {};
   private onTouchedFn: () => void = () => {};
 
-  public writeValue(v: string | number | null): void {
+  public writeValue(v: DsSelectValue): void {
     this.value.set(v ?? null);
   }
 
-  public registerOnChange(fn: (v: string | number | null) => void): void {
+  public registerOnChange(fn: (v: DsSelectValue) => void): void {
     this.onChangeFn = fn;
   }
 

@@ -1,5 +1,4 @@
 using FluentAssertions;
-using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.Mcp.Drafts;
 using InfraFlowSculptor.Mcp.Drafts.Models;
@@ -113,8 +112,8 @@ public sealed class ProjectDraftServiceStackDetectionTests
         var draft = _sut.CreateDraftFromPrompt(prompt);
 
         // Assert
-        draft.ClarificationQuestions.Should().Contain(q => q.Field == "applicationStack");
-        var stackQuestion = draft.ClarificationQuestions.First(q => q.Field == "applicationStack");
+        draft.ClarificationQuestions.Should().Contain(q => q.Field == ProjectDraftService.DraftFieldNames.ApplicationStack);
+        var stackQuestion = draft.ClarificationQuestions.First(q => q.Field == ProjectDraftService.DraftFieldNames.ApplicationStack);
         stackQuestion.Options.Should().HaveCountGreaterThanOrEqualTo(5);
     }
 
@@ -128,7 +127,7 @@ public sealed class ProjectDraftServiceStackDetectionTests
         var draft = _sut.CreateDraftFromPrompt(prompt);
 
         // Assert
-        draft.ClarificationQuestions.Should().NotContain(q => q.Field == "applicationStack");
+        draft.ClarificationQuestions.Should().NotContain(q => q.Field == ProjectDraftService.DraftFieldNames.ApplicationStack);
     }
 
     [Fact]
@@ -141,7 +140,7 @@ public sealed class ProjectDraftServiceStackDetectionTests
         var draft = _sut.CreateDraftFromPrompt(prompt);
 
         // Assert
-        draft.ClarificationQuestions.Should().NotContain(q => q.Field == "applicationStack");
+        draft.ClarificationQuestions.Should().NotContain(q => q.Field == ProjectDraftService.DraftFieldNames.ApplicationStack);
     }
 
     [Fact]
@@ -180,7 +179,7 @@ public sealed class ProjectDraftServiceStackDetectionTests
         updated.Should().NotBeNull();
         updated!.Intent.Resources!.First(r => r.ResourceType == AzureResourceTypes.ContainerApp)
             .ApplicationStack.Should().Be("NodeJs");
-        updated.ClarificationQuestions.Should().NotContain(q => q.Field == "applicationStack");
+        updated.ClarificationQuestions.Should().NotContain(q => q.Field == ProjectDraftService.DraftFieldNames.ApplicationStack);
     }
 
     [Fact]

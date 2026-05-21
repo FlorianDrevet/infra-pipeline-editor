@@ -18,6 +18,7 @@ namespace InfraFlowSculptor.Mcp.Tools;
 public sealed class AppSettingsTools
 {
     private const string InvalidResourceIdError = "invalid_resource_id";
+    private const string InvalidResourceIdMessage = "The resourceId must be a valid GUID.";
 
     private AppSettingsTools() { }
 
@@ -38,7 +39,7 @@ public sealed class AppSettingsTools
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
-            return McpJsonDefaults.Error(InvalidResourceIdError, "The resourceId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidResourceIdError, InvalidResourceIdMessage);
         }
 
         var values = DeserializeEnvValues(environmentValues);
@@ -86,7 +87,7 @@ public sealed class AppSettingsTools
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
-            return McpJsonDefaults.Error(InvalidResourceIdError, "The resourceId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidResourceIdError, InvalidResourceIdMessage);
         }
 
         if (!Guid.TryParse(sourceResourceId, out var sourceId))
@@ -139,7 +140,7 @@ public sealed class AppSettingsTools
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
-            return McpJsonDefaults.Error(InvalidResourceIdError, "The resourceId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidResourceIdError, InvalidResourceIdMessage);
         }
 
         if (!Guid.TryParse(keyVaultResourceId, out var kvId))
@@ -191,7 +192,7 @@ public sealed class AppSettingsTools
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
-            return McpJsonDefaults.Error(InvalidResourceIdError, "The resourceId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidResourceIdError, InvalidResourceIdMessage);
         }
 
         var query = new ListAppSettingsQuery(AzureResourceId.Create(id));
@@ -227,7 +228,7 @@ public sealed class AppSettingsTools
     {
         if (!Guid.TryParse(resourceId, out var id))
         {
-            return McpJsonDefaults.Error(InvalidResourceIdError, "The resourceId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidResourceIdError, InvalidResourceIdMessage);
         }
 
         if (!Guid.TryParse(appSettingId, out var settingId))

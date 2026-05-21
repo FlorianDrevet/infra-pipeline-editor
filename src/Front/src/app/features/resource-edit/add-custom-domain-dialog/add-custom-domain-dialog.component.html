@@ -33,8 +33,8 @@
 
     <!-- Binding Type -->
     <div class="cd-dialog-form__radio-group">
-      <label class="cd-dialog-form__radio-label">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_TYPE' | translate }}</label>
-      <mat-radio-group [ngModel]="bindingType()" (ngModelChange)="bindingType.set($event)">
+      <span class="cd-dialog-form__radio-label" id="binding-type-label">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_TYPE' | translate }}</span>
+      <mat-radio-group [ngModel]="bindingType()" (ngModelChange)="bindingType.set($event)" aria-labelledby="binding-type-label">
         <mat-radio-button value="SniEnabled">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_SNI' | translate }}</mat-radio-button>
         <mat-radio-button value="Disabled">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_DISABLED' | translate }}</mat-radio-button>
       </mat-radio-group>

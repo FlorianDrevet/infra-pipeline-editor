@@ -255,6 +255,8 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
                 return "Python";
             if (upper.Contains("JAVA"))
                 return "Java";
+            if (upper.Contains("PHP"))
+                return "Php";
         }
 
         // Check container image for Container Apps
@@ -277,6 +279,10 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
                         return "Python";
                     if (imageLower.Contains("java") || imageLower.Contains("openjdk"))
                         return "Java";
+                    if (imageLower.Contains("php"))
+                        return "Php";
+                    if (imageLower.Contains("golang"))
+                        return "Go";
                 }
             }
         }

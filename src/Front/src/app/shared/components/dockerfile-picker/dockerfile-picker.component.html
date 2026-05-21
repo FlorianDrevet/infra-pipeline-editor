@@ -47,14 +47,14 @@
 
       <!-- File list -->
       <div class="picker-panel__section">
-        <label class="picker-panel__label">Dockerfiles</label>
+        <span class="picker-panel__label" id="dockerfile-list-label">Dockerfiles</span>
         @if (loadingFiles()) {
           <div class="picker-panel__loading">
             <mat-spinner diameter="20"></mat-spinner>
             <span>{{ 'RESOURCE_EDIT.APP_PIPELINE.LOADING_FILES' | translate }}</span>
           </div>
         } @else if (hasFiles()) {
-          <ul class="picker-panel__file-list" role="listbox">
+          <ul class="picker-panel__file-list" role="listbox" aria-labelledby="dockerfile-list-label">
             @for (file of files(); track file.path) {
               <li
                 class="picker-panel__file-item"

@@ -105,16 +105,11 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
                     request.RepositoryName,
                     parentTreeSha);
 
-                foreach (var item in existingTree.Tree)
-                {
-                    if (item.Type != TreeType.Blob || string.IsNullOrEmpty(item.Path))
-                        continue;
-
-                    if (ShouldDeleteFile(item.Path, pushData))
-                    {
-                        treeItems.Add(GitHubCreateTreeItem.DeleteBlob(item.Path));
-                    }
-                }
+                treeItems.AddRange(
+                    existingTree.Tree
+                        .Where(item => item.Type == TreeType.Blob && !string.IsNullOrEmpty(item.Path))
+                        .Where(item => ShouldDeleteFile(item.Path, pushData))
+                        .Select(item => GitHubCreateTreeItem.DeleteBlob(item.Path)));
             }
 
             var treeSha = await CreateTreeAsync(

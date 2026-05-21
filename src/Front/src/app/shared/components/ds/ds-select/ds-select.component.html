@@ -5,7 +5,7 @@
   [class.ds-field--focused]="isOpen()"
 >
   @if (label()) {
-    <label class="ds-field__label">
+    <label class="ds-field__label" id="ds-select-label">
       {{ label() }}
       @if (required()) {
         <span class="ds-field__required">*</span>
@@ -17,6 +17,7 @@
     cdkOverlayOrigin
     type="button"
     class="ds-field__control ds-select__trigger"
+    [attr.aria-labelledby]="label() ? 'ds-select-label' : null"
     [disabled]="disabledState()"
     (click)="toggleOpen()"
   >

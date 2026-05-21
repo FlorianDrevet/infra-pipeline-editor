@@ -21,6 +21,8 @@ public sealed class NamingTools
 {
     private const string CommandFailedError = "command_failed";
     private const string InvalidProjectIdError = "invalid_project_id";
+    private const string InvalidProjectIdMessage = "The projectId must be a valid GUID.";
+    private const string SuccessStatus = "success";
 
     private NamingTools() { }
 
@@ -43,14 +45,14 @@ public sealed class NamingTools
     {
         if (!Guid.TryParse(projectId, out var id))
         {
-            return McpJsonDefaults.Error(InvalidProjectIdError, "The projectId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidProjectIdError, InvalidProjectIdMessage);
         }
 
         var command = new SetProjectDefaultNamingTemplateCommand(new ProjectId(id), template);
         var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
-            _ => JsonSerializer.Serialize(new { status = "success", message = "Default naming template updated." }, McpJsonDefaults.SerializerOptions),
+            _ => JsonSerializer.Serialize(new { status = SuccessStatus, message = "Default naming template updated." }, McpJsonDefaults.SerializerOptions),
             errors => McpJsonDefaults.Error(CommandFailedError, string.Join("; ", errors.Select(e => e.Description))));
     }
 
@@ -71,14 +73,14 @@ public sealed class NamingTools
     {
         if (!Guid.TryParse(projectId, out var id))
         {
-            return McpJsonDefaults.Error(InvalidProjectIdError, "The projectId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidProjectIdError, InvalidProjectIdMessage);
         }
 
         var command = new SetProjectResourceNamingTemplateCommand(new ProjectId(id), resourceType, template);
         var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
-            tpl => JsonSerializer.Serialize(new { status = "success", resourceType, template }, McpJsonDefaults.SerializerOptions),
+            tpl => JsonSerializer.Serialize(new { status = SuccessStatus, resourceType, template }, McpJsonDefaults.SerializerOptions),
             errors => McpJsonDefaults.Error(CommandFailedError, string.Join("; ", errors.Select(e => e.Description))));
     }
 
@@ -95,14 +97,14 @@ public sealed class NamingTools
     {
         if (!Guid.TryParse(projectId, out var id))
         {
-            return McpJsonDefaults.Error(InvalidProjectIdError, "The projectId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidProjectIdError, InvalidProjectIdMessage);
         }
 
         var command = new RemoveProjectResourceNamingTemplateCommand(new ProjectId(id), resourceType);
         var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
-            _ => JsonSerializer.Serialize(new { status = "success", message = $"Naming template override for '{resourceType}' removed." }, McpJsonDefaults.SerializerOptions),
+            _ => JsonSerializer.Serialize(new { status = SuccessStatus, message = $"Naming template override for '{resourceType}' removed." }, McpJsonDefaults.SerializerOptions),
             errors => McpJsonDefaults.Error(CommandFailedError, string.Join("; ", errors.Select(e => e.Description))));
     }
 
@@ -123,14 +125,14 @@ public sealed class NamingTools
     {
         if (!Guid.TryParse(projectId, out var id))
         {
-            return McpJsonDefaults.Error(InvalidProjectIdError, "The projectId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidProjectIdError, InvalidProjectIdMessage);
         }
 
         var command = new SetProjectResourceAbbreviationCommand(new ProjectId(id), resourceType, abbreviation);
         var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
-            _ => JsonSerializer.Serialize(new { status = "success", resourceType, abbreviation }, McpJsonDefaults.SerializerOptions),
+            _ => JsonSerializer.Serialize(new { status = SuccessStatus, resourceType, abbreviation }, McpJsonDefaults.SerializerOptions),
             errors => McpJsonDefaults.Error(CommandFailedError, string.Join("; ", errors.Select(e => e.Description))));
     }
 
@@ -147,14 +149,14 @@ public sealed class NamingTools
     {
         if (!Guid.TryParse(projectId, out var id))
         {
-            return McpJsonDefaults.Error(InvalidProjectIdError, "The projectId must be a valid GUID.");
+            return McpJsonDefaults.Error(InvalidProjectIdError, InvalidProjectIdMessage);
         }
 
         var command = new RemoveProjectResourceAbbreviationCommand(new ProjectId(id), resourceType);
         var result = await mediator.Send(command, cancellationToken);
 
         return result.Match(
-            _ => JsonSerializer.Serialize(new { status = "success", message = $"Abbreviation override for '{resourceType}' removed." }, McpJsonDefaults.SerializerOptions),
+            _ => JsonSerializer.Serialize(new { status = SuccessStatus, message = $"Abbreviation override for '{resourceType}' removed." }, McpJsonDefaults.SerializerOptions),
             errors => McpJsonDefaults.Error(CommandFailedError, string.Join("; ", errors.Select(e => e.Description))));
     }
 }

@@ -13,6 +13,8 @@ internal static class DraftApplicationStacks
     internal const string Angular = "Angular";
     internal const string Java = "Java";
     internal const string Python = "Python";
+    internal const string Php = "Php";
+    internal const string Go = "Go";
     internal const string StaticSite = "StaticSite";
     internal const string Custom = "Custom";
 
@@ -24,6 +26,8 @@ internal static class DraftApplicationStacks
         Angular,
         Java,
         Python,
+        Php,
+        Go,
         StaticSite,
         Custom,
     ], StringComparer.OrdinalIgnoreCase);

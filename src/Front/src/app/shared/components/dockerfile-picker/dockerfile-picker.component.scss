@@ -19,7 +19,7 @@
   &:hover:not(.picker-trigger--disabled) {
     background: rgba(58, 180, 217, 0.15);
     border-color: var(--ifs-accent-500);
-    color: #0a4f95;
+    color: var(--ifs-accent-700, #063a6e);
   }
 
   &--disabled {

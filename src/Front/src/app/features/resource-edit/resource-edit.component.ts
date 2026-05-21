@@ -55,6 +55,7 @@ import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { NameAvailabilityService } from '../../shared/services/name-availability.service';
 import { PipelineDetectionService } from '../../shared/services/pipeline-detection.service';
+import { DetectedPipelineOptionsResponse } from '../../shared/interfaces/pipeline-detection.interface';
 import { EnvironmentNameAvailabilityResponseItem } from '../../shared/interfaces/name-availability.interface';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
@@ -880,44 +881,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected async onDetectPipelineOptions(): Promise<void> {
     try {
       const result = await this.pipelineDetectionService.detect(this.resourceId);
-      const patch: Partial<PipelineStepOptions> = {};
-
-      if (result.testFramework) {
-        patch.runUnitTests = true;
-        patch.testFramework = result.testFramework;
-      }
-      if (result.suggestedTestCommand) {
-        patch.testCommand = result.suggestedTestCommand;
-      }
-      if (result.suggestedTestResultsFormat) {
-        patch.testResultsFormat = result.suggestedTestResultsFormat;
-        patch.publishTestResults = true;
-      }
-      if (result.suggestedCoverageTool) {
-        patch.publishCodeCoverage = true;
-        patch.coverageTool = result.suggestedCoverageTool;
-      }
-      if (result.suggestedCoverageReportPath) {
-        patch.coverageReportPath = result.suggestedCoverageReportPath;
-      }
-      if (result.lintingAvailable) {
-        patch.runLinting = true;
-      }
-      if (result.suggestedLintCommand) {
-        patch.lintCommand = result.suggestedLintCommand;
-      }
-      if (result.sonarConfigDetected) {
-        patch.runSonarAnalysis = true;
-      }
-      if (result.suggestedSonarProjectKey) {
-        patch.sonarProjectKey = result.suggestedSonarProjectKey;
-      }
-      if (result.dependencyScanAvailable) {
-        patch.runDependencyScan = true;
-      }
-      if (result.suggestedDependencyScanTool) {
-        patch.dependencyScanTool = result.suggestedDependencyScanTool;
-      }
+      const patch = this.buildPipelineDetectionPatch(result);
 
       const merged = { ...(this.pipelineStepOptions() ?? {}), ...patch } as PipelineStepOptions;
       this.pipelineStepOptions.set(merged);
@@ -925,6 +889,49 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     } catch {
       // Detection failed silently — user can configure manually
     }
+  }
+
+  private buildPipelineDetectionPatch(result: DetectedPipelineOptionsResponse): Partial<PipelineStepOptions> {
+    const patch: Partial<PipelineStepOptions> = {};
+
+    if (result.testFramework) {
+      patch.runUnitTests = true;
+      patch.testFramework = result.testFramework;
+    }
+    if (result.suggestedTestCommand) {
+      patch.testCommand = result.suggestedTestCommand;
+    }
+    if (result.suggestedTestResultsFormat) {
+      patch.testResultsFormat = result.suggestedTestResultsFormat;
+      patch.publishTestResults = true;
+    }
+    if (result.suggestedCoverageTool) {
+      patch.publishCodeCoverage = true;
+      patch.coverageTool = result.suggestedCoverageTool;
+    }
+    if (result.suggestedCoverageReportPath) {
+      patch.coverageReportPath = result.suggestedCoverageReportPath;
+    }
+    if (result.lintingAvailable) {
+      patch.runLinting = true;
+    }
+    if (result.suggestedLintCommand) {
+      patch.lintCommand = result.suggestedLintCommand;
+    }
+    if (result.sonarConfigDetected) {
+      patch.runSonarAnalysis = true;
+    }
+    if (result.suggestedSonarProjectKey) {
+      patch.sonarProjectKey = result.suggestedSonarProjectKey;
+    }
+    if (result.dependencyScanAvailable) {
+      patch.runDependencyScan = true;
+    }
+    if (result.suggestedDependencyScanTool) {
+      patch.dependencyScanTool = result.suggestedDependencyScanTool;
+    }
+
+    return patch;
   }
 
   private resolveAcrAuthMode(containerRegistryId: string | null | undefined, acrAuthMode: AcrAuthMode | null | undefined): AcrAuthMode | null {

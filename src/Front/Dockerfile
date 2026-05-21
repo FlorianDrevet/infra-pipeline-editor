@@ -17,7 +17,14 @@ COPY src ./src
 
 ARG API_URL=
 
-RUN node -e "const fs=require('node:fs'); const path='src/environments/environment.ts'; const apiUrl=process.env.API_URL ?? ''; const content=fs.readFileSync(path,'utf8'); const next=content.replace(/api_url:\s*'.*?'/, 'api_url: ' + JSON.stringify(apiUrl)); if (content === next) { throw new Error('Failed to inject API_URL into src/environments/environment.ts'); } fs.writeFileSync(path, next);" \
+RUN node -e "\
+  const fs = require('node:fs');\
+  const path = 'src/environments/environment.ts';\
+  const apiUrl = process.env.API_URL ?? '';\
+  const content = fs.readFileSync(path, 'utf8');\
+  const next = content.replace(/api_url:\s*'.*?'/, 'api_url: ' + JSON.stringify(apiUrl));\
+  if (content === next) { throw new Error('Failed to inject API_URL'); }\
+  fs.writeFileSync(path, next);" \
     && npm run build -- --configuration=production
 
 # --- Runtime stage ------------------------------------------------------------

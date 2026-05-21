@@ -116,7 +116,8 @@ function hasWindowsDrivePrefix(path: string): boolean {
 }
 
 function isAsciiLetter(character: string): boolean {
-  const code = character.charCodeAt(0);
+  const code = character.codePointAt(0);
+  if (code === undefined) return false;
   return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
 }
 
@@ -126,8 +127,8 @@ function isSafeGeneratedArtifactPathSegment(segment: string): boolean {
   }
 
   for (const character of segment) {
-    const code = character.charCodeAt(0);
-    if (code < 32 || code === 127 || character === ':') {
+    const code = character.codePointAt(0);
+    if (code !== undefined && (code < 32 || code === 127) || character === ':') {
       return false;
     }
   }

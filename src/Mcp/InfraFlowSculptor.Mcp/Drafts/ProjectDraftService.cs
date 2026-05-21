@@ -663,6 +663,16 @@ public sealed class ProjectDraftService : IProjectDraftService
             return DraftApplicationStacks.Python;
         }
 
+        if (Regex.IsMatch(lower, @"\b(?:php|laravel|symfony|composer)\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.Php;
+        }
+
+        if (Regex.IsMatch(lower, @"\b(?:golang|go\s+(?:app|service|api|module))\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.Go;
+        }
+
         if (Regex.IsMatch(lower, @"\b(?:static\s+site|html|hugo|jekyll|gatsby)\b", RegexOptions.None, RegexTimeout))
         {
             return DraftApplicationStacks.StaticSite;
@@ -719,6 +729,18 @@ public sealed class ProjectDraftService : IProjectDraftService
                     Value = DraftApplicationStacks.Python,
                     Label = "Python",
                     Description = "Python application with pip and pytest.",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.Php,
+                    Label = "PHP",
+                    Description = "PHP application with Composer (Laravel, Symfony, etc.).",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.Go,
+                    Label = "Go",
+                    Description = "Go application with go build and go test.",
                 },
                 new DraftOption
                 {

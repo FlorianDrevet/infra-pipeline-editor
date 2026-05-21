@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="InfraFlowSculptor.Mcp.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Mapster" />
     <PackageReference Include="Mapster.DependencyInjection" />
     <PackageReference Include="ModelContextProtocol" />
