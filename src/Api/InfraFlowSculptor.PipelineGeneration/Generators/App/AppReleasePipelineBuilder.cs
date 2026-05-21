@@ -29,6 +29,7 @@ internal static class AppReleasePipelineBuilder
         sb.AppendLine($"    promotionStrategy: '{request.PromotionStrategy}'");
         AppendAgentPoolParameter(sb, request.AgentPoolName);
         AppendSmokeTestParameters(sb, request);
+        AppendNotificationParameters(sb, request);
         AppendEnvironmentsParameter(sb, request);
 
         return sb.ToString();
@@ -47,6 +48,7 @@ internal static class AppReleasePipelineBuilder
         sb.AppendLine($"    resourceType: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.ResourceType)}'");
         AppendAgentPoolParameter(sb, request.AgentPoolName);
         AppendSmokeTestParameters(sb, request);
+        AppendNotificationParameters(sb, request);
         AppendEnvironmentsParameter(sb, request);
 
         return sb.ToString();
@@ -123,6 +125,16 @@ internal static class AppReleasePipelineBuilder
             sb.AppendLine($"    runSmokeTests: true");
             if (!string.IsNullOrWhiteSpace(request.SmokeTestCommand))
                 sb.AppendLine($"    smokeTestCommand: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.SmokeTestCommand)}'");
+        }
+    }
+
+    private static void AppendNotificationParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (request.EnableNotifications)
+        {
+            sb.AppendLine($"    enableNotifications: true");
+            if (!string.IsNullOrWhiteSpace(request.NotificationWebhookUrl))
+                sb.AppendLine($"    notificationWebhookUrl: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.NotificationWebhookUrl)}'");
         }
     }
 }

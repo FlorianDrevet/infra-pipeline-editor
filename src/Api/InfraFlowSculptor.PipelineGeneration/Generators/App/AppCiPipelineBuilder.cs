@@ -162,6 +162,8 @@ internal static class AppCiPipelineBuilder
         AppendBoolParam(sb, "runBuildValidation", request.RunBuildValidation);
         AppendBoolParam(sb, "enableDependencyCache", request.EnableDependencyCache);
         AppendSmokeTestParameters(sb, request);
+        AppendLicenseCheckParameters(sb, request);
+        AppendNotificationParameters(sb, request);
     }
 
     private static void AppendTestParameters(StringBuilder sb, AppPipelineGenerationRequest request)
@@ -223,6 +225,24 @@ internal static class AppCiPipelineBuilder
 
         sb.AppendLine($"    runSmokeTests: true");
         AppendStringParam(sb, "smokeTestCommand", request.SmokeTestCommand);
+    }
+
+    private static void AppendLicenseCheckParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.RunLicenseCheck)
+            return;
+
+        sb.AppendLine($"    runLicenseCheck: true");
+        AppendStringParam(sb, "licenseCheckTool", request.LicenseCheckTool);
+    }
+
+    private static void AppendNotificationParameters(StringBuilder sb, AppPipelineGenerationRequest request)
+    {
+        if (!request.EnableNotifications)
+            return;
+
+        sb.AppendLine($"    enableNotifications: true");
+        AppendStringParam(sb, "notificationWebhookUrl", request.NotificationWebhookUrl);
     }
 
     private static void AppendStringParam(StringBuilder sb, string paramName, string? value)

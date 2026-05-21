@@ -20,6 +20,12 @@ parameters:
   - name: smokeTestCommand
     type: string
     default: ''
+  - name: enableNotifications
+    type: boolean
+    default: false
+  - name: notificationWebhookUrl
+    type: string
+    default: ''
 
 jobs:
   - deployment: Deploy_${{ parameters.envShortName }}
@@ -48,3 +54,8 @@ jobs:
               - template: ../steps/app-smoke-test.step.yml
                 parameters:
                   smokeTestCommand: ${{ parameters.smokeTestCommand }}
+
+            - ${{ if parameters.enableNotifications }}:
+              - template: ../steps/app-notification.step.yml
+                parameters:
+                  notificationWebhookUrl: ${{ parameters.notificationWebhookUrl }}

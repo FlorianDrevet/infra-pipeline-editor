@@ -124,6 +124,18 @@ public class AppPipelineGenerationRequest
     /// <summary>Custom smoke test command or URL to health-check.</summary>
     public string? SmokeTestCommand { get; set; }
 
+    /// <summary>Whether to run license compliance checks on dependencies.</summary>
+    public bool RunLicenseCheck { get; set; }
+
+    /// <summary>License check tool identifier (license-checker, dotnet-delice, licensefinder).</summary>
+    public string? LicenseCheckTool { get; set; }
+
+    /// <summary>Whether to send a webhook notification at the end of the pipeline.</summary>
+    public bool EnableNotifications { get; set; }
+
+    /// <summary>Webhook URL for Teams/Slack notification.</summary>
+    public string? NotificationWebhookUrl { get; set; }
+
     /// <summary>Environment definitions with service connections and subscription IDs.</summary>
     public IReadOnlyList<EnvironmentDefinition> Environments { get; set; } = [];
 

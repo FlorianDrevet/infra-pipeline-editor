@@ -23,6 +23,12 @@ parameters:
   - name: smokeTestCommand
     type: string
     default: ''
+  - name: enableNotifications
+    type: boolean
+    default: false
+  - name: notificationWebhookUrl
+    type: string
+    default: ''
   - name: environments
     type: object
     default: []
@@ -52,3 +58,5 @@ stages:
             envName: ${{ env.name }}
             runSmokeTests: ${{ parameters.runSmokeTests }}
             smokeTestCommand: ${{ parameters.smokeTestCommand }}
+            enableNotifications: ${{ parameters.enableNotifications }}
+            notificationWebhookUrl: ${{ parameters.notificationWebhookUrl }}

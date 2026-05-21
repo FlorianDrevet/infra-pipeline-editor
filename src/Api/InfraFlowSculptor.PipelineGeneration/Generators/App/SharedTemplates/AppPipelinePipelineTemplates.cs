@@ -167,6 +167,18 @@ internal static class AppPipelinePipelineTemplates
           - name: lintCommand
             type: string
             default: ''
+          - name: runLicenseCheck
+            type: boolean
+            default: false
+          - name: licenseCheckTool
+            type: string
+            default: 'license-checker'
+          - name: enableNotifications
+            type: boolean
+            default: false
+          - name: notificationWebhookUrl
+            type: string
+            default: ''
           - name: agentPoolName
             type: string
             default: ''
@@ -210,6 +222,10 @@ internal static class AppPipelinePipelineTemplates
                   sonarServiceConnection: ${{ parameters.sonarServiceConnection }}
                   runLinting: ${{ parameters.runLinting }}
                   lintCommand: ${{ parameters.lintCommand }}
+                  runLicenseCheck: ${{ parameters.runLicenseCheck }}
+                  licenseCheckTool: ${{ parameters.licenseCheckTool }}
+                  enableNotifications: ${{ parameters.enableNotifications }}
+                  notificationWebhookUrl: ${{ parameters.notificationWebhookUrl }}
         """;
 
     internal const string PrContainerPipeline = """
@@ -364,6 +380,12 @@ internal static class AppPipelinePipelineTemplates
           - name: smokeTestCommand
             type: string
             default: ''
+          - name: enableNotifications
+            type: boolean
+            default: false
+          - name: notificationWebhookUrl
+            type: string
+            default: ''
           - name: environments
             type: object
             default: []
@@ -393,6 +415,8 @@ internal static class AppPipelinePipelineTemplates
                     envName: ${{ env.name }}
                     runSmokeTests: ${{ parameters.runSmokeTests }}
                     smokeTestCommand: ${{ parameters.smokeTestCommand }}
+                    enableNotifications: ${{ parameters.enableNotifications }}
+                    notificationWebhookUrl: ${{ parameters.notificationWebhookUrl }}
         """;
 
     internal const string ReleaseCodePipeline = """
@@ -411,6 +435,12 @@ internal static class AppPipelinePipelineTemplates
             type: boolean
             default: false
           - name: smokeTestCommand
+            type: string
+            default: ''
+          - name: enableNotifications
+            type: boolean
+            default: false
+          - name: notificationWebhookUrl
             type: string
             default: ''
           - name: environments
@@ -440,5 +470,7 @@ internal static class AppPipelinePipelineTemplates
                     envName: ${{ env.name }}
                     runSmokeTests: ${{ parameters.runSmokeTests }}
                     smokeTestCommand: ${{ parameters.smokeTestCommand }}
+                    enableNotifications: ${{ parameters.enableNotifications }}
+                    notificationWebhookUrl: ${{ parameters.notificationWebhookUrl }}
         """;
 }

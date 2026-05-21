@@ -181,6 +181,18 @@ internal static class AppPipelineJobTemplates
           - name: lintCommand
             type: string
             default: ''
+          - name: runLicenseCheck
+            type: boolean
+            default: false
+          - name: licenseCheckTool
+            type: string
+            default: 'license-checker'
+          - name: enableNotifications
+            type: boolean
+            default: false
+          - name: notificationWebhookUrl
+            type: string
+            default: ''
 
         jobs:
           - job: BuildAndPublish
@@ -243,6 +255,13 @@ internal static class AppPipelineJobTemplates
                   parameters:
                     lintCommand: ${{ parameters.lintCommand }}
 
+              - ${{ if parameters.runLicenseCheck }}:
+                - template: ../steps/app-license-check.step.yml
+                  parameters:
+                    licenseCheckTool: ${{ parameters.licenseCheckTool }}
+                    runtimeStack: ${{ parameters.runtimeStack }}
+                    sourcePath: ${{ parameters.sourcePath }}
+
               - task: PublishPipelineArtifact@1
                 displayName: 'Publish app metadata'
                 inputs:
@@ -254,6 +273,11 @@ internal static class AppPipelineJobTemplates
                 inputs:
                   targetPath: '$(Build.ArtifactStagingDirectory)/application-package'
                   artifact: 'application-package'
+
+              - ${{ if parameters.enableNotifications }}:
+                - template: ../steps/app-notification.step.yml
+                  parameters:
+                    notificationWebhookUrl: ${{ parameters.notificationWebhookUrl }}
         """;
 
     internal const string PrContainerJob = """
@@ -400,6 +424,12 @@ internal static class AppPipelineJobTemplates
           - name: smokeTestCommand
             type: string
             default: ''
+          - name: enableNotifications
+            type: boolean
+            default: false
+          - name: notificationWebhookUrl
+            type: string
+            default: ''
 
         jobs:
           - deployment: Deploy_${{ parameters.envShortName }}
@@ -428,6 +458,11 @@ internal static class AppPipelineJobTemplates
                       - template: ../steps/app-smoke-test.step.yml
                         parameters:
                           smokeTestCommand: ${{ parameters.smokeTestCommand }}
+
+                    - ${{ if parameters.enableNotifications }}:
+                      - template: ../steps/app-notification.step.yml
+                        parameters:
+                          notificationWebhookUrl: ${{ parameters.notificationWebhookUrl }}
         """;
 
     internal const string ReleaseCodeJob = """
@@ -446,6 +481,12 @@ internal static class AppPipelineJobTemplates
             type: boolean
             default: false
           - name: smokeTestCommand
+            type: string
+            default: ''
+          - name: enableNotifications
+            type: boolean
+            default: false
+          - name: notificationWebhookUrl
             type: string
             default: ''
 
@@ -469,5 +510,10 @@ internal static class AppPipelineJobTemplates
                       - template: ../steps/app-smoke-test.step.yml
                         parameters:
                           smokeTestCommand: ${{ parameters.smokeTestCommand }}
+
+                    - ${{ if parameters.enableNotifications }}:
+                      - template: ../steps/app-notification.step.yml
+                        parameters:
+                          notificationWebhookUrl: ${{ parameters.notificationWebhookUrl }}
         """;
 }

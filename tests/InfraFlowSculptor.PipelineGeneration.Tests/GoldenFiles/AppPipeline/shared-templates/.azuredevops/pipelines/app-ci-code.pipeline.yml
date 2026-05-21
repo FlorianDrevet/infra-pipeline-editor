@@ -82,6 +82,18 @@ parameters:
   - name: lintCommand
     type: string
     default: ''
+  - name: runLicenseCheck
+    type: boolean
+    default: false
+  - name: licenseCheckTool
+    type: string
+    default: 'license-checker'
+  - name: enableNotifications
+    type: boolean
+    default: false
+  - name: notificationWebhookUrl
+    type: string
+    default: ''
   - name: agentPoolName
     type: string
     default: ''
@@ -125,3 +137,7 @@ stages:
           sonarServiceConnection: ${{ parameters.sonarServiceConnection }}
           runLinting: ${{ parameters.runLinting }}
           lintCommand: ${{ parameters.lintCommand }}
+          runLicenseCheck: ${{ parameters.runLicenseCheck }}
+          licenseCheckTool: ${{ parameters.licenseCheckTool }}
+          enableNotifications: ${{ parameters.enableNotifications }}
+          notificationWebhookUrl: ${{ parameters.notificationWebhookUrl }}
