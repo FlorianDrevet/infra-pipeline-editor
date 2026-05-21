@@ -55,6 +55,15 @@ parameters:
   - name: promotionStrategy
     type: string
     default: 'AcrImport'
+  - name: enableDependencyCache
+    type: boolean
+    default: false
+  - name: runDependencyScan
+    type: boolean
+    default: false
+  - name: dependencyScanTool
+    type: string
+    default: 'OWASPDependencyCheck'
   - name: agentPoolName
     type: string
     default: ''
@@ -89,3 +98,6 @@ stages:
           coverageTool: ${{ parameters.coverageTool }}
           coverageReportPath: ${{ parameters.coverageReportPath }}
           promotionStrategy: ${{ parameters.promotionStrategy }}
+          enableDependencyCache: ${{ parameters.enableDependencyCache }}
+          runDependencyScan: ${{ parameters.runDependencyScan }}
+          dependencyScanTool: ${{ parameters.dependencyScanTool }}

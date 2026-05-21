@@ -54,6 +54,15 @@ parameters:
   - name: promotionStrategy
     type: string
     default: 'AcrImport'
+  - name: enableDependencyCache
+    type: boolean
+    default: false
+  - name: runDependencyScan
+    type: boolean
+    default: false
+  - name: dependencyScanTool
+    type: string
+    default: 'OWASPDependencyCheck'
 
 jobs:
   - job: BuildAndPublish
@@ -71,6 +80,11 @@ jobs:
           resourceType: ${{ parameters.resourceType }}
           promotionStrategy: ${{ parameters.promotionStrategy }}
           includeRegistryMetadata: false
+
+      - ${{ if parameters.enableDependencyCache }}:
+        - template: ../steps/app-dependency-cache.step.yml
+          parameters:
+            runtimeStack: ${{ parameters.runtimeStack }}
 
       - template: ../steps/app-sdk-setup.step.yml
         parameters:
@@ -91,6 +105,13 @@ jobs:
           publishCodeCoverage: ${{ parameters.publishCodeCoverage }}
           coverageTool: ${{ parameters.coverageTool }}
           coverageReportPath: ${{ parameters.coverageReportPath }}
+
+      - ${{ if parameters.runDependencyScan }}:
+        - template: ../steps/app-dependency-scan.step.yml
+          parameters:
+            dependencyScanTool: ${{ parameters.dependencyScanTool }}
+            runtimeStack: ${{ parameters.runtimeStack }}
+            sourcePath: ${{ parameters.sourcePath }}
 
       - task: PublishPipelineArtifact@1
         displayName: 'Publish app metadata'

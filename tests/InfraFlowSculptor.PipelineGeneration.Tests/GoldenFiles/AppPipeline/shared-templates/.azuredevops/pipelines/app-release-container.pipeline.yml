@@ -17,6 +17,12 @@ parameters:
   - name: agentPoolName
     type: string
     default: ''
+  - name: runSmokeTests
+    type: boolean
+    default: false
+  - name: smokeTestCommand
+    type: string
+    default: ''
   - name: environments
     type: object
     default: []
@@ -44,3 +50,5 @@ stages:
             promotionStrategy: ${{ parameters.promotionStrategy }}
             envShortName: ${{ env.shortName }}
             envName: ${{ env.name }}
+            runSmokeTests: ${{ parameters.runSmokeTests }}
+            smokeTestCommand: ${{ parameters.smokeTestCommand }}

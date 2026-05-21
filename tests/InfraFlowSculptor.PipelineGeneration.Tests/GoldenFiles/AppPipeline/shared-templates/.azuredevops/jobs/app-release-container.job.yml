@@ -14,6 +14,12 @@ parameters:
     type: string
   - name: envName
     type: string
+  - name: runSmokeTests
+    type: boolean
+    default: false
+  - name: smokeTestCommand
+    type: string
+    default: ''
 
 jobs:
   - deployment: Deploy_${{ parameters.envShortName }}
@@ -37,3 +43,8 @@ jobs:
               parameters:
                 resourceType: ${{ parameters.resourceType }}
                 imageRepository: ${{ parameters.imageRepository }}
+
+            - ${{ if parameters.runSmokeTests }}:
+              - template: ../steps/app-smoke-test.step.yml
+                parameters:
+                  smokeTestCommand: ${{ parameters.smokeTestCommand }}
