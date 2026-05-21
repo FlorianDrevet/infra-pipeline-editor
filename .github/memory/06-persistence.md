@@ -95,7 +95,7 @@
 - `scripts/fix-legacy-repository-topology.ps1` is the one-off repair for legacy `Pipelines` content-kind rows and pre-layout-driven repository topologies.
 - For managed-identity ACR auth in demo snapshots, `AzureResource.AssignedUserAssignedIdentityId` must reference the same UAI that receives the `AcrPull` role.
 - The API JWT secret app setting key is `JwtSettings__Secret`; `JWT_SECRET` is the Key Vault secret name, not the ASP.NET configuration key.
-- Direct local snapshot seed note [2026-05-21]: `scripts/seed-project-snapshot.sql` still targets obsolete snapshot-era columns such as `Projects.RepositoryMode` and is unsafe to replay blindly on a current or partially migrated developer database. For direct DB imports from `docs/project-snapshots/fb8699ea-ifs-project.md`, align the SQL with the live schema (`Projects.LayoutPreset`, current Container App fields, `CustomDomains`, `AppSettings`, `AppSettingEnvironmentValues`) and add the matching `project_members` row so the seeded project is visible to the local user.
+- Direct local snapshot seed rule [2026-05-21]: `docs/project-snapshots/fb8699ea-ifs-project.md` and `scripts/seed-project-snapshot.sql` are a paired artifact and must be updated together. The SQL seed is the authoritative direct-db import for the snapshot and must stay aligned with the live schema (`Projects.LayoutPreset`, current repositories, current Container App fields, `CustomDomains`, `AppSettings`, `AppSettingEnvironmentValues`) plus the matching `project_members` row so the seeded project is visible to the local user.
 
 ## Audit Architecture Study (Proposal) [2026-05-12]
 - The natural capture point for a future audit trail is the EF Core boundary (`SaveChangesAsync` / interceptor), not MediatR alone.

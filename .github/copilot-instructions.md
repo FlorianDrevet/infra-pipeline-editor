@@ -44,6 +44,13 @@
 - Do not preserve or introduce a "temporary" compatibility fallback, shared shortcut, or UI convenience when it weakens environment isolation or hides an invalid pipeline/Bicep assumption.
 - If a user request would produce invalid generated artifacts, cross-environment leakage, or a misleading UX that suggests an impossible infrastructure/pipeline concept, challenge the request before coding and prefer the coherent implementation over literal compliance.
 
+## Snapshot / Seed Synchronization
+
+- `docs/project-snapshots/fb8699ea-ifs-project.md` and `scripts/seed-project-snapshot.sql` are a paired artifact for the local developer seed of record.
+- If a user asks to update the snapshot or the seed for project `fb8699ea-f568-4afb-864b-e82d2efd0905`, update both files in the same task, not just the file explicitly named.
+- Treat `scripts/seed-project-snapshot.sql` as the authoritative direct-db seed; it must stay aligned with the live schema (`LayoutPreset`, repositories, current Container App fields, custom domains, app settings, environment values, and `project_members` visibility row).
+- After changing either file, revalidate by replaying the checked-in SQL against the current local `infraDb` schema or by proving an equivalent focused compatibility check.
+
 ## Specialized agents
 
 - **Main entry point** — Use the `dev` agent (`.github/agents/dev.agent.md`) as the primary entry point for any task. It reads `MEMORY.md` + thematic memory files in `.github/memory/`, routes to the right specialist, loads relevant Skills, and updates memory at the end.

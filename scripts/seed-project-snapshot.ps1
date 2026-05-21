@@ -1,8 +1,15 @@
 <#
 .SYNOPSIS
-    Seeds the InfraFlowSculptor database from the project snapshot fb8699ea-ifs-project.md.
+    Legacy API-based helper kept for historical context; the authoritative local snapshot seed is scripts/seed-project-snapshot.sql.
 
 .DESCRIPTION
+    This script is not the authoritative snapshot seed anymore.
+    The canonical direct-db seed pair is:
+      - docs/project-snapshots/fb8699ea-ifs-project.md
+      - scripts/seed-project-snapshot.sql
+
+    When a task updates the snapshot or the seed, both files must be updated together.
+
     Calls the InfraFlowSculptor API in the correct order to recreate the full project
     configuration described in docs/project-snapshots/fb8699ea-ifs-project.md.
 

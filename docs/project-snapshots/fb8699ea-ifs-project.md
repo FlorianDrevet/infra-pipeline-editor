@@ -4,6 +4,8 @@
 > **Generated:** 2026-05-18
 > **Source:** `infraDb` PostgreSQL live database
 > **Purpose:** Reference file for Copilot context - synchronized from the database.
+> **Paired seed:** `scripts/seed-project-snapshot.sql`
+> **Update rule:** any agent updating this snapshot or the paired SQL seed must update both files in the same task and revalidate the SQL seed against the current local schema.
 
 ---
 
