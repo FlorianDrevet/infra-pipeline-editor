@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.FunctionApps.Commands.CreateFunctionApp;
 using InfraFlowSculptor.Application.FunctionApps.Commands.UpdateFunctionApp;
 using InfraFlowSculptor.Application.FunctionApps.Common;
-using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.FunctionApps.Requests;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -55,7 +55,7 @@ public sealed class FunctionAppMappingConfig : IRegister
                     es.HttpsOnly,
                     es.MaxInstanceCount,
                     es.DockerImageTag)).ToList())
-            .Map(dest => dest.PipelineStepOptions, src => src.PipelineStepOptions.Adapt<PipelineStepOptionsDto>())
+            .Map(dest => dest.PipelineStepOptions, src => PipelineStepOptionsDataMapper.ToDto(src.PipelineStepOptions))
             .Map(dest => dest.RuntimeStack, src => src.RuntimeStack.Value.ToString())
             .Map(dest => dest.AppServicePlanId, src => src.AppServicePlanId.Value)
             .Map(dest => dest.DeploymentMode, src => src.DeploymentMode.Value.ToString())

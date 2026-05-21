@@ -18,6 +18,9 @@ public class AppPipelineGenerationRequest
     /// <summary>Deployment mode: "Code" or "Container".</summary>
     public string DeploymentMode { get; set; } = string.Empty;
 
+    /// <summary>Application stack identifier (DotNet, NodeJs, Angular, Java, Python, StaticSite, Custom). Null or empty means Unknown.</summary>
+    public string? ApplicationStack { get; set; }
+
     /// <summary>Relative path to the Dockerfile in the repository (container mode).</summary>
     public string? DockerfilePath { get; set; }
 

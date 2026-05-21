@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using InfraFlowSculptor.Contracts.Common.Requests.Profiles;
 
 namespace InfraFlowSculptor.Contracts.Common.Requests;
 
@@ -8,6 +9,15 @@ namespace InfraFlowSculptor.Contracts.Common.Requests;
 /// </summary>
 public sealed class PipelineStepOptionsDto
 {
+    // ── Stack & Profile ────────────────────────────────────────────────────
+
+    /// <summary>Application stack selection (DotNet, NodeJs, Angular, Java, Python, StaticSite, Custom). Null means Unknown.</summary>
+    [MaxLength(20)]
+    public string? Stack { get; init; }
+
+    /// <summary>Typed stack-specific profile configuration. Must match the <see cref="Stack"/> discriminator.</summary>
+    public PipelineStackProfileDto? Profile { get; init; }
+
     // ── Tests ──────────────────────────────────────────────────────────────
 
     /// <summary>Whether to run unit tests in the CI pipeline.</summary>

@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.ContainerApps.Commands.CreateContainerApp;
 using InfraFlowSculptor.Application.ContainerApps.Commands.UpdateContainerApp;
 using InfraFlowSculptor.Application.ContainerApps.Common;
-using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.ContainerApps.Requests;
 using InfraFlowSculptor.Contracts.ContainerApps.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
@@ -63,7 +63,7 @@ public sealed class ContainerAppMappingConfig : IRegister
                     es.StartupProbePath,
                     es.StartupProbePort,
                     es.ContainerRegistryServiceConnection)).ToList())
-            .Map(dest => dest.PipelineStepOptions, src => src.PipelineStepOptions.Adapt<PipelineStepOptionsDto>())
+            .Map(dest => dest.PipelineStepOptions, src => PipelineStepOptionsDataMapper.ToDto(src.PipelineStepOptions))
             .Map(dest => dest.ContainerAppEnvironmentId, src => src.ContainerAppEnvironmentId.Value)
                     .Map(dest => dest.ContainerRegistryId, src => src.ContainerRegistryId != null ? src.ContainerRegistryId.Value : (Guid?)null)
                     .Map(dest => dest.AcrAuthMode, src => src.AcrAuthMode != null ? src.AcrAuthMode.Value.ToString() : null)

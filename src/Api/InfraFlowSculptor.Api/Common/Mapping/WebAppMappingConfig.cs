@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.WebApps.Commands.CreateWebApp;
 using InfraFlowSculptor.Application.WebApps.Commands.UpdateWebApp;
 using InfraFlowSculptor.Application.WebApps.Common;
-using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.WebApps.Requests;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -56,7 +56,7 @@ public sealed class WebAppMappingConfig : IRegister
                     es.AlwaysOn,
                     es.HttpsOnly,
                     es.DockerImageTag)).ToList())
-            .Map(dest => dest.PipelineStepOptions, src => src.PipelineStepOptions.Adapt<PipelineStepOptionsDto>())
+            .Map(dest => dest.PipelineStepOptions, src => PipelineStepOptionsDataMapper.ToDto(src.PipelineStepOptions))
             .Map(dest => dest.RuntimeStack, src => src.RuntimeStack.Value.ToString())
             .Map(dest => dest.AppServicePlanId, src => src.AppServicePlanId.Value)
             .Map(dest => dest.DeploymentMode, src => src.DeploymentMode.Value.ToString())
