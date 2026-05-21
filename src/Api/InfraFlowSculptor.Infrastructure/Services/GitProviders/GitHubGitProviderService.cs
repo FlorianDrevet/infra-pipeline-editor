@@ -275,6 +275,33 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
         return client;
     }
 
+    /// <inheritdoc />
+    public async Task<ErrorOr<string?>> GetFileContentAsync(
+        string token, string owner, string repositoryName,
+        string branch, string filePath,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var client = CreateClient(token);
+            var contents = await client.Repository.Content.GetAllContentsByRef(
+                owner, repositoryName, filePath, branch);
+
+            if (contents is null || contents.Count == 0)
+                return (string?)null;
+
+            return contents[0].Content;
+        }
+        catch (Octokit.NotFoundException)
+        {
+            return (string?)null;
+        }
+        catch (Exception ex)
+        {
+            return Errors.GitRepository.SearchFilesFailed(ex.Message);
+        }
+    }
+
     private static ErrorOr<PreparedGitHubPush> PrepareScopedPush(MultiScopeGitPushRequest request)
     {
         var filesByPath = new Dictionary<string, string>(StringComparer.Ordinal);

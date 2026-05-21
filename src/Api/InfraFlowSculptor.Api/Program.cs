@@ -115,6 +115,7 @@ app.UsePrivateEndpointController();
 app.UseImportController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();
+app.UsePipelineOptionDetectionController();
 
 // Health checks
 app.MapApiHealthChecks();

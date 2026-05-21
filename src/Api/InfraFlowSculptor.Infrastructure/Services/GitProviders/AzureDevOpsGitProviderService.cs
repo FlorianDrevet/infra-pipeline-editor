@@ -458,6 +458,33 @@ public sealed class AzureDevOpsGitProviderService(
         }
     }
 
+    /// <inheritdoc />
+    public async Task<ErrorOr<string?>> GetFileContentAsync(
+        string token, string owner, string repositoryName,
+        string branch, string filePath,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var client = CreateClient(token);
+            var (org, project) = ParseOwner(owner);
+
+            var escapedPath = Uri.EscapeDataString(filePath);
+            var url = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{repositoryName}/items?path={escapedPath}&versionDescriptor.version={Uri.EscapeDataString(branch)}&versionDescriptor.versionType=branch&api-version={ApiVersion}";
+
+            var response = await client.GetAsync(url, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                return (string?)null;
+
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            return content;
+        }
+        catch (Exception ex)
+        {
+            return Errors.GitRepository.SearchFilesFailed(ex.Message);
+        }
+    }
+
     private HttpClient CreateClient(string token)
     {
         var client = httpClientFactory.CreateClient();

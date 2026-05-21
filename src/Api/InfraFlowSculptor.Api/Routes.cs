@@ -128,4 +128,7 @@ public static class Routes
 
     /// <summary>Route group prefix for App Configuration key operations.</summary>
     public const string AzureResourceConfigurationKeys = "/azure-resources/{appConfigurationId:guid}/configuration-keys";
+
+    /// <summary>Route for auto-detecting pipeline options from the repository associated with a resource.</summary>
+    public const string AzureResourceDetectPipelineOptions = "/azure-resources/{resourceId:guid}/detect-pipeline-options";
 }

@@ -23,6 +23,7 @@ using InfraFlowSculptor.Infrastructure.Services.AzureNameAvailability;
 using InfraFlowSculptor.Infrastructure.Services.BlobService;
 using InfraFlowSculptor.Infrastructure.Services.GitProviders;
 using InfraFlowSculptor.Infrastructure.Services.KeyVault;
+using InfraFlowSculptor.Infrastructure.Services.PipelineDetection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web;
 using Refit;
@@ -74,6 +75,7 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
 
         services.AddSingleton<IAzureNameAvailabilityChecker, DnsNameAvailabilityChecker>();
+        services.AddScoped<IPipelineOptionDetectionService, PipelineOptionDetectionService>();
 
         return services;
     }
