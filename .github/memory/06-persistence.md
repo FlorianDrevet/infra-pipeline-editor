@@ -67,6 +67,7 @@
 - `vw_ResourceEnvironmentEntries` and `vw_ChildToParentLinks` are mapped as keyless read models and back `ResourceGroupRepository` read paths.
 - `GetConfiguredEnvironmentsByResourceGroupAsync(...)` already uses the view; the old DB-004 N+1 finding is obsolete on the current codebase.
 - `ListResourceGroupResourcesQueryHandler` keeps the complementary optimization for Storage Account children via three narrow batch queries over blobs/queues/tables.
+- Resource-detail latency investigation [2026-05-22]: Aspire traces showed authenticated `GET /container-app/{id}` taking ~2.2-2.5s, dominated by one EF command that materializes the TPT `AzureResource` graph plus Container App subresources. Prefer targeted read projections/read repositories for detail endpoints and project/resource list endpoints instead of loading polymorphic aggregates when the API only needs response DTO fields.
 
 ## Read-Only Authorization Lookups [2026-05-12]
 - Rule: read flows use dedicated `*ReadOnlyAsync(...)` repository methods; write and owner flows stay on tracked lookups.

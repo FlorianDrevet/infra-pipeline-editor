@@ -17,6 +17,10 @@
   line-height: 1.5;
 }
 
+.pipeline-options__stack-selector {
+  max-width: 320px;
+}
+
 .pipeline-options__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));

@@ -14,6 +14,17 @@
     </button>
   </div>
 
+  <!-- ─── Stack Selector ─── -->
+  <div class="pipeline-options__stack-selector">
+    <app-ds-select
+      [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.LABEL' | translate"
+      [options]="applicationStackOptions"
+      [clearable]="true"
+      [ngModel]="selectedStack()"
+      [ngModelOptions]="{ standalone: true }"
+      (ngModelChange)="onStackChange($event)" />
+  </div>
+
   <div class="pipeline-options__grid">
     <!-- ─── Tests ─── -->
     <app-toggle-section-card
@@ -58,15 +69,6 @@
           accentColor="#2e7d32"
           (enabledChange)="patch({ publishTestResults: $event })">
         </app-toggle-section-card>
-
-        <!-- ─── Stack Selector ─── -->
-        <app-ds-select
-          [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.LABEL' | translate"
-          [options]="applicationStackOptions"
-          [clearable]="true"
-          [ngModel]="selectedStack()"
-          [ngModelOptions]="{ standalone: true }"
-          (ngModelChange)="onStackChange($event)" />
 
         <!-- ─── Stack Profile ─── -->
         @if (selectedStack()) {

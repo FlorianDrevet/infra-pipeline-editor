@@ -132,7 +132,7 @@ internal static class AppPipelineStepTemplates
                   $registryLoginServer = '${{ parameters.containerRegistryName }}.azurecr.io'
               }
 
-              docker buildx inspect ifs-builder *> $null
+              $null = docker buildx inspect ifs-builder 2>&1
               if ($LASTEXITCODE -ne 0) {
                   docker buildx create --name ifs-builder --use | Out-Null
                   if ($LASTEXITCODE -ne 0) {
