@@ -1,15 +1,14 @@
 using ErrorOr;
 using FluentAssertions;
 using InfraFlowSculptor.Application.Common.Interfaces;
-using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.ContainerApps;
 using InfraFlowSculptor.Application.ContainerApps.Common;
 using InfraFlowSculptor.Application.ContainerApps.Queries.GetContainerApp;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using InfraFlowSculptor.Domain.Common.Models;
+using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MapsterMapper;
 using NSubstitute;
 using DomainInfrastructureConfig = InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig;
 using DomainResourceGroup = InfraFlowSculptor.Domain.ResourceGroupAggregate.ResourceGroup;
@@ -19,11 +18,10 @@ namespace InfraFlowSculptor.Application.Tests.ContainerApps.Queries.GetContainer
 
 public sealed class GetContainerAppQueryHandlerTests
 {
-    private readonly IContainerAppRepository _containerAppRepository;
-    private readonly IResourceGroupRepository _resourceGroupRepository;
+    private readonly IContainerAppReadRepository _containerAppReadRepository;
     private readonly IInfraConfigAccessService _accessService;
-    private readonly IMapper _mapper;
     private readonly ContainerApp _containerApp;
+    private readonly ContainerAppResult _containerAppResult;
     private readonly DomainResourceGroup _resourceGroup;
     private readonly DomainInfrastructureConfig _config;
     private readonly GetContainerAppQuery _query;
@@ -31,10 +29,8 @@ public sealed class GetContainerAppQueryHandlerTests
 
     public GetContainerAppQueryHandlerTests()
     {
-        _containerAppRepository = Substitute.For<IContainerAppRepository>();
-        _resourceGroupRepository = Substitute.For<IResourceGroupRepository>();
+        _containerAppReadRepository = Substitute.For<IContainerAppReadRepository>();
         _accessService = Substitute.For<IInfraConfigAccessService>();
-        _mapper = Substitute.For<IMapper>();
         _config = DomainInfrastructureConfig.Create(new Name("primary"), ProjectId.CreateUnique());
         _resourceGroup = DomainResourceGroup.Create(
             new Name("rg-shared"),
@@ -47,17 +43,34 @@ public sealed class GetContainerAppQueryHandlerTests
             AzureResourceId.CreateUnique(),
             containerRegistryId: null,
             acrAuthMode: null);
+        _containerAppResult = new ContainerAppResult(
+            _containerApp.Id,
+            _resourceGroup.Id,
+            _containerApp.Name,
+            _containerApp.Location,
+            _containerApp.ContainerAppEnvironmentId.Value,
+            ContainerRegistryId: null,
+            AcrAuthMode: null,
+            AcrPullIdentityId: null,
+            DockerImageName: null,
+            DockerImageValidated: false,
+            DockerfilePath: null,
+            ApplicationName: null,
+            SourceCodePath: null,
+            PipelineStepOptions: null,
+            EnvironmentSettings: [],
+            IsExisting: false);
         _query = new GetContainerAppQuery(_containerApp.Id);
         _sut = new GetContainerAppQueryHandler(
-            _containerAppRepository, _resourceGroupRepository, _accessService, _mapper);
+            _containerAppReadRepository, _accessService);
     }
 
     [Fact]
     public async Task Given_ContainerAppNotFound_When_Handle_Then_ReturnsNotFoundAsync()
     {
         // Arrange
-        _containerAppRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
-            .Returns((ContainerApp?)null);
+        _containerAppReadRepository.GetByIdAsync(_query.Id, Arg.Any<CancellationToken>())
+            .Returns((ContainerAppDetailReadResult?)null);
 
         // Act
         var result = await _sut.Handle(_query, CancellationToken.None);
@@ -65,16 +78,16 @@ public sealed class GetContainerAppQueryHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
+        await _accessService.DidNotReceive()
+            .VerifyReadAccessAsync(Arg.Any<Domain.InfrastructureConfigAggregate.ValueObjects.InfrastructureConfigId>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Given_ReadAccessGranted_When_Handle_Then_MapsResultAsync()
+    public async Task Given_ReadAccessGranted_When_Handle_Then_ReturnsProjectedResultAsync()
     {
         // Arrange
-        _containerAppRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
-            .Returns(_containerApp);
-        _resourceGroupRepository.GetByIdReadOnlyAsync(_resourceGroup.Id, Arg.Any<CancellationToken>())
-            .Returns(_resourceGroup);
+        _containerAppReadRepository.GetByIdAsync(_query.Id, Arg.Any<CancellationToken>())
+            .Returns(new ContainerAppDetailReadResult(_containerAppResult, _config.Id));
         _accessService.VerifyReadAccessAsync(_config.Id, Arg.Any<CancellationToken>())
             .Returns(_config);
 
@@ -83,6 +96,23 @@ public sealed class GetContainerAppQueryHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        _mapper.Received(1).Map<ContainerAppResult>(_containerApp);
+        result.Value.Should().Be(_containerAppResult);
+    }
+
+    [Fact]
+    public async Task Given_ReadAccessDenied_When_Handle_Then_ReturnsNotFoundAsync()
+    {
+        // Arrange
+        _containerAppReadRepository.GetByIdAsync(_query.Id, Arg.Any<CancellationToken>())
+            .Returns(new ContainerAppDetailReadResult(_containerAppResult, _config.Id));
+        _accessService.VerifyReadAccessAsync(_config.Id, Arg.Any<CancellationToken>())
+            .Returns(Errors.InfrastructureConfig.NotFoundError(_config.Id));
+
+        // Act
+        var result = await _sut.Handle(_query, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.NotFound);
     }
 }

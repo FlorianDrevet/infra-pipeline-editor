@@ -33,6 +33,9 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using InfraFlowSculptor.Application.Common.Interfaces.DomainEvents;
+using InfraFlowSculptor.Application.ContainerApps;
+using InfraFlowSculptor.Application.Projects;
+using InfraFlowSculptor.Infrastructure.Persistence.ReadRepositories;
 
 namespace InfraFlowSculptor.Infrastructure;
 
@@ -85,6 +88,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IInfrastructureConfigRepository, InfrastructureConfigRepository>();
         services.AddScoped<IProjectRepository, ProjectRepository>();
+        services.AddScoped<IProjectResourceReadRepository, ProjectResourceReadRepository>();
         services.AddScoped<IKeyVaultRepository, KeyVaultRepository>();
         services.AddScoped<IRedisCacheRepository, RedisCacheRepository>();
         services.AddScoped<IResourceGroupRepository, ResourceGroupRepository>();
@@ -98,6 +102,7 @@ public static class DependencyInjection
         services.AddScoped<IAppConfigurationRepository, AppConfigurationRepository>();
         services.AddScoped<IContainerAppEnvironmentRepository, ContainerAppEnvironmentRepository>();
         services.AddScoped<IContainerAppRepository, ContainerAppRepository>();
+        services.AddScoped<IContainerAppReadRepository, ContainerAppReadRepository>();
         services.AddScoped<ILogAnalyticsWorkspaceRepository, LogAnalyticsWorkspaceRepository>();
         services.AddScoped<IApplicationInsightsRepository, ApplicationInsightsRepository>();
         services.AddScoped<ICosmosDbRepository, CosmosDbRepository>();

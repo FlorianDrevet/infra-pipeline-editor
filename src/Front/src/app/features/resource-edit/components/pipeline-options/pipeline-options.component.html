@@ -3,26 +3,38 @@
     {{ 'RESOURCE_EDIT.PIPELINE_OPTIONS.DESCRIPTION' | translate }}
   </p>
 
-  <div class="pipeline-options__actions">
-    <button mat-stroked-button color="primary" (click)="onAutoDetect()" [disabled]="detecting()">
-      @if (detecting()) {
-        <mat-spinner diameter="18"></mat-spinner>
-      } @else {
-        <mat-icon>search</mat-icon>
-      }
-      {{ 'RESOURCE_EDIT.PIPELINE_OPTIONS.AUTO_DETECT' | translate }}
-    </button>
-  </div>
+  <div class="pipeline-options__top-row">
+    <div class="pipeline-options__stack-selector">
+      <app-ds-select
+        [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.LABEL' | translate"
+        [options]="applicationStackOptions"
+        [clearable]="true"
+        [ngModel]="selectedStack()"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="onStackChange($event)" />
+    </div>
 
-  <!-- ─── Stack Selector ─── -->
-  <div class="pipeline-options__stack-selector">
-    <app-ds-select
-      [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.LABEL' | translate"
-      [options]="applicationStackOptions"
-      [clearable]="true"
-      [ngModel]="selectedStack()"
-      [ngModelOptions]="{ standalone: true }"
-      (ngModelChange)="onStackChange($event)" />
+    <div class="pipeline-options__actions">
+      <button
+        mat-stroked-button
+        color="primary"
+        class="pipeline-options__detect-button"
+        (click)="onAutoDetect()"
+        [disabled]="detecting()">
+        <span class="pipeline-options__detect-button-content">
+          <span class="pipeline-options__detect-button-icon" aria-hidden="true">
+            @if (detecting()) {
+              <mat-spinner diameter="18"></mat-spinner>
+            } @else {
+              <mat-icon>manage_search</mat-icon>
+            }
+          </span>
+          <span class="pipeline-options__detect-button-label">
+            {{ 'RESOURCE_EDIT.PIPELINE_OPTIONS.AUTO_DETECT' | translate }}
+          </span>
+        </span>
+      </button>
+    </div>
   </div>
 
   <div class="pipeline-options__grid">

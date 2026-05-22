@@ -1,17 +1,13 @@
 using ErrorOr;
 using FluentAssertions;
 using InfraFlowSculptor.Application.Common.Interfaces;
-using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.Projects;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectResources;
 using InfraFlowSculptor.Domain.Common.Errors;
-using InfraFlowSculptor.Domain.Common.ValueObjects;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
-using DomainResourceGroup = InfraFlowSculptor.Domain.ResourceGroupAggregate.ResourceGroup;
 using NSubstitute;
-using DomainInfrastructureConfig = InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
 namespace InfraFlowSculptor.Application.Tests.Projects.Queries.ListProjectResources;
@@ -19,8 +15,7 @@ namespace InfraFlowSculptor.Application.Tests.Projects.Queries.ListProjectResour
 public sealed class ListProjectResourcesQueryHandlerTests
 {
     private readonly IProjectAccessService _projectAccessService;
-    private readonly IInfrastructureConfigRepository _infraConfigRepository;
-    private readonly IResourceGroupRepository _resourceGroupRepository;
+    private readonly IProjectResourceReadRepository _projectResourceReadRepository;
     private readonly Project _project;
     private readonly Guid _projectGuid;
     private readonly ListProjectResourcesQueryHandler _sut;
@@ -28,22 +23,21 @@ public sealed class ListProjectResourcesQueryHandlerTests
     public ListProjectResourcesQueryHandlerTests()
     {
         _projectAccessService = Substitute.For<IProjectAccessService>();
-        _infraConfigRepository = Substitute.For<IInfrastructureConfigRepository>();
-        _resourceGroupRepository = Substitute.For<IResourceGroupRepository>();
+        _projectResourceReadRepository = Substitute.For<IProjectResourceReadRepository>();
         _project = Project.Create(new Name("TestProject"), null, UserId.CreateUnique());
         _projectGuid = _project.Id.Value;
         _sut = new ListProjectResourcesQueryHandler(
-            _projectAccessService, _infraConfigRepository, _resourceGroupRepository);
+            _projectAccessService, _projectResourceReadRepository);
     }
 
     [Fact]
-    public async Task Given_AccessGrantedAndNoConfigs_When_Handle_Then_ReturnsEmptyListAsync()
+    public async Task Given_AccessGrantedAndNoResources_When_Handle_Then_ReturnsEmptyListAsync()
     {
         // Arrange
         _projectAccessService.VerifyReadAccessAsync(Arg.Any<ProjectId>(), Arg.Any<CancellationToken>())
             .Returns(_project);
-        _infraConfigRepository.GetByProjectIdAsync(Arg.Any<ProjectId>(), Arg.Any<CancellationToken>())
-            .Returns(new List<DomainInfrastructureConfig>());
+        _projectResourceReadRepository.GetByProjectIdAsync(_project.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<ProjectResourceResult>());
         var query = new ListProjectResourcesQuery(_projectGuid);
 
         // Act
@@ -52,6 +46,34 @@ public sealed class ListProjectResourcesQueryHandlerTests
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Given_AccessGranted_When_Handle_Then_ReturnsProjectedResourcesAsync()
+    {
+        // Arrange
+        var resources = new List<ProjectResourceResult>
+        {
+            new(
+                Guid.NewGuid(),
+                "ca-api",
+                "ContainerApp",
+                "rg-app",
+                Guid.NewGuid(),
+                "dev")
+        };
+        _projectAccessService.VerifyReadAccessAsync(Arg.Any<ProjectId>(), Arg.Any<CancellationToken>())
+            .Returns(_project);
+        _projectResourceReadRepository.GetByProjectIdAsync(_project.Id, Arg.Any<CancellationToken>())
+            .Returns(resources);
+        var query = new ListProjectResourcesQuery(_projectGuid);
+
+        // Act
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.Should().BeEquivalentTo(resources);
     }
 
     [Fact]
@@ -68,28 +90,7 @@ public sealed class ListProjectResourcesQueryHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _infraConfigRepository.DidNotReceive()
+        await _projectResourceReadRepository.DidNotReceive()
             .GetByProjectIdAsync(Arg.Any<ProjectId>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Given_AccessGrantedAndConfigWithEmptyResourceGroups_When_Handle_Then_ReturnsEmptyListAsync()
-    {
-        // Arrange
-        var config = DomainInfrastructureConfig.Create(new Name("Dev"), _project.Id);
-        _projectAccessService.VerifyReadAccessAsync(Arg.Any<ProjectId>(), Arg.Any<CancellationToken>())
-            .Returns(_project);
-        _infraConfigRepository.GetByProjectIdAsync(Arg.Any<ProjectId>(), Arg.Any<CancellationToken>())
-            .Returns(new List<DomainInfrastructureConfig> { config });
-        _resourceGroupRepository.GetByInfraConfigIdAsync(config.Id, Arg.Any<CancellationToken>())
-            .Returns(new List<DomainResourceGroup>());
-        var query = new ListProjectResourcesQuery(_projectGuid);
-
-        // Act
-        var result = await _sut.Handle(query, CancellationToken.None);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.Should().BeEmpty();
     }
 }

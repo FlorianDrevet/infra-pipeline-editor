@@ -122,6 +122,13 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 - Keep the handler orchestration simple: distinct target config IDs -> one batch summary query -> one batch resource metadata query -> in-memory join for the final result.
 - Do not load full aggregates just to resolve names in read-only queries.
 
+## Read Repositories For Hot Queries [2026-05-22]
+
+- `IContainerAppReadRepository` and `IProjectResourceReadRepository` are the current performance reference for hot read paths that only need response DTO fields. They return Application-layer read results/projections and never domain aggregates.
+- Detail read repositories that need authorization context should return a small typed result carrying both the DTO and the owning authorization scope. `ContainerAppDetailReadResult` carries `ContainerAppResult` plus `InfrastructureConfigId`, so `GetContainerAppQueryHandler` can verify access before returning the DTO.
+- Keep handlers thin: authorize the scope, call one read repository projection, return the projected result. Do not inject Mapster into query handlers just to map a hot detail DTO when the read repository already shapes the result.
+- If more than three resource detail endpoints need the same projection pattern, consider extracting a narrow shared read-projection helper. Until then, prefer explicit per-resource read repositories over a generic layer that hides SQL shape.
+
 ## Domain Services [2026-04-16]
 
 - `IRoleAssignmentDomainService` / `RoleAssignmentDomainService`: extracted cross-cutting role assignment logic shared by Add/Remove/Assign/Unassign/Update identity handlers.

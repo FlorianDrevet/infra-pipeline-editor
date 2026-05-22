@@ -70,6 +70,15 @@ export class ProjectService {
   private readonly projectCache = new Map<string, { data: ProjectResponse; timestamp: number }>();
   private static readonly CACHE_TTL_MS = 30_000;
 
+  /** Cache for project resources with same TTL as project cache. */
+  private readonly projectResourcesCache = new Map<
+    string,
+    { data: ProjectResourceResponse[]; timestamp: number }
+  >();
+
+  /** In-flight requests for project resources to enable coalescing. */
+  private readonly projectResourcesInFlight = new Map<string, Promise<ProjectResourceResponse[]>>();
+
   getMyProjects(): Promise<ProjectResponse[]> {
     return this.axios.request$<ProjectResponse[]>(MethodEnum.GET, '/projects');
   }
@@ -98,12 +107,19 @@ export class ProjectService {
     this.projectCache.delete(id);
   }
 
+  /** Invalidates the cached project resources entry so the next getProjectResources triggers a fresh fetch. */
+  invalidateProjectResourcesCache(id: string): void {
+    this.projectResourcesCache.delete(id);
+    this.projectResourcesInFlight.delete(id);
+  }
+
   private async invalidateProjectCacheAfterSuccess<T>(
     projectId: string,
     mutation: Promise<T>
   ): Promise<T> {
     const result = await mutation;
     this.invalidateProjectCache(projectId);
+    this.invalidateProjectResourcesCache(projectId);
     return result;
   }
 
@@ -363,11 +379,37 @@ export class ProjectService {
 
   // ─── Project Resources ───
 
-  getProjectResources(projectId: string): Promise<ProjectResourceResponse[]> {
-    return this.axios.request$<ProjectResourceResponse[]>(
-      MethodEnum.GET,
-      `/projects/${projectId}/resources`
-    );
+  async getProjectResources(projectId: string): Promise<ProjectResourceResponse[]> {
+    const cached = this.projectResourcesCache.get(projectId);
+    if (cached && Date.now() - cached.timestamp < ProjectService.CACHE_TTL_MS) {
+      return cached.data;
+    }
+
+    const inFlight = this.projectResourcesInFlight.get(projectId);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const request = this.axios
+      .request$<ProjectResourceResponse[]>(MethodEnum.GET, `/projects/${projectId}/resources`)
+      .then((data) => {
+        if (this.projectResourcesInFlight.get(projectId) === request) {
+          this.projectResourcesCache.set(projectId, { data, timestamp: Date.now() });
+          this.projectResourcesInFlight.delete(projectId);
+        }
+
+        return data;
+      })
+      .catch((error) => {
+        if (this.projectResourcesInFlight.get(projectId) === request) {
+          this.projectResourcesInFlight.delete(projectId);
+        }
+
+        throw error;
+      });
+
+    this.projectResourcesInFlight.set(projectId, request);
+    return request;
   }
 
   async getProjectLatestGeneration(projectId: string): Promise<GetProjectLatestGenerationResponse | null> {
