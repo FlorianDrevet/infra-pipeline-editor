@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
@@ -39,7 +38,6 @@ import {
   imports: [
     FormsModule,
     MatButtonModule,
-    MatCardModule,
     MatIconModule,
     MatProgressSpinnerModule,
     TranslateModule,
