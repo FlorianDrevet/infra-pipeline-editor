@@ -91,6 +91,7 @@ Note [2026-04-26]: the create-project wizard submit path depends on an explicit 
 | `/azure-resources/{resourceId}/custom-domains` | POST | `/{customDomainId}/validate-dns` | `ValidateCustomDomainDnsCommand` |
 | `/azure-resources/{resourceId}/custom-domains` | GET | `/{customDomainId}/dns-instructions` | `GetDnsInstructionsQuery` |
 | `/azure-resources/{resourceId}/custom-domains` | DELETE | `/{customDomainId}` | `RemoveCustomDomainCommand` |
+| `/azure-resources/{resourceId}/detect-pipeline-options` | GET | `` | `DetectPipelineOptionsQuery` (repo-aware compute pipeline option auto-detection) [2026-05-21] |
 | `/azure-resources/{resourceId}/app-settings` | GET/POST/PUT/DELETE | various | AppSetting CRUD |
 | `/azure-resources/{resourceId}/available-outputs` | GET | `` | `GetAvailableOutputsQuery` |
 | `/azure-resources/{resourceId}/check-keyvault-access` | GET | `/{keyVaultId}` | `CheckKeyVaultAccessQuery` |

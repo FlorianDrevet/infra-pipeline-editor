@@ -11,6 +11,7 @@ public interface IPipelineOptionDetectionService
     /// <summary>
     /// Analyzes the repository for the given runtime stack and source path to detect available pipeline options.
     /// </summary>
+    /// <param name="gitProvider">The resolved Git provider service to use for repository access.</param>
     /// <param name="token">Personal access token for repository access.</param>
     /// <param name="owner">Repository owner (org/user or "org/project" for Azure DevOps).</param>
     /// <param name="repositoryName">Repository name.</param>
@@ -20,6 +21,7 @@ public interface IPipelineOptionDetectionService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Detected pipeline options, or an error if repository access fails.</returns>
     Task<ErrorOr<DetectedPipelineOptionsResult>> DetectAsync(
+        IGitProviderService gitProvider,
         string token,
         string owner,
         string repositoryName,

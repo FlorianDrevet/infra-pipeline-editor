@@ -18,13 +18,11 @@
 - **Usage persistence throttling [2026-05-13]:** `PersonalAccessTokenAuthenticationHandler` no longer persists `LastUsedAt` on every authenticated request. It writes only when the elapsed interval exceeds `PersonalAccessTokenAuthenticationDefaults.UsagePersistenceInterval`, which is the current write-amplification guard for PAT auth.
 - **Scopes model [2026-05-17]:** `PersonalAccessToken` now owns a `Scopes` collection persisted in `PersonalAccessTokenScopes`, with `Read`, `Write`, and `Generate` values; token creation defaults to `Read` when the caller omits scopes.
 - **Enforcement [2026-05-20]:** `PersonalAccessTokenAuthenticationHandler` now emits one `ifs_pat_scope` claim per granted scope, `CurrentUser.HasPersonalAccessTokenScopeAsync(...)` resolves those claims, and `PersonalAccessTokenScopeBehavior` enforces scopes centrally across MediatR requests: `IQuery<T>` requires `Read` (with `Write` also satisfying read), `ICommand<T>` requires `Write`, and `IGenerateCommand<T>` requires `Generate`.
-
 ## API User Provisioning [2026-05-13]
 
 - `UserProvisioningMiddleware` no longer depends directly on `ProjectDbContext`; it now calls `IUserProvisioningService` from Application and still stores the resolved `UserId` in `HttpContext.Items["ProvisionedUserId"]` for `ICurrentUser`.
 - `UserProvisioningService` is implemented in Infrastructure and uses a PostgreSQL upsert (`ON CONFLICT ("EntraId") DO NOTHING`) on the `User` table to avoid the old check-then-insert race.
 - This slice is the current reference for removing API-layer persistence coupling without changing the downstream `CurrentUser` contract.
-
 ## Build & Run Commands
 
 ```powershell
@@ -48,8 +46,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 
 ## GitHub to Azure DevOps Mirror [2026-05-16]
 
-- `.github/workflows/mirror-to-azure-devops.yml` mirrors all GitHub branches and tags into Azure DevOps on `push`, `create`, `delete`, and manual `workflow_dispatch`, guarded by a dedicated concurrency group plus repository settings `AZURE_DEVOPS_MIRROR_URL` and `AZURE_DEVOPS_MIRROR_PAT` (`Code (Read & Write)`).
-- The workflow force-updates rewritten refs, prunes deleted refs, enumerates source branches from `git ls-remote --heads origin`, and aborts on any native Git branch-push failure before prune can run.
+- `.github/workflows/mirror-to-azure-devops.yml` mirrors all GitHub branches/tags into Azure DevOps on `push`/`create`/`delete`/manual dispatch, is guarded by `AZURE_DEVOPS_MIRROR_URL` + `AZURE_DEVOPS_MIRROR_PAT`, force-updates rewritten refs, prunes deleted refs, and aborts on any native Git push failure before prune can run.
 
 ## MCP Runtime Hardening [2026-05-13]
 
@@ -81,13 +78,11 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 ## Handler Authorization Coverage [2026-05-12]
 
 - Generation/download handlers now enforce the same access services as the rest of the app: `GeneratePipeline` uses `VerifyWriteAccessAsync(...)`, `DownloadPipeline` uses `VerifyReadAccessAsync(...)`, and Bicep handlers were already protected.
-- `CreateProjectCommandHandler` and `CreateProjectWithSetupCommandHandler` keep self-service creation but now translate missing current-user resolution into `Error.Unauthorized(...)` instead of leaking `500`.
-- Current branch status: APP-002 is effectively closed without adding an extra admin-only gate.
+- `CreateProjectCommandHandler` and `CreateProjectWithSetupCommandHandler` keep self-service creation but translate missing current-user resolution into `Error.Unauthorized(...)` instead of leaking `500`; APP-002 is effectively closed without adding an extra admin-only gate.
 
 ## Package Vulnerability Note [2026-05-12]
 
-- `Directory.Packages.props` pins `Microsoft.AspNetCore.DataProtection` to `10.0.7`.
-- `InfraFlowSculptor.Infrastructure` keeps an explicit `PackageReference` so restore no longer falls back to the vulnerable `10.0.0` transitive path.
+- `Directory.Packages.props` pins `Microsoft.AspNetCore.DataProtection` to `10.0.7`, and `InfraFlowSculptor.Infrastructure` keeps an explicit `PackageReference` so restore no longer falls back to the vulnerable `10.0.0` transitive path.
 
 ## Project Pipeline Layout
 
@@ -109,6 +104,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - Shared app step templates now emit Windows-compatible `powershell` steps and AzureCLI `scriptType: ps` for inline scripts (`app-compute-release-tag`, `app-acr-login`, `app-docker-buildx-push`, `app-docker-buildx-validate`, `app-trivy-scan`, `app-syft-sbom`, `app-load-metadata`, `app-build-code`, `app-acr-promote`, `app-deploy-container`). Trivy and Syft install their Windows zip assets directly from GitHub releases instead of piping shell installers through Bash.
 - In shared app step templates, the body of every `powershell: |` literal block must remain indented under the pipe token. `DockerBuildxPushStep`, `DockerBuildxValidateStep`, `SyftSbomStep`, and the Node/Python branches in `BuildCodeStep` are the current reference fixes for Azure DevOps YAML parse failures such as `While scanning a simple key, could not find expected ':'`.
 - Container App ACR Docker service connections are per-environment settings on `ContainerAppEnvironmentSettings.ContainerRegistryServiceConnection`, not Common variables or `AppPipelineStepOptions`. The generated app CI wrapper passes `containerRegistryServiceConnection` explicitly to the shared pipeline/job/ACR-login templates, and the shared templates keep `$(containerRegistryServiceConnection)` as the compatibility fallback.
+- `DetectPipelineOptionsQuery` / `PipelineOptionDetectionService` is the current repo-aware auto-bootstrap seam for compute pipeline options [2026-05-21]: `GET /azure-resources/{resourceId}/detect-pipeline-options` resolves the target repo + PAT, scopes inspection to `SourceCodePath`, and suggests test/lint/Sonar/dependency-scan defaults from stack-specific heuristics (`DotNet`, `NodeJs`/`Angular`, `Python`, `Java`).
 - App pipeline templates that use Azure DevOps `extends:` must not place `pool:` at the root; put the pool on the generated stage/job level.
 - Code-mode app pipeline test switches [2026-05-21]: the active generated surface is the shared pipeline/job/step template chain plus thin CI/PR wrappers, not `AppBuildStepEmitter`. Wrappers and shared templates must forward `runUnitTests`, `publishTestResults`, and `publishCodeCoverage`; default `.NET` and Node test execution plus result/coverage publishing must be gated by those parameters.
 - App pipeline Phase 4 security/performance switches [2026-05-21]: shared app templates now include `app-dependency-scan.step.yml`, `app-dependency-cache.step.yml`, and `app-smoke-test.step.yml`. CI code wrappers/pipelines/jobs must forward `enableDependencyCache`, `runDependencyScan`, and `dependencyScanTool`; release wrappers/pipelines/jobs must forward `runSmokeTests` and `smokeTestCommand` end to end.
@@ -139,6 +135,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 
 - ACR role assignments in ARM/Bicep require `Owner` or `User Access Administrator`; `Contributor` is insufficient.
 - GitHub Git provider uses Refit (`IGitHubTreeApi`).
+- `PipelineOptionDetectionService` must not constructor-inject `IGitProviderService`: the active provider is repository-specific and must be resolved in `DetectPipelineOptionsQueryHandler` through `IGitProviderFactory`, then passed into detection explicitly.
 - GitHub Create Tree request/response payloads are strongly typed under `Infrastructure/Services/GitProviders/Models`; preserve the tests that assert create items omit `sha` and delete items serialize `sha: null`.
 - GitHub/Azure DevOps push-provider request payloads should stay strongly typed model records, not anonymous `object` graphs or weak dictionaries; this is part of the repository-wide weak-object cleanup [2026-05-19].
 - `KeyVaultSecretClient.SetSecretAsync(...)` and `GetSecretAsync(...)` now both log Azure Key Vault failures for PAT storage/retrieval. The frontend repository-PAT flows must treat the returned `GitRepository.SecretStorageFailed` / `GitRepository.SecretRetrievalFailed` codes as technical diagnostics: keep the detail in backend logs, but show only generic localized UI messages.

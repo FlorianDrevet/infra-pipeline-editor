@@ -11,12 +11,7 @@ namespace InfraFlowSculptor.Infrastructure.Tests.Services.PipelineDetection;
 public sealed class PipelineOptionDetectionServiceTests
 {
     private readonly IGitProviderService _gitProvider = Substitute.For<IGitProviderService>();
-    private readonly PipelineOptionDetectionService _sut;
-
-    public PipelineOptionDetectionServiceTests()
-    {
-        _sut = new PipelineOptionDetectionService(_gitProvider);
-    }
+    private readonly PipelineOptionDetectionService _sut = new();
 
     [Fact]
     public async Task Given_DotNetRepoWithXunit_When_Detect_Then_ReturnsXunitFramework()
@@ -38,7 +33,7 @@ public sealed class PipelineOptionDetectionServiceTests
             """);
 
         // Act
-        var result = await _sut.DetectAsync("token", "owner", "repo", "main", "DotNet", null, CancellationToken.None);
+        var result = await _sut.DetectAsync(_gitProvider, "token", "owner", "repo", "main", "DotNet", null, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -69,7 +64,7 @@ public sealed class PipelineOptionDetectionServiceTests
             """);
 
         // Act
-        var result = await _sut.DetectAsync("token", "owner", "repo", "main", "DotNet", null, CancellationToken.None);
+        var result = await _sut.DetectAsync(_gitProvider, "token", "owner", "repo", "main", "DotNet", null, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -90,7 +85,7 @@ public sealed class PipelineOptionDetectionServiceTests
             """);
 
         // Act
-        var result = await _sut.DetectAsync("token", "owner", "repo", "main", "DotNet", null, CancellationToken.None);
+        var result = await _sut.DetectAsync(_gitProvider, "token", "owner", "repo", "main", "DotNet", null, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -117,7 +112,7 @@ public sealed class PipelineOptionDetectionServiceTests
             """);
 
         // Act
-        var result = await _sut.DetectAsync("token", "owner", "repo", "main", "Node", null, CancellationToken.None);
+        var result = await _sut.DetectAsync(_gitProvider, "token", "owner", "repo", "main", "Node", null, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -148,7 +143,7 @@ public sealed class PipelineOptionDetectionServiceTests
             """);
 
         // Act
-        var result = await _sut.DetectAsync("token", "owner", "repo", "main", "NodeJs", null, CancellationToken.None);
+        var result = await _sut.DetectAsync(_gitProvider, "token", "owner", "repo", "main", "NodeJs", null, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -173,7 +168,7 @@ public sealed class PipelineOptionDetectionServiceTests
             """);
 
         // Act
-        var result = await _sut.DetectAsync("token", "owner", "repo", "main", "Python", null, CancellationToken.None);
+        var result = await _sut.DetectAsync(_gitProvider, "token", "owner", "repo", "main", "Python", null, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -201,7 +196,7 @@ public sealed class PipelineOptionDetectionServiceTests
             """);
 
         // Act
-        var result = await _sut.DetectAsync("token", "owner", "repo", "main", "Java", null, CancellationToken.None);
+        var result = await _sut.DetectAsync(_gitProvider, "token", "owner", "repo", "main", "Java", null, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -234,7 +229,7 @@ public sealed class PipelineOptionDetectionServiceTests
             """);
 
         // Act
-        var result = await _sut.DetectAsync("token", "owner", "repo", "main", "Java", null, CancellationToken.None);
+        var result = await _sut.DetectAsync(_gitProvider, "token", "owner", "repo", "main", "Java", null, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -250,7 +245,7 @@ public sealed class PipelineOptionDetectionServiceTests
         SetupSearchFiles();
 
         // Act
-        var result = await _sut.DetectAsync("token", "owner", "repo", "main", "Go", null, CancellationToken.None);
+        var result = await _sut.DetectAsync(_gitProvider, "token", "owner", "repo", "main", "Go", null, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -269,7 +264,7 @@ public sealed class PipelineOptionDetectionServiceTests
             .Returns(Error.Failure("Git.Unauthorized", "Invalid token"));
 
         // Act
-        var result = await _sut.DetectAsync("token", "owner", "repo", "main", "DotNet", null, CancellationToken.None);
+        var result = await _sut.DetectAsync(_gitProvider, "token", "owner", "repo", "main", "DotNet", null, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -294,7 +289,7 @@ public sealed class PipelineOptionDetectionServiceTests
             """);
 
         // Act
-        var result = await _sut.DetectAsync("token", "owner", "repo", "main", "DotNet", "backend", CancellationToken.None);
+        var result = await _sut.DetectAsync(_gitProvider, "token", "owner", "repo", "main", "DotNet", "backend", CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();

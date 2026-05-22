@@ -65,6 +65,7 @@ public sealed class DetectPipelineOptionsQueryHandler(
         // 5. Run detection
         var gitProvider = gitProviderFactory.Create(target.ProviderType);
         return await detectionService.DetectAsync(
+            gitProvider,
             secretResult.Value,
             target.Owner,
             target.RepositoryName,

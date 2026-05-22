@@ -7,11 +7,12 @@ namespace InfraFlowSculptor.Infrastructure.Services.PipelineDetection;
 /// Analyzes Git repository content to auto-detect test frameworks, linting tools,
 /// and other CI/CD pipeline options based on the runtime stack.
 /// </summary>
-public sealed class PipelineOptionDetectionService(IGitProviderService gitProvider)
+public sealed class PipelineOptionDetectionService
     : IPipelineOptionDetectionService
 {
     /// <inheritdoc />
     public async Task<ErrorOr<DetectedPipelineOptionsResult>> DetectAsync(
+        IGitProviderService gitProvider,
         string token,
         string owner,
         string repositoryName,
@@ -36,15 +37,16 @@ public sealed class PipelineOptionDetectionService(IGitProviderService gitProvid
 
         return runtimeStack switch
         {
-            "DotNet" => await DetectDotNetAsync(token, owner, repositoryName, branch, prefix, scopedFiles, cancellationToken),
-            "Node" or "NodeJs" or "Angular" => await DetectNodeAsync(token, owner, repositoryName, branch, prefix, scopedFiles, cancellationToken),
-            "Python" => await DetectPythonAsync(token, owner, repositoryName, branch, prefix, scopedFiles, cancellationToken),
-            "Java" => await DetectJavaAsync(token, owner, repositoryName, branch, prefix, scopedFiles, cancellationToken),
+            "DotNet" => await DetectDotNetAsync(gitProvider, token, owner, repositoryName, branch, prefix, scopedFiles, cancellationToken),
+            "Node" or "NodeJs" or "Angular" => await DetectNodeAsync(gitProvider, token, owner, repositoryName, branch, prefix, scopedFiles, cancellationToken),
+            "Python" => await DetectPythonAsync(gitProvider, token, owner, repositoryName, branch, prefix, scopedFiles, cancellationToken),
+            "Java" => await DetectJavaAsync(gitProvider, token, owner, repositoryName, branch, prefix, scopedFiles, cancellationToken),
             _ => new DetectedPipelineOptionsResult(),
         };
     }
 
-    private async Task<DetectedPipelineOptionsResult> DetectDotNetAsync(
+    private static async Task<DetectedPipelineOptionsResult> DetectDotNetAsync(
+        IGitProviderService gitProvider,
         string token, string owner, string repositoryName, string branch,
         string prefix, IReadOnlyList<Application.Projects.Common.GitFileResult> files,
         CancellationToken cancellationToken)
@@ -118,7 +120,8 @@ public sealed class PipelineOptionDetectionService(IGitProviderService gitProvid
         };
     }
 
-    private async Task<DetectedPipelineOptionsResult> DetectNodeAsync(
+    private static async Task<DetectedPipelineOptionsResult> DetectNodeAsync(
+        IGitProviderService gitProvider,
         string token, string owner, string repositoryName, string branch,
         string prefix, IReadOnlyList<Application.Projects.Common.GitFileResult> files,
         CancellationToken cancellationToken)
@@ -205,7 +208,8 @@ public sealed class PipelineOptionDetectionService(IGitProviderService gitProvid
         };
     }
 
-    private async Task<DetectedPipelineOptionsResult> DetectPythonAsync(
+    private static async Task<DetectedPipelineOptionsResult> DetectPythonAsync(
+        IGitProviderService gitProvider,
         string token, string owner, string repositoryName, string branch,
         string prefix, IReadOnlyList<Application.Projects.Common.GitFileResult> files,
         CancellationToken cancellationToken)
@@ -269,7 +273,8 @@ public sealed class PipelineOptionDetectionService(IGitProviderService gitProvid
         };
     }
 
-    private async Task<DetectedPipelineOptionsResult> DetectJavaAsync(
+    private static async Task<DetectedPipelineOptionsResult> DetectJavaAsync(
+        IGitProviderService gitProvider,
         string token, string owner, string repositoryName, string branch,
         string prefix, IReadOnlyList<Application.Projects.Common.GitFileResult> files,
         CancellationToken cancellationToken)

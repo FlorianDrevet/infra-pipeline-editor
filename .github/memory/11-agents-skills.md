@@ -1,5 +1,4 @@
 # Agents & Skills Registry
-
 ## Agents
 
 | Agent | Role | File |
@@ -130,8 +129,6 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 
 ## MCP Skill [2026-04-29]
 
-- New skill: `mcp-dotnet-server`.
-- Scope: official MCP + C# SDK baseline, `stdio` vs Streamable HTTP, `.vscode/mcp.json`, auth/authorization, tasks, observability, testing, and project-specific integration rules.
 - Project stance: MCP must stay an adapter layer over `Application`/generation services; import/migration logic should be reusable outside MCP via canonical import services and contracts.
 - **Current state [2026-04-29]:** MCP runs as ASP.NET Core HTTP host (`/mcp`, port 5258) under Aspire, secured with PAT auth. Import preview/apply logic extracted to `Application/Imports/` for shared API+MCP use. `ResourceCommandFactory` + `ProjectSetupOrchestrator` wire end-to-end resource creation. One-class-per-file enforced, `LayoutPresetEnum` replaces magic strings.
 - Conversational creation rule: a prompt like "create a project with a Key Vault" must first go through a draft/clarification step; repository topology (`MonoRepo`, `SplitInfraCode`, etc.) must not be guessed by a mutating tool.
@@ -150,7 +147,3 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 - Controlled VS Code integration rule: prefer `python -m graphify copilot install` over `graphify vscode install` for this repository. `vscode install` appends a generic `## graphify` section to `.github/copilot-instructions.md`, while this repo already has a stronger custom orchestration for memory, GitNexus, Graphify, and agents.
 - 2026-04-29 validation: the Graphify user skill is installed at `%USERPROFILE%\.copilot\skills\graphify\SKILL.md`, and the Python user Scripts directory is now present on the user PATH so `graphify --help` works directly in terminal.
 - 2026-05-12 validation: `.graphifyignore` excludes `MEMORY.md` and `.github/memory/`, but does not exclude the `ifs/` Obsidian vault. Graphify can index Obsidian notes kept under `ifs/`, while the current agent memory remains outside the Graphify corpus unless the ignore rules are changed.
-
-## CQRS Skill [2026-04-29]
-
-- `cqrs-feature` now has valid skill frontmatter and explicitly enforces one public top-level type per file, no magic strings, strong typing over weak objects/dictionaries/JSON, and deliberate pattern selection before introducing abstractions.

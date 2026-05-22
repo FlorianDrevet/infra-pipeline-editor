@@ -47,6 +47,7 @@ Ce dépôt utilise **deux graphes complémentaires** :
 | Génération Bicep (projet) | `BicepGenerationController` → `GenerateProjectBicepCommandHandler` → `BicepGenerationEngine` → `MonoRepoBicepAssembler` |
 | Génération Pipeline (infra+app) | `PipelineGenerationController` → `GeneratePipelineCommandHandler` → `MonoRepoPipelineAssembler` + `AppPipelineGenerationEngine` |
 | Génération Bootstrap ADO (projet) | `ProjectController` → `GenerateProjectBootstrapPipelineCommandHandler` → `BootstrapPipelineGenerationEngine` (split-aware: `FullOwner` for infra, `ApplicationOnly` for code) |
+| Détection d'options pipeline | `PipelineOptionDetectionController` → `DetectPipelineOptionsQueryHandler` → résolution dépôt/PAT + `PipelineOptionDetectionService` → heuristiques stack-aware sur le code repo |
 | Création projet (wizard) | `ProjectController` → `CreateProjectWithSetupCommandHandler` → atomic Project + Layout + Envs + Repos |
 | Création projet MCP | `ProjectCreationTools.CreateProjectFromDraft` → `ProjectSetupOrchestrator` → `ResourceCommandFactory` / `ResourceCreationCoordinator` → handlers de création de ressources |
 | Import ARM (preview/apply) | `ImportController` ou `IacImportTools` → `PreviewIacImportQuery` / `ApplyImportPreviewCommand` → `IImportPreviewAnalyzer` / `ResourceCommandFactory` |

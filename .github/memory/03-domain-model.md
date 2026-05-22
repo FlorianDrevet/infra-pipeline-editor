@@ -1,5 +1,4 @@
 # Domain Model
-
 ## Aggregates
 
 | Aggregate | Root | Key Entities | Notes |
@@ -58,7 +57,6 @@ These reusable entity types are owned by multiple aggregates:
 
 - `ContainerApp`, `WebApp`, and `FunctionApp` now persist `DockerImageValidated` alongside `DockerImageName`.
 - The flag defaults to `false` and is the canonical cross-layer signal for “image name entered” versus “image confirmed”, reused by frontend validation UX, diagnostics, and generation.
-
 ## Application Pipeline Properties [2026-04-04]
 
 3 compute aggregates now have CI/CD pipeline config properties:
