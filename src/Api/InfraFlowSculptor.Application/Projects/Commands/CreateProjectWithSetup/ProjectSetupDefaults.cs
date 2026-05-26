@@ -42,19 +42,19 @@ public static class ProjectSetupDefaults
             [
                 new RepositorySetupItem(
                     [nameof(RepositoryContentKindsEnum.Infrastructure), nameof(RepositoryContentKindsEnum.ApplicationCode)],
-                    null, null, null),
+                    null, null, null, null),
             ],
             nameof(LayoutPresetEnum.SplitInfraCode) =>
             [
-                new RepositorySetupItem([nameof(RepositoryContentKindsEnum.Infrastructure)], null, null, null),
-                new RepositorySetupItem([nameof(RepositoryContentKindsEnum.ApplicationCode)], null, null, null),
+                new RepositorySetupItem([nameof(RepositoryContentKindsEnum.Infrastructure)], null, null, null, null),
+                new RepositorySetupItem([nameof(RepositoryContentKindsEnum.ApplicationCode)], null, null, null, null),
             ],
             nameof(LayoutPresetEnum.MultiRepo) => [],
             _ =>
             [
                 new RepositorySetupItem(
                     [nameof(RepositoryContentKindsEnum.Infrastructure), nameof(RepositoryContentKindsEnum.ApplicationCode)],
-                    null, null, null),
+                    null, null, null, null),
             ],
         };
 }

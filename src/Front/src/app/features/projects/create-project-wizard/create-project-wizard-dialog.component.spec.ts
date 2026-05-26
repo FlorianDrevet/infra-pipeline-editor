@@ -6,6 +6,33 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ProjectService } from '../../../shared/services/project.service';
 import { CreateProjectWizardDraftService } from './create-project-wizard-draft.service';
 import { CreateProjectWizardDialogComponent } from './create-project-wizard-dialog.component';
+import { IdentityStepComponent } from './steps/identity-step.component';
+import { RepositoriesStepComponent } from './steps/repositories-step.component';
+
+const DIALOG_REQUIRED_TOKENS = [
+  'var(--ifs-border-subtle)',
+  'var(--ifs-text-primary)',
+  'var(--ifs-focus-ring)',
+];
+
+const DIALOG_LEGACY_TOKENS = [
+  'var(--border-color',
+  'var(--text-primary',
+];
+
+const STEP_REQUIRED_TOKENS = [
+  'var(--ifs-text-primary)',
+  'var(--ifs-text-secondary)',
+];
+
+const STEP_LEGACY_TOKENS = [
+  'var(--text-primary',
+  'var(--text-secondary',
+];
+
+function getCompiledStyles(componentType: unknown): string {
+  return (componentType as { ɵcmp: { styles: string[] } }).ɵcmp.styles.join('\n');
+}
 
 describe('CreateProjectWizardDialogComponent', () => {
   let fixture: ComponentFixture<CreateProjectWizardDialogComponent>;
@@ -50,5 +77,34 @@ describe('CreateProjectWizardDialogComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('Given_compiledDialogStyles_When_checked_Then_designSystemTokensAreUsedForHeaderAndStepperStates', () => {
+    const compiledStyles = getCompiledStyles(CreateProjectWizardDialogComponent);
+
+    for (const token of DIALOG_REQUIRED_TOKENS) {
+      expect(compiledStyles).toContain(token);
+    }
+
+    for (const token of DIALOG_LEGACY_TOKENS) {
+      expect(compiledStyles).not.toContain(token);
+    }
+  });
+
+  it('Given_compiledIdentityAndRepositoryStepStyles_When_checked_Then_designSystemTokensAreUsedForReadableWizardText', () => {
+    const stepStyles = [
+      getCompiledStyles(IdentityStepComponent),
+      getCompiledStyles(RepositoriesStepComponent),
+    ];
+
+    for (const compiledStyles of stepStyles) {
+      for (const token of STEP_REQUIRED_TOKENS) {
+        expect(compiledStyles).toContain(token);
+      }
+
+      for (const token of STEP_LEGACY_TOKENS) {
+        expect(compiledStyles).not.toContain(token);
+      }
+    }
   });
 });

@@ -154,7 +154,8 @@ public sealed class ProjectCreationTools
             NormalizeContentKinds(r.ContentKinds),
             r.ProviderType,
             r.RepositoryUrl,
-            r.DefaultBranch
+            r.DefaultBranch,
+            r.PersonalAccessToken
         )).ToList() ?? [];
 
         return new CreateProjectWithSetupCommand(

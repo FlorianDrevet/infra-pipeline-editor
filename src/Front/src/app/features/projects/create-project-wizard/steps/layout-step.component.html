@@ -15,4 +15,28 @@
       />
     }
   </div>
+
+  @if (showRepositorySlots()) {
+    <section class="layout-step__repos">
+      <header class="layout-step__repos-header">
+        <h4>{{ 'PROJECT_CREATE.STEP.LAYOUT.REPOS_TITLE' | translate }}</h4>
+        <p class="layout-step__repos-hint">{{ 'PROJECT_CREATE.STEP.LAYOUT.REPOS_HINT' | translate }}</p>
+      </header>
+
+      @for (slot of repositorySlots(); track slot.index) {
+        <div class="layout-step__repo-slot">
+          <div class="layout-step__repo-slot-header">
+            <span class="layout-step__repo-slot-label">{{ slot.titleKey | translate }}</span>
+            @for (kind of slot.contentKinds; track kind) {
+              <app-ds-chip variant="neutral" size="sm">{{ kind }}</app-ds-chip>
+            }
+          </div>
+          <app-repository-connection-form
+            [initialData]="slot.initialData"
+            (stateChanged)="onSlotStateChanged(slot.index, $event)"
+          />
+        </div>
+      }
+    </section>
+  }
 </div>

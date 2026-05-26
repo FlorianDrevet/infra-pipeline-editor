@@ -131,4 +131,7 @@ public static class Routes
 
     /// <summary>Route for auto-detecting pipeline options from the repository associated with a resource.</summary>
     public const string AzureResourceDetectPipelineOptions = "/azure-resources/{resourceId:guid}/detect-pipeline-options";
+
+    /// <summary>Route group prefix for stateless Git operations.</summary>
+    public const string Git = "/git";
 }

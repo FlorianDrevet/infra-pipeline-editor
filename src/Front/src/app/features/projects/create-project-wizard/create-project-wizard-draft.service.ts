@@ -24,7 +24,15 @@ export class CreateProjectWizardDraftService {
 
   public save(draft: CreateProjectWizardDraft): void {
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ ...draft, updatedAt: Date.now() }));
+      const sanitized: CreateProjectWizardDraft = {
+        ...draft,
+        updatedAt: Date.now(),
+        repositories: draft.repositories.map((repo) => ({
+          ...repo,
+          personalAccessToken: '',
+        })),
+      };
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
     } catch {
       // sessionStorage may be unavailable (private mode, quota); silently ignore.
     }

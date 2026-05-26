@@ -205,7 +205,8 @@ public sealed class CreateProjectWithSetupCommandValidatorTests
         ContentKinds: ["Infrastructure"],
         ProviderType: "GitHub",
         RepositoryUrl: "https://github.com/floriandrevet/infra-repo",
-        DefaultBranch: "main");
+        DefaultBranch: "main",
+        PersonalAccessToken: null);
 
     private static IReadOnlyList<RepositorySetupItem> CreateRepositories(int count)
         => Enumerable.Range(0, count)

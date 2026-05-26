@@ -188,7 +188,14 @@
         "SPLIT_TITLE": "Infra / Code séparés",
         "SPLIT_DESC": "Deux repositories distincts: un pour l'infra, un pour le code.",
         "MULTI_TITLE": "Multi-repository",
-        "MULTI_DESC": "Repositories définis par configuration. Pour les setups avancés."
+        "MULTI_DESC": "Repositories définis par configuration. Pour les setups avancés.",
+        "REPOS_TITLE": "Connexion aux repositories",
+        "REPOS_HINT": "Connectez vos dépôts Git pour vérifier l'accès. Vous pouvez laisser vide et configurer plus tard.",
+        "VERIFY_CONNECTION": "Vérifier la connexion",
+        "VERIFICATION_CHECKING": "Vérification en cours…",
+        "VERIFICATION_SUCCESS": "Connexion vérifiée",
+        "VERIFICATION_FAILED": "Échec de la vérification",
+        "PAT_LABEL": "Personal Access Token"
       },
       "ENVIRONMENTS": {
         "LABEL": "Environnements",

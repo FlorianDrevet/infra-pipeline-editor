@@ -1,0 +1,38 @@
+.repo-connection-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &__fields {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+
+    @media (min-width: 700px) {
+      grid-template-columns: 1fr 2fr 1fr;
+    }
+  }
+
+  &__verify-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__status {
+    font-size: 0.8125rem;
+    font-weight: 500;
+
+    &--success {
+      color: var(--color-success-600, #16a34a);
+    }
+
+    &--error {
+      color: var(--color-danger-600, #dc2626);
+    }
+  }
+
+  &__branch {
+    max-width: 20rem;
+  }
+}

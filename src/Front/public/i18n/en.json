@@ -188,7 +188,14 @@
         "SPLIT_TITLE": "Split infra / code",
         "SPLIT_DESC": "Two separate repositories: one for infra, one for application code.",
         "MULTI_TITLE": "Multi-repository",
-        "MULTI_DESC": "Repositories defined per configuration. For advanced setups."
+        "MULTI_DESC": "Repositories defined per configuration. For advanced setups.",
+        "REPOS_TITLE": "Repository connection",
+        "REPOS_HINT": "Connect your Git repositories to verify access. You can leave empty and configure later.",
+        "VERIFY_CONNECTION": "Verify connection",
+        "VERIFICATION_CHECKING": "Verifying…",
+        "VERIFICATION_SUCCESS": "Connection verified",
+        "VERIFICATION_FAILED": "Verification failed",
+        "PAT_LABEL": "Personal Access Token"
       },
       "ENVIRONMENTS": {
         "LABEL": "Environments",

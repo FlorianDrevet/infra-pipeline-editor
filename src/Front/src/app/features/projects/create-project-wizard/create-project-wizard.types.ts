@@ -20,6 +20,19 @@ export interface RepositoryDraft {
   providerType: '' | 'GitHub' | 'AzureDevOps';
   repositoryUrl: string;
   defaultBranch: string;
+  personalAccessToken: string;
+}
+
+export interface RepositoryConnectionResult {
+  providerType: string;
+  repositoryUrl: string;
+  defaultBranch: string;
+  personalAccessToken: string;
+}
+
+export interface RepositorySlotState {
+  isValid: boolean;
+  data: RepositoryConnectionResult | null;
 }
 
 export interface CreateProjectWizardDraft {
@@ -59,6 +72,7 @@ export function createEmptyRepository(contentKinds: string[]): RepositoryDraft {
     providerType: '',
     repositoryUrl: '',
     defaultBranch: '',
+    personalAccessToken: '',
   };
 }
 

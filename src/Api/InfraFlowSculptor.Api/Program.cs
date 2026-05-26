@@ -116,6 +116,7 @@ app.UseImportController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();
 app.UsePipelineOptionDetectionController();
+app.UseGitController();
 
 // Health checks
 app.MapApiHealthChecks();

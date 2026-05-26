@@ -78,4 +78,7 @@ public sealed class RepositorySetupRequest
     /// <summary>Optional default branch.</summary>
     [StringLength(200)]
     public string? DefaultBranch { get; init; }
+
+    /// <summary>Optional Personal Access Token for authenticating against the provider.</summary>
+    public string? PersonalAccessToken { get; init; }
 }

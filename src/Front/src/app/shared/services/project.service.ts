@@ -47,6 +47,8 @@ import {
   ProjectLayoutPreset,
   VerifyProjectRepositoryRequest,
   VerifyProjectRepositoryResponse,
+  VerifyGitConnectionRequest,
+  VerifyGitConnectionResponse,
 } from '../interfaces/project-repository.interface';
 import {
   AddInfraConfigRepositoryRequest,
@@ -322,6 +324,10 @@ export class ProjectService {
       MethodEnum.POST,
       `/projects/${projectId}/repositories/${repoId}/test-connection`
     );
+  }
+
+  verifyGitConnection(request: VerifyGitConnectionRequest): Promise<VerifyGitConnectionResponse> {
+    return this.axios.request$<VerifyGitConnectionResponse>(MethodEnum.POST, '/git/verify-connection', request);
   }
 
   verifyRepositoryConnection(

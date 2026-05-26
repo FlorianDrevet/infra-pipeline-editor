@@ -69,6 +69,7 @@ export interface RepositorySetupRequest {
   providerType?: 'GitHub' | 'AzureDevOps';
   repositoryUrl?: string;
   defaultBranch?: string;
+  personalAccessToken?: string;
 }
 
 export interface CreateProjectWithSetupRequest {

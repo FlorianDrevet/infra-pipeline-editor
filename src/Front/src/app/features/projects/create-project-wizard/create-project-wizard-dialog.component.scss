@@ -4,6 +4,7 @@
   height: 100%;
   width: 100%;
   overflow: hidden;
+  color: var(--ifs-text-secondary);
 
   &__header {
     display: flex;
@@ -11,14 +12,14 @@
     justify-content: space-between;
     gap: 1rem;
     padding: 1.125rem 1.5rem 0.625rem;
-    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    border-bottom: 1px solid var(--ifs-border-subtle);
   }
 
   &__title {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--text-primary, #111827);
+    color: var(--ifs-text-primary);
   }
 
   &__banner {
@@ -101,16 +102,28 @@
   }
 
   .mat-step-header:hover:not([aria-disabled]),
-  .mat-step-header:hover[aria-disabled='false'],
+  .mat-step-header:hover[aria-disabled='false'] {
+    box-shadow: inset 0 0 0 1px var(--ifs-border-subtle);
+  }
+
   .mat-step-header.cdk-keyboard-focused,
   .mat-step-header.cdk-program-focused {
-    box-shadow: inset 0 0 0 1px rgba(2, 136, 209, 0.08);
+    outline: none;
+    box-shadow: var(--ifs-focus-ring);
   }
 
   .mat-step-label,
   .mat-step-text-label {
     white-space: normal;
     line-height: 1.25;
+    color: var(--ifs-text-secondary);
+  }
+
+  .mat-step-header[aria-selected='true'] {
+    .mat-step-label,
+    .mat-step-text-label {
+      color: var(--ifs-text-primary);
+    }
   }
 
   .mat-horizontal-content-container {

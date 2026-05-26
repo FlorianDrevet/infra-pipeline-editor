@@ -1,4 +1,5 @@
 ﻿# Changelog
+- [2026-05-26] `dev`, `angular-front` — Fixed the create-project wizard dark-modal contrast regression by replacing legacy wizard text/border/focus CSS variables with `--ifs-*` DS tokens, added focused style-regression specs, and revalidated frontend tests/typecheck/build.
 - [2026-05-22] `dev`, `dotnet-dev`, `angular-front` — Optimized hot resource detail/list reads: added Container App and project-resource read repositories with targeted EF projections, switched handlers away from TPT aggregate materialization, added ProjectService project-resources cache/coalescing, and validated with full .NET tests/build plus Angular spec/typecheck/build.
 - [2026-05-22] `dev`, `angular-front` — Re-aligned the app-pipeline stack selector and repository auto-detect CTA onto one responsive header row, restored manual stack selection visibility, and upgraded the detect button styling without changing the options grid behavior.
 - [2026-05-22] `dev`, `aspire-debug` - Investigated slow resource detail/edit navigation: Aspire traces confirmed Container App detail latency is dominated by a broad EF TPT query, with Angular `resource-edit` fan-out amplifying perceived load time; recorded backend projection and frontend lazy-loading follow-ups.
@@ -39,5 +40,3 @@
 - [2026-03-29] `copilot` — Added Azure DevOps pipeline YAML generation.
 - [2026-03-28] `copilot` — Introduced the unified generation UX, mono-repo pipeline flow, and architect agent.
 - [2026-03-27] `copilot` — Delivered UAI grouping plus Storage Account CORS/lifecycle work.
-- [2026-03-26] `copilot` — Added Storage Account CORS UX plus queue/table Bicep support.
-- [2026-03-24] `copilot` — Delivered Log Analytics Workspace and Application Insights end to end.

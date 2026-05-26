@@ -14,4 +14,7 @@ public sealed class DraftRepositoryIntent
 
     /// <summary>Optional default branch name.</summary>
     public string? DefaultBranch { get; set; }
+
+    /// <summary>Optional personal access token for repository authentication.</summary>
+    public string? PersonalAccessToken { get; set; }
 }

@@ -49,8 +49,10 @@ public record EnvironmentSetupItem(
 /// <param name="ProviderType">Optional provider (<c>GitHub</c>/<c>AzureDevOps</c>) — fill later if null.</param>
 /// <param name="RepositoryUrl">Optional repository URL — fill later if null/empty.</param>
 /// <param name="DefaultBranch">Optional default branch — fill later if null/empty.</param>
+/// <param name="PersonalAccessToken">Optional PAT to store for this repository after creation.</param>
 public record RepositorySetupItem(
     IReadOnlyList<string> ContentKinds,
     string? ProviderType,
     string? RepositoryUrl,
-    string? DefaultBranch);
+    string? DefaultBranch,
+    string? PersonalAccessToken);

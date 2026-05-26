@@ -47,6 +47,19 @@ export interface VerifyProjectRepositoryResponse {
   defaultBranchCandidate: string | null;
 }
 
+export interface VerifyGitConnectionRequest {
+  providerType: string;
+  repositoryUrl: string;
+  personalAccessToken: string;
+}
+
+export interface VerifyGitConnectionResponse {
+  owner: string | null;
+  repositoryName: string | null;
+  branches: VerifiedGitBranchResponse[];
+  defaultBranchCandidate: string | null;
+}
+
 export interface SetProjectLayoutPresetRequest {
   preset: ProjectLayoutPreset;
 }
