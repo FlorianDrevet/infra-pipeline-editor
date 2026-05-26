@@ -14,6 +14,7 @@ using Microsoft.Extensions.Options;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Infrastructure.Auth;
+using InfraFlowSculptor.Application.Common.Diagnostics;
 using InfraFlowSculptor.Infrastructure.DomainEvents;
 using InfraFlowSculptor.Infrastructure.Extensions;
 using InfraFlowSculptor.Infrastructure.Persistence;
@@ -29,6 +30,7 @@ using Microsoft.Identity.Web;
 using Refit;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -64,7 +66,7 @@ public static class DependencyInjection
             .AddRepositories()
             .AddGitProviders(builderConfiguration, hostEnvironment)
             .AddObservability(builderConfiguration, hostEnvironment)
-            .AddDefaultHealthChecks();
+            .AddDefaultHealthChecks(builderConfiguration);
 
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -249,12 +251,13 @@ public static class DependencyInjection
                 otel.IncludeScopes = true;
             }));
 
-        services.AddOpenTelemetry()
+        var otelBuilder = services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
                 metrics.AddMeter(ExperimentalMcpTelemetryName)
                     .AddMeter(McpTelemetryName)
                     .AddMeter(McpCoreTelemetryName)
+                    .AddMeter(ApplicationMetrics.MeterName)
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation();
@@ -269,22 +272,46 @@ public static class DependencyInjection
                         options.Filter = context =>
                             !context.Request.Path.StartsWithSegments("/health")
                             && !context.Request.Path.StartsWithSegments("/alive"))
-                    .AddHttpClientInstrumentation();
+                    .AddHttpClientInstrumentation()
+                    .AddEntityFrameworkCoreInstrumentation(options =>
+                    {
+                        options.SetDbStatementForText = true;
+                    });
             });
 
+        // Azure Monitor: enabled when APPLICATIONINSIGHTS_CONNECTION_STRING is set
+        var appInsightsConnectionString = configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+        if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
+        {
+            otelBuilder.UseAzureMonitor(options =>
+            {
+                options.ConnectionString = appInsightsConnectionString;
+            });
+        }
+
+        // OTLP exporter for Aspire Dashboard local dev
         var useOtlpExporter = !string.IsNullOrWhiteSpace(configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
         if (useOtlpExporter)
         {
-            services.AddOpenTelemetry().UseOtlpExporter();
+            otelBuilder.UseOtlpExporter();
         }
+
+        // Application metrics singleton
+        services.AddSingleton<ApplicationMetrics>();
 
         return services;
     }
 
-    private static IServiceCollection AddDefaultHealthChecks(this IServiceCollection services)
+    private static IServiceCollection AddDefaultHealthChecks(
+        this IServiceCollection services,
+        ConfigurationManager configuration)
     {
         services.AddHealthChecks()
-            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"])
+            .AddNpgSql(
+                configuration.GetConnectionString("infraDb")!,
+                name: "postgresql",
+                tags: ["ready", "db"]);
 
         return services;
     }

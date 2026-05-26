@@ -1,5 +1,6 @@
 import {
   ApplicationConfig,
+  ErrorHandler,
   inject,
   provideAppInitializer,
   provideZonelessChangeDetection,
@@ -14,6 +15,10 @@ import { routes } from './app-routing';
 import { environment } from '../environments/environment';
 import { TelemetryService } from './shared/services/telemetry.service';
 import { LanguageService } from './shared/services/language.service';
+import {
+  AppInsightsErrorHandler,
+  AppInsightsMonitoringService,
+} from './shared/services/app-insights-monitoring.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -32,6 +37,7 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       inject(LanguageService).initialize();
     }),
+    // OpenTelemetry traces for Aspire Dashboard (local dev only)
     ...(environment.otlpEnabled
       ? [
           provideAppInitializer(() => {
@@ -39,7 +45,15 @@ export const appConfig: ApplicationConfig = {
           }),
         ]
       : []),
+    // Application Insights for production monitoring
+    ...(environment.appInsightsConnectionString
+      ? [
+          provideAppInitializer(() => {
+            inject(AppInsightsMonitoringService).initialize(environment.appInsightsConnectionString!);
+          }),
+          { provide: ErrorHandler, useClass: AppInsightsErrorHandler },
+        ]
+      : []),
   ],
 };
-
 

@@ -1,5 +1,5 @@
 Contracts response DTO public shape snapshot
-Count: 106
+Count: 108
 
 Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
 Type: AppConfigurationKeyResponse
@@ -331,6 +331,24 @@ Properties:
   RuntimeStack: string
   RuntimeVersion: string
   SourceCodePath: string?
+
+Namespace: InfraFlowSculptor.Contracts.Git.Responses
+Type: VerifiedGitBranchDto
+Constructors:
+  VerifiedGitBranchDto(string Name, bool IsProtected)
+Properties:
+  IsProtected: bool
+  Name: string
+
+Namespace: InfraFlowSculptor.Contracts.Git.Responses
+Type: VerifyGitConnectionResponse
+Constructors:
+  VerifyGitConnectionResponse(string Owner, string RepositoryName, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Git.Responses.VerifiedGitBranchDto> Branches, string? DefaultBranchCandidate)
+Properties:
+  Branches: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Git.Responses.VerifiedGitBranchDto>
+  DefaultBranchCandidate: string?
+  Owner: string
+  RepositoryName: string
 
 Namespace: InfraFlowSculptor.Contracts.Imports.Responses
 Type: ApplyImportPreviewCreatedResourceResponseItem

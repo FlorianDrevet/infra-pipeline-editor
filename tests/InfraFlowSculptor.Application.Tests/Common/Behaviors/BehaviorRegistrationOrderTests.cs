@@ -7,7 +7,7 @@ namespace InfraFlowSculptor.Application.Tests.Common.Behaviors;
 
 /// <summary>
 /// Verifies that MediatR pipeline behaviors are registered in the correct order:
-/// ValidationBehavior first, then PersonalAccessTokenScopeBehavior, then UnitOfWorkBehavior.
+/// LoggingBehavior first, then ValidationBehavior, then PersonalAccessTokenScopeBehavior, then UnitOfWorkBehavior.
 /// </summary>
 public sealed class BehaviorRegistrationOrderTests
 {
@@ -24,17 +24,20 @@ public sealed class BehaviorRegistrationOrderTests
             .ToList();
 
         // Assert
-        behaviorDescriptors.Should().HaveCount(3, "exactly three pipeline behaviors should be registered");
+        behaviorDescriptors.Should().HaveCount(4, "exactly four pipeline behaviors should be registered");
 
         var firstBehavior = behaviorDescriptors[0].ImplementationType;
         var secondBehavior = behaviorDescriptors[1].ImplementationType;
         var thirdBehavior = behaviorDescriptors[2].ImplementationType;
+        var fourthBehavior = behaviorDescriptors[3].ImplementationType;
 
-        firstBehavior.Should().Be(typeof(ValidationBehavior<,>),
-            "ValidationBehavior must run first to reject invalid commands before the UoW opens a transaction");
-        secondBehavior.Should().Be(typeof(PersonalAccessTokenScopeBehavior<,>),
+        firstBehavior.Should().Be(typeof(LoggingBehavior<,>),
+            "LoggingBehavior must wrap all other behaviors to capture full request timing");
+        secondBehavior.Should().Be(typeof(ValidationBehavior<,>),
+            "ValidationBehavior must run after logging to reject invalid commands before the UoW opens a transaction");
+        thirdBehavior.Should().Be(typeof(PersonalAccessTokenScopeBehavior<,>),
             "PAT scope enforcement must run before handlers so unauthorized requests are rejected consistently");
-        thirdBehavior.Should().Be(typeof(UnitOfWorkBehavior<,>),
+        fourthBehavior.Should().Be(typeof(UnitOfWorkBehavior<,>),
             "UnitOfWorkBehavior must wrap the handler after validation has passed");
     }
 }
