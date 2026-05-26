@@ -24,11 +24,11 @@
     font-weight: 500;
 
     &--success {
-      color: var(--color-success-600, #16a34a);
+      color: var(--ifs-success);
     }
 
     &--error {
-      color: var(--color-danger-600, #dc2626);
+      color: var(--ifs-danger);
     }
   }
 

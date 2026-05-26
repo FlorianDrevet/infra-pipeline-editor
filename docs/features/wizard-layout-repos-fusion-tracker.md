@@ -10,25 +10,24 @@ Fusionner la configuration des repositories directement dans l'étape layout du 
 |-----|---------|--------|-------|----------------------|---------------|
 | Lot 1 | Backend — `POST /git/verify-connection` | Done | dotnet-dev | 2026-05-26 | — |
 | Lot 2 | Backend — PAT dans `CreateProjectWithSetup` | Done | dotnet-dev | 2026-05-26 | — |
-| Lot 3 | Frontend — `RepositoryConnectionFormComponent` shared | Not started | angular-front | — | Component + service method |
-| Lot 4 | Frontend — Refonte `LayoutStepComponent` inline slots | Not started | angular-front | — | Inline slots + validation |
-| Lot 5 | Frontend — Adapter wizard + nettoyage | Not started | angular-front | — | Supprimer step 4, adapter nav |
+| Lot 3 | Frontend — `RepositoryConnectionFormComponent` shared | Done | angular-front | 2026-05-26 | — |
+| Lot 4 | Frontend — Refonte `LayoutStepComponent` inline slots | Done | angular-front | 2026-05-26 | — |
+| Lot 5 | Frontend — Adapter wizard + nettoyage | Done | angular-front | 2026-05-26 | — |
 
 ## Journal d'implémentation
 
 - 2026-05-26: Plan validé par architect. Lot 1 lancé.
+- 2026-05-26: Lots 1+2 backend terminés — endpoint `POST /git/verify-connection` créé, PAT ajouté à `CreateProjectWithSetup`.
+- 2026-05-26: Lots 3+4+5 frontend terminés — `RepositoryConnectionFormComponent` créé, LayoutStep avec inline repos, wizard simplifié à 4 étapes.
+- 2026-05-26: Validation complète — typecheck OK, build OK, 1474 tests passent.
 
 ## Prochaines étapes
 
-1. Implémenter Lot 1 (backend endpoint stateless)
-2. Implémenter Lot 2 (PAT dans CreateProjectWithSetup)
-3. Implémenter Lot 3 (composant shared frontend)
-4. Implémenter Lot 4 (refonte layout step)
-5. Implémenter Lot 5 (adapter wizard principal + suppression step repos)
+Tous les lots sont terminés. Suppression du fichier `repositories-step` (dead code) possible en cleanup ultérieur.
 
 ## Checklist reprise sur un autre PC
 
-- [ ] `dotnet build .\InfraFlowSculptor.slnx` passe
-- [ ] `npm install && npm run typecheck` passe (src/Front)
-- [ ] Nouvel endpoint `POST /git/verify-connection` répond 200 avec credentials valides
-- [ ] Wizard de création de projet a 4 étapes (Identity, Layout+Repos, Environments, Review)
+- [x] `dotnet build .\InfraFlowSculptor.slnx` passe (hors lock Aspire)
+- [x] `npm install && npm run typecheck` passe (src/Front)
+- [x] Nouvel endpoint `POST /git/verify-connection` répond 200 avec credentials valides
+- [x] Wizard de création de projet a 4 étapes (Identity, Layout+Repos, Environments, Review)

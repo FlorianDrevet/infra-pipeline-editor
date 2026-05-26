@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -10,21 +10,12 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "IX_ProjectRepositories_ProjectId_Alias",
-                table: "ProjectRepositories");
-
-            migrationBuilder.DropIndex(
-                name: "IX_InfraConfigRepositories_InfrastructureConfigId_Alias",
-                table: "InfraConfigRepositories");
-
-            migrationBuilder.DropColumn(
-                name: "Alias",
-                table: "ProjectRepositories");
-
-            migrationBuilder.DropColumn(
-                name: "Alias",
-                table: "InfraConfigRepositories");
+            migrationBuilder.Sql("""
+                DROP INDEX IF EXISTS "IX_ProjectRepositories_ProjectId_Alias";
+                DROP INDEX IF EXISTS "IX_InfraConfigRepositories_InfrastructureConfigId_Alias";
+                ALTER TABLE "ProjectRepositories" DROP COLUMN IF EXISTS "Alias";
+                ALTER TABLE "InfraConfigRepositories" DROP COLUMN IF EXISTS "Alias";
+                """);
         }
 
         /// <inheritdoc />
