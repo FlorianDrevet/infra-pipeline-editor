@@ -10,6 +10,27 @@ using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Application.ResourceGroups.Common;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
+using InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
+using InfraFlowSculptor.Domain.ApplicationInsightsAggregate.Entities;
+using InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities;
+using InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities;
+using InfraFlowSculptor.Domain.ContainerAppAggregate;
+using InfraFlowSculptor.Domain.ContainerAppAggregate.Entities;
+using InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.Entities;
+using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
+using InfraFlowSculptor.Domain.CosmosDbAggregate.Entities;
+using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
+using InfraFlowSculptor.Domain.FunctionAppAggregate;
+using InfraFlowSculptor.Domain.FunctionAppAggregate.Entities;
+using InfraFlowSculptor.Domain.KeyVaultAggregate.Entities;
+using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities;
+using InfraFlowSculptor.Domain.RedisCacheAggregate.Entities;
+using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities;
+using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
+using InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities;
+using InfraFlowSculptor.Domain.SqlServerAggregate.Entities;
+using InfraFlowSculptor.Domain.WebAppAggregate;
+using InfraFlowSculptor.Domain.WebAppAggregate.Entities;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 
@@ -101,8 +122,21 @@ public class ResourceGroupRepository : BaseRepository<ResourceGroup, ProjectDbCo
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        var links = await Context.ChildToParentLinkViews
-            .Where(l => l.ResourceGroupId == resourceGroupId.Value)
+        var links = await Context.Set<WebApp>()
+            .Where(x => x.ResourceGroupId == resourceGroupId)
+            .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.AppServicePlanId.Value })
+            .Concat(Context.Set<FunctionApp>()
+                .Where(x => x.ResourceGroupId == resourceGroupId)
+                .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.AppServicePlanId.Value }))
+            .Concat(Context.Set<ContainerApp>()
+                .Where(x => x.ResourceGroupId == resourceGroupId)
+                .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.ContainerAppEnvironmentId.Value }))
+            .Concat(Context.Set<SqlDatabase>()
+                .Where(x => x.ResourceGroupId == resourceGroupId)
+                .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.SqlServerId.Value }))
+            .Concat(Context.Set<ApplicationInsights>()
+                .Where(x => x.ResourceGroupId == resourceGroupId)
+                .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.LogAnalyticsWorkspaceId.Value }))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
@@ -123,8 +157,60 @@ public class ResourceGroupRepository : BaseRepository<ResourceGroup, ProjectDbCo
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        var entries = await Context.ResourceEnvironmentEntryViews
-            .Where(e => e.ResourceGroupId == resourceGroupId.Value)
+        var resourcesInGroup = Context.AzureResources
+            .Where(r => r.ResourceGroupId == resourceGroupId);
+
+        var entries = await Context.Set<KeyVaultEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.KeyVaultId, r => r.Id,
+                (es, _) => new { ResourceId = es.KeyVaultId.Value, es.EnvironmentName })
+            .Concat(Context.Set<RedisCacheEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.RedisCacheId, r => r.Id,
+                    (es, _) => new { ResourceId = es.RedisCacheId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<StorageAccountEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.StorageAccountId, r => r.Id,
+                    (es, _) => new { ResourceId = es.StorageAccountId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<AppServicePlanEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.AppServicePlanId, r => r.Id,
+                    (es, _) => new { ResourceId = es.AppServicePlanId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<WebAppEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.WebAppId, r => r.Id,
+                    (es, _) => new { ResourceId = es.WebAppId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<FunctionAppEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.FunctionAppId, r => r.Id,
+                    (es, _) => new { ResourceId = es.FunctionAppId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<AppConfigurationEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.AppConfigurationId, r => r.Id,
+                    (es, _) => new { ResourceId = es.AppConfigurationId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<ContainerAppEnvironmentEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.ContainerAppEnvironmentId, r => r.Id,
+                    (es, _) => new { ResourceId = es.ContainerAppEnvironmentId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<ContainerAppEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.ContainerAppId, r => r.Id,
+                    (es, _) => new { ResourceId = es.ContainerAppId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<LogAnalyticsWorkspaceEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.LogAnalyticsWorkspaceId, r => r.Id,
+                    (es, _) => new { ResourceId = es.LogAnalyticsWorkspaceId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<ApplicationInsightsEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.ApplicationInsightsId, r => r.Id,
+                    (es, _) => new { ResourceId = es.ApplicationInsightsId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<CosmosDbEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.CosmosDbId, r => r.Id,
+                    (es, _) => new { ResourceId = es.CosmosDbId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<SqlServerEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.SqlServerId, r => r.Id,
+                    (es, _) => new { ResourceId = es.SqlServerId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<SqlDatabaseEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.SqlDatabaseId, r => r.Id,
+                    (es, _) => new { ResourceId = es.SqlDatabaseId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<ServiceBusNamespaceEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.ServiceBusNamespaceId, r => r.Id,
+                    (es, _) => new { ResourceId = es.ServiceBusNamespaceId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<ContainerRegistryEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.ContainerRegistryId, r => r.Id,
+                    (es, _) => new { ResourceId = es.ContainerRegistryId.Value, es.EnvironmentName }))
+            .Concat(Context.Set<EventHubNamespaceEnvironmentSettings>()
+                .Join(resourcesInGroup, es => es.EventHubNamespaceId, r => r.Id,
+                    (es, _) => new { ResourceId = es.EventHubNamespaceId.Value, es.EnvironmentName }))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 

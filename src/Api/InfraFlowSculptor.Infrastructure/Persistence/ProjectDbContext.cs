@@ -43,7 +43,6 @@ using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
 using InfraFlowSculptor.Domain.PersonalAccessTokenAggregate;
-using InfraFlowSculptor.Infrastructure.Persistence.Views;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence;
@@ -136,11 +135,6 @@ public class ProjectDbContext : DbContext
 
     public DbSet<PersonalAccessToken> PersonalAccessTokens { get; set; } = null!;
 
-    /// <summary>Keyless entity mapped to the <c>vw_ResourceEnvironmentEntries</c> PostgreSQL view.</summary>
-    public DbSet<ResourceEnvironmentEntryView> ResourceEnvironmentEntryViews { get; set; } = null!;
-
-    /// <summary>Keyless entity mapped to the <c>vw_ChildToParentLinks</c> PostgreSQL view.</summary>
-    public DbSet<ChildToParentLinkView> ChildToParentLinkViews { get; set; } = null!;
 
     /// <inheritdoc />
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -188,18 +182,6 @@ public class ProjectDbContext : DbContext
     {
         modelBuilder
             .ApplyConfigurationsFromAssembly(typeof(ProjectDbContext).Assembly);
-
-        modelBuilder.Entity<ResourceEnvironmentEntryView>(entity =>
-        {
-            entity.HasNoKey();
-            entity.ToView("vw_ResourceEnvironmentEntries");
-        });
-
-        modelBuilder.Entity<ChildToParentLinkView>(entity =>
-        {
-            entity.HasNoKey();
-            entity.ToView("vw_ChildToParentLinks");
-        });
 
         base.OnModelCreating(modelBuilder);
     }
