@@ -307,7 +307,10 @@ export class AddResourceDialogComponent implements OnInit {
   protected readonly isSubmitBlockedByNameAvailability = computed(() => {
     if (!this.isNameAvailabilityCheckEnabled()) return false;
     const state = this.nameAvailabilityOverallState();
-    if (state === 'has-unavailable' || state === 'has-invalid') {
+    // Invalid names always block — no override possible (naming constraints violation)
+    if (state === 'has-invalid') return true;
+    // Unavailable names (conflict) can be overridden ("it's my resource")
+    if (state === 'has-unavailable') {
       return !this.nameAvailabilityOverridden();
     }
     return state === 'checking';

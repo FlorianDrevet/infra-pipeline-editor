@@ -413,13 +413,13 @@
   }
 
   &--unavailable {
-    border-color: rgba(198, 40, 40, 0.25);
-    background: rgba(198, 40, 40, 0.03);
+    border-color: rgba(245, 166, 35, 0.3);
+    background: rgba(245, 166, 35, 0.04);
   }
 
   &--invalid {
-    border-color: rgba(245, 166, 35, 0.3);
-    background: rgba(245, 166, 35, 0.04);
+    border-color: rgba(198, 40, 40, 0.25);
+    background: rgba(198, 40, 40, 0.03);
   }
 
   &__icon {
@@ -428,8 +428,8 @@
     height: 1rem;
 
     .name-availability-env--available & { color: var(--ifs-success); }
-    .name-availability-env--unavailable & { color: var(--ifs-danger); }
-    .name-availability-env--invalid & { color: var(--ifs-warning); }
+    .name-availability-env--unavailable & { color: var(--ifs-warning); }
+    .name-availability-env--invalid & { color: var(--ifs-danger); }
     .name-availability-env--unknown & { color: $ifs-text-secondary; }
   }
 

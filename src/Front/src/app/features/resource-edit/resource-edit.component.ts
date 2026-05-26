@@ -410,11 +410,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   /** User explicitly confirmed that the unavailable name is theirs. Reset on every new check. */
   protected readonly nameAvailabilityOverridden = signal(false);
 
-  /** True when name availability blocks saving (unavailable/invalid/checking and not overridden). */
+  /** True when name availability blocks saving (invalid always blocks, unavailable/checking can be overridden). */
   protected readonly isSaveBlockedByNameAvailability = computed(() => {
     if (!this.isNameAvailabilityCheckEnabled()) return false;
     const state = this.nameAvailabilityOverallState();
-    if (state === 'has-unavailable' || state === 'has-invalid') {
+    // Invalid names always block — no override possible (naming constraints violation)
+    if (state === 'has-invalid') return true;
+    // Unavailable names (conflict) can be overridden ("it's my resource")
+    if (state === 'has-unavailable') {
       return !this.nameAvailabilityOverridden();
     }
     return state === 'checking';

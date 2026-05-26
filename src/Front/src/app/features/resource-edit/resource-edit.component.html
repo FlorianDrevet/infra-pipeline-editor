@@ -104,8 +104,8 @@
                           @switch (env.status) {
                             @case ('available') { check_circle }
                             @case ('current') { check_circle }
-                            @case ('unavailable') { error }
-                            @case ('invalid') { warning }
+                            @case ('unavailable') { warning }
+                            @case ('invalid') { error }
                             @default { help }
                           }
                         </mat-icon>
@@ -117,7 +117,7 @@
                             @case ('available') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_AVAILABLE' | translate }} }
                             @case ('current') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_CURRENT' | translate }} }
                             @case ('unavailable') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_UNAVAILABLE' | translate }} }
-                            @case ('invalid') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_INVALID' | translate }} }
+                            @case ('invalid') { {{ env.message || ('RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_INVALID' | translate) }} }
                             @default { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_UNKNOWN' | translate }} }
                           }
                         </span>
@@ -2014,7 +2014,7 @@
           }
         </div>
         <div class="save-bar__actions">
-          @if (isSaveBlockedByNameAvailability() && nameAvailabilityOverallState() !== 'checking') {
+          @if (isSaveBlockedByNameAvailability() && nameAvailabilityOverallState() === 'has-unavailable') {
             <button class="save-bar__override" (click)="overrideNameAvailability()">
               <mat-icon class="save-bar__override-icon">verified_user</mat-icon>
               {{ 'RESOURCE_EDIT.ACTIONS.NAME_OVERRIDE' | translate }}

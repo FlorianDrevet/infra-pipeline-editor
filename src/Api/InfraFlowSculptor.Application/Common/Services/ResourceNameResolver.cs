@@ -96,7 +96,16 @@ public sealed class ResourceNameResolver(
             return infraConfig.DefaultNamingTemplate.Value;
 
         if (project.DefaultNamingTemplate is not null)
+        {
+            // If the resource type has a recommended template (e.g. ACR, StorageAccount),
+            // prefer it over the project default to avoid generating invalid names
+            // (e.g. project default contains hyphens but ACR only allows alphanumeric).
+            var recommended = AzureNamingConstraints.GetRecommendedTemplate(resourceType);
+            if (recommended is not null)
+                return recommended;
+
             return project.DefaultNamingTemplate.Value;
+        }
 
         return "{name}";
     }

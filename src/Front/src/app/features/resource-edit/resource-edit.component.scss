@@ -2310,8 +2310,8 @@
   border: 1px solid var(--ifs-border-subtle);
 
   &--available   { border-color: var(--ifs-success); background: var(--ifs-success-bg); }
-  &--unavailable { border-color: var(--ifs-danger);  background: var(--ifs-danger-bg); }
-  &--invalid     { border-color: var(--ifs-warning); background: var(--ifs-warning-bg); }
+  &--unavailable { border-color: var(--ifs-warning); background: var(--ifs-warning-bg); }
+  &--invalid     { border-color: var(--ifs-danger);  background: var(--ifs-danger-bg); }
 
   &__icon {
     font-size: 14px;
@@ -2321,8 +2321,8 @@
 
     .name-availability-env--available    & { color: var(--ifs-success); }
     .name-availability-env--current      & { color: var(--ifs-accent-500); }
-    .name-availability-env--unavailable  & { color: var(--ifs-danger); }
-    .name-availability-env--invalid      & { color: var(--ifs-warning); }
+    .name-availability-env--unavailable  & { color: var(--ifs-warning); }
+    .name-availability-env--invalid      & { color: var(--ifs-danger); }
   }
 
   &__name {

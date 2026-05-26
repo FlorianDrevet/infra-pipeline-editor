@@ -153,6 +153,15 @@ public static class AzureNamingConstraints
     }
 
     /// <summary>
+    /// Returns the recommended naming template for the given resource type, or <c>null</c>
+    /// if no constraint or recommended template is registered.
+    /// </summary>
+    public static string? GetRecommendedTemplate(string resourceType)
+    {
+        return Constraints.TryGetValue(resourceType, out var constraint) ? constraint.RecommendedTemplate : null;
+    }
+
+    /// <summary>
     /// Returns all registered constraints.
     /// </summary>
     public static IReadOnlyDictionary<string, AzureNamingConstraint> GetAll() => Constraints;
