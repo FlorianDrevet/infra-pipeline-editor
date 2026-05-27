@@ -1,5 +1,15 @@
 # Frontend Design System
 
+## Audit DS coverage exhaustif [2026-05-27]
+
+- **Source** : [audits/audit-design-system-2026-05-27.md](../../audits/audit-design-system-2026-05-27.md) ; tracker [docs/features/ds-migration-2026-05-tracker.md](../../docs/features/ds-migration-2026-05-tracker.md).
+- **État** : 27 primitives DS existent, ~84 templates feature/shared encore non conformes, 30+ usages `mat-spinner`, 66+ boutons Material résiduels, 5 implémentations dupliquées du pattern tag-input.
+- **Gaps DS identifiés (à créer)** : `app-ds-spinner` (N1, mandatory), `app-ds-tag-input` (N4, mandatory), `app-ds-progress-bar` (N5, mandatory), `app-ds-menu` (N6, mandatory). Optionnels : `app-ds-dialog-shell` (N2), `app-ds-card-mat` (N3), `app-ds-accordion` (N7), `app-ds-stepper` (N8).
+- **Plan** : 8 vagues mergeables W1→W8. W1 = fondations (créer les nouveaux primitives + TDD). W2 = tag-input rollout. W3 = spinner rollout. W4.1→W4.5 = purge boutons hors DS par scope. W5 = form controls résiduels. W6 = `mat-tab-group` → `app-ds-tabs`. W7 = cards Material + dialog shell. W8 = menus + hex purge + tokens fantômes.
+- **Anomalie critique détectée** : `resource-edit/components/networking-tab/networking-tab.component.scss` utilise des tokens CSS **fantômes** (`var(--text-secondary, #6b7280)`, `var(--border, #d1d5db)`, `var(--surface, #fff)`, `var(--primary, #6366f1)`, `var(--error, #ef4444)`, `var(--success, #16a34a)`, `var(--code-bg, #f3f4f6)`) absents de `_tokens.scss`. Tous les fallbacks hex prennent le dessus, faisant basculer la carte en mode light hardcodé. À corriger en W8 en migrant vers `--ifs-text-secondary`, `--ifs-border-subtle`, `--ifs-surface-1`, `--ifs-brand-500`, `--ifs-danger`, `--ifs-success`.
+- **Zones intentionnellement hors DS (à NE PAS migrer)** : `features/login/**` (surface non auth, brand glassmorphism), `shared/components/bicep-file-panel/**` (theming code-editor user-switch), `features/project-detail/bootstrap-setup-guide/**` (visuel terminal traffic-lights mac).
+- **Risque connu** : `app-ds-button` ne forward pas `form="<id>"` — auditer dialogs avec submit détaché avant migration. `<mat-tab-group>` nested dans `resource-edit` / `split-generation-switcher` ont des overrides `::ng-deep .mdc-tab--active` à valider visuellement après bascule. `resource-edit.component.html` (2080 lignes) doit être migré tab-par-tab dans des PR distincts.
+
 ## UI Refresh 2026-05 — Vagues complètes [2026-05-11]
 
 - **DS autocomplete rollout [2026-05-18]** : `shared/components/ds/ds-autocomplete/` is now the standard search/autocomplete primitive for frontend dialogs that previously exposed raw `MatAutocomplete` panels. The component keeps the DS text-field shell, injects a branded loading state plus a compact empty state inside the suggestion panel, and is the only remaining place where `MatAutocompleteModule` is allowed in `src/Front/src/**`. The former raw usages in `add-project-member-dialog`, `push-to-git-dialog`, and `multi-repo-push-dialog` were migrated to `app-ds-autocomplete`; no feature template should render `<mat-autocomplete>` directly anymore.
