@@ -6,10 +6,9 @@
 
   @if (canWrite()) {
     <div class="ra-actions">
-      <button class="ra-add-btn" (click)="section().openAddRoleAssignmentDialog()">
-        <mat-icon>add</mat-icon>
+      <app-ds-button variant="primary" icon="add" (clicked)="section().openAddRoleAssignmentDialog()">
         {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ADD' | translate }}
-      </button>
+      </app-ds-button>
 
       @if (section().assignedUai(); as uai) {
         <div class="ra-assigned-uai">
@@ -40,13 +39,13 @@
             </mat-menu>
           }
 
-          <button
-            class="ra-add-btn ra-add-btn--unassign"
-            (click)="section().openUnassignUaiDialog(uai)"
-            [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_TOOLTIP' | translate">
-            <mat-icon>person_remove</mat-icon>
+          <app-ds-button
+            variant="ghost"
+            icon="person_remove"
+            [appDsTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_TOOLTIP' | translate"
+            (clicked)="section().openUnassignUaiDialog(uai)">
             {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI' | translate }}
-          </button>
+          </app-ds-button>
         </div>
       } @else if (section().availableUserAssignedIdentities().length > 0) {
         <button class="ra-add-btn ra-add-btn--uai" [matMenuTriggerFor]="assignUaiMenu">
@@ -176,12 +175,13 @@
                         }
                       </mat-menu>
 
-                      <button
-                        class="ra-card__remove-btn"
-                        (click)="section().openRemoveRoleAssignmentDialog(assignment)"
-                        [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE' | translate">
-                        <mat-icon>close</mat-icon>
-                      </button>
+                      <app-ds-icon-button
+                        icon="close"
+                        variant="danger"
+                        size="sm"
+                        [ariaLabel]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE' | translate"
+                        [tooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE' | translate"
+                        (clicked)="section().openRemoveRoleAssignmentDialog(assignment)" />
                     }
                   </div>
                 </div>
@@ -243,12 +243,13 @@
                 </mat-menu>
               }
 
-              <button
-                class="ra-card__remove-btn"
-                (click)="section().openRemoveRoleAssignmentDialog(assignment)"
-                [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE' | translate">
-                <mat-icon>close</mat-icon>
-              </button>
+              <app-ds-icon-button
+                icon="close"
+                variant="danger"
+                size="sm"
+                [ariaLabel]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE' | translate"
+                [tooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE' | translate"
+                (clicked)="section().openRemoveRoleAssignmentDialog(assignment)" />
             }
           </div>
         </div>

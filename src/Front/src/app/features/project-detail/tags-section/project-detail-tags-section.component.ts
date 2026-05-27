@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
@@ -8,18 +7,18 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ProjectResponse } from '../../../shared/interfaces/project.interface';
 import { TagRequest } from '../../../shared/interfaces/infra-config.interface';
 import { ProjectService } from '../../../shared/services/project.service';
-import { DsButtonComponent, DsTextFieldComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsIconButtonComponent, DsTextFieldComponent } from '../../../shared/components/ds';
 
 @Component({
   selector: 'app-project-detail-tags-section',
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    MatButtonModule,
     MatChipsModule,
     MatIconModule,
     TranslateModule,
     DsButtonComponent,
+    DsIconButtonComponent,
     DsTextFieldComponent,
   ],
   templateUrl: './project-detail-tags-section.component.html',

@@ -1,21 +1,11 @@
 <div class="as-dialog">
   <!-- ─── Mode selector (always visible at top) ─── -->
-  <div class="as-dialog__mode-bar">
-    <button
-      class="mode-btn"
-      [class.mode-btn--active]="mode() === 'output'"
-      (click)="onModeChange('output')">
-      <mat-icon>swap_horiz</mat-icon>
-      {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.MODE_OUTPUT' | translate }}
-    </button>
-    <button
-      class="mode-btn"
-      [class.mode-btn--active]="mode() === 'static'"
-      (click)="onModeChange('static')">
-      <mat-icon>edit_note</mat-icon>
-      {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.MODE_STATIC' | translate }}
-    </button>
-  </div>
+  <app-ds-segmented-control
+    class="as-dialog__mode-bar"
+    [options]="modeOptions"
+    [ngModel]="mode()"
+    (ngModelChange)="onModeChange($event)"
+    [ngModelOptions]="{ standalone: true }" />
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- STATIC VALUE MODE — Step-based card flow                       -->
@@ -207,18 +197,19 @@
                   <span class="kv-access-warning__desc">
                     {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_NO_ACCESS_DESC' | translate: { role: kvMissingRoleName() } }}
                   </span>
-                  <button
-                    mat-stroked-button
+                  <app-ds-button
+                    variant="secondary"
+                    icon="shield"
                     class="assign-role-btn"
                     [disabled]="sensitiveRoleAssigning()"
-                    (click)="assignSensitiveRole(); $event.stopPropagation()">
+                    [loading]="sensitiveRoleAssigning()"
+                    (clicked)="assignSensitiveRole(); $event.stopPropagation()">
                     @if (sensitiveRoleAssigning()) {
-                      <app-ds-spinner class="submit-spinner" size="sm" />
                       {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGNING_ROLE' | translate }}
                     } @else {
-                      <span class="btn-content"><mat-icon>shield</mat-icon> {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGN_ROLE' | translate }}</span>
+                      {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGN_ROLE' | translate }}
                     }
-                  </button>
+                  </app-ds-button>
                   @if (sensitiveRoleError()) {
                     <span class="assign-role-error">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ROLE_ERROR' | translate }}</span>
                   }
@@ -333,9 +324,9 @@
 
     <mat-dialog-actions class="as-dialog__actions" align="end">
       @if (staticStep() === 2) {
-        <button mat-stroked-button (click)="goBackStatic()">
+        <app-ds-button variant="secondary" (clicked)="goBackStatic()">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.BACK' | translate }}
-        </button>
+        </app-ds-button>
       } @else {
         <app-ds-button variant="ghost" (clicked)="onCancel()">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CANCEL' | translate }}
@@ -480,9 +471,9 @@
       </mat-dialog-content>
 
       <mat-dialog-actions class="as-dialog__actions" align="end">
-        <button mat-stroked-button (click)="goBack()">
+        <app-ds-button variant="secondary" (clicked)="goBack()">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.BACK' | translate }}
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
 
@@ -577,18 +568,19 @@
                     <span class="kv-access-warning__desc">
                       {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_NO_ACCESS_DESC' | translate: { role: kvMissingRoleName() } }}
                     </span>
-                    <button
-                      mat-stroked-button
+                    <app-ds-button
+                      variant="secondary"
+                      icon="shield"
                       class="assign-role-btn"
                       [disabled]="sensitiveRoleAssigning()"
-                      (click)="assignSensitiveRole(); $event.stopPropagation()">
+                      [loading]="sensitiveRoleAssigning()"
+                      (clicked)="assignSensitiveRole(); $event.stopPropagation()">
                       @if (sensitiveRoleAssigning()) {
-                        <app-ds-spinner class="submit-spinner" size="sm" />
                         {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGNING_ROLE' | translate }}
                       } @else {
-                        <span class="btn-content"><mat-icon>shield</mat-icon> {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGN_ROLE' | translate }}</span>
+                        {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGN_ROLE' | translate }}
                       }
-                    </button>
+                    </app-ds-button>
                     @if (sensitiveRoleError()) {
                       <span class="assign-role-error">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ROLE_ERROR' | translate }}</span>
                     }
@@ -639,9 +631,9 @@
       </mat-dialog-content>
 
       <mat-dialog-actions class="as-dialog__actions" align="end">
-        <button mat-stroked-button (click)="goBack()">
+        <app-ds-button variant="secondary" (clicked)="goBack()">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.BACK' | translate }}
-        </button>
+        </app-ds-button>
         <app-ds-button
           variant="primary"
           [disabled]="!canProceedFromSensitiveStep()"
@@ -708,9 +700,9 @@
       </mat-dialog-content>
 
       <mat-dialog-actions class="as-dialog__actions" align="end">
-        <button mat-stroked-button (click)="goBack()">
+        <app-ds-button variant="secondary" (clicked)="goBack()">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.BACK' | translate }}
-        </button>
+        </app-ds-button>
         <app-ds-button
           variant="primary"
           [disabled]="!canSubmit()"

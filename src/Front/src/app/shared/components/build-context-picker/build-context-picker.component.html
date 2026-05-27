@@ -45,7 +45,7 @@
         <label class="picker-panel__label">{{ 'RESOURCE_EDIT.APP_PIPELINE.DIRECTORIES' | translate }}</label>
         @if (loadingDirectories()) {
           <div class="picker-panel__loading">
-            <mat-spinner diameter="20"></mat-spinner>
+            <app-ds-spinner size="md" />
             <span>{{ 'RESOURCE_EDIT.APP_PIPELINE.LOADING_DIRECTORIES' | translate }}</span>
           </div>
         } @else if (hasDirectories()) {

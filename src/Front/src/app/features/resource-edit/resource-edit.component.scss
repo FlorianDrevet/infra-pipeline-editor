@@ -243,12 +243,6 @@
   &--dark { @extend %re-btn-danger; }
 }
 
-.delete-btn {
-  @extend %re-btn-danger;
-
-  &__icon { font-size: 16px; width: 16px; height: 16px; }
-}
-
 // ─── Feedback banners ───────────────────────────────────────────────────────
 
 .feedback-banner {
@@ -950,15 +944,6 @@
   justify-content: flex-end;
   gap: var(--ifs-space-6);
   margin-bottom: var(--ifs-space-12);
-}
-
-.ra-add-btn {
-  @extend %re-btn;
-
-  &--secondary { @extend %re-btn-ghost; }
-  &--uai,
-  &--switch,
-  &--unassign { @extend %re-btn-ghost; }
 }
 
 .ra-loading {
@@ -2462,14 +2447,6 @@
   align-items: center;
   gap: var(--ifs-space-12);
 }
-
-.save-password-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--ifs-space-6);
-}
-
-.btn-spinner { display: inline-flex; }
 
 .save-success-indicator {
   display: flex;

@@ -1,0 +1,28 @@
+<ul class="ds-menu" role="menu" [attr.aria-label]="ariaLabel() ?? null">
+  @for (item of items(); track item.id) {
+    @if (item.divider) {
+      <li class="ds-menu__divider" role="separator" aria-hidden="true"></li>
+    } @else {
+      <li role="none">
+        <button
+          #menuItem
+          type="button"
+          class="ds-menu__item ds-menu__item--{{ item.tone ?? 'neutral' }}"
+          role="menuitem"
+          [disabled]="!!item.disabled"
+          (click)="onItemClick(item)"
+        >
+          @if (item.icon) {
+            <mat-icon class="ds-menu__icon" aria-hidden="true">{{ item.icon }}</mat-icon>
+          }
+          <span class="ds-menu__label">{{ item.label }}</span>
+          @if (item.iconTrailing) {
+            <mat-icon class="ds-menu__icon ds-menu__icon--trailing" aria-hidden="true">
+              {{ item.iconTrailing }}
+            </mat-icon>
+          }
+        </button>
+      </li>
+    }
+  }
+</ul>

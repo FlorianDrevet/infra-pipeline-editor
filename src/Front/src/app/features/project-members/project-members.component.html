@@ -73,7 +73,7 @@
                 <div class="members-table__row" [class.members-table__row--busy]="memberActionId() === member.id">
                   @if (memberActionId() === member.id) {
                     <div class="members-table__row-spinner">
-                      <mat-spinner diameter="18"></mat-spinner>
+                      <app-ds-spinner size="md" />
                     </div>
                   }
 

@@ -1,6 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatRadioModule } from '@angular/material/radio';
@@ -9,7 +8,14 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { DsButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent } from '../../../shared/components/ds';
+import {
+  DsButtonComponent,
+  DsSegmentedControlComponent,
+  DsSegmentedOption,
+  DsSelectComponent,
+  DsSelectOption,
+  DsTextFieldComponent,
+} from '../../../shared/components/ds';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { AppSettingService } from '../../../shared/services/app-setting.service';
 import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
@@ -41,13 +47,13 @@ function toSecretNameSegment(value: string): string {
     TranslateModule,
     FormsModule,
     MatDialogModule,
-    MatButtonModule,
     MatIconModule,
     DsSpinnerComponent,
     MatRadioModule,
     MatTooltipModule,
     MatCheckboxModule,
     DsButtonComponent,
+    DsSegmentedControlComponent,
     DsSelectComponent,
     DsTextFieldComponent,
   ],
@@ -76,6 +82,19 @@ export class AddAppSettingDialogComponent {
 
   // ─── Mode: static value or resource output ───
   protected readonly mode = signal<'static' | 'output'>('output');
+
+  protected readonly modeOptions: readonly DsSegmentedOption[] = [
+    {
+      value: 'output',
+      label: this.translate.instant('RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.MODE_OUTPUT'),
+      icon: 'swap_horiz',
+    },
+    {
+      value: 'static',
+      label: this.translate.instant('RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.MODE_STATIC'),
+      icon: 'edit_note',
+    },
+  ];
 
   // ─── Static mode — Step-based flow ───
   protected readonly staticStep = signal<1 | 2>(1);
@@ -195,7 +214,10 @@ export class AddAppSettingDialogComponent {
     return false;
   });
 
-  protected onModeChange(value: 'static' | 'output'): void {
+  protected onModeChange(value: string): void {
+    if (value !== 'static' && value !== 'output') {
+      return;
+    }
     this.mode.set(value);
     this.step.set(1);
     this.staticStep.set(1);

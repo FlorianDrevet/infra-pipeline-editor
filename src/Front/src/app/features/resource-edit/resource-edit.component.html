@@ -23,10 +23,9 @@
         </a>
         <div class="resource-header__actions">
           @if (isOwner()) {
-            <button class="delete-btn" (click)="openDeleteDialog()" [disabled]="isSaving()">
-              <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
+            <app-ds-button variant="danger" icon="delete_outline" (clicked)="openDeleteDialog()" [disabled]="isSaving()">
               {{ 'RESOURCE_EDIT.DELETE.BUTTON' | translate }}
-            </button>
+            </app-ds-button>
           }
         </div>
       </div>
@@ -383,17 +382,12 @@
                             [placeholder]="'RESOURCE_EDIT.SECURE_PARAM.NEW_GROUP_NAME_PLACEHOLDER' | translate" />
                           <div class="vg-scope-selector">
                             <span class="vg-scope-label">{{ 'RESOURCE_EDIT.SECURE_PARAM.SCOPE_LABEL' | translate }}</span>
-                            <mat-button-toggle-group [ngModel]="passwordNewGroupScope()" (ngModelChange)="passwordNewGroupScope.set($event)"
-                                                     [ngModelOptions]="{standalone: true}" class="vg-scope-toggle">
-                              <mat-button-toggle value="project">
-                                <mat-icon>folder_shared</mat-icon>
-                                {{ 'RESOURCE_EDIT.SECURE_PARAM.SCOPE_PROJECT' | translate }}
-                              </mat-button-toggle>
-                              <mat-button-toggle value="configuration">
-                                <mat-icon>settings</mat-icon>
-                                {{ 'RESOURCE_EDIT.SECURE_PARAM.SCOPE_CONFIGURATION' | translate }}
-                              </mat-button-toggle>
-                            </mat-button-toggle-group>
+                            <app-ds-segmented-control
+                              [ngModel]="passwordNewGroupScope()"
+                              (ngModelChange)="passwordNewGroupScope.set($event)"
+                              [ngModelOptions]="{standalone: true}"
+                              [options]="passwordNewGroupScopeOptions()"
+                              class="vg-scope-toggle" />
                             <span class="vg-scope-hint">
                               @if (passwordNewGroupScope() === 'project') {
                                 {{ 'RESOURCE_EDIT.SECURE_PARAM.SCOPE_PROJECT_HINT' | translate }}
@@ -418,14 +412,12 @@
 
                 <div class="secure-param-actions">
                   @if (hasPasswordConfigChanged()) {
-                    <button mat-flat-button color="primary" class="save-password-btn"
-                            [disabled]="!canSavePasswordConfig()"
-                            (click)="savePasswordConfig()">
-                      @if (passwordSaving()) {
-                        <app-ds-spinner class="btn-spinner" size="md" />
-                      }
+                    <app-ds-button variant="primary"
+                                   [loading]="passwordSaving()"
+                                   [disabled]="!canSavePasswordConfig()"
+                                   (clicked)="savePasswordConfig()">
                       {{ 'RESOURCE_EDIT.SECURE_PARAM.SAVE' | translate }}
-                    </button>
+                    </app-ds-button>
                   }
                   @if (passwordSaveSuccess()) {
                     <span class="save-success-indicator">
@@ -1206,12 +1198,11 @@
                             <span class="storage-item__badge">{{ publicAccessI18nKey(blob.publicAccess) | translate }}</span>
                           }
                           @if (canWrite()) {
-                            <button class="storage-item__remove"
-                              (click)="openRemoveStorageItemDialog('BlobContainer', blob.id, blob.name)"
+                            <app-ds-icon-button icon="close" variant="danger" size="sm"
+                              [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
+                              [appDsTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
                               [disabled]="storageActionLoading()"
-                              [matTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate">
-                              <mat-icon>close</mat-icon>
-                            </button>
+                              (clicked)="openRemoveStorageItemDialog('BlobContainer', blob.id, blob.name)" />
                           }
                         </div>
                       }
@@ -1230,9 +1221,9 @@
                             [label]="'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_LABEL' | translate"
                             [options]="publicAccessSelectOptions()" />
                           <div class="storage-add-form__actions">
-                            <button mat-stroked-button type="button" (click)="showBlobAddForm.set(false)">
+                            <app-ds-button variant="secondary" type="button" (clicked)="showBlobAddForm.set(false)">
                               {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
-                            </button>
+                            </app-ds-button>
                             <app-ds-button variant="primary" type="submit"
                               [disabled]="blobAddForm.invalid || storageActionLoading()"
                               [loading]="storageActionLoading()">
@@ -1242,10 +1233,9 @@
                         </form>
                       </div>
                     } @else {
-                      <button class="ra-add-btn" (click)="showBlobAddForm.set(true)">
-                        <mat-icon>add</mat-icon>
+                      <app-ds-button variant="secondary" icon="add" (clicked)="showBlobAddForm.set(true)">
                         {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_BLOB' | translate }}
-                      </button>
+                      </app-ds-button>
                     }
                   }
                   <!-- ��������� Blob CORS ��������� -->
@@ -1256,10 +1246,9 @@
                         <p class="cors-editor__description">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.DESCRIPTION' | translate }}</p>
                       </div>
                       @if (canWrite()) {
-                        <button class="ghost-button cors-editor__add" type="button" (click)="addCorsRule()">
-                          <mat-icon>add</mat-icon>
+                        <app-ds-button variant="ghost" icon="add" type="button" (clicked)="addCorsRule()">
                           {{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_RULE' | translate }}
-                        </button>
+                        </app-ds-button>
                       }
                     </div>
 
@@ -1275,9 +1264,9 @@
                             <div class="cors-rule-card__topbar">
                               <span class="cors-rule-card__badge">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.RULE' | translate }} {{ i + 1 }}</span>
                               @if (canWrite()) {
-                                <button class="cors-rule-card__remove" type="button" (click)="removeCorsRule(i)">
-                                  <mat-icon>close</mat-icon>
-                                </button>
+                                <app-ds-icon-button icon="close" variant="danger" size="sm" type="button"
+                                  [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
+                                  (clicked)="removeCorsRule(i)" />
                               }
                             </div>
                             <div class="cors-rule-card__fields">
@@ -1291,7 +1280,9 @@
                                     <span class="cors-field__chip">
                                       {{ origin }}
                                       @if (canWrite()) {
-                                        <button class="cors-field__chip-remove" type="button" (click)="removeCorsRuleValue(i, 'allowedOrigins', vi)">&times;</button>
+                                        <app-ds-icon-button icon="close" variant="neutral" size="sm" type="button"
+                                          [ariaLabel]="origin"
+                                          (clicked)="removeCorsRuleValue(i, 'allowedOrigins', vi)" />
                                       }
                                     </span>
                                   }
@@ -1301,10 +1292,9 @@
                                     <input #blobOriginInput class="cors-field__input"
                                       [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
                                       (keydown.enter)="addCorsRuleValue(i, 'allowedOrigins', blobOriginInput.value); blobOriginInput.value = ''; $event.preventDefault()" />
-                                    <button class="cors-field__add-btn" type="button"
-                                      (click)="addCorsRuleValue(i, 'allowedOrigins', blobOriginInput.value); blobOriginInput.value = ''">
-                                      <mat-icon>add</mat-icon>
-                                    </button>
+                                    <app-ds-icon-button icon="add" variant="accent" size="md" type="button"
+                                      [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (clicked)="addCorsRuleValue(i, 'allowedOrigins', blobOriginInput.value); blobOriginInput.value = ''" />
                                   </div>
                                 }
                                 @if (corsFieldError('blob', i, 'allowedOrigins')) {
@@ -1352,7 +1342,9 @@
                                     <span class="cors-field__chip">
                                       {{ header }}
                                       @if (canWrite()) {
-                                        <button class="cors-field__chip-remove" type="button" (click)="removeCorsRuleValue(i, 'allowedHeaders', vi)">&times;</button>
+                                        <app-ds-icon-button icon="close" variant="neutral" size="sm" type="button"
+                                          [ariaLabel]="header"
+                                          (clicked)="removeCorsRuleValue(i, 'allowedHeaders', vi)" />
                                       }
                                     </span>
                                   }
@@ -1362,10 +1354,9 @@
                                     <input #blobAllowedHeaderInput class="cors-field__input"
                                       [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
                                       (keydown.enter)="addCorsRuleValue(i, 'allowedHeaders', blobAllowedHeaderInput.value); blobAllowedHeaderInput.value = ''; $event.preventDefault()" />
-                                    <button class="cors-field__add-btn" type="button"
-                                      (click)="addCorsRuleValue(i, 'allowedHeaders', blobAllowedHeaderInput.value); blobAllowedHeaderInput.value = ''">
-                                      <mat-icon>add</mat-icon>
-                                    </button>
+                                    <app-ds-icon-button icon="add" variant="accent" size="md" type="button"
+                                      [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (clicked)="addCorsRuleValue(i, 'allowedHeaders', blobAllowedHeaderInput.value); blobAllowedHeaderInput.value = ''" />
                                   </div>
                                 }
                                 @if (corsFieldError('blob', i, 'allowedHeaders')) {
@@ -1391,7 +1382,9 @@
                                     <span class="cors-field__chip">
                                       {{ header }}
                                       @if (canWrite()) {
-                                        <button class="cors-field__chip-remove" type="button" (click)="removeCorsRuleValue(i, 'exposedHeaders', vi)">&times;</button>
+                                        <app-ds-icon-button icon="close" variant="neutral" size="sm" type="button"
+                                          [ariaLabel]="header"
+                                          (clicked)="removeCorsRuleValue(i, 'exposedHeaders', vi)" />
                                       }
                                     </span>
                                   }
@@ -1401,10 +1394,9 @@
                                     <input #blobExposedHeaderInput class="cors-field__input"
                                       [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
                                       (keydown.enter)="addCorsRuleValue(i, 'exposedHeaders', blobExposedHeaderInput.value); blobExposedHeaderInput.value = ''; $event.preventDefault()" />
-                                    <button class="cors-field__add-btn" type="button"
-                                      (click)="addCorsRuleValue(i, 'exposedHeaders', blobExposedHeaderInput.value); blobExposedHeaderInput.value = ''">
-                                      <mat-icon>add</mat-icon>
-                                    </button>
+                                    <app-ds-icon-button icon="add" variant="accent" size="md" type="button"
+                                      [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (clicked)="addCorsRuleValue(i, 'exposedHeaders', blobExposedHeaderInput.value); blobExposedHeaderInput.value = ''" />
                                   </div>
                                 }
                                 @if (corsFieldError('blob', i, 'exposedHeaders')) {
@@ -1448,10 +1440,9 @@
                         <p class="cors-editor__description">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.DESCRIPTION' | translate }}</p>
                       </div>
                       @if (canWrite()) {
-                        <button class="ghost-button cors-editor__add" type="button" (click)="addLifecycleRule()">
-                          <mat-icon>add</mat-icon>
+                        <app-ds-button variant="ghost" icon="add" type="button" (clicked)="addLifecycleRule()">
                           {{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.ADD_RULE' | translate }}
-                        </button>
+                        </app-ds-button>
                       }
                     </div>
 
@@ -1467,9 +1458,9 @@
                             <div class="cors-rule-card__topbar">
                               <span class="cors-rule-card__badge">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.RULE' | translate }} {{ i + 1 }}</span>
                               @if (canWrite()) {
-                                <button class="cors-rule-card__remove" type="button" (click)="removeLifecycleRule(i)">
-                                  <mat-icon>close</mat-icon>
-                                </button>
+                                <app-ds-icon-button icon="close" variant="danger" size="sm" type="button"
+                                  [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
+                                  (clicked)="removeLifecycleRule(i)" />
                               }
                             </div>
                             <div class="cors-rule-card__fields">
@@ -1544,12 +1535,11 @@
                           <mat-icon class="storage-item__icon">queue</mat-icon>
                           <span class="storage-item__name">{{ q.name }}</span>
                           @if (canWrite()) {
-                            <button class="storage-item__remove"
-                              (click)="openRemoveStorageItemDialog('Queue', q.id, q.name)"
+                            <app-ds-icon-button icon="close" variant="danger" size="sm"
+                              [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
+                              [appDsTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
                               [disabled]="storageActionLoading()"
-                              [matTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate">
-                              <mat-icon>close</mat-icon>
-                            </button>
+                              (clicked)="openRemoveStorageItemDialog('Queue', q.id, q.name)" />
                           }
                         </div>
                       }
@@ -1564,9 +1554,9 @@
                             [label]="'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate"
                             [error]="queueAddForm.get('name')?.hasError('duplicateName') ? ('RESOURCE_EDIT.STORAGE_SERVICES.DUPLICATE_NAME_ERROR' | translate) : undefined" />
                           <div class="storage-add-form__actions">
-                            <button mat-stroked-button type="button" (click)="showQueueAddForm.set(false)">
+                            <app-ds-button variant="secondary" type="button" (clicked)="showQueueAddForm.set(false)">
                               {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
-                            </button>
+                            </app-ds-button>
                             <app-ds-button variant="primary" type="submit"
                               [disabled]="queueAddForm.invalid || storageActionLoading()"
                               [loading]="storageActionLoading()">
@@ -1576,10 +1566,9 @@
                         </form>
                       </div>
                     } @else {
-                      <button class="ra-add-btn" (click)="showQueueAddForm.set(true)">
-                        <mat-icon>add</mat-icon>
+                      <app-ds-button variant="secondary" icon="add" (clicked)="showQueueAddForm.set(true)">
                         {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_QUEUE' | translate }}
-                      </button>
+                      </app-ds-button>
                     }
                   }
                 </div>
@@ -1605,12 +1594,11 @@
                           <mat-icon class="storage-item__icon">table_chart</mat-icon>
                           <span class="storage-item__name">{{ t.name }}</span>
                           @if (canWrite()) {
-                            <button class="storage-item__remove"
-                              (click)="openRemoveStorageItemDialog('Table', t.id, t.name)"
+                            <app-ds-icon-button icon="close" variant="danger" size="sm"
+                              [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
+                              [appDsTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
                               [disabled]="storageActionLoading()"
-                              [matTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate">
-                              <mat-icon>close</mat-icon>
-                            </button>
+                              (clicked)="openRemoveStorageItemDialog('Table', t.id, t.name)" />
                           }
                         </div>
                       }
@@ -1625,9 +1613,9 @@
                             [label]="'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate"
                             [error]="tableAddForm.get('name')?.hasError('duplicateName') ? ('RESOURCE_EDIT.STORAGE_SERVICES.DUPLICATE_NAME_ERROR' | translate) : undefined" />
                           <div class="storage-add-form__actions">
-                            <button mat-stroked-button type="button" (click)="showTableAddForm.set(false)">
+                            <app-ds-button variant="secondary" type="button" (clicked)="showTableAddForm.set(false)">
                               {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
-                            </button>
+                            </app-ds-button>
                             <app-ds-button variant="primary" type="submit"
                               [disabled]="tableAddForm.invalid || storageActionLoading()"
                               [loading]="storageActionLoading()">
@@ -1637,10 +1625,9 @@
                         </form>
                       </div>
                     } @else {
-                      <button class="ra-add-btn" (click)="showTableAddForm.set(true)">
-                        <mat-icon>add</mat-icon>
+                      <app-ds-button variant="secondary" icon="add" (clicked)="showTableAddForm.set(true)">
                         {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_TABLE' | translate }}
-                      </button>
+                      </app-ds-button>
                     }
                   }
                   <!-- ��������� Table CORS ��������� -->
@@ -1651,10 +1638,9 @@
                         <p class="cors-editor__description">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.DESCRIPTION' | translate }}</p>
                       </div>
                       @if (canWrite()) {
-                        <button class="ghost-button cors-editor__add" type="button" (click)="addTableCorsRule()">
-                          <mat-icon>add</mat-icon>
+                        <app-ds-button variant="ghost" icon="add" type="button" (clicked)="addTableCorsRule()">
                           {{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_RULE' | translate }}
-                        </button>
+                        </app-ds-button>
                       }
                     </div>
 
@@ -1670,9 +1656,9 @@
                             <div class="cors-rule-card__topbar">
                               <span class="cors-rule-card__badge">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.RULE' | translate }} {{ i + 1 }}</span>
                               @if (canWrite()) {
-                                <button class="cors-rule-card__remove" type="button" (click)="removeTableCorsRule(i)">
-                                  <mat-icon>close</mat-icon>
-                                </button>
+                                <app-ds-icon-button icon="close" variant="danger" size="sm" type="button"
+                                  [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
+                                  (clicked)="removeTableCorsRule(i)" />
                               }
                             </div>
                             <div class="cors-rule-card__fields">
@@ -1686,7 +1672,9 @@
                                     <span class="cors-field__chip">
                                       {{ origin }}
                                       @if (canWrite()) {
-                                        <button class="cors-field__chip-remove" type="button" (click)="removeTableCorsRuleValue(i, 'allowedOrigins', vi)">&times;</button>
+                                        <app-ds-icon-button icon="close" variant="neutral" size="sm" type="button"
+                                          [ariaLabel]="origin"
+                                          (clicked)="removeTableCorsRuleValue(i, 'allowedOrigins', vi)" />
                                       }
                                     </span>
                                   }
@@ -1696,10 +1684,9 @@
                                     <input #tableOriginInput class="cors-field__input"
                                       [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
                                       (keydown.enter)="addTableCorsRuleValue(i, 'allowedOrigins', tableOriginInput.value); tableOriginInput.value = ''; $event.preventDefault()" />
-                                    <button class="cors-field__add-btn" type="button"
-                                      (click)="addTableCorsRuleValue(i, 'allowedOrigins', tableOriginInput.value); tableOriginInput.value = ''">
-                                      <mat-icon>add</mat-icon>
-                                    </button>
+                                    <app-ds-icon-button icon="add" variant="accent" size="md" type="button"
+                                      [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (clicked)="addTableCorsRuleValue(i, 'allowedOrigins', tableOriginInput.value); tableOriginInput.value = ''" />
                                   </div>
                                 }
                                 @if (corsFieldError('table', i, 'allowedOrigins')) {
@@ -1747,7 +1734,9 @@
                                     <span class="cors-field__chip">
                                       {{ header }}
                                       @if (canWrite()) {
-                                        <button class="cors-field__chip-remove" type="button" (click)="removeTableCorsRuleValue(i, 'allowedHeaders', vi)">&times;</button>
+                                        <app-ds-icon-button icon="close" variant="neutral" size="sm" type="button"
+                                          [ariaLabel]="header"
+                                          (clicked)="removeTableCorsRuleValue(i, 'allowedHeaders', vi)" />
                                       }
                                     </span>
                                   }
@@ -1757,10 +1746,9 @@
                                     <input #tableAllowedHeaderInput class="cors-field__input"
                                       [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
                                       (keydown.enter)="addTableCorsRuleValue(i, 'allowedHeaders', tableAllowedHeaderInput.value); tableAllowedHeaderInput.value = ''; $event.preventDefault()" />
-                                    <button class="cors-field__add-btn" type="button"
-                                      (click)="addTableCorsRuleValue(i, 'allowedHeaders', tableAllowedHeaderInput.value); tableAllowedHeaderInput.value = ''">
-                                      <mat-icon>add</mat-icon>
-                                    </button>
+                                    <app-ds-icon-button icon="add" variant="accent" size="md" type="button"
+                                      [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (clicked)="addTableCorsRuleValue(i, 'allowedHeaders', tableAllowedHeaderInput.value); tableAllowedHeaderInput.value = ''" />
                                   </div>
                                 }
                                 @if (corsFieldError('table', i, 'allowedHeaders')) {
@@ -1786,7 +1774,9 @@
                                     <span class="cors-field__chip">
                                       {{ header }}
                                       @if (canWrite()) {
-                                        <button class="cors-field__chip-remove" type="button" (click)="removeTableCorsRuleValue(i, 'exposedHeaders', vi)">&times;</button>
+                                        <app-ds-icon-button icon="close" variant="neutral" size="sm" type="button"
+                                          [ariaLabel]="header"
+                                          (clicked)="removeTableCorsRuleValue(i, 'exposedHeaders', vi)" />
                                       }
                                     </span>
                                   }
@@ -1796,10 +1786,9 @@
                                     <input #tableExposedHeaderInput class="cors-field__input"
                                       [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
                                       (keydown.enter)="addTableCorsRuleValue(i, 'exposedHeaders', tableExposedHeaderInput.value); tableExposedHeaderInput.value = ''; $event.preventDefault()" />
-                                    <button class="cors-field__add-btn" type="button"
-                                      (click)="addTableCorsRuleValue(i, 'exposedHeaders', tableExposedHeaderInput.value); tableExposedHeaderInput.value = ''">
-                                      <mat-icon>add</mat-icon>
-                                    </button>
+                                    <app-ds-icon-button icon="add" variant="accent" size="md" type="button"
+                                      [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (clicked)="addTableCorsRuleValue(i, 'exposedHeaders', tableExposedHeaderInput.value); tableExposedHeaderInput.value = ''" />
                                   </div>
                                 }
                                 @if (corsFieldError('table', i, 'exposedHeaders')) {
@@ -2015,25 +2004,19 @@
         </div>
         <div class="save-bar__actions">
           @if (isSaveBlockedByNameAvailability() && nameAvailabilityOverallState() === 'has-unavailable') {
-            <button class="save-bar__override" (click)="overrideNameAvailability()">
-              <mat-icon class="save-bar__override-icon">verified_user</mat-icon>
+            <app-ds-button variant="secondary" icon="verified_user" (clicked)="overrideNameAvailability()">
               {{ 'RESOURCE_EDIT.ACTIONS.NAME_OVERRIDE' | translate }}
-            </button>
+            </app-ds-button>
           }
-          <button class="save-bar__discard" (click)="discardChanges()">
+          <app-ds-button variant="ghost" (clicked)="discardChanges()">
             {{ 'RESOURCE_EDIT.ACTIONS.DISCARD' | translate }}
-          </button>
-          <button
-            class="save-bar__save"
-            (click)="onSave()"
-            [disabled]="isSaving() || generalForm.invalid || isSaveBlockedByAcr() || isSaveBlockedByNameAvailability()">
-            @if (isSaving()) {
-              <app-ds-spinner class="save-bar__spinner" size="sm" />
-            } @else {
-              <mat-icon class="save-bar__save-icon">save</mat-icon>
-            }
+          </app-ds-button>
+          <app-ds-button variant="primary" icon="save"
+            [loading]="isSaving()"
+            [disabled]="isSaving() || generalForm.invalid || isSaveBlockedByAcr() || isSaveBlockedByNameAvailability()"
+            (clicked)="onSave()">
             {{ (isSaving() ? 'RESOURCE_EDIT.ACTIONS.SAVING' : 'RESOURCE_EDIT.ACTIONS.SAVE') | translate }}
-          </button>
+          </app-ds-button>
         </div>
       </div>
     }

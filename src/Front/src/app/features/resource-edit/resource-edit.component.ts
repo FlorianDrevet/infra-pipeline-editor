@@ -3,14 +3,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { EMPTY, Subscription, catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs';
-import { MatButtonModule } from '@angular/material/button';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { DsSpinnerComponent } from '../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -81,7 +79,7 @@ import { ResourceEditGrantedRightsSectionComponent } from './sections/identity-a
 import { ResourceEditRoleAssignmentsSectionComponent } from './sections/identity-access/resource-edit-role-assignments-section.component';
 import { ResourceEditUsedBySectionComponent } from './sections/identity-access/resource-edit-used-by-section.component';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent } from '../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent, DsIconButtonComponent, DsSegmentedControlComponent, DsSegmentedOption, DsTooltipDirective } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
 import { BuildContextPickerComponent } from '../../shared/components/build-context-picker/build-context-picker.component';
 import { ContainerAppAcrServiceConnectionsComponent } from './components/container-app-acr-service-connections/container-app-acr-service-connections.component';
@@ -170,7 +168,6 @@ type CorsFieldKey = CorsListField | CorsMethodField | 'maxAgeInSeconds';
     RouterLink,
     FormsModule,
     ReactiveFormsModule,
-    MatButtonModule,
     MatDialogModule,
     MatIconModule,
     DsSpinnerComponent,
@@ -178,7 +175,6 @@ type CorsFieldKey = CorsListField | CorsMethodField | 'maxAgeInSeconds';
     DsToggleComponent,
     MatTabsModule,
     MatTooltipModule,
-    MatButtonToggleModule,
     MatExpansionModule,
     DeploymentConfigComponent,
     ResourceEditAppSettingsSectionComponent,
@@ -189,6 +185,9 @@ type CorsFieldKey = CorsListField | CorsMethodField | 'maxAgeInSeconds';
     ResourceEditUsedBySectionComponent,
     ToggleSectionCardComponent,
     DsButtonComponent,
+    DsIconButtonComponent,
+    DsSegmentedControlComponent,
+    DsTooltipDirective,
     DsTextFieldComponent,
     DockerfilePickerComponent,
     BuildContextPickerComponent,
@@ -587,6 +586,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly passwordVgSelectOptions = computed<DsSelectOption[]>(() => [
     ...this.passwordVgOptions().map(vg => ({ value: vg.id, label: vg.groupName })),
     { value: '__create_new__', label: this.translate.instant('RESOURCE_EDIT.SECURE_PARAM.CREATE_NEW_GROUP') },
+  ]);
+
+  /** Segmented control options for the new Variable Group scope (project vs configuration). */
+  protected readonly passwordNewGroupScopeOptions = computed<DsSegmentedOption[]>(() => [
+    { value: 'project', label: this.translate.instant('RESOURCE_EDIT.SECURE_PARAM.SCOPE_PROJECT'), icon: 'folder_shared' },
+    { value: 'configuration', label: this.translate.instant('RESOURCE_EDIT.SECURE_PARAM.SCOPE_CONFIGURATION'), icon: 'settings' },
   ]);
 
   // ─── Secure Parameter Mappings (SqlServer password config) ───

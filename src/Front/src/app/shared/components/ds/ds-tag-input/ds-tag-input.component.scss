@@ -1,0 +1,94 @@
+// ============================================================================
+// app-ds-tag-input — V2 (UI Refresh 2026-05)
+// ============================================================================
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.ds-tag-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-4);
+}
+
+.ds-tag-input__label {
+  font: var(--ifs-text-body-sm);
+  color: var(--ifs-text-secondary);
+  font-weight: 500;
+}
+
+.ds-tag-input__required {
+  color: var(--ifs-danger);
+  margin-left: var(--ifs-space-2);
+}
+
+.ds-tag-input__wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ifs-space-4);
+  min-height: 40px;
+  padding: var(--ifs-space-4) var(--ifs-space-8);
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
+  transition: border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
+}
+
+.ds-tag-input__wrapper--focused {
+  border-color: var(--ifs-brand-500);
+  box-shadow: var(--ifs-focus-ring);
+}
+
+.ds-tag-input__wrapper--error {
+  border-color: var(--ifs-danger);
+}
+
+.ds-tag-input__wrapper--disabled {
+  background: var(--ifs-surface-2);
+  color: var(--ifs-text-disabled);
+  cursor: not-allowed;
+}
+
+.ds-tag-input__chip {
+  display: inline-flex;
+  outline: none;
+  border-radius: var(--ifs-radius-pill);
+
+  &:focus-visible {
+    box-shadow: var(--ifs-focus-ring);
+  }
+}
+
+.ds-tag-input__input {
+  flex: 1 1 120px;
+  min-width: 80px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ifs-text-primary);
+  font: var(--ifs-text-body-md);
+  padding: var(--ifs-space-2) 0;
+
+  &::placeholder {
+    color: var(--ifs-text-muted);
+  }
+
+  &:disabled {
+    color: var(--ifs-text-disabled);
+    cursor: not-allowed;
+  }
+}
+
+.ds-tag-input__helper {
+  font: var(--ifs-text-caption);
+  color: var(--ifs-text-muted);
+}
+
+.ds-tag-input__error {
+  font: var(--ifs-text-caption);
+  color: var(--ifs-danger);
+}

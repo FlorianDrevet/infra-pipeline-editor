@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, input, OnInit, signal } from '@angular/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
+import { DsButtonComponent } from '../../../shared/components/ds/ds-button/ds-button.component';
+import { DsIconButtonComponent } from '../../../shared/components/ds/ds-icon-button/ds-icon-button.component';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { ProjectResponse, ProjectPipelineVariableGroupResponse } from '../../../shared/interfaces/project.interface';
@@ -16,8 +17,9 @@ import { AddVariableGroupDialogComponent } from '../../config-detail/add-variabl
   imports: [
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
-    MatTooltipModule,
+    DsSpinnerComponent,
+    DsButtonComponent,
+    DsIconButtonComponent,
     TranslateModule,
   ],
   templateUrl: './project-detail-variable-groups-section.component.html',

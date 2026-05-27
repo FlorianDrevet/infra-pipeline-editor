@@ -1,0 +1,58 @@
+<div class="ds-tag-input">
+  @if (label()) {
+    <label class="ds-tag-input__label" [attr.for]="inputId">
+      {{ label() }}
+      @if (required()) {
+        <span class="ds-tag-input__required" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+
+  <div
+    class="ds-tag-input__wrapper"
+    [class.ds-tag-input__wrapper--focused]="focused()"
+    [class.ds-tag-input__wrapper--disabled]="disabledState()"
+    [class.ds-tag-input__wrapper--error]="!!resolvedError()"
+  >
+    @for (tag of tags(); track tag.value; let i = $index) {
+      <span
+        class="ds-tag-input__chip"
+        tabindex="0"
+        (keydown)="onChipKeyDown($event, i)"
+      >
+        <app-ds-chip
+          variant="neutral"
+          size="sm"
+          [removable]="tag.removable !== false && !disabledState()"
+          (removed)="onChipRemove(i)"
+        >
+          {{ tag.label ?? tag.value }}
+        </app-ds-chip>
+      </span>
+    }
+    <input
+      class="ds-tag-input__input"
+      type="text"
+      [id]="inputId"
+      [placeholder]="placeholder()"
+      [disabled]="disabledState()"
+      [attr.aria-describedby]="describedBy()"
+      [attr.aria-invalid]="!!resolvedError()"
+      [value]="draft()"
+      (input)="onInput($event)"
+      (keydown)="onKeyDown($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+    />
+  </div>
+
+  @if (resolvedError()) {
+    <div class="ds-tag-input__error" [id]="errorId" role="alert">
+      {{ resolvedError() }}
+    </div>
+  } @else if (helperText()) {
+    <div class="ds-tag-input__helper" [id]="helperId">
+      {{ helperText() }}
+    </div>
+  }
+</div>

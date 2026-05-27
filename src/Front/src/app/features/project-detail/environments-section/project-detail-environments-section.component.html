@@ -1,10 +1,12 @@
 <section class="environment-section">
   <div class="environment-toolbar">
     @if (canWrite()) {
-      <button type="button" class="environment-toolbar__add-button" (click)="onAddEnvironment()">
-        <mat-icon>add_circle_outline</mat-icon>
+      <app-ds-button
+        variant="primary"
+        icon="add_circle_outline"
+        (clicked)="onAddEnvironment()">
         {{ 'PROJECT_DETAIL.ENVIRONMENTS.ADD' | translate }}
-      </button>
+      </app-ds-button>
     }
   </div>
 
@@ -69,28 +71,26 @@
 
               <div class="environment-panel__actions">
                 @if (actionId() === panel.environment.id) {
-                  <mat-spinner class="environment-panel__spinner" diameter="20"></mat-spinner>
+                  <app-ds-spinner class="environment-panel__spinner" size="md" />
                 }
 
                 @if (canWrite()) {
-                  <button
-                    type="button"
-                    class="environment-panel__action environment-panel__action--edit"
-                    [attr.aria-label]="'PROJECT_DETAIL.ENVIRONMENTS.EDIT' | translate"
-                    [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.EDIT' | translate"
+                  <app-ds-icon-button
+                    variant="neutral"
+                    icon="edit"
+                    [tooltip]="'PROJECT_DETAIL.ENVIRONMENTS.EDIT' | translate"
+                    [ariaLabel]="'PROJECT_DETAIL.ENVIRONMENTS.EDIT' | translate"
                     [disabled]="actionId() === panel.environment.id"
-                    (click)="onEditEnvironment(panel.environment)">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button
-                    type="button"
-                    class="environment-panel__action environment-panel__action--delete"
-                    [attr.aria-label]="'PROJECT_DETAIL.ENVIRONMENTS.REMOVE' | translate"
-                    [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.REMOVE' | translate"
+                    (clicked)="onEditEnvironment(panel.environment)">
+                  </app-ds-icon-button>
+                  <app-ds-icon-button
+                    variant="danger"
+                    icon="delete_outline"
+                    [tooltip]="'PROJECT_DETAIL.ENVIRONMENTS.REMOVE' | translate"
+                    [ariaLabel]="'PROJECT_DETAIL.ENVIRONMENTS.REMOVE' | translate"
                     [disabled]="actionId() === panel.environment.id"
-                    (click)="onRemoveEnvironment(panel.environment)">
-                    <mat-icon>delete_outline</mat-icon>
-                  </button>
+                    (clicked)="onRemoveEnvironment(panel.environment)">
+                  </app-ds-icon-button>
                 }
               </div>
             </div>
@@ -151,10 +151,12 @@
       <p>{{ 'PROJECT_DETAIL.ENVIRONMENTS.EMPTY' | translate }}</p>
 
       @if (canWrite()) {
-        <button type="button" class="environment-toolbar__add-button" (click)="onAddEnvironment()">
-          <mat-icon>add_circle_outline</mat-icon>
+        <app-ds-button
+          variant="primary"
+          icon="add_circle_outline"
+          (clicked)="onAddEnvironment()">
           {{ 'PROJECT_DETAIL.ENVIRONMENTS.ADD' | translate }}
-        </button>
+        </app-ds-button>
       }
     </div>
   }

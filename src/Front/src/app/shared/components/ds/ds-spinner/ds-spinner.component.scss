@@ -1,0 +1,57 @@
+// ============================================================================
+// app-ds-spinner — V2 (UI Refresh 2026-05)
+// V2 whitelisted: spinner rotation is functional, not decorative.
+// ============================================================================
+
+:host {
+  display: inline-flex;
+}
+
+.ds-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  line-height: 0;
+}
+
+.ds-spinner--inline {
+  vertical-align: middle;
+}
+
+.ds-spinner__svg {
+  display: block;
+  // V2 whitelisted: continuous rotation drives the spinner animation.
+  animation: ifs-spinner-rotate 0.8s linear infinite;
+}
+
+.ds-spinner__track {
+  stroke: var(--ifs-border-subtle);
+  opacity: 0.4;
+}
+
+.ds-spinner__arc {
+  stroke: currentColor;
+  stroke-dasharray: 60 100;
+  stroke-dashoffset: 0;
+  transform-origin: center;
+}
+
+@keyframes ifs-spinner-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-spinner__svg {
+    animation: none;
+  }
+
+  .ds-spinner__arc {
+    stroke-dasharray: 160 0;
+  }
+}

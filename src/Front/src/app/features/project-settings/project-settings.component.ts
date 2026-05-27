@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
@@ -27,7 +26,6 @@ import {
     RouterLink,
     FormsModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     DsButtonComponent,
     DsTextFieldComponent,
     DsToggleComponent,

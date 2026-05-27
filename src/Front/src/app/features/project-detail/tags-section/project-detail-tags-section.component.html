@@ -5,9 +5,11 @@
       {{ 'PROJECT_DETAIL.TAGS.TITLE' | translate }}
     </h3>
     @if (canWrite() && !isEditingProjectTags()) {
-      <button class="template-action-btn template-action-btn--inline" (click)="startEditProjectTags()">
-        <mat-icon>edit</mat-icon>
-      </button>
+      <app-ds-icon-button
+        icon="edit"
+        variant="neutral"
+        [ariaLabel]="'PROJECT_DETAIL.TAGS.EDIT' | translate"
+        (clicked)="startEditProjectTags()" />
     }
   </div>
 
@@ -36,9 +38,12 @@
           [label]="'PROJECT_DETAIL.TAGS.TAG_VALUE' | translate"
           [formControl]="tagValueCtrl"
           (keydown.enter)="addProjectTag()" />
-        <button type="button" mat-icon-button (click)="addProjectTag()" [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()">
-          <mat-icon>add</mat-icon>
-        </button>
+        <app-ds-icon-button
+          icon="add"
+          variant="accent"
+          [ariaLabel]="'PROJECT_DETAIL.TAGS.ADD_TAG' | translate"
+          [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()"
+          (clicked)="addProjectTag()" />
       </div>
 
       @if (editingTags().length > 0) {

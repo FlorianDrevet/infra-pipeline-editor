@@ -1,0 +1,78 @@
+// ============================================================================
+// app-ds-progress-bar — V2 (UI Refresh 2026-05)
+// V2 whitelisted: indeterminate sliding bar is functional, not decorative.
+// ============================================================================
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.ds-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-4);
+  width: 100%;
+}
+
+.ds-progress__label {
+  font: var(--ifs-text-body-sm);
+  color: var(--ifs-text-secondary);
+}
+
+.ds-progress__track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: var(--ifs-surface-2);
+  border-radius: var(--ifs-radius-sm);
+  overflow: hidden;
+}
+
+.ds-progress__bar {
+  height: 100%;
+  border-radius: var(--ifs-radius-sm);
+  transition: width var(--ifs-duration-base) var(--ifs-ease-standard);
+}
+
+.ds-progress__track--brand .ds-progress__bar {
+  background: var(--ifs-brand-500);
+}
+
+.ds-progress__track--success .ds-progress__bar {
+  background: var(--ifs-success);
+}
+
+.ds-progress__track--danger .ds-progress__bar {
+  background: var(--ifs-danger);
+}
+
+.ds-progress__bar--indeterminate {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  // V2 whitelisted: indeterminate animation is the core affordance.
+  animation: ifs-progress-indeterminate 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes ifs-progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-progress__bar {
+    transition: none;
+  }
+  .ds-progress__bar--indeterminate {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+}

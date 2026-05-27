@@ -1,0 +1,91 @@
+// ============================================================================
+// app-ds-menu — V2 (UI Refresh 2026-05)
+// ============================================================================
+
+:host {
+  display: block;
+}
+
+.ds-menu {
+  list-style: none;
+  margin: 0;
+  padding: var(--ifs-space-4) 0;
+  min-width: 160px;
+  max-width: 320px;
+  background: var(--ifs-surface-2);
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-lg);
+  box-shadow: var(--ifs-shadow-md);
+  z-index: var(--ifs-z-popover);
+}
+
+.ds-menu__divider {
+  height: 1px;
+  margin: var(--ifs-space-4) 0;
+  background: var(--ifs-border-subtle);
+}
+
+.ds-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--ifs-space-8);
+  width: 100%;
+  min-height: 36px;
+  padding: 0 var(--ifs-space-12);
+  border: none;
+  background: transparent;
+  color: var(--ifs-text-primary);
+  font: var(--ifs-text-body-md);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    color var(--ifs-duration-fast) var(--ifs-ease-standard);
+
+  &:hover:not(:disabled) {
+    background: var(--ifs-surface-3);
+  }
+
+  &:focus-visible {
+    outline: none;
+    background: var(--ifs-surface-3);
+    box-shadow: inset 0 0 0 2px var(--ifs-brand-500);
+  }
+
+  &:disabled {
+    color: var(--ifs-text-disabled);
+    cursor: not-allowed;
+  }
+}
+
+.ds-menu__item--danger {
+  color: var(--ifs-danger);
+
+  &:hover:not(:disabled) {
+    background: var(--ifs-danger-bg);
+  }
+}
+
+.ds-menu__icon {
+  flex-shrink: 0;
+  width: var(--ifs-icon-sm);
+  height: var(--ifs-icon-sm);
+  font-size: var(--ifs-icon-sm);
+  line-height: var(--ifs-icon-sm);
+}
+
+.ds-menu__icon--trailing {
+  margin-left: auto;
+}
+
+.ds-menu__label {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-menu__item {
+    transition: none;
+  }
+}

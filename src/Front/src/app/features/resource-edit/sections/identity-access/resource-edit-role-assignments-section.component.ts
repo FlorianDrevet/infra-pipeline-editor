@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { DsSpinnerComponent } from '../../../../shared/components/ds/ds-spinner/ds-spinner.component';
+import { DsButtonComponent } from '../../../../shared/components/ds/ds-button/ds-button.component';
+import { DsIconButtonComponent } from '../../../../shared/components/ds/ds-icon-button/ds-icon-button.component';
+import { DsTooltipDirective } from '../../../../shared/components/ds/ds-tooltip/ds-tooltip.directive';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -14,10 +16,12 @@ import { ResourceEditIdentityAccessSection } from './resource-edit-identity-acce
   selector: 'app-resource-edit-role-assignments-section',
   standalone: true,
   imports: [
-    MatButtonModule,
     MatIconModule,
     MatMenuModule,
     DsSpinnerComponent,
+    DsButtonComponent,
+    DsIconButtonComponent,
+    DsTooltipDirective,
     MatTooltipModule,
     RouterLink,
     TranslateModule,
