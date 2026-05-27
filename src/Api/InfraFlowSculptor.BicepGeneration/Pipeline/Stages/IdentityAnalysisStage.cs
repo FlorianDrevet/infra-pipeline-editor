@@ -1,5 +1,3 @@
-using InfraFlowSculptor.BicepGeneration.Helpers;
-
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 
 /// <summary>
@@ -33,7 +31,7 @@ public sealed class IdentityAnalysisStage : IBicepGenerationStage
             .GroupBy(ra => (ra.SourceResourceName, ra.SourceResourceType))
             .ToDictionary(
                 g => g.Key,
-                g => g.Select(ra => BicepIdentifierHelper.ToBicepIdentifier(ra.UserAssignedIdentityName!))
+                g => g.Select(ra => ra.UserAssignedIdentityName!)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToList());
 
@@ -44,15 +42,15 @@ public sealed class IdentityAnalysisStage : IBicepGenerationStage
                 continue;
 
             var key = (resource.Name, resource.Type);
-            var uaiBicepId = BicepIdentifierHelper.ToBicepIdentifier(resource.AssignedUserAssignedIdentityName);
+            var uaiName = resource.AssignedUserAssignedIdentityName;
             if (userIdentityResources.TryGetValue(key, out var existingList))
             {
-                if (!existingList.Contains(uaiBicepId, StringComparer.OrdinalIgnoreCase))
-                    existingList.Add(uaiBicepId);
+                if (!existingList.Contains(uaiName, StringComparer.OrdinalIgnoreCase))
+                    existingList.Add(uaiName);
             }
             else
             {
-                userIdentityResources[key] = [uaiBicepId];
+                userIdentityResources[key] = [uaiName];
             }
         }
 
@@ -138,16 +136,16 @@ public sealed class IdentityAnalysisStage : IBicepGenerationStage
                 continue;
 
             var key = (resource.Name, resource.Type);
-            var uaiBicepId = BicepIdentifierHelper.ToBicepIdentifier(uaiResource.Name);
+            var uaiName = uaiResource.Name;
 
             if (userIdentityResources.TryGetValue(key, out var existingList))
             {
-                if (!existingList.Contains(uaiBicepId, StringComparer.OrdinalIgnoreCase))
-                    existingList.Add(uaiBicepId);
+                if (!existingList.Contains(uaiName, StringComparer.OrdinalIgnoreCase))
+                    existingList.Add(uaiName);
             }
             else
             {
-                userIdentityResources[key] = [uaiBicepId];
+                userIdentityResources[key] = [uaiName];
             }
         }
     }
