@@ -16,6 +16,7 @@
 | `pr-manager` | Conventions PR (titre, description, template) | `.github/agents/pr-manager.agent.md` |
 | `merge-main` | Fusion main sur branche courante | `.github/agents/merge-main.agent.md` |
 | `dream` | Consolidation mémoire (4 phases Dream) | `.github/agents/dream.agent.md` |
+| `upgrade-orchestrator` | Orchestrateur montées de version (.NET, Angular, NuGet, npm, TS) — lit release notes, planifie, délègue | `.github/agents/upgrade-orchestrator.agent.md` |
 | `memory` | **DEPRECATED** — redirecteur vers `dev` | `.github/agents/memory.agent.md` |
 
 ## Dream concurrency [2026-04-25]
@@ -41,6 +42,8 @@
 | `tdd-workflow` | **Any code modification** — enforces TDD Red→Green→Refactor→Verify cycle, test project init, test debt tracking in `.github/test-debt.md` | `.github/skills/tdd-workflow/SKILL.md` |
 | `angular-patterns` | Angular frontend patterns for ce repo : Signals, standalone components, forms, Axios, routing, Material+Tailwind, i18n | `.github/skills/angular-patterns/SKILL.md` |
 | `bicep-v2-migration` | Migrating an IResourceTypeBicepGenerator from legacy string template to Builder + IR (Vague 2), including TDD tests, emitter parity, review cycle, and skill feedback loop | `.github/skills/bicep-v2-migration/SKILL.md` |
+| `dotnet-upgrade` | .NET version upgrade: SDK, TFM, NuGet, EF Core, ASP.NET Core, Aspire — breaking changes detection, migration procedure, new feature proposals | `.github/skills/dotnet-upgrade/SKILL.md` |
+| `angular-upgrade` | Angular version upgrade: CLI, framework, TypeScript, RxJS, Material, npm packages — breaking changes detection, ng update, new syntax proposals | `.github/skills/angular-upgrade/SKILL.md` |
 
 ## Code Generation Guardrails [2026-04-29]
 

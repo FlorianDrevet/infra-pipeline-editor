@@ -221,6 +221,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 | Debug runtime/AppHost Aspire | **`aspire-debug`** | `.github/agents/aspire-debug.agent.md` |
 | Créer ou soumettre une Pull Request | **`pr-manager`** | `.github/agents/pr-manager.agent.md` |
 | Fusionner la branche main sur la courante | **`merge-main`** | `.github/agents/merge-main.agent.md` |
+| Montée de version .NET, Angular, NuGet, npm, TypeScript | **`upgrade-orchestrator`** + charger le skill `dotnet-upgrade` ou `angular-upgrade` | `.github/agents/upgrade-orchestrator.agent.md` |
 | Consolidation mémoire (dream) | **`dream`** | `.github/agents/dream.agent.md` |
 | Toute PR/commit → relire les conventions PR | **`pr-manager`** | `.github/agents/pr-manager.agent.md` |
 
@@ -368,6 +369,16 @@ Un skill est **différent d'un agent** :
 - **Quand le charger :** dès qu'une tâche consiste à migrer un `IResourceTypeBicepGenerator` du pattern legacy (const string template + regex) vers le pattern Builder + IR (Vague 2)
 - **Fichier :** `.github/skills/bicep-v2-migration/SKILL.md`
 - **Contenu :** les 7 étapes par générateur (analyse → TDD → migration → parité → pipeline → review → maj skill), l'infrastructure IR prérequise, les pièges connus, et la boucle de retour d'expérience
+
+#### `dotnet-upgrade`
+- **Quand le charger :** dès qu'une tâche porte sur une montée de version .NET (SDK, TFM, NuGet, EF Core, ASP.NET Core, Aspire)
+- **Fichier :** `.github/skills/dotnet-upgrade/SKILL.md`
+- **Contenu :** inventaire de l'état actuel, sources de release notes, procédure SDK+TFM, procédure NuGet par groupes de priorité, patterns de breaking changes courants, propositions de nouvelles features, pièges projet (CPM, Aspire, Npgsql, Refit), checklist de validation
+
+#### `angular-upgrade`
+- **Quand le charger :** dès qu'une tâche porte sur une montée de version Angular (CLI, framework, TypeScript, RxJS, Material, npm packages)
+- **Fichier :** `.github/skills/angular-upgrade/SKILL.md`
+- **Contenu :** inventaire état actuel, sources de release notes, procédure `ng update`, procédure TS, patterns de breaking changes Angular (control flow, signals, standalone, inject), gestion npm, pièges projet (Axios, Material+Tailwind, MSAL, i18n), checklist de validation
 
 ---
 

@@ -69,6 +69,7 @@
 - **MCP / Model Context Protocol** — Load the `mcp-dotnet-server` skill (`.github/skills/mcp-dotnet-server/SKILL.md`) for any MCP server design or implementation in C#/.NET, VS Code `.vscode/mcp.json` exposure, transport/auth choices, conversational project creation from prompts, mandatory clarification workflows, IaC import tooling, or long-term MCP integration planning.
 - **UI/UX frontend design quality** — Load the `ui-ux-front-saas` skill (`.github/skills/ui-ux-front-saas/SKILL.md`) for any UI-facing frontend task (pages, components, layouts, styles, UX states).
 - **Pull Requests** — Use the `pr-manager` agent (`.github/agents/pr-manager.agent.md`) for PR title/description conventions.
+- **Dependency upgrades** — Use the `upgrade-orchestrator` agent (`.github/agents/upgrade-orchestrator.agent.md`) for any version bump: .NET SDK, TFM, NuGet packages, Angular CLI, TypeScript, npm packages. It reads release notes, identifies breaking changes, plans atomic migrations, and delegates execution to `dotnet-dev` or `angular-front`.
 
 ## Skills
 
@@ -94,6 +95,8 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 | `tdd-workflow` | **Any code modification**: enforces TDD Red→Green→Refactor→Verify cycle, test project init, test debt tracking in `.github/test-debt.md` | `.github/skills/tdd-workflow/SKILL.md` |
 | `angular-patterns` | Any Angular 19 code: Signals, standalone components, forms, Axios, routing, Material+Tailwind, i18n | `.github/skills/angular-patterns/SKILL.md` |
 | `bicep-v2-migration` | Migrating an IResourceTypeBicepGenerator from legacy string template to Builder + IR (Vague 2), including TDD tests, emitter parity, review cycle, and skill feedback loop | `.github/skills/bicep-v2-migration/SKILL.md` |
+| `dotnet-upgrade` | .NET version upgrade: SDK, TFM, NuGet packages, EF Core, ASP.NET Core, Aspire — breaking changes detection, migration procedure, new feature proposals | `.github/skills/dotnet-upgrade/SKILL.md` |
+| `angular-upgrade` | Angular version upgrade: CLI, framework, TypeScript, RxJS, Material, npm packages — breaking changes detection, ng update, new syntax proposals | `.github/skills/angular-upgrade/SKILL.md` |
 
 ---
 
