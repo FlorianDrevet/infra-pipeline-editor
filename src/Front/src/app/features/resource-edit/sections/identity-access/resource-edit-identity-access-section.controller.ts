@@ -36,6 +36,7 @@ interface ResourceEditIdentityAccessSectionControllerDependencies {
   isUserAssignedIdentity(): boolean;
   isAcrEnabled(): boolean;
   checkAcrPullAccess(): Promise<void>;
+  getAcrPullIdentityId(): string | null;
   supportsAppSettings(): boolean;
   reloadAppSettings(): Promise<void>;
   supportsConfigKeys(): boolean;
@@ -117,9 +118,10 @@ export function createResourceEditIdentityAccessSectionController(
   const groupedRoleAssignments = computed(() => {
     const systemAssigned: RoleAssignmentResponse[] = [];
     const uaiGroups = new Map<string, { identityId: string; identityName: string; assignments: RoleAssignmentResponse[] }>();
+    const acrPullIdentityId = dependencies.getAcrPullIdentityId();
 
     const assignedIdentity = assignedUai();
-    if (assignedIdentity) {
+    if (assignedIdentity && assignedIdentity.identityId !== acrPullIdentityId) {
       uaiGroups.set(assignedIdentity.identityId, {
         identityId: assignedIdentity.identityId,
         identityName: assignedIdentity.identityName,
@@ -128,6 +130,13 @@ export function createResourceEditIdentityAccessSectionController(
     }
 
     for (const assignment of roleAssignments()) {
+      // Hide role assignments belonging to the ACR pull identity (managed in ACR Authentication section)
+      if (assignment.managedIdentityType === 'UserAssigned'
+        && assignment.userAssignedIdentityId
+        && assignment.userAssignedIdentityId === acrPullIdentityId) {
+        continue;
+      }
+
       if (assignment.managedIdentityType === 'UserAssigned' && assignment.userAssignedIdentityId) {
         const existingGroup = uaiGroups.get(assignment.userAssignedIdentityId);
         if (existingGroup) {

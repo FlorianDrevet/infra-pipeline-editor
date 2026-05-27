@@ -69,11 +69,24 @@ public sealed class CheckAcrPullAccessQueryHandler(
         Domain.Common.BaseModels.AzureResource resource,
         CancellationToken cancellationToken)
     {
+        // First check if the role assignment exists on the current resource
         var roleAssignment = resource.RoleAssignments.FirstOrDefault(ra =>
             ra.UserAssignedIdentityId == selectedIdentityId &&
             ra.TargetResourceId == containerRegistryId &&
             ra.RoleDefinitionId == AzureRoleDefinitionCatalog.AcrPull &&
             ra.ManagedIdentityType.Value == ManagedIdentityType.IdentityTypeEnum.UserAssigned);
+
+        // If not found locally, search globally: the UAI may have AcrPull on the ACR via another resource
+        if (roleAssignment is null)
+        {
+            var allAssignmentsForIdentity = await azureResourceRepository
+                .GetRoleAssignmentsByIdentityIdAsync(selectedIdentityId, cancellationToken);
+
+            roleAssignment = allAssignmentsForIdentity.FirstOrDefault(ra =>
+                ra.TargetResourceId == containerRegistryId &&
+                ra.RoleDefinitionId == AzureRoleDefinitionCatalog.AcrPull &&
+                ra.ManagedIdentityType.Value == ManagedIdentityType.IdentityTypeEnum.UserAssigned);
+        }
 
         var uaiResource = await azureResourceRepository.GetByIdReadOnlyAsync(
             selectedIdentityId, cancellationToken);

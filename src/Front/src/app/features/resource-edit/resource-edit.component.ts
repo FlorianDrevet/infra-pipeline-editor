@@ -343,6 +343,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     isUserAssignedIdentity: () => this.isUserAssignedIdentity(),
     isAcrEnabled: () => this.isAcrEnabled(),
     checkAcrPullAccess: () => this.checkAcrPullAccess(),
+    getAcrPullIdentityId: () => this.getCurrentAcrPullIdentityId(),
     supportsAppSettings: () => this.supportsAppSettings(),
     reloadAppSettings: () => this.appSettingsSection.load(),
     supportsConfigKeys: () => this.supportsConfigKeys(),
