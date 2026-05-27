@@ -35,6 +35,7 @@ export class DsTabsComponent {
   public readonly tabs = input.required<readonly DsTabDefinition[]>();
   public readonly activeTabId = model<string | null>(null);
   public readonly ariaLabel = input<string | undefined>(undefined);
+  public readonly stretch = input(false);
 
   public readonly tabChange = output<string>();
 

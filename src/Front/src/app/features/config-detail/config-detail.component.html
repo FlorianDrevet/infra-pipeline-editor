@@ -55,78 +55,80 @@
       <app-config-detail-generation-section [viewModel]="generationViewModel" />
     }
 
-    <app-ds-tabs
-      class="config-tabs"
-      [tabs]="configDetailTabs()"
-      [activeTabId]="activeConfigTabId()"
-      [ariaLabel]="'CONFIG_DETAIL.TABS.ARIA' | translate"
-      (tabChange)="onConfigTabIdChange($event)"
-    />
+    <div class="config-tabs">
+      <app-ds-tabs
+        [tabs]="configDetailTabs()"
+        [activeTabId]="activeConfigTabId()"
+        [stretch]="true"
+        [ariaLabel]="'CONFIG_DETAIL.TABS.ARIA' | translate"
+        (tabChange)="onConfigTabIdChange($event)"
+      />
 
-    @if (activeConfigTabId() === 'resource-groups') {
-      @if (resourcesSectionViewModel(); as resourcesViewModel) {
-        <app-config-detail-resources-section [viewModel]="resourcesViewModel" />
-      }
-    }
-
-    @if (activeConfigTabId() === 'tags') {
-      <app-config-detail-tags-section [canWrite]="canWrite()" [section]="tagsSection" />
-    }
-
-    @if (activeConfigTabId() === 'naming') {
-      @if (namingSectionViewModel(); as namingViewModel) {
-        <app-config-detail-naming-section [viewModel]="namingViewModel" />
-      }
-    }
-
-    @if (activeConfigTabId() === 'cross-config-refs') {
       <div class="tab-content">
-        @if (crossConfigErrorKey()) {
-          <p class="rg-error">{{ crossConfigErrorKey() | translate }}</p>
+        @if (activeConfigTabId() === 'resource-groups') {
+          @if (resourcesSectionViewModel(); as resourcesViewModel) {
+            <app-config-detail-resources-section [viewModel]="resourcesViewModel" />
+          }
         }
 
-        @if (crossConfigLoading()) {
-          <div class="empty-state">
-            <app-ds-spinner size="lg" />
-            <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.LOADING' | translate }}</p>
-          </div>
-        } @else if (crossConfigReferences().length > 0) {
-          <div class="resource-list">
-            @for (ref of crossConfigReferences(); track ref.referenceId) {
-              <div class="resource-item resource-item--cross-config">
-                <mat-icon class="resource-item__icon resource-item__icon--cross-config">{{ resourceTypeIcons[ref.targetResourceType] || 'widgets' }}</mat-icon>
-                <div class="resource-item__info">
-                  <div class="resource-name-row">
-                    <strong>{{ ref.targetResourceName }}</strong>
-                    <a class="cross-config-badge" [routerLink]="['/config', ref.targetConfigId]"
-                       [matTooltip]="'CONFIG_DETAIL.RESOURCES.NAVIGATE_TO_CONFIG' | translate">
-                      <mat-icon class="cross-config-badge__icon">open_in_new</mat-icon>
-                      {{ ref.targetConfigName }}
-                    </a>
+        @if (activeConfigTabId() === 'tags') {
+          <app-config-detail-tags-section [canWrite]="canWrite()" [section]="tagsSection" />
+        }
+
+        @if (activeConfigTabId() === 'naming') {
+          @if (namingSectionViewModel(); as namingViewModel) {
+            <app-config-detail-naming-section [viewModel]="namingViewModel" />
+          }
+        }
+
+        @if (activeConfigTabId() === 'cross-config-refs') {
+          @if (crossConfigErrorKey()) {
+            <p class="rg-error">{{ crossConfigErrorKey() | translate }}</p>
+          }
+
+          @if (crossConfigLoading()) {
+            <div class="empty-state">
+              <app-ds-spinner size="lg" />
+              <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.LOADING' | translate }}</p>
+            </div>
+          } @else if (crossConfigReferences().length > 0) {
+            <div class="resource-list">
+              @for (ref of crossConfigReferences(); track ref.referenceId) {
+                <div class="resource-item resource-item--cross-config">
+                  <mat-icon class="resource-item__icon resource-item__icon--cross-config">{{ resourceTypeIcons[ref.targetResourceType] || 'widgets' }}</mat-icon>
+                  <div class="resource-item__info">
+                    <div class="resource-name-row">
+                      <strong>{{ ref.targetResourceName }}</strong>
+                      <a class="cross-config-badge" [routerLink]="['/config', ref.targetConfigId]"
+                         [matTooltip]="'CONFIG_DETAIL.RESOURCES.NAVIGATE_TO_CONFIG' | translate">
+                        <mat-icon class="cross-config-badge__icon">open_in_new</mat-icon>
+                        {{ ref.targetConfigName }}
+                      </a>
+                    </div>
+                    <span class="resource-item__type">{{ ref.targetResourceType }} · {{ ref.targetResourceGroupName }}</span>
                   </div>
-                  <span class="resource-item__type">{{ ref.targetResourceType }} · {{ ref.targetResourceGroupName }}</span>
                 </div>
-              </div>
-            }
-          </div>
-        } @else if (crossConfigLoaded()) {
-          <div class="empty-state">
-            <mat-icon class="empty-state__icon">link_off</mat-icon>
-            <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.EMPTY' | translate }}</p>
-            <p class="empty-state__hint">{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.EMPTY_HINT' | translate }}</p>
-          </div>
+              }
+            </div>
+          } @else if (crossConfigLoaded()) {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">link_off</mat-icon>
+              <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.EMPTY' | translate }}</p>
+              <p class="empty-state__hint">{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.EMPTY_HINT' | translate }}</p>
+            </div>
+          }
+        }
+
+        @if (activeConfigTabId() === 'variables') {
+          <app-config-detail-variable-groups-section [canWrite]="canWrite()" [section]="variableGroupsSection" />
+        }
+
+        @if (isProjectMultiRepo() && activeConfigTabId() === 'git') {
+          @if (gitSection.viewModel(); as gitViewModel) {
+            <app-config-detail-git-section [viewModel]="gitViewModel" />
+          }
         }
       </div>
-    }
-
-    @if (activeConfigTabId() === 'variables') {
-      <app-config-detail-variable-groups-section [canWrite]="canWrite()" [section]="variableGroupsSection" />
-    }
-
-    @if (isProjectMultiRepo() && activeConfigTabId() === 'git') {
-      @if (gitSection.viewModel(); as gitViewModel) {
-        <app-config-detail-git-section [viewModel]="gitViewModel" />
-      }
-    }
+    </div>
   }
 </div>
