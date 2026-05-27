@@ -22,24 +22,24 @@ public class ResourceGroupConfiguration : IEntityTypeConfiguration<ResourceGroup
     {
         builder.ToTable(nameof(ResourceGroup));
         builder.HasKey(user => user.Id);
-        
+
         builder.ConfigureAggregateRootId<ResourceGroup, ResourceGroupId>();
-        
+
         builder.Property(config => config.Name)
             .HasConversion(new SingleValueConverter<Name, string>())
             .HasMaxLength(ResourceGroupNameMaxLength);
-        
+
         builder.Property(rg => rg.InfraConfigId)
             .HasConversion(new IdValueConverter<InfrastructureConfigId>());
-        
+
         builder.Property(order => order.Location)
             .IsRequired()
             .HasConversion(new EnumValueConverter<Location, Location.LocationEnum>());
-        
-        builder 
+
+        builder
             .HasMany(p => p.Resources)
             .WithOne(t => t.ResourceGroup)
             .HasForeignKey(t => t.ResourceGroupId)
-            .OnDelete(DeleteBehavior.Cascade); 
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

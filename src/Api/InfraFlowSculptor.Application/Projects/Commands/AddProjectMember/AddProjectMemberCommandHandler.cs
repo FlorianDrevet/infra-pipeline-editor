@@ -7,7 +7,6 @@ using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.AddProjectMember;
 
@@ -41,7 +40,7 @@ public sealed class AddProjectMemberCommandHandler(
             return roleResult.Errors;
 
         project.AddMember(targetUserId, roleResult.Value);
-        var saved = await projectRepository.UpdateAsync(project);
+        var saved = projectRepository.Update(project);
 
         return mapper.Map<ProjectResult>(saved);
     }

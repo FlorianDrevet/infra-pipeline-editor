@@ -6,7 +6,7 @@ namespace InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
 public sealed class Sku(Sku.SkuEnum value) : EnumValueObject<Sku.SkuEnum>(value)
 {
     /// <summary>Available Key Vault pricing tiers.</summary>
-    public enum SkuEnum
+    public enum SkuEnum // NOSONAR S2344
     {
         Standard,
         Premium

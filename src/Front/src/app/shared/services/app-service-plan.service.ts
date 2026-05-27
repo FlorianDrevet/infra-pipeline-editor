@@ -12,7 +12,7 @@ import { DependentResourceResponse } from '../interfaces/dependent-resource.inte
   providedIn: 'root',
 })
 export class AppServicePlanService {
-  private axios = inject(AxiosService);
+  private readonly axios = inject(AxiosService);
 
   getById(id: string): Promise<AppServicePlanResponse> {
     return this.axios.request$<AppServicePlanResponse>(

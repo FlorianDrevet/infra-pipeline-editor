@@ -17,10 +17,14 @@
 | `/projects` | POST | `/with-setup` | `CreateProjectWithSetupCommand` (atomic project + layout + envs + repo slots; nullable connection details) [2026-04-25] |
 | `/projects` | DELETE | `/{id:guid}` | `DeleteProjectCommand` |
 | `/projects` | PUT | `/{id:guid}/agent-pool` | `SetAgentPoolCommand` (moved from /infra-configs) [2026-04-04] |
-| `/projects` | POST/PUT/DELETE | `/{id:guid}/repositories/{repoId?}` | Project repository CRUD |
+| `/projects` | POST/PUT/DELETE | `/{id:guid}/repositories/{repoId?}` | Project repository CRUD; active payloads are alias-free, create/update carry transient `PersonalAccessToken` and re-verify configured repository branches server-side [2026-05-19] |
+| `/projects` | POST | `/{id:guid}/repositories/verify` | `VerifyProjectRepositoryConnectionCommand` create-mode pre-save verification: provider + URL + PAT in, branch list/default candidate out, no persistence [2026-05-19] |
+| `/projects` | POST | `/{id:guid}/repositories/{repoId:guid}/verify` | `VerifyProjectRepositoryConnectionCommand` edit-mode pre-save verification: can reuse stored repo PAT when request PAT is blank, returns verified branches/default candidate, no persistence [2026-05-19] |
+| `/projects` | POST | `/{id:guid}/repositories/{repoId:guid}/test-connection` | `TestProjectRepositoryConnectionCommand` (tests a selected project repository with its own repository-scoped PAT; frontend unwraps business errors but masks technical Key Vault retrieval errors with a generic localized message) [2026-05-18] |
 | `/projects` | PUT | `/{id:guid}/layout-preset` | `SetProjectLayoutPresetCommand` |
 | `/projects` | PUT/POST/PUT/DELETE | `/{id:guid}/configs/{configId:guid}/{layout-mode|repositories/...}` | Config layout mode + config repository CRUD |
 | `/projects` | POST | `/validate-recent` | `ValidateRecentItemsQuery` |
+| `/projects` | PUT | `/{id:guid}/repositories/{repoId:guid}/git-pat` | `SetProjectGitPatCommand` legacy/direct PAT write endpoint. The primary UI path since 2026-05-19 is create/edit repository modal PAT entry plus verification before save; repository tiles should not expose a standalone PAT action. |
 | `/projects` | POST | `/{id:guid}/git-config/test` | `TestGitConnectionCommand` (resolver-backed, V3) |
 | `/projects` | GET | `/{id:guid}/git-config/branches` | `ListGitBranchesQuery` (resolver-backed, V3) |
 | `/projects` | GET | `/{id:guid}/git-config/code-branches` | `ListCodeRepoBranchesQuery` (code-repo, optional `?configId=`) [2026-04-26] |
@@ -38,7 +42,7 @@
 | `/projects` | GET | `/{id:guid}/generate-bootstrap-pipeline/files/{*filePath}` | `GetProjectBootstrapPipelineFileContentQuery` |
 | `/projects` | POST | `/{id:guid}/push-bootstrap-pipeline-to-git` | `PushProjectBootstrapPipelineToGitCommand` |
 | `/projects` | POST | `/{id:guid}/push-generated-artifacts-to-git` | `PushProjectGeneratedArtifactsToGitCommand` (root-level generated folders such as `Common/`, config folders, `.azuredevops/`, `infra/`, `app/` are re-sliced into independent push scopes so stale legacy generated files can be deleted without claiming the whole repo root) [2026-04-25] |
-| `/projects` | POST | `/{id:guid}/push-multi-repo-artifacts-to-git` | `PushProjectArtifactsToMultiRepoCommand` (SplitInfraCode infra-only, code-only, or dual push; validator requires at least one target; always 200 with per-repo `RepoPushResult`; root-level generated folders are re-sliced into cleanup scopes so old generated files under config folders / `.azuredevops/` are removed on subsequent pushes) [2026-04-25] |
+| `/projects` | POST | `/{id:guid}/push-multi-repo-artifacts-to-git` | `PushProjectArtifactsToMultiRepoCommand` (SplitInfraCode infra-only, code-only, or dual push; validator requires at least one target; targets are repository ids, not aliases; always 200 with per-repo `RepoPushResult`; root-level generated folders are re-sliced into cleanup scopes so old generated files under config folders / `.azuredevops/` are removed on subsequent pushes) [2026-04-25/2026-05-19] |
 | `/resource-group` | GET/POST/PUT/DELETE | `/{id:guid}` | ResourceGroup CRUD (DELETE added [2026-04-04]) |
 
 Note [2026-04-26]: the create-project wizard submit path depends on an explicit `group.MapPost("/with-setup", ...)` registration inside `ProjectController.UseProjectController()`. The handler, contract, and Mapster mapping do not expose this route automatically.
@@ -84,7 +88,10 @@ Note [2026-04-26]: the create-project wizard submit path depends on an explicit 
 | `/azure-resources/{resourceId}/secure-parameter-mappings` | PUT | `` | `SetSecureParameterMappingCommand` |
 | `/azure-resources/{resourceId}/custom-domains` | GET | `` | `ListCustomDomainsQuery` |
 | `/azure-resources/{resourceId}/custom-domains` | POST | `` | `AddCustomDomainCommand` |
+| `/azure-resources/{resourceId}/custom-domains` | POST | `/{customDomainId}/validate-dns` | `ValidateCustomDomainDnsCommand` |
+| `/azure-resources/{resourceId}/custom-domains` | GET | `/{customDomainId}/dns-instructions` | `GetDnsInstructionsQuery` |
 | `/azure-resources/{resourceId}/custom-domains` | DELETE | `/{customDomainId}` | `RemoveCustomDomainCommand` |
+| `/azure-resources/{resourceId}/detect-pipeline-options` | GET | `` | `DetectPipelineOptionsQuery` (repo-aware compute pipeline option auto-detection) [2026-05-21] |
 | `/azure-resources/{resourceId}/app-settings` | GET/POST/PUT/DELETE | various | AppSetting CRUD |
 | `/azure-resources/{resourceId}/available-outputs` | GET | `` | `GetAvailableOutputsQuery` |
 | `/azure-resources/{resourceId}/check-keyvault-access` | GET | `/{keyVaultId}` | `CheckKeyVaultAccessQuery` |

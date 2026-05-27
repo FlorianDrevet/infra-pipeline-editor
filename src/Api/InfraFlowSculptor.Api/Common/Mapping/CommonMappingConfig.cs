@@ -13,19 +13,19 @@ public sealed class CommonMappingConfig : IRegister
 
         config.NewConfig<AzureResourceId, string>()
             .MapWith(src => src.Value.ToString());
-        
+
         config.NewConfig<Guid, AzureResourceId>()
             .MapWith(src => AzureResourceId.Create(src));
-        
+
         config.ForType<Name, string>()
             .MapWith(src => src.Value);
-        
+
         config.ForType<Location, string>()
             .MapWith(src => src.Value.ToString());
 
         config.ForType<string, Name>()
             .MapWith(src => new Name(src));
-        
+
         config.ForType<string, Location>()
             .MapWith(src => new Location(Enum.Parse<Location.LocationEnum>(src)));
     }

@@ -1,0 +1,72 @@
+<h2 mat-dialog-title>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_TITLE' | translate }}</h2>
+
+<mat-dialog-content>
+  <p class="dns-dialog__subtitle">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_SUBTITLE' | translate }}</p>
+
+  <app-ds-alert
+    class="dns-dialog__prerequisite-alert"
+    severity="info"
+    [title]="'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_PREREQUISITE_TITLE' | translate">
+    {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_PREREQUISITE' | translate }}
+  </app-ds-alert>
+
+  @if (isLoading()) {
+    <div class="dns-dialog__loading">
+      <mat-spinner diameter="24"></mat-spinner>
+    </div>
+  } @else if (errorKey()) {
+    <div class="dns-dialog__error" role="alert">
+      <mat-icon>error_outline</mat-icon>
+      {{ errorKey() | translate }}
+    </div>
+  } @else if (instructions(); as data) {
+    <div class="dns-dialog__steps">
+      @for (step of data.steps; track step.order) {
+        <div class="dns-dialog__step">
+          <div class="dns-dialog__step-number">{{ step.order }}</div>
+          <div class="dns-dialog__step-content">
+            <strong>{{ getStepTitle(step) }}</strong>
+            <p>{{ getStepDescription(step) }}</p>
+
+            @if (hasRecord(step)) {
+              <div class="dns-dialog__record-card">
+                <div class="dns-dialog__record-header">
+                  <mat-icon>article</mat-icon>
+                  {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_RECORD_CARD' | translate }}
+                </div>
+                <div class="dns-dialog__record-fields">
+                  <div class="dns-dialog__record-field">
+                    <span class="dns-dialog__record-label">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_RECORD_TYPE' | translate }}</span>
+                    <code class="dns-dialog__record-value">{{ step.recordType }}</code>
+                  </div>
+                  <div class="dns-dialog__record-field">
+                    <span class="dns-dialog__record-label">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_RECORD_NAME' | translate }}</span>
+                    <div class="dns-dialog__record-copyable">
+                      <code class="dns-dialog__record-value">{{ step.recordName }}</code>
+                      <button mat-icon-button type="button" class="dns-dialog__copy-btn" (click)="copyToClipboard(step.recordName!)">
+                        <mat-icon>content_copy</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="dns-dialog__record-field">
+                    <span class="dns-dialog__record-label">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_RECORD_VALUE' | translate }}</span>
+                    <div class="dns-dialog__record-copyable">
+                      <code class="dns-dialog__record-value dns-dialog__record-value--long">{{ step.recordValue }}</code>
+                      <button mat-icon-button type="button" class="dns-dialog__copy-btn" (click)="copyToClipboard(step.recordValue!)">
+                        <mat-icon>content_copy</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_DIALOG_CLOSE' | translate }}</button>
+</mat-dialog-actions>

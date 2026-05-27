@@ -32,7 +32,7 @@ public sealed class ResourceParameterUsageConfiguration
         builder.HasOne<AzureResource>()
             .WithMany()
             .HasForeignKey(x => x.ResourceId)
-            .OnDelete(DeleteBehavior.Cascade); 
+            .OnDelete(DeleteBehavior.Cascade);
 
         // ===== ParameterDefinition FK =====
         builder.Property(x => x.ParameterId)

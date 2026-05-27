@@ -27,6 +27,6 @@ public sealed class CreateProjectCommandUnauthorizedTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Unauthorized);
-        await repository.DidNotReceive().AddAsync(Arg.Any<Project>());
+        repository.DidNotReceive().Add(Arg.Any<Project>());
     }
 }

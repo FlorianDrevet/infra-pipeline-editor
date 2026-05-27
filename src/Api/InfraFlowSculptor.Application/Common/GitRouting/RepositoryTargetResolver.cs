@@ -4,6 +4,7 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
+using InfraFlowSculptor.Application.Projects.Common;
 
 namespace InfraFlowSculptor.Application.Common.GitRouting;
 
@@ -29,7 +30,7 @@ public sealed class RepositoryTargetResolver : IRepositoryTargetResolver
 
             var configRepo = config.Repositories.FirstOrDefault(r => r.ContentKinds.Has(role));
             if (configRepo is null)
-                return Errors.GitRouting.AliasNotFound(role.ToString());
+                return Errors.GitRouting.RepositoryRoleNotConfigured(role);
 
             return BuildFromConfigRepository(configRepo);
         }
@@ -39,17 +40,17 @@ public sealed class RepositoryTargetResolver : IRepositoryTargetResolver
 
         var projectRepo = project.Repositories.FirstOrDefault(r => r.ContentKinds.Has(role));
         if (projectRepo is null)
-            return Errors.GitRouting.AliasNotFound(role.ToString());
+            return Errors.GitRouting.RepositoryRoleNotConfigured(role);
 
         if (!projectRepo.IsConfigured)
-            return Errors.GitRouting.RepositorySlotNotConfigured(projectRepo.Alias.Value);
+            return Errors.GitRouting.RepositorySlotNotConfigured(projectRepo.Id);
 
         return BuildFromProjectRepository(projectRepo);
     }
 
     private static ResolvedRepositoryTarget BuildFromProjectRepository(ProjectRepository repo) =>
         new(
-            Alias: repo.Alias.Value,
+            RepositoryId: repo.Id.Value.ToString(),
             ProviderType: repo.ProviderType!,
             RepositoryUrl: repo.RepositoryUrl!,
             Owner: repo.Owner!,
@@ -57,11 +58,11 @@ public sealed class RepositoryTargetResolver : IRepositoryTargetResolver
             Branch: repo.DefaultBranch!,
             BasePath: null,
             PipelineBasePath: null,
-            PatSecretName: null);
+            PatSecretName: ProjectGitSecretNames.GetRepositoryPatSecretName(repo.Id));
 
     private static ResolvedRepositoryTarget BuildFromConfigRepository(InfraConfigRepository repo) =>
         new(
-            Alias: repo.Alias.Value,
+            RepositoryId: repo.Id.Value.ToString(),
             ProviderType: repo.ProviderType,
             RepositoryUrl: repo.RepositoryUrl,
             Owner: repo.Owner,

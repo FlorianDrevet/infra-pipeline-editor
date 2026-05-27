@@ -3,7 +3,6 @@ using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.DownloadProjectPipeline;
 

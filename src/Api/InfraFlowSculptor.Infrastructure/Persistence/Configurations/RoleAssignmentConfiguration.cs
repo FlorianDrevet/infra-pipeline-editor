@@ -58,12 +58,12 @@ public sealed class RoleAssignmentConfiguration : IEntityTypeConfiguration<RoleA
         // (same source → same target → same identity → same role definition).
         // NOTE: existing duplicates must be cleaned up before applying this migration.
         builder.HasIndex(r => new
-            {
-                r.SourceResourceId,
-                r.TargetResourceId,
-                r.UserAssignedIdentityId,
-                r.RoleDefinitionId
-            })
+        {
+            r.SourceResourceId,
+            r.TargetResourceId,
+            r.UserAssignedIdentityId,
+            r.RoleDefinitionId
+        })
             .IsUnique();
     }
 }

@@ -6,7 +6,7 @@ namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.Pa
 public sealed class ParameterType : EnumValueObject<ParameterType.Enum>
 {
     /// <summary>Supported Bicep parameter types.</summary>
-    public enum Enum
+    public enum Enum // NOSONAR S2344
     {
         String,
         Int,

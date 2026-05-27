@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Queries.ListGitBranches;
 
@@ -37,7 +36,7 @@ public sealed class ListGitBranchesQueryHandler(
         var target = targetResult.Value;
 
         var secretResult = await keyVaultSecretClient.GetSecretAsync(
-            $"git-pat-{project.Id.Value}", cancellationToken);
+            target.PatSecretName ?? $"git-pat-{project.Id.Value}", cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;
 

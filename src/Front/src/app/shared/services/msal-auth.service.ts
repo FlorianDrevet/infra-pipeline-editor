@@ -20,7 +20,7 @@ export class MsalAuthService {
   }
 
   private initialize(): Promise<void> {
-    return (this.initPromise ??= this.msalInstance
+    this.initPromise ??= this.msalInstance
       .initialize()
       .then(() => this.msalInstance.handleRedirectPromise())
       .then((redirectResult) => {
@@ -59,7 +59,8 @@ export class MsalAuthService {
         // Reset so the next call can retry
         this.initPromise = null;
         throw err;
-      }));
+      });
+    return this.initPromise;
   }
 
   private findCachedAccount(
@@ -186,7 +187,11 @@ export class MsalAuthService {
   public async logout(): Promise<void> {
     await this.initialize();
     const account = this.resolveActiveAccount();
-    await this.msalInstance.logoutPopup({ account: account ?? undefined });
+    const logoutHint = account?.idTokenClaims?.['login_hint'] as string | undefined;
+    await this.msalInstance.logoutPopup({
+      account: account ?? undefined,
+      logoutHint
+    });
     this.msalInstance.setActiveAccount(null);
     this.authService.logout();
   }

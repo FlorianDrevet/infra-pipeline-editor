@@ -13,14 +13,14 @@ public sealed class SqlDatabaseTypeBicepGeneratorTests
 
     private static ResourceDefinition CreateResource(
         Dictionary<string, string>? properties = null) => new()
-    {
-        ResourceId = Guid.NewGuid(),
-        Name = "my-sqldb",
-        Type = AzureResourceTypes.ArmTypes.SqlDatabaseType,
-        ResourceGroupName = "rg-test",
-        ResourceAbbreviation = "sqldb",
-        Properties = properties ?? new Dictionary<string, string>(),
-    };
+        {
+            ResourceId = Guid.NewGuid(),
+            Name = "my-sqldb",
+            Type = AzureResourceTypes.ArmTypes.SqlDatabaseType,
+            ResourceGroupName = "rg-test",
+            ResourceAbbreviation = "sqldb",
+            Properties = properties ?? new Dictionary<string, string>(),
+        };
 
     // ── Interface contracts ──
 

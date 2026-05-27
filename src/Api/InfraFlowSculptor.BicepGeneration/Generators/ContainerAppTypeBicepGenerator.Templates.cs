@@ -2,6 +2,23 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 
 public sealed partial class ContainerAppTypeBicepGenerator
 {
+    private const string CustomDomainDeclarationsPlaceholder = "__CUSTOM_DOMAIN_DECLARATIONS__";
+    private const string IngressCustomDomainsPropertyPlaceholder = "__INGRESS_CUSTOM_DOMAINS_PROPERTY__";
+
+    private const string CustomDomainDeclarationsBlock = """
+    @description('Custom domain bindings for this Container App')
+    param customDomains array = []
+
+    var customDomainBindings = [for domain in customDomains: {
+      name: domain.domainName
+      bindingType: domain.bindingType
+    }]
+    """;
+
+    private const string IngressCustomDomainsPropertyBlock = """
+        customDomains: !empty(customDomains) ? customDomainBindings : null
+    """;
+
     private const string ContainerAppTypesTemplate = """
         @export()
         @description('Ingress transport method for the Container App')
@@ -10,8 +27,6 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @export()
         @description('Container runtime configuration (image, CPU, memory)')
         type ContainerRuntimeConfig = {
-          @description('Container image to deploy')
-          image: string
           @description('CPU cores allocated to the container')
           cpuCores: string
           @description('Memory allocated to the container (e.g. 0.5Gi)')
@@ -73,6 +88,9 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @description('Resource ID of the Container App Environment')
         param containerAppEnvironmentId string
 
+        @description('Container image (overridden by app pipeline after first deploy)')
+        param containerImage string = '{{DefaultContainerImage}}'
+
         @description('Container runtime configuration')
         param containerRuntime ContainerRuntimeConfig
 
@@ -85,13 +103,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @description('Health probe configuration')
         param healthProbes HealthProbeConfig
 
-        @description('Custom domain bindings for this Container App')
-        param customDomains array = []
-
-        var customDomainBindings = [for domain in customDomains: {
-          name: domain.domainName
-          bindingType: domain.bindingType
-        }]
+        {{CustomDomainDeclarationsPlaceholder}}
 
         resource containerApp '{{ContainerAppArmType}}' = {
           name: name
@@ -103,14 +115,14 @@ public sealed partial class ContainerAppTypeBicepGenerator
                 external: ingress.external
                 targetPort: ingress.targetPort
                 transport: ingress.transportMethod
-                customDomains: !empty(customDomains) ? customDomainBindings : null
+        {{IngressCustomDomainsPropertyPlaceholder}}
               } : null
             }
             template: {
               containers: [
                 {
                   name: name
-                  image: containerRuntime.image
+                  image: containerImage
                   resources: {
                     cpu: json(containerRuntime.cpuCores)
                     memory: containerRuntime.memoryGi
@@ -170,6 +182,9 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @description('Resource ID of the Container App Environment')
         param containerAppEnvironmentId string
 
+        @description('Container image (overridden by app pipeline after first deploy)')
+        param containerImage string = '{{DefaultContainerImage}}'
+
         @description('Container runtime configuration')
         param containerRuntime ContainerRuntimeConfig
 
@@ -185,16 +200,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @description('ACR login server (e.g. myregistry.azurecr.io)')
         param acrLoginServer string
 
-        @description('Client ID of the managed identity for ACR pull')
-        param acrManagedIdentityClientId string = ''
-
-        @description('Custom domain bindings for this Container App')
-        param customDomains array = []
-
-        var customDomainBindings = [for domain in customDomains: {
-          name: domain.domainName
-          bindingType: domain.bindingType
-        }]
+        {{CustomDomainDeclarationsPlaceholder}}
 
         resource containerApp '{{ContainerAppArmType}}' = {
           name: name
@@ -205,21 +211,21 @@ public sealed partial class ContainerAppTypeBicepGenerator
               registries: [
                 {
                   server: acrLoginServer
-                  identity: !empty(acrManagedIdentityClientId) ? acrManagedIdentityClientId : 'system'
+                  identity: userAssignedIdentityId
                 }
               ]
               ingress: ingress.enabled ? {
                 external: ingress.external
                 targetPort: ingress.targetPort
                 transport: ingress.transportMethod
-                customDomains: !empty(customDomains) ? customDomainBindings : null
+        {{IngressCustomDomainsPropertyPlaceholder}}
               } : null
             }
             template: {
               containers: [
                 {
                   name: name
-                  image: containerRuntime.image
+                  image: containerImage
                   resources: {
                     cpu: json(containerRuntime.cpuCores)
                     memory: containerRuntime.memoryGi
@@ -279,6 +285,9 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @description('Resource ID of the Container App Environment')
         param containerAppEnvironmentId string
 
+        @description('Container image (overridden by app pipeline after first deploy)')
+        param containerImage string = '{{DefaultContainerImage}}'
+
         @description('Container runtime configuration')
         param containerRuntime ContainerRuntimeConfig
 
@@ -298,13 +307,7 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @description('Admin password for the Container Registry')
         param acrPassword string
 
-        @description('Custom domain bindings for this Container App')
-        param customDomains array = []
-
-        var customDomainBindings = [for domain in customDomains: {
-          name: domain.domainName
-          bindingType: domain.bindingType
-        }]
+        {{CustomDomainDeclarationsPlaceholder}}
         var acrUsername = split(acrLoginServer, '.')[0]
         var acrPasswordSecretName = 'acr-password'
 
@@ -331,14 +334,14 @@ public sealed partial class ContainerAppTypeBicepGenerator
                 external: ingress.external
                 targetPort: ingress.targetPort
                 transport: ingress.transportMethod
-                customDomains: !empty(customDomains) ? customDomainBindings : null
+        {{IngressCustomDomainsPropertyPlaceholder}}
               } : null
             }
             template: {
               containers: [
                 {
                   name: name
-                  image: containerRuntime.image
+                  image: containerImage
                   resources: {
                     cpu: json(containerRuntime.cpuCores)
                     memory: containerRuntime.memoryGi

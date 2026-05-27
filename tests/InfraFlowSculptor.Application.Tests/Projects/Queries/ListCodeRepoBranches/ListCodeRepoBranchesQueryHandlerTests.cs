@@ -3,6 +3,7 @@ using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Application.Projects.Queries.ListCodeRepoBranches;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
@@ -14,12 +15,9 @@ namespace InfraFlowSculptor.Application.Tests.Projects.Queries.ListCodeRepoBranc
 
 public sealed class ListCodeRepoBranchesQueryHandlerTests
 {
-    private readonly IProjectRepository _projectRepository;
     private readonly IInfrastructureConfigRepository _infraConfigRepository;
     private readonly IProjectAccessService _accessService;
-    private readonly IKeyVaultSecretClient _keyVaultSecretClient;
-    private readonly IGitProviderFactory _gitProviderFactory;
-    private readonly IRepositoryTargetResolver _targetResolver;
+    private readonly IProjectRepository _projectRepository;
     private readonly Project _project;
     private readonly DomainInfrastructureConfig _config;
     private readonly ListCodeRepoBranchesQuery _query;
@@ -30,20 +28,22 @@ public sealed class ListCodeRepoBranchesQueryHandlerTests
         _projectRepository = Substitute.For<IProjectRepository>();
         _infraConfigRepository = Substitute.For<IInfrastructureConfigRepository>();
         _accessService = Substitute.For<IProjectAccessService>();
-        _keyVaultSecretClient = Substitute.For<IKeyVaultSecretClient>();
-        _gitProviderFactory = Substitute.For<IGitProviderFactory>();
-        _targetResolver = Substitute.For<IRepositoryTargetResolver>();
+        var keyVaultSecretClient = Substitute.For<IKeyVaultSecretClient>();
+        var gitProviderFactory = Substitute.For<IGitProviderFactory>();
+        var targetResolver = Substitute.For<IRepositoryTargetResolver>();
 
         _project = Project.Create(new Name("Retail Platform"), "Provision retail assets.", UserId.CreateUnique());
         _config = DomainInfrastructureConfig.Create(new Name("primary"), _project.Id);
         _query = new ListCodeRepoBranchesQuery(_project.Id, _config.Id);
-        _sut = new ListCodeRepoBranchesQueryHandler(
+
+        var helper = new GitRepoQueryHelper(
             _projectRepository,
             _infraConfigRepository,
             _accessService,
-            _keyVaultSecretClient,
-            _gitProviderFactory,
-            _targetResolver);
+            keyVaultSecretClient,
+            gitProviderFactory,
+            targetResolver);
+        _sut = new ListCodeRepoBranchesQueryHandler(helper);
     }
 
     [Fact]

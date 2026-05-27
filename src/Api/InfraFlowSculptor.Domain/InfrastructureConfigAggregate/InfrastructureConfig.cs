@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
@@ -111,18 +111,18 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     {
         if (_resourceGroups.Any(rg => rg.Name == resourceGroup.Name))
             return false;
-        
+
         _resourceGroups.Add(resourceGroup);
         return true;
     }
-    
+
     /// <summary>Removes a resource group from this configuration.</summary>
     /// <returns><c>true</c> if removed; <c>false</c> if not found.</returns>
     public bool RemoveResourceGroup(ResourceGroup resourceGroup)
     {
         return _resourceGroups.Remove(resourceGroup);
     }
-    
+
     /// <summary>Renames this infrastructure configuration.</summary>
     public void Rename(Name name)
     {
@@ -259,7 +259,6 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 
     /// <summary>Adds a new <see cref="Entities.InfraConfigRepository"/> to this configuration.</summary>
     public ErrorOr<Entities.InfraConfigRepository> AddRepository(
-        ProjectAggregate.ValueObjects.RepositoryAlias alias,
         ProjectAggregate.ValueObjects.GitProviderType providerType,
         string repositoryUrl,
         string defaultBranch,
@@ -271,10 +270,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         var allowed = EnsureRepositoryAllowedByLayout(contentKinds, expectedCountAfterAdd: _repositories.Count + 1);
         if (allowed.IsError) return allowed.Errors;
 
-        if (_repositories.Any(r => r.Alias == alias))
-            return Domain.Common.Errors.Errors.InfraConfigRepository.DuplicateAlias(alias.Value);
-
-        var created = Entities.InfraConfigRepository.Create(Id, alias, providerType, repositoryUrl, defaultBranch, contentKinds);
+        var created = Entities.InfraConfigRepository.Create(Id, providerType, repositoryUrl, defaultBranch, contentKinds);
         if (created.IsError) return created.Errors;
 
         _repositories.Add(created.Value);

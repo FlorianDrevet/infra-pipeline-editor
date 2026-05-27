@@ -2,7 +2,6 @@ using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
-using InfraFlowSculptor.GenerationCore.Models;
 using static InfraFlowSculptor.BicepGeneration.Generators.Constants.BicepGeneratorSharedConstants;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;

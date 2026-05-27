@@ -7,7 +7,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.PushBicepToGit;
 
@@ -56,7 +55,7 @@ public sealed class PushBicepToGitCommandHandler(
 
         // 4. Retrieve the PAT from the centralized Key Vault.
         var secretResult = await keyVaultClient.GetSecretAsync(
-            $"git-pat-{project.Id.Value}", cancellationToken);
+            target.PatSecretName ?? $"git-pat-{project.Id.Value}", cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;
 

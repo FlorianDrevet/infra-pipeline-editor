@@ -38,7 +38,7 @@ public class CreateEventHubNamespaceCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await eventHubNamespaceRepository.AddAsync(eventHubNamespace);
+        var saved = eventHubNamespaceRepository.Add(eventHubNamespace);
 
         return mapper.Map<EventHubNamespaceResult>(saved);
     }

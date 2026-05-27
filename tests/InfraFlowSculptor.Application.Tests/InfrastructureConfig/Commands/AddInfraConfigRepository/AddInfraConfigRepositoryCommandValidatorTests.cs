@@ -9,7 +9,6 @@ public sealed class AddInfraConfigRepositoryCommandValidatorTests
 {
     private const string ProjectIdProperty = "ProjectId.Value";
     private const string ConfigIdProperty = "ConfigId.Value";
-    private const string AliasProperty = nameof(AddInfraConfigRepositoryCommand.Alias);
     private const string ProviderTypeProperty = nameof(AddInfraConfigRepositoryCommand.ProviderType);
     private const string RepositoryUrlProperty = nameof(AddInfraConfigRepositoryCommand.RepositoryUrl);
     private const string ContentKindsProperty = nameof(AddInfraConfigRepositoryCommand.ContentKinds);
@@ -58,24 +57,6 @@ public sealed class AddInfraConfigRepositoryCommandValidatorTests
         result.Errors.Should().Contain(error => error.PropertyName == ConfigIdProperty);
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("Infra")]
-    [InlineData("infra_repo")]
-    public void Given_InvalidAlias_When_Validate_Then_FailsOnAlias(string alias)
-    {
-        // Arrange
-        var command = CreateCommand(alias: alias);
-
-        // Act
-        var result = _sut.Validate(command);
-
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(error => error.PropertyName == AliasProperty);
-    }
-
-    [Fact]
     public void Given_InvalidProviderType_When_Validate_Then_FailsOnProviderType()
     {
         // Arrange
@@ -120,7 +101,6 @@ public sealed class AddInfraConfigRepositoryCommandValidatorTests
     private static AddInfraConfigRepositoryCommand CreateCommand(
         ProjectId? projectId = null,
         InfrastructureConfigId? configId = null,
-        string alias = "infra",
         string providerType = nameof(GitProviderTypeEnum.GitHub),
         string repositoryUrl = "https://github.com/octo-org/retail-platform-infra",
         string defaultBranch = "main",
@@ -129,7 +109,6 @@ public sealed class AddInfraConfigRepositoryCommandValidatorTests
         return new AddInfraConfigRepositoryCommand(
             projectId ?? new ProjectId(Guid.NewGuid()),
             configId ?? new InfrastructureConfigId(Guid.NewGuid()),
-            alias,
             providerType,
             repositoryUrl,
             defaultBranch,

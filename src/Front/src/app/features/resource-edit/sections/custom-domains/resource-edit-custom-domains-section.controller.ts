@@ -9,10 +9,12 @@ import {
   AddCustomDomainDialogComponent,
   AddCustomDomainDialogData,
 } from '../../add-custom-domain-dialog/add-custom-domain-dialog.component';
+import { DnsInstructionsDialogComponent, DnsInstructionsDialogData } from '../../dns-instructions-dialog/dns-instructions-dialog.component';
 import { ResourceEditCustomDomainsSection } from './resource-edit-custom-domains-section.interface';
 
 interface ResourceEditCustomDomainsSectionControllerDependencies {
   getResourceId(): string;
+  getResourceType(): string;
   getEnvironments(): EnvironmentDefinitionResponse[];
 }
 
@@ -113,6 +115,32 @@ export function createResourceEditCustomDomainsSectionController(
     });
   };
 
+  const validateDns = async (domain: CustomDomainResponse): Promise<void> => {
+    isLoading.set(true);
+    errorKey.set('');
+    try {
+      const updated = await customDomainService.validateDns(dependencies.getResourceId(), domain.id);
+      customDomains.update((current) =>
+        current.map((d) => (d.id === updated.id ? updated : d)),
+      );
+    } catch {
+      errorKey.set('RESOURCE_EDIT.CUSTOM_DOMAINS.VALIDATE_ERROR');
+    } finally {
+      isLoading.set(false);
+    }
+  };
+
+  const showDnsInstructions = (domain: CustomDomainResponse): void => {
+    dialog.open(DnsInstructionsDialogComponent, {
+      width: '560px',
+      data: {
+        resourceId: dependencies.getResourceId(),
+        resourceType: dependencies.getResourceType(),
+        domain,
+      } satisfies DnsInstructionsDialogData,
+    });
+  };
+
   return {
     errorKey,
     isLoading,
@@ -120,5 +148,7 @@ export function createResourceEditCustomDomainsSectionController(
     domainsForEnvironment,
     openAddDialog,
     removeDomain,
+    validateDns,
+    showDnsInstructions,
   };
 }

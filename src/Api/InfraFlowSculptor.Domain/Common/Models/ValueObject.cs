@@ -4,7 +4,7 @@ namespace InfraFlowSculptor.Domain.Common.Models;
 /// Base class for DDD value objects providing structural equality.
 /// Two value objects are equal when all their equality components match.
 /// </summary>
-public abstract class ValueObject : IEquatable<ValueObject>
+public abstract class ValueObject : IEquatable<ValueObject> // NOSONAR S4035
 {
     /// <summary>
     /// Returns the components used for structural equality comparison.

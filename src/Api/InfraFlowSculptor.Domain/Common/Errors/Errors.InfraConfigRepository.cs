@@ -8,16 +8,11 @@ public static partial class Errors
     /// <summary>Domain errors for the <see cref="InfrastructureConfigAggregate.Entities.InfraConfigRepository"/> entity.</summary>
     public static class InfraConfigRepository
     {
-        private const string DuplicateAliasCode = "InfraConfigRepository.DuplicateAlias";
         private const string NotFoundCode = "InfraConfigRepository.NotFound";
         private const string LayoutModeRequiredCode = "InfraConfigRepository.LayoutModeRequired";
         private const string ProjectNotMultiRepoCode = "InfraConfigRepository.ProjectNotMultiRepo";
         private const string AllInOneRequiresOneRepoCode = "InfraConfigRepository.AllInOneRequiresOneRepository";
         private const string SplitInfraCodeRequiresInfraAndAppCode = "InfraConfigRepository.SplitInfraCodeRequiresInfraAndApp";
-
-        /// <summary>Returns a conflict error when the same alias is reused inside an InfraConfig.</summary>
-        public static Error DuplicateAlias(string alias) =>
-            Error.Conflict(code: DuplicateAliasCode, description: $"A repository with alias '{alias}' already exists in this configuration.");
 
         /// <summary>Returns a not-found error for the given repository identifier.</summary>
         public static Error NotFound(InfraConfigRepositoryId id) =>

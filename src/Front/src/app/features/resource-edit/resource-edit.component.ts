@@ -54,6 +54,8 @@ import { SqlServerService } from '../../shared/services/sql-server.service';
 import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { NameAvailabilityService } from '../../shared/services/name-availability.service';
+import { PipelineDetectionService } from '../../shared/services/pipeline-detection.service';
+import { DetectedPipelineOptionsResponse } from '../../shared/interfaces/pipeline-detection.interface';
 import { EnvironmentNameAvailabilityResponseItem } from '../../shared/interfaces/name-availability.interface';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
@@ -81,6 +83,8 @@ import { ResourceEditUsedBySectionComponent } from './sections/identity-access/r
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
+import { BuildContextPickerComponent } from '../../shared/components/build-context-picker/build-context-picker.component';
+import { ContainerAppAcrServiceConnectionsComponent } from './components/container-app-acr-service-connections/container-app-acr-service-connections.component';
 import { PipelineOptionsComponent } from './components/pipeline-options/pipeline-options.component';
 import { NetworkingTabComponent } from './components/networking-tab/networking-tab.component';
 import { PipelineStepOptions } from './models/pipeline-step-options.model';
@@ -187,7 +191,9 @@ type CorsFieldKey = CorsListField | CorsMethodField | 'maxAgeInSeconds';
     DsButtonComponent,
     DsTextFieldComponent,
     DockerfilePickerComponent,
+    BuildContextPickerComponent,
     DsSelectComponent,
+    ContainerAppAcrServiceConnectionsComponent,
     PipelineOptionsComponent,
     NetworkingTabComponent,
   ],
@@ -223,6 +229,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly secureParamMappingService = inject(SecureParameterMappingService);
   private readonly nameAvailabilityService = inject(NameAvailabilityService);
+  private readonly pipelineDetectionService = inject(PipelineDetectionService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
   private readonly pageContextService = inject(PageContextService);
@@ -238,6 +245,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly project = signal<ProjectResponse | null>(null);
   protected readonly customDomainsSection = createResourceEditCustomDomainsSectionController({
     getResourceId: () => this.resourceId,
+    getResourceType: () => this.resourceType,
     getEnvironments: () => this.environments(),
   });
   protected readonly isLoading = signal(false);
@@ -273,7 +281,17 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   // ─── App Pipeline ───
 
+  private static readonly CONTAINER_APP_RESOURCE_TYPE = 'ContainerApp';
+  private static readonly ACR_ADMIN_CREDENTIALS_AUTH_MODE: AcrAuthMode = 'AdminCredentials';
+
   protected readonly pipelineStepOptions = signal<PipelineStepOptions | null>(null);
+
+  protected readonly showContainerAppAcrServiceConnections = computed(() =>
+    this.resourceType === ResourceEditComponent.CONTAINER_APP_RESOURCE_TYPE &&
+    !this.isExistingResource() &&
+    !!this.selectedContainerRegistryId() &&
+    this.acrAuthMode() !== ResourceEditComponent.ACR_ADMIN_CREDENTIALS_AUTH_MODE,
+  );
 
   protected supportsAppPipeline(): boolean {
     return this.resourceType === 'WebApp'
@@ -325,6 +343,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     isUserAssignedIdentity: () => this.isUserAssignedIdentity(),
     isAcrEnabled: () => this.isAcrEnabled(),
     checkAcrPullAccess: () => this.checkAcrPullAccess(),
+    getAcrPullIdentityId: () => this.getCurrentAcrPullIdentityId(),
     supportsAppSettings: () => this.supportsAppSettings(),
     reloadAppSettings: () => this.appSettingsSection.load(),
     supportsConfigKeys: () => this.supportsConfigKeys(),
@@ -392,11 +411,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   /** User explicitly confirmed that the unavailable name is theirs. Reset on every new check. */
   protected readonly nameAvailabilityOverridden = signal(false);
 
-  /** True when name availability blocks saving (unavailable/invalid/checking and not overridden). */
+  /** True when name availability blocks saving (invalid always blocks, unavailable/checking can be overridden). */
   protected readonly isSaveBlockedByNameAvailability = computed(() => {
     if (!this.isNameAvailabilityCheckEnabled()) return false;
     const state = this.nameAvailabilityOverallState();
-    if (state === 'has-unavailable' || state === 'has-invalid') {
+    // Invalid names always block — no override possible (naming constraints violation)
+    if (state === 'has-invalid') return true;
+    // Unavailable names (conflict) can be overridden ("it's my resource")
+    if (state === 'has-unavailable') {
       return !this.nameAvailabilityOverridden();
     }
     return state === 'checking';
@@ -700,7 +722,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.loadError.set('');
 
     try {
-      // Load config + project in parallel with resource
+      // Load config + resource in parallel
       const [config, resource] = await Promise.all([
         this.infraConfigService.getById(this.configId),
         this.loadResource(),
@@ -708,26 +730,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       this.config.set(config);
       this.resource.set(resource);
 
-      // Load parent project for permissions and environments
-      if (config.projectId) {
-        try {
-          const project = await this.projectService.getProject(config.projectId);
-          this.project.set(project);
-        } catch {
-          // Non-blocking — project data used for permissions and inherited envs
-        }
-      }
-
-      this.buildGeneralForm(resource);
-      this.buildEnvForms(resource);
-      this.watchFormChanges();
-
-      // Check ACR pull access: container mode for WebApp/FunctionApp, always for ContainerApp
-      if (this.isAcrEnabled()) {
-        this.checkAcrPullAccess();
-      }
-
-      // Load role assignments and sibling resources in background (non-blocking)
+      // Start background loads immediately — they only need configId/resourceId, not project
       void this.identityAccessSection.loadRoleAssignments();
       void this.identityAccessSection.loadAllResources();
       if (this.supportsAppSettings()) {
@@ -746,16 +749,35 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         this.loadSecureParamMappings();
       }
 
-    // Initialize runtime version options for WebApp/FunctionApp
-    if (this.resourceType === 'WebApp') {
-      const stack = this.generalForm.get('runtimeStack')?.value;
-      this.runtimeVersionOptions.set(WEBAPP_RUNTIME_VERSION_MAP[stack] ?? []);
-    } else if (this.resourceType === 'FunctionApp') {
-      const stack = this.generalForm.get('runtimeStack')?.value;
-      this.runtimeVersionOptions.set(FUNCTIONAPP_RUNTIME_VERSION_MAP[stack] ?? []);
-    } else {
-      this.runtimeVersionOptions.set([]);
-    }
+      // Load parent project (required for environment forms + permissions)
+      if (config.projectId) {
+        try {
+          const project = await this.projectService.getProject(config.projectId);
+          this.project.set(project);
+        } catch {
+          // Non-blocking — project data used for permissions and inherited envs
+        }
+      }
+
+      this.buildGeneralForm(resource);
+      this.buildEnvForms(resource);
+      this.watchFormChanges();
+
+      // Check ACR pull access: container mode for WebApp/FunctionApp, always for ContainerApp
+      if (this.isAcrEnabled()) {
+        this.checkAcrPullAccess();
+      }
+
+      // Initialize runtime version options for WebApp/FunctionApp
+      if (this.resourceType === 'WebApp') {
+        const stack = this.generalForm.get('runtimeStack')?.value;
+        this.runtimeVersionOptions.set(WEBAPP_RUNTIME_VERSION_MAP[stack] ?? []);
+      } else if (this.resourceType === 'FunctionApp') {
+        const stack = this.generalForm.get('runtimeStack')?.value;
+        this.runtimeVersionOptions.set(FUNCTIONAPP_RUNTIME_VERSION_MAP[stack] ?? []);
+      } else {
+        this.runtimeVersionOptions.set([]);
+      }
     } catch {
       this.loadError.set('RESOURCE_EDIT.ERROR.LOAD_FAILED');
     } finally {
@@ -819,6 +841,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.storageCorsRulesDraft.set(buildResult.storageCorsRulesDraft);
     this.storageTableCorsRulesDraft.set(buildResult.storageTableCorsRulesDraft);
     this.lifecycleRulesDraft.set(buildResult.lifecycleRulesDraft);
+    this.acrSelectedUaiId.set(this.getCurrentAcrPullIdentityId());
 
     // Hydrate pipeline step options for compute resources
     if (this.supportsAppPipeline()) {
@@ -859,6 +882,62 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.formsDirty.set(true);
   }
 
+  protected async onDetectPipelineOptions(): Promise<void> {
+    try {
+      const result = await this.pipelineDetectionService.detect(this.resourceId);
+      const patch = this.buildPipelineDetectionPatch(result);
+
+      const merged = { ...(this.pipelineStepOptions() ?? {}), ...patch } as PipelineStepOptions;
+      this.pipelineStepOptions.set(merged);
+      this.formsDirty.set(true);
+    } catch {
+      // Detection failed silently — user can configure manually
+    }
+  }
+
+  private buildPipelineDetectionPatch(result: DetectedPipelineOptionsResponse): Partial<PipelineStepOptions> {
+    const patch: Partial<PipelineStepOptions> = {};
+
+    if (result.testFramework) {
+      patch.runUnitTests = true;
+      patch.testFramework = result.testFramework;
+    }
+    if (result.suggestedTestCommand) {
+      patch.testCommand = result.suggestedTestCommand;
+    }
+    if (result.suggestedTestResultsFormat) {
+      patch.testResultsFormat = result.suggestedTestResultsFormat;
+      patch.publishTestResults = true;
+    }
+    if (result.suggestedCoverageTool) {
+      patch.publishCodeCoverage = true;
+      patch.coverageTool = result.suggestedCoverageTool;
+    }
+    if (result.suggestedCoverageReportPath) {
+      patch.coverageReportPath = result.suggestedCoverageReportPath;
+    }
+    if (result.lintingAvailable) {
+      patch.runLinting = true;
+    }
+    if (result.suggestedLintCommand) {
+      patch.lintCommand = result.suggestedLintCommand;
+    }
+    if (result.sonarConfigDetected) {
+      patch.runSonarAnalysis = true;
+    }
+    if (result.suggestedSonarProjectKey) {
+      patch.sonarProjectKey = result.suggestedSonarProjectKey;
+    }
+    if (result.dependencyScanAvailable) {
+      patch.runDependencyScan = true;
+    }
+    if (result.suggestedDependencyScanTool) {
+      patch.dependencyScanTool = result.suggestedDependencyScanTool;
+    }
+
+    return patch;
+  }
+
   private resolveAcrAuthMode(containerRegistryId: string | null | undefined, acrAuthMode: AcrAuthMode | null | undefined): AcrAuthMode | null {
     if (!containerRegistryId) {
       return null;
@@ -876,14 +955,30 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
   }
 
-  private resetAcrPullAccessState(): void { // NOSONAR S3776 - tracked under test-debt #22
+  private getCurrentAcrPullIdentityId(): string | null {
+    const identityId = this.generalForm?.get('acrPullIdentityId')?.value;
+    return typeof identityId === 'string' && identityId.length > 0 ? identityId : null;
+  }
+
+  private resolveAcrPullIdentityId(containerRegistryId: string | null, acrAuthMode: AcrAuthMode | null): string | null {
+    return containerRegistryId && acrAuthMode === 'ManagedIdentity' ? this.getCurrentAcrPullIdentityId() : null;
+  }
+
+  private patchAcrPullIdentityId(identityId: string | null, emitEvent = true): void {
+    this.acrSelectedUaiId.set(identityId);
+    this.generalForm.get('acrPullIdentityId')?.setValue(identityId, { emitEvent });
+  }
+
+  private resetAcrPullAccessState(preserveSelectedIdentity = false): void { // NOSONAR S3776 - tracked under test-debt #22
     this.acrHasAccess.set(null);
     this.acrMissingRoleName.set(null);
     this.acrMissingRoleDefinitionId.set(null);
     this.acrAssignedUaiId.set(null);
     this.acrAssignedUaiName.set(null);
     this.acrHasUai.set(false);
-    this.acrSelectedUaiId.set(null);
+    if (!preserveSelectedIdentity) {
+      this.acrSelectedUaiId.set(null);
+    }
   }
 
   protected async onSave(): Promise<void> {
@@ -897,9 +992,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     const envForms = this.envForms();
 
     try {
+      let updated: ResourceData;
+
       switch (this.resourceType) {
         case 'KeyVault':
-          await this.keyVaultService.update(this.resourceId, {
+          updated = await this.keyVaultService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             enableRbacAuthorization: general.enableRbacAuthorization,
@@ -912,7 +1009,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           });
           break;
         case 'RedisCache':
-          await this.redisCacheService.update(this.resourceId, {
+          updated = await this.redisCacheService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             redisVersion: toNullableNumber(general.redisVersion),
@@ -930,7 +1027,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             return;
           }
 
-          await this.storageAccountService.update(this.resourceId, {
+          updated = await this.storageAccountService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             kind: general.kind,
@@ -945,7 +1042,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           });
           break;
         case 'AppServicePlan':
-          await this.appServicePlanService.update(this.resourceId, {
+          updated = await this.appServicePlanService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             osType: general.osType,
@@ -957,14 +1054,16 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             ? this.resolveAcrAuthMode(general.containerRegistryId || null, general.acrAuthMode as AcrAuthMode | null | undefined)
             : null;
 
-          await this.webAppService.update(this.resourceId, {
+          updated = await this.webAppService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             appServicePlanId: general.appServicePlanId,
             deploymentMode: general.deploymentMode || 'Code',
             containerRegistryId: general.deploymentMode === 'Container' ? (general.containerRegistryId || null) : null,
             acrAuthMode,
+            acrPullIdentityId: general.deploymentMode === 'Container' && acrAuthMode === 'ManagedIdentity' ? this.resolveAcrPullIdentityId(general.containerRegistryId, acrAuthMode) : null,
             dockerImageName: general.deploymentMode === 'Container' ? (general.dockerImageName || null) : null,
+            dockerImageValidated: general.deploymentMode === 'Container' ? (general.dockerImageValidated ?? false) : false,
             dockerfilePath: general.dockerfilePath || null,
             sourceCodePath: general.sourceCodePath || null,
             buildCommand: general.buildCommand || null,
@@ -983,14 +1082,16 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             ? this.resolveAcrAuthMode(general.containerRegistryId || null, general.acrAuthMode as AcrAuthMode | null | undefined)
             : null;
 
-          await this.functionAppService.update(this.resourceId, {
+          updated = await this.functionAppService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             appServicePlanId: general.appServicePlanId,
             deploymentMode: general.deploymentMode || 'Code',
             containerRegistryId: general.deploymentMode === 'Container' ? (general.containerRegistryId || null) : null,
             acrAuthMode,
+            acrPullIdentityId: general.deploymentMode === 'Container' && acrAuthMode === 'ManagedIdentity' ? this.resolveAcrPullIdentityId(general.containerRegistryId, acrAuthMode) : null,
             dockerImageName: general.deploymentMode === 'Container' ? (general.dockerImageName || null) : null,
+            dockerImageValidated: general.deploymentMode === 'Container' ? (general.dockerImageValidated ?? false) : false,
             dockerfilePath: general.dockerfilePath || null,
             sourceCodePath: general.sourceCodePath || null,
             buildCommand: general.buildCommand || null,
@@ -1004,20 +1105,20 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           break;
         }
         case 'UserAssignedIdentity':
-          await this.userAssignedIdentityService.update(this.resourceId, {
+          updated = await this.userAssignedIdentityService.update(this.resourceId, {
             name: general.name,
             location: general.location,
           });
           break;
         case 'AppConfiguration':
-          await this.appConfigurationService.update(this.resourceId, {
+          updated = await this.appConfigurationService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             environmentSettings: buildAppConfigurationEnvironmentSettings(envForms),
           });
           break;
         case 'ContainerAppEnvironment':
-          await this.containerAppEnvironmentService.update(this.resourceId, {
+          updated = await this.containerAppEnvironmentService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             logAnalyticsWorkspaceId: general.logAnalyticsWorkspaceId || null,
@@ -1027,14 +1128,17 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         case 'ContainerApp': {
           const acrAuthMode = this.resolveAcrAuthMode(general.containerRegistryId || null, general.acrAuthMode as AcrAuthMode | null | undefined);
 
-          await this.containerAppService.update(this.resourceId, {
+          updated = await this.containerAppService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             containerAppEnvironmentId: general.containerAppEnvironmentId,
             containerRegistryId: general.containerRegistryId || null,
             acrAuthMode,
+            acrPullIdentityId: general.containerRegistryId && acrAuthMode === 'ManagedIdentity' ? this.resolveAcrPullIdentityId(general.containerRegistryId, acrAuthMode) : null,
             dockerImageName: general.dockerImageName || null,
+            dockerImageValidated: general.dockerImageValidated ?? false,
             dockerfilePath: general.dockerfilePath || null,
+            sourceCodePath: general.sourceCodePath || null,
             applicationName: general.applicationName || null,
             pipelineStepOptions: this.pipelineStepOptions(),
             environmentSettings: buildContainerAppEnvironmentSettings(envForms),
@@ -1042,14 +1146,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           break;
         }
         case 'LogAnalyticsWorkspace':
-          await this.logAnalyticsWorkspaceService.update(this.resourceId, {
+          updated = await this.logAnalyticsWorkspaceService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             environmentSettings: buildLogAnalyticsWorkspaceEnvironmentSettings(envForms),
           });
           break;
         case 'ApplicationInsights':
-          await this.applicationInsightsService.update(this.resourceId, {
+          updated = await this.applicationInsightsService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             logAnalyticsWorkspaceId: general.logAnalyticsWorkspaceId,
@@ -1057,28 +1161,28 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           });
           break;
         case 'CosmosDb':
-          await this.cosmosDbService.update(this.resourceId, {
+          updated = await this.cosmosDbService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             environmentSettings: buildCosmosDbEnvironmentSettings(envForms),
           });
           break;
         case 'ServiceBusNamespace':
-          await this.serviceBusNamespaceService.update(this.resourceId, {
+          updated = await this.serviceBusNamespaceService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             environmentSettings: buildServiceBusNamespaceEnvironmentSettings(envForms),
           });
           break;
         case 'ContainerRegistry':
-          await this.containerRegistryService.update(this.resourceId, {
+          updated = await this.containerRegistryService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             environmentSettings: buildContainerRegistryEnvironmentSettings(envForms),
           });
           break;
         case 'SqlServer':
-          await this.sqlServerService.update(this.resourceId, {
+          updated = await this.sqlServerService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             version: general.version,
@@ -1087,7 +1191,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           });
           break;
         case 'SqlDatabase':
-          await this.sqlDatabaseService.update(this.resourceId, {
+          updated = await this.sqlDatabaseService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             sqlServerId: general.sqlServerId,
@@ -1095,10 +1199,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             environmentSettings: buildSqlDatabaseEnvironmentSettings(envForms),
           });
           break;
+        default:
+          throw new Error(`Unsupported resource type: ${this.resourceType}`);
       }
 
-      // Reload to reflect saved state
-      const updated = await this.loadResource();
+      // Use the response directly — no redundant GET needed
       this.resource.set(updated);
       this.buildGeneralForm(updated);
       this.buildEnvForms(updated);
@@ -1205,6 +1310,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.acrAccessChecking.set(false);
     this.resetAcrPullAccessState();
     this.setAcrAuthMode(nextAcrAuthMode, true);
+
+    if (mode === 'Code') {
+      // Clear ACR pull identity when switching to code mode
+      this.patchAcrPullIdentityId(null);
+    }
+
     this.formsDirty.set(true);
 
     if (mode === 'Container' && currentRegistryId && nextAcrAuthMode === 'ManagedIdentity') {
@@ -1225,6 +1336,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   protected async onContainerRegistryChange(acrId: string | null): Promise<void> {
+    const previousRegistryId = this.selectedContainerRegistryId() ?? this.generalForm.get('containerRegistryId')?.value ?? null;
+    const registryChanged = previousRegistryId !== acrId;
     const nextAcrAuthMode = this.resolveAcrAuthMode(acrId, this.acrAuthMode() ?? (this.generalForm.get('acrAuthMode')?.value as AcrAuthMode | null | undefined));
 
     this.selectedContainerRegistryId.set(acrId);
@@ -1232,6 +1345,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.acrAccessChecking.set(false);
     this.resetAcrPullAccessState();
     this.setAcrAuthMode(nextAcrAuthMode, true);
+
+    if (registryChanged || !acrId || nextAcrAuthMode !== 'ManagedIdentity') {
+      this.patchAcrPullIdentityId(null);
+    }
+
     if (!acrId || nextAcrAuthMode !== 'ManagedIdentity') return;
     await this.checkAcrPullAccess(acrId, nextAcrAuthMode);
   }
@@ -1243,13 +1361,42 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.acrAccessChecking.set(false);
     this.resetAcrPullAccessState();
     this.setAcrAuthMode(nextAcrAuthMode, true);
+
+    if (nextAcrAuthMode !== 'ManagedIdentity') {
+      // Clear ACR pull identity when not in managed identity mode
+      this.patchAcrPullIdentityId(null);
+    }
+
     if (!currentRegistryId || nextAcrAuthMode !== 'ManagedIdentity') return;
     await this.checkAcrPullAccess(currentRegistryId, nextAcrAuthMode);
   }
 
-  protected async checkAcrPullAccess(acrId?: string, acrAuthMode?: AcrAuthMode | null): Promise<void> {
+  protected async onAcrSelectedUaiChange(identityId: string | null): Promise<void> {
+    this.patchAcrPullIdentityId(identityId);
+    this.formsDirty.set(true);
+
+    const registryId = this.selectedContainerRegistryId() ?? this.generalForm.get('containerRegistryId')?.value ?? null;
+    const currentAuthMode = this.acrAuthMode();
+
+    if (!registryId || currentAuthMode !== 'ManagedIdentity') {
+      this.resetAcrPullAccessState(true);
+      return;
+    }
+
+    if (!identityId) {
+      this.resetAcrPullAccessState(true);
+      this.acrHasAccess.set(false);
+      return;
+    }
+
+    await this.checkAcrPullAccess(registryId, currentAuthMode, identityId);
+  }
+
+  protected async checkAcrPullAccess(acrId?: string, acrAuthMode?: AcrAuthMode | null, acrPullIdentityId?: string | null): Promise<void> {
     const registryId = acrId ?? this.generalForm.get('containerRegistryId')?.value;
     const requestedAcrAuthMode = this.resolveAcrAuthMode(registryId, acrAuthMode ?? this.acrAuthMode());
+    const selectedIdentityId = acrPullIdentityId ?? this.acrSelectedUaiId() ?? this.getCurrentAcrPullIdentityId();
+
     if (!registryId || requestedAcrAuthMode !== 'ManagedIdentity') {
       this.resetAcrPullAccessState();
       return;
@@ -1257,10 +1404,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
     this.acrAuthMode.set(requestedAcrAuthMode);
     this.acrAccessChecking.set(true);
-    this.resetAcrPullAccessState();
+    this.resetAcrPullAccessState(true);
 
     try {
-      const result = await this.containerRegistryService.checkAcrPullAccess(this.resourceId, registryId, requestedAcrAuthMode);
+      const result = await this.containerRegistryService.checkAcrPullAccess(
+        this.resourceId,
+        registryId,
+        requestedAcrAuthMode,
+        selectedIdentityId,
+      );
       if (this.selectedContainerRegistryId() !== registryId || this.acrAuthMode() !== requestedAcrAuthMode) {
         return;
       }
@@ -1272,9 +1424,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       this.acrAssignedUaiName.set(result.assignedUserAssignedIdentityName ?? null);
       this.acrHasUai.set(result.hasUserAssignedIdentity);
       this.acrAuthMode.set(this.resolveAcrAuthMode(registryId, result.acrAuthMode ?? requestedAcrAuthMode));
-      // Pre-select the assigned UAI if one exists
-      if (result.assignedUserAssignedIdentityId) {
-        this.acrSelectedUaiId.set(result.assignedUserAssignedIdentityId);
+
+      if (requestedAcrAuthMode === 'ManagedIdentity' && result.assignedUserAssignedIdentityId) {
+        this.patchAcrPullIdentityId(result.assignedUserAssignedIdentityId, false);
       }
     } catch {
       this.acrHasAccess.set(null);
@@ -1286,7 +1438,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected async addAcrPullRoleAssignment(): Promise<void> {
     const acrId = this.generalForm.get('containerRegistryId')?.value;
     const roleDefId = this.acrMissingRoleDefinitionId();
-    const uaiId = this.acrSelectedUaiId() ?? this.acrAssignedUaiId();
+    const uaiId = this.acrSelectedUaiId();
     if (!acrId || !roleDefId || !uaiId) return;
 
     this.acrRoleAssigning.set(true);
@@ -1297,7 +1449,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         roleDefinitionId: roleDefId,
         userAssignedIdentityId: uaiId,
       });
-      await this.checkAcrPullAccess(acrId);
+      await this.checkAcrPullAccess(acrId, this.acrAuthMode(), uaiId);
       await this.identityAccessSection.loadRoleAssignments();
     } catch {
       // Error handled silently; the UI will still show the missing role
@@ -1320,7 +1472,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(async (result: UserAssignedIdentityResponse | undefined) => {
       if (!result) return;
       await this.identityAccessSection.loadAllResources();
-      this.acrSelectedUaiId.set(result.id);
+      await this.onAcrSelectedUaiChange(result.id);
     });
   }
 

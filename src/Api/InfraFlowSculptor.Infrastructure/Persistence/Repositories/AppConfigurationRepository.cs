@@ -19,7 +19,7 @@ public sealed class AppConfigurationRepository : AzureResourceRepository<AppConf
     }
 
     /// <inheritdoc />
-    public override async Task<AppConfiguration?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
+    public override async Task<AppConfiguration?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await WithSubResources(Context.Set<AppConfiguration>())
             .FirstOrDefaultAsync(ac => ac.Id == id, cancellationToken);
@@ -39,7 +39,7 @@ public sealed class AppConfigurationRepository : AzureResourceRepository<AppConf
     /// <inheritdoc />
     public async Task<AppConfiguration?> GetByIdWithConfigurationKeysAsync(
         AzureResourceId id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await WithConfigurationKeys(Context.Set<AppConfiguration>())
             .FirstOrDefaultAsync(ac => ac.Id == id, cancellationToken);
@@ -48,7 +48,7 @@ public sealed class AppConfigurationRepository : AzureResourceRepository<AppConf
     /// <inheritdoc />
     public async Task<AppConfiguration?> GetByIdWithConfigurationKeysAndRoleAssignmentsAsync(
         AzureResourceId id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await WithConfigurationKeys(Context.Set<AppConfiguration>())
             .Include(ac => ac.RoleAssignments)

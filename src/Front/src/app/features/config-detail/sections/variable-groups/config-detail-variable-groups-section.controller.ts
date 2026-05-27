@@ -110,19 +110,18 @@ export function createConfigDetailVariableGroupsSectionController(
     group: ProjectPipelineVariableGroupResponse,
     confirmed?: boolean,
   ): Promise<void> => {
-      const projectId = dependencies.getProjectId();
-      if (!confirmed || !projectId) {
-        return;
-      }
+    const projectId = dependencies.getProjectId();
+    if (!confirmed || !projectId) {
+      return;
+    }
 
-      errorKey.set('');
-      try {
-        await projectService.removePipelineVariableGroup(projectId, group.id);
-        variableGroups.update((currentGroups) => currentGroups.filter((currentGroup) => currentGroup.id !== group.id));
-      } catch {
-        errorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_GROUP');
-      }
-    };
+    errorKey.set('');
+    try {
+      await projectService.removePipelineVariableGroup(projectId, group.id);
+      variableGroups.update((currentGroups) => currentGroups.filter((currentGroup) => currentGroup.id !== group.id));
+    } catch {
+      errorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_GROUP');
+    }
   };
 
   return {

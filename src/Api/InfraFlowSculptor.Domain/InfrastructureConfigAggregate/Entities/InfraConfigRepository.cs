@@ -17,9 +17,6 @@ public sealed class InfraConfigRepository : Entity<InfraConfigRepositoryId>
     /// <summary>Gets the parent infrastructure configuration identifier.</summary>
     public InfrastructureConfigId InfrastructureConfigId { get; private set; } = null!;
 
-    /// <summary>Gets the configuration-scoped logical alias of this repository (slug).</summary>
-    public RepositoryAlias Alias { get; private set; } = null!;
-
     /// <summary>Gets the Git hosting provider type.</summary>
     public GitProviderType ProviderType { get; private set; } = null!;
 
@@ -44,7 +41,6 @@ public sealed class InfraConfigRepository : Entity<InfraConfigRepositoryId>
     /// <summary>Creates a new <see cref="InfraConfigRepository"/> after validation and URL parsing.</summary>
     public static ErrorOr<InfraConfigRepository> Create(
         InfrastructureConfigId configId,
-        RepositoryAlias alias,
         GitProviderType providerType,
         string repositoryUrl,
         string defaultBranch,
@@ -70,7 +66,6 @@ public sealed class InfraConfigRepository : Entity<InfraConfigRepositoryId>
         {
             Id = InfraConfigRepositoryId.CreateUnique(),
             InfrastructureConfigId = configId,
-            Alias = alias,
             ProviderType = providerType,
             RepositoryUrl = repositoryUrl.TrimEnd('/'),
             DefaultBranch = defaultBranch.Trim(),

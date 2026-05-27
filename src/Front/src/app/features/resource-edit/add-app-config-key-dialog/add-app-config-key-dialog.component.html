@@ -321,9 +321,9 @@
   </mat-dialog-content>
 
   <mat-dialog-actions class="as-dialog__actions" align="end">
-    <button mat-stroked-button (click)="onCancel()">
+    <app-ds-button variant="ghost" (clicked)="onCancel()">
       {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.CANCEL' | translate }}
-    </button>
+    </app-ds-button>
     <app-ds-button
       variant="primary"
       [disabled]="!canSubmit()"
@@ -377,9 +377,9 @@
       </mat-dialog-content>
 
       <mat-dialog-actions class="as-dialog__actions" align="end">
-        <button mat-stroked-button (click)="onCancel()">
+        <app-ds-button variant="ghost" (clicked)="onCancel()">
           {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.CANCEL' | translate }}
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
 

@@ -8,7 +8,7 @@ namespace InfraFlowSculptor.Domain.ProjectAggregate.Common;
 /// owner / repository components, and for normalizing optional sub-paths.
 /// Shared by <see cref="Entities.ProjectRepository"/>.
 /// </summary>
-internal static class RepositoryUrlHelper
+public static class RepositoryUrlHelper
 {
     private static readonly TimeSpan RegexMatchTimeout = TimeSpan.FromMilliseconds(250);
 
@@ -47,9 +47,14 @@ internal static class RepositoryUrlHelper
         }
 
         var segments = new Uri(url).AbsolutePath.Trim('/').Split('/');
-        return segments.Length >= 2
-            ? (segments[^2], segments[^1])
-            : (string.Empty, segments.Length > 0 ? segments[^1] : string.Empty);
+
+        if (segments.Length >= 2)
+            return (segments[^2], segments[^1]);
+
+        if (segments.Length > 0)
+            return (string.Empty, segments[^1]);
+
+        return (string.Empty, string.Empty);
     }
 
     /// <summary>Trims surrounding slashes from an optional sub-path. Returns <c>null</c> for empty/whitespace input.</summary>

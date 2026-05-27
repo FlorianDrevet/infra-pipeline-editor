@@ -113,6 +113,76 @@
   border: 1px solid var(--ifs-border-subtle);
 }
 
+// ─── Docker Image Field with Info Button ────
+
+.docker-image-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.95rem;
+}
+
+.docker-image-field {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25rem;
+  width: 100%;
+
+  .form-field {
+    flex: 1;
+  }
+
+  &__info-btn {
+    flex-shrink: 0;
+    color: var(--ifs-text-muted);
+    margin-bottom: 0.15rem;
+
+    &:hover {
+      color: var(--ifs-accent-500);
+    }
+  }
+
+  &__validate-btn {
+    flex-shrink: 0;
+    color: var(--ifs-warning);
+    margin-bottom: 0.15rem;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--ifs-warning);
+    }
+
+    &--validated {
+      color: var(--ifs-success);
+
+      &:hover {
+        color: var(--ifs-text-muted);
+      }
+    }
+  }
+}
+
+// ─── Docker Image Validation Hint ────
+
+.docker-image-validation-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--ifs-radius-sm);
+  font-size: 0.75rem;
+  color: var(--ifs-warning);
+  background: rgba(245, 166, 35, 0.08);
+  border: 1px solid rgba(245, 166, 35, 0.2);
+
+  &__icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+}
+
 // ─── ACR Auth Mode ────
 
 .acr-auth-mode {
@@ -143,6 +213,10 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
   }
 
   &__option {
@@ -197,6 +271,86 @@
   }
 }
 
+// ─── ACR Access Section ────
+
+.acr-access-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 0.9rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid rgba(58, 180, 217, 0.16);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(25, 57, 86, 0.92) 0%, rgba(16, 37, 59, 0.98) 100%),
+    var(--ifs-surface-1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 8px 24px rgba(6, 18, 34, 0.18);
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid rgba(58, 180, 217, 0.1);
+  }
+
+  &__title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-inline-size: 0;
+  }
+
+  &__eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(110, 212, 240, 0.92);
+  }
+
+  &__title-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  &__title-icon {
+    font-size: 1.05rem;
+    width: 1.05rem;
+    height: 1.05rem;
+    color: rgba(110, 212, 240, 0.92);
+    flex-shrink: 0;
+  }
+
+  &__title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #f3f8ff;
+    line-height: 1.3;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__status {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .acr-identity-card,
+  .acr-inline-status {
+    margin-top: 0;
+  }
+}
+
 // ─── ACR Inline Status (checking / ok) ────
 
 .acr-inline-status {
@@ -244,6 +398,26 @@
   border-radius: 12px;
   margin-top: 0.75rem;
   transition: background-color var(--ifs-duration-base) var(--ifs-ease-standard), border-color var(--ifs-duration-base) var(--ifs-ease-standard), box-shadow var(--ifs-duration-base) var(--ifs-ease-standard);
+
+  &--selector {
+    background:
+      linear-gradient(180deg, rgba(12, 28, 45, 0.92) 0%, rgba(10, 24, 39, 0.98) 100%),
+      var(--ifs-surface-2);
+    border: 1px solid rgba(93, 184, 214, 0.16);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      0 0 0 1px rgba(7, 16, 30, 0.14);
+
+    .acr-identity-card__identity-section {
+      background: transparent;
+      padding: 0;
+      gap: 0.55rem;
+    }
+
+    .acr-identity-card__section-label {
+      color: rgba(215, 233, 249, 0.72);
+    }
+  }
 
   &--warn {
     background: rgba(245, 166, 35, 0.08);

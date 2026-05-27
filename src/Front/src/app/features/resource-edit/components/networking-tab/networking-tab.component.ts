@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PrivateEndpointService } from '../../../../shared/services/private-endpoint.service';
 import { PrivateEndpointConfigResponse, AddPrivateEndpointRequest } from '../../../../shared/interfaces/private-endpoint.interface';
-import { DsTextFieldComponent, DsToggleComponent } from '../../../../shared/components/ds';
+import { DsToggleComponent } from '../../../../shared/components/ds';
 
 /**
  * Resource types that support private endpoints.
@@ -41,7 +41,6 @@ const PE_SUPPORTED_TYPES = new Set<string>([
     MatIconModule,
     MatProgressSpinnerModule,
     TranslateModule,
-    DsTextFieldComponent,
     DsToggleComponent,
   ],
   templateUrl: './networking-tab.component.html',

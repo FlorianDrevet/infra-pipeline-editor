@@ -3,7 +3,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.GenerationCore;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Common.Queries.GetDependentResources;
 
@@ -11,7 +10,7 @@ namespace InfraFlowSculptor.Application.Common.Queries.GetDependentResources;
 /// Handles the <see cref="GetDependentResourcesQuery"/> by looking up all child resources
 /// that depend on the given parent resource (LogAnalyticsWorkspace, AppServicePlan, SqlServer).
 /// </summary>
-public sealed class GetDependentResourcesQueryHandler(
+public sealed class GetDependentResourcesQueryHandler( // NOSONAR S107
     ILogAnalyticsWorkspaceRepository logAnalyticsWorkspaceRepository,
     IAppServicePlanRepository appServicePlanRepository,
     ISqlServerRepository sqlServerRepository,
@@ -62,34 +61,34 @@ public sealed class GetDependentResourcesQueryHandler(
         switch (parentType)
         {
             case AzureResourceTypes.LogAnalyticsWorkspace:
-            {
-                var appInsights = await applicationInsightsRepository
-                    .GetByLogAnalyticsWorkspaceIdAsync(request.Id, cancellationToken);
-                dependents.AddRange(appInsights.Select(ai => new DependentResourceResult(
-                    ai.Id.Value, ai.Name.Value, AzureResourceTypes.ApplicationInsights)));
-                break;
-            }
+                {
+                    var appInsights = await applicationInsightsRepository
+                        .GetByLogAnalyticsWorkspaceIdAsync(request.Id, cancellationToken);
+                    dependents.AddRange(appInsights.Select(ai => new DependentResourceResult(
+                        ai.Id.Value, ai.Name.Value, AzureResourceTypes.ApplicationInsights)));
+                    break;
+                }
             case AzureResourceTypes.AppServicePlan:
-            {
-                var webApps = await webAppRepository
-                    .GetByAppServicePlanIdAsync(request.Id, cancellationToken);
-                dependents.AddRange(webApps.Select(wa => new DependentResourceResult(
-                    wa.Id.Value, wa.Name.Value, AzureResourceTypes.WebApp)));
+                {
+                    var webApps = await webAppRepository
+                        .GetByAppServicePlanIdAsync(request.Id, cancellationToken);
+                    dependents.AddRange(webApps.Select(wa => new DependentResourceResult(
+                        wa.Id.Value, wa.Name.Value, AzureResourceTypes.WebApp)));
 
-                var functionApps = await functionAppRepository
-                    .GetByAppServicePlanIdAsync(request.Id, cancellationToken);
-                dependents.AddRange(functionApps.Select(fa => new DependentResourceResult(
-                    fa.Id.Value, fa.Name.Value, AzureResourceTypes.FunctionApp)));
-                break;
-            }
+                    var functionApps = await functionAppRepository
+                        .GetByAppServicePlanIdAsync(request.Id, cancellationToken);
+                    dependents.AddRange(functionApps.Select(fa => new DependentResourceResult(
+                        fa.Id.Value, fa.Name.Value, AzureResourceTypes.FunctionApp)));
+                    break;
+                }
             case AzureResourceTypes.SqlServer:
-            {
-                var sqlDatabases = await sqlDatabaseRepository
-                    .GetBySqlServerIdAsync(request.Id, cancellationToken);
-                dependents.AddRange(sqlDatabases.Select(db => new DependentResourceResult(
-                    db.Id.Value, db.Name.Value, AzureResourceTypes.SqlDatabase)));
-                break;
-            }
+                {
+                    var sqlDatabases = await sqlDatabaseRepository
+                        .GetBySqlServerIdAsync(request.Id, cancellationToken);
+                    dependents.AddRange(sqlDatabases.Select(db => new DependentResourceResult(
+                        db.Id.Value, db.Name.Value, AzureResourceTypes.SqlDatabase)));
+                    break;
+                }
         }
 
         return dependents;

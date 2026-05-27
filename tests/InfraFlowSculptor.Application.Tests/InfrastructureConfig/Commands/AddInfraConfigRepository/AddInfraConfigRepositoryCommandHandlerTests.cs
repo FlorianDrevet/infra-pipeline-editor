@@ -3,8 +3,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddInfraConfigRepository;
 using InfraFlowSculptor.Domain.Common.Errors;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
@@ -51,7 +49,6 @@ public sealed class AddInfraConfigRepositoryCommandHandlerTests
         var command = new AddInfraConfigRepositoryCommand(
             _project.Id,
             _config.Id,
-            Alias: "infra",
             ProviderType: "Unsupported",
             RepositoryUrl: "https://github.com/floriandrevet/infra",
             DefaultBranch: "main",
@@ -63,7 +60,7 @@ public sealed class AddInfraConfigRepositoryCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.GitRepository.InvalidProviderType("Unsupported").Code);
-        await _infrastructureConfigRepository.DidNotReceive().UpdateAsync(Arg.Any<DomainInfrastructureConfig>());
+        _infrastructureConfigRepository.DidNotReceive().Update(Arg.Any<DomainInfrastructureConfig>());
     }
 
     [Fact]
@@ -73,7 +70,6 @@ public sealed class AddInfraConfigRepositoryCommandHandlerTests
         var command = new AddInfraConfigRepositoryCommand(
             _project.Id,
             _config.Id,
-            Alias: "infra",
             ProviderType: nameof(GitProviderTypeEnum.GitHub),
             RepositoryUrl: "https://github.com/floriandrevet/infra",
             DefaultBranch: "main",
@@ -85,6 +81,6 @@ public sealed class AddInfraConfigRepositoryCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.ProjectRepository.NoContentKind().Code);
-        await _infrastructureConfigRepository.DidNotReceive().UpdateAsync(Arg.Any<DomainInfrastructureConfig>());
+        _infrastructureConfigRepository.DidNotReceive().Update(Arg.Any<DomainInfrastructureConfig>());
     }
 }

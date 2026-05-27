@@ -3,7 +3,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.SetProjectDefaultNamingTemplate;
 
@@ -28,7 +27,7 @@ public sealed class SetProjectDefaultNamingTemplateCommandHandler(
         var template = command.Template is not null ? new NamingTemplate(command.Template) : null;
         project.SetDefaultNamingTemplate(template);
 
-        await projectRepository.UpdateAsync(project);
+        projectRepository.Update(project);
 
         return Result.Success;
     }

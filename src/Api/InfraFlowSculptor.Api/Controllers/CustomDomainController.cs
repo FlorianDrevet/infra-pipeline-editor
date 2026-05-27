@@ -1,6 +1,8 @@
 using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Application.CustomDomains.Commands.AddCustomDomain;
 using InfraFlowSculptor.Application.CustomDomains.Commands.RemoveCustomDomain;
+using InfraFlowSculptor.Application.CustomDomains.Commands.ValidateCustomDomainDns;
+using InfraFlowSculptor.Application.CustomDomains.Queries.GetDnsInstructions;
 using InfraFlowSculptor.Application.CustomDomains.Queries.ListCustomDomains;
 using InfraFlowSculptor.Contracts.CustomDomains.Requests;
 using InfraFlowSculptor.Contracts.CustomDomains.Responses;
@@ -21,7 +23,7 @@ public static class CustomDomainController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/azure-resources/{resourceId:guid}/custom-domains")
+            var group = endpoints.MapGroup(Routes.AzureResourceCustomDomains)
                 .WithTags("CustomDomains");
 
             group.MapGet("",
@@ -46,7 +48,10 @@ public static class CustomDomainController
                             new AzureResourceId(resourceId),
                             request.EnvironmentName,
                             request.DomainName,
-                            request.BindingType);
+                            request.CertificateMode,
+                            request.KeyVaultUrl,
+                            request.ManagedIdentityResourceId,
+                            request.CertificateName);
 
                         var result = await mediator.Send(command);
 
@@ -75,6 +80,42 @@ public static class CustomDomainController
                             errors => errors.Result());
                     })
                 .WithName(CustomDomainRouteNames.RemoveCustomDomain)
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+            group.MapPost("/{customDomainId:guid}/validate-dns",
+                    async ([FromRoute] Guid resourceId,
+                        [FromRoute] Guid customDomainId,
+                        IMediator mediator) =>
+                    {
+                        var command = new ValidateCustomDomainDnsCommand(
+                            new AzureResourceId(resourceId),
+                            new CustomDomainId(customDomainId));
+
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            domain => Results.Ok(domain.Adapt<CustomDomainResponse>()),
+                            errors => errors.Result());
+                    })
+                .WithName(CustomDomainRouteNames.ValidateCustomDomainDns)
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+            group.MapGet("/{customDomainId:guid}/dns-instructions",
+                    async ([FromRoute] Guid resourceId,
+                        [FromRoute] Guid customDomainId,
+                        IMediator mediator) =>
+                    {
+                        var query = new GetDnsInstructionsQuery(
+                            new AzureResourceId(resourceId),
+                            new CustomDomainId(customDomainId));
+
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            instructions => Results.Ok(instructions.Adapt<DnsInstructionsResponse>()),
+                            errors => errors.Result());
+                    })
+                .WithName(CustomDomainRouteNames.GetDnsInstructions)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
         });
     }

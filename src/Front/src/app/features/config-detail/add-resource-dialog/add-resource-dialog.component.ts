@@ -11,6 +11,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { TranslateModule } from '@ngx-translate/core';
 import { LOCATION_OPTIONS } from '../enums/location.enum';
 import { RESOURCE_TYPE_OPTIONS, ResourceTypeEnum, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_CATEGORIES } from '../enums/resource-type.enum';
+import { hasResourceTypeEnvironmentSettings } from '../../../shared/resource-metadata/resource-type.metadata';
 import { OS_TYPE_OPTIONS } from '../enums/os-type.enum';
 import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../enums/app-service-plan-sku.enum';
 import { RUNTIME_STACK_OPTIONS } from '../enums/runtime-stack.enum';
@@ -288,9 +289,10 @@ export class AddResourceDialogComponent implements OnInit {
     ResourceTypeEnum.SqlServer,
   ]);
 
-  protected readonly isNameAvailabilityCheckEnabled = computed(
-    () => AddResourceDialogComponent.NAME_AVAILABILITY_TYPES.has(this.selectedType()!) && !this.isExistingResource(),
-  );
+  protected readonly isNameAvailabilityCheckEnabled = computed(() => {
+    const type = this.selectedType();
+    return type !== null && AddResourceDialogComponent.NAME_AVAILABILITY_TYPES.has(type) && !this.isExistingResource();
+  });
 
   protected readonly nameAvailabilityOverallState = computed<'idle' | 'checking' | 'all-ok' | 'has-unavailable' | 'has-invalid' | 'unknown'>(() => {
     if (this.nameAvailabilityChecking()) return 'checking';
@@ -305,7 +307,10 @@ export class AddResourceDialogComponent implements OnInit {
   protected readonly isSubmitBlockedByNameAvailability = computed(() => {
     if (!this.isNameAvailabilityCheckEnabled()) return false;
     const state = this.nameAvailabilityOverallState();
-    if (state === 'has-unavailable' || state === 'has-invalid') {
+    // Invalid names always block — no override possible (naming constraints violation)
+    if (state === 'has-invalid') return true;
+    // Unavailable names (conflict) can be overridden ("it's my resource")
+    if (state === 'has-unavailable') {
       return !this.nameAvailabilityOverridden();
     }
     return state === 'checking';
@@ -341,8 +346,7 @@ export class AddResourceDialogComponent implements OnInit {
   protected readonly hasEnvironments = this.data.environments.length > 0;
 
   protected readonly needsEnvironmentSettings = computed(() => {
-    const type = this.selectedType();
-    return type !== null && type !== ResourceTypeEnum.UserAssignedIdentity;
+    return hasResourceTypeEnvironmentSettings(this.selectedType());
   });
 
 
@@ -420,7 +424,7 @@ export class AddResourceDialogComponent implements OnInit {
     allowBlobPublicAccess: [false],
     enableHttpsTrafficOnly: [true],
     minimumTlsVersion: ['Tls12'],
-    redisVersion: [6 as number | null],
+    redisVersion: [6],
     enableNonSslPort: [false],
     disableAccessKeyAuthentication: [false],
     enableAadAuth: [false],

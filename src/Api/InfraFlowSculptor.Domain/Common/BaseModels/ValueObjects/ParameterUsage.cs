@@ -22,7 +22,7 @@ public sealed class ParameterUsage : ValueObject
     public static ParameterUsage AppSetting => new("appSetting");
     /// <summary>The parameter is injected as a connection string.</summary>
     public static ParameterUsage ConnectionString => new("connectionString");
-    
+
     /// <summary>Returns all defined parameter usage types.</summary>
     public static IEnumerable<ParameterUsage> All =>
         [Secret, AppSetting, ConnectionString];

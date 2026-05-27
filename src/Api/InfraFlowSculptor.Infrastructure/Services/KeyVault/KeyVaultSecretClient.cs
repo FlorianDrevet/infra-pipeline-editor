@@ -1,14 +1,17 @@
+using System.Net;
+using Azure;
 using Azure.Security.KeyVault.Secrets;
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Domain.Common.Errors;
+using Microsoft.Extensions.Logging;
 
 namespace InfraFlowSculptor.Infrastructure.Services.KeyVault;
 
 /// <summary>
 /// Centralized Azure Key Vault secret client backed by a single <see cref="SecretClient"/>.
 /// </summary>
-public sealed class KeyVaultSecretClient(SecretClient client) : IKeyVaultSecretClient
+public sealed class KeyVaultSecretClient(SecretClient client, ILogger<KeyVaultSecretClient> logger) : IKeyVaultSecretClient
 {
     /// <inheritdoc />
     public async Task<ErrorOr<string>> GetSecretAsync(
@@ -19,8 +22,14 @@ public sealed class KeyVaultSecretClient(SecretClient client) : IKeyVaultSecretC
             var response = await client.GetSecretAsync(secretName, cancellationToken: cancellationToken);
             return response.Value.Value;
         }
-        catch (Exception)
+        catch (RequestFailedException exception)
         {
+            logger.LogError(exception, "Failed to retrieve secret {SecretName} from Azure Key Vault.", secretName);
+            return Errors.GitRepository.SecretRetrievalFailed();
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Failed to retrieve secret {SecretName} from Azure Key Vault.", secretName);
             return Errors.GitRepository.SecretRetrievalFailed();
         }
     }
@@ -34,9 +43,15 @@ public sealed class KeyVaultSecretClient(SecretClient client) : IKeyVaultSecretC
             await client.SetSecretAsync(secretName, value, cancellationToken);
             return Result.Success;
         }
-        catch (Exception)
+        catch (RequestFailedException exception)
         {
-            return Errors.GitRepository.SecretRetrievalFailed();
+            logger.LogError(exception, "Failed to store secret {SecretName} in Azure Key Vault.", secretName);
+            return Errors.GitRepository.SecretStorageFailed(DescribeSecretStorageFailure(exception));
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Failed to store secret {SecretName} in Azure Key Vault.", secretName);
+            return Errors.GitRepository.SecretStorageFailed();
         }
     }
 
@@ -53,5 +68,17 @@ public sealed class KeyVaultSecretClient(SecretClient client) : IKeyVaultSecretC
         {
             return Errors.GitRepository.SecretRetrievalFailed();
         }
+    }
+
+    private static string? DescribeSecretStorageFailure(RequestFailedException exception)
+    {
+        return (HttpStatusCode)exception.Status switch
+        {
+            HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden
+                => "the application is not allowed to write secrets to the configured Key Vault.",
+            HttpStatusCode.NotFound
+                => "the configured Key Vault could not be found.",
+            _ => string.IsNullOrWhiteSpace(exception.Message) ? null : exception.Message,
+        };
     }
 }

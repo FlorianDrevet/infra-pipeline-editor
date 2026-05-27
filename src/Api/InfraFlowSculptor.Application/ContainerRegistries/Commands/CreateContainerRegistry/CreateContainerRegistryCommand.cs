@@ -12,4 +12,4 @@ public record CreateContainerRegistryCommand(
     Location Location,
     IReadOnlyList<ContainerRegistryEnvironmentConfigData>? EnvironmentSettings = null,
     bool IsExisting = false
-) : ICommand<ContainerRegistryResult>;
+) : ICommand<ContainerRegistryResult>, ICreateResourceCommand;

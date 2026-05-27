@@ -1,16 +1,15 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
-import { DsButtonComponent, DsSelectComponent, DsSelectOption } from '../../../shared/components/ds';
+import {
+  DsAutocompleteComponent,
+  DsAutocompleteOption,
+  DsButtonComponent,
+  DsSelectComponent,
+  DsSelectOption,
+} from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserResponse } from '../../../shared/interfaces/infra-config.interface';
-import { ProjectResponse } from '../../../shared/interfaces/project.interface';
 import { ProjectService } from '../../../shared/services/project.service';
 
 export interface AddProjectMemberDialogData {
@@ -25,15 +24,10 @@ const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
   selector: 'app-add-project-member-dialog',
   standalone: true,
   imports: [
-    MatAutocompleteModule,
     MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
+    DsAutocompleteComponent,
     DsButtonComponent,
     DsSelectComponent,
   ],
@@ -64,6 +58,12 @@ export class AddProjectMemberDialogComponent {
         `${u.firstName} ${u.lastName}`.toLowerCase().includes(term)
     );
   });
+    protected readonly userOptions = computed<DsAutocompleteOption<UserResponse>[]>(() =>
+      this.filteredUsers().map((user) => ({
+        value: user,
+        label: this.displayUser(user),
+      })),
+    );
 
   protected readonly roles = ROLES;
   protected readonly roleOptions: DsSelectOption[] = ROLES.map((role) => ({
@@ -74,19 +74,20 @@ export class AddProjectMemberDialogComponent {
   protected readonly errorKey = signal('');
 
   protected readonly form = this.fb.group({
+    userSearch: ['', Validators.required],
     role: ['', Validators.required],
   });
 
-  protected onSearchInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
+  protected onSearchInput(value: string): void {
     this.searchTerm.set(value);
-    if (this.selectedUser() && this.displayUser(this.selectedUser()!) !== value) {
+    const user = this.selectedUser();
+    if (user && this.displayUser(user) !== value) {
       this.selectedUser.set(null);
     }
   }
 
-  protected onUserSelected(user: UserResponse): void {
-    this.selectedUser.set(user);
+  protected onUserSelected(option: DsAutocompleteOption<unknown>): void {
+    this.selectedUser.set(option.value as UserResponse);
   }
 
   protected displayUser(user: UserResponse): string {

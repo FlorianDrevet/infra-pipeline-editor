@@ -2,7 +2,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.GenerationCore.Models;
-using InfraFlowSculptor.PipelineGeneration.Models;
 
 namespace InfraFlowSculptor.Application.Common.Interfaces.Services;
 

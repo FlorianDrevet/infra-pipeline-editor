@@ -3,7 +3,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.OwnedEntities;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate.Entities;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ResourceParameterUsage;
+using InfraFlowSculptor.Domain.ContainerAppAggregate.Models;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.ContainerAppAggregate;
@@ -27,14 +27,23 @@ public sealed class ContainerApp : AzureResource
     /// <summary>Gets the optional authentication mode used to pull images from Azure Container Registry.</summary>
     public AcrAuthMode? AcrAuthMode { get; private set; }
 
+    /// <summary>Gets the optional User Assigned Identity used exclusively for pulling images from ACR (distinct from the resource-level identity).</summary>
+    public AzureResourceId? AcrPullIdentityId { get; private set; }
+
     /// <summary>Gets the optional base Docker image name (e.g., "myregistry.azurecr.io/myapp/api") without the tag.</summary>
     public string? DockerImageName { get; private set; }
+
+    /// <summary>Gets whether the user has confirmed that the Docker image exists in the container registry.</summary>
+    public bool DockerImageValidated { get; private set; }
 
     /// <summary>Gets the optional relative path to the Dockerfile in the repository.</summary>
     public string? DockerfilePath { get; private set; }
 
     /// <summary>Gets the user-friendly application name displayed in Azure DevOps pipeline runs.</summary>
     public string? ApplicationName { get; private set; }
+
+    /// <summary>Gets the optional relative path to the source code directory used as Docker build context.</summary>
+    public string? SourceCodePath { get; private set; }
 
     /// <summary>Gets the configurable CI/CD pipeline step options for this Container App.</summary>
     public AppPipelineStepOptions PipelineStepOptions { get; private set; } = new();
@@ -55,10 +64,13 @@ public sealed class ContainerApp : AzureResource
     /// <param name="containerAppEnvironmentId">The identifier of the hosting Container App Environment.</param>
     /// <param name="containerRegistryId">The optional Container Registry identifier for authenticated image pulls.</param>
     /// <param name="acrAuthMode">The optional authentication mode used to pull images from Azure Container Registry.</param>
+    /// <param name="acrPullIdentityId">The optional User Assigned Identity used exclusively for ACR image pull.</param>
     /// <param name="dockerImageName">The optional base Docker image name without the tag.</param>
+    /// <param name="dockerImageValidated">Whether the user has confirmed the Docker image exists.</param>
     /// <param name="dockerfilePath">The optional relative path to the Dockerfile in the repository.</param>
     /// <param name="applicationName">The optional user-friendly application name for pipeline display.</param>
-    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, AcrAuthMode? acrAuthMode, string? dockerImageName, string? dockerfilePath, string? applicationName)
+    /// <param name="sourceCodePath">The optional relative path to the source code directory used as Docker build context.</param>
+    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, AcrAuthMode? acrAuthMode, AzureResourceId? acrPullIdentityId, string? dockerImageName, bool dockerImageValidated, string? dockerfilePath, string? applicationName, string? sourceCodePath) // NOSONAR S107
     {
         SetNameAndLocation(name, location);
 
@@ -67,10 +79,13 @@ public sealed class ContainerApp : AzureResource
 
         ContainerAppEnvironmentId = containerAppEnvironmentId;
         ContainerRegistryId = containerRegistryId;
-    AcrAuthMode = containerRegistryId is null ? null : acrAuthMode;
+        AcrAuthMode = containerRegistryId is null ? null : acrAuthMode;
+        AcrPullIdentityId = containerRegistryId is null || acrAuthMode?.Value != AcrAuthMode.AcrAuthModeType.ManagedIdentity ? null : acrPullIdentityId;
         DockerImageName = dockerImageName;
+        DockerImageValidated = dockerImageValidated;
         DockerfilePath = dockerfilePath;
         ApplicationName = applicationName;
+        SourceCodePath = sourceCodePath;
     }
 
     /// <summary>Sets the pipeline step options for this Container App.</summary>
@@ -85,37 +100,21 @@ public sealed class ContainerApp : AzureResource
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
-    public void SetEnvironmentSettings(
-        string environmentName,
-        string? cpuCores,
-        string? memoryGi,
-        int? minReplicas,
-        int? maxReplicas,
-        bool? ingressEnabled,
-        int? ingressTargetPort,
-        bool? ingressExternal,
-        string? transportMethod,
-        string? readinessProbePath = null,
-        int? readinessProbePort = null,
-        string? livenessProbePath = null,
-        int? livenessProbePort = null,
-        string? startupProbePath = null,
-        int? startupProbePort = null)
+    public void SetEnvironmentSettings(ContainerAppEnvironmentSettingsData settings)
     {
         if (IsExisting)
             return;
         var existing = _environmentSettings.FirstOrDefault(
-            es => es.EnvironmentName == environmentName);
+            es => es.EnvironmentName == settings.EnvironmentName);
 
         if (existing is not null)
         {
-            existing.Update(cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod, readinessProbePath, readinessProbePort, livenessProbePath, livenessProbePort, startupProbePath, startupProbePort);
+            existing.Update(settings);
         }
         else
         {
             _environmentSettings.Add(
-                ContainerAppEnvironmentSettings.Create(
-                    Id, environmentName, cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod, readinessProbePath, readinessProbePort, livenessProbePath, livenessProbePort, startupProbePath, startupProbePort));
+                ContainerAppEnvironmentSettings.Create(Id, settings));
         }
     }
 
@@ -124,17 +123,16 @@ public sealed class ContainerApp : AzureResource
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod, string? ReadinessProbePath, int? ReadinessProbePort, string? LivenessProbePath, int? LivenessProbePort, string? StartupProbePath, int? StartupProbePort)> settings)
+        IReadOnlyList<ContainerAppEnvironmentSettingsData> settings)
     {
         if (IsExisting)
             return;
 
         _environmentSettings.Clear();
-        foreach (var s in settings)
+        foreach (var setting in settings)
         {
             _environmentSettings.Add(
-                ContainerAppEnvironmentSettings.Create(
-                    Id, s.EnvironmentName, s.CpuCores, s.MemoryGi, s.MinReplicas, s.MaxReplicas, s.IngressEnabled, s.IngressTargetPort, s.IngressExternal, s.TransportMethod, s.ReadinessProbePath, s.ReadinessProbePort, s.LivenessProbePath, s.LivenessProbePort, s.StartupProbePath, s.StartupProbePort));
+                ContainerAppEnvironmentSettings.Create(Id, setting));
         }
     }
 
@@ -147,24 +145,31 @@ public sealed class ContainerApp : AzureResource
     /// <param name="containerAppEnvironmentId">The identifier of the hosting Container App Environment.</param>
     /// <param name="containerRegistryId">The optional Container Registry identifier for authenticated image pulls.</param>
     /// <param name="acrAuthMode">The optional authentication mode used to pull images from Azure Container Registry.</param>
+    /// <param name="acrPullIdentityId">The optional User Assigned Identity used exclusively for ACR image pull.</param>
     /// <param name="dockerImageName">The optional base Docker image name without the tag.</param>
+    /// <param name="dockerImageValidated">Whether the Docker image has already been confirmed as available.</param>
     /// <param name="dockerfilePath">The optional relative path to the Dockerfile in the repository.</param>
     /// <param name="applicationName">The optional user-friendly application name for pipeline display.</param>
     /// <param name="environmentSettings">Optional per-environment configuration overrides.</param>
     /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
-    public static ContainerApp Create(
+    public static ContainerApp Create( // NOSONAR S107
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
         AzureResourceId containerAppEnvironmentId,
         AzureResourceId? containerRegistryId,
         AcrAuthMode? acrAuthMode,
+        AzureResourceId? acrPullIdentityId = null,
         string? dockerImageName = null,
+        bool dockerImageValidated = false,
         string? dockerfilePath = null,
         string? applicationName = null,
-        IReadOnlyList<(string EnvironmentName, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod, string? ReadinessProbePath, int? ReadinessProbePort, string? LivenessProbePath, int? LivenessProbePort, string? StartupProbePath, int? StartupProbePort)>? environmentSettings = null,
+        string? sourceCodePath = null,
+        IReadOnlyList<ContainerAppEnvironmentSettingsData>? environmentSettings = null,
         bool isExisting = false)
     {
+        var resolvedAcrAuthMode = containerRegistryId is null ? null : acrAuthMode;
+
         var containerApp = new ContainerApp
         {
             Id = AzureResourceId.CreateUnique(),
@@ -174,10 +179,13 @@ public sealed class ContainerApp : AzureResource
             IsExisting = isExisting,
             ContainerAppEnvironmentId = containerAppEnvironmentId,
             ContainerRegistryId = containerRegistryId,
-            AcrAuthMode = containerRegistryId is null ? null : acrAuthMode,
+            AcrAuthMode = resolvedAcrAuthMode,
+            AcrPullIdentityId = resolvedAcrAuthMode?.Value == AcrAuthMode.AcrAuthModeType.ManagedIdentity ? acrPullIdentityId : null,
             DockerImageName = dockerImageName,
+            DockerImageValidated = dockerImageValidated,
             DockerfilePath = dockerfilePath,
-            ApplicationName = applicationName
+            ApplicationName = applicationName,
+            SourceCodePath = sourceCodePath
         };
 
         if (!isExisting && environmentSettings is not null)

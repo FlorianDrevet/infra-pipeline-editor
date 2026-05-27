@@ -210,12 +210,26 @@
     border-bottom: none;
   }
 
+  .abbreviation-list__col--type {
+    display: flex;
+    align-items: center;
+    gap: var(--ifs-space-6);
+    min-width: 0;
+  }
+
   &__icon {
     font-size: 16px;
     width: 16px;
     height: 16px;
     color: var(--ifs-text-secondary);
-    margin-right: var(--ifs-space-6);
+    display: block;
+    flex-shrink: 0;
+  }
+
+  &__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   &__spinner {

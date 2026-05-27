@@ -57,6 +57,7 @@ interface RawEnvironmentFormValue {
   livenessProbePort?: RawEnvironmentScalarValue;
   startupProbePath?: RawEnvironmentScalarValue;
   startupProbePort?: RawEnvironmentScalarValue;
+  containerRegistryServiceConnection?: RawEnvironmentScalarValue;
   retentionInDays?: RawEnvironmentScalarValue;
   dailyQuotaGb?: RawEnvironmentScalarValue;
   samplingPercentage?: RawEnvironmentScalarValue;
@@ -222,6 +223,7 @@ export function buildContainerAppEnvironmentSettings(
       livenessProbePort: toNullableNumber(raw.livenessProbePort),
       startupProbePath: toNullableString(raw.startupProbePath),
       startupProbePort: toNullableNumber(raw.startupProbePort),
+      containerRegistryServiceConnection: toNullableString(raw.containerRegistryServiceConnection),
     };
   });
 }

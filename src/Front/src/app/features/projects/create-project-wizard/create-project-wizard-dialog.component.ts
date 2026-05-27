@@ -41,14 +41,12 @@ import { CreateProjectWizardDraftService } from './create-project-wizard-draft.s
 import { EnvironmentStepComponent } from './steps/environment-step.component';
 import { IdentityStepComponent } from './steps/identity-step.component';
 import { LayoutStepComponent } from './steps/layout-step.component';
-import { RepositoriesStepComponent } from './steps/repositories-step.component';
 import { ReviewStepComponent } from './steps/review-step.component';
 
 const STEP_IDENTITY = 0;
 const STEP_LAYOUT = 1;
 const STEP_ENVIRONMENTS = 2;
-const STEP_REPOSITORIES = 3;
-// Review step index = 3 when MultiRepo (no repositories step), 4 otherwise.
+const STEP_REVIEW = 3;
 
 /**
  * Multi-step "Create project" wizard. Uses a Material stepper, persists the in-flight draft
@@ -68,7 +66,6 @@ const STEP_REPOSITORIES = 3;
     IdentityStepComponent,
     LayoutStepComponent,
     EnvironmentStepComponent,
-    RepositoriesStepComponent,
     ReviewStepComponent,
   ],
   templateUrl: './create-project-wizard-dialog.component.html',
@@ -90,7 +87,6 @@ export class CreateProjectWizardDialogComponent implements OnInit {
   protected readonly identityValid = signal(false);
   protected readonly layoutValid = signal(false);
   protected readonly environmentsValid = signal(false);
-  protected readonly repositoriesValid = signal(false);
 
   protected readonly resumePromptVisible = signal(false);
   protected readonly abandonPromptVisible = signal(false);
@@ -100,12 +96,6 @@ export class CreateProjectWizardDialogComponent implements OnInit {
 
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
 
-  protected readonly needsRepositoriesStep = computed(
-    () => this.draft().layoutPreset !== '' && this.draft().layoutPreset !== 'MultiRepo',
-  );
-
-  protected readonly reviewStepIndex = computed(() => (this.needsRepositoriesStep() ? 4 : 3));
-
   protected readonly isCurrentStepValid = computed(() => {
     switch (this.activeStepIndex()) {
       case STEP_IDENTITY:
@@ -114,8 +104,6 @@ export class CreateProjectWizardDialogComponent implements OnInit {
         return this.layoutValid();
       case STEP_ENVIRONMENTS:
         return this.environmentsValid();
-      case STEP_REPOSITORIES:
-        return this.repositoriesValid();
       default:
         return true;
     }
@@ -159,7 +147,6 @@ export class CreateProjectWizardDialogComponent implements OnInit {
     this.identityValid.set(false);
     this.layoutValid.set(false);
     this.environmentsValid.set(false);
-    this.repositoriesValid.set(false);
     this.stepperRef()?.reset();
   }
 
@@ -177,9 +164,7 @@ export class CreateProjectWizardDialogComponent implements OnInit {
     this.environmentsValid.set(valid);
   }
 
-  protected onRepositoriesValidity(valid: boolean): void {
-    this.repositoriesValid.set(valid);
-  }
+
 
   // ─── Stepper navigation ─────────────────────────────────────────────────
 
@@ -206,11 +191,10 @@ export class CreateProjectWizardDialogComponent implements OnInit {
       };
       const repo: RepositoryDraft = {
         ...createEmptyRepository(['Infrastructure', 'ApplicationCode']),
-        alias: 'main-repo',
       };
       return {
         ...d,
-        layoutPreset: 'AllInOne' as LayoutPreset,
+        layoutPreset: 'AllInOne',
         environments: [env],
         repositories: [repo],
       };
@@ -218,11 +202,10 @@ export class CreateProjectWizardDialogComponent implements OnInit {
     // Mark all intermediate steps as valid so the stepper can advance.
     this.layoutValid.set(true);
     this.environmentsValid.set(true);
-    this.repositoriesValid.set(true);
     queueMicrotask(() => {
       const stepper = this.stepperRef();
       if (stepper) {
-        stepper.selectedIndex = this.reviewStepIndex();
+        stepper.selectedIndex = STEP_REVIEW;
       }
     });
   }
@@ -257,13 +240,7 @@ export class CreateProjectWizardDialogComponent implements OnInit {
   }
 
   protected canSubmit(): boolean {
-    if (!this.identityValid() || !this.layoutValid() || !this.environmentsValid()) {
-      return false;
-    }
-    if (this.needsRepositoriesStep() && !this.repositoriesValid()) {
-      return false;
-    }
-    return true;
+    return this.identityValid() && this.layoutValid() && this.environmentsValid();
   }
 
   // ─── Cancel / abandon ─────────────────────────────────────────────────────
@@ -316,12 +293,13 @@ export class CreateProjectWizardDialogComponent implements OnInit {
       const provider = repo.providerType ? repo.providerType : undefined;
       const url = repo.repositoryUrl.trim() ? repo.repositoryUrl.trim() : undefined;
       const branch = repo.defaultBranch.trim() ? repo.defaultBranch.trim() : undefined;
+      const pat = repo.personalAccessToken?.trim() ? repo.personalAccessToken.trim() : undefined;
       return {
-        alias: repo.alias.trim(),
         contentKinds: repo.contentKinds,
         providerType: provider,
         repositoryUrl: url,
         defaultBranch: branch,
+        personalAccessToken: pat,
       };
     });
 

@@ -1,4 +1,3 @@
-using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
@@ -11,6 +10,7 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 public sealed class CustomDomainConfiguration : IEntityTypeConfiguration<CustomDomain>
 {
     private const string TableName = "CustomDomains";
+    private const string DefaultDnsValidationStatus = "Pending";
 
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<CustomDomain> builder)
@@ -35,10 +35,32 @@ public sealed class CustomDomainConfiguration : IEntityTypeConfiguration<CustomD
             .IsRequired()
             .HasMaxLength(253);
 
-        builder.Property(cd => cd.BindingType)
+        builder.Property(cd => cd.CertificateMode)
+            .HasConversion(
+                v => v.Value.ToString(),
+                v => new CertificateMode(
+                    Enum.Parse<CertificateMode.CertificateModeType>(v)))
+            .IsRequired()
+            .HasMaxLength(30)
+            .HasDefaultValue(CertificateMode.ManagedCertificate);
+
+        builder.Property(cd => cd.KeyVaultUrl)
+            .HasMaxLength(500);
+
+        builder.Property(cd => cd.ManagedIdentityResourceId)
+            .HasMaxLength(500);
+
+        builder.Property(cd => cd.CertificateName)
+            .HasMaxLength(200);
+
+        builder.Property(cd => cd.DnsValidationStatus)
+            .HasConversion(
+                v => v.Value.ToString(),
+                v => new DnsValidationStatus(
+                    Enum.Parse<DnsValidationStatus.DnsValidationStatusType>(v)))
             .IsRequired()
             .HasMaxLength(20)
-            .HasDefaultValue("SniEnabled");
+            .HasDefaultValue(DnsValidationStatus.Pending);
 
         builder.HasIndex(cd => new { cd.ResourceId, cd.EnvironmentName, cd.DomainName })
             .IsUnique();

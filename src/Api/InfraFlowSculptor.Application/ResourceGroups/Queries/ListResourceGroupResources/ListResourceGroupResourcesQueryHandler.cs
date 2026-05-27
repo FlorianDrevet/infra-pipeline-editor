@@ -6,7 +6,6 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupResources;
 

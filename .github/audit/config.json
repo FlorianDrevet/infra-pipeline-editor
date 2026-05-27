@@ -16,11 +16,16 @@
     "SEC": "area: security",
     "DB": "area: database",
     "DDD": "area: domain",
+    "DOM": "area: domain",
     "APP": "area: application",
     "API": "area: api",
     "GEN": "area: generation",
     "INFRA": "area: infrastructure",
-    "TEST": "area: testing"
+    "TEST": "area: testing",
+    "FE": "area: frontend",
+    "FRONT": "area: frontend",
+    "MCP": "area: mcp",
+    "ARCH": "area: architecture"
   },
   "phaseLabelsByNumber": {
     "0": "phase: 0-foundation",

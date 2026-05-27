@@ -26,6 +26,43 @@ export enum ResourceTypeEnum {
   FrontDoor = 'FrontDoor',
 }
 
+const RESOURCE_TYPES_WITH_ENVIRONMENT_SETTINGS_VALUES = [
+  ResourceTypeEnum.KeyVault,
+  ResourceTypeEnum.RedisCache,
+  ResourceTypeEnum.StorageAccount,
+  ResourceTypeEnum.AppServicePlan,
+  ResourceTypeEnum.WebApp,
+  ResourceTypeEnum.FunctionApp,
+  ResourceTypeEnum.AppConfiguration,
+  ResourceTypeEnum.ContainerAppEnvironment,
+  ResourceTypeEnum.ContainerApp,
+  ResourceTypeEnum.LogAnalyticsWorkspace,
+  ResourceTypeEnum.ApplicationInsights,
+  ResourceTypeEnum.CosmosDb,
+  ResourceTypeEnum.SqlServer,
+  ResourceTypeEnum.SqlDatabase,
+  ResourceTypeEnum.ServiceBusNamespace,
+  ResourceTypeEnum.ContainerRegistry,
+] as const satisfies readonly ResourceTypeEnum[];
+
+/**
+ * Resource types that expose real per-environment fields in the add-resource flow.
+ */
+export const RESOURCE_TYPES_WITH_ENVIRONMENT_SETTINGS: ReadonlySet<ResourceTypeEnum> =
+  new Set<ResourceTypeEnum>(RESOURCE_TYPES_WITH_ENVIRONMENT_SETTINGS_VALUES);
+
+/**
+ * Resource types that should skip environment-specific configuration in the UI.
+ */
+export const RESOURCE_TYPES_WITHOUT_ENVIRONMENT_SETTINGS: ReadonlySet<string> =
+  new Set<string>(
+    Object.values(ResourceTypeEnum).filter((resourceType) => !RESOURCE_TYPES_WITH_ENVIRONMENT_SETTINGS.has(resourceType)),
+  );
+
+export function hasResourceTypeEnvironmentSettings(resourceType: ResourceTypeEnum | null): boolean {
+  return resourceType !== null && RESOURCE_TYPES_WITH_ENVIRONMENT_SETTINGS.has(resourceType);
+}
+
 /**
  * Dropdown options for ResourceTypeEnum.
  */

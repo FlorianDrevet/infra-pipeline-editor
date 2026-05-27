@@ -1,5 +1,4 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
-using ErrorOr;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -19,4 +18,4 @@ public record UpdateStorageAccountCommand(
     IReadOnlyList<CorsRuleResult>? CorsRules = null,
     IReadOnlyList<CorsRuleResult>? TableCorsRules = null,
     IReadOnlyList<BlobLifecycleRuleResult>? LifecycleRules = null
-) : ICommand<StorageAccountResult>;
+) : ICommand<StorageAccountResult>, IStorageAccountCommandProperties;

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InfraFlowSculptor.Contracts.Projects.Requests;
 
-/// <summary>Request to update an existing project-level Git repository declaration. Alias is immutable.</summary>
+/// <summary>Request to update an existing project-level Git repository declaration.</summary>
 /// <remarks>
 /// Pass connection details (provider, URL, default branch) all together to fully configure the slot,
 /// or pass them all empty/null to keep the slot in an unconfigured state.
@@ -19,6 +19,10 @@ public sealed class UpdateProjectRepositoryRequest
     /// <summary>Default branch name (e.g. <c>main</c>). Optional.</summary>
     [StringLength(200)]
     public string? DefaultBranch { get; init; }
+
+    /// <summary>Optional transient PAT. When omitted, the existing repository-scoped PAT is reused.</summary>
+    [StringLength(2048)]
+    public string? PersonalAccessToken { get; init; }
 
     /// <summary>List of content kinds hosted by the repository
     /// (<c>Infrastructure</c>, <c>ApplicationCode</c>).</summary>

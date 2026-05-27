@@ -38,12 +38,14 @@
   flex-direction: column;
   gap: var(--ifs-space-12);
   padding: var(--ifs-space-20) var(--ifs-space-24);
-  background: var(--ifs-surface-1);
-  background: var(--project-surface-header);
-  border: 1px solid var(--project-border-accent);
-  border-radius: var(--ifs-radius-md);
+  background:
+    radial-gradient(circle at top right, rgba(93, 152, 255, 0.22), transparent 34%),
+    linear-gradient(160deg, rgba(13, 29, 67, 0.92), rgba(15, 25, 40, 0.96));
+  border: 1px solid var(--ifs-border-strong);
+  border-radius: calc(var(--ifs-radius-lg) + 4px);
   color: var(--ifs-text-primary);
-  box-shadow: var(--ifs-shadow-sm);
+  box-shadow: var(--ifs-shadow-md);
+  overflow: hidden;
 }
 
 .detail-header__nav {
@@ -191,8 +193,7 @@
   }
 }
 
-.add-btn,
-.add-env-btn {
+.add-btn {
   @extend %detail-btn;
   background: var(--ifs-surface-2);
   background: var(--project-surface-hover);
@@ -236,16 +237,14 @@
 }
 
 .remove-btn,
-.template-action-btn,
-.env-action-btn {
+.template-action-btn {
   @extend %detail-btn;
   height: 28px;
   padding: 0 var(--ifs-space-8);
   font-size: 12px;
 }
 
-.template-action-btn--delete,
-.env-action-btn--delete {
+.template-action-btn--delete {
   color: var(--ifs-danger);
 
   &:hover {
@@ -599,9 +598,16 @@
   &__header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: var(--ifs-space-12);
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  &__title {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ifs-space-6);
+    flex: 1 1 auto;
     min-width: 0;
 
     h3 {
@@ -621,12 +627,6 @@
     gap: var(--ifs-space-8);
     color: var(--ifs-text-secondary);
     font-size: 12px;
-  }
-
-  &__actions {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ifs-space-6);
     flex-shrink: 0;
   }
 
@@ -644,6 +644,7 @@
     width: 28px;
     padding: 0;
     justify-content: center;
+    flex-shrink: 0;
     color: var(--ifs-danger);
 
     &:hover {
@@ -654,56 +655,6 @@
 
   &:hover &__arrow {
     color: var(--ifs-accent-400);
-  }
-}
-
-.env-card {
-  @extend %detail-card;
-
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ifs-space-8);
-  }
-
-  &__details {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ifs-space-4);
-    color: var(--ifs-text-secondary);
-    font-size: 13px;
-  }
-
-  &__header-actions {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ifs-space-6);
-  }
-
-  &__tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ifs-space-6);
-  }
-
-  &__spinner {
-    width: 16px;
-    height: 16px;
-  }
-}
-
-.env-pipeline {
-  display: flex;
-  align-items: center;
-  gap: var(--ifs-space-8);
-  flex-wrap: wrap;
-
-  &__connector {
-    flex: 1;
-    height: 1px;
-    background: var(--ifs-border-subtle);
-    min-width: 24px;
   }
 }
 
@@ -865,14 +816,21 @@
     flex-direction: column;
     border: 1px solid var(--ifs-border-subtle);
     border-radius: var(--ifs-radius-sm);
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   &__table-header,
   &__table-row {
     display: grid;
-    grid-template-columns: 2fr 3fr auto;
+    grid-template-columns:
+      minmax(12rem, 1.6fr)
+      minmax(14rem, 2fr)
+      minmax(10rem, 1.2fr)
+      minmax(10rem, 1fr)
+      minmax(10rem, 1fr);
     gap: var(--ifs-space-12);
+    min-width: 64rem;
     padding: var(--ifs-space-8) var(--ifs-space-12);
     align-items: center;
     border-bottom: 1px solid var(--ifs-border-subtle);
@@ -889,12 +847,17 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+
+    .vg-col {
+      white-space: nowrap;
+    }
   }
 }
 
 .vg-col {
   font-size: 13px;
   color: var(--ifs-text-primary);
+  min-width: 0;
 }
 
 .vg-type-chip {
@@ -936,13 +899,19 @@
   }
 
   &__title {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ifs-space-8);
+    min-width: 0;
     margin: 0;
     font-size: 14px;
+    line-height: 1.4;
     font-weight: 600;
     color: var(--ifs-text-primary);
   }
 
   &__title-icon {
+    flex-shrink: 0;
     font-size: 18px;
     width: 18px;
     height: 18px;
@@ -1058,11 +1027,26 @@
     border-bottom: none;
   }
 
+  .abbreviation-list__col--type {
+    display: flex;
+    align-items: center;
+    gap: var(--ifs-space-6);
+    min-width: 0;
+  }
+
   &__icon {
     font-size: 16px;
     width: 16px;
     height: 16px;
     color: var(--ifs-text-secondary);
+    display: block;
+    flex-shrink: 0;
+  }
+
+  &__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   &__spinner {

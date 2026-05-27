@@ -1,7 +1,6 @@
 using FluentAssertions;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
-using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 

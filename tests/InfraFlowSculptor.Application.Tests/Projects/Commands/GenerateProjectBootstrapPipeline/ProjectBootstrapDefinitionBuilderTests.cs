@@ -19,6 +19,7 @@ public sealed class ProjectBootstrapDefinitionBuilderTests
 {
     private readonly IProjectRepository _projectRepository;
     private readonly IApplicationFolderNameResolver _applicationFolderNameResolver;
+    private readonly IContainerAppRepository _containerAppRepository;
     private readonly Project _project;
     private readonly ProjectPipelineVariableGroup _variableGroup;
     private readonly InfrastructureConfigReadModel _config;
@@ -28,6 +29,7 @@ public sealed class ProjectBootstrapDefinitionBuilderTests
     {
         _projectRepository = Substitute.For<IProjectRepository>();
         _applicationFolderNameResolver = Substitute.For<IApplicationFolderNameResolver>();
+        _containerAppRepository = Substitute.For<IContainerAppRepository>();
 
         _project = Project.Create(new Name("Retail Platform"), "Provision retail assets.", UserId.CreateUnique());
         _variableGroup = _project.AddPipelineVariableGroup("shared-{env}").Value;
@@ -127,7 +129,7 @@ public sealed class ProjectBootstrapDefinitionBuilderTests
                     PipelineVariableName: "acr-password")
             ]);
 
-        _sut = new ProjectBootstrapDefinitionBuilder(_projectRepository, _applicationFolderNameResolver);
+        _sut = new ProjectBootstrapDefinitionBuilder(_projectRepository, _applicationFolderNameResolver, _containerAppRepository);
     }
 
     [Fact]
@@ -163,14 +165,15 @@ public sealed class ProjectBootstrapDefinitionBuilderTests
         // Assert
         result.InfraPipelines.Should().BeEquivalentTo(
         [
-            new BootstrapPipelineDefinition("primary-config - CI", "/infra-pipelines/.azuredevops/primary-config/ci.pipeline.yml", "\\primary-config"),
-            new BootstrapPipelineDefinition("primary-config - PR", "/infra-pipelines/.azuredevops/primary-config/pr.pipeline.yml", "\\primary-config"),
-            new BootstrapPipelineDefinition("primary-config - Release", "/infra-pipelines/.azuredevops/primary-config/release.pipeline.yml", "\\primary-config"),
+            new BootstrapPipelineDefinition("[Infra] primary-config - CI", "/infra-pipelines/.azuredevops/primary-config/ci.pipeline.yml", "\\primary-config"),
+            new BootstrapPipelineDefinition("[Infra] primary-config - PR", "/infra-pipelines/.azuredevops/primary-config/pr.pipeline.yml", "\\primary-config"),
+            new BootstrapPipelineDefinition("[Infra] primary-config - Release", "/infra-pipelines/.azuredevops/primary-config/release.pipeline.yml", "\\primary-config"),
         ]);
         result.AppPipelines.Should().BeEquivalentTo(
         [
-            new BootstrapPipelineDefinition("primary config - orders-api - CI", "/app-pipelines/.azuredevops/primary-config/apps/orders-api/ci.app-pipeline.yml", "\\primary-config\\Applications\\orders-api"),
-            new BootstrapPipelineDefinition("primary config - orders-api - Release", "/app-pipelines/.azuredevops/primary-config/apps/orders-api/release.app-pipeline.yml", "\\primary-config\\Applications\\orders-api"),
+            new BootstrapPipelineDefinition("[Code] primary-config - orders-api - CI", "/app-pipelines/.azuredevops/primary-config/apps/orders-api/ci.app-pipeline.yml", "\\primary-config\\Applications\\orders-api"),
+            new BootstrapPipelineDefinition("[Code] primary-config - orders-api - PR", "/app-pipelines/.azuredevops/primary-config/apps/orders-api/pr.app-pipeline.yml", "\\primary-config\\Applications\\orders-api"),
+            new BootstrapPipelineDefinition("[Code] primary-config - orders-api - Release", "/app-pipelines/.azuredevops/primary-config/apps/orders-api/release.app-pipeline.yml", "\\primary-config\\Applications\\orders-api"),
         ]);
 
         result.VariableGroups.Should().HaveCount(2);

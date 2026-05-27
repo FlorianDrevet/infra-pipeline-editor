@@ -1,0 +1,41 @@
+<h2 mat-dialog-title>{{ 'PROJECT_DETAIL.LAYOUT.AUTH.DIALOG_TITLE' | translate }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="project-git-pat-dialog" (ngSubmit)="onSubmit()">
+    <app-ds-text-field
+      formControlName="personalAccessToken"
+      [type]="'password'"
+      [label]="'PROJECT_DETAIL.GIT_CONFIG.FORM.PERSONAL_ACCESS_TOKEN' | translate"
+      [placeholder]="'PROJECT_DETAIL.GIT_CONFIG.FORM.PERSONAL_ACCESS_TOKEN_PLACEHOLDER' | translate"
+      [required]="true"
+      [error]="form.controls.personalAccessToken.hasError('required') && form.controls.personalAccessToken.touched ? ('PROJECT_DETAIL.LAYOUT.INVALID_VALUE' | translate) : undefined" />
+
+    @if (helpProviders().length > 0) {
+      <div class="project-git-pat-dialog__help-list">
+        @for (provider of helpProviders(); track provider) {
+          <div class="project-git-pat-dialog__help-item">
+            <div class="project-git-pat-dialog__help-provider">{{ provider }}</div>
+            <p class="project-git-pat-dialog__help-copy">
+              {{ getProviderHelpKey(provider) | translate }}
+            </p>
+          </div>
+        }
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <app-ds-alert severity="error">
+        {{ errorMessage() }}
+      </app-ds-alert>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <app-ds-button variant="ghost" (clicked)="onCancel()" [disabled]="isSubmitting()">
+    {{ 'PROJECT_DETAIL.LAYOUT.FORM.CANCEL' | translate }}
+  </app-ds-button>
+  <app-ds-button variant="primary" (clicked)="onSubmit()" [loading]="isSubmitting()" [disabled]="form.invalid">
+    {{ 'PROJECT_DETAIL.LAYOUT.FORM.SAVE' | translate }}
+  </app-ds-button>
+</mat-dialog-actions>

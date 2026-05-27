@@ -48,7 +48,7 @@ public sealed class ProjectCreationTools
         }
 
         var command = BuildCommand(draft.Intent);
-    var result = await mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
         if (result.IsError)
         {
@@ -61,7 +61,7 @@ public sealed class ProjectCreationTools
         var warnings = ProjectDraftWarnings.Build(draft.Intent.Environments, includeDefaultEnvironmentWarning: false).ToArray();
 
         // Create infrastructure config + resource group + resources if the draft has resources.
-        var resourceInputs = BuildResourceInputs(projectName, primaryLocation, draft.Intent.Resources);
+        var resourceInputs = BuildResourceInputs(primaryLocation, draft.Intent.Resources);
 
         if (resourceInputs.Count > 0)
         {
@@ -78,8 +78,8 @@ public sealed class ProjectCreationTools
                     projectName,
                     warnings,
                     infrastructureError = string.Join("; ", infraResult.Errors.Select(e => e.Description)),
-                    createdResources = Array.Empty<object>(),
-                    skippedResources = Array.Empty<object>(),
+                    createdResources = Array.Empty<CreatedResourceResponse>(),
+                    skippedResources = Array.Empty<SkippedResourceResponse>(),
                     nextSuggestedActions = new[]
                     {
                         "Create an infrastructure configuration manually via the API or frontend.",
@@ -104,18 +104,14 @@ public sealed class ProjectCreationTools
                 warnings,
                 infrastructureConfigId = configId.Value.ToString(),
                 resourceGroupId = rgId.Value.ToString(),
-                createdResources = created.Select(r => new
-                {
+                createdResources = created.Select(r => new CreatedResourceResponse(
                     r.ResourceType,
                     r.ResourceId,
-                    r.Name,
-                }),
-                skippedResources = skipped.Select(r => new
-                {
+                    r.Name)),
+                skippedResources = skipped.Select(r => new SkippedResourceResponse(
                     r.ResourceType,
                     r.Name,
-                    r.Reason,
-                }),
+                    r.Reason)),
                 nextSuggestedActions = BuildNextActions(created.Count, skipped.Count),
             }, McpJsonDefaults.SerializerOptions);
         }
@@ -130,8 +126,8 @@ public sealed class ProjectCreationTools
             environmentCount = draft.Intent.Environments?.Count ?? 0,
             repositoryCount = draft.Intent.Repositories?.Count ?? 0,
             warnings,
-            createdResources = Array.Empty<object>(),
-            skippedResources = Array.Empty<object>(),
+            createdResources = Array.Empty<CreatedResourceResponse>(),
+            skippedResources = Array.Empty<SkippedResourceResponse>(),
             nextSuggestedActions = new[]
             {
                 "Add resources to the project via the API or frontend.",
@@ -155,11 +151,11 @@ public sealed class ProjectCreationTools
         )).ToList() ?? [];
 
         var repositories = intent.Repositories?.Select(r => new RepositorySetupItem(
-            r.Alias,
             NormalizeContentKinds(r.ContentKinds),
             r.ProviderType,
             r.RepositoryUrl,
-            r.DefaultBranch
+            r.DefaultBranch,
+            r.PersonalAccessToken
         )).ToList() ?? [];
 
         return new CreateProjectWithSetupCommand(
@@ -196,7 +192,6 @@ public sealed class ProjectCreationTools
     }
 
     private static List<ResourceInput> BuildResourceInputs(
-        string projectName,
         string primaryLocation,
         IReadOnlyList<DraftResourceIntent>? resources)
     {
@@ -205,16 +200,16 @@ public sealed class ProjectCreationTools
             .Select(resource => new ResourceInput
             {
                 ResourceType = resource.ResourceType,
-                Name = resource.Name ?? BuildDefaultResourceName(projectName, resource.ResourceType),
+                Name = resource.Name ?? BuildDefaultResourceName(resource.ResourceType),
                 Location = primaryLocation,
+                ApplicationStack = resource.ApplicationStack,
             })
             .ToList();
 
-        return ExpandMissingDependencies(projectName, primaryLocation, resourceInputs);
+        return ExpandMissingDependencies(primaryLocation, resourceInputs);
     }
 
     private static List<ResourceInput> ExpandMissingDependencies(
-        string projectName,
         string primaryLocation,
         List<ResourceInput> resourceInputs)
     {
@@ -233,13 +228,13 @@ public sealed class ProjectCreationTools
             resourceInputs.Add(new ResourceInput
             {
                 ResourceType = requiredDependencyType,
-                Name = BuildDefaultResourceName(projectName, requiredDependencyType),
+                Name = BuildDefaultResourceName(requiredDependencyType),
                 Location = primaryLocation,
             });
         }
 
         // Expand children: if a parent resource exists but its expected child does not, add the child.
-        ExpandMissingChildren(projectName, primaryLocation, resourceInputs, resourceTypes);
+        ExpandMissingChildren(primaryLocation, resourceInputs, resourceTypes);
 
         return resourceInputs;
     }
@@ -253,7 +248,6 @@ public sealed class ProjectCreationTools
     };
 
     private static void ExpandMissingChildren(
-        string projectName,
         string primaryLocation,
         List<ResourceInput> resourceInputs,
         HashSet<string> resourceTypes)
@@ -265,7 +259,7 @@ public sealed class ProjectCreationTools
                 resourceInputs.Add(new ResourceInput
                 {
                     ResourceType = childType,
-                    Name = BuildDefaultResourceName(projectName, childType),
+                    Name = BuildDefaultResourceName(childType),
                     Location = primaryLocation,
                 });
             }
@@ -277,11 +271,21 @@ public sealed class ProjectCreationTools
     /// The naming template system (e.g. <c>{projectName}-{resourceAbbr}-{envSuffix}</c>) handles
     /// prefixing at generation time — resource names should be short identifiers only.
     /// </summary>
-    private static string BuildDefaultResourceName(string projectName, string resourceType)
+    private static string BuildDefaultResourceName(string resourceType)
     {
         return resourceType.ToLowerInvariant();
     }
 
     private static string JsonError(string error, string message) =>
         McpJsonDefaults.Error(error, message);
+
+    private sealed record CreatedResourceResponse(
+        string ResourceType,
+        string ResourceId,
+        string Name);
+
+    private sealed record SkippedResourceResponse(
+        string ResourceType,
+        string Name,
+        string Reason);
 }

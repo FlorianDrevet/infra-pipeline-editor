@@ -1,0 +1,58 @@
+@use "scss/main" as *;
+
+:host {
+  display: block;
+}
+
+.acr-service-connections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-12);
+  padding: var(--ifs-space-16) 0;
+  border-top: 1px solid var(--ifs-border-subtle);
+  border-bottom: 1px solid var(--ifs-border-subtle);
+}
+
+.acr-service-connections__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ifs-space-12);
+}
+
+.acr-service-connections__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-4);
+  min-width: 0;
+}
+
+.acr-service-connections__title {
+  margin: 0;
+  color: var(--ifs-text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.acr-service-connections__description {
+  margin: 0;
+  color: var(--ifs-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.acr-service-connections__environment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: var(--ifs-space-12);
+}
+
+.acr-service-connections__environment-field {
+  min-width: 0;
+}
+
+@media (max-width: 48rem) {
+  .acr-service-connections__header {
+    gap: var(--ifs-space-8);
+  }
+}

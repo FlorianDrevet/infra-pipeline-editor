@@ -108,6 +108,7 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
             Confidence = isMapped ? ImportPreviewMappingConfidence.High : ImportPreviewMappingConfidence.Low,
             ExtractedProperties = extractedProperties,
             UnmappedProperties = unmappedProperties,
+            SuggestedApplicationStack = isMapped ? InferApplicationStack(sourceType, armResource.Properties) : null,
         });
 
         ExtractDependencies(armResource, sourceName, dependencies);
@@ -214,5 +215,78 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
             .Select(p => p.Name)
             .ToList();
         return (new Dictionary<string, object?>(), unmapped);
+    }
+
+    private static readonly HashSet<string> ComputeArmTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        AzureResourceTypes.ArmTypes.WebAppType,
+        AzureResourceTypes.ArmTypes.FunctionAppType,
+        AzureResourceTypes.ArmTypes.ContainerAppType,
+    };
+
+    /// <summary>
+    /// Infers an application stack from ARM resource metadata (e.g. linuxFxVersion, container image tags).
+    /// Returns null for non-compute resources or when the stack cannot be determined.
+    /// </summary>
+    private static string? InferApplicationStack(string sourceType, JsonElement? properties)
+    {
+        if (!ComputeArmTypes.Contains(sourceType))
+        {
+            return null;
+        }
+
+        if (properties is not { ValueKind: JsonValueKind.Object } props)
+        {
+            return null;
+        }
+
+        // Check linuxFxVersion property (common for WebApp and FunctionApp)
+        if (props.TryGetProperty("siteConfig", out var siteConfig) &&
+            siteConfig.ValueKind == JsonValueKind.Object &&
+            siteConfig.TryGetProperty("linuxFxVersion", out var fxVersionEl) &&
+            fxVersionEl.ValueKind == JsonValueKind.String)
+        {
+            var upper = fxVersionEl.GetString()!.ToUpperInvariant();
+            if (upper.Contains("DOTNET") || upper.Contains("DOTNETCORE"))
+                return "DotNet";
+            if (upper.Contains("NODE"))
+                return "NodeJs";
+            if (upper.Contains("PYTHON"))
+                return "Python";
+            if (upper.Contains("JAVA"))
+                return "Java";
+            if (upper.Contains("PHP"))
+                return "Php";
+        }
+
+        // Check container image for Container Apps
+        if (props.TryGetProperty("template", out var template) &&
+            template.ValueKind == JsonValueKind.Object &&
+            template.TryGetProperty("containers", out var containers) &&
+            containers.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var container in containers.EnumerateArray())
+            {
+                if (container.TryGetProperty("image", out var imageEl) &&
+                    imageEl.ValueKind == JsonValueKind.String)
+                {
+                    var imageLower = imageEl.GetString()!.ToLowerInvariant();
+                    if (imageLower.Contains("dotnet") || imageLower.Contains("aspnet"))
+                        return "DotNet";
+                    if (imageLower.Contains("node"))
+                        return "NodeJs";
+                    if (imageLower.Contains("python"))
+                        return "Python";
+                    if (imageLower.Contains("java") || imageLower.Contains("openjdk"))
+                        return "Java";
+                    if (imageLower.Contains("php"))
+                        return "Php";
+                    if (imageLower.Contains("golang"))
+                        return "Go";
+                }
+            }
+        }
+
+        return null;
     }
 }

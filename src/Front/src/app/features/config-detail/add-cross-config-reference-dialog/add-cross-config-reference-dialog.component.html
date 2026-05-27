@@ -98,9 +98,9 @@
 
 <mat-dialog-actions align="end">
   @if (step() === 1) {
-    <button mat-stroked-button (click)="onCancel()">
+    <app-ds-button variant="ghost" (clicked)="onCancel()">
       {{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_CANCEL' | translate }}
-    </button>
+    </app-ds-button>
   }
   @if (step() === 2) {
     <button mat-stroked-button (click)="goBack()">

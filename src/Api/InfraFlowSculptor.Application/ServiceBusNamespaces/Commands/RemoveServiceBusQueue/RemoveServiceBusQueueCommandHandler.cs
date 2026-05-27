@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.ServiceBusNamespaces.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.RemoveServiceBusQueue;
 
@@ -40,7 +39,7 @@ public class RemoveServiceBusQueueCommandHandler(
         if (removeResult.IsError)
             return removeResult.Errors;
 
-        await serviceBusNamespaceRepository.UpdateAsync(sb);
+        serviceBusNamespaceRepository.Update(sb);
 
         return mapper.Map<ServiceBusNamespaceResult>(sb);
     }

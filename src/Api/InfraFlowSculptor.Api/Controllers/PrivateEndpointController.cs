@@ -9,7 +9,6 @@ using InfraFlowSculptor.Contracts.PrivateEndpoints.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InfraFlowSculptor.Api.Controllers;
@@ -22,7 +21,7 @@ public static class PrivateEndpointController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/resources/{resourceId:guid}/private-endpoints")
+            var group = endpoints.MapGroup(Routes.ResourcePrivateEndpoints)
                 .WithTags("PrivateEndpoints");
 
             group.MapGet("",

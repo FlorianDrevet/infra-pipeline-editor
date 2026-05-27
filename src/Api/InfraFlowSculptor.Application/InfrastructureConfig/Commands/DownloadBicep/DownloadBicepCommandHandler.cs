@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using ErrorOr;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.DownloadBicep;
 

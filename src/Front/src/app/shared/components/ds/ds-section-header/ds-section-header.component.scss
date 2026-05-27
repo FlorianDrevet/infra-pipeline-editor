@@ -4,7 +4,7 @@
 
 .ds-section-header {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   gap: var(--ifs-space-12);
   padding-bottom: var(--ifs-space-8);
   margin-bottom: var(--ifs-space-12);
@@ -14,8 +14,14 @@
   border-bottom: 1px solid var(--ifs-border-subtle);
 }
 
+.ds-section-header__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ifs-space-12);
+  min-width: 0;
+}
+
 .ds-section-header__icon {
-  align-self: center;
   flex-shrink: 0;
   width: var(--ifs-icon-md);
   height: var(--ifs-icon-md);
@@ -30,7 +36,9 @@
 }
 
 .ds-section-header__title {
+  flex: 1;
   margin: 0;
+  min-width: 0;
   font-size: 15px;
   line-height: 1.4;
   font-weight: 600;

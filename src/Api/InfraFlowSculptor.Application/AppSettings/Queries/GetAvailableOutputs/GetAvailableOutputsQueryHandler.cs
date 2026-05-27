@@ -3,7 +3,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ResourceOutputs;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.AppSettings.Queries.GetAvailableOutputs;
 

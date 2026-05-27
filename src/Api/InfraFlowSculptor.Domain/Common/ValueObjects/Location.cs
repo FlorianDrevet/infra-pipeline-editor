@@ -60,7 +60,7 @@ public sealed class Location(Location.LocationEnum value) : EnumValueObject<Loca
     }
 
     /// <summary>Supported Azure regions.</summary>
-    public enum LocationEnum
+    public enum LocationEnum // NOSONAR S2344
     {
         FranceCentral,
         FranceSouth,

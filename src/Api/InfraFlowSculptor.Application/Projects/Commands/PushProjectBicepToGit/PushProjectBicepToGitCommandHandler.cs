@@ -6,17 +6,16 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.PushProjectBicepToGit;
 
 /// <summary>
 /// Handles the <see cref="PushProjectBicepToGitCommand"/>.
 /// Uses <see cref="IRepositoryTargetResolver"/> with <c>config: null</c> and
-/// <see cref="ArtifactKind.Infrastructure"/>, resolving to the project's default alias
-/// (<c>"default"</c>). Projects with a heterogeneous multi-repo topology must instead use
+/// <see cref="ArtifactKind.Infrastructure"/>, resolving to the project's infrastructure repository.
+/// Projects with a heterogeneous multi-repo topology must instead use
 /// <c>PushProjectGeneratedArtifactsToGit</c>; this handler will fail with
-/// <c>GitRouting.AliasNotFound("default")</c> if no default repository exists.
+/// a Git routing error if no infrastructure repository exists.
 /// </summary>
 public sealed class PushProjectBicepToGitCommandHandler(
     IProjectAccessService accessService,
@@ -41,7 +40,7 @@ public sealed class PushProjectBicepToGitCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        // 3. Resolve the target repository via V2 routing (project-level, default alias).
+        // 3. Resolve the target repository via V2 routing.
         var targetResult = targetResolver.Resolve(project, config: null, ArtifactKind.Infrastructure);
         if (targetResult.IsError)
             return targetResult.Errors;
@@ -50,7 +49,7 @@ public sealed class PushProjectBicepToGitCommandHandler(
 
         // 4. Retrieve the PAT from the centralized Key Vault
         var secretResult = await keyVaultClient.GetSecretAsync(
-            $"git-pat-{project.Id.Value}", cancellationToken);
+            target.PatSecretName ?? $"git-pat-{project.Id.Value}", cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;
 

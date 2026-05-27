@@ -24,7 +24,7 @@ public static class AppSettingController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/azure-resources/{resourceId:guid}/app-settings")
+            var group = endpoints.MapGroup(Routes.AzureResourceAppSettings)
                 .WithTags("AppSettings");
 
             group.MapGet("",
@@ -118,7 +118,7 @@ public static class AppSettingController
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             // Endpoint to get available outputs from a resource (for building the UI picker)
-            var outputsGroup = endpoints.MapGroup("/azure-resources/{resourceId:guid}/available-outputs")
+            var outputsGroup = endpoints.MapGroup(Routes.AzureResourceAvailableOutputs)
                 .WithTags("AppSettings");
 
             outputsGroup.MapGet("",
@@ -135,7 +135,7 @@ public static class AppSettingController
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             // Endpoint to check whether a compute resource has Key Vault access
-            var kvAccessGroup = endpoints.MapGroup("/azure-resources/{resourceId:guid}/check-keyvault-access")
+            var kvAccessGroup = endpoints.MapGroup(Routes.AzureResourceCheckKeyVaultAccess)
                 .WithTags("AppSettings");
 
             kvAccessGroup.MapGet("/{keyVaultId:guid}",

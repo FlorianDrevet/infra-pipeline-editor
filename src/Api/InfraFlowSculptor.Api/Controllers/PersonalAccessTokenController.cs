@@ -7,7 +7,6 @@ using InfraFlowSculptor.Contracts.PersonalAccessTokens.Responses;
 using InfraFlowSculptor.Domain.PersonalAccessTokenAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using InfraFlowSculptor.Api.Controllers.Constants;
@@ -26,7 +25,7 @@ public static class PersonalAccessTokenController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/personal-access-tokens")
+            var group = endpoints.MapGroup(Routes.PersonalAccessTokens)
                 .WithTags("Personal Access Tokens");
 
             group.MapGet("",

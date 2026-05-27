@@ -9,7 +9,6 @@ using InfraFlowSculptor.Contracts.PrivateDnsZones.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InfraFlowSculptor.Api.Controllers;
@@ -22,7 +21,7 @@ public static class PrivateDnsZoneController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/private-dns-zone")
+            var group = endpoints.MapGroup(Routes.PrivateDnsZone)
                 .WithTags("PrivateDnsZones");
 
             group.MapGet("/{id:guid}",

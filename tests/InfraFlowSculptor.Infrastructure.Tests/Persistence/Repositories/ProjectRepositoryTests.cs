@@ -36,7 +36,7 @@ public sealed class ProjectRepositoryTests : IDisposable
     {
         // Arrange
         var project = NewProject();
-        await _context.Projects.AddAsync(project);
+        _context.Projects.Add(project);
         await _context.SaveChangesAsync();
 
         // Act
@@ -64,7 +64,7 @@ public sealed class ProjectRepositoryTests : IDisposable
         var project = NewProject();
 
         // Act
-        await _sut.AddAsync(project);
+        _sut.Add(project);
         await _context.SaveChangesAsync();
 
         // Assert
@@ -77,7 +77,7 @@ public sealed class ProjectRepositoryTests : IDisposable
     {
         // Arrange
         var project = NewProject();
-        await _context.Projects.AddAsync(project);
+        _context.Projects.Add(project);
         await _context.SaveChangesAsync();
 
         // Act
@@ -100,7 +100,7 @@ public sealed class ProjectRepositoryTests : IDisposable
     {
         // Arrange
         var project = NewProject();
-        await _context.Projects.AddAsync(project);
+        _context.Projects.Add(project);
         await _context.SaveChangesAsync();
 
         // Act
@@ -116,7 +116,7 @@ public sealed class ProjectRepositoryTests : IDisposable
     {
         // Arrange
         var project = NewProject();
-        await _context.Projects.AddAsync(project);
+        _context.Projects.Add(project);
         await _context.SaveChangesAsync();
 
         // Act

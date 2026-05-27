@@ -1,4 +1,4 @@
-<div class="resource-page">
+<div class="resource-page" [class.resource-page--has-save-bar]="showSaveBar()">
   @if (isLoading()) {
     <div class="state-card state-card--loading" aria-live="polite">
       <div class="pulse-dot"></div>
@@ -36,16 +36,15 @@
           {{ resourceType }}
         </span>
         <h1>{{ resource()!.name }}</h1>
-        <p class="resource-header__id">{{ resource()!.id }}</p>
       </div>
     </section>
 
     <!-- ��������� Success / Error banners ��������� -->
     @if (saveSuccess()) {
-      <div class="feedback-banner feedback-banner--success" role="status">
+      <output class="feedback-banner feedback-banner--success">
         <mat-icon>check_circle</mat-icon>
         {{ 'RESOURCE_EDIT.FEEDBACK.SAVE_SUCCESS' | translate }}
-      </div>
+      </output>
     }
     @if (saveError()) {
       <div class="feedback-banner feedback-banner--error" role="alert">
@@ -105,8 +104,8 @@
                           @switch (env.status) {
                             @case ('available') { check_circle }
                             @case ('current') { check_circle }
-                            @case ('unavailable') { error }
-                            @case ('invalid') { warning }
+                            @case ('unavailable') { warning }
+                            @case ('invalid') { error }
                             @default { help }
                           }
                         </mat-icon>
@@ -118,7 +117,7 @@
                             @case ('available') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_AVAILABLE' | translate }} }
                             @case ('current') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_CURRENT' | translate }} }
                             @case ('unavailable') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_UNAVAILABLE' | translate }} }
-                            @case ('invalid') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_INVALID' | translate }} }
+                            @case ('invalid') { {{ env.message || ('RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_INVALID' | translate) }} }
                             @default { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_UNKNOWN' | translate }} }
                           }
                         </span>
@@ -180,6 +179,7 @@
                   [containerRegistryId]="generalForm.get('containerRegistryId')?.value"
                   [acrAuthMode]="acrAuthMode()"
                   [dockerImageName]="generalForm.get('dockerImageName')?.value"
+                  [dockerImageValidated]="generalForm.get('dockerImageValidated')?.value ?? false"
                   [runtimeStack]="generalForm.get('runtimeStack')?.value"
                   [runtimeVersion]="generalForm.get('runtimeVersion')?.value"
                   [runtimeStackOptions]="runtimeStackOptions"
@@ -188,6 +188,7 @@
                   [acrUaiState]="acrUaiState()"
                   [acrAssignedUaiName]="acrAssignedUaiName()"
                   [acrSelectedUaiId]="acrSelectedUaiId()"
+                  [showAcrPullIdentitySelector]="true"
                   [acrRoleAssigning]="acrRoleAssigning()"
                   [uaiOptions]="identityAccessSection.uaiOptions()"
                   [canWrite]="canWrite()"
@@ -197,7 +198,8 @@
                   (containerRegistryChange)="onContainerRegistryChange($event)"
                   (acrAuthModeChange)="onAcrAuthModeChange($event)"
                   (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
-                  (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
+                  (dockerImageValidatedChange)="generalForm.patchValue({ dockerImageValidated: $event }); formsDirty.set(true)"
+                  (acrSelectedUaiIdChange)="onAcrSelectedUaiChange($event)"
                   (addAcrPullRole)="addAcrPullRoleAssignment()"
                   (createUai)="createNewUai()">
                 </app-deployment-config>
@@ -222,6 +224,7 @@
                   [containerRegistryId]="generalForm.get('containerRegistryId')?.value"
                   [acrAuthMode]="acrAuthMode()"
                   [dockerImageName]="generalForm.get('dockerImageName')?.value"
+                  [dockerImageValidated]="generalForm.get('dockerImageValidated')?.value ?? false"
                   [runtimeStack]="generalForm.get('runtimeStack')?.value"
                   [runtimeVersion]="generalForm.get('runtimeVersion')?.value"
                   [runtimeStackOptions]="functionAppRuntimeStackOptions"
@@ -230,6 +233,7 @@
                   [acrUaiState]="acrUaiState()"
                   [acrAssignedUaiName]="acrAssignedUaiName()"
                   [acrSelectedUaiId]="acrSelectedUaiId()"
+                  [showAcrPullIdentitySelector]="true"
                   [acrRoleAssigning]="acrRoleAssigning()"
                   [uaiOptions]="identityAccessSection.uaiOptions()"
                   [canWrite]="canWrite()"
@@ -239,7 +243,8 @@
                   (containerRegistryChange)="onContainerRegistryChange($event)"
                   (acrAuthModeChange)="onAcrAuthModeChange($event)"
                   (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
-                  (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
+                  (dockerImageValidatedChange)="generalForm.patchValue({ dockerImageValidated: $event }); formsDirty.set(true)"
+                  (acrSelectedUaiIdChange)="onAcrSelectedUaiChange($event)"
                   (addAcrPullRole)="addAcrPullRoleAssignment()"
                   (createUai)="createNewUai()">
                 </app-deployment-config>
@@ -259,19 +264,22 @@
                   mode="container-only"
                   [showDockerImageName]="true"
                   [dockerImageName]="generalForm.get('dockerImageName')?.value"
+                  [dockerImageValidated]="generalForm.get('dockerImageValidated')?.value ?? false"
                   [containerRegistryId]="generalForm.get('containerRegistryId')?.value"
                   [acrAuthMode]="acrAuthMode()"
                   [availableContainerRegistries]="identityAccessSection.availableContainerRegistries()"
                   [acrUaiState]="acrUaiState()"
                   [acrAssignedUaiName]="acrAssignedUaiName()"
                   [acrSelectedUaiId]="acrSelectedUaiId()"
+                  [showAcrPullIdentitySelector]="true"
                   [acrRoleAssigning]="acrRoleAssigning()"
                   [uaiOptions]="identityAccessSection.uaiOptions()"
                   [canWrite]="canWrite()"
                   (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
+                  (dockerImageValidatedChange)="generalForm.patchValue({ dockerImageValidated: $event }); formsDirty.set(true)"
                   (containerRegistryChange)="onContainerRegistryChange($event)"
                   (acrAuthModeChange)="onAcrAuthModeChange($event)"
-                  (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
+                  (acrSelectedUaiIdChange)="onAcrSelectedUaiChange($event)"
                   (addAcrPullRole)="addAcrPullRoleAssignment()"
                   (createUai)="createNewUai()">
                 </app-deployment-config>
@@ -1945,6 +1953,17 @@
                         [configId]="configId"
                         (pathSelected)="generalForm.get('dockerfilePath')?.setValue($event); generalForm.markAsDirty()" />
                     </div>
+                    <div class="form-field form-field--with-action">
+                      <app-ds-text-field
+                        formControlName="sourceCodePath"
+                        [label]="'RESOURCE_EDIT.APP_PIPELINE.BUILD_CONTEXT' | translate"
+                        [hint]="'RESOURCE_EDIT.APP_PIPELINE.BUILD_CONTEXT_HINT' | translate"
+                        placeholder="." />
+                      <app-build-context-picker
+                        [projectId]="config()?.projectId ?? ''"
+                        [configId]="configId"
+                        (pathSelected)="generalForm.get('sourceCodePath')?.setValue($event); generalForm.markAsDirty()" />
+                    </div>
                   } @else {
                     <app-ds-text-field class="form-field"
                       formControlName="sourceCodePath"
@@ -1961,10 +1980,15 @@
               </div>
             </form>
 
+            @if (showContainerAppAcrServiceConnections()) {
+              <app-container-app-acr-service-connections [envForms]="envForms()" />
+            }
+
             <!-- Pipeline Step Options -->
             <app-pipeline-options
               [pipelineStepOptions]="pipelineStepOptions()"
-              (optionsChanged)="onPipelineOptionsChanged($event)" />
+              (optionsChanged)="onPipelineOptionsChanged($event)"
+              (detectOptions)="onDetectPipelineOptions()" />
           </div>
         </mat-tab>
       }
@@ -1990,7 +2014,7 @@
           }
         </div>
         <div class="save-bar__actions">
-          @if (isSaveBlockedByNameAvailability() && nameAvailabilityOverallState() !== 'checking') {
+          @if (isSaveBlockedByNameAvailability() && nameAvailabilityOverallState() === 'has-unavailable') {
             <button class="save-bar__override" (click)="overrideNameAvailability()">
               <mat-icon class="save-bar__override-icon">verified_user</mat-icon>
               {{ 'RESOURCE_EDIT.ACTIONS.NAME_OVERRIDE' | translate }}

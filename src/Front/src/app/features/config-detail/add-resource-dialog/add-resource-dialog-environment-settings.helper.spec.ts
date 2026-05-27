@@ -7,8 +7,20 @@ import {
   createAddResourceEnvironmentFormGroup,
 } from './add-resource-dialog-environment-settings.helper';
 import { ResourceTypeEnum } from '../enums/resource-type.enum';
+import { hasResourceTypeEnvironmentSettings } from '../../../shared/resource-metadata/resource-type.metadata';
 
 describe('add resource dialog environment settings helper', () => {
+  it('treats only resource types with real per-environment fields as environment-aware', () => {
+    expect(hasResourceTypeEnvironmentSettings(ResourceTypeEnum.RedisCache)).toBeTrue();
+    expect(hasResourceTypeEnvironmentSettings(ResourceTypeEnum.ContainerApp)).toBeTrue();
+    expect(hasResourceTypeEnvironmentSettings(ResourceTypeEnum.UserAssignedIdentity)).toBeFalse();
+    expect(hasResourceTypeEnvironmentSettings(ResourceTypeEnum.EventHubNamespace)).toBeFalse();
+    expect(hasResourceTypeEnvironmentSettings(ResourceTypeEnum.VirtualNetwork)).toBeFalse();
+    expect(hasResourceTypeEnvironmentSettings(ResourceTypeEnum.NetworkSecurityGroup)).toBeFalse();
+    expect(hasResourceTypeEnvironmentSettings(ResourceTypeEnum.PrivateDnsZone)).toBeFalse();
+    expect(hasResourceTypeEnvironmentSettings(ResourceTypeEnum.FrontDoor)).toBeFalse();
+  });
+
   it('creates redis cache environment forms with the expected defaults', () => {
     const group = createAddResourceEnvironmentFormGroup(new FormBuilder(), ResourceTypeEnum.RedisCache);
 

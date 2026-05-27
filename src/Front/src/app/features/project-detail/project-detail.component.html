@@ -33,7 +33,7 @@
       </div>
     </section>
 
-    <mat-tab-group class="project-tabs" animationDuration="200ms" (selectedTabChange)="onTabChange($event.index)">
+    <mat-tab-group class="project-tabs" animationDuration="200ms" [selectedIndex]="selectedTabIndex()" (selectedTabChange)="onTabChange($event.index)">
       <!-- Configurations -->
       <mat-tab>
         <ng-template mat-tab-label>
@@ -43,22 +43,12 @@
         </ng-template>
         <div class="tab-content">
           <div class="tab-content__toolbar">
-            <!-- Project-level Generate All -->
+            <!-- Navigate to Generation Board -->
             @if (canWrite()) {
-              <button class="bicep-btn" (click)="generateAll()" [disabled]="projectGenerateAllLoading()">
-                @if (projectGenerateAllLoading()) {
-                  <mat-spinner diameter="16"></mat-spinner>
-                } @else {
-                  <mat-icon class="bicep-btn__icon">terminal</mat-icon>
-                }
-                {{ (validatingDiagnostics() ? 'PROJECT_DETAIL.GENERATE_ALL.VALIDATING' : 'PROJECT_DETAIL.GENERATE_ALL.BUTTON') | translate }}
+              <button class="bicep-btn" (click)="navigateToGenerate()">
+                <mat-icon class="bicep-btn__icon">rocket_launch</mat-icon>
+                {{ 'PROJECT_DETAIL.GENERATE_ALL.BUTTON' | translate }}
               </button>
-              @if ((project()!.repositories?.length ?? 0) > 0 && !isSplitInfraCodeLayout()) {
-                <button class="push-btn" (click)="openProjectPushAllToGitDialog()" [disabled]="!canPushAllProjectArtifacts()">
-                  <mat-icon class="push-btn__icon">rocket_launch</mat-icon>
-                  {{ 'PROJECT_DETAIL.GENERATE_ALL.PUSH_TO_GIT' | translate }}
-                </button>
-              }
             }
 
             @if (canWrite()) {
@@ -73,338 +63,13 @@
             <p class="action-error">{{ configErrorKey() | translate }}</p>
           }
 
-          <!-- Project Generation Panel (mono-repo) — shown only after clicking Generate -->
-          @if (projectGenerationPanelOpen()) {
-            <section
-              class="generation-panel"
-              [class.generation-panel--collapsed]="projectGenerationPanelCollapsed()"
-              [class.generation-panel--with-header]="project()?.layoutPreset !== 'SplitInfraCode'"
-              [class.generation-panel--headerless]="project()?.layoutPreset === 'SplitInfraCode'">
-              @if (project()?.layoutPreset === 'SplitInfraCode') {
-                <app-split-generation-switcher
-                  [collapsed]="projectGenerationPanelCollapsed()"
-                  [bicepResult]="projectBicepResult()"
-                  [pipelineResult]="projectPipelineResult()"
-                  [bootstrapResult]="projectBootstrapResult()"
-                  [isGeneratingBicep]="projectBicepLoading()"
-                  [isGeneratingPipeline]="projectPipelineLoading()"
-                  [isGeneratingBootstrap]="projectBootstrapLoading()"
-                  [isDownloadingInfraZip]="projectInfraArtifactsDownloading()"
-                  [isDownloadingCodeZip]="projectCodeArtifactsDownloading()"
-                  [bicepGenerationError]="projectBicepErrorKey()"
-                  [pipelineGenerationError]="projectPipelineErrorKey()"
-                  [bootstrapGenerationError]="projectBootstrapErrorKey()"
-                  [loadBicepFile]="loadProjectBicepFile"
-                  [loadPipelineFile]="loadProjectPipelineFile"
-                  [loadBootstrapFile]="loadProjectBootstrapFile"
-                  (toggleCollapsed)="toggleProjectGenerationPanelCollapsed()"
-                  (retryBicep)="generateProjectBicep()"
-                  (retryPipeline)="generateProjectPipeline()"
-                  (retryBootstrap)="generateProjectBootstrap()"
-                  (downloadInfraZip)="downloadProjectInfraArtifacts()"
-                  (downloadCodeZip)="downloadProjectCodeArtifacts()"
-                  (pushInfra)="openProjectMultiRepoPushDialog('infra')"
-                  (pushCode)="openProjectMultiRepoPushDialog('code')">
-                </app-split-generation-switcher>
-              } @else {
-              <div class="generation-panel__header">
-                <div class="generation-panel__actions">
-                  <app-ds-panel-action-button
-                    [icon]="projectGenerationPanelCollapsed() ? 'keyboard_arrow_down' : 'keyboard_arrow_up'"
-                    tone="accent"
-                    surface="light"
-                    [pressed]="!projectGenerationPanelCollapsed()"
-                    [ariaExpanded]="!projectGenerationPanelCollapsed()"
-                    [ariaLabel]="((projectGenerationPanelCollapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
-                    [tooltip]="((projectGenerationPanelCollapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
-                    (clicked)="toggleProjectGenerationPanelCollapsed()" />
-                </div>
-              </div>
-              @if (!projectGenerationPanelCollapsed()) {
-              <mat-tab-group class="generation-tabs" animationDuration="200ms">
-                <!-- Bicep Tab -->
-                <mat-tab>
-                  <ng-template mat-tab-label>
-                    <mat-icon class="tab-icon">terminal</mat-icon>
-                    <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BICEP' | translate }}</span>
-                  </ng-template>
-                  <div class="generation-tab-content">
-                    <div class="generation-tab-content__toolbar">
-                      @if (projectBicepResult() && !deferMonoRepoBatchReveal()) {
-                        <button class="bicep-download-btn" (click)="downloadProjectBicepFiles()" [disabled]="projectBicepDownloading()">
-                          @if (projectBicepDownloading()) {
-                            <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
-                          } @else {
-                            <mat-icon>download</mat-icon>
-                          }
-                          {{ (projectBicepDownloading() ? 'PROJECT_DETAIL.BICEP.DOWNLOADING' : 'PROJECT_DETAIL.BICEP.DOWNLOAD') | translate }}
-                        </button>
-                      }
-                    </div>
-
-                    @if (projectBicepLoading() || deferMonoRepoBatchReveal()) {
-                      <div class="bicep-panel__loading">
-                        <div class="bicep-terminal">
-                          <div class="bicep-terminal__bar">
-                            <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
-                            <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
-                            <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
-                            <span class="bicep-terminal__bar-title">bicep-generator</span>
-                          </div>
-                          <div class="bicep-terminal__body">
-                            <p class="bicep-terminal__line bicep-terminal__line--active">
-                              <span class="bicep-terminal__prompt">$</span>
-                              {{ 'PROJECT_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}
-                              <span class="bicep-terminal__cursor"></span>
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    }
-
-                    @if (projectBicepErrorKey() && !deferMonoRepoBatchReveal()) {
-                      <div class="bicep-panel__error-body">
-                        <p>{{ projectBicepErrorKey() | translate }}</p>
-                        <button class="bicep-retry-btn" (click)="generateProjectBicep()">
-                          <mat-icon>refresh</mat-icon>
-                          {{ 'PROJECT_DETAIL.BICEP.RETRY' | translate }}
-                        </button>
-                      </div>
-                    }
-
-                    @if (projectBicepNodes().length > 0 && !deferMonoRepoBatchReveal()) {
-                      <app-bicep-file-panel
-                        [nodes]="projectBicepNodes()"
-                        [barTitle]="'bicep-generator \u2014 ' + ('PROJECT_DETAIL.BICEP.ARTIFACTS' | translate)"
-                        [terminalDoneText]="'PROJECT_DETAIL.BICEP.TERMINAL_DONE' | translate"
-                        [fileLoadingText]="'PROJECT_DETAIL.BICEP.FILE_LOADING' | translate"
-                        [fileErrorText]="'PROJECT_DETAIL.BICEP.FILE_ERROR' | translate"
-                        [loadFile]="loadProjectBicepFile">
-                      </app-bicep-file-panel>
-                    }
-                  </div>
-                </mat-tab>
-
-                <!-- Pipeline Tab -->
-                <mat-tab>
-                  <ng-template mat-tab-label>
-                    <mat-icon class="tab-icon">account_tree</mat-icon>
-                    <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_PIPELINE' | translate }}</span>
-                  </ng-template>
-                  <div class="generation-tab-content">
-                    <div class="generation-tab-content__toolbar">
-                      @if (projectPipelineResult() && !deferMonoRepoBatchReveal()) {
-                        <button class="bicep-download-btn" (click)="downloadProjectPipelineFiles()" [disabled]="projectPipelineDownloading()">
-                          @if (projectPipelineDownloading()) {
-                            <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
-                          } @else {
-                            <mat-icon>download</mat-icon>
-                          }
-                          {{ (projectPipelineDownloading() ? 'PROJECT_DETAIL.PIPELINE.DOWNLOADING' : 'PROJECT_DETAIL.PIPELINE.DOWNLOAD') | translate }}
-                        </button>
-                      }
-                    </div>
-
-                    @if (projectPipelineLoading() || deferMonoRepoBatchReveal()) {
-                      <div class="bicep-panel__loading">
-                        <div class="bicep-terminal">
-                          <div class="bicep-terminal__bar">
-                            <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
-                            <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
-                            <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
-                            <span class="bicep-terminal__bar-title">pipeline-generator</span>
-                          </div>
-                          <div class="bicep-terminal__body">
-                            <p class="bicep-terminal__line bicep-terminal__line--active">
-                              <span class="bicep-terminal__prompt">$</span>
-                              {{ 'PROJECT_DETAIL.PIPELINE.TERMINAL_GENERATING' | translate }}
-                              <span class="bicep-terminal__cursor"></span>
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    }
-
-                    @if (projectPipelineErrorKey() && !deferMonoRepoBatchReveal()) {
-                      <div class="bicep-panel__error-body">
-                        <p>{{ projectPipelineErrorKey() | translate }}</p>
-                        <button class="bicep-retry-btn" (click)="generateProjectPipeline()">
-                          <mat-icon>refresh</mat-icon>
-                          {{ 'PROJECT_DETAIL.PIPELINE.RETRY' | translate }}
-                        </button>
-                      </div>
-                    }
-
-                    @if (projectPipelineNodes().length > 0 && !deferMonoRepoBatchReveal()) {
-                      <app-bicep-file-panel
-                        [nodes]="projectPipelineNodes()"
-                        [barTitle]="'pipeline-generator \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
-                        [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
-                        [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
-                        [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
-                        [loadFile]="loadProjectPipelineFile">
-                      </app-bicep-file-panel>
-                    }
-                  </div>
-                </mat-tab>
-
-                <!-- Bootstrap Tab -->
-                <mat-tab>
-                  <ng-template mat-tab-label>
-                    <mat-icon class="tab-icon">rocket_launch</mat-icon>
-                    <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BOOTSTRAP' | translate }}</span>
-                  </ng-template>
-                  <div class="generation-tab-content">
-                    <div class="generation-tab-content__toolbar">
-                      @if (projectBootstrapResult() && !deferMonoRepoBatchReveal()) {
-                        <button class="bicep-download-btn" (click)="downloadProjectBootstrapFiles()" [disabled]="projectBootstrapDownloading()">
-                          @if (projectBootstrapDownloading()) {
-                            <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
-                          } @else {
-                            <mat-icon>download</mat-icon>
-                          }
-                          {{ (projectBootstrapDownloading() ? 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' : 'PROJECT_DETAIL.BOOTSTRAP.DOWNLOAD') | translate }}
-                        </button>
-                      }
-                    </div>
-
-                    <!-- Generation feedback -->
-                    @if (projectBootstrapLoading() || deferMonoRepoBatchReveal()) {
-                      <div class="bicep-panel__loading">
-                        <div class="bicep-terminal">
-                          <div class="bicep-terminal__bar">
-                            <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
-                            <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
-                            <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
-                            <span class="bicep-terminal__bar-title">bootstrap-generator</span>
-                          </div>
-                          <div class="bicep-terminal__body">
-                            <p class="bicep-terminal__line bicep-terminal__line--active">
-                              <span class="bicep-terminal__prompt">$</span>
-                              {{ 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' | translate }}
-                              <span class="bicep-terminal__cursor"></span>
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    }
-
-                    @if (projectBootstrapErrorKey() && !deferMonoRepoBatchReveal()) {
-                      <div class="bicep-panel__error-body">
-                        <p>{{ projectBootstrapErrorKey() | translate }}</p>
-                        <button class="bicep-retry-btn" (click)="generateProjectBootstrap()">
-                          <mat-icon>refresh</mat-icon>
-                          {{ 'PROJECT_DETAIL.BOOTSTRAP.RETRY' | translate }}
-                        </button>
-                      </div>
-                    }
-
-                    @if (projectBootstrapNodes().length > 0 && !deferMonoRepoBatchReveal()) {
-                      <app-bicep-file-panel
-                        [nodes]="projectBootstrapNodes()"
-                        [barTitle]="'bootstrap-generator \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
-                        [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
-                        [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
-                        [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
-                        [loadFile]="loadProjectBootstrapFile">
-                      </app-bicep-file-panel>
-                    }
-
-                    <!-- Unified step-by-step guide -->
-                    <div class="bootstrap-guide-card">
-                      <h4 class="bootstrap-guide-card__title">{{ 'PROJECT_DETAIL.BOOTSTRAP.GUIDE_TITLE' | translate }}</h4>
-                      <p class="bootstrap-guide-card__intro">{{ 'PROJECT_DETAIL.BOOTSTRAP.GUIDE_INTRO' | translate }}</p>
-
-                      <!-- Section A: Prepare -->
-                      <h5 class="bootstrap-guide-card__section-title">{{ 'PROJECT_DETAIL.BOOTSTRAP.SECTION_PREPARE' | translate }}</h5>
-                      <ol class="bootstrap-guide">
-                        <li class="bootstrap-guide__step">
-                          <span class="bootstrap-guide__step-number">1</span>
-                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_1' | translate }}</div>
-                        </li>
-                        <li class="bootstrap-guide__step">
-                          <span class="bootstrap-guide__step-number">2</span>
-                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_2' | translate }}</div>
-                        </li>
-                        <li class="bootstrap-guide__step">
-                          <span class="bootstrap-guide__step-number">3</span>
-                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_3' | translate }}</div>
-                        </li>
-                      </ol>
-
-                      <!-- Section B: Run -->
-                      <h5 class="bootstrap-guide-card__section-title">{{ 'PROJECT_DETAIL.BOOTSTRAP.SECTION_RUN' | translate }}</h5>
-                      <ol class="bootstrap-guide" start="4">
-                        <li class="bootstrap-guide__step">
-                          <span class="bootstrap-guide__step-number">4</span>
-                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_4' | translate }}</div>
-                        </li>
-                        <li class="bootstrap-guide__step">
-                          <span class="bootstrap-guide__step-number">5</span>
-                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_5' | translate }}</div>
-                        </li>
-                      </ol>
-
-                      <!-- Section C: Permissions -->
-                      <h5 class="bootstrap-guide-card__section-title bootstrap-guide-card__section-title--warning">
-                        <mat-icon class="bootstrap-guide-card__section-icon">shield</mat-icon>
-                        {{ 'PROJECT_DETAIL.BOOTSTRAP.SECTION_PERMISSIONS' | translate }}
-                      </h5>
-                      <p class="bootstrap-guide-card__section-hint">{{ 'PROJECT_DETAIL.BOOTSTRAP.PERMISSIONS_HINT' | translate }}</p>
-                      <ol class="bootstrap-guide" start="6">
-                        <li class="bootstrap-guide__step bootstrap-guide__step--permission">
-                          <span class="bootstrap-guide__step-number bootstrap-guide__step-number--permission">6</span>
-                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_6' | translate }}</div>
-                        </li>
-                        <li class="bootstrap-guide__step bootstrap-guide__step--permission">
-                          <span class="bootstrap-guide__step-number bootstrap-guide__step-number--permission">7</span>
-                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_7' | translate }}</div>
-                        </li>
-                        <li class="bootstrap-guide__step bootstrap-guide__step--permission">
-                          <span class="bootstrap-guide__step-number bootstrap-guide__step-number--permission">8</span>
-                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_8' | translate }}</div>
-                        </li>
-                      </ol>
-
-                      <!-- Section D: Finalize -->
-                      <h5 class="bootstrap-guide-card__section-title bootstrap-guide-card__section-title--success">
-                        <mat-icon class="bootstrap-guide-card__section-icon">check_circle</mat-icon>
-                        {{ 'PROJECT_DETAIL.BOOTSTRAP.SECTION_FINALIZE' | translate }}
-                      </h5>
-                      <ol class="bootstrap-guide" start="9">
-                        <li class="bootstrap-guide__step bootstrap-guide__step--success">
-                          <span class="bootstrap-guide__step-number bootstrap-guide__step-number--success">9</span>
-                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_9' | translate }}</div>
-                        </li>
-                        <li class="bootstrap-guide__step bootstrap-guide__step--success">
-                          <span class="bootstrap-guide__step-number bootstrap-guide__step-number--success">10</span>
-                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_10' | translate }}</div>
-                        </li>
-                      </ol>
-                    </div>
-                  </div>
-                </mat-tab>
-              </mat-tab-group>
-              }
-              }
-            </section>
-          }
-
           @if (configs().length > 0) {
             <div class="config-list">
               @for (config of configs(); track config.id) {
                 <a class="config-card" [routerLink]="['/config', config.id]">
                   <div class="config-card__header">
-                    <h3>{{ config.name }}</h3>
-                    <div class="config-card__actions">
-                      @if (isOwner()) {
-                        <button
-                          class="config-card__delete-btn"
-                          [matTooltip]="'PROJECT_DETAIL.DELETE_CONFIG.BUTTON' | translate"
-                          (click)="$event.preventDefault(); $event.stopPropagation(); openDeleteConfigDialog(config)">
-                          <mat-icon>delete_outline</mat-icon>
-                        </button>
-                      }
+                    <div class="config-card__title">
+                      <h3>{{ config.name }}</h3>
                       <mat-icon class="config-card__arrow">chevron_right</mat-icon>
                     </div>
                   </div>
@@ -412,6 +77,14 @@
                     <span>{{ 'PROJECT_DETAIL.CONFIGS.RESOURCE_GROUPS' | translate: { count: config.resourceGroupCount } }}</span>
                     <span>{{ 'PROJECT_DETAIL.CONFIGS.RESOURCES' | translate: { count: config.resourceCount } }}</span>
                   </div>
+                  @if (isOwner()) {
+                    <button
+                      class="config-card__delete-btn"
+                      [matTooltip]="'PROJECT_DETAIL.DELETE_CONFIG.BUTTON' | translate"
+                      (click)="$event.preventDefault(); $event.stopPropagation(); openDeleteConfigDialog(config)">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  }
                 </a>
               }
             </div>
@@ -438,102 +111,14 @@
           <span class="tab-count">{{ project()!.environmentDefinitions.length }}</span>
         </ng-template>
         <div class="tab-content">
-          <div class="tab-content__toolbar">
-            @if (canWrite()) {
-              <button class="add-env-btn" (click)="openAddEnvironmentDialog()">
-                <mat-icon class="add-env-btn__icon">add_circle_outline</mat-icon>
-                {{ 'PROJECT_DETAIL.ENVIRONMENTS.ADD' | translate }}
-              </button>
-            }
-          </div>
-
-          @if (envErrorKey()) {
-            <p class="action-error">{{ envErrorKey() | translate }}</p>
-          }
-
-          @if (sortedEnvironments().length > 0) {
-            <div class="env-pipeline">
-              @for (env of sortedEnvironments(); track env.id; let last = $last) {
-                <article class="env-card" [class.env-card--busy]="envActionId() === env.id">
-                  @if (envActionId() === env.id) {
-                    <div class="env-card__spinner">
-                      <mat-spinner diameter="24"></mat-spinner>
-                    </div>
-                  }
-                  <div class="env-card__header">
-                    <h3>{{ env.name }}</h3>
-                    <div class="env-card__header-actions">
-                      @if (canWrite()) {
-                        <button
-                          class="env-action-btn env-action-btn--edit"
-                          [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.EDIT' | translate"
-                          [disabled]="envActionId() === env.id"
-                          (click)="openAddEnvironmentDialog(env)">
-                          <mat-icon>edit</mat-icon>
-                        </button>
-                        <button
-                          class="env-action-btn env-action-btn--delete"
-                          [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.REMOVE' | translate"
-                          [disabled]="envActionId() === env.id"
-                          (click)="openRemoveEnvironmentDialog(env)">
-                          <mat-icon>delete_outline</mat-icon>
-                        </button>
-                      }
-                    </div>
-                  </div>
-                  <div class="env-card__details">
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.LOCATION' | translate }}</span>
-                      <strong>{{ env.location }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.SHORT_NAME' | translate }}</span>
-                      <strong>{{ env.shortName || '—' }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.PREFIX' | translate }}</span>
-                      <strong>{{ env.prefix || '—' }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.SUFFIX' | translate }}</span>
-                      <strong>{{ env.suffix || '—' }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.SUBSCRIPTION_ID' | translate }}</span>
-                      <strong class="mono">{{ env.subscriptionId }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.REQUIRES_APPROVAL' | translate }}</span>
-                      <strong>{{ env.requiresApproval ? ('PROJECT_DETAIL.BOOLEAN.YES' | translate) : ('PROJECT_DETAIL.BOOLEAN.NO' | translate) }}</strong>
-                    </div>
-                  </div>
-                  @if (env.tags.length > 0) {
-                    <div class="env-card__tags">
-                      @for (tag of env.tags; track tag.name) {
-                        <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
-                      }
-                    </div>
-                  }
-                </article>
-                @if (!last) {
-                  <div class="env-pipeline__connector">
-                    <mat-icon>arrow_forward</mat-icon>
-                  </div>
-                }
-              }
-            </div>
-          } @else {
-            <div class="empty-state">
-              <mat-icon class="empty-state__icon">cloud_queue</mat-icon>
-              <p>{{ 'PROJECT_DETAIL.ENVIRONMENTS.EMPTY' | translate }}</p>
-              @if (canWrite()) {
-                <button class="add-env-btn" (click)="openAddEnvironmentDialog()">
-                  <mat-icon class="add-env-btn__icon">add_circle_outline</mat-icon>
-                  {{ 'PROJECT_DETAIL.ENVIRONMENTS.ADD' | translate }}
-                </button>
-              }
-            </div>
-          }
+          <app-project-detail-environments-section
+            [environments]="sortedEnvironments()"
+            [canWrite]="canWrite()"
+            [actionId]="envActionId()"
+            [errorKey]="envErrorKey()"
+            (addEnvironment)="openAddEnvironmentDialog()"
+            (editEnvironment)="openAddEnvironmentDialog($event)"
+            (removeEnvironment)="openRemoveEnvironmentDialog($event)" />
         </div>
       </mat-tab>
 
@@ -545,258 +130,26 @@
           <span class="tab-count">{{ project()!.resourceNamingTemplates.length }}</span>
         </ng-template>
         <div class="tab-content">
-          <div class="tab-content__toolbar naming-toolbar">
-            @if (canWrite()) {
-              <button
-                class="template-action-btn template-action-btn--add"
-                [disabled]="namingActionKey() !== null"
-                (click)="openDefaultNamingTemplateDialog()">
-                <mat-icon>edit</mat-icon>
-                {{ (project()!.defaultNamingTemplate
-                  ? 'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT_DEFAULT'
-                  : 'PROJECT_DETAIL.NAMING_TEMPLATES.ADD_DEFAULT') | translate }}
-              </button>
-              <button
-                class="template-action-btn template-action-btn--add"
-                [disabled]="!canAddResourceNamingTemplate() || namingActionKey() !== null"
-                [matTooltip]="(!canAddResourceNamingTemplate() ? 'PROJECT_DETAIL.NAMING_TEMPLATES.ALL_RESOURCE_TYPES_CONFIGURED' : 'PROJECT_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE') | translate"
-                (click)="openResourceNamingTemplateDialog()">
-                <mat-icon>add_circle_outline</mat-icon>
-                {{ 'PROJECT_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE' | translate }}
-              </button>
-            }
-          </div>
-
-          <!-- Naming Templates Section Header -->
-          <section class="naming-section-header">
-            <h4 class="naming-section-header__title">
-              <mat-icon>label</mat-icon>
-              {{ 'PROJECT_DETAIL.NAMING_TEMPLATES.SECTION_TITLE' | translate }}
-            </h4>
-            <p class="naming-section-header__subtitle">{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.SECTION_SUBTITLE' | translate }}</p>
-          </section>
-
-          @if (namingErrorKey()) {
-            <p class="action-error">{{ namingErrorKey() | translate }}</p>
-          }
-
-          <article class="default-template" [class.default-template--busy]="isNamingActionActive('default')">
-            @if (isNamingActionActive('default')) {
-              <div class="default-template__spinner">
-                <mat-spinner diameter="22"></mat-spinner>
-              </div>
-            }
-
-            <div class="default-template__header">
-              <span>{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.DEFAULT' | translate }}</span>
-              @if (canWrite()) {
-                <button
-                  class="template-action-btn template-action-btn--inline"
-                  [disabled]="namingActionKey() !== null"
-                  (click)="openDefaultNamingTemplateDialog()">
-                  <mat-icon>edit</mat-icon>
-                  {{ 'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT' | translate }}
-                </button>
-              }
-            </div>
-
-            @if (project()!.defaultNamingTemplate) {
-              <code>{{ project()!.defaultNamingTemplate }}</code>
-            } @else {
-              <p class="default-template__empty">{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.DEFAULT_EMPTY' | translate }}</p>
-            }
-          </article>
-
-          @if (project()!.resourceNamingTemplates.length > 0) {
-            <div class="template-list">
-              @for (tmpl of project()!.resourceNamingTemplates; track tmpl.id) {
-                <article class="template-row" [class.template-row--busy]="isResourceNamingTemplateBusy(tmpl.resourceType)">
-                  @if (isResourceNamingTemplateBusy(tmpl.resourceType)) {
-                    <div class="template-row__spinner">
-                      <mat-spinner diameter="18"></mat-spinner>
-                    </div>
-                  }
-
-                  <div class="template-row__meta">
-                    <strong>{{ tmpl.resourceType }}</strong>
-                    <code>{{ tmpl.template }}</code>
-                  </div>
-
-                  @if (canWrite()) {
-                    <div class="template-row__actions">
-                      <button
-                        class="template-action-btn template-action-btn--edit"
-                        [matTooltip]="'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT' | translate"
-                        [disabled]="isResourceNamingTemplateBusy(tmpl.resourceType) || namingActionKey() !== null"
-                        (click)="openResourceNamingTemplateDialog(tmpl)">
-                        <mat-icon>edit</mat-icon>
-                      </button>
-                      <button
-                        class="template-action-btn template-action-btn--delete"
-                        [matTooltip]="'PROJECT_DETAIL.NAMING_TEMPLATES.REMOVE' | translate"
-                        [disabled]="isResourceNamingTemplateBusy(tmpl.resourceType) || namingActionKey() !== null"
-                        (click)="openRemoveResourceNamingTemplateDialog(tmpl)">
-                        <mat-icon>delete_outline</mat-icon>
-                      </button>
-                    </div>
-                  }
-                </article>
-              }
-            </div>
-          } @else {
-            <div class="empty-state">
-              <mat-icon class="empty-state__icon">label</mat-icon>
-              <p>{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.EMPTY' | translate }}</p>
-            </div>
-          }
-
-          <!-- Abbreviation Overrides -->
-          <section class="abbreviations-section">
-            <h4 class="abbreviations-section__title">
-              <mat-icon>short_text</mat-icon>
-              {{ 'ABBREVIATIONS.TITLE' | translate }}
-            </h4>
-            <p class="abbreviations-section__subtitle">{{ 'ABBREVIATIONS.SUBTITLE' | translate }}</p>
-
-            @if (namingErrorKey(); as errKey) {
-              <p class="naming-error">{{ errKey | translate }}</p>
-            }
-
-            @if (abbreviationDisplayItems().length > 0) {
-              <div class="abbreviation-list">
-                <div class="abbreviation-list__header">
-                  <span class="abbreviation-list__col abbreviation-list__col--type">{{ 'ABBREVIATIONS.COLUMN_RESOURCE' | translate }}</span>
-                  <span class="abbreviation-list__col abbreviation-list__col--default">{{ 'ABBREVIATIONS.COLUMN_DEFAULT' | translate }}</span>
-                  <span class="abbreviation-list__col abbreviation-list__col--effective">{{ 'ABBREVIATIONS.COLUMN_EFFECTIVE' | translate }}</span>
-                  @if (canWrite()) {
-                    <span class="abbreviation-list__col abbreviation-list__col--actions"></span>
-                  }
-                </div>
-
-                @for (item of abbreviationDisplayItems(); track item.resourceType) {
-                  <article class="abbreviation-row" [class.abbreviation-row--busy]="isAbbreviationBusy(item.resourceType)">
-                    @if (isAbbreviationBusy(item.resourceType)) {
-                      <div class="abbreviation-row__spinner">
-                        <mat-spinner diameter="18"></mat-spinner>
-                      </div>
-                    }
-
-                    <span class="abbreviation-list__col abbreviation-list__col--type">
-                      <mat-icon class="abbreviation-row__icon">{{ item.icon }}</mat-icon>
-                      {{ item.resourceType }}
-                    </span>
-
-                    <span class="abbreviation-list__col abbreviation-list__col--default">
-                      <code>{{ item.defaultAbbreviation }}</code>
-                    </span>
-
-                    <span class="abbreviation-list__col abbreviation-list__col--effective">
-                      <span class="effective-abbr" [class.effective-abbr--custom]="item.isCustomized">
-                        {{ item.effectiveAbbreviation }}
-                      </span>
-                    </span>
-
-                    @if (canWrite()) {
-                      <span class="abbreviation-list__col abbreviation-list__col--actions">
-                        <button
-                          class="template-action-btn template-action-btn--edit"
-                          [matTooltip]="'ABBREVIATIONS.EDIT' | translate"
-                          [disabled]="isAbbreviationBusy(item.resourceType) || namingActionKey() !== null"
-                          (click)="openEditAbbreviationDialog(item)">
-                          <mat-icon>edit</mat-icon>
-                        </button>
-                        @if (item.isCustomized) {
-                          <button
-                            class="template-action-btn template-action-btn--delete"
-                            [matTooltip]="'ABBREVIATIONS.RESET' | translate"
-                            [disabled]="isAbbreviationBusy(item.resourceType) || namingActionKey() !== null"
-                            (click)="openResetAbbreviationDialog(item)">
-                            <mat-icon>restart_alt</mat-icon>
-                          </button>
-                        }
-                      </span>
-                    }
-                  </article>
-                }
-              </div>
-            } @else {
-              <div class="empty-state">
-                <mat-icon class="empty-state__icon">short_text</mat-icon>
-                <p>{{ 'ABBREVIATIONS.EMPTY' | translate }}</p>
-              </div>
-            }
-          </section>
+          <app-project-detail-naming-section
+            [project]="project()"
+            [canWrite]="canWrite()"
+            (projectChange)="onProjectChange($event)" />
         </div>
       </mat-tab>
 
-      <!-- Members -->
+      <!-- Members tab removed — now at /projects/:id/members -->
+
+      <!-- Tags -->
       <mat-tab>
         <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">group</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.TABS.MEMBERS' | translate }}</span>
-          <span class="tab-count">{{ project()!.members.length }}</span>
+          <mat-icon class="tab-icon">label_important</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.TABS.TAGS' | translate }}</span>
+          <span class="tab-count">{{ project()!.tags.length }}</span>
         </ng-template>
         <div class="tab-content">
-          <div class="tab-content__toolbar">
-            @if (isOwner()) {
-              <button class="add-btn" (click)="openAddMemberDialog()">
-                <mat-icon class="add-btn__icon">person_add</mat-icon>
-                {{ 'PROJECT_DETAIL.MEMBERS.ADD' | translate }}
-              </button>
-            }
-          </div>
-
-          @if (memberErrorKey()) {
-            <p class="action-error">{{ memberErrorKey() | translate }}</p>
-          }
-
-          @if (project()!.members.length > 0) {
-            @for (group of membersByRole(); track group.role) {
-              <div class="role-section">
-                <div class="role-section__header">
-                  <mat-icon class="role-section__icon">{{ group.icon }}</mat-icon>
-                  <h3 class="role-section__title">{{ 'PROJECT_DETAIL.MEMBERS.ROLE_' + group.role.toUpperCase() | translate }}</h3>
-                  <span class="role-section__count">{{ group.members.length }}</span>
-                </div>
-                <div class="members-grid">
-                  @for (member of group.members; track member.id) {
-                    <article class="member-card" [class.member-card--busy]="memberActionId() === member.id">
-                      @if (memberActionId() === member.id) {
-                        <div class="member-card__spinner">
-                          <mat-spinner diameter="20"></mat-spinner>
-                        </div>
-                      }
-                      <div class="member-card__info">
-                        <strong>{{ member.firstName }} {{ member.lastName }}</strong>
-                      </div>
-                      <div class="member-card__actions">
-                        @if (isOwner()) {
-                          <app-ds-select
-                            class="role-select"
-                            [options]="roleDsOptions"
-                            [ngModel]="member.role"
-                            (ngModelChange)="onRoleChange(member, $event)"
-                            [disabled]="memberActionId() === member.id" />
-                          <button
-                            class="remove-btn"
-                            [matTooltip]="'PROJECT_DETAIL.MEMBERS.REMOVE' | translate"
-                            [disabled]="memberActionId() === member.id"
-                            (click)="openRemoveMemberDialog(member)">
-                            <mat-icon>close</mat-icon>
-                          </button>
-                        }
-                      </div>
-                    </article>
-                  }
-                </div>
-              </div>
-            }
-          } @else {
-            <div class="empty-state">
-              <mat-icon class="empty-state__icon">group</mat-icon>
-              <p>{{ 'PROJECT_DETAIL.MEMBERS.EMPTY' | translate }}</p>
-            </div>
-          }
+          <app-project-detail-tags-section
+            [project]="project()"
+            [canWrite]="canWrite()" />
         </div>
       </mat-tab>
 
@@ -805,226 +158,14 @@
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">library_books</mat-icon>
           <span>{{ 'PROJECT_DETAIL.TABS.PIPELINE_VARIABLES' | translate }}</span>
-          <span class="tab-count">{{ variableGroups().length }}</span>
         </ng-template>
         <div class="tab-content">
-          @if (vgErrorKey()) {
-            <p class="action-error">{{ vgErrorKey() | translate }}</p>
-          }
-
-          <!-- Derived hint -->
-          <div class="settings-info-banner" style="margin-bottom: 1rem;">
-            <mat-icon class="settings-info-banner__icon">info_outline</mat-icon>
-            <span>{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.DERIVED_HINT' | translate }}</span>
-          </div>
-
-          @if (canWrite()) {
-            <div class="tab-content__toolbar">
-              <button class="add-btn" (click)="openAddVariableGroupDialog()">
-                <mat-icon class="add-btn__icon">add_circle_outline</mat-icon>
-                {{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.ADD_GROUP' | translate }}
-              </button>
-            </div>
-          }
-
-          @if (vgLoading()) {
-            <div class="empty-state">
-              <mat-spinner diameter="32"></mat-spinner>
-            </div>
-          } @else if (variableGroups().length > 0) {
-            <div class="vg-list">
-              @for (group of variableGroups(); track group.id) {
-                <article class="vg-card">
-                  <div class="vg-card__header">
-                    <div class="vg-card__title-row">
-                      <mat-icon class="vg-card__icon">library_books</mat-icon>
-                      <h3 class="vg-card__name">{{ group.groupName }}</h3>
-                      <span class="vg-card__count">{{ group.variables.length }}</span>
-                    </div>
-                    @if (canWrite()) {
-                      <button class="vg-card__delete" (click)="openRemoveVariableGroupDialog(group)"
-                              [matTooltip]="'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP' | translate">
-                        <mat-icon>delete_outline</mat-icon>
-                      </button>
-                    }
-                  </div>
-
-                  @if (group.variables.length > 0) {
-                    <div class="vg-card__table">
-                      <div class="vg-card__table-header">
-                        <span class="vg-col vg-col--variable">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.VARIABLE_NAME' | translate }}</span>
-                        <span class="vg-col vg-col--setting">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.APP_SETTING' | translate }}</span>
-                        <span class="vg-col vg-col--resource">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.RESOURCE' | translate }}</span>
-                        <span class="vg-col vg-col--type">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.RESOURCE_TYPE' | translate }}</span>
-                        <span class="vg-col vg-col--config">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.CONFIG' | translate }}</span>
-                      </div>
-                      @for (variable of group.variables; track variable.pipelineVariableName) {
-                        <div class="vg-card__table-row">
-                          <span class="vg-col vg-col--variable">
-                            <code class="vg-variable-code">{{ variable.pipelineVariableName }}</code>
-                          </span>
-                          <span class="vg-col vg-col--setting">{{ variable.appSettingName }}</span>
-                          <span class="vg-col vg-col--resource">{{ variable.resourceName }}</span>
-                          <span class="vg-col vg-col--type">
-                            <span class="vg-type-chip">{{ variable.resourceType }}</span>
-                          </span>
-                          <span class="vg-col vg-col--config">{{ variable.configName }}</span>
-                        </div>
-                      }
-                    </div>
-                  } @else {
-                    <div class="vg-card__empty">
-                      <mat-icon class="vg-card__empty-icon">info_outline</mat-icon>
-                      <p>{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.NO_VARIABLES' | translate }}</p>
-                    </div>
-                  }
-                </article>
-              }
-            </div>
-          } @else if (vgLoaded()) {
-            <div class="empty-state">
-              <mat-icon class="empty-state__icon">library_books</mat-icon>
-              <p>{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.EMPTY' | translate }}</p>
-              <p class="empty-state__hint">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.EMPTY_HINT' | translate }}</p>
-            </div>
-          }
+          <app-project-detail-variable-groups-section
+            [project]="project()"
+            [canWrite]="canWrite()" />
         </div>
       </mat-tab>
 
-      <!-- Settings (Repository Mode + Git Config) -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">tune</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.TABS.SETTINGS' | translate }}</span>
-        </ng-template>
-        <div class="tab-content">
-          <!-- Tags Section -->
-          <section class="settings-section">
-            <div class="settings-section__title-row">
-              <h3 class="settings-section__title">
-                <mat-icon class="settings-section__title-icon">label</mat-icon>
-                {{ 'PROJECT_DETAIL.TAGS.TITLE' | translate }}
-              </h3>
-              @if (canWrite() && !isEditingProjectTags()) {
-                <button class="template-action-btn template-action-btn--inline" (click)="startEditProjectTags()">
-                  <mat-icon>edit</mat-icon>
-                </button>
-              }
-            </div>
-
-            @if (!isEditingProjectTags()) {
-              @if (projectTags().length > 0) {
-                <div class="tags-display">
-                  @for (tag of projectTags(); track tag.name) {
-                    <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
-                  }
-                </div>
-              } @else {
-                <p class="tags-empty">{{ 'PROJECT_DETAIL.TAGS.EMPTY' | translate }}</p>
-              }
-            } @else {
-              <div class="tags-editor">
-                <div class="tags-add-row">
-                  <app-ds-text-field
-                    class="tag-name-field"
-                    [label]="'PROJECT_DETAIL.TAGS.TAG_NAME' | translate"
-                    [formControl]="tagNameCtrl"
-                    (keydown.enter)="addProjectTag()" />
-                  <app-ds-text-field
-                    class="tag-value-field"
-                    [label]="'PROJECT_DETAIL.TAGS.TAG_VALUE' | translate"
-                    [formControl]="tagValueCtrl"
-                    (keydown.enter)="addProjectTag()" />
-                  <button type="button" mat-icon-button (click)="addProjectTag()" [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()">
-                    <mat-icon>add</mat-icon>
-                  </button>
-                </div>
-
-                @if (editingTags().length > 0) {
-                  <mat-chip-set>
-                    @for (tag of editingTags(); track tag.name) {
-                      <mat-chip (removed)="removeProjectTag(tag.name)">
-                        <span>{{ tag.name }}: {{ tag.value }}</span>
-                        <button matChipRemove><mat-icon>cancel</mat-icon></button>
-                      </mat-chip>
-                    }
-                  </mat-chip-set>
-                }
-
-                @if (tagsErrorKey()) {
-                  <p class="action-error">{{ tagsErrorKey() | translate }}</p>
-                }
-
-                <div class="tags-actions">
-                  <button mat-stroked-button type="button" (click)="cancelProjectTagsEdit()" [disabled]="tagsSaving()">
-                    {{ 'PROJECT_DETAIL.TAGS.CANCEL' | translate }}
-                  </button>
-                  <app-ds-button
-                    variant="primary"
-                    type="button"
-                    (clicked)="saveProjectTags()"
-                    [loading]="tagsSaving()"
-                    [disabled]="tagsSaving()">
-                    {{ 'PROJECT_DETAIL.TAGS.SAVE' | translate }}
-                  </app-ds-button>
-                </div>
-              </div>
-            }
-          </section>
-
-          <!-- Agent Pool -->
-          <section class="settings-section">
-            <h3 class="settings-section__title">
-              <mat-icon class="settings-section__title-icon">dns</mat-icon>
-              {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.TITLE' | translate }}
-            </h3>
-            <p class="settings-section__description">{{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.DESCRIPTION' | translate }}</p>
-
-            <div class="agent-pool-form">
-              <mat-slide-toggle
-                [checked]="useCustomPool()"
-                (change)="onCustomPoolToggle($event.checked)"
-                [disabled]="agentPoolLoading()">
-                {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.USE_CUSTOM' | translate }}
-              </mat-slide-toggle>
-
-              @if (useCustomPool()) {
-                <app-ds-text-field
-                  class="pool-name-field"
-                  [label]="'PROJECT_DETAIL.SETTINGS.AGENT_POOL.POOL_NAME' | translate"
-                  [hint]="'PROJECT_DETAIL.SETTINGS.AGENT_POOL.POOL_HINT' | translate"
-                  [ngModel]="agentPoolName() ?? ''"
-                  (ngModelChange)="agentPoolName.set($event)"
-                  [disabled]="agentPoolLoading()" />
-              }
-
-              <div class="agent-pool-actions">
-                <button mat-flat-button
-                        color="primary"
-                        (click)="saveAgentPool()"
-                        [disabled]="agentPoolLoading()">
-                  @if (agentPoolLoading()) {
-                    <mat-spinner diameter="20"></mat-spinner>
-                  } @else {
-                    {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.SAVE' | translate }}
-                  }
-                </button>
-              </div>
-            </div>
-          </section>
-        </div>
-      </mat-tab>
-
-      <!-- Layout & Repositories (V2 multi-repo topology) -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">account_tree</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.LAYOUT.TAB_TITLE' | translate }}</span>
-        </ng-template>
-        <div class="tab-content">
-          <app-layout-repositories [projectId]="project()!.id" />
-        </div>
-      </mat-tab>
     </mat-tab-group>
   }
 </div>

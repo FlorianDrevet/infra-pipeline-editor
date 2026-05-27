@@ -7,7 +7,6 @@ using InfraFlowSculptor.Contracts.CosmosDbs.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MediatR;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
@@ -23,7 +22,7 @@ public static class CosmosDbController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var config = endpoints.MapGroup("/cosmos-db")
+            var config = endpoints.MapGroup(Routes.CosmosDb)
                 .WithTags("Cosmos DB");
 
             config.MapGet("/{id:guid}",

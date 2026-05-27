@@ -3,7 +3,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.UserAssignedIdentities.Commands.UnlinkResourceFromIdentity;
 
@@ -71,8 +70,8 @@ public sealed class UnlinkResourceFromIdentityCommandHandler(
                 request.IdentityId);
         }
 
-        await azureResourceRepository.UpdateAsync(sourceResource, cancellationToken);
-        await azureResourceRepository.UpdateAsync(identity, cancellationToken);
+        azureResourceRepository.Update(sourceResource);
+        azureResourceRepository.Update(identity);
 
         return Result.Deleted;
     }

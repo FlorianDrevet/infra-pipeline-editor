@@ -6,7 +6,7 @@ namespace InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
 /// <summary>Bit flags describing what kinds of content a repository hosts.</summary>
 [Flags]
-public enum RepositoryContentKindsEnum
+public enum RepositoryContentKindsEnum // NOSONAR S2342 S2344 — plural "Kinds" is intentional; "Enum" suffix avoids clash with value object class
 {
     /// <summary>No content kind selected. Invalid as a persisted value.</summary>
     None = 0,

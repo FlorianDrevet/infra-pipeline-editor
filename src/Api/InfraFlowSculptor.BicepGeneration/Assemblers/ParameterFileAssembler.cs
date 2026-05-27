@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using InfraFlowSculptor.BicepGeneration.Generators.ParameterModels;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
@@ -12,6 +12,9 @@ namespace InfraFlowSculptor.BicepGeneration.Assemblers;
 /// </summary>
 internal static class ParameterFileAssembler
 {
+    /// <summary>SNI-based binding type used by Web Apps and Function Apps.</summary>
+    private const string SniEnabledBindingType = "SniEnabled";
+
     /// <summary>
     /// Generates one <c>.bicepparam</c> file per environment.
     /// Each file sets <c>environmentName</c> and the resource-specific parameter overrides.
@@ -61,7 +64,8 @@ internal static class ParameterFileAssembler
             && envOverrides.Count > 0;
 
         var envCustomDomains = matchingResource.CustomDomains
-            .Where(cd => cd.EnvironmentName.Equals(environmentName, StringComparison.OrdinalIgnoreCase))
+            .Where(cd => cd.EnvironmentName.Equals(environmentName, StringComparison.OrdinalIgnoreCase)
+                         && cd.DnsValidationStatus.Equals("Validated", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         if (!hasEnvOverrides && envCustomDomains.Count == 0)
@@ -76,11 +80,16 @@ internal static class ParameterFileAssembler
 
         if (envCustomDomains.Count > 0 && mergedParams.ContainsKey("customDomains"))
         {
+            var isContainerApp = matchingResource.Type == AzureResourceTypes.ArmTypes.ContainerAppType;
             mergedParams["customDomains"] = envCustomDomains
                 .Select(cd => (object)BicepParameterModelConverter.ToDictionary(new CustomDomainParameter
                 {
                     DomainName = cd.DomainName,
-                    BindingType = cd.BindingType,
+                    BindingType = MapCertificateModeToBindingType(cd.CertificateMode, isContainerApp),
+                    CertificateMode = cd.CertificateMode,
+                    KeyVaultUrl = cd.KeyVaultUrl,
+                    ManagedIdentityResourceId = cd.ManagedIdentityResourceId,
+                    CertificateName = cd.CertificateName,
                 }))
                 .ToList<object>();
         }
@@ -102,6 +111,15 @@ internal static class ParameterFileAssembler
             return module.ModuleName == expectedModuleName;
         });
     }
+
+    private static string MapCertificateModeToBindingType(string certificateMode, bool isContainerApp) => certificateMode switch
+    {
+        "ManagedCertificate" => isContainerApp ? "Auto" : SniEnabledBindingType,
+        "KeyVaultCertificate" => SniEnabledBindingType,
+        "ManualCertificate" => SniEnabledBindingType,
+        "Disabled" => "Disabled",
+        _ => isContainerApp ? "Auto" : SniEnabledBindingType,
+    };
 
     private static void ApplyParameterOverrides(
         Dictionary<string, object> mergedParams,
@@ -144,28 +162,37 @@ internal static class ParameterFileAssembler
 
         foreach (var module in modules)
         {
+            var emittedContentForModule = false;
+
             foreach (var (key, value) in module.Parameters.Where(parameter => !IsDerivedParameter(module, parameter.Key)))
             {
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} = {BicepFormattingHelper.SerializeToBicep(value)}");
+                emittedContentForModule = true;
             }
 
             // Secure parameters â€” placeholder values to be replaced at deployment time
             foreach (var secureParam in module.SecureParameters)
             {
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(secureParam)} = ''");
+                emittedContentForModule = true;
             }
 
             foreach (var (name, _, value) in StorageAccountCompanionHelper.GetStorageAccountCorsParameters(module))
             {
                 StorageAccountCompanionHelper.AppendCorsParameterAssignment(sb, name, value);
+                emittedContentForModule = true;
             }
 
             foreach (var (name, _, value) in StorageAccountCompanionHelper.GetStorageAccountLifecycleParameters(module))
             {
                 StorageAccountCompanionHelper.AppendLifecycleParameterAssignment(sb, name, value);
+                emittedContentForModule = true;
             }
 
-            sb.AppendLine();
+            if (emittedContentForModule)
+            {
+                sb.AppendLine();
+            }
         }
 
         // â”€â”€ Static app setting params (per-environment values) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

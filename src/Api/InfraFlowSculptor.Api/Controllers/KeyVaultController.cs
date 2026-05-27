@@ -6,9 +6,7 @@ using MediatR;
 using InfraFlowSculptor.Contracts.KeyVaults.Requests;
 using InfraFlowSculptor.Contracts.KeyVaults.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
@@ -22,7 +20,7 @@ public static class KeyVaultController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var config = endpoints.MapGroup("/keyvault")
+            var config = endpoints.MapGroup(Routes.KeyVault)
                 .WithTags("KeyVaults");
 
             config.MapGet("/{id:guid}",

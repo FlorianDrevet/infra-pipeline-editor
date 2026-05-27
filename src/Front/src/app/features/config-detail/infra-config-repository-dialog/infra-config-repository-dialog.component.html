@@ -4,13 +4,6 @@
 
 <mat-dialog-content>
   <form [formGroup]="form" class="repo-form" (ngSubmit)="onSubmit()">
-    <app-ds-text-field
-      formControlName="alias"
-      [label]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS' | translate"
-      [placeholder]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS_PLACEHOLDER' | translate"
-      [hint]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS_HINT' | translate"
-      [error]="form.controls.alias.hasError('pattern') && form.controls.alias.touched ? ('CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS_PATTERN_ERROR' | translate) : undefined" />
-
     <app-ds-select
       formControlName="providerType"
       [label]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.PROVIDER' | translate"
@@ -52,9 +45,9 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+  <app-ds-button variant="ghost" (clicked)="onCancel()" [disabled]="isSubmitting()">
     {{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.CANCEL' | translate }}
-  </button>
+  </app-ds-button>
   <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="form.invalid" (clicked)="onSubmit()">
     {{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.SAVE' | translate }}
   </app-ds-button>

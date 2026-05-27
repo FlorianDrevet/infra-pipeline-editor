@@ -106,7 +106,7 @@ public sealed class AddRoleAssignmentCommandHandlerTests
                 _command.UserAssignedIdentityId,
                 Arg.Any<CancellationToken>())
             .Returns(_managedIdentityType);
-        _azureResourceRepository.UpdateAsync(_sourceResource, Arg.Any<CancellationToken>())
+        _azureResourceRepository.Update(_sourceResource)
             .Returns(_updatedResourceWithoutAssignments);
 
         // Act

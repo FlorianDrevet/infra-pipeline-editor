@@ -20,9 +20,18 @@ public sealed class DraftOverrides
     /// <summary>Override for repository definitions.</summary>
     public List<DraftRepositoryIntent>? Repositories { get; init; }
 
+    /// <summary>Override for resource group topology assignments.</summary>
+    public List<DraftResourceGroupAssignment>? ResourceGroupAssignments { get; init; }
+
+    /// <summary>Override for resource instances (supports multiple instances of the same type with distinct names).</summary>
+    public List<DraftResourceIntent>? Resources { get; init; }
+
     /// <summary>Override for the agent pool name.</summary>
     public string? AgentPoolName { get; init; }
 
     /// <summary>Shortcut: repository URL applied to the first repository slot when set.</summary>
     public string? RepositoryUrl { get; init; }
+
+    /// <summary>Override for the application stack on compute resources (e.g. "DotNet", "NodeJs", "Angular").</summary>
+    public string? ApplicationStack { get; init; }
 }

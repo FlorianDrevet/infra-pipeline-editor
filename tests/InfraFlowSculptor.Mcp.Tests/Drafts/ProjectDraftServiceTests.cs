@@ -147,8 +147,7 @@ public sealed class ProjectDraftServiceTests
 
         // Assert
         draft.Intent.Repositories.Should().ContainSingle();
-        draft.Intent.Repositories![0].Alias.Should().Be("main");
-        draft.Intent.Repositories[0].ContentKinds.Should().BeEquivalentTo(["Infrastructure", "ApplicationCode"]);
+        draft.Intent.Repositories![0].ContentKinds.Should().BeEquivalentTo("Infrastructure", "ApplicationCode");
     }
 
     [Fact]

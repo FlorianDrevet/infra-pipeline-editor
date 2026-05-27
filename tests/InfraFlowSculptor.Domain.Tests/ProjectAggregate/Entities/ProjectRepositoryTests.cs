@@ -10,13 +10,11 @@ public sealed class ProjectRepositoryTests
     public void Given_GitHubRepositoryUrl_When_Create_Then_ExtractsOwnerAndRepositoryName()
     {
         // Arrange
-        var alias = RepositoryAlias.Create("infra").Value;
         var contentKinds = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
 
         // Act
         var result = ProjectRepository.Create(
             ProjectId.CreateUnique(),
-            alias,
             new GitProviderType(GitProviderTypeEnum.GitHub),
             "https://github.com/octo/infra-repo.git",
             "main",
@@ -32,13 +30,11 @@ public sealed class ProjectRepositoryTests
     public void Given_AzureDevOpsRepositoryUrl_When_Create_Then_ExtractsCompositeOwnerAndRepositoryName()
     {
         // Arrange
-        var alias = RepositoryAlias.Create("infra").Value;
         var contentKinds = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
 
         // Act
         var result = ProjectRepository.Create(
             ProjectId.CreateUnique(),
-            alias,
             new GitProviderType(GitProviderTypeEnum.AzureDevOps),
             "https://dev.azure.com/contoso/platform/_git/infra-repo",
             "main",
@@ -48,5 +44,27 @@ public sealed class ProjectRepositoryTests
         result.IsError.Should().BeFalse();
         result.Value.Owner.Should().Be("contoso/platform");
         result.Value.RepositoryName.Should().Be("infra-repo");
+    }
+
+    [Fact]
+    public void Given_UnconfiguredSlot_When_Create_Then_ReturnsRepositoryWithoutConnectionDetails()
+    {
+        // Arrange
+        var contentKinds = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
+
+        // Act
+        var result = ProjectRepository.Create(
+            ProjectId.CreateUnique(),
+            providerType: null,
+            repositoryUrl: null,
+            defaultBranch: null,
+            contentKinds);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.IsConfigured.Should().BeFalse();
+        result.Value.ProviderType.Should().BeNull();
+        result.Value.RepositoryUrl.Should().BeNull();
+        result.Value.DefaultBranch.Should().BeNull();
     }
 }

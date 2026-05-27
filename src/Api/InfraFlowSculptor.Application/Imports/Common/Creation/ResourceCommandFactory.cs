@@ -549,6 +549,7 @@ public static class ResourceCommandFactory
             DeploymentMode: DefaultDeploymentModeEnumName,
             ContainerRegistryId: null,
             AcrAuthMode: null,
+            AcrPullIdentityId: null,
             DockerImageName: null);
     }
 
@@ -568,6 +569,7 @@ public static class ResourceCommandFactory
             DeploymentMode: DefaultDeploymentModeEnumName,
             ContainerRegistryId: null,
             AcrAuthMode: null,
+            AcrPullIdentityId: null,
             DockerImageName: null);
     }
 

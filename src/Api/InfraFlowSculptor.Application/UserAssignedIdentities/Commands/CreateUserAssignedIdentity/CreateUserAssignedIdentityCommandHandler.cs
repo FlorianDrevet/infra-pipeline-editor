@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.UserAssignedIdentities.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.UserAssignedIdentityAggregate;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.UserAssignedIdentities.Commands.CreateUserAssignedIdentity;
 
@@ -39,7 +38,7 @@ public sealed class CreateUserAssignedIdentityCommandHandler(
             request.Location,
             request.IsExisting);
 
-        var saved = await userAssignedIdentityRepository.AddAsync(identity);
+        var saved = userAssignedIdentityRepository.Add(identity);
 
         return mapper.Map<UserAssignedIdentityResult>(saved);
     }

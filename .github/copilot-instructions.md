@@ -37,6 +37,20 @@
 - `src\Shared` holds reusable cross-cutting pieces used by both APIs: base DDD model types, shared application abstractions, shared API middleware/options, and persistence converters/repository helpers.
 - The main request flow is: Minimal API endpoint in `Api\Controllers` -> Mapster/request mapping -> MediatR command/query in `Application` -> handler/repository/service calls -> domain model changes or reads -> EF Core persistence -> Mapster/typed response DTO back to HTTP.
 
+## Request challenge rules
+
+- Do not treat the user's latest instruction as a sufficient specification when it touches Bicep generation, Azure DevOps pipelines, bootstrap flows, repository topology, or service connections.
+- For those topics, first check the request against the existing domain model, generation architecture, Azure DevOps/Bicep constraints, and project memory. If the request is inconsistent, incomplete, or technically false, say so explicitly and propose the corrected direction.
+- Do not preserve or introduce a "temporary" compatibility fallback, shared shortcut, or UI convenience when it weakens environment isolation or hides an invalid pipeline/Bicep assumption.
+- If a user request would produce invalid generated artifacts, cross-environment leakage, or a misleading UX that suggests an impossible infrastructure/pipeline concept, challenge the request before coding and prefer the coherent implementation over literal compliance.
+
+## Snapshot / Seed Synchronization
+
+- `docs/project-snapshots/fb8699ea-ifs-project.md` and `scripts/seed-project-snapshot.sql` are a paired artifact for the local developer seed of record.
+- If a user asks to update the snapshot or the seed for project `fb8699ea-f568-4afb-864b-e82d2efd0905`, update both files in the same task, not just the file explicitly named.
+- Treat `scripts/seed-project-snapshot.sql` as the authoritative direct-db seed; it must stay aligned with the live schema (`LayoutPreset`, repositories, current Container App fields, custom domains, app settings, environment values, and `project_members` visibility row).
+- After changing either file, revalidate by replaying the checked-in SQL against the current local `infraDb` schema or by proving an equivalent focused compatibility check.
+
 ## Specialized agents
 
 - **Main entry point** — Use the `dev` agent (`.github/agents/dev.agent.md`) as the primary entry point for any task. It reads `MEMORY.md` + thematic memory files in `.github/memory/`, routes to the right specialist, loads relevant Skills, and updates memory at the end.
@@ -55,6 +69,7 @@
 - **MCP / Model Context Protocol** — Load the `mcp-dotnet-server` skill (`.github/skills/mcp-dotnet-server/SKILL.md`) for any MCP server design or implementation in C#/.NET, VS Code `.vscode/mcp.json` exposure, transport/auth choices, conversational project creation from prompts, mandatory clarification workflows, IaC import tooling, or long-term MCP integration planning.
 - **UI/UX frontend design quality** — Load the `ui-ux-front-saas` skill (`.github/skills/ui-ux-front-saas/SKILL.md`) for any UI-facing frontend task (pages, components, layouts, styles, UX states).
 - **Pull Requests** — Use the `pr-manager` agent (`.github/agents/pr-manager.agent.md`) for PR title/description conventions.
+- **Dependency upgrades** — Use the `upgrade-orchestrator` agent (`.github/agents/upgrade-orchestrator.agent.md`) for any version bump: .NET SDK, TFM, NuGet packages, Angular CLI, TypeScript, npm packages. It reads release notes, identifies breaking changes, plans atomic migrations, and delegates execution to `dotnet-dev` or `angular-front`.
 
 ## Skills
 
@@ -80,6 +95,8 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 | `tdd-workflow` | **Any code modification**: enforces TDD Red→Green→Refactor→Verify cycle, test project init, test debt tracking in `.github/test-debt.md` | `.github/skills/tdd-workflow/SKILL.md` |
 | `angular-patterns` | Any Angular 19 code: Signals, standalone components, forms, Axios, routing, Material+Tailwind, i18n | `.github/skills/angular-patterns/SKILL.md` |
 | `bicep-v2-migration` | Migrating an IResourceTypeBicepGenerator from legacy string template to Builder + IR (Vague 2), including TDD tests, emitter parity, review cycle, and skill feedback loop | `.github/skills/bicep-v2-migration/SKILL.md` |
+| `dotnet-upgrade` | .NET version upgrade: SDK, TFM, NuGet packages, EF Core, ASP.NET Core, Aspire — breaking changes detection, migration procedure, new feature proposals | `.github/skills/dotnet-upgrade/SKILL.md` |
+| `angular-upgrade` | Angular version upgrade: CLI, framework, TypeScript, RxJS, Material, npm packages — breaking changes detection, ng update, new syntax proposals | `.github/skills/angular-upgrade/SKILL.md` |
 
 ---
 

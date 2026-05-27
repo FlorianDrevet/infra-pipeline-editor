@@ -1,0 +1,42 @@
+:host {
+  display: block;
+}
+
+.project-git-pat-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 24rem;
+  padding-top: 0.5rem;
+
+  &__help-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__help-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--ifs-radius-md);
+    border: 1px solid var(--ifs-border-subtle);
+    background: color-mix(in srgb, var(--ifs-surface-2) 88%, var(--ifs-brand-700));
+  }
+
+  &__help-provider {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ifs-accent-400);
+  }
+
+  &__help-copy {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: var(--ifs-text-secondary);
+  }
+}

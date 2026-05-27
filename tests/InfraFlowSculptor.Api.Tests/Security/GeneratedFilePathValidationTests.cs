@@ -109,6 +109,7 @@ public sealed class GeneratedFilePathValidationTests
             application.UseBicepGenerationController();
             application.UsePipelineGenerationController();
             application.UseProjectController();
+            application.UseProjectGenerationController();
 
             await application.StartAsync();
 

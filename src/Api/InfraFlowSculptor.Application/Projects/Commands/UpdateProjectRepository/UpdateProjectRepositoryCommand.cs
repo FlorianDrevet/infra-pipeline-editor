@@ -11,6 +11,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.UpdateProjectRepositor
 /// or <c>null</c> to keep the slot unconfigured.</param>
 /// <param name="RepositoryUrl">Full repository URL, or <c>null</c>/empty to keep the slot unconfigured.</param>
 /// <param name="DefaultBranch">Default branch name, or <c>null</c>/empty to keep the slot unconfigured.</param>
+/// <param name="PersonalAccessToken">Optional transient PAT. When omitted, the existing repository-scoped PAT is reused.</param>
 /// <param name="ContentKinds">List of content kinds hosted by the repository.</param>
 public record UpdateProjectRepositoryCommand(
     ProjectId ProjectId,
@@ -18,5 +19,6 @@ public record UpdateProjectRepositoryCommand(
     string? ProviderType,
     string? RepositoryUrl,
     string? DefaultBranch,
+    string? PersonalAccessToken,
     IReadOnlyList<string> ContentKinds
 ) : ICommand<Success>;

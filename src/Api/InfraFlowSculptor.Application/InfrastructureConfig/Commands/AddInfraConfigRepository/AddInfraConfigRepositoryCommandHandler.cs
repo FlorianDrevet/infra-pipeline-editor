@@ -22,12 +22,12 @@ public sealed class AddInfraConfigRepositoryCommandHandler(
         var auth = await accessService.VerifyOwnerAccessAsync(command.ProjectId, cancellationToken);
         if (auth.IsError) return auth.Errors;
 
-        var project = await projectRepo.GetByIdAsync(command.ProjectId);
+        var project = await projectRepo.GetByIdAsync(command.ProjectId, cancellationToken);
         if (project is null) return Errors.Project.NotFoundError(command.ProjectId);
         if (project.LayoutPreset.Value != LayoutPresetEnum.MultiRepo)
             return Errors.InfraConfigRepository.ProjectNotMultiRepo();
 
-        var config = await repo.GetByIdAsync(command.ConfigId);
+        var config = await repo.GetByIdAsync(command.ConfigId, cancellationToken);
         if (config is null) return Errors.InfrastructureConfig.NotFoundError(command.ConfigId);
         if (config.ProjectId != command.ProjectId) return Errors.InfrastructureConfig.NotFoundError(command.ConfigId);
 
@@ -37,21 +37,17 @@ public sealed class AddInfraConfigRepositoryCommandHandler(
             Errors.GitRepository.InvalidProviderType);
         if (providerTypeResult.IsError) return providerTypeResult.Errors;
 
-        var aliasResult = RepositoryAlias.Create(command.Alias);
-        if (aliasResult.IsError) return aliasResult.Errors;
-
         var contentKinds = RepositoryContentKindsParser.Parse(command.ContentKinds);
         if (contentKinds.IsError) return contentKinds.Errors;
 
         var added = config.AddRepository(
-            aliasResult.Value,
             providerTypeResult.Value,
             command.RepositoryUrl,
             command.DefaultBranch,
             contentKinds.Value);
         if (added.IsError) return added.Errors;
 
-        await repo.UpdateAsync(config);
+        repo.Update(config);
         return added.Value.Id;
     }
 }

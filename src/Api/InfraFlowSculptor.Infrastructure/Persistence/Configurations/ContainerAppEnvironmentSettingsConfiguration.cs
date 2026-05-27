@@ -13,6 +13,8 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 public sealed class ContainerAppEnvironmentSettingsConfiguration
     : IEntityTypeConfiguration<ContainerAppEnvironmentSettings>
 {
+    private const int ContainerRegistryServiceConnectionMaxLength = 200;
+
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<ContainerAppEnvironmentSettings> builder)
     {
@@ -77,6 +79,10 @@ public sealed class ContainerAppEnvironmentSettingsConfiguration
 
         builder.Property(x => x.StartupProbePort)
             .IsRequired(false);
+
+        builder.Property(x => x.ContainerRegistryServiceConnection)
+            .IsRequired(false)
+            .HasMaxLength(ContainerRegistryServiceConnectionMaxLength);
 
         builder.HasIndex(x => new { x.ContainerAppId, x.EnvironmentName })
             .IsUnique();

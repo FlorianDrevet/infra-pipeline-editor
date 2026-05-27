@@ -2,6 +2,7 @@ using FluentAssertions;
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ProjectAggregate;
@@ -15,7 +16,6 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
 {
     private const string ProjectName = "Retail Platform";
     private const string ProjectDescription = "Provision the retail platform.";
-    private const string ProjectAlias = "platform";
     private const string GitHubProvider = "GitHub";
     private const string MainBranch = "main";
     private const string DevelopmentEnvironment = "Development";
@@ -30,6 +30,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
 
     private readonly IProjectRepository _repository;
     private readonly ICurrentUser _currentUser;
+    private readonly IKeyVaultSecretClient _keyVaultSecretClient;
     private readonly UserId _userId;
     private readonly CreateProjectWithSetupCommandHandler _sut;
 
@@ -37,13 +38,14 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
     {
         _repository = Substitute.For<IProjectRepository>();
         _currentUser = Substitute.For<ICurrentUser>();
+        _keyVaultSecretClient = Substitute.For<IKeyVaultSecretClient>();
         _userId = UserId.CreateUnique();
 
         _currentUser.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(_userId);
-        _repository.AddAsync(Arg.Any<Project>())
-            .Returns(callInfo => Task.FromResult((Project)callInfo.Args()[0]));
+        _repository.Add(Arg.Any<Project>())
+            .Returns(callInfo => (Project)callInfo.Args()[0]);
 
-        _sut = new CreateProjectWithSetupCommandHandler(_repository, _currentUser);
+        _sut = new CreateProjectWithSetupCommandHandler(_repository, _currentUser, _keyVaultSecretClient);
     }
 
     [Fact]
@@ -70,13 +72,12 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
             && environment.ShortName == DevelopmentShortName
             && environment.Location == WestEuropeLocation);
         result.Value.Repositories.Should().ContainSingle(repository =>
-            repository.Alias == ProjectAlias
-            && repository.ProviderType == GitHubProvider
+            repository.ProviderType == GitHubProvider
             && repository.DefaultBranch == MainBranch
             && repository.IsConfigured);
         result.Value.Repositories![0].ContentKinds.Should().BeEquivalentTo("Infrastructure", "ApplicationCode");
 
-        await _repository.Received(1).AddAsync(Arg.Is<Project>(project =>
+        _repository.Received(1).Add(Arg.Is<Project>(project =>
             project.Name.Value == ProjectName
             && project.Description == ProjectDescription
             && project.Members.Count == 1
@@ -100,7 +101,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.Project.InvalidLayoutPreset(UnsupportedValue).Code);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
+        _repository.DidNotReceive().Add(Arg.Any<Project>());
     }
 
     [Fact]
@@ -124,7 +125,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.Location.InvalidLocation(UnsupportedValue).Code);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
+        _repository.DidNotReceive().Add(Arg.Any<Project>());
     }
 
     [Fact]
@@ -148,7 +149,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.GitRepository.InvalidProviderType(UnsupportedValue).Code);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
+        _repository.DidNotReceive().Add(Arg.Any<Project>());
     }
 
     [Fact]
@@ -172,7 +173,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.ProjectRepository.NoContentKind().Code);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
+        _repository.DidNotReceive().Add(Arg.Any<Project>());
     }
 
     [Fact]
@@ -190,7 +191,7 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Unauthorized);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Project>());
+        _repository.DidNotReceive().Add(Arg.Any<Project>());
     }
 
     private static CreateProjectWithSetupCommand CreateValidCommand() => new(
@@ -211,9 +212,9 @@ public sealed class CreateProjectWithSetupCommandHandlerTests
         RequiresApproval: false);
 
     private static RepositorySetupItem ValidRepository() => new(
-        Alias: ProjectAlias,
         ContentKinds: ["Infrastructure", "ApplicationCode"],
         ProviderType: GitHubProvider,
         RepositoryUrl: "https://github.com/floriandrevet/platform",
-        DefaultBranch: MainBranch);
+        DefaultBranch: MainBranch,
+        PersonalAccessToken: null);
 }

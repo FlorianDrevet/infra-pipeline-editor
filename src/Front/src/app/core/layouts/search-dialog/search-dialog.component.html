@@ -21,7 +21,6 @@
             class="search-dialog__result"
             [class.search-dialog__result--selected]="selectedIndex() === i"
             [attr.aria-current]="selectedIndex() === i ? 'true' : null"
-            style="width: 100%; border: 0; background: none; text-align: left;"
             (click)="navigateTo(item)"
             (keydown)="onResultKeydown($event, item)"
             (focus)="selectResult(i)"

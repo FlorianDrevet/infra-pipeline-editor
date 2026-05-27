@@ -1,4 +1,3 @@
-using InfraFlowSculptor.PipelineGeneration.Models;
 using InfraFlowSculptor.PipelineGeneration.Tests.Common;
 using InfraFlowSculptor.PipelineGeneration.Tests.Fixtures;
 
@@ -75,5 +74,18 @@ public sealed class BootstrapPipelineGenerationEngineGoldenTests
 
         // Assert
         GoldenFileAssertion.AssertDictionaryMatches(result.TemplateFiles, "Bootstrap/empty-noop");
+    }
+
+    [Fact]
+    public void Given_FullOwnerWithServiceConnections_When_Generate_Then_OutputMatchesGolden()
+    {
+        // Arrange
+        var request = BootstrapRequestFixtures.FullOwnerWithServiceConnections();
+
+        // Act
+        var result = _sut.Generate(request);
+
+        // Assert
+        GoldenFileAssertion.AssertDictionaryMatches(result.TemplateFiles, "Bootstrap/full-owner-service-connections");
     }
 }

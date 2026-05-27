@@ -11,6 +11,7 @@ public static partial class Errors
         private const string InvalidRepositoryUrlCode = "GitRepository.InvalidRepositoryUrl";
         private const string PushFailedCode = "GitRepository.PushFailed";
         private const string SecretRetrievalFailedCode = "GitRepository.SecretRetrievalFailed";
+        private const string SecretStorageFailedCode = "GitRepository.SecretStorageFailed";
         private const string InvalidProviderTypeCode = "GitRepository.InvalidProviderType";
         private const string ConnectionTestFailedCode = "GitRepository.ConnectionTestFailed";
         private const string ListBranchesFailedCode = "GitRepository.ListBranchesFailed";
@@ -36,6 +37,12 @@ public static partial class Errors
         public static Error SecretRetrievalFailed() =>
             Error.Failure(code: SecretRetrievalFailedCode, description: "Failed to retrieve the authentication token from Key Vault.");
 
+        /// <summary>Returns a failure error when the Key Vault secret cannot be stored.</summary>
+        public static Error SecretStorageFailed(string? reason = null) =>
+            Error.Failure(
+                code: SecretStorageFailedCode,
+                description: BuildSecretStorageDescription(reason));
+
         /// <summary>Returns a failure error when the Git connection test fails.</summary>
         public static Error ConnectionTestFailed(string reason) =>
             Error.Failure(code: ConnectionTestFailedCode, description: $"Git repository connection test failed: {reason}");
@@ -47,5 +54,15 @@ public static partial class Errors
         /// <summary>Returns a failure error when searching files in the Git repository fails.</summary>
         public static Error SearchFilesFailed(string reason) =>
             Error.Failure(code: SearchFilesFailedCode, description: $"Failed to search files in Git repository: {reason}");
+
+        private static string BuildSecretStorageDescription(string? reason)
+        {
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                return "Failed to store the authentication token in Key Vault.";
+            }
+
+            return $"Failed to store the authentication token in Key Vault: {reason}";
+        }
     }
 }

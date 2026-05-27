@@ -24,6 +24,48 @@
     display: block;
     height: 100%;
   }
+
+  &__repos {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  &__repos-header {
+    h4 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+  }
+
+  &__repos-hint {
+    margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--ifs-text-secondary);
+  }
+
+  &__repo-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--ifs-border-subtle);
+    border-radius: 0.5rem;
+    background: var(--ifs-surface-1);
+  }
+
+  &__repo-slot-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__repo-slot-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
 }
 
 :host ::ng-deep .layout-step__card-item .ds-option-card {

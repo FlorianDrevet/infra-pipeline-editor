@@ -46,9 +46,9 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="onCancel()">
+  <app-ds-button variant="ghost" (clicked)="onCancel()">
     {{ 'PROJECT_DETAIL.NAMING_TEMPLATES.FORM.CANCEL' | translate }}
-  </button>
+  </app-ds-button>
   <app-ds-button variant="primary" [disabled]="form.invalid" (clicked)="onSubmit()">
     {{ submitKey | translate }}
   </app-ds-button>

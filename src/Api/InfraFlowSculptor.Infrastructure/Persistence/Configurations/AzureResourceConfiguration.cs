@@ -1,10 +1,6 @@
 using InfraFlowSculptor.Domain.Common.BaseModels;
-using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
@@ -25,13 +21,17 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
     {
         builder.ToTable(nameof(AzureResource));
         builder.HasKey(user => user.Id);
-        
+
         builder.ConfigureAggregateRootId<AzureResource, AzureResourceId>();
-        
+
+        builder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .IsRowVersion();
+
         builder.Property(order => order.Location)
             .IsRequired()
             .HasConversion(new EnumValueConverter<Location, Location.LocationEnum>());
-        
+
         builder.Property(x => x.Name)
             .IsRequired()
             .HasConversion(new SingleValueConverter<Name, string>())
@@ -47,6 +47,7 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
 
         builder.Property(x => x.ResourceType)
             .IsRequired()
+            .HasConversion(new SingleValueConverter<ResourceTypeName, string>())
             .HasMaxLength(50);
 
         builder.HasIndex(x => x.ResourceType);
@@ -76,11 +77,11 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
                     .WithMany()
                     .HasForeignKey("ResourceId")
                     .OnDelete(DeleteBehavior.Cascade));
-        
+
         builder.Navigation(r => r.DependsOn)
             .HasField("_dependsOn")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
-        
+
         builder.HasMany(r => r.ParameterUsages)
             .WithOne()
             .HasForeignKey(x => x.ResourceId)

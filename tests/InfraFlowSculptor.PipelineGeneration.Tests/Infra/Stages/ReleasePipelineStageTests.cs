@@ -59,6 +59,19 @@ public sealed class ReleasePipelineStageTests
         context.Files["release.pipeline.yml"].Should().Contain("value: dev,prd");
     }
 
+    [Fact]
+    public void Given_Context_When_Execute_Then_UsesInfraPrefixedCiPipelineSource()
+    {
+        // Arrange
+        var context = CreateContext(isMonoRepo: false);
+
+        // Act
+        _sut.Execute(context);
+
+        // Assert
+        context.Files["release.pipeline.yml"].Should().Contain("source: '[Infra] my-config - CI'");
+    }
+
     private static InfraPipelineContext CreateContext(bool isMonoRepo) => new()
     {
         Request = new GenerationRequest

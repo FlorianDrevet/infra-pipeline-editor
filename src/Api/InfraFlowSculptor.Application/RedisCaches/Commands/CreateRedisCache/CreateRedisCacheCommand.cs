@@ -1,5 +1,4 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
-using ErrorOr;
 using InfraFlowSculptor.Application.RedisCaches.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
@@ -17,4 +16,4 @@ public record CreateRedisCacheCommand(
     bool EnableAadAuth,
     IReadOnlyList<RedisCacheEnvironmentConfigData>? EnvironmentSettings = null,
     bool IsExisting = false
-) : ICommand<RedisCacheResult>;
+) : ICommand<RedisCacheResult>, ICreateResourceCommand;

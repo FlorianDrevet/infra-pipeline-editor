@@ -5,7 +5,7 @@ namespace InfraFlowSculptor.Domain.Common.Models;
 /// when they have the same <typeparamref name="TId"/>.
 /// </summary>
 /// <typeparam name="TId">The strongly-typed identifier type.</typeparam>
-public abstract class Entity<TId> : IEquatable<Entity<TId>>
+public abstract class Entity<TId> : IEquatable<Entity<TId>> // NOSONAR S4035
     where TId : notnull
 {
     /// <summary>Gets the unique identifier for this entity.</summary>

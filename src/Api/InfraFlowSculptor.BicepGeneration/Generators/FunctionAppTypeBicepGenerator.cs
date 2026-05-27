@@ -1,4 +1,4 @@
-﻿using InfraFlowSculptor.BicepGeneration.Ir;
+using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
@@ -10,86 +10,86 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed partial class FunctionAppTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
-  private const string ManagedIdentityAcrAuthMode = "ManagedIdentity";
-  private const string AdminCredentialsAcrAuthMode = "AdminCredentials";
-  private const string ModuleName = "functionApp";
-  private const string ModuleFolderName = "FunctionApp";
-  private const string RuntimeStackTypeName = "RuntimeStack";
-  private const string WorkerRuntimeTypeName = "WorkerRuntime";
-  private const string DeploymentModeTypeName = "DeploymentMode";
-  private const string AcrAuthModePropertyName = "acrAuthMode";
-  private const string AppServicePlanIdParameterName = "appServicePlanId";
-  private const string RuntimeStackParameterName = "runtimeStack";
-  private const string RuntimeVersionParameterName = "runtimeVersion";
-  private const string HttpsOnlyParameterName = "httpsOnly";
-  private const string DeploymentModeParameterName = "deploymentMode";
-  private const string DockerImageNameParameterName = "dockerImageName";
-  private const string DockerImageTagParameterName = "dockerImageTag";
-  private const string AcrLoginServerParameterName = "acrLoginServer";
-  private const string AcrPasswordParameterName = "acrPassword";
-  private const string AcrUseManagedIdentityCredsParameterName = "acrUseManagedIdentityCreds";
-  private const string AcrUserManagedIdentityIdParameterName = "acrUserManagedIdentityId";
-  private const string CustomDomainsParameterName = "customDomains";
-  private const string DockerImageVariableName = "dockerImage";
-  private const string WorkerRuntimeVariableName = "workerRuntime";
-  private const string AcrUsernameVariableName = "acrUsername";
-  private const string LinuxFxVersionVariableName = "linuxFxVersion";
-  private const string FunctionAppResourceSymbol = "functionApp";
-  private const string HostNameBindingsResourceName = "hostNameBindings";
-  private const string FunctionAppArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.WebAppArmType;
-  private const string HostNameBindingsArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.HostNameBindingsArmType;
-  private const string CodeDeploymentMode = "Code";
-  private const string ContainerDeploymentMode = "Container";
-  private const string DefaultRuntimeStack = "DOTNET";
-  private const string DefaultDockerImageTag = "latest";
-  private const string EmptyParameterValue = "";
-  private const string ManagedIdentityModuleFileName = "functionAppContainerManagedIdentity";
-  private const string AdminCredentialsModuleFileName = "functionAppContainerAdminCredentials";
-  private const string FunctionAppCodeKind = "functionapp";
-  private const string FunctionAppContainerKind = "functionapp,linux,container";
-  private const string FtpsStatePropertyName = "ftpsState";
-  private const string MinTlsVersionPropertyName = "minTlsVersion";
-  private const string MinimumTlsVersionValue = "1.2";
-  private const string DisabledStateValue = "Disabled";
-  private const string SiteConfigPropertyName = "siteConfig";
-  private const string AppSettingsPropertyName = "appSettings";
-  private const string ServerFarmIdPropertyName = "serverFarmId";
-  private const string AcrUserManagedIdentityIdSiteConfigPropertyName = "acrUserManagedIdentityID";
-  private const string HostNameTypePropertyName = "hostNameType";
-  private const string HostNameTypeVerifiedValue = "Verified";
-  private const string SiteNamePropertyName = "siteName";
-  private const string SslStatePropertyName = "sslState";
-  private const string SniEnabledBindingTypeValue = "SniEnabled";
-  private const string FunctionsWorkerRuntimeSettingName = "FUNCTIONS_WORKER_RUNTIME";
-  private const string FunctionsExtensionVersionSettingName = "FUNCTIONS_EXTENSION_VERSION";
-  private const string FunctionsExtensionVersionValue = "~4";
-  private const string DockerRegistryServerUrlSettingName = "DOCKER_REGISTRY_SERVER_URL";
-  private const string DockerRegistryServerUsernameSettingName = "DOCKER_REGISTRY_SERVER_USERNAME";
-  private const string DockerRegistryServerPasswordSettingName = "DOCKER_REGISTRY_SERVER_PASSWORD";
-  private const string DockerImageExpression = "'${acrLoginServer}/${dockerImageName}:${dockerImageTag}'";
-  private const string AcrUsernameExpression = "split(acrLoginServer, '.')[0]";
-  private const string LinuxFxVersionExpression = "'${toUpper(runtimeStack)}|${runtimeVersion}'";
-  private const string DockerLinuxFxVersionExpression = "'DOCKER|${dockerImage}'";
-  private const string AcrLoginServerUrlExpression = "'https://${acrLoginServer}'";
-  private const string WorkerRuntimeExpression = "toUpper(runtimeStack) == 'DOTNET' ? (contains(runtimeVersion, 'isolated') ? 'dotnet-isolated' : 'dotnet') : toLower(runtimeStack)";
-  private const string RuntimeStackUnion = "'DOTNET' | 'NODE' | 'PYTHON' | 'JAVA' | 'POWERSHELL'";
-  private const string WorkerRuntimeUnion = "'dotnet' | 'dotnet-isolated' | 'node' | 'python' | 'java' | 'powershell'";
-  private const string DeploymentModeUnion = "'Code' | 'Container'";
-  private const string ValuePropertyName = "value";
-  private const string LinuxFxVersionPropertyName = "linuxFxVersion";
-  private const string DomainLoopVariableName = "domain";
-  private const string DomainNameExpression = DomainLoopVariableName + ".domainName";
-  private const string DomainBindingTypeSniEnabledExpression = DomainLoopVariableName + ".bindingType == '" + SniEnabledBindingTypeValue + "'";
-  private const string AcrUserManagedIdentityIdNotEmptyExpression = "!empty(" + AcrUserManagedIdentityIdParameterName + ")";
-  private const string NullExpression = "null";
-  private const string FunctionAppNameExpression = FunctionAppResourceSymbol + ".name";
-  private const string DefaultHostNameOutputName = "defaultHostName";
-  private const string PrincipalIdOutputName = "principalId";
-  private const string CustomDomainVerificationIdOutputName = "customDomainVerificationId";
-  private const string FunctionAppIdExpression = FunctionAppResourceSymbol + ".id";
-  private const string DefaultHostNameExpression = FunctionAppResourceSymbol + ".properties.defaultHostName";
-  private const string PrincipalIdExpression = FunctionAppResourceSymbol + ".identity.principalId";
-  private const string CustomDomainVerificationIdExpression = FunctionAppResourceSymbol + ".properties.customDomainVerificationId";
+    private const string ManagedIdentityAcrAuthMode = "ManagedIdentity";
+    private const string AdminCredentialsAcrAuthMode = "AdminCredentials";
+    private const string ModuleName = "functionApp";
+    private const string ModuleFolderName = "FunctionApp";
+    private const string RuntimeStackTypeName = "RuntimeStack";
+    private const string WorkerRuntimeTypeName = "WorkerRuntime";
+    private const string DeploymentModeTypeName = "DeploymentMode";
+    private const string AcrAuthModePropertyName = "acrAuthMode";
+    private const string AppServicePlanIdParameterName = "appServicePlanId";
+    private const string RuntimeStackParameterName = "runtimeStack";
+    private const string RuntimeVersionParameterName = "runtimeVersion";
+    private const string HttpsOnlyParameterName = "httpsOnly";
+    private const string DeploymentModeParameterName = "deploymentMode";
+    private const string DockerImageNameParameterName = "dockerImageName";
+    private const string DockerImageTagParameterName = "dockerImageTag";
+    private const string AcrLoginServerParameterName = "acrLoginServer";
+    private const string AcrPasswordParameterName = "acrPassword";
+    private const string AcrUseManagedIdentityCredsParameterName = "acrUseManagedIdentityCreds";
+    private const string AcrUserManagedIdentityIdParameterName = "acrUserManagedIdentityId";
+    private const string CustomDomainsParameterName = "customDomains";
+    private const string DockerImageVariableName = "dockerImage";
+    private const string WorkerRuntimeVariableName = "workerRuntime";
+    private const string AcrUsernameVariableName = "acrUsername";
+    private const string LinuxFxVersionVariableName = "linuxFxVersion";
+    private const string FunctionAppResourceSymbol = "functionApp";
+    private const string HostNameBindingsResourceName = "hostNameBindings";
+    private const string FunctionAppArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.WebAppArmType;
+    private const string HostNameBindingsArmType = InfraFlowSculptor.BicepGeneration.Constants.BicepArmTypeCatalog.HostNameBindingsArmType;
+    private const string CodeDeploymentMode = "Code";
+    private const string ContainerDeploymentMode = "Container";
+    private const string DefaultRuntimeStack = "DOTNET";
+    private const string DefaultDockerImageTag = "latest";
+    private const string EmptyParameterValue = "";
+    private const string ManagedIdentityModuleFileName = "functionAppContainerManagedIdentity";
+    private const string AdminCredentialsModuleFileName = "functionAppContainerAdminCredentials";
+    private const string FunctionAppCodeKind = "functionapp";
+    private const string FunctionAppContainerKind = "functionapp,linux,container";
+    private const string FtpsStatePropertyName = "ftpsState";
+    private const string MinTlsVersionPropertyName = "minTlsVersion";
+    private const string MinimumTlsVersionValue = "1.2";
+    private const string DisabledStateValue = "Disabled";
+    private const string SiteConfigPropertyName = "siteConfig";
+    private const string AppSettingsPropertyName = "appSettings";
+    private const string ServerFarmIdPropertyName = "serverFarmId";
+    private const string AcrUserManagedIdentityIdSiteConfigPropertyName = "acrUserManagedIdentityID";
+    private const string HostNameTypePropertyName = "hostNameType";
+    private const string HostNameTypeVerifiedValue = "Verified";
+    private const string SiteNamePropertyName = "siteName";
+    private const string SslStatePropertyName = "sslState";
+    private const string SniEnabledBindingTypeValue = "SniEnabled";
+    private const string FunctionsWorkerRuntimeSettingName = "FUNCTIONS_WORKER_RUNTIME";
+    private const string FunctionsExtensionVersionSettingName = "FUNCTIONS_EXTENSION_VERSION";
+    private const string FunctionsExtensionVersionValue = "~4";
+    private const string DockerRegistryServerUrlSettingName = "DOCKER_REGISTRY_SERVER_URL";
+    private const string DockerRegistryServerUsernameSettingName = "DOCKER_REGISTRY_SERVER_USERNAME";
+    private const string DockerRegistryServerPasswordSettingName = "DOCKER_REGISTRY_SERVER_PASSWORD";
+    private const string DockerImageExpression = "'${acrLoginServer}/${dockerImageName}:${dockerImageTag}'";
+    private const string AcrUsernameExpression = "split(acrLoginServer, '.')[0]";
+    private const string LinuxFxVersionExpression = "'${toUpper(runtimeStack)}|${runtimeVersion}'";
+    private const string DockerLinuxFxVersionExpression = "'DOCKER|${dockerImage}'";
+    private const string AcrLoginServerUrlExpression = "'https://${acrLoginServer}'";
+    private const string WorkerRuntimeExpression = "toUpper(runtimeStack) == 'DOTNET' ? (contains(runtimeVersion, 'isolated') ? 'dotnet-isolated' : 'dotnet') : toLower(runtimeStack)";
+    private const string RuntimeStackUnion = "'DOTNET' | 'NODE' | 'PYTHON' | 'JAVA' | 'POWERSHELL'";
+    private const string WorkerRuntimeUnion = "'dotnet' | 'dotnet-isolated' | 'node' | 'python' | 'java' | 'powershell'";
+    private const string DeploymentModeUnion = "'Code' | 'Container'";
+    private const string ValuePropertyName = "value";
+    private const string LinuxFxVersionPropertyName = "linuxFxVersion";
+    private const string DomainLoopVariableName = "domain";
+    private const string DomainNameExpression = DomainLoopVariableName + ".domainName";
+    private const string DomainBindingTypeSniEnabledExpression = DomainLoopVariableName + ".bindingType == '" + SniEnabledBindingTypeValue + "'";
+    private const string AcrUserManagedIdentityIdNotEmptyExpression = "!empty(" + AcrUserManagedIdentityIdParameterName + ")";
+    private const string NullExpression = "null";
+    private const string FunctionAppNameExpression = FunctionAppResourceSymbol + ".name";
+    private const string DefaultHostNameOutputName = "defaultHostName";
+    private const string PrincipalIdOutputName = "principalId";
+    private const string CustomDomainVerificationIdOutputName = "customDomainVerificationId";
+    private const string FunctionAppIdExpression = FunctionAppResourceSymbol + ".id";
+    private const string DefaultHostNameExpression = FunctionAppResourceSymbol + ".properties.defaultHostName";
+    private const string PrincipalIdExpression = FunctionAppResourceSymbol + ".identity.principalId";
+    private const string CustomDomainVerificationIdExpression = FunctionAppResourceSymbol + ".properties.customDomainVerificationId";
 
     /// <inheritdoc />
     public string ResourceType
@@ -101,8 +101,8 @@ public sealed partial class FunctionAppTypeBicepGenerator
     /// <inheritdoc />
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
-      var deploymentMode = resource.Properties.GetValueOrDefault(DeploymentModeParameterName, CodeDeploymentMode);
-      var isContainer = string.Equals(deploymentMode, ContainerDeploymentMode, StringComparison.OrdinalIgnoreCase);
+        var deploymentMode = resource.Properties.GetValueOrDefault(DeploymentModeParameterName, CodeDeploymentMode);
+        var isContainer = string.Equals(deploymentMode, ContainerDeploymentMode, StringComparison.OrdinalIgnoreCase);
         var acrAuthMode = GetAcrAuthMode(resource.Properties);
         var useAdminCredentials = isContainer
             && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
@@ -122,8 +122,8 @@ public sealed partial class FunctionAppTypeBicepGenerator
 
         AddContainerParameters(builder, isContainer, useAdminCredentials);
 
-          builder.Param(CustomDomainsParameterName, BicepType.Array, "Custom domain bindings for this Function App",
-            defaultValue: new BicepArrayExpression([]));
+        builder.Param(CustomDomainsParameterName, BicepType.Array, "Custom domain bindings for this Function App",
+          defaultValue: new BicepArrayExpression([]));
 
         AddVariables(builder, isContainer, useAdminCredentials);
 
@@ -253,7 +253,7 @@ public sealed partial class FunctionAppTypeBicepGenerator
                     new BicepReference(AcrUserManagedIdentityIdParameterName),
                     new BicepRawExpression(NullExpression))));
         }
-              else if (useAdminCredentials)
+        else if (useAdminCredentials)
         {
             siteConfigProps.Add(new BicepPropertyAssignment(AcrUseManagedIdentityCredsParameterName,
                 new BicepBoolLiteral(false)));
@@ -312,7 +312,7 @@ public sealed partial class FunctionAppTypeBicepGenerator
 
     private static string GetAcrAuthMode(IReadOnlyDictionary<string, string> properties)
     {
-      var acrAuthMode = properties.GetValueOrDefault(AcrAuthModePropertyName, string.Empty);
+        var acrAuthMode = properties.GetValueOrDefault(AcrAuthModePropertyName, string.Empty);
         return string.IsNullOrWhiteSpace(acrAuthMode)
             ? ManagedIdentityAcrAuthMode
             : acrAuthMode;
@@ -342,13 +342,13 @@ public sealed partial class FunctionAppTypeBicepGenerator
 
         return new GeneratedTypeModule
         {
-          ModuleName = ModuleName,
+            ModuleName = ModuleName,
             ModuleFileName = moduleFileName,
-          ModuleFolderName = ModuleFolderName,
+            ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = moduleBicepContent,
             ModuleTypesBicepContent = FunctionAppTypesTemplate,
             ResourceTypeName = ResourceTypeName,
-          SecureParameters = isContainer && useAdminCredentials ? [AcrPasswordParameterName] : [],
+            SecureParameters = isContainer && useAdminCredentials ? [AcrPasswordParameterName] : [],
         };
     }
 

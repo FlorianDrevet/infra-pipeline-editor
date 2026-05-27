@@ -10,19 +10,26 @@ import {
   GenerateProjectBicepResponse,
   GenerateProjectBootstrapPipelineResponse,
   GenerateProjectPipelineResponse,
+  GetProjectLatestGenerationResponse,
   ProjectResponse,
 } from '../../shared/interfaces/project.interface';
 import { InfrastructureConfigResponse } from '../../shared/interfaces/infra-config.interface';
+import { PendingCustomDomainIssue } from '../../shared/interfaces/pending-custom-domain-issue.interface';
 import { ProjectService } from '../../shared/services/project.service';
+import { CustomDomainDiagnosticsService } from '../../shared/services/custom-domain-diagnostics.service';
+import { DockerImageDiagnosticsService } from '../../shared/services/docker-image-diagnostics.service';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
 import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import {
   ConfigDiagnosticGroup,
   ConfigMissingEnvGroup,
+  ConfigPendingCustomDomainGroup,
+  ConfigPendingDockerImageGroup,
   GenerationDiagnosticsDialogComponent,
   GenerationDiagnosticsDialogData,
   MissingEnvResource,
+  PendingDockerImageIssue,
 } from '../../shared/components/generation-diagnostics-dialog/generation-diagnostics-dialog.component';
 import {
   PushToGitDialogComponent,
@@ -40,7 +47,7 @@ import {
 import {
   ensureProjectArchiveEntrySizeWithinLimits,
   ensureProjectArchiveSourceSizeWithinLimits,
-  resolveProjectDetailSplitRepoAliases,
+  resolveProjectDetailSplitRepoTargets,
   tryGetProjectArchiveEntryUncompressedSize,
 } from './project-detail-generation.helper';
 import { shouldDeferMonoRepoBatchReveal } from './project-generation-visibility.helper';
@@ -64,6 +71,8 @@ interface CombinedProjectArchiveExtractionState {
 @Injectable()
 export class ProjectDetailGenerationWorkflowService {
   private readonly dialog = inject(MatDialog);
+  private readonly customDomainDiagnosticsService = inject(CustomDomainDiagnosticsService);
+  private readonly dockerImageDiagnosticsService = inject(DockerImageDiagnosticsService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
   private readonly resourceGroupService = inject(ResourceGroupService);
@@ -72,6 +81,9 @@ export class ProjectDetailGenerationWorkflowService {
 
   private readonly project = signal<ProjectResponse | null>(null);
   private readonly configs = signal<InfrastructureConfigResponse[]>([]);
+  private latestGenerationProjectId: string | null = null;
+  private latestGenerationCache: GetProjectLatestGenerationResponse | null | undefined = undefined;
+  private latestGenerationRequest: Promise<GetProjectLatestGenerationResponse | null> | null = null;
 
   readonly validatingDiagnostics = signal(false);
   readonly projectGenerateAllBatchActive = signal(false);
@@ -96,6 +108,12 @@ export class ProjectDetailGenerationWorkflowService {
   readonly projectBootstrapDownloading = signal(false);
   readonly projectBootstrapErrorKey = signal('');
   readonly projectBootstrapPanelOpen = signal(false);
+
+  readonly lastGenerationLoading = signal(false);
+  readonly lastGenerationAvailable = signal<boolean | null>(null);
+  readonly lastGenerationErrorKey = signal('');
+  readonly viewingHistoricalGeneration = signal(false);
+  readonly displayedHistoricalGenerationAt = signal<string | null>(null);
 
   readonly canPushAllProjectArtifacts = computed(
     () => this.projectBicepResult() !== null
@@ -167,12 +185,77 @@ export class ProjectDetailGenerationWorkflowService {
   );
 
   setProject(project: ProjectResponse | null): void {
+    const projectId = project?.id ?? null;
+    if (this.latestGenerationProjectId !== projectId) {
+      this.resetLatestGenerationState(projectId);
+    }
+
     this.project.set(project);
   }
 
   setConfigs(configs: InfrastructureConfigResponse[]): void {
     this.configs.set(configs);
   }
+
+  readonly checkLastGenerationAvailable = async (projectId = this.project()?.id): Promise<void> => {
+    if (!projectId) return;
+
+    const result = await this.getLatestGeneration(projectId);
+    this.lastGenerationAvailable.set(result !== null);
+  };
+
+  readonly loadLastGeneration = async (): Promise<void> => {
+    const projectId = this.project()?.id;
+    if (!projectId || this.lastGenerationLoading()) return;
+
+    this.lastGenerationLoading.set(true);
+    this.lastGenerationErrorKey.set('');
+
+    try {
+      const result = await this.getLatestGeneration(projectId);
+      this.lastGenerationAvailable.set(result !== null);
+
+      if (!result) {
+        this.lastGenerationErrorKey.set('PROJECT_DETAIL.BOARD.LAST_GENERATION_EXPIRED');
+        return;
+      }
+
+      this.applyHistoricalGenerationContext(result);
+
+      if (result.bicep) {
+        this.projectBicepResult.set({
+          commonFileUris: result.bicep.commonFileUris,
+          configFileUris: result.bicep.configFileUris,
+        });
+        this.projectBicepPanelOpen.set(true);
+      }
+
+      if (result.pipeline) {
+        this.projectPipelineResult.set({
+          commonFileUris: result.pipeline.commonFileUris,
+          configFileUris: result.pipeline.configFileUris,
+          infraCommonFileUris: result.pipeline.infraCommonFileUris,
+          appCommonFileUris: result.pipeline.appCommonFileUris,
+          infraConfigFileUris: result.pipeline.infraConfigFileUris,
+          appConfigFileUris: result.pipeline.appConfigFileUris,
+        });
+        this.projectPipelinePanelOpen.set(true);
+      }
+
+      if (result.bootstrap) {
+        this.projectBootstrapResult.set({
+          fileUris: result.bootstrap.fileUris,
+          infraFileUris: result.bootstrap.infraFileUris,
+          appFileUris: result.bootstrap.appFileUris,
+        });
+        this.projectBootstrapPanelOpen.set(true);
+      }
+    } catch {
+      this.lastGenerationErrorKey.set('PROJECT_DETAIL.BOARD.LAST_GENERATION_ERROR');
+    } finally {
+      this.lastGenerationLoading.set(false);
+    }
+  };
 
   readonly generateProjectBicep = async (): Promise<void> => {
     const projectId = this.project()?.id;
@@ -311,16 +394,18 @@ export class ProjectDetailGenerationWorkflowService {
 
   readonly openProjectMultiRepoPushDialog = (mode: MultiRepoPushMode): void => {
     const project = this.project();
-    const aliases = project ? resolveProjectDetailSplitRepoAliases(project) : null;
-    if (!project || !aliases) {
+    const targets = project ? resolveProjectDetailSplitRepoTargets(project) : null;
+    if (!project || !targets) {
       this.showProjectActionError('PROJECT_DETAIL.MULTI_REPO_PUSH.MISSING_SLOTS');
       return;
     }
 
     const data: MultiRepoPushDialogData = {
       projectId: project.id,
-      infraAlias: aliases.infraAlias,
-      codeAlias: aliases.codeAlias,
+      infraRepositoryId: targets.infraRepositoryId,
+      codeRepositoryId: targets.codeRepositoryId,
+      infraRepositoryLabel: targets.infraRepositoryLabel,
+      codeRepositoryLabel: targets.codeRepositoryLabel,
       mode,
     };
 
@@ -328,6 +413,7 @@ export class ProjectDetailGenerationWorkflowService {
       width: mode === 'both' ? '68rem' : '38rem',
       maxWidth: '96vw',
       panelClass: 'ifs-multi-repo-push-dialog',
+      autoFocus: false,
       data,
     });
   };
@@ -366,6 +452,7 @@ export class ProjectDetailGenerationWorkflowService {
     const projectId = this.project()?.id;
     if (!projectId || this.projectBicepLoading()) return;
 
+    this.clearHistoricalGenerationContext();
     this.projectBicepLoading.set(true);
     this.projectBicepErrorKey.set('');
     this.projectBicepResult.set(null);
@@ -386,6 +473,7 @@ export class ProjectDetailGenerationWorkflowService {
     const projectId = this.project()?.id;
     if (!projectId || this.projectPipelineLoading()) return;
 
+    this.clearHistoricalGenerationContext();
     this.projectPipelineLoading.set(true);
     this.projectPipelineErrorKey.set('');
     this.projectPipelineResult.set(null);
@@ -406,6 +494,7 @@ export class ProjectDetailGenerationWorkflowService {
     const projectId = this.project()?.id;
     if (!projectId || this.projectBootstrapLoading()) return;
 
+    this.clearHistoricalGenerationContext();
     this.projectBootstrapLoading.set(true);
     this.projectBootstrapErrorKey.set('');
     this.projectBootstrapResult.set(null);
@@ -462,9 +551,18 @@ export class ProjectDetailGenerationWorkflowService {
             }
           }
 
-          return { config, diagnostics: diagnosticResult.diagnostics, missingEnvResources };
+          const pendingCustomDomains = await this.customDomainDiagnosticsService.collectPendingIssues(groupResources.flat());
+          const pendingDockerImages = this.dockerImageDiagnosticsService.collectPendingIssues(groupResources.flat());
+
+          return { config, diagnostics: diagnosticResult.diagnostics, missingEnvResources, pendingCustomDomains, pendingDockerImages };
         } catch {
-          return { config, diagnostics: [], missingEnvResources: [] as MissingEnvResource[] };
+          return {
+            config,
+            diagnostics: [],
+            missingEnvResources: [] as MissingEnvResource[],
+            pendingCustomDomains: [] as PendingCustomDomainIssue[],
+            pendingDockerImages: [] as PendingDockerImageIssue[],
+          };
         }
       }),
     );
@@ -485,7 +583,26 @@ export class ProjectDetailGenerationWorkflowService {
         resources: result.missingEnvResources,
       }));
 
-    if (configsWithIssues.length === 0 && configsWithMissingEnvs.length === 0) {
+    const configsWithPendingCustomDomains: ConfigPendingCustomDomainGroup[] = results
+      .filter((result) => result.pendingCustomDomains.length > 0)
+      .map((result) => ({
+        configId: result.config.id,
+        configName: result.config.name,
+        domains: result.pendingCustomDomains,
+      }));
+
+    const configsWithPendingDockerImages: ConfigPendingDockerImageGroup[] = results
+      .filter((result) => result.pendingDockerImages.length > 0)
+      .map((result) => ({
+        configId: result.config.id,
+        configName: result.config.name,
+        resources: result.pendingDockerImages,
+      }));
+
+    if (configsWithIssues.length === 0
+      && configsWithMissingEnvs.length === 0
+      && configsWithPendingCustomDomains.length === 0
+      && configsWithPendingDockerImages.length === 0) {
       return true;
     }
 
@@ -493,6 +610,12 @@ export class ProjectDetailGenerationWorkflowService {
       data: {
         configDiagnostics: configsWithIssues,
         missingEnvConfigs: configsWithMissingEnvs.length > 0 ? configsWithMissingEnvs : undefined,
+        pendingCustomDomainConfigs: configsWithPendingCustomDomains.length > 0
+          ? configsWithPendingCustomDomains
+          : undefined,
+        pendingDockerImageConfigs: configsWithPendingDockerImages.length > 0
+          ? configsWithPendingDockerImages
+          : undefined,
       } satisfies GenerationDiagnosticsDialogData,
       width: '640px',
       maxHeight: '80vh',
@@ -501,6 +624,56 @@ export class ProjectDetailGenerationWorkflowService {
     const result = await firstValueFrom(dialogRef.afterClosed());
     return result === true;
   };
+
+  private applyHistoricalGenerationContext(result: GetProjectLatestGenerationResponse): void {
+    const hasHistoricalArtifacts = result.bicep !== null || result.pipeline !== null || result.bootstrap !== null;
+
+    this.viewingHistoricalGeneration.set(hasHistoricalArtifacts);
+    this.displayedHistoricalGenerationAt.set(hasHistoricalArtifacts ? result.generatedAt : null);
+  }
+
+  private clearHistoricalGenerationContext(): void {
+    this.viewingHistoricalGeneration.set(false);
+    this.displayedHistoricalGenerationAt.set(null);
+    this.invalidateLatestGenerationCache();
+  }
+
+  private async getLatestGeneration(projectId: string): Promise<GetProjectLatestGenerationResponse | null> {
+    if (this.latestGenerationProjectId !== projectId) {
+      this.resetLatestGenerationState(projectId);
+    }
+
+    if (this.latestGenerationCache !== undefined) {
+      return this.latestGenerationCache;
+    }
+
+    if (this.latestGenerationRequest !== null) {
+      return this.latestGenerationRequest;
+    }
+
+    this.latestGenerationRequest = this.projectService.getProjectLatestGeneration(projectId)
+      .then((result) => {
+        this.latestGenerationCache = result;
+        return result;
+      })
+      .finally(() => {
+        this.latestGenerationRequest = null;
+      });
+
+    return this.latestGenerationRequest;
+  }
+
+  private invalidateLatestGenerationCache(): void {
+    this.latestGenerationCache = undefined;
+    this.latestGenerationRequest = null;
+  }
+
+  private resetLatestGenerationState(projectId: string | null): void {
+    this.latestGenerationProjectId = projectId;
+    this.invalidateLatestGenerationCache();
+    this.lastGenerationAvailable.set(null);
+    this.lastGenerationErrorKey.set('');
+  }
 
   private async buildCombinedProjectArchive(sources: CombinedArtifactArchiveSource[]): Promise<Blob> {
     const archive = new JSZip();

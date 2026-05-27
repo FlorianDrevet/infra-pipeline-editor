@@ -41,9 +41,9 @@
   </mat-dialog-content>
 
   <mat-dialog-actions class="as-dialog__actions" align="end">
-    <button mat-stroked-button (click)="onCancel()" [disabled]="isSubmitting()">
+    <app-ds-button variant="ghost" (clicked)="onCancel()" [disabled]="isSubmitting()">
       {{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.CANCEL' | translate }}
-    </button>
+    </app-ds-button>
     <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="!settingName()" (clicked)="onSave()">
       {{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.SAVE' | translate }}
     </app-ds-button>

@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
-using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
@@ -24,7 +23,7 @@ public sealed class ProjectDraftService : IProjectDraftService
     private static readonly Dictionary<string, string> ResourceTypeAliases = BuildResourceTypeAliases();
 
     private readonly ConcurrentDictionary<string, ProjectCreationDraft> _drafts = new();
-    private readonly object _syncRoot = new();
+    private readonly System.Threading.Lock _syncRoot = new();
     private readonly int _maxDraftCount;
 
     /// <summary>
@@ -76,6 +75,13 @@ public sealed class ProjectDraftService : IProjectDraftService
         if (intent.LayoutPreset is not null)
         {
             intent.Repositories = BuildDefaultRepositories(intent.LayoutPreset.Value);
+        }
+
+        // Clarification: compute resources exist but no application stack detected
+        if (intent.Resources is { Count: > 0 }
+            && intent.Resources.Any(r => ComputeResourceTypes.Contains(r.ResourceType) && r.ApplicationStack is null))
+        {
+            clarificationQuestions.Add(BuildApplicationStackQuestion());
         }
 
         var warnings = ProjectDraftWarnings.Build(intent.Environments, defaultEnvironmentAdded);
@@ -162,6 +168,16 @@ public sealed class ProjectDraftService : IProjectDraftService
             intent.Repositories = overrides.Repositories;
         }
 
+        if (overrides.ResourceGroupAssignments is not null)
+        {
+            intent.ResourceGroupAssignments = overrides.ResourceGroupAssignments;
+        }
+
+        if (overrides.Resources is not null)
+        {
+            intent.Resources = overrides.Resources;
+        }
+
         if (overrides.AgentPoolName is not null)
         {
             intent.AgentPoolName = overrides.AgentPoolName;
@@ -170,6 +186,13 @@ public sealed class ProjectDraftService : IProjectDraftService
         if (overrides.RepositoryUrl is not null && intent.Repositories is { Count: > 0 })
         {
             intent.Repositories[0].RepositoryUrl = overrides.RepositoryUrl;
+        }
+
+        if (overrides.ApplicationStack is not null
+            && DraftApplicationStacks.IsValid(overrides.ApplicationStack)
+            && intent.Resources is { Count: > 0 })
+        {
+            ApplyStackToComputeResources(intent.Resources, overrides.ApplicationStack);
         }
     }
 
@@ -212,6 +235,41 @@ public sealed class ProjectDraftService : IProjectDraftService
             });
         }
 
+        // Clarification: multi-RG topology detected but resource names are missing
+        if (draft.Intent.HasMultiResourceGroupTopology
+            && draft.Intent.Resources is { Count: > 0 }
+            && draft.Intent.Resources.Any(r => string.IsNullOrWhiteSpace(r.Name)))
+        {
+            clarificationQuestions.Add(new DraftClarificationQuestion
+            {
+                Field = DraftFieldNames.ResourceNames,
+                Message = "You have multiple resources of the same type. Please provide a semantic name for each (e.g. 'api', 'backoffice', 'website').",
+            });
+        }
+
+        // Clarification: multiple instances of the same resource type without names
+        var duplicateTypes = draft.Intent.Resources?
+            .GroupBy(r => r.ResourceType, StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1 && g.Any(r => string.IsNullOrWhiteSpace(r.Name)))
+            .ToList() ?? [];
+
+        if (duplicateTypes.Count > 0 && !clarificationQuestions.Any(q => q.Field == DraftFieldNames.ResourceNames))
+        {
+            var typeList = string.Join(", ", duplicateTypes.Select(g => $"{g.Count()}x {g.Key}"));
+            clarificationQuestions.Add(new DraftClarificationQuestion
+            {
+                Field = DraftFieldNames.ResourceNames,
+                Message = $"Multiple instances detected ({typeList}). Please provide distinct semantic names for each instance.",
+            });
+        }
+
+        // Clarification: compute resources without application stack
+        if (draft.Intent.Resources is { Count: > 0 }
+            && draft.Intent.Resources.Any(r => ComputeResourceTypes.Contains(r.ResourceType) && r.ApplicationStack is null))
+        {
+            clarificationQuestions.Add(BuildApplicationStackQuestion());
+        }
+
         draft.MissingFields = missingFields;
         draft.Errors = errors;
         draft.ClarificationQuestions = clarificationQuestions;
@@ -224,6 +282,14 @@ public sealed class ProjectDraftService : IProjectDraftService
             draft.Warnings.Add("One or more repositories have no URL configured. Set 'repositoryUrl' in overrides or configure it later in the project settings.");
         }
 
+        // Warning about multi-RG topology
+        if (draft.Intent.HasMultiResourceGroupTopology)
+        {
+            draft.Warnings.Add($"Multi-resource-group topology detected ({draft.Intent.ResourceGroupAssignments!.Count} groups). " +
+                "After project creation, use 'create_infrastructure_config' + 'create_resource_group' for each group, " +
+                "then 'add_cross_config_reference' to wire shared resources.");
+        }
+
         draft.Status = missingFields.Count == 0 && errors.Count == 0
             ? DraftStatus.ReadyToCreate
             : DraftStatus.RequiresClarification;
@@ -231,11 +297,23 @@ public sealed class ProjectDraftService : IProjectDraftService
 
     private static DraftProjectIntent ParsePromptIntent(string userPrompt)
     {
+        var resources = ExtractResourceTypes(userPrompt);
+        var resourceGroupAssignments = ExtractResourceGroupAssignments(userPrompt, resources);
+
+        // Detect application stack and apply to compute resources
+        var detectedStack = ExtractApplicationStack(userPrompt);
+        if (detectedStack is not null && resources.Count > 0)
+        {
+            ApplyStackToComputeResources(resources, detectedStack);
+        }
+
         return new DraftProjectIntent
         {
             ProjectName = ExtractProjectName(userPrompt),
             LayoutPreset = ExtractLayoutPreset(userPrompt),
-            Resources = ExtractResourceTypes(userPrompt),
+            Resources = resources,
+            Environments = ExtractEnvironments(userPrompt),
+            ResourceGroupAssignments = resourceGroupAssignments,
             PricingIntent = ExtractPricingIntent(userPrompt),
         };
     }
@@ -248,7 +326,7 @@ public sealed class ProjectDraftService : IProjectDraftService
             return quotedMatch.Groups[1].Value;
         }
 
-        var nameMatch = Regex.Match(prompt, @"\b(?:projet|project)\s+(\w+)", RegexOptions.IgnoreCase, RegexTimeout);
+        var nameMatch = Regex.Match(prompt, @"\b(?:projet|project)\s+(\w[\w-]*)", RegexOptions.IgnoreCase, RegexTimeout);
         if (nameMatch.Success)
         {
             var candidate = nameMatch.Groups[1].Value;
@@ -297,7 +375,237 @@ public sealed class ProjectDraftService : IProjectDraftService
             }
         }
 
+        // Detect multiple instances of the same resource type via quantifiers
+        DetectMultipleInstances(prompt, results);
+
         return results;
+    }
+
+    private static void DetectMultipleInstances(string prompt, List<DraftResourceIntent> results)
+    {
+        var lower = prompt.ToLowerInvariant();
+
+        // Patterns like "3 container apps", "deux fronts", "two apis", "mes deux fronts"
+        var quantifierPatterns = new (Regex Pattern, string[] ResourceTypes)[]
+        {
+            (new Regex(@"(\d+)\s+(?:container\s*apps?|aca)", RegexOptions.IgnoreCase, RegexTimeout), [AzureResourceTypes.ContainerApp]),
+            (new Regex(@"(\d+)\s+(?:web\s*apps?|sites?)", RegexOptions.IgnoreCase, RegexTimeout), [AzureResourceTypes.WebApp]),
+            (new Regex(@"(\d+)\s+(?:function\s*apps?|functions?)", RegexOptions.IgnoreCase, RegexTimeout), [AzureResourceTypes.FunctionApp]),
+            (new Regex(@"\b(?:deux|two|2)\s+(?:fronts?|frontends?)", RegexOptions.IgnoreCase, RegexTimeout), [AzureResourceTypes.ContainerApp, AzureResourceTypes.WebApp]),
+            (new Regex(@"\b(?:trois|three|3)\s+(?:fronts?|frontends?|apps?|applicatifs?|services?)", RegexOptions.IgnoreCase, RegexTimeout), [AzureResourceTypes.ContainerApp, AzureResourceTypes.WebApp]),
+        };
+
+        foreach (var (pattern, targetTypes) in quantifierPatterns)
+        {
+            var match = pattern.Match(lower);
+            if (!match.Success) continue;
+
+            var count = ParseFrenchQuantifier(match.Groups[1].Value);
+            if (count <= 1) continue;
+
+            // Find which of the target types is already in the results
+            var existingResource = results.FirstOrDefault(r => targetTypes.Contains(r.ResourceType, StringComparer.OrdinalIgnoreCase));
+            if (existingResource is null) continue;
+
+            // Add additional instances (the first one already exists)
+            for (var i = 1; i < count; i++)
+            {
+                results.Add(new DraftResourceIntent { ResourceType = existingResource.ResourceType });
+            }
+
+            break; // Only apply the first matching quantifier pattern
+        }
+
+        // Detect semantic names: "mon api et mes deux fronts" → name the instances
+        ExtractSemanticNames(prompt, results);
+    }
+
+    private static void ExtractSemanticNames(string prompt, List<DraftResourceIntent> results)
+    {
+        var lower = prompt.ToLowerInvariant();
+
+        // Pattern: "mon/my api" → assign name "api" to first compute resource
+        var apiMatch = Regex.Match(lower, @"\b(?:mon|my|l'?)\s*(api|backend|server)", RegexOptions.None, RegexTimeout);
+        if (apiMatch.Success)
+        {
+            var apiResource = results.FirstOrDefault(r => r.Name is null &&
+                (r.ResourceType == AzureResourceTypes.ContainerApp || r.ResourceType == AzureResourceTypes.WebApp || r.ResourceType == AzureResourceTypes.FunctionApp));
+            if (apiResource is not null)
+            {
+                apiResource.Name = apiMatch.Groups[1].Value;
+            }
+        }
+
+        // Pattern: "mes/my fronts/frontends" → name unnamed compute resources as front-1, front-2...
+        var frontMatch = Regex.Match(lower, @"\b(?:mes|my|les|deux|two|2)\s+(?:fronts?|frontends?)", RegexOptions.None, RegexTimeout);
+        if (frontMatch.Success)
+        {
+            var unnamedFronts = results
+                .Where(r => r.Name is null && (r.ResourceType == AzureResourceTypes.ContainerApp || r.ResourceType == AzureResourceTypes.WebApp))
+                .ToList();
+
+            for (var i = 0; i < unnamedFronts.Count; i++)
+            {
+                unnamedFronts[i].Name = $"front-{i + 1}";
+            }
+        }
+    }
+
+    private static int ParseFrenchQuantifier(string value)
+    {
+        if (int.TryParse(value, out var number))
+            return number;
+
+        return value.ToLowerInvariant() switch
+        {
+            "deux" or "two" => 2,
+            "trois" or "three" => 3,
+            "quatre" or "four" => 4,
+            "cinq" or "five" => 5,
+            _ => 1,
+        };
+    }
+
+    private static List<DraftEnvironmentIntent>? ExtractEnvironments(string prompt)
+    {
+        var lower = prompt.ToLowerInvariant();
+        var environments = new List<DraftEnvironmentIntent>();
+
+        // Detect dev/development
+        if (ContainsEnvironmentKeyword(lower, "dev", "development", "développement"))
+        {
+            environments.Add(new DraftEnvironmentIntent
+            {
+                Name = "Development",
+                ShortName = "dev",
+                Prefix = "",
+                Suffix = "-dev",
+                Order = 0,
+                RequiresApproval = false,
+            });
+        }
+
+        // Detect staging/recette/stg
+        if (ContainsEnvironmentKeyword(lower, "stg", "staging", "recette", "preprod", "pré-prod"))
+        {
+            environments.Add(new DraftEnvironmentIntent
+            {
+                Name = "Staging",
+                ShortName = "stg",
+                Prefix = "",
+                Suffix = "-stg",
+                Order = 1,
+                RequiresApproval = true,
+            });
+        }
+
+        // Detect prod/production
+        if (ContainsEnvironmentKeyword(lower, "prod", "production"))
+        {
+            environments.Add(new DraftEnvironmentIntent
+            {
+                Name = "Production",
+                ShortName = "prod",
+                Prefix = "",
+                Suffix = "-prod",
+                Order = environments.Count,
+                RequiresApproval = true,
+            });
+        }
+
+        return environments.Count > 0 ? environments : null;
+    }
+
+    private static bool ContainsEnvironmentKeyword(string lower, params string[] keywords)
+    {
+        foreach (var keyword in keywords)
+        {
+            // Use word boundary check to avoid false positives (e.g. "production" matching in "reproduction")
+            if (Regex.IsMatch(lower, @$"\b{Regex.Escape(keyword)}\b", RegexOptions.None, RegexTimeout))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static List<DraftResourceGroupAssignment>? ExtractResourceGroupAssignments(
+        string prompt,
+        List<DraftResourceIntent> resources)
+    {
+        var lower = prompt.ToLowerInvariant();
+
+        // Detect multi-RG patterns
+        var hasCommonRg = Regex.IsMatch(lower, @"\b(?:rg|resource\s*group)\s+(?:common|commun|shared|partagé|mutualisé)", RegexOptions.None, RegexTimeout)
+            || Regex.IsMatch(lower, @"\b(?:common|commun|shared|partagé|mutualisé)\s+(?:rg|resource\s*group)", RegexOptions.None, RegexTimeout);
+
+        var hasAppRg = Regex.IsMatch(lower, @"\b(?:rg|resource\s*group)\s+(?:pour|for)\s+\w+", RegexOptions.None, RegexTimeout)
+            || Regex.IsMatch(lower, @"\ble\s+reste\s+dans\s+(?:un\s+)?(?:rg|resource\s*group)", RegexOptions.None, RegexTimeout);
+
+        if (!hasCommonRg && !hasAppRg)
+        {
+            return null;
+        }
+
+        var assignments = new List<DraftResourceGroupAssignment>();
+
+        // Shared/common resource group: typically ACR, LAW, AppInsights, KeyVault
+        var sharedResourceTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            AzureResourceTypes.ContainerRegistry,
+            AzureResourceTypes.LogAnalyticsWorkspace,
+            AzureResourceTypes.ApplicationInsights,
+        };
+
+        // Detect what belongs in common from prompt context
+        var commonResources = resources
+            .Where(r => sharedResourceTypes.Contains(r.ResourceType))
+            .Select(r => r.Name ?? r.ResourceType)
+            .ToList();
+
+        if (commonResources.Count > 0 || hasCommonRg)
+        {
+            var commonGroup = new DraftResourceGroupAssignment
+            {
+                GroupName = "common",
+                Description = "Shared infrastructure resources (monitoring, registry)",
+                ResourceIdentifiers = commonResources.Count > 0 ? commonResources : [AzureResourceTypes.LogAnalyticsWorkspace],
+                IsShared = true,
+            };
+            assignments.Add(commonGroup);
+
+            // Mark the resources with their group
+            foreach (var resource in resources.Where(r => sharedResourceTypes.Contains(r.ResourceType)))
+            {
+                resource.ResourceGroupName = "common";
+            }
+        }
+
+        // Application resource group: everything else
+        var appResources = resources
+            .Where(r => !sharedResourceTypes.Contains(r.ResourceType))
+            .Select(r => r.Name ?? r.ResourceType)
+            .ToList();
+
+        if (appResources.Count > 0 || hasAppRg)
+        {
+            var appGroup = new DraftResourceGroupAssignment
+            {
+                GroupName = "app",
+                Description = "Application resources",
+                ResourceIdentifiers = appResources,
+                IsShared = false,
+            };
+            assignments.Add(appGroup);
+
+            foreach (var resource in resources.Where(r => !sharedResourceTypes.Contains(r.ResourceType)))
+            {
+                resource.ResourceGroupName ??= "app";
+            }
+        }
+
+        return assignments.Count > 0 ? assignments : null;
     }
 
     private static string? ExtractPricingIntent(string prompt)
@@ -317,18 +625,150 @@ public sealed class ProjectDraftService : IProjectDraftService
         return null;
     }
 
+    private static readonly HashSet<string> ComputeResourceTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        AzureResourceTypes.ContainerApp,
+        AzureResourceTypes.WebApp,
+        AzureResourceTypes.FunctionApp,
+    };
+
+    /// <summary>Detects an application stack from the user's prompt keywords.</summary>
+    internal static string? ExtractApplicationStack(string prompt)
+    {
+        var lower = prompt.ToLowerInvariant();
+
+        if (Regex.IsMatch(lower, @"(?<!\w)(?:\.net|dotnet|asp\.net|csharp)\b|(?<!\w)c#(?!\w)", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.DotNet;
+        }
+
+        // Angular must be checked before Node to avoid false positives
+        if (Regex.IsMatch(lower, @"\b(?:angular|ng\s+serve|ng\s+build)\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.Angular;
+        }
+
+        if (Regex.IsMatch(lower, @"\b(?:node\.?js|nodejs|express|npm|yarn|bun)\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.NodeJs;
+        }
+
+        if (Regex.IsMatch(lower, @"\b(?:java|spring|maven|gradle|kotlin)\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.Java;
+        }
+
+        if (Regex.IsMatch(lower, @"\b(?:python|django|flask|fastapi|pip)\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.Python;
+        }
+
+        if (Regex.IsMatch(lower, @"\b(?:php|laravel|symfony|composer)\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.Php;
+        }
+
+        if (Regex.IsMatch(lower, @"\b(?:golang|go\s+(?:app|service|api|module))\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.Go;
+        }
+
+        if (Regex.IsMatch(lower, @"\b(?:static\s+site|html|hugo|jekyll|gatsby)\b", RegexOptions.None, RegexTimeout))
+        {
+            return DraftApplicationStacks.StaticSite;
+        }
+
+        return null;
+    }
+
+    /// <summary>Applies a detected application stack to all compute resources that don't already have one.</summary>
+    private static void ApplyStackToComputeResources(List<DraftResourceIntent> resources, string stack)
+    {
+        foreach (var resource in resources)
+        {
+            if (ComputeResourceTypes.Contains(resource.ResourceType) && resource.ApplicationStack is null)
+            {
+                resource.ApplicationStack = stack;
+            }
+        }
+    }
+
+    private static DraftClarificationQuestion BuildApplicationStackQuestion() =>
+        new()
+        {
+            Field = DraftFieldNames.ApplicationStack,
+            Message = "Which application stack does your compute workload use? This determines the CI/CD pipeline profile.",
+            Options =
+            [
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.DotNet,
+                    Label = ".NET",
+                    Description = "C# / .NET application with dotnet build, test, and publish.",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.NodeJs,
+                    Label = "Node.js",
+                    Description = "Node.js application with npm/yarn build and test.",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.Angular,
+                    Label = "Angular",
+                    Description = "Angular frontend with ng build and ng test.",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.Java,
+                    Label = "Java",
+                    Description = "Java application with Maven or Gradle.",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.Python,
+                    Label = "Python",
+                    Description = "Python application with pip and pytest.",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.Php,
+                    Label = "PHP",
+                    Description = "PHP application with Composer (Laravel, Symfony, etc.).",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.Go,
+                    Label = "Go",
+                    Description = "Go application with go build and go test.",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.StaticSite,
+                    Label = "Static Site",
+                    Description = "Static HTML/CSS/JS site or generator (Hugo, Jekyll, etc.).",
+                },
+                new DraftOption
+                {
+                    Value = DraftApplicationStacks.Custom,
+                    Label = "Custom",
+                    Description = "Custom build pipeline — you control all steps.",
+                },
+            ],
+        };
+
     private static List<DraftRepositoryIntent> BuildDefaultRepositories(LayoutPresetEnum layoutPreset)
     {
         return layoutPreset switch
         {
             LayoutPresetEnum.AllInOne =>
             [
-                new DraftRepositoryIntent { Alias = ProjectSetupDefaults.RepoAliasMain, ContentKinds = [nameof(RepositoryContentKindsEnum.Infrastructure), nameof(RepositoryContentKindsEnum.ApplicationCode)] },
+                new DraftRepositoryIntent { ContentKinds = [nameof(RepositoryContentKindsEnum.Infrastructure), nameof(RepositoryContentKindsEnum.ApplicationCode)] },
             ],
             LayoutPresetEnum.SplitInfraCode =>
             [
-                new DraftRepositoryIntent { Alias = ProjectSetupDefaults.RepoAliasInfra, ContentKinds = [nameof(RepositoryContentKindsEnum.Infrastructure)] },
-                new DraftRepositoryIntent { Alias = ProjectSetupDefaults.RepoAliasApp, ContentKinds = [nameof(RepositoryContentKindsEnum.ApplicationCode)] },
+                new DraftRepositoryIntent { ContentKinds = [nameof(RepositoryContentKindsEnum.Infrastructure)] },
+                new DraftRepositoryIntent { ContentKinds = [nameof(RepositoryContentKindsEnum.ApplicationCode)] },
             ],
             LayoutPresetEnum.MultiRepo => [],
             _ => [],
@@ -380,6 +820,54 @@ public sealed class ProjectDraftService : IProjectDraftService
             }
         }
 
+        // Common abbreviations and French/English aliases
+        aliases.TryAdd("aca", AzureResourceTypes.ContainerApp);
+        aliases.TryAdd("container app", AzureResourceTypes.ContainerApp);
+        aliases.TryAdd("container apps", AzureResourceTypes.ContainerApp);
+        aliases.TryAdd("acr", AzureResourceTypes.ContainerRegistry);
+        aliases.TryAdd("docker registry", AzureResourceTypes.ContainerRegistry);
+        aliases.TryAdd("docker", AzureResourceTypes.ContainerRegistry);
+        aliases.TryAdd("law", AzureResourceTypes.LogAnalyticsWorkspace);
+        aliases.TryAdd("log analytics", AzureResourceTypes.LogAnalyticsWorkspace);
+        aliases.TryAdd("logs workspace", AzureResourceTypes.LogAnalyticsWorkspace);
+        aliases.TryAdd("kv", AzureResourceTypes.KeyVault);
+        aliases.TryAdd("key vault", AzureResourceTypes.KeyVault);
+        aliases.TryAdd("keyvault", AzureResourceTypes.KeyVault);
+        aliases.TryAdd("coffre", AzureResourceTypes.KeyVault);
+        aliases.TryAdd("redis", AzureResourceTypes.RedisCache);
+        aliases.TryAdd("cache redis", AzureResourceTypes.RedisCache);
+        aliases.TryAdd("app insights", AzureResourceTypes.ApplicationInsights);
+        aliases.TryAdd("appinsights", AzureResourceTypes.ApplicationInsights);
+        aliases.TryAdd("cosmos", AzureResourceTypes.CosmosDb);
+        aliases.TryAdd("cosmosdb", AzureResourceTypes.CosmosDb);
+        aliases.TryAdd("sql", AzureResourceTypes.SqlServer);
+        aliases.TryAdd("sql server", AzureResourceTypes.SqlServer);
+        aliases.TryAdd("base de données", AzureResourceTypes.SqlServer);
+        aliases.TryAdd("base sql", AzureResourceTypes.SqlServer);
+        aliases.TryAdd("storage", AzureResourceTypes.StorageAccount);
+        aliases.TryAdd("blob", AzureResourceTypes.StorageAccount);
+        aliases.TryAdd("stockage", AzureResourceTypes.StorageAccount);
+        aliases.TryAdd("service bus", AzureResourceTypes.ServiceBusNamespace);
+        aliases.TryAdd("servicebus", AzureResourceTypes.ServiceBusNamespace);
+        aliases.TryAdd("event hub", AzureResourceTypes.EventHubNamespace);
+        aliases.TryAdd("eventhub", AzureResourceTypes.EventHubNamespace);
+        aliases.TryAdd("identité managée", AzureResourceTypes.UserAssignedIdentity);
+        aliases.TryAdd("managed identity", AzureResourceTypes.UserAssignedIdentity);
+        aliases.TryAdd("uai", AzureResourceTypes.UserAssignedIdentity);
+        aliases.TryAdd("cae", AzureResourceTypes.ContainerAppEnvironment);
+        aliases.TryAdd("container app environment", AzureResourceTypes.ContainerAppEnvironment);
+        aliases.TryAdd("app config", AzureResourceTypes.AppConfiguration);
+        aliases.TryAdd("app configuration", AzureResourceTypes.AppConfiguration);
+        aliases.TryAdd("function app", AzureResourceTypes.FunctionApp);
+        aliases.TryAdd("azure function", AzureResourceTypes.FunctionApp);
+        aliases.TryAdd("fonction", AzureResourceTypes.FunctionApp);
+        aliases.TryAdd("web app", AzureResourceTypes.WebApp);
+        aliases.TryAdd("webapp", AzureResourceTypes.WebApp);
+        aliases.TryAdd("app service plan", AzureResourceTypes.AppServicePlan);
+        aliases.TryAdd("plan", AzureResourceTypes.AppServicePlan);
+        aliases.TryAdd("front door", AzureResourceTypes.FrontDoor);
+        aliases.TryAdd("cdn", AzureResourceTypes.FrontDoor);
+
         return aliases;
     }
 
@@ -389,6 +877,9 @@ public sealed class ProjectDraftService : IProjectDraftService
         internal const string ProjectName = "projectName";
         internal const string LayoutPreset = "layoutPreset";
         internal const string Environments = "environments";
+        internal const string ResourceNames = "resourceNames";
+        internal const string ResourceGroupAssignments = "resourceGroupAssignments";
+        internal const string ApplicationStack = "applicationStack";
     }
 
     /// <inheritdoc />

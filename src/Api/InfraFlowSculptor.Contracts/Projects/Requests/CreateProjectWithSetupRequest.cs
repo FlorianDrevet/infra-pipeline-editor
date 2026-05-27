@@ -64,10 +64,6 @@ public sealed class EnvironmentSetupRequest
 /// <summary>One project-level repository slot for <see cref="CreateProjectWithSetupRequest"/>.</summary>
 public sealed class RepositorySetupRequest
 {
-    /// <summary>Project-scoped slug (lowercase letters, digits, hyphens), unique per project.</summary>
-    [Required, StringLength(50)]
-    public required string Alias { get; init; }
-
     /// <summary>List of content kinds: <c>Infrastructure</c>, <c>ApplicationCode</c>.</summary>
     [Required, MinLength(1)]
     public required IReadOnlyList<string> ContentKinds { get; init; }
@@ -82,4 +78,7 @@ public sealed class RepositorySetupRequest
     /// <summary>Optional default branch.</summary>
     [StringLength(200)]
     public string? DefaultBranch { get; init; }
+
+    /// <summary>Optional Personal Access Token for authenticating against the provider.</summary>
+    public string? PersonalAccessToken { get; init; }
 }

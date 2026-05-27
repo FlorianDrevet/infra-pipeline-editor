@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using InfraFlowSculptor.Application.AppSettings.Common;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;

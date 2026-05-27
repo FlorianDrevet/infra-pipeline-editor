@@ -1,19 +1,47 @@
-import { Component, effect, input, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  Injector,
+  input,
+  runInInjectionContext,
+  signal,
+  viewChild,
+  viewChildren,
+} from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { BicepHighlightPipe } from '../../pipes/bicep-highlight.pipe';
+import { UserPreferencesService } from '../../services/user-preferences.service';
+
+const FILE_PATH_DATASET_KEY = 'filePath';
+const VIEWER_SCROLL_OPTIONS: ScrollIntoViewOptions = {
+  behavior: 'smooth',
+  block: 'start',
+  inline: 'nearest',
+};
+const ACTIVE_FILE_SCROLL_OPTIONS: ScrollIntoViewOptions = {
+  behavior: 'smooth',
+  block: 'center',
+  inline: 'nearest',
+};
 
 // ─── Public types ──────────────────────────────────────────────────────────────
 
-export type BicepFileType =
-  | 'types'
-  | 'functions'
-  | 'constants'
-  | 'entry-point'
-  | 'params'
-  | 'role-assignments'
-  | 'module-type'
-  | 'generic';
+const BICEP_FILE_TYPES = [
+  'types',
+  'functions',
+  'constants',
+  'entry-point',
+  'params',
+  'role-assignments',
+  'module-type',
+  'generic',
+] as const;
+
+export type BicepFileType = (typeof BICEP_FILE_TYPES)[number];
 
 export interface BicepFolderNode {
   kind: 'folder';
@@ -61,6 +89,10 @@ export type BicepTreeNode = BicepFolderNode | BicepFileNode;
   styleUrl: './bicep-file-panel.component.scss',
 })
 export class BicepFilePanelComponent {
+  private readonly injector = inject(Injector);
+  private readonly userPreferencesService = inject(UserPreferencesService);
+  private loadRequestSequence = 0;
+
   /** Flat, ordered list of tree nodes. Parent folders must precede their children. */
   readonly nodes = input.required<BicepTreeNode[]>();
   /** Text displayed in the terminal window-chrome title bar. */
@@ -71,6 +103,8 @@ export class BicepFilePanelComponent {
   readonly fileLoadingText = input<string>('');
   /** Text shown in the viewer when a file fails to load. */
   readonly fileErrorText = input<string>('');
+  /** Removes the outer shell when the panel is rendered inside another workspace container. */
+  readonly embedded = input(false);
   /**
    * Function used to load file content.
    * Config-detail uses the Bicep API; project-detail uses native fetch() on SAS URLs.
@@ -81,6 +115,9 @@ export class BicepFilePanelComponent {
   protected readonly viewerFile = signal<string | null>(null);
   protected readonly viewerContent = signal<string | null>(null);
   protected readonly viewerLoading = signal(false);
+  protected readonly bicepViewerTheme = this.userPreferencesService.bicepViewerTheme;
+  protected readonly viewerSectionRef = viewChild<ElementRef<HTMLElement>>('viewerSectionRef');
+  protected readonly fileItemRefs = viewChildren<ElementRef<HTMLButtonElement>>('fileItemRef');
 
   constructor() {
     // Auto-expand ALL folders when a fresh result arrives; reset state when cleared.
@@ -100,7 +137,6 @@ export class BicepFilePanelComponent {
         );
         this.expandedFolders.set(allFolderKeys);
       },
-      { allowSignalWrites: true },
     );
   }
 
@@ -137,28 +173,58 @@ export class BicepFilePanelComponent {
   }
 
   protected async openFile(path: string, uri: string): Promise<void> {
-    if (this.viewerLoading()) return;
     if (this.viewerFile() === path) {
+      this.cancelActiveLoad();
       this.viewerFile.set(null);
       this.viewerContent.set(null);
+      this.viewerLoading.set(false);
       return;
     }
+
+    const loadRequestId = ++this.loadRequestSequence;
     this.viewerFile.set(path);
     this.viewerContent.set(null);
     this.viewerLoading.set(true);
+    this.scrollViewerIntoView();
+
     try {
       const content = await this.loadFile()(uri);
+      if (loadRequestId !== this.loadRequestSequence) {
+        return;
+      }
+
       this.viewerContent.set(content);
     } catch {
+      if (loadRequestId !== this.loadRequestSequence) {
+        return;
+      }
+
       this.viewerContent.set(null);
     } finally {
-      this.viewerLoading.set(false);
+      if (loadRequestId === this.loadRequestSequence) {
+        this.viewerLoading.set(false);
+      }
     }
   }
 
   protected closeViewer(): void {
+    this.cancelActiveLoad();
     this.viewerFile.set(null);
     this.viewerContent.set(null);
+    this.viewerLoading.set(false);
+  }
+
+  protected scrollToCurrentFile(): void {
+    const fileNode = this.getFileNode(this.viewerFile());
+
+    if (!fileNode) {
+      return;
+    }
+
+    this.expandFolderPath(fileNode.parentFolderKey);
+    this.runAfterNextRender(() => {
+      this.getFileItemElement(fileNode.path)?.scrollIntoView(ACTIVE_FILE_SCROLL_OPTIONS);
+    });
   }
 
   protected getFileIcon(type: BicepFileType): string {
@@ -208,5 +274,58 @@ export class BicepFilePanelComponent {
   /** Computes padding-left for folder nodes based on nesting depth. */
   protected getFolderPaddingLeft(depth: number): string {
     return depth === 0 ? '0.75rem' : `calc(0.75rem + ${depth} * 1rem)`;
+  }
+
+  private scrollViewerIntoView(): void {
+    this.runAfterNextRender(() => {
+      this.viewerSectionRef()?.nativeElement.scrollIntoView(VIEWER_SCROLL_OPTIONS);
+    });
+  }
+
+  private cancelActiveLoad(): void {
+    this.loadRequestSequence += 1;
+  }
+
+  private runAfterNextRender(callback: () => void): void {
+    runInInjectionContext(this.injector, () => {
+      afterNextRender(callback);
+    });
+  }
+
+  private getFileItemElement(path: string | null): HTMLButtonElement | null {
+    if (!path) {
+      return null;
+    }
+
+    return this.fileItemRefs()
+      .find(fileItemRef => fileItemRef.nativeElement.dataset[FILE_PATH_DATASET_KEY] === path)
+      ?.nativeElement ?? null;
+  }
+
+  private getFileNode(path: string | null): BicepFileNode | null {
+    if (!path) {
+      return null;
+    }
+
+    return this.nodes().find(
+      (node): node is BicepFileNode => node.kind === 'file' && node.path === path,
+    ) ?? null;
+  }
+
+  private expandFolderPath(parentFolderKey: string): void {
+    if (!parentFolderKey) {
+      return;
+    }
+
+    this.expandedFolders.update(currentFolders => {
+      const expandedFolders = new Set(currentFolders);
+      const pathSegments = parentFolderKey.split('/');
+
+      for (let index = 1; index <= pathSegments.length; index++) {
+        expandedFolders.add(pathSegments.slice(0, index).join('/'));
+      }
+
+      return expandedFolders;
+    });
   }
 }

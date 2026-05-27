@@ -30,6 +30,63 @@ internal static class BlobDownloadHelper
         IReadOnlyList<string> CandidateRelativePaths);
 
     /// <summary>
+    /// Describes the latest timestamp folder found under a blob prefix.
+    /// </summary>
+    internal sealed record LatestBlobFolder(
+        string Prefix,
+        string Timestamp,
+        IReadOnlyList<string> RelativePaths);
+
+    /// <summary>
+    /// Lists blobs under <paramref name="blobPrefix"/>, finds the latest timestamp folder,
+    /// and returns its relative paths without downloading file content.
+    /// </summary>
+    /// <param name="blobService">The blob storage service.</param>
+    /// <param name="blobPrefix">The storage prefix (e.g. <c>"bicep/project/{id}/"</c>).</param>
+    /// <param name="prefixSegmentCount">
+    /// The number of path segments that make up the timestamp prefix
+    /// (e.g. 4 for <c>"bicep/project/{id}/{timestamp}"</c>).
+    /// </param>
+    /// <returns>
+    /// A <see cref="LatestBlobFolder"/> describing the latest folder, or <c>null</c> when no blobs exist.
+    /// </returns>
+    internal static async Task<LatestBlobFolder?> GetLatestBlobFolderAsync(
+        IBlobService blobService,
+        string blobPrefix,
+        int prefixSegmentCount)
+    {
+        var allBlobs = await blobService.ListBlobsAsync(blobPrefix);
+
+        if (allBlobs.Count == 0)
+            return null;
+
+        var latestPrefix = allBlobs
+            .Select(blobName => string.Join('/', blobName.Split('/').Take(prefixSegmentCount)))
+            .Distinct()
+            .OrderDescending()
+            .First();
+
+        if (string.IsNullOrWhiteSpace(latestPrefix))
+            return null;
+
+        var fullPrefix = $"{latestPrefix}/";
+        var relativePaths = allBlobs
+            .Where(blobName => blobName.StartsWith(fullPrefix, StringComparison.Ordinal))
+            .Select(blobName => blobName[fullPrefix.Length..])
+            .ToList();
+
+        if (relativePaths.Count == 0)
+            return null;
+
+        var segments = latestPrefix.Split('/');
+        var timestamp = segments.Length >= prefixSegmentCount
+            ? segments[prefixSegmentCount - 1]
+            : string.Empty;
+
+        return new LatestBlobFolder(latestPrefix, timestamp, relativePaths);
+    }
+
+    /// <summary>
     /// Lists blobs under <paramref name="blobPrefix"/>, finds the latest timestamp folder,
     /// zips all matching files, and returns the byte array with a file name.
     /// </summary>

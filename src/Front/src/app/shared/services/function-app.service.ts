@@ -11,7 +11,7 @@ import {
   providedIn: 'root',
 })
 export class FunctionAppService {
-  private axios = inject(AxiosService);
+  private readonly axios = inject(AxiosService);
 
   getById(id: string): Promise<FunctionAppResponse> {
     return this.axios.request$<FunctionAppResponse>(

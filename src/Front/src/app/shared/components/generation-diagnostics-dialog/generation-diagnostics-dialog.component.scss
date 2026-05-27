@@ -19,7 +19,14 @@
   font-size: 1.3rem;
   width: 1.3rem;
   height: 1.3rem;
-  color: var(--ifs-danger);
+
+  &--error {
+    color: var(--ifs-danger);
+  }
+
+  &--warning {
+    color: var(--ifs-warning);
+  }
 }
 
 .diagnostics-dialog__count {
@@ -43,13 +50,72 @@
   padding-top: 0.5rem !important;
   max-height: 55vh;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .diagnostics-dialog__subtitle {
   color: var(--ifs-text-secondary);
   font-size: 0.85rem;
   line-height: 1.5;
-  margin: 0 0 1rem;
+  margin: 0;
+}
+
+.diagnostics-dialog__subtitle--section {
+  font-size: 0.78rem;
+}
+
+.diagnostics-dialog__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.diagnostics-dialog__section-card {
+  --diagnostics-section-accent: var(--ifs-warning);
+
+  display: flex;
+  flex-direction: column;
+  border: 1px solid color-mix(in srgb, var(--diagnostics-section-accent) 20%, var(--ifs-border-subtle));
+  border-radius: 0.9rem;
+  background: var(--ifs-surface-1);
+  overflow: hidden;
+
+  &--error {
+    --diagnostics-section-accent: var(--ifs-danger);
+  }
+}
+
+.diagnostics-dialog__section-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem 0.85rem;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--diagnostics-section-accent) 14%, var(--ifs-surface-3)) 0%,
+    var(--ifs-surface-2) 100%
+  );
+  border-bottom: 1px solid color-mix(in srgb, var(--diagnostics-section-accent) 14%, var(--ifs-border-subtle));
+}
+
+.diagnostics-dialog__section-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.95rem 1rem 1rem;
+}
+
+.diagnostics-dialog__config-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  &:not(:last-child) {
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--ifs-border-subtle);
+  }
 }
 
 // ─── Config group header (multi-config mode) ───
@@ -58,17 +124,13 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.5rem 0.6rem;
-  margin-bottom: 0.5rem;
+  padding: 0.55rem 0.7rem;
   border-radius: 0.5rem;
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--ifs-surface-2);
+  border: 1px solid var(--ifs-border-subtle);
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--ifs-text-primary);
-
-  &:not(:first-child) {
-    margin-top: 1rem;
-  }
 }
 
 .diagnostics-dialog__group-icon {
@@ -83,23 +145,24 @@
 .diagnostics-dialog__list {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  margin-bottom: 0.5rem;
+  gap: 0.55rem;
 }
 
 .diagnostics-dialog__row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.55rem 0.6rem;
+  padding: 0.7rem 0.75rem;
   border-radius: 0.5rem;
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--ifs-surface-2);
+  border: 1px solid var(--ifs-border-subtle);
   position: relative;
   overflow: hidden;
-  transition: background 150ms ease;
+  transition: background 150ms ease, border-color 150ms ease;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.04);
+    background: var(--ifs-surface-3);
+    border-color: var(--ifs-border-strong);
   }
 
   &--error {
@@ -168,8 +231,9 @@
   align-items: center;
   padding: 0.05rem 0.4rem;
   border-radius: 0.25rem;
-  background: rgba(0, 0, 0, 0.06);
-  color: #607d8b;
+  background: var(--ifs-surface-3);
+  color: var(--ifs-text-secondary);
+  border: 1px solid var(--ifs-border-subtle);
   font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -220,20 +284,21 @@
 
 // ─── Section divider & headers ───
 
-.diagnostics-dialog__section-divider {
-  height: 1px;
-  background: rgba(0, 0, 0, 0.1);
-  margin: 1rem 0;
-}
-
 .diagnostics-dialog__section-header {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--ifs-text-primary);
-  margin-bottom: 0.5rem;
+}
+
+.diagnostics-dialog__section-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
 }
 
 .diagnostics-dialog__section-header-icon {
@@ -251,7 +316,7 @@
 }
 
 .diagnostics-dialog__count--warning {
-  background: rgba(230, 81, 0, 0.12);
+  background: color-mix(in srgb, var(--ifs-warning) 18%, transparent);
   color: var(--ifs-warning);
 }
 
@@ -269,7 +334,8 @@
   align-items: center;
   padding: 0.1rem 0.45rem;
   border-radius: 0.25rem;
-  background: rgba(230, 81, 0, 0.1);
+  background: color-mix(in srgb, var(--ifs-warning) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ifs-warning) 18%, var(--ifs-border-subtle));
   color: var(--ifs-warning);
   font-size: 0.7rem;
   font-weight: 600;

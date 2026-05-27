@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.Common.Errors;

@@ -5,7 +5,7 @@ steps:
     artifact: app-metadata
     displayName: 'Download CI metadata'
 
-  - pwsh: |
+  - powershell: |
       $metadataPath = '$(Pipeline.Workspace)/app-metadata/metadata.json'
       if (-not (Test-Path -LiteralPath $metadataPath)) {
           throw "Metadata artifact not found: $metadataPath"

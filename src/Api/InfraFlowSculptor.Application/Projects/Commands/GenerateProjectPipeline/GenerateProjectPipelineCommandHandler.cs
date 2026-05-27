@@ -2,11 +2,9 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common.Generation;
 using InfraFlowSculptor.Application.Projects.Common.Storage;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipeline;
 
@@ -49,7 +47,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        // Resolve the project-level target (alias "default") to determine base paths within the repo.
+        // Resolve the project-level target to determine base paths within the repo.
         // Heterogeneous multi-repo projects will simply fall back to null paths here — the per-config
         // push handlers are responsible for enforcing the routing at push time.
         string? bicepBasePath = null;

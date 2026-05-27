@@ -36,7 +36,7 @@ public class AddEventHubConsumerGroupCommandHandler(
         if (addResult.IsError)
             return addResult.Errors;
 
-        await eventHubNamespaceRepository.UpdateAsync(eh);
+        eventHubNamespaceRepository.Update(eh);
 
         return mapper.Map<EventHubNamespaceResult>(eh);
     }

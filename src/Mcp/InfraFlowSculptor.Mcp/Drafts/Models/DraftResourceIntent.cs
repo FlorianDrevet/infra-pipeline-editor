@@ -6,9 +6,15 @@ public sealed class DraftResourceIntent
     /// <summary>Resource type identifier matching <c>AzureResourceTypes</c> constants.</summary>
     public required string ResourceType { get; init; }
 
-    /// <summary>Optional resource name.</summary>
+    /// <summary>Optional resource name (semantic identifier, e.g. "api", "backoffice").</summary>
     public string? Name { get; set; }
 
     /// <summary>Optional pricing hint.</summary>
     public string? PricingHint { get; set; }
+
+    /// <summary>Optional resource group assignment name (links to <see cref="DraftResourceGroupAssignment.GroupName"/>).</summary>
+    public string? ResourceGroupName { get; set; }
+
+    /// <summary>Optional application stack inferred from the prompt (e.g. "DotNet", "NodeJs", "Angular").</summary>
+    public string? ApplicationStack { get; set; }
 }

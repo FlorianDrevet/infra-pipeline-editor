@@ -18,7 +18,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -255,6 +255,12 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AssignedUserAssignedIdentityId");
@@ -351,12 +357,23 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("BindingType")
+                    b.Property<string>("CertificateMode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("ManagedCertificate");
+
+                    b.Property<string>("CertificateName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("DnsValidationStatus")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
-                        .HasDefaultValue("SniEnabled");
+                        .HasDefaultValue("Pending");
 
                     b.Property<string>("DomainName")
                         .IsRequired()
@@ -367,6 +384,14 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<string>("KeyVaultUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ManagedIdentityResourceId")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<Guid>("ResourceId")
                         .HasColumnType("uuid");
@@ -541,6 +566,10 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<Guid>("ContainerAppId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("ContainerRegistryServiceConnection")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("CpuCores")
                         .HasMaxLength(10)
@@ -925,11 +954,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Alias")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.Property<string>("ContentKinds")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -966,8 +990,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InfrastructureConfigId", "Alias")
-                        .IsUnique();
+                    b.HasIndex("InfrastructureConfigId");
 
                     b.ToTable("InfraConfigRepositories", (string)null);
                 });
@@ -1088,6 +1111,12 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 
@@ -1324,11 +1353,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Alias")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.Property<string>("ContentKinds")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1358,8 +1382,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProjectId", "Alias")
-                        .IsUnique();
+                    b.HasIndex("ProjectId");
 
                     b.ToTable("ProjectRepositories", (string)null);
                 });
@@ -1443,6 +1466,12 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 
@@ -1919,39 +1948,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("WebAppEnvironmentSettings", (string)null);
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Infrastructure.Persistence.Views.ChildToParentLinkView", b =>
-                {
-                    b.Property<Guid>("ChildResourceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ParentResourceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ResourceGroupId")
-                        .HasColumnType("uuid");
-
-                    b.ToTable((string)null);
-
-                    b.ToView("vw_ChildToParentLinks", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Infrastructure.Persistence.Views.ResourceEnvironmentEntryView", b =>
-                {
-                    b.Property<string>("EnvironmentName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("ResourceGroupId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ResourceId")
-                        .HasColumnType("uuid");
-
-                    b.ToTable((string)null);
-
-                    b.ToView("vw_ResourceEnvironmentEntries", (string)null);
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.AppConfigurationAggregate.AppConfiguration", b =>
                 {
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
@@ -1987,6 +1983,9 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<string>("AcrAuthMode")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("AcrPullIdentityId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("ApplicationName")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -2001,7 +2000,16 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
 
+                    b.Property<bool>("DockerImageValidated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("DockerfilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("SourceCodePath")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
@@ -2056,6 +2064,9 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<string>("AcrAuthMode")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("AcrPullIdentityId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("AppServicePlanId")
                         .HasColumnType("uuid");
 
@@ -2077,6 +2088,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<string>("DockerImageName")
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
+
+                    b.Property<bool>("DockerImageValidated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("DockerfilePath")
                         .HasMaxLength(500)
@@ -2262,6 +2278,9 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<string>("AcrAuthMode")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("AcrPullIdentityId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("AlwaysOn")
                         .HasColumnType("boolean");
 
@@ -2286,6 +2305,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<string>("DockerImageName")
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
+
+                    b.Property<bool>("DockerImageValidated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("DockerfilePath")
                         .HasMaxLength(500)
@@ -2723,6 +2747,29 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.PersonalAccessTokenAggregate.PersonalAccessToken", b =>
+                {
+                    b.OwnsMany("InfraFlowSculptor.Domain.PersonalAccessTokenAggregate.ValueObjects.PatScope", "Scopes", b1 =>
+                        {
+                            b1.Property<Guid>("PersonalAccessTokenId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Value")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("Scope");
+
+                            b1.HasKey("PersonalAccessTokenId", "Value");
+
+                            b1.ToTable("PersonalAccessTokenScopes", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("PersonalAccessTokenId");
+                        });
+
+                    b.Navigation("Scopes");
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.Entities.VirtualNetworkLink", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.PrivateDnsZone", null)
@@ -3087,6 +3134,23 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                             b1.Property<Guid>("ContainerAppId")
                                 .HasColumnType("uuid");
 
+                            b1.Property<string>("AngularProfilePackageManager")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("AngularProfileProjectName")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<bool?>("AngularProfileRunNgBuildProduction")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool?>("AngularProfileRunNgLint")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool?>("AngularProfileRunNgTest")
+                                .HasColumnType("boolean");
+
                             b1.Property<string>("CoverageReportPath")
                                 .HasMaxLength(500)
                                 .HasColumnType("character varying(500)");
@@ -3095,7 +3159,30 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                                 .HasMaxLength(20)
                                 .HasColumnType("character varying(20)");
 
+                            b1.Property<string>("CustomProfileBuildCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("CustomProfileLintCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("CustomProfileTestCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
                             b1.Property<string>("DependencyScanTool")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<bool?>("DotNetProfileCollectCoverage")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("DotNetProfileCustomTestProjectGlob")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("DotNetProfileTestFramework")
                                 .HasMaxLength(50)
                                 .HasColumnType("character varying(50)");
 
@@ -3104,9 +3191,43 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                                 .HasColumnType("boolean")
                                 .HasDefaultValue(false);
 
+                            b1.Property<string>("JavaProfileBuildTool")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<bool?>("JavaProfileCollectCoverage")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("JavaProfileTestFramework")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
                             b1.Property<string>("LintCommand")
                                 .HasMaxLength(500)
                                 .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("NodeJsProfileLintScriptName")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("NodeJsProfilePackageManager")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<bool?>("NodeJsProfileRunLintScript")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("NodeJsProfileTestFramework")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("NodeJsProfileTestScriptName")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("ProfileStack")
+                                .HasMaxLength(30)
+                                .HasColumnType("character varying(30)");
 
                             b1.Property<bool>("PublishCodeCoverage")
                                 .ValueGeneratedOnAdd()
@@ -3117,6 +3238,17 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("boolean")
                                 .HasDefaultValue(false);
+
+                            b1.Property<bool?>("PythonProfileCollectCoverage")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("PythonProfilePackageManager")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("PythonProfileTestFramework")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
 
                             b1.Property<bool>("RunBuildValidation")
                                 .ValueGeneratedOnAdd()
@@ -3163,6 +3295,21 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                             b1.Property<string>("SonarServiceConnection")
                                 .HasMaxLength(200)
                                 .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("Stack")
+                                .IsRequired()
+                                .ValueGeneratedOnAdd()
+                                .HasMaxLength(30)
+                                .HasColumnType("character varying(30)")
+                                .HasDefaultValue("Unknown");
+
+                            b1.Property<string>("StaticSiteProfileBuildCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("StaticSiteProfileOutputDirectory")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
 
                             b1.Property<string>("TestCommand")
                                 .HasMaxLength(500)
@@ -3250,6 +3397,23 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                             b1.Property<Guid>("FunctionAppId")
                                 .HasColumnType("uuid");
 
+                            b1.Property<string>("AngularProfilePackageManager")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("AngularProfileProjectName")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<bool?>("AngularProfileRunNgBuildProduction")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool?>("AngularProfileRunNgLint")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool?>("AngularProfileRunNgTest")
+                                .HasColumnType("boolean");
+
                             b1.Property<string>("CoverageReportPath")
                                 .HasMaxLength(500)
                                 .HasColumnType("character varying(500)");
@@ -3258,7 +3422,30 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                                 .HasMaxLength(20)
                                 .HasColumnType("character varying(20)");
 
+                            b1.Property<string>("CustomProfileBuildCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("CustomProfileLintCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("CustomProfileTestCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
                             b1.Property<string>("DependencyScanTool")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<bool?>("DotNetProfileCollectCoverage")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("DotNetProfileCustomTestProjectGlob")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("DotNetProfileTestFramework")
                                 .HasMaxLength(50)
                                 .HasColumnType("character varying(50)");
 
@@ -3267,9 +3454,43 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                                 .HasColumnType("boolean")
                                 .HasDefaultValue(false);
 
+                            b1.Property<string>("JavaProfileBuildTool")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<bool?>("JavaProfileCollectCoverage")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("JavaProfileTestFramework")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
                             b1.Property<string>("LintCommand")
                                 .HasMaxLength(500)
                                 .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("NodeJsProfileLintScriptName")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("NodeJsProfilePackageManager")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<bool?>("NodeJsProfileRunLintScript")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("NodeJsProfileTestFramework")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("NodeJsProfileTestScriptName")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("ProfileStack")
+                                .HasMaxLength(30)
+                                .HasColumnType("character varying(30)");
 
                             b1.Property<bool>("PublishCodeCoverage")
                                 .ValueGeneratedOnAdd()
@@ -3280,6 +3501,17 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("boolean")
                                 .HasDefaultValue(false);
+
+                            b1.Property<bool?>("PythonProfileCollectCoverage")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("PythonProfilePackageManager")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("PythonProfileTestFramework")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
 
                             b1.Property<bool>("RunBuildValidation")
                                 .ValueGeneratedOnAdd()
@@ -3326,6 +3558,21 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                             b1.Property<string>("SonarServiceConnection")
                                 .HasMaxLength(200)
                                 .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("Stack")
+                                .IsRequired()
+                                .ValueGeneratedOnAdd()
+                                .HasMaxLength(30)
+                                .HasColumnType("character varying(30)")
+                                .HasDefaultValue("Unknown");
+
+                            b1.Property<string>("StaticSiteProfileBuildCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("StaticSiteProfileOutputDirectory")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
 
                             b1.Property<string>("TestCommand")
                                 .HasMaxLength(500)
@@ -3467,6 +3714,23 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                             b1.Property<Guid>("WebAppId")
                                 .HasColumnType("uuid");
 
+                            b1.Property<string>("AngularProfilePackageManager")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("AngularProfileProjectName")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<bool?>("AngularProfileRunNgBuildProduction")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool?>("AngularProfileRunNgLint")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool?>("AngularProfileRunNgTest")
+                                .HasColumnType("boolean");
+
                             b1.Property<string>("CoverageReportPath")
                                 .HasMaxLength(500)
                                 .HasColumnType("character varying(500)");
@@ -3475,7 +3739,30 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                                 .HasMaxLength(20)
                                 .HasColumnType("character varying(20)");
 
+                            b1.Property<string>("CustomProfileBuildCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("CustomProfileLintCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("CustomProfileTestCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
                             b1.Property<string>("DependencyScanTool")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<bool?>("DotNetProfileCollectCoverage")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("DotNetProfileCustomTestProjectGlob")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("DotNetProfileTestFramework")
                                 .HasMaxLength(50)
                                 .HasColumnType("character varying(50)");
 
@@ -3484,9 +3771,43 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                                 .HasColumnType("boolean")
                                 .HasDefaultValue(false);
 
+                            b1.Property<string>("JavaProfileBuildTool")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<bool?>("JavaProfileCollectCoverage")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("JavaProfileTestFramework")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
                             b1.Property<string>("LintCommand")
                                 .HasMaxLength(500)
                                 .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("NodeJsProfileLintScriptName")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("NodeJsProfilePackageManager")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<bool?>("NodeJsProfileRunLintScript")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("NodeJsProfileTestFramework")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("NodeJsProfileTestScriptName")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("ProfileStack")
+                                .HasMaxLength(30)
+                                .HasColumnType("character varying(30)");
 
                             b1.Property<bool>("PublishCodeCoverage")
                                 .ValueGeneratedOnAdd()
@@ -3497,6 +3818,17 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("boolean")
                                 .HasDefaultValue(false);
+
+                            b1.Property<bool?>("PythonProfileCollectCoverage")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("PythonProfilePackageManager")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<string>("PythonProfileTestFramework")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
 
                             b1.Property<bool>("RunBuildValidation")
                                 .ValueGeneratedOnAdd()
@@ -3543,6 +3875,21 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                             b1.Property<string>("SonarServiceConnection")
                                 .HasMaxLength(200)
                                 .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("Stack")
+                                .IsRequired()
+                                .ValueGeneratedOnAdd()
+                                .HasMaxLength(30)
+                                .HasColumnType("character varying(30)")
+                                .HasDefaultValue("Unknown");
+
+                            b1.Property<string>("StaticSiteProfileBuildCommand")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("StaticSiteProfileOutputDirectory")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
 
                             b1.Property<string>("TestCommand")
                                 .HasMaxLength(500)

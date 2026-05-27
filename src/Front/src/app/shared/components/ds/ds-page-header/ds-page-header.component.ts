@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 import { MatIconModule } from '@angular/material/icon';
 
@@ -12,10 +12,15 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './ds-page-header.component.html',
   styleUrl: './ds-page-header.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.ds-page-header--gradient]': 'isGradient()',
+  },
 })
 export class DsPageHeaderComponent {
   public readonly title = input.required<string>();
   public readonly subtitle = input<string | undefined>(undefined);
   public readonly icon = input<string | undefined>(undefined);
   public readonly variant = input<'gradient' | 'plain'>('gradient');
+
+  protected readonly isGradient = computed(() => this.variant() === 'gradient');
 }

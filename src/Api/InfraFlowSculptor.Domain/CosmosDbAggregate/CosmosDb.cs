@@ -2,8 +2,6 @@ using InfraFlowSculptor.Domain.CosmosDbAggregate.Entities;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ResourceParameterUsage;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.CosmosDbAggregate;
@@ -50,7 +48,7 @@ public sealed class CosmosDb : AzureResource
         bool? enableAutomaticFailover,
         bool? enableMultipleWriteLocations,
         string? backupPolicyType,
-        bool? enableFreeTier)
+        bool? enableFreeTier) // NOSONAR S107
     {
         if (IsExisting)
             return;

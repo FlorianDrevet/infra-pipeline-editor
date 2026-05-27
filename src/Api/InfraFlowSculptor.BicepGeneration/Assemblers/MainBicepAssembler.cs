@@ -1,11 +1,8 @@
 using System.Text;
 using InfraFlowSculptor.BicepGeneration.Assemblers.MainBicep;
-using InfraFlowSculptor.BicepGeneration.Constants;
-using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.StorageAccount;
-using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Assemblers;
 
@@ -223,6 +220,7 @@ internal static class MainBicepAssembler
                 var bicepType = module.ParameterTypeOverrides.TryGetValue(key, out var customType)
                     ? ResolveImportedTypeName(importedModuleTypeNames, module.ModuleFolderName, customType)
                     : BicepFormattingHelper.InferBicepType(value);
+                AppendDescriptionDecorator(sb, BuildResourceParameterDescription(module, key, isSecure: false));
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} {bicepType}");
             }
 
@@ -230,6 +228,7 @@ internal static class MainBicepAssembler
             {
                 sb.AppendLine();
                 sb.AppendLine("@secure()");
+                AppendDescriptionDecorator(sb, BuildResourceParameterDescription(module, secureParam, isSecure: true));
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(secureParam)} string");
             }
 
@@ -251,10 +250,17 @@ internal static class MainBicepAssembler
         StringBuilder sb,
         IReadOnlyList<AppSettingDefinition> appSettings)
     {
-        foreach (var setting in appSettings.Where(setting => setting.EnvironmentValues is { Count: > 0 }))
+        foreach (var settingGroup in appSettings
+                     .Where(setting => setting.EnvironmentValues is { Count: > 0 })
+                     .GroupBy(setting => setting.TargetResourceName, StringComparer.OrdinalIgnoreCase))
         {
-            var paramName = BicepNamingHelper.GetStaticAppSettingParamName(setting.TargetResourceName, setting.Name);
-            sb.AppendLine($"param {paramName} string");
+            sb.AppendLine($"// The following inputs are used as environment variables for application {settingGroup.Key}.");
+
+            foreach (var setting in settingGroup)
+            {
+                var paramName = BicepNamingHelper.GetStaticAppSettingParamName(setting.TargetResourceName, setting.Name);
+                sb.AppendLine($"param {paramName} string");
+            }
         }
 
         foreach (var setting in appSettings.Where(setting =>
@@ -264,7 +270,7 @@ internal static class MainBicepAssembler
             var paramName = BicepNamingHelper.GetSecureAppSettingParamName(setting.TargetResourceName, setting.SecretName!);
             sb.AppendLine();
             sb.AppendLine("@secure()");
-            sb.AppendLine($"@description('Secret value for Key Vault secret \\\'{BicepFormattingHelper.EscapeBicepString(setting.SecretName!)}\\\' used by {setting.TargetResourceName}')");
+            AppendDescriptionDecorator(sb, BuildKeyVaultSecretValueDescription(setting));
             sb.AppendLine($"param {paramName} string");
         }
     }
@@ -274,28 +280,31 @@ internal static class MainBicepAssembler
         IReadOnlyDictionary<string, string>? projectTags,
         IReadOnlyDictionary<string, string>? configTags)
     {
-        if (projectTags is null && configTags is null)
+        var hasProjectTags = projectTags is { Count: > 0 };
+        var hasConfigTags = configTags is { Count: > 0 };
+
+        if (!hasProjectTags && !hasConfigTags)
         {
             sb.AppendLine("var tags = env.tags");
             sb.AppendLine();
             return;
         }
 
-        if (projectTags is { Count: > 0 })
+        if (hasProjectTags)
         {
-            AppendTagsVariable(sb, "projectTags", projectTags);
+            AppendTagsVariable(sb, "projectTags", projectTags!);
         }
 
-        if (configTags is { Count: > 0 })
+        if (hasConfigTags)
         {
-            AppendTagsVariable(sb, "configTags", configTags);
+            AppendTagsVariable(sb, "configTags", configTags!);
         }
 
-        if (projectTags is { Count: > 0 } && configTags is { Count: > 0 })
+        if (hasProjectTags && hasConfigTags)
         {
             sb.AppendLine("var tags = union(projectTags, configTags, env.tags)");
         }
-        else if (projectTags is { Count: > 0 })
+        else if (hasProjectTags)
         {
             sb.AppendLine("var tags = union(projectTags, env.tags)");
         }
@@ -334,5 +343,31 @@ internal static class MainBicepAssembler
             || module.ParentModuleOutputReferences.ContainsKey(parameterName)
             || module.ExistingResourceIdReferences.ContainsKey(parameterName)
             || module.ExistingResourcePropertyReferences.ContainsKey(parameterName);
+    }
+
+    private static void AppendDescriptionDecorator(StringBuilder sb, string description)
+    {
+        sb.AppendLine($"@description('{BicepFormattingHelper.EscapeBicepString(description)}')");
+    }
+
+    private static string BuildResourceParameterDescription(
+        GeneratedTypeModule module,
+        string parameterName,
+        bool isSecure)
+    {
+        var resourceTypeName = string.IsNullOrWhiteSpace(module.ResourceTypeName)
+            ? module.ModuleFolderName
+            : module.ResourceTypeName;
+        var resourceName = string.IsNullOrWhiteSpace(module.LogicalResourceName)
+            ? module.ModuleName
+            : module.LogicalResourceName;
+        var valueQualifier = isSecure ? "Secure value" : "Value";
+
+        return $"{valueQualifier} for {parameterName} of {resourceTypeName} resource {resourceName}.";
+    }
+
+    private static string BuildKeyVaultSecretValueDescription(AppSettingDefinition setting)
+    {
+        return $"Secret value for Key Vault secret {setting.SecretName!} used by {setting.TargetResourceName}.";
     }
 }

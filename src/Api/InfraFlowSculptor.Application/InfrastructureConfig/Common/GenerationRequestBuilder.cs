@@ -1,8 +1,6 @@
 using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
-using InfraFlowSculptor.BicepGeneration;
 using InfraFlowSculptor.BicepGeneration.Generators;
-using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.Common.ResourceOutputs;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
@@ -243,7 +241,11 @@ internal static class GenerationRequestBuilder
             {
                 EnvironmentName = customDomain.EnvironmentName,
                 DomainName = customDomain.DomainName,
-                BindingType = customDomain.BindingType,
+                CertificateMode = customDomain.CertificateMode,
+                KeyVaultUrl = customDomain.KeyVaultUrl,
+                ManagedIdentityResourceId = customDomain.ManagedIdentityResourceId,
+                CertificateName = customDomain.CertificateName,
+                DnsValidationStatus = customDomain.DnsValidationStatus,
             })
             .ToList();
 

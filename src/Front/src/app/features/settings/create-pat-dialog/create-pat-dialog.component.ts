@@ -1,6 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -22,7 +21,6 @@ const PAT_EXPIRY_MAX_YEARS = 1;
     TranslateModule,
     FormsModule,
     MatDialogModule,
-    MatButtonModule,
     MatIconModule,
     DsButtonComponent,
     DsTextFieldComponent,

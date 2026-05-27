@@ -1,6 +1,5 @@
 using FluentAssertions;
 using InfraFlowSculptor.BicepGeneration.Assemblers;
-using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 
 namespace InfraFlowSculptor.BicepGeneration.Tests.Assemblers;

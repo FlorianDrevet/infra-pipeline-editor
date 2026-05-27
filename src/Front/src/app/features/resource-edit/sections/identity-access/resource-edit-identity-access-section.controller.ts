@@ -36,6 +36,7 @@ interface ResourceEditIdentityAccessSectionControllerDependencies {
   isUserAssignedIdentity(): boolean;
   isAcrEnabled(): boolean;
   checkAcrPullAccess(): Promise<void>;
+  getAcrPullIdentityId(): string | null;
   supportsAppSettings(): boolean;
   reloadAppSettings(): Promise<void>;
   supportsConfigKeys(): boolean;
@@ -117,9 +118,10 @@ export function createResourceEditIdentityAccessSectionController(
   const groupedRoleAssignments = computed(() => {
     const systemAssigned: RoleAssignmentResponse[] = [];
     const uaiGroups = new Map<string, { identityId: string; identityName: string; assignments: RoleAssignmentResponse[] }>();
+    const acrPullIdentityId = dependencies.getAcrPullIdentityId();
 
     const assignedIdentity = assignedUai();
-    if (assignedIdentity) {
+    if (assignedIdentity && assignedIdentity.identityId !== acrPullIdentityId) {
       uaiGroups.set(assignedIdentity.identityId, {
         identityId: assignedIdentity.identityId,
         identityName: assignedIdentity.identityName,
@@ -128,6 +130,13 @@ export function createResourceEditIdentityAccessSectionController(
     }
 
     for (const assignment of roleAssignments()) {
+      // Hide role assignments belonging to the ACR pull identity (managed in ACR Authentication section)
+      if (assignment.managedIdentityType === 'UserAssigned'
+        && assignment.userAssignedIdentityId
+        && assignment.userAssignedIdentityId === acrPullIdentityId) {
+        continue;
+      }
+
       if (assignment.managedIdentityType === 'UserAssigned' && assignment.userAssignedIdentityId) {
         const existingGroup = uaiGroups.get(assignment.userAssignedIdentityId);
         if (existingGroup) {
@@ -191,36 +200,43 @@ export function createResourceEditIdentityAccessSectionController(
 
   const loadAllResources = async (): Promise<void> => {
     try {
+      const projectId = dependencies.getConfig()?.projectId;
+
+      // Start project resources fetch in parallel with per-group resources
+      const projectResourcesPromise = projectId
+        ? projectService.getProjectResources(projectId).catch(() => null)
+        : Promise.resolve(null);
+
       const resourceGroups = await infraConfigService.getResourceGroups(dependencies.getConfigId());
       const resourceResults = await Promise.all(resourceGroups.map((resourceGroup) => resourceGroupService.getResources(resourceGroup.id)));
       const localResources = resourceResults.flat().filter((resource) => resource.id !== dependencies.getResourceId());
-      const projectId = dependencies.getConfig()?.projectId;
 
       if (!projectId) {
         allResources.set(localResources);
         return;
       }
 
-      try {
-        const projectResources = await projectService.getProjectResources(projectId);
-        const localResourceIds = new Set(localResources.map((resource) => resource.id));
-        const crossConfigResources = projectResources
-          .filter((projectResource) => (
-            projectResource.configId !== dependencies.getConfigId()
-            && !localResourceIds.has(projectResource.resourceId)
-            && projectResource.resourceId !== dependencies.getResourceId()
-          ))
-          .map((projectResource) => ({
-            id: projectResource.resourceId,
-            resourceType: projectResource.resourceType,
-            name: `${projectResource.resourceName} (${projectResource.configName})`,
-            location: '',
-          }));
-
-        allResources.set([...localResources, ...crossConfigResources]);
-      } catch {
+      const projectResources = await projectResourcesPromise;
+      if (!projectResources) {
         allResources.set(localResources);
+        return;
       }
+
+      const localResourceIds = new Set(localResources.map((resource) => resource.id));
+      const crossConfigResources = projectResources
+        .filter((projectResource) => (
+          projectResource.configId !== dependencies.getConfigId()
+          && !localResourceIds.has(projectResource.resourceId)
+          && projectResource.resourceId !== dependencies.getResourceId()
+        ))
+        .map((projectResource) => ({
+          id: projectResource.resourceId,
+          resourceType: projectResource.resourceType,
+          name: `${projectResource.resourceName} (${projectResource.configName})`,
+          location: '',
+        }));
+
+      allResources.set([...localResources, ...crossConfigResources]);
     } catch {
       allResources.set([]);
     }
@@ -250,15 +266,13 @@ export function createResourceEditIdentityAccessSectionController(
       }
 
       const targetResourceIds = [...new Set(result.roleAssignments.map((assignment) => assignment.targetResourceId))];
-      const roleDefinitions: AzureRoleDefinitionResponse[] = [];
 
-      for (const targetResourceId of targetResourceIds) {
-        try {
-          roleDefinitions.push(...await roleAssignmentService.getAvailableRoleDefinitions(targetResourceId));
-        } catch {
-          // Ignore per-target failures to keep the rest of the role list usable.
-        }
-      }
+      const roleDefinitionResults = await Promise.all(
+        targetResourceIds.map((targetResourceId) =>
+          roleAssignmentService.getAvailableRoleDefinitions(targetResourceId).catch(() => [] as AzureRoleDefinitionResponse[]),
+        ),
+      );
+      const roleDefinitions = roleDefinitionResults.flat();
 
       availableRoleDefs.set(
         roleDefinitions.filter(

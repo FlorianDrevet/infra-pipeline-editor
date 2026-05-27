@@ -1,9 +1,7 @@
 using System.Text.Json;
 using ErrorOr;
 using FluentAssertions;
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.Projects.Common;
-using InfraFlowSculptor.Application.Projects.Queries.GetProject;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Mcp.Resources;

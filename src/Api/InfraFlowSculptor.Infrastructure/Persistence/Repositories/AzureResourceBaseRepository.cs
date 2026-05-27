@@ -48,9 +48,7 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
         AzureResourceId id,
         CancellationToken cancellationToken = default)
     {
-        return await context.AzureResources
-            .Include(r => r.AppSettings)
-                .ThenInclude(s => s.EnvironmentValues)
+        return await WithAppSettings(context.AzureResources)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
@@ -58,10 +56,8 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
         AzureResourceId id,
         CancellationToken cancellationToken = default)
     {
-        return await context.AzureResources
+        return await WithAppSettings(context.AzureResources)
             .Include(r => r.RoleAssignments)
-            .Include(r => r.AppSettings)
-                .ThenInclude(s => s.EnvironmentValues)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
@@ -69,11 +65,8 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
         AzureResourceId id,
         CancellationToken cancellationToken = default)
     {
-        return await context.AzureResources
-            .AsNoTracking()
+        return await WithAppSettings(context.AzureResources.AsNoTracking())
             .Include(r => r.RoleAssignments)
-            .Include(r => r.AppSettings)
-                .ThenInclude(s => s.EnvironmentValues)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
@@ -102,9 +95,7 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
         AzureResourceId id,
         CancellationToken cancellationToken = default)
     {
-        return await context.AzureResources
-            .Include(r => r.ResourceGroup)
-            .Include(r => r.PrivateEndpointConfigs)
+        return await WithPrivateEndpoints(context.AzureResources)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
@@ -113,11 +104,23 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
         AzureResourceId id,
         CancellationToken cancellationToken = default)
     {
-        return await context.AzureResources
+        return await WithPrivateEndpoints(context.AzureResources)
             .AsNoTracking()
-            .Include(r => r.ResourceGroup)
-            .Include(r => r.PrivateEndpointConfigs)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+    }
+
+    private static IQueryable<AzureResource> WithAppSettings(IQueryable<AzureResource> query)
+    {
+        return query
+            .Include(r => r.AppSettings)
+                .ThenInclude(s => s.EnvironmentValues);
+    }
+
+    private static IQueryable<AzureResource> WithPrivateEndpoints(IQueryable<AzureResource> query)
+    {
+        return query
+            .Include(r => r.ResourceGroup)
+            .Include(r => r.PrivateEndpointConfigs);
     }
 
     public async Task<bool> ExistsAsync(
@@ -128,9 +131,9 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
             .AnyAsync(r => r.Id == id, cancellationToken);
     }
 
-    public Task<AzureResource> UpdateAsync(AzureResource resource, CancellationToken cancellationToken = default)
+    public AzureResource Update(AzureResource resource)
     {
-        return Task.FromResult(resource);
+        return resource;
     }
 
     /// <inheritdoc />

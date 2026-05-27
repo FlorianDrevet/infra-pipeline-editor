@@ -7,7 +7,7 @@
         layout: (layoutPresetLabelKey() | translate)
       }"
       icon="rocket_launch"
-      variant="gradient">
+      variant="plain">
       <div ds-page-breadcrumbs class="board__breadcrumbs">
         <a [routerLink]="['/projects']">{{ 'PROJECTS.TITLE' | translate }}</a>
         <mat-icon aria-hidden="true">chevron_right</mat-icon>
@@ -24,12 +24,9 @@
         <app-ds-button variant="secondary" icon="arrow_back" (clicked)="openProjectDetail()">
           {{ 'PROJECT_DETAIL.BOARD.OPEN_PROJECT' | translate }}
         </app-ds-button>
-
-        @if (!isLoading() && canGenerateProject()) {
-          <app-ds-button variant="primary" icon="rocket_launch" (clicked)="onGenerateAll()">
-            {{ 'PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS' | translate }}
-          </app-ds-button>
-        }
+        <app-ds-button variant="secondary" icon="settings" (clicked)="navigateToConfig()">
+          {{ 'PROJECT_DETAIL.BOARD.CONFIGURE' | translate }}
+        </app-ds-button>
       </div>
     </app-ds-page-header>
 
@@ -77,24 +74,60 @@
         </div>
       </div>
     </app-ds-card>
-  } @else if (topology() === 'empty') {
-    <app-ds-card>
-      <app-ds-empty-state
-        [icon]="hasProjectLevelRepositories() ? 'layers_clear' : 'folder_off'"
-        [title]="(hasProjectLevelRepositories()
-          ? 'PROJECT_DETAIL.BOARD.EMPTY_CONFIGS_TITLE'
-          : 'PROJECT_DETAIL.BOARD.EMPTY_TITLE') | translate"
-        [description]="(hasProjectLevelRepositories()
-          ? 'PROJECT_DETAIL.BOARD.EMPTY_CONFIGS_DESC'
-          : 'PROJECT_DETAIL.BOARD.EMPTY_DESC') | translate">
-        <div actions>
-          <app-ds-button variant="secondary" icon="arrow_back" (clicked)="openProjectDetail()">
-            {{ 'PROJECT_DETAIL.BOARD.OPEN_PROJECT' | translate }}
+  } @else if (!project()?.id) {
+    <!-- no project loaded -->
+  } @else {
+    @if (hasProjectLevelRepositories() && !isSplitInfraCodeLayout()) {
+      <div class="board__generation-toolbar">
+        <app-ds-button
+          variant="secondary"
+          icon="cloud_upload"
+          [disabled]="!canPushAllProjectArtifacts()"
+          (clicked)="openProjectPushAllToGitDialog()">
+          {{ 'PROJECT_DETAIL.GENERATE_ALL.PUSH_TO_GIT' | translate }}
+        </app-ds-button>
+      </div>
+    }
+
+    @if (viewingHistoricalGeneration()) {
+      <app-ds-banner
+        class="board__historical-banner"
+        variant="warning"
+        icon="history"
+        [title]="'PROJECT_DETAIL.BOARD.HISTORICAL_GENERATION_TITLE' | translate"
+        [description]="'PROJECT_DETAIL.BOARD.HISTORICAL_GENERATION_DESCRIPTION' | translate: { generatedAt: formattedHistoricalGenerationAt() }">
+        <div actions class="board__historical-banner-actions">
+          <app-ds-button
+            variant="secondary"
+            icon="rocket_launch"
+            [loading]="projectGenerateAllLoading()"
+            [disabled]="!canGenerateProject()"
+            (clicked)="onGenerateAll()">
+            {{ 'PROJECT_DETAIL.BOARD.HISTORICAL_GENERATION_ACTION' | translate }}
           </app-ds-button>
         </div>
-      </app-ds-empty-state>
-    </app-ds-card>
-  } @else {
+      </app-ds-banner>
+    }
+
+    @if (topology() === 'empty') {
+      <app-ds-card>
+        <app-ds-empty-state
+          [icon]="hasProjectLevelRepositories() ? 'layers_clear' : 'folder_off'"
+          [title]="(hasProjectLevelRepositories()
+            ? 'PROJECT_DETAIL.BOARD.EMPTY_CONFIGS_TITLE'
+            : 'PROJECT_DETAIL.BOARD.EMPTY_TITLE') | translate"
+          [description]="(hasProjectLevelRepositories()
+            ? 'PROJECT_DETAIL.BOARD.EMPTY_CONFIGS_DESC'
+            : 'PROJECT_DETAIL.BOARD.EMPTY_DESC') | translate">
+          <div actions>
+            <app-ds-button variant="secondary" icon="arrow_back" (clicked)="openProjectDetail()">
+              {{ 'PROJECT_DETAIL.BOARD.OPEN_PROJECT' | translate }}
+            </app-ds-button>
+          </div>
+        </app-ds-empty-state>
+      </app-ds-card>
+    }
+
     @if (topology() === 'mixed') {
       <app-ds-card class="board-banner">
         <div class="board-banner__content">
@@ -107,126 +140,221 @@
       </app-ds-card>
     }
 
-    <app-ds-card class="board__repositories-card" padding="lg">
-      <app-ds-section-header
-        [title]="'PROJECT_DETAIL.BOARD.REPOSITORIES_TITLE' | translate"
-        [subtitle]="'PROJECT_DETAIL.BOARD.REPOSITORIES_SUBTITLE' | translate: { count: repositoryCount() }"
-        icon="inventory_2"
-        [divider]="true">
-      </app-ds-section-header>
-
-      <div class="repo-grid" [class.repo-grid--single]="topology() === 'single'">
-        @for (group of groupedByAlias(); track group.alias) {
-          <app-ds-card class="repo-card" variant="outlined" padding="lg">
-            <div ds-card-header class="repo-card__header">
-              <div class="repo-card__heading">
-                <div class="repo-card__identity">
-                  <div class="repo-card__avatar">
-                    <mat-icon aria-hidden="true">folder_open</mat-icon>
-                  </div>
-                  <div class="repo-card__identity-text">
-                    <h3 class="repo-card__title">
-                      {{ group.repo?.alias ?? ('PROJECT_DETAIL.BOARD.DEFAULT_REPO_LABEL' | translate) }}
-                    </h3>
-                    <p class="repo-card__subtitle">
-                      @if (group.repo) {
-                        {{ group.repo.owner }}/{{ group.repo.repositoryName }}
-                      } @else {
-                        {{ 'PROJECT_DETAIL.BOARD.LEGACY_REPOSITORY_DESC' | translate }}
-                      }
-                    </p>
-                  </div>
-                </div>
-
-                @if (group.repo) {
-                  <app-ds-chip size="sm" variant="info" icon="source">
-                    {{ group.repo.providerType }}
-                  </app-ds-chip>
-                } @else {
-                  <app-ds-chip size="sm" variant="warning" icon="history">
-                    {{ 'PROJECT_DETAIL.BOARD.LEGACY_BADGE' | translate }}
-                  </app-ds-chip>
-                }
-              </div>
-
-              <div class="repo-card__metrics">
-                <div class="repo-card__metric">
-                  <span class="repo-card__metric-label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_CONFIGS' | translate }}</span>
-                  <strong>{{ group.configs.length }}</strong>
-                </div>
-                <div class="repo-card__metric">
-                  <span class="repo-card__metric-label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCE_GROUPS' | translate }}</span>
-                  <strong>{{ group.resourceGroupCount }}</strong>
-                </div>
-                <div class="repo-card__metric">
-                  <span class="repo-card__metric-label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_RESOURCES' | translate }}</span>
-                  <strong>{{ group.resourceCount }}</strong>
-                </div>
-              </div>
+    @if (projectGenerationPanelOpen()) {
+      <section
+        class="generation-panel"
+        [class.generation-panel--collapsed]="projectGenerationPanelCollapsed()">
+        @if (isSplitInfraCodeLayout()) {
+          <app-split-generation-switcher
+            [collapsed]="projectGenerationPanelCollapsed()"
+            [deferBatchReveal]="deferMonoRepoBatchReveal()"
+            [bicepResult]="projectBicepResult()"
+            [pipelineResult]="projectPipelineResult()"
+            [bootstrapResult]="projectBootstrapResult()"
+            [isGeneratingBicep]="projectBicepLoading()"
+            [isGeneratingPipeline]="projectPipelineLoading()"
+            [isGeneratingBootstrap]="projectBootstrapLoading()"
+            [isDownloadingInfraZip]="projectInfraArtifactsDownloading()"
+            [isDownloadingCodeZip]="projectCodeArtifactsDownloading()"
+            [bicepGenerationError]="projectBicepErrorKey()"
+            [pipelineGenerationError]="projectPipelineErrorKey()"
+            [bootstrapGenerationError]="projectBootstrapErrorKey()"
+            [loadBicepFile]="loadProjectBicepFile"
+            [loadPipelineFile]="loadProjectPipelineFile"
+            [loadBootstrapFile]="loadProjectBootstrapFile"
+            (toggleCollapsed)="toggleProjectGenerationPanelCollapsed()"
+            (retryBicep)="generateProjectBicep()"
+            (retryPipeline)="generateProjectPipeline()"
+            (retryBootstrap)="generateProjectBootstrap()"
+            (downloadInfraZip)="downloadProjectInfraArtifacts()"
+            (downloadCodeZip)="downloadProjectCodeArtifacts()"
+            (pushInfra)="openProjectMultiRepoPushDialog('infra')"
+            (pushCode)="openProjectMultiRepoPushDialog('code')">
+          </app-split-generation-switcher>
+        } @else {
+          <div class="generation-panel__header">
+            <div class="generation-panel__actions">
+              <app-ds-panel-action-button
+                [icon]="projectGenerationPanelCollapsed() ? 'keyboard_arrow_down' : 'keyboard_arrow_up'"
+                tone="accent"
+                surface="light"
+                [pressed]="!projectGenerationPanelCollapsed()"
+                [ariaExpanded]="!projectGenerationPanelCollapsed()"
+                [ariaLabel]="((projectGenerationPanelCollapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
+                [tooltip]="((projectGenerationPanelCollapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
+                (clicked)="toggleProjectGenerationPanelCollapsed()" />
             </div>
+          </div>
 
-            @if (group.repo) {
-              <div class="repo-card__details">
-                <div class="repo-card__detail-row">
-                  <span class="repo-card__detail-label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
-                  <a
-                    class="repo-card__link"
-                    [href]="group.repo.repositoryUrl"
-                    target="_blank"
-                    rel="noopener">
-                    {{ group.repo.owner }}/{{ group.repo.repositoryName }}
-                  </a>
-                </div>
+          @if (!projectGenerationPanelCollapsed()) {
+            <mat-tab-group class="generation-tabs" animationDuration="200ms">
+              @for (tab of monoRepoTabs; track tab.id) {
+                <mat-tab>
+                  <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">{{ tab.tabIcon }}</mat-icon>
+                    <span>{{ tab.tabLabelKey | translate }}</span>
+                  </ng-template>
 
-                <div class="repo-card__detail-row">
-                  <span class="repo-card__detail-label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
-                  <strong class="repo-card__detail-value">{{ group.repo.defaultBranch }}</strong>
-                </div>
-
-                @if (group.repo.contentKinds.length > 0) {
-                  <div class="repo-card__kind-list">
-                    @for (kind of group.repo.contentKinds; track kind) {
-                      <app-ds-chip size="sm" variant="accent" icon="deployed_code">
-                        {{ ('PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind) | translate }}
-                      </app-ds-chip>
-                    }
-                  </div>
-                }
-              </div>
-            }
-
-            <div class="repo-card__configs">
-              <span class="repo-card__configs-title">{{ 'PROJECT_DETAIL.BOARD.CONFIG_LIST_TITLE' | translate }}</span>
-
-              <div class="config-list">
-                @for (config of group.configs; track config.id) {
-                  <div class="config-row">
-                    <div class="config-row__info">
-                      <div class="config-row__name-line">
-                        <mat-icon class="config-row__icon" aria-hidden="true">settings</mat-icon>
-                        <span class="config-row__name">{{ config.name }}</span>
-                      </div>
-
-                      <div class="config-row__meta">
-                        <span>{{ 'PROJECT_DETAIL.BOARD.CONFIG_RESOURCE_GROUPS' | translate: { count: config.resourceGroupCount } }}</span>
-                        <span>{{ 'PROJECT_DETAIL.BOARD.CONFIG_RESOURCES' | translate: { count: config.resourceCount } }}</span>
-                      </div>
+                  <div class="generation-tab-content">
+                    <div class="generation-tab-content__toolbar">
+                      @if (tab.result() && !deferMonoRepoBatchReveal()) {
+                        <button class="bicep-download-btn" (click)="tab.download()" [disabled]="tab.isDownloading()">
+                          @if (tab.isDownloading()) {
+                            <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                          } @else {
+                            <mat-icon>download</mat-icon>
+                          }
+                          {{ (tab.isDownloading() ? tab.downloadBusyLabelKey : tab.downloadLabelKey) | translate }}
+                        </button>
+                      }
                     </div>
 
-                    <app-ds-button
-                      variant="secondary"
-                      size="sm"
-                      icon="arrow_forward"
-                      (clicked)="openConfiguration(config.id)">
-                      {{ 'PROJECT_DETAIL.BOARD.CONFIG_GENERATE' | translate }}
-                    </app-ds-button>
+                    @if (tab.isLoading() || deferMonoRepoBatchReveal()) {
+                      <div class="bicep-panel__loading">
+                        <div class="bicep-terminal">
+                          <div class="bicep-terminal__bar">
+                            <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                            <span class="bicep-terminal__bar-title">{{ tab.terminalTitle }}</span>
+                          </div>
+                          <div class="bicep-terminal__body">
+                            <p class="bicep-terminal__line bicep-terminal__line--active">
+                              <span class="bicep-terminal__prompt">$</span>
+                              {{ tab.generatingLabelKey | translate }}
+                              <span class="bicep-terminal__cursor"></span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+
+                    @if (tab.errorKey() && !deferMonoRepoBatchReveal()) {
+                      <div class="bicep-panel__error-body">
+                        <p>{{ tab.errorKey() | translate }}</p>
+                        <button class="bicep-retry-btn" (click)="tab.retry()">
+                          <mat-icon>refresh</mat-icon>
+                          {{ tab.retryLabelKey | translate }}
+                        </button>
+                      </div>
+                    }
+
+                    @if (tab.nodes().length > 0 && !deferMonoRepoBatchReveal()) {
+                      <app-bicep-file-panel
+                        [nodes]="tab.nodes()"
+                        [barTitle]="tab.terminalTitle + ' — ' + (tab.artifactsLabelKey | translate)"
+                        [terminalDoneText]="tab.terminalDoneKey | translate"
+                        [fileLoadingText]="tab.fileLoadingKey | translate"
+                        [fileErrorText]="tab.fileErrorKey | translate"
+                        [loadFile]="tab.loadFile">
+                      </app-bicep-file-panel>
+                    }
+
+                    @if (tab.showBootstrapGuide) {
+                      <div class="bootstrap-guide-card">
+                    <h4 class="bootstrap-guide-card__title">{{ 'PROJECT_DETAIL.BOOTSTRAP.GUIDE_TITLE' | translate }}</h4>
+                    <p class="bootstrap-guide-card__intro">{{ 'PROJECT_DETAIL.BOOTSTRAP.GUIDE_INTRO' | translate }}</p>
+
+                    <h5 class="bootstrap-guide-card__section-title">{{ 'PROJECT_DETAIL.BOOTSTRAP.SECTION_PREPARE' | translate }}</h5>
+                    <ol class="bootstrap-guide">
+                      <li class="bootstrap-guide__step">
+                        <span class="bootstrap-guide__step-number">1</span>
+                        <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_1' | translate }}</div>
+                      </li>
+                      <li class="bootstrap-guide__step">
+                        <span class="bootstrap-guide__step-number">2</span>
+                        <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_2' | translate }}</div>
+                      </li>
+                      <li class="bootstrap-guide__step">
+                        <span class="bootstrap-guide__step-number">3</span>
+                        <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_3' | translate }}</div>
+                      </li>
+                    </ol>
+
+                    <h5 class="bootstrap-guide-card__section-title">{{ 'PROJECT_DETAIL.BOOTSTRAP.SECTION_RUN' | translate }}</h5>
+                    <ol class="bootstrap-guide" start="4">
+                      <li class="bootstrap-guide__step">
+                        <span class="bootstrap-guide__step-number">4</span>
+                        <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_4' | translate }}</div>
+                      </li>
+                      <li class="bootstrap-guide__step">
+                        <span class="bootstrap-guide__step-number">5</span>
+                        <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_5' | translate }}</div>
+                      </li>
+                    </ol>
+
+                    <h5 class="bootstrap-guide-card__section-title bootstrap-guide-card__section-title--warning">
+                      <mat-icon class="bootstrap-guide-card__section-icon">shield</mat-icon>
+                      {{ 'PROJECT_DETAIL.BOOTSTRAP.SECTION_PERMISSIONS' | translate }}
+                    </h5>
+                    <p class="bootstrap-guide-card__section-hint">{{ 'PROJECT_DETAIL.BOOTSTRAP.PERMISSIONS_HINT' | translate }}</p>
+                    <ol class="bootstrap-guide" start="6">
+                      <li class="bootstrap-guide__step bootstrap-guide__step--permission">
+                        <span class="bootstrap-guide__step-number bootstrap-guide__step-number--permission">6</span>
+                        <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_6' | translate }}</div>
+                      </li>
+                      <li class="bootstrap-guide__step bootstrap-guide__step--permission">
+                        <span class="bootstrap-guide__step-number bootstrap-guide__step-number--permission">7</span>
+                        <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_7' | translate }}</div>
+                      </li>
+                      <li class="bootstrap-guide__step bootstrap-guide__step--permission">
+                        <span class="bootstrap-guide__step-number bootstrap-guide__step-number--permission">8</span>
+                        <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_8' | translate }}</div>
+                      </li>
+                    </ol>
+
+                    <h5 class="bootstrap-guide-card__section-title bootstrap-guide-card__section-title--success">
+                      <mat-icon class="bootstrap-guide-card__section-icon">check_circle</mat-icon>
+                      {{ 'PROJECT_DETAIL.BOOTSTRAP.SECTION_FINALIZE' | translate }}
+                    </h5>
+                    <ol class="bootstrap-guide" start="9">
+                      <li class="bootstrap-guide__step bootstrap-guide__step--success">
+                        <span class="bootstrap-guide__step-number bootstrap-guide__step-number--success">9</span>
+                        <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_9' | translate }}</div>
+                      </li>
+                      <li class="bootstrap-guide__step bootstrap-guide__step--success">
+                        <span class="bootstrap-guide__step-number bootstrap-guide__step-number--success">10</span>
+                        <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_10' | translate }}</div>
+                      </li>
+                    </ol>
+                      </div>
+                    }
                   </div>
-                }
-              </div>
-            </div>
-          </app-ds-card>
+                </mat-tab>
+              }
+            </mat-tab-group>
+          }
         }
-      </div>
-    </app-ds-card>
+      </section>
+    } @else if (topology() !== 'empty') {
+      <app-ds-card>
+        <app-ds-empty-state
+          icon="auto_awesome"
+          [title]="'PROJECT_DETAIL.BOARD.READY_TITLE' | translate"
+          [description]="'PROJECT_DETAIL.BOARD.READY_DESC' | translate">
+          <div actions class="board__ready-actions">
+            <app-ds-button variant="primary" icon="rocket_launch" [loading]="projectGenerateAllLoading()" (clicked)="onGenerateAll()">
+              {{ 'PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS' | translate }}
+            </app-ds-button>
+
+            @if (lastGenerationAvailable()) {
+              <app-ds-button
+                variant="secondary"
+                icon="history"
+                [loading]="lastGenerationLoading()"
+                (clicked)="onLoadLastGeneration()">
+                {{ 'PROJECT_DETAIL.BOARD.LOAD_LAST_GENERATION' | translate }}
+              </app-ds-button>
+            }
+          </div>
+
+          @if (lastGenerationErrorKey()) {
+            <p class="board__last-generation-feedback" role="alert">
+              {{ lastGenerationErrorKey() | translate }}
+            </p>
+          }
+        </app-ds-empty-state>
+      </app-ds-card>
+    }
   }
 </section>

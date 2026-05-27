@@ -3,7 +3,6 @@ using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.Pipeline;
 using InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
-using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 
 namespace InfraFlowSculptor.BicepGeneration.Tests.Pipeline.Stages;

@@ -7,15 +7,14 @@ using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.PushProjectBootstrapPipelineToGit;
 
 /// <summary>
 /// Handles the <see cref="PushProjectBootstrapPipelineToGitCommand"/>.
 /// Uses <see cref="IRepositoryTargetResolver"/> with <c>config: null</c> and
-/// <see cref="ArtifactKind.Bootstrap"/>, resolving to the project's default alias
-/// (<c>"default"</c>). Projects with a heterogeneous multi-repo topology must instead use
+/// <see cref="ArtifactKind.Bootstrap"/>, resolving to the project's infrastructure repository.
+/// Projects with a heterogeneous multi-repo topology must instead use
 /// <c>PushProjectGeneratedArtifactsToGit</c>.
 /// </summary>
 public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
@@ -41,7 +40,7 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        // 3. Resolve the target repository via V2 routing (project-level, default alias).
+        // 3. Resolve the target repository via V2 routing.
         var targetResult = targetResolver.Resolve(project, config: null, ArtifactKind.Bootstrap);
         if (targetResult.IsError)
             return targetResult.Errors;
@@ -50,7 +49,7 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
 
         // 4. Retrieve the PAT from the centralized Key Vault
         var secretResult = await keyVaultClient.GetSecretAsync(
-            $"git-pat-{project.Id.Value}", cancellationToken);
+            target.PatSecretName ?? $"git-pat-{project.Id.Value}", cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;
 

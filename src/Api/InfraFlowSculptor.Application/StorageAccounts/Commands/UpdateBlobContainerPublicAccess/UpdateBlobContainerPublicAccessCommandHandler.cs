@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.StorageAccounts.Commands.UpdateBlobContainerPublicAccess;
 
@@ -40,7 +39,7 @@ public sealed class UpdateBlobContainerPublicAccessCommandHandler(
         if (updateResult.IsError)
             return updateResult.Errors;
 
-        await storageAccountRepository.UpdateAsync(storageAccount);
+        storageAccountRepository.Update(storageAccount);
 
         var reloaded = await storageAccountRepository.GetByIdWithSubResourcesAsync(request.StorageAccountId, cancellationToken);
         if (reloaded is null)

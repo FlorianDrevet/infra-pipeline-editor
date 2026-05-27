@@ -31,7 +31,7 @@ public sealed class UpdateNetworkSecurityGroupCommandHandler(
 
         nsg.Update(request.Name, request.Location);
 
-        var updated = await nsgRepository.UpdateAsync(nsg);
+        var updated = nsgRepository.Update(nsg);
         return mapper.Map<NetworkSecurityGroupResult>(updated);
     }
 }

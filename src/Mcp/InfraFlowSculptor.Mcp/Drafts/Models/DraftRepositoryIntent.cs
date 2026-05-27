@@ -3,9 +3,6 @@ namespace InfraFlowSculptor.Mcp.Drafts.Models;
 /// <summary>An inferred repository from the user's prompt.</summary>
 public sealed class DraftRepositoryIntent
 {
-    /// <summary>Project-scoped alias for this repository slot.</summary>
-    public string Alias { get; set; } = "main";
-
     /// <summary>Content kinds hosted by this repository.</summary>
     public List<string> ContentKinds { get; set; } = [];
 
@@ -17,4 +14,7 @@ public sealed class DraftRepositoryIntent
 
     /// <summary>Optional default branch name.</summary>
     public string? DefaultBranch { get; set; }
+
+    /// <summary>Optional personal access token for repository authentication.</summary>
+    public string? PersonalAccessToken { get; set; }
 }

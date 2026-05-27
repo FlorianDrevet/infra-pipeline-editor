@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.ContainerAppEnvironments.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.UpdateContainerAppEnvironment;
 
@@ -55,7 +54,7 @@ public sealed class UpdateContainerAppEnvironmentCommandHandler(
                     .Select(ec => (ec.EnvironmentName, ec.Sku, ec.WorkloadProfileType, ec.InternalLoadBalancerEnabled, ec.ZoneRedundancyEnabled))
                     .ToList());
 
-        var updated = await containerAppEnvironmentRepository.UpdateAsync(containerAppEnvironment);
+        var updated = containerAppEnvironmentRepository.Update(containerAppEnvironment);
 
         return mapper.Map<ContainerAppEnvironmentResult>(updated);
     }

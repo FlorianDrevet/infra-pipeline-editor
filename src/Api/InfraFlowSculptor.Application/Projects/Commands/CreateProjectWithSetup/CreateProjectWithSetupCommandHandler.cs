@@ -1,10 +1,10 @@
-﻿using ErrorOr;
+using ErrorOr;
 using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
-using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
@@ -23,7 +23,8 @@ namespace InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup
 /// </remarks>
 public sealed class CreateProjectWithSetupCommandHandler(
     IProjectRepository repository,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IKeyVaultSecretClient keyVaultSecretClient)
     : ICommandHandler<CreateProjectWithSetupCommand, ProjectResult>
 {
     /// <summary>Default naming template applied to every new project.</summary>
@@ -34,6 +35,7 @@ public sealed class CreateProjectWithSetupCommandHandler(
     {
         ["ResourceGroup"] = "{resourceAbbr}-{name}{suffix}",
         ["StorageAccount"] = "{name}{resourceAbbr}{envShort}",
+        ["ContainerRegistry"] = "{name}{resourceAbbr}{envShort}",
     };
 
     /// <inheritdoc />
@@ -60,11 +62,11 @@ public sealed class CreateProjectWithSetupCommandHandler(
         if (environmentResult.IsError)
             return environmentResult.Errors;
 
-        var repositoryResult = AddRepositories(project, command.Repositories);
+        var repositoryResult = await AddRepositoriesAsync(project, command.Repositories, cancellationToken);
         if (repositoryResult.IsError)
             return repositoryResult.Errors;
 
-        var saved = await repository.AddAsync(project);
+        var saved = repository.Add(project);
         return ProjectResultMapper.ToProjectResult(saved);
     }
 
@@ -131,11 +133,14 @@ public sealed class CreateProjectWithSetupCommandHandler(
             Tags: []);
     }
 
-    private static ErrorOr<Success> AddRepositories(Project project, IReadOnlyList<RepositorySetupItem> repositories)
+    private async Task<ErrorOr<Success>> AddRepositoriesAsync(
+        Project project,
+        IReadOnlyList<RepositorySetupItem> repositories,
+        CancellationToken cancellationToken)
     {
         foreach (var repositoryItem in repositories)
         {
-            var addRepositoryResult = AddRepository(project, repositoryItem);
+            var addRepositoryResult = await AddRepositoryAsync(project, repositoryItem, cancellationToken);
             if (addRepositoryResult.IsError)
                 return addRepositoryResult.Errors;
         }
@@ -143,28 +148,36 @@ public sealed class CreateProjectWithSetupCommandHandler(
         return Result.Success;
     }
 
-    private static ErrorOr<Success> AddRepository(Project project, RepositorySetupItem repositoryItem)
+    private async Task<ErrorOr<Success>> AddRepositoryAsync(
+        Project project,
+        RepositorySetupItem repositoryItem,
+        CancellationToken cancellationToken)
     {
         var providerTypeResult = TryParseProviderType(repositoryItem.ProviderType, out var providerType);
         if (providerTypeResult.IsError)
             return providerTypeResult.Errors;
-
-        var aliasResult = RepositoryAlias.Create(repositoryItem.Alias);
-        if (aliasResult.IsError)
-            return aliasResult.Errors;
 
         var contentKindsResult = ParseContentKinds(repositoryItem.ContentKinds);
         if (contentKindsResult.IsError)
             return contentKindsResult.Errors;
 
         var addResult = project.AddRepository(
-            aliasResult.Value,
             providerType,
             repositoryItem.RepositoryUrl,
             repositoryItem.DefaultBranch,
             contentKindsResult.Value);
         if (addResult.IsError)
             return addResult.Errors;
+
+        if (!string.IsNullOrWhiteSpace(repositoryItem.PersonalAccessToken))
+        {
+            var secretResult = await keyVaultSecretClient.SetSecretAsync(
+                ProjectGitSecretNames.GetRepositoryPatSecretName(addResult.Value.Id),
+                repositoryItem.PersonalAccessToken,
+                cancellationToken);
+            if (secretResult.IsError)
+                return secretResult.Errors;
+        }
 
         return Result.Success;
     }

@@ -8,9 +8,18 @@ using InfraFlowSculptor.Api.Configuration;
 using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Api.Options;
 using InfraFlowSculptor.Api.RateLimiting;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Azure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (!builder.Environment.IsDevelopment())
+{
+    var keyVaultUri = builder.Configuration["KeyVault:VaultUri"];
+    if (!string.IsNullOrEmpty(keyVaultUri))
+    {
+        builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri), new DefaultAzureCredential());
+    }
+}
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddApiCors(builder.Configuration);
@@ -22,6 +31,13 @@ builder.Services
     .AddApplication()
     .AddInfrastructure(builder.Configuration, builder.Environment)
     .AddRateLimiting();
+
+builder.Services.AddOutputCache(options =>
+{
+    options.AddBasePolicy(policy => policy.NoCache());
+    options.AddPolicy("ShortLived", policy =>
+        policy.Expire(TimeSpan.FromSeconds(5)).SetVaryByHeader("Authorization"));
+});
 
 if (builder.Environment.IsDevelopment())
 {
@@ -52,12 +68,18 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthentication();
 app.UseRateLimiter(); // After UseRouting and authentication so user-based partitions can resolve claims.
+app.UseOutputCache();
 app.UseStatusCodePages();
 app.UseAuthorization();
 app.UseMiddleware<UserProvisioningMiddleware>();
 
 //Controllers
 app.UseProjectController();
+app.UseProjectMemberController();
+app.UseProjectEnvironmentController();
+app.UseProjectNamingController();
+app.UseProjectRepositoryController();
+app.UseProjectGenerationController();
 app.UseInfrastructureConfigController();
 app.UseNamingTemplateController();
 app.UseKeyVaultController();
@@ -93,6 +115,8 @@ app.UsePrivateEndpointController();
 app.UseImportController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();
+app.UsePipelineOptionDetectionController();
+app.UseGitController();
 
 // Health checks
 app.MapApiHealthChecks();

@@ -1,5 +1,4 @@
 using InfraFlowSculptor.Contracts.Common.Requests;
-using InfraFlowSculptor.Contracts.ContainerApps.Requests;
 
 namespace InfraFlowSculptor.Contracts.ContainerApps.Responses;
 
@@ -12,9 +11,12 @@ public record ContainerAppResponse(
     string ContainerAppEnvironmentId,
     string? ContainerRegistryId,
     string? AcrAuthMode,
+    string? AcrPullIdentityId,
     string? DockerImageName,
+    bool DockerImageValidated,
     string? DockerfilePath,
     string? ApplicationName,
+    string? SourceCodePath,
     PipelineStepOptionsDto? PipelineStepOptions,
     IReadOnlyList<ContainerAppEnvironmentConfigResponse> EnvironmentSettings,
 

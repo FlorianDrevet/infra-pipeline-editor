@@ -31,13 +31,13 @@ public sealed class ParameterDefinition : Entity<ParameterDefinitionId>
     {
     }
 
+    private ParameterDefinition()
+    {
+    }
+
     /// <summary>Creates a new <see cref="ParameterDefinition"/> with a generated identifier.</summary>
     public static ParameterDefinition Create()
     {
         return new ParameterDefinition(ParameterDefinitionId.CreateUnique());
-    }
-
-    private ParameterDefinition()
-    {
     }
 }

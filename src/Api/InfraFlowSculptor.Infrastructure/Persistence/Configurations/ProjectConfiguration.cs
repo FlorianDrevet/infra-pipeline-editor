@@ -1,9 +1,7 @@
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
-using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
@@ -28,6 +26,10 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.ToTable(TableName);
         builder.HasKey(x => x.Id);
         builder.ConfigureAggregateRootId<Project, ProjectId>();
+
+        builder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .IsRowVersion();
 
         builder.Property(x => x.Name)
             .HasConversion(new SingleValueConverter<Name, string>())

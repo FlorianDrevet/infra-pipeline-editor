@@ -35,7 +35,7 @@ public sealed class ResourceGroupRepositoryTests : IDisposable
     {
         // Arrange
         var group = NewGroup(InfrastructureConfigId.CreateUnique());
-        await _context.ResourceGroups.AddAsync(group);
+        _context.ResourceGroups.Add(group);
         await _context.SaveChangesAsync();
 
         // Act
@@ -63,7 +63,7 @@ public sealed class ResourceGroupRepositoryTests : IDisposable
         var group = NewGroup(InfrastructureConfigId.CreateUnique());
 
         // Act
-        await _sut.AddAsync(group);
+        _sut.Add(group);
         await _context.SaveChangesAsync();
 
         // Assert
@@ -76,7 +76,7 @@ public sealed class ResourceGroupRepositoryTests : IDisposable
     {
         // Arrange
         var group = NewGroup(InfrastructureConfigId.CreateUnique());
-        await _context.ResourceGroups.AddAsync(group);
+        _context.ResourceGroups.Add(group);
         await _context.SaveChangesAsync();
 
         // Act
@@ -130,7 +130,7 @@ public sealed class ResourceGroupRepositoryTests : IDisposable
     {
         // Arrange
         var group = NewGroup(InfrastructureConfigId.CreateUnique());
-        await _context.ResourceGroups.AddAsync(group);
+        _context.ResourceGroups.Add(group);
         await _context.SaveChangesAsync();
 
         // Act
@@ -146,7 +146,7 @@ public sealed class ResourceGroupRepositoryTests : IDisposable
     {
         // Arrange
         var group = NewGroup(InfrastructureConfigId.CreateUnique());
-        await _context.ResourceGroups.AddAsync(group);
+        _context.ResourceGroups.Add(group);
         await _context.SaveChangesAsync();
 
         // Act

@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.ContainerApps.Commands.CreateContainerApp;
 using InfraFlowSculptor.Application.ContainerApps.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
@@ -55,8 +54,8 @@ public sealed class CreateContainerAppCommandHandlerTests
             new Location(Location.LocationEnum.FranceCentral),
             ContainerAppEnvironmentId: _environment.Id.Value,
             ContainerRegistryId: null);
-        _containerAppRepository.AddAsync(Arg.Any<ContainerApp>())
-            .Returns(callInfo => Task.FromResult((ContainerApp)callInfo.Args()[0]));
+        _containerAppRepository.Add(Arg.Any<ContainerApp>())
+            .Returns(callInfo => (ContainerApp)callInfo.Args()[0]);
         _sut = new CreateContainerAppCommandHandler(
             _containerAppRepository, _environmentRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -74,7 +73,7 @@ public sealed class CreateContainerAppCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _containerAppRepository.DidNotReceive().AddAsync(Arg.Any<ContainerApp>());
+        _containerAppRepository.DidNotReceive().Add(Arg.Any<ContainerApp>());
     }
 
     [Fact]
@@ -94,7 +93,7 @@ public sealed class CreateContainerAppCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _containerAppRepository.DidNotReceive().AddAsync(Arg.Any<ContainerApp>());
+        _containerAppRepository.DidNotReceive().Add(Arg.Any<ContainerApp>());
     }
 
     [Fact]
@@ -113,10 +112,37 @@ public sealed class CreateContainerAppCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _containerAppRepository.Received(1).AddAsync(Arg.Is<ContainerApp>(c =>
+        _containerAppRepository.Received(1).Add(Arg.Is<ContainerApp>(c =>
             c.ResourceGroupId == _resourceGroup.Id
             && c.Name.Value == ContainerAppName
             && c.ContainerAppEnvironmentId == _environment.Id));
         _mapper.Received(1).Map<ContainerAppResult>(Arg.Any<ContainerApp>());
+    }
+
+    [Fact]
+    public async Task Given_ValidatedDockerImage_When_Handle_Then_PersistsValidatedContainerImageAsync()
+    {
+        // Arrange
+        var command = _command with
+        {
+            DockerImageName = "registry.azurecr.io/apps/shared",
+            DockerImageValidated = true,
+        };
+
+        _resourceGroupRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_resourceGroup);
+        _accessService.VerifyWriteAccessAsync(_config.Id, Arg.Any<CancellationToken>())
+            .Returns(_config);
+        _environmentRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_environment);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        _containerAppRepository.Received(1).Add(Arg.Is<ContainerApp>(containerApp =>
+            containerApp.DockerImageName == "registry.azurecr.io/apps/shared"
+            && containerApp.DockerImageValidated));
     }
 }

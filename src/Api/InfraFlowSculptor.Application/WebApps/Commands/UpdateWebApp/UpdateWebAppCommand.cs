@@ -1,5 +1,4 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
-using ErrorOr;
 using InfraFlowSculptor.Application.WebApps.Common;
 using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
@@ -20,11 +19,13 @@ public record UpdateWebAppCommand(
     string DeploymentMode,
     Guid? ContainerRegistryId,
     string? AcrAuthMode,
+    Guid? AcrPullIdentityId,
     string? DockerImageName,
+    bool DockerImageValidated = false,
     string? DockerfilePath = null,
     string? SourceCodePath = null,
     string? BuildCommand = null,
     string? ApplicationName = null,
     IReadOnlyList<WebAppEnvironmentConfigData>? EnvironmentSettings = null,
     PipelineStepOptionsDto? PipelineStepOptions = null
-) : ICommand<WebAppResult>;
+) : ICommand<WebAppResult>, IWebAppCommandProperties;

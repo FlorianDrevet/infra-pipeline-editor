@@ -33,9 +33,9 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button (click)="cancel()">
+  <app-ds-button variant="ghost" (clicked)="cancel()">
     {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.CANCEL' | translate }}
-  </button>
+  </app-ds-button>
   <app-ds-button variant="danger" (clicked)="confirm()">
     {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.CONFIRM_DELETE' | translate }}
   </app-ds-button>

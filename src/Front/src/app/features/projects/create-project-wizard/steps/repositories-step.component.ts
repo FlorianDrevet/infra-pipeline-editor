@@ -21,8 +21,6 @@ import {
   RepositoryDraft,
 } from '../create-project-wizard.types';
 
-const ALIAS_PATTERN = /^[a-z0-9-]+$/;
-
 interface RepoCardLabel {
   index: number;
   titleKey: string;
@@ -100,7 +98,7 @@ export class RepositoriesStepComponent {
       return false;
     }
     return repos.every(
-      (repo) => ALIAS_PATTERN.test(repo.alias) && !this.connectionPartial(repo),
+      (repo) => !this.connectionPartial(repo),
     );
   });
 
@@ -121,13 +119,6 @@ export class RepositoriesStepComponent {
       );
       return { ...d, repositories: next };
     });
-  }
-
-  protected aliasError(repo: RepositoryDraft): string | undefined {
-    if (!repo.alias) {
-      return undefined;
-    }
-    return ALIAS_PATTERN.test(repo.alias) ? undefined : 'PROJECT_CREATE.STEP.REPOSITORIES.ALIAS_HINT';
   }
 
   protected connectionPartial(repo: RepositoryDraft): boolean {

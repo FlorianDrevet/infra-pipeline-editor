@@ -44,7 +44,6 @@
       <div class="detail-header__info">
         <span class="eyebrow">{{ 'CONFIG_DETAIL.HEADER.OVERLINE' | translate }}</span>
         <h1>{{ config()!.name }}</h1>
-        <p class="detail-header__id">{{ config()!.id }}</p>
       </div>
     </section>
 
@@ -52,7 +51,7 @@
       <app-config-detail-generation-section [viewModel]="generationViewModel" />
     }
 
-    <mat-tab-group class="config-tabs" animationDuration="200ms" (selectedTabChange)="onTabChange($event.index)">
+    <mat-tab-group class="config-tabs" animationDuration="200ms" [selectedIndex]="selectedTabIndex()" (selectedTabChange)="onTabChange($event.index)">
       <!-- Resource Groups -->
       <mat-tab>
         <ng-template mat-tab-label>

@@ -32,7 +32,7 @@ public sealed class ReleasePipelineStage : IInfraPipelineStage
         sb.AppendLine("resources:");
         sb.AppendLine("  pipelines:");
         sb.AppendLine("    - pipeline: ci");
-        sb.AppendLine($"      source: '{configName} - CI'");
+        sb.AppendLine($"      source: '{AzureDevOpsPipelineNameHelper.BuildInfrastructureCiName(configName)}'");
         sb.AppendLine("      trigger: none");
         sb.AppendLine();
 

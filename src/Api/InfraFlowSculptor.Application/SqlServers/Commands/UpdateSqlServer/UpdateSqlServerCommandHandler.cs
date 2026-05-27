@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.SqlServers.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.SqlServerAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.SqlServers.Commands.UpdateSqlServer;
 
@@ -45,7 +44,7 @@ public class UpdateSqlServerCommandHandler(
                     .Select(ec => (ec.EnvironmentName, ec.MinimalTlsVersion))
                     .ToList());
 
-        var updated = await sqlServerRepository.UpdateAsync(server);
+        var updated = sqlServerRepository.Update(server);
 
         return mapper.Map<SqlServerResult>(updated);
     }

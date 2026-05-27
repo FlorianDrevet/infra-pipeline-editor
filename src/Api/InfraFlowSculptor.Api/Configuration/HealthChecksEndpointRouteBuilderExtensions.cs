@@ -1,7 +1,5 @@
 using InfraFlowSculptor.Api.RateLimiting;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Routing;
 
 namespace InfraFlowSculptor.Api.Configuration;
 
@@ -26,9 +24,9 @@ public static class HealthChecksEndpointRouteBuilderExtensions
             .RequireRateLimiting(RateLimitingPolicyNames.HealthChecks);
 
         endpointRouteBuilder.MapHealthChecks(LivenessEndpointPattern, new HealthCheckOptions
-            {
-                Predicate = registration => registration.Tags.Contains("live"),
-            })
+        {
+            Predicate = registration => registration.Tags.Contains("live"),
+        })
             .RequireRateLimiting(RateLimitingPolicyNames.HealthChecks);
 
         return endpointRouteBuilder;

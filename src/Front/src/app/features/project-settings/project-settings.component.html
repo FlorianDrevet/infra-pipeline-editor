@@ -1,0 +1,123 @@
+<div class="settings-page">
+  @if (isLoading()) {
+    <div class="state-card state-card--loading" aria-live="polite">
+      <div class="pulse-dot"></div>
+      <div>
+        <strong>{{ 'PROJECT_SETTINGS.STATE.LOADING' | translate }}</strong>
+      </div>
+    </div>
+  } @else if (loadError()) {
+    <div class="state-card state-card--error" role="alert" aria-live="assertive">
+      <strong>{{ loadError() | translate }}</strong>
+      <a class="ghost-button" routerLink="/">{{ 'PROJECT_SETTINGS.ACTIONS.BACK' | translate }}</a>
+    </div>
+  } @else if (project()) {
+    <!-- Page Header -->
+    <header class="settings-header">
+      <h1 class="settings-header__title">
+        <mat-icon class="settings-header__icon">tune</mat-icon>
+        {{ 'PROJECT_SETTINGS.TITLE' | translate }}
+      </h1>
+      <p class="settings-header__subtitle">{{ 'PROJECT_SETTINGS.SUBTITLE' | translate: { project: project()!.name } }}</p>
+    </header>
+
+    <div class="settings-content">
+      <!-- Agent Pool Section -->
+      <section class="settings-card">
+        <div class="settings-card__header">
+          <mat-icon class="settings-card__icon">dns</mat-icon>
+          <div class="settings-card__title-block">
+            <h2 class="settings-card__title">{{ 'PROJECT_SETTINGS.AGENT_POOL.TITLE' | translate }}</h2>
+            <p class="settings-card__description">{{ 'PROJECT_SETTINGS.AGENT_POOL.DESCRIPTION' | translate }}</p>
+          </div>
+        </div>
+
+        <div class="settings-card__body">
+          <div class="agent-pool-form">
+            <app-ds-toggle
+              [ngModel]="useCustomPool()"
+              (ngModelChange)="onCustomPoolToggle($event)"
+              [disabled]="agentPoolLoading() || !canWrite()"
+              [label]="'PROJECT_SETTINGS.AGENT_POOL.USE_CUSTOM' | translate"
+              labelPosition="before">
+            </app-ds-toggle>
+
+            @if (useCustomPool()) {
+              <app-ds-text-field
+                class="pool-name-field"
+                [label]="'PROJECT_SETTINGS.AGENT_POOL.POOL_NAME' | translate"
+                [hint]="'PROJECT_SETTINGS.AGENT_POOL.POOL_HINT' | translate"
+                [ngModel]="agentPoolName() ?? ''"
+                (ngModelChange)="agentPoolName.set($event)"
+                [disabled]="agentPoolLoading() || !canWrite()" />
+            }
+
+            @if (isAgentPoolDirty() && canWrite()) {
+              <div class="agent-pool-actions">
+                <app-ds-button
+                  variant="primary"
+                  [loading]="agentPoolLoading()"
+                  (clicked)="saveAgentPool()">
+                  {{ 'PROJECT_SETTINGS.AGENT_POOL.SAVE' | translate }}
+                </app-ds-button>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- Future Settings — Placeholder cards -->
+      <section class="settings-card settings-card--upcoming">
+        <div class="settings-card__header">
+          <mat-icon class="settings-card__icon">notifications</mat-icon>
+          <div class="settings-card__title-block">
+            <h2 class="settings-card__title">{{ 'PROJECT_SETTINGS.NOTIFICATIONS.TITLE' | translate }}</h2>
+            <p class="settings-card__description">{{ 'PROJECT_SETTINGS.NOTIFICATIONS.DESCRIPTION' | translate }}</p>
+          </div>
+        </div>
+        <div class="settings-card__body settings-card__body--upcoming">
+          <span class="upcoming-badge">{{ 'PROJECT_SETTINGS.UPCOMING' | translate }}</span>
+        </div>
+      </section>
+
+      <section class="settings-card settings-card--upcoming">
+        <div class="settings-card__header">
+          <mat-icon class="settings-card__icon">auto_mode</mat-icon>
+          <div class="settings-card__title-block">
+            <h2 class="settings-card__title">{{ 'PROJECT_SETTINGS.AUTO_GENERATION.TITLE' | translate }}</h2>
+            <p class="settings-card__description">{{ 'PROJECT_SETTINGS.AUTO_GENERATION.DESCRIPTION' | translate }}</p>
+          </div>
+        </div>
+        <div class="settings-card__body settings-card__body--upcoming">
+          <span class="upcoming-badge">{{ 'PROJECT_SETTINGS.UPCOMING' | translate }}</span>
+        </div>
+      </section>
+
+      <section class="settings-card settings-card--upcoming">
+        <div class="settings-card__header">
+          <mat-icon class="settings-card__icon">delete_sweep</mat-icon>
+          <div class="settings-card__title-block">
+            <h2 class="settings-card__title">{{ 'PROJECT_SETTINGS.RETENTION.TITLE' | translate }}</h2>
+            <p class="settings-card__description">{{ 'PROJECT_SETTINGS.RETENTION.DESCRIPTION' | translate }}</p>
+          </div>
+        </div>
+        <div class="settings-card__body settings-card__body--upcoming">
+          <span class="upcoming-badge">{{ 'PROJECT_SETTINGS.UPCOMING' | translate }}</span>
+        </div>
+      </section>
+
+      <section class="settings-card settings-card--upcoming">
+        <div class="settings-card__header">
+          <mat-icon class="settings-card__icon">vpn_key</mat-icon>
+          <div class="settings-card__title-block">
+            <h2 class="settings-card__title">{{ 'PROJECT_SETTINGS.SERVICE_CONNECTIONS.TITLE' | translate }}</h2>
+            <p class="settings-card__description">{{ 'PROJECT_SETTINGS.SERVICE_CONNECTIONS.DESCRIPTION' | translate }}</p>
+          </div>
+        </div>
+        <div class="settings-card__body settings-card__body--upcoming">
+          <span class="upcoming-badge">{{ 'PROJECT_SETTINGS.UPCOMING' | translate }}</span>
+        </div>
+      </section>
+    </div>
+  }
+</div>

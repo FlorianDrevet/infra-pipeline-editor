@@ -1,5 +1,4 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
-using ErrorOr;
 using InfraFlowSculptor.Application.FunctionApps.Common;
 using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
@@ -19,7 +18,9 @@ public record UpdateFunctionAppCommand(
     string DeploymentMode,
     Guid? ContainerRegistryId,
     string? AcrAuthMode,
+    Guid? AcrPullIdentityId,
     string? DockerImageName,
+    bool DockerImageValidated = false,
     string? DockerfilePath = null,
     string? SourceCodePath = null,
     string? BuildCommand = null,

@@ -20,6 +20,12 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Scalar.AspNetCore" />
+        <PackageReference Include="Azure.Identity" />
+        <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="InfraFlowSculptor.Api.Tests" />
     </ItemGroup>
 
     <ItemGroup>

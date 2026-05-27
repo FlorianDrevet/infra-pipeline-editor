@@ -65,11 +65,11 @@ export interface EnvironmentSetupRequest {
 }
 
 export interface RepositorySetupRequest {
-  alias: string;
   contentKinds: string[];
   providerType?: 'GitHub' | 'AzureDevOps';
   repositoryUrl?: string;
   defaultBranch?: string;
+  personalAccessToken?: string;
 }
 
 export interface CreateProjectWithSetupRequest {
@@ -135,6 +135,10 @@ export interface TestGitConnectionResponse {
   errorMessage?: string | null;
 }
 
+export interface SetProjectGitPatRequest {
+  personalAccessToken: string;
+}
+
 export interface GitBranchResponse {
   name: string;
   isProtected: boolean;
@@ -169,6 +173,33 @@ export interface GenerateProjectBootstrapPipelineResponse {
   /** Bootstrap files targeted at the infra-flagged repository (no `infra/` prefix). */
   infraFileUris: Record<string, string>;
   /** Bootstrap files targeted at the application-code repository (no `app/` prefix). Empty in AllInOne. */
+  appFileUris: Record<string, string>;
+}
+
+export interface GetProjectLatestGenerationResponse {
+  bicep: LatestBicepGenerationResponse | null;
+  pipeline: LatestPipelineGenerationResponse | null;
+  bootstrap: LatestBootstrapGenerationResponse | null;
+  generatedAt: string | null;
+}
+
+export interface LatestBicepGenerationResponse {
+  commonFileUris: Record<string, string>;
+  configFileUris: Record<string, Record<string, string>>;
+}
+
+export interface LatestPipelineGenerationResponse {
+  commonFileUris: Record<string, string>;
+  configFileUris: Record<string, Record<string, string>>;
+  infraCommonFileUris: Record<string, string>;
+  appCommonFileUris: Record<string, string>;
+  infraConfigFileUris: Record<string, Record<string, string>>;
+  appConfigFileUris: Record<string, Record<string, string>>;
+}
+
+export interface LatestBootstrapGenerationResponse {
+  fileUris: Record<string, string>;
+  infraFileUris: Record<string, string>;
   appFileUris: Record<string, string>;
 }
 

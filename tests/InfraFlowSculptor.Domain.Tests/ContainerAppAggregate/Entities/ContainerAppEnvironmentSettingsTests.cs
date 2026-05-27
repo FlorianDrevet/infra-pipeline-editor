@@ -1,12 +1,14 @@
 using FluentAssertions;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate.Entities;
+using InfraFlowSculptor.Domain.ContainerAppAggregate.Models;
 
 namespace InfraFlowSculptor.Domain.Tests.ContainerAppAggregate.Entities;
 
 public sealed class ContainerAppEnvironmentSettingsTests
 {
     private const string EnvironmentName = "prod";
+    private const string ContainerRegistryServiceConnection = "ifs-prod-acr-sc";
 
     [Fact]
     public void Given_FactoryArguments_When_Create_Then_InitializesProperties()
@@ -17,21 +19,23 @@ public sealed class ContainerAppEnvironmentSettingsTests
         // Act
         var sut = ContainerAppEnvironmentSettings.Create(
             containerAppId,
-            EnvironmentName,
-            cpuCores: "0.5",
-            memoryGi: "1.0Gi",
-            minReplicas: 1,
-            maxReplicas: 3,
-            ingressEnabled: true,
-            ingressTargetPort: 80,
-            ingressExternal: true,
-            transportMethod: "http",
-            readinessProbePath: "/ready",
-            readinessProbePort: 8080,
-            livenessProbePath: "/live",
-            livenessProbePort: 8081,
-            startupProbePath: "/startup",
-            startupProbePort: 8082);
+            new ContainerAppEnvironmentSettingsData(
+                EnvironmentName,
+                CpuCores: "0.5",
+                MemoryGi: "1.0Gi",
+                MinReplicas: 1,
+                MaxReplicas: 3,
+                IngressEnabled: true,
+                IngressTargetPort: 80,
+                IngressExternal: true,
+                TransportMethod: "http",
+                ReadinessProbePath: "/ready",
+                ReadinessProbePort: 8080,
+                LivenessProbePath: "/live",
+                LivenessProbePort: 8081,
+                StartupProbePath: "/startup",
+                StartupProbePort: 8082,
+                ContainerRegistryServiceConnection: ContainerRegistryServiceConnection));
 
         // Assert
         sut.ContainerAppId.Should().Be(containerAppId);
@@ -50,6 +54,7 @@ public sealed class ContainerAppEnvironmentSettingsTests
         sut.LivenessProbePort.Should().Be(8081);
         sut.StartupProbePath.Should().Be("/startup");
         sut.StartupProbePort.Should().Be(8082);
+        sut.ContainerRegistryServiceConnection.Should().Be(ContainerRegistryServiceConnection);
     }
 
     [Fact]
@@ -57,19 +62,35 @@ public sealed class ContainerAppEnvironmentSettingsTests
     {
         // Arrange
         var sut = ContainerAppEnvironmentSettings.Create(
-            AzureResourceId.CreateUnique(), EnvironmentName,
-            cpuCores: "0.25", memoryGi: "0.5Gi", minReplicas: 0, maxReplicas: 1,
-            ingressEnabled: false, ingressTargetPort: null, ingressExternal: false,
-            transportMethod: "auto");
+            AzureResourceId.CreateUnique(),
+            new ContainerAppEnvironmentSettingsData(
+                EnvironmentName,
+                CpuCores: "0.25",
+                MemoryGi: "0.5Gi",
+                MinReplicas: 0,
+                MaxReplicas: 1,
+                IngressEnabled: false,
+                IngressExternal: false,
+                TransportMethod: "auto"));
 
         // Act
-        sut.Update(
-            cpuCores: "1.0", memoryGi: "2.0Gi", minReplicas: 2, maxReplicas: 10,
-            ingressEnabled: true, ingressTargetPort: 8080, ingressExternal: true,
-            transportMethod: "http2",
-            readinessProbePath: "/healthz/ready", readinessProbePort: 9000,
-            livenessProbePath: "/healthz/live", livenessProbePort: 9001,
-            startupProbePath: "/healthz/startup", startupProbePort: 9002);
+        sut.Update(new ContainerAppEnvironmentSettingsData(
+            EnvironmentName,
+            CpuCores: "1.0",
+            MemoryGi: "2.0Gi",
+            MinReplicas: 2,
+            MaxReplicas: 10,
+            IngressEnabled: true,
+            IngressTargetPort: 8080,
+            IngressExternal: true,
+            TransportMethod: "http2",
+            ReadinessProbePath: "/healthz/ready",
+            ReadinessProbePort: 9000,
+            LivenessProbePath: "/healthz/live",
+            LivenessProbePort: 9001,
+            StartupProbePath: "/healthz/startup",
+            StartupProbePort: 9002,
+            ContainerRegistryServiceConnection: ContainerRegistryServiceConnection));
 
         // Assert
         sut.CpuCores.Should().Be("1.0");
@@ -86,6 +107,24 @@ public sealed class ContainerAppEnvironmentSettingsTests
         sut.LivenessProbePort.Should().Be(9001);
         sut.StartupProbePath.Should().Be("/healthz/startup");
         sut.StartupProbePort.Should().Be(9002);
+        sut.ContainerRegistryServiceConnection.Should().Be(ContainerRegistryServiceConnection);
+    }
+
+    [Fact]
+    public void Given_PipelineOnlyServiceConnection_When_ToDictionary_Then_DoesNotExposeItAsBicepOverride()
+    {
+        // Arrange
+        var sut = ContainerAppEnvironmentSettings.Create(
+            AzureResourceId.CreateUnique(),
+            new ContainerAppEnvironmentSettingsData(
+                EnvironmentName,
+                ContainerRegistryServiceConnection: ContainerRegistryServiceConnection));
+
+        // Act
+        var dict = sut.ToDictionary();
+
+        // Assert
+        dict.Should().BeEmpty();
     }
 
     [Fact]
@@ -93,10 +132,8 @@ public sealed class ContainerAppEnvironmentSettingsTests
     {
         // Arrange
         var sut = ContainerAppEnvironmentSettings.Create(
-            AzureResourceId.CreateUnique(), EnvironmentName,
-            cpuCores: null, memoryGi: null, minReplicas: null, maxReplicas: null,
-            ingressEnabled: null, ingressTargetPort: null, ingressExternal: null,
-            transportMethod: null);
+            AzureResourceId.CreateUnique(),
+            new ContainerAppEnvironmentSettingsData(EnvironmentName));
 
         // Act
         var dict = sut.ToDictionary();
@@ -110,13 +147,23 @@ public sealed class ContainerAppEnvironmentSettingsTests
     {
         // Arrange
         var sut = ContainerAppEnvironmentSettings.Create(
-            AzureResourceId.CreateUnique(), EnvironmentName,
-            cpuCores: "0.5", memoryGi: "1Gi", minReplicas: 1, maxReplicas: 3,
-            ingressEnabled: true, ingressTargetPort: 80, ingressExternal: false,
-            transportMethod: "http",
-            readinessProbePath: "/ready", readinessProbePort: 8080,
-            livenessProbePath: "/live", livenessProbePort: 8081,
-            startupProbePath: "/startup", startupProbePort: 8082);
+            AzureResourceId.CreateUnique(),
+            new ContainerAppEnvironmentSettingsData(
+                EnvironmentName,
+                CpuCores: "0.5",
+                MemoryGi: "1Gi",
+                MinReplicas: 1,
+                MaxReplicas: 3,
+                IngressEnabled: true,
+                IngressTargetPort: 80,
+                IngressExternal: false,
+                TransportMethod: "http",
+                ReadinessProbePath: "/ready",
+                ReadinessProbePort: 8080,
+                LivenessProbePath: "/live",
+                LivenessProbePort: 8081,
+                StartupProbePath: "/startup",
+                StartupProbePort: 8082));
 
         // Act
         var dict = sut.ToDictionary();

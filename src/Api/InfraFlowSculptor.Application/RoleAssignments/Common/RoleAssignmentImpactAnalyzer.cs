@@ -57,7 +57,7 @@ public sealed class RoleAssignmentImpactAnalyzer(
         string sourceType,
         string targetName,
         string targetType,
-        List<RoleAssignmentImpactItem> impacts)
+        List<RoleAssignmentImpactItem> impacts) // NOSONAR S107
     {
         if (roleAssignment.RoleDefinitionId != AzureRoleDefinitionCatalog.AcrPull)
             return;
@@ -94,7 +94,7 @@ public sealed class RoleAssignmentImpactAnalyzer(
         string targetName,
         string targetType,
         List<RoleAssignmentImpactItem> impacts,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken) // NOSONAR S107
     {
         if (!AzureRoleDefinitionCatalog.KeyVaultSecretsAccessRoles.Contains(roleAssignment.RoleDefinitionId))
             return;

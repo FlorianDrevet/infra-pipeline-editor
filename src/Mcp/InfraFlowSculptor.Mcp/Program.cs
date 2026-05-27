@@ -8,13 +8,15 @@ using InfraFlowSculptor.Mcp.Prompts;
 using InfraFlowSculptor.Mcp.RateLimiting;
 using InfraFlowSculptor.Mcp.Resources;
 using InfraFlowSculptor.Mcp.Tools;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Mapster;
+using MapsterMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var mcpOptionsSection = builder.Configuration.GetSection(McpOptions.SectionName);
 builder.Services.Configure<McpOptions>(mcpOptionsSection);
 builder.Services.Configure<ProjectDraftStorageOptions>(builder.Configuration.GetSection(ProjectDraftStorageOptions.SectionName));
+builder.Services.Configure<ImportPreviewStorageOptions>(builder.Configuration.GetSection(ImportPreviewStorageOptions.SectionName));
 
 var mcpOptions = mcpOptionsSection.Get<McpOptions>() ?? new McpOptions();
 builder.WebHost.UseUrls(mcpOptions.ListenUrl);
@@ -32,6 +34,14 @@ builder.Services
     .WithTools<DiscoveryTools>()
     .WithTools<ProjectDraftTools>()
     .WithTools<ProjectCreationTools>()
+    .WithTools<ProjectManagementTools>()
+    .WithTools<InfrastructureTools>()
+    .WithTools<ResourceCreationTools>()
+    .WithTools<ResourceConfigurationTools>()
+    .WithTools<RoleAssignmentTools>()
+    .WithTools<AppSettingsTools>()
+    .WithTools<SubResourceTools>()
+    .WithTools<NamingTools>()
     .WithTools<BicepGenerationTools>()
     .WithTools<IacImportTools>()
     .WithResources<ProjectResources>()
@@ -44,15 +54,17 @@ builder.Services
     .AddPatAuthentication()
     .AddMcpRateLimiting();
 
+var mapsterConfig = TypeAdapterConfig.GlobalSettings;
+mapsterConfig.Default.PreserveReference(true);
+mapsterConfig.Compile();
+builder.Services.AddSingleton(mapsterConfig);
+builder.Services.AddScoped<IMapper, ServiceMapper>();
+
 var app = builder.Build();
 
 app.UseMcpHttpPipeline();
 
-app.MapHealthChecks("/health").AllowAnonymous();
-app.MapHealthChecks("/alive", new HealthCheckOptions
-{
-    Predicate = registration => registration.Tags.Contains("live")
-}).AllowAnonymous();
+app.MapMcpHealthChecks();
 app.MapMcp(mcpOptions.Route)
     .RequireAuthorization()
     .RequireRateLimiting(RateLimitingPolicyNames.Expensive);

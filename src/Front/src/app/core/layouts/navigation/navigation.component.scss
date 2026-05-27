@@ -161,6 +161,33 @@
   height: 20px;
 }
 
+.topbar__settings {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--ifs-radius-sm);
+  color: var(--ifs-text-muted);
+  text-decoration: none;
+  transition: color var(--ifs-duration-fast) var(--ifs-ease-standard);
+}
+
+.topbar__settings:hover {
+  color: var(--ifs-text-primary);
+}
+
+.topbar__settings:focus-visible {
+  outline: none;
+  box-shadow: var(--ifs-focus-ring);
+}
+
+.topbar__settings-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
 .topbar__logout {
   flex-shrink: 0;
 }
@@ -169,7 +196,9 @@
 .language-switch {
   display: inline-flex;
   align-items: stretch;
+  margin: 0;
   padding: 2px;
+  min-inline-size: 0;
   background: var(--ifs-surface-2);
   border: 1px solid var(--ifs-border-subtle);
   border-radius: var(--ifs-radius-md);

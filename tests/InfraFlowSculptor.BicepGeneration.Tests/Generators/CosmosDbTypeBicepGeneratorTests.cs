@@ -13,14 +13,14 @@ public sealed class CosmosDbTypeBicepGeneratorTests
 
     private static ResourceDefinition CreateResource(
         Dictionary<string, string>? properties = null) => new()
-    {
-        ResourceId = Guid.NewGuid(),
-        Name = "my-cosmos",
-        Type = AzureResourceTypes.ArmTypes.CosmosDbType,
-        ResourceGroupName = "rg-test",
-        ResourceAbbreviation = "cosmos",
-        Properties = properties ?? new Dictionary<string, string>(),
-    };
+        {
+            ResourceId = Guid.NewGuid(),
+            Name = "my-cosmos",
+            Type = AzureResourceTypes.ArmTypes.CosmosDbType,
+            ResourceGroupName = "rg-test",
+            ResourceAbbreviation = "cosmos",
+            Properties = properties ?? new Dictionary<string, string>(),
+        };
 
     // ── Interface contracts ──
 

@@ -1,5 +1,4 @@
 using InfraFlowSculptor.BicepGeneration.Helpers;
-using InfraFlowSculptor.GenerationCore.Models;
 
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 
@@ -14,6 +13,8 @@ namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 /// </remarks>
 public sealed class IdentityAnalysisStage : IBicepGenerationStage
 {
+    private const string AcrPullIdentityIdPropertyName = "acrPullIdentityId";
+
     /// <inheritdoc />
     public int Order => 100;
 
@@ -55,6 +56,9 @@ public sealed class IdentityAnalysisStage : IBicepGenerationStage
             }
         }
 
+        // Resources with an ACR pull identity also need that UAI in their identity block.
+        AddAcrPullIdentityResources(request.Resources, userIdentityResources);
+
         var identityKindsByArmType = ComputeIdentityKindsByArmType(
             request.Resources, systemIdentityResources, userIdentityResources);
 
@@ -67,6 +71,42 @@ public sealed class IdentityAnalysisStage : IBicepGenerationStage
             systemIdentityResources,
             userIdentityResources,
             mixedIdentityArmTypes);
+    }
+
+    private static void AddAcrPullIdentityResources(
+        IEnumerable<ResourceDefinition> resources,
+        Dictionary<(string Name, string Type), List<string>> userIdentityResources)
+    {
+        var allResources = resources as IReadOnlyList<ResourceDefinition> ?? resources.ToList();
+        var uaiLookup = allResources
+            .Where(r => r.Type == "Microsoft.ManagedIdentity/userAssignedIdentities")
+            .ToDictionary(r => r.ResourceId, r => r.Name);
+
+        foreach (var resource in allResources)
+        {
+            if (!resource.Properties.TryGetValue(AcrPullIdentityIdPropertyName, out var acrPullIdStr)
+                || string.IsNullOrEmpty(acrPullIdStr)
+                || !Guid.TryParse(acrPullIdStr, out var acrPullId))
+            {
+                continue;
+            }
+
+            if (!uaiLookup.TryGetValue(acrPullId, out var uaiName))
+                continue;
+
+            var key = (resource.Name, resource.Type);
+            var uaiBicepId = BicepIdentifierHelper.ToBicepIdentifier(uaiName);
+
+            if (userIdentityResources.TryGetValue(key, out var existingList))
+            {
+                if (!existingList.Contains(uaiBicepId, StringComparer.OrdinalIgnoreCase))
+                    existingList.Add(uaiBicepId);
+            }
+            else
+            {
+                userIdentityResources[key] = [uaiBicepId];
+            }
+        }
     }
 
     private static Dictionary<string, HashSet<string>> ComputeIdentityKindsByArmType(

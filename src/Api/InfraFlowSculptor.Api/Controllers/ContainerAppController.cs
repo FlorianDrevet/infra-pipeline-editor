@@ -7,7 +7,6 @@ using InfraFlowSculptor.Contracts.ContainerApps.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MediatR;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
@@ -23,7 +22,7 @@ public static class ContainerAppController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/container-app")
+            var group = endpoints.MapGroup(Routes.ContainerApp)
                 .WithTags("Container Apps");
 
             group.MapGet("/{id:guid}",

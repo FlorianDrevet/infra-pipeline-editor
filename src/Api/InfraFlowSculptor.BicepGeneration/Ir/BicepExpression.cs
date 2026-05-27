@@ -4,7 +4,7 @@ namespace InfraFlowSculptor.BicepGeneration.Ir;
 /// Base type for Bicep expressions in the IR. Each subclass represents a different
 /// syntactic form in Bicep (literal, reference, interpolation, function call, etc.).
 /// </summary>
-public abstract record BicepExpression;
+public abstract record BicepExpression; // NOSONAR S2094 — intentional empty base for sealed record hierarchy
 
 /// <summary>Bicep string literal (e.g. <c>'hello'</c>).</summary>
 public sealed record BicepStringLiteral(string Value) : BicepExpression;

@@ -57,6 +57,7 @@ public sealed class BootstrapPipelineGenerationEngine
     {
         new HeaderEmissionStage(),
         new ValidateSharedResourcesJobStage(),
+        new ServiceConnectionValidationJobStage(),
         new PipelineProvisionJobStage(),
         new EnvironmentProvisionJobStage(),
         new VariableGroupProvisionJobStage(),

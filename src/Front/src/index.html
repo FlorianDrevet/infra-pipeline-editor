@@ -2,14 +2,14 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>InfraFlowSculptor</title>
+  <title>Infra Flow Sculptor</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0b0d10">
-  <link rel="icon" type="image/svg+xml" sizes="any" href="ifs-favicon.svg?v=20260422-2">
-  <link rel="icon" type="image/png" sizes="32x32" href="ifs-favicon.png?v=20260422-2">
-  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=20260422-2">
+  <link rel="icon" type="image/svg+xml" sizes="any" href="ifs-favicon.svg?v=20260516">
+  <link rel="icon" type="image/png" sizes="32x32" href="ifs-favicon.png?v=20260516">
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=20260516">
 
   <!--
     UI Refresh 2026-05 — Inter is self-hosted via @fontsource-variable/inter
@@ -36,6 +36,21 @@
 
 </head>
 <body>
+  <script>
+    // Apply persisted theme immediately to avoid FOUC.
+    (function() {
+      try {
+        var prefs = JSON.parse(localStorage.getItem('infra-flow-sculptor.user-preferences') || '{}');
+        if (prefs.appTheme === 'light') {
+          document.documentElement.dataset.theme = 'light';
+          document.querySelector('meta[name="color-scheme"]').content = 'light';
+          document.querySelector('meta[name="theme-color"]').content = '#f4f6f9';
+        }
+      } catch(e) {
+        // Ignore localStorage access errors (private browsing, corrupted data)
+      }
+    })();
+  </script>
   <app-root></app-root>
 </body>
 </html>

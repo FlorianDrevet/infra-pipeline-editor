@@ -12,6 +12,242 @@
 - **P2 — Important** : Code infrastructure/services non testé, impact modéré (repositories, mappers, transformers)
 - **P3 — Souhaitable** : Code utilitaire ou configuration non testé, impact faible (extensions, options, helpers)
 
+## Incremental Entries
+
+- [2026-05-18] **P2 — Infrastructure / KeyVaultSecretClient**: `tests/InfraFlowSculptor.Infrastructure.Tests/Services/KeyVault/KeyVaultSecretClientTests.cs` now covers PAT write failure mapping in `SetSecretAsync(...)` and PAT read failure logging in `GetSecretAsync(...)`; `DeleteSecretAsync(...)` still lacks a focused regression test for exception logging and error mapping.
+
+---
+
+## Audit complet — 2026-05-17
+
+### État actuel de la suite de tests
+
+| Projet de tests | Tests réussis | Ignorés | Échoués | Fichiers tests | Fichiers source | Ratio |
+|-----------------|--------------|---------|---------|----------------|-----------------|-------|
+| Domain.Tests | 670 | 0 | 0 | 92 | 254 | 36% |
+| Application.Tests | 444 | 0 | 0 | 162 | 855 | 19% |
+| BicepGeneration.Tests | 888 | 0 | 0 | 48 | 115 | 42% |
+| PipelineGeneration.Tests | 98 | 0 | 0 | 25 | 49 | 51% |
+| Infrastructure.Tests | 79 | 9 | 0 | 17 | 297 | 6% |
+| Contracts.Tests | 321 | 0 | 0 | 57 | 206 | 28% |
+| Api.Tests | 32 | 0 | 0 | 10 | 127 | 8% |
+| GenerationCore.Tests | 99 | 0 | 0 | 9 | 24 | 38% |
+| Mcp.Tests | 90 | 0 | 0 | 15 | 49 | 31% |
+| **TOTAL** | **2,721** | **9** | **0** | **435** | **1,976** | **22%** |
+
+### Cibles Stryker
+
+- **Mutation score cible :** ≥ 80% par projet de tests
+- **Qualité des assertions :** AAA strict, FluentAssertions, assertions multiples par test, edge cases
+- **Patterns obligatoires :** `Given_When_Then`, `_sut`, `InlineData`/`MemberData` pour combinatoires
+
+---
+
+## Plan de résorption en 4 phases
+
+> Chaque phase = 1 session d'agent longue. Objectif : dette 0 en 4 sessions.
+> Les tests doivent être résistants à Stryker (pas de tests théâtre).
+
+### Phase 1 — Fondation (Domain + GenerationCore + Contracts)
+**Pré-requis de toutes les autres phases. Verrouille le socle.**
+
+| Cible | Travail | Tests estimés |
+|-------|---------|---------------|
+| **Contracts.Tests** | Fix du test en échec + couverture des ~70 request types restants (Update*, Delete*, AppSettings, NetworkSecurityGroup, SqlServer, EventHub, ContainerApp, FrontDoor) | ~150 |
+| **Domain.Tests** | 3 agrégats manquants : `FrontDoorAggregate`, `NetworkSecurityGroupAggregate`, `PrivateDnsZoneAggregate` (invariants, factory, value objects, environment settings) | ~60 |
+| **GenerationCore.Tests** | `AzureResourceDefaults`, `KeyVaultSecretNameRules`, `PathSanitizer`, 13 models de génération (shape + invariants), 3 enums, `GenerationErrors` | ~50 |
+| **TOTAL Phase 1** | | **~260** |
+
+**Critères de succès Phase 1 :**
+- [x] 0 test en échec sur toute la solution
+- [x] 27/27 agrégats Domain couverts (FrontDoor, NetworkSecurityGroup, PrivateDnsZone ajoutés — 51 tests)
+- [x] GenerationCore : chaque classe publique a au moins 1 test (87 tests ajoutés : KeyVaultSecretNameRules, PathSanitizer, AzureResourceDefaults, GenerationErrors, DeploymentModes, AcrAuthModes)
+- [x] Contracts : tous les request types avec attributs de validation couverts (203 tests ajoutés : 15 Create + 35 Add/Update/Set/Import/Push/Check)
+- [x] `dotnet test .\InfraFlowSculptor.slnx` = 0 failure (3,725 passing, 9 skipped Infrastructure)
+
+---
+
+### Phase 2 — Validators Application (Pure logic, ROI Stryker maximum)
+**121 validators FluentValidation non testés. Pur input/output, pas de DI, plus haut taux de mutation kill.**
+
+| Scope | Validators | Tests estimés |
+|-------|-----------|---------------|
+| Azure Resources CRUD (Create/Update/Delete × 22 types) | ~80 | ~320 |
+| InfrastructureConfig (Add/Remove/Set × 12 opérations) | ~15 | ~60 |
+| Project (Add/Remove/Set/Update/Push/Download × 20 opérations) | ~20 | ~80 |
+| Misc (PAT, RoleAssignment, CustomDomain, PrivateEndpoint, SecureParam) | ~6 | ~25 |
+| **TOTAL Phase 2** | **121** | **~485** |
+
+**Détail des 121 validators non couverts :**
+
+<details>
+<summary>Liste complète (cliquer pour déplier)</summary>
+
+**AppConfiguration:** CreateAppConfigurationCommandValidator, RemoveAppConfigurationKeyCommandValidator
+**ApplicationInsights:** CreateApplicationInsightsCommandValidator, UpdateApplicationInsightsCommandValidator
+**AppServicePlan:** CreateAppServicePlanCommandValidator, UpdateAppServicePlanCommandValidator
+**AppSettings:** RemoveAppSettingCommandValidator, UpdateStaticAppSettingCommandValidator
+**ContainerAppEnvironment:** CreateContainerAppEnvironmentCommandValidator, UpdateContainerAppEnvironmentCommandValidator
+**ContainerApp:** CreateContainerAppCommandValidator, UpdateContainerAppCommandValidator
+**ContainerRegistry:** CreateContainerRegistryCommandValidator, UpdateContainerRegistryCommandValidator
+**CosmosDb:** CreateCosmosDbCommandValidator, UpdateCosmosDbCommandValidator
+**CustomDomain:** AddCustomDomainCommandValidator, RemoveCustomDomainCommandValidator, ValidateCustomDomainDnsCommandValidator
+**EventHubNamespace:** AddEventHubCommandValidator, AddEventHubConsumerGroupCommandValidator, CreateEventHubNamespaceCommandValidator, RemoveEventHubCommandValidator, RemoveEventHubConsumerGroupCommandValidator, UpdateEventHubNamespaceCommandValidator
+**FrontDoor:** CreateFrontDoorCommandValidator, DeleteFrontDoorCommandValidator, UpdateFrontDoorCommandValidator
+**FunctionApp:** CreateFunctionAppCommandValidator
+**Imports:** ApplyImportPreviewCommandValidator
+**InfrastructureConfig:** AddCrossConfigReferenceCommandValidator, DownloadBicepCommandValidator, DownloadPipelineCommandValidator, GenerateBicepCommandValidator, GeneratePipelineCommandValidator, PushBicepToGitCommandValidator, PushPipelineToGitCommandValidator, RemoveCrossConfigReferenceCommandValidator, RemoveResourceAbbreviationOverrideCommandValidator, RemoveResourceNamingTemplateCommandValidator, SetDefaultNamingTemplateCommandValidator, SetInfraConfigTagsCommandValidator, SetInheritanceCommandValidator, SetResourceAbbreviationOverrideCommandValidator, SetResourceNamingTemplateCommandValidator, NamingTemplateValidator, CheckResourceNameAvailabilityQueryValidator
+**KeyVault:** CreateKeyVaultCommandValidator, UpdateKeyVaultCommandValidator
+**LogAnalyticsWorkspace:** CreateLogAnalyticsWorkspaceCommandValidator, UpdateLogAnalyticsWorkspaceCommandValidator
+**NetworkSecurityGroup:** CreateNetworkSecurityGroupCommandValidator, DeleteNetworkSecurityGroupCommandValidator, UpdateNetworkSecurityGroupCommandValidator
+**PersonalAccessToken:** CreatePersonalAccessTokenCommandValidator
+**PrivateDnsZone:** CreatePrivateDnsZoneCommandValidator, DeletePrivateDnsZoneCommandValidator, UpdatePrivateDnsZoneCommandValidator
+**PrivateEndpoint:** AddPrivateEndpointCommandValidator, RemovePrivateEndpointCommandValidator, UpdatePrivateEndpointCommandValidator
+**Project:** AddProjectEnvironmentCommandValidator, AddProjectMemberCommandValidator, AddProjectPipelineVariableGroupCommandValidator, AddProjectRepositoryCommandValidator, DownloadProjectBicepCommandValidator, DownloadProjectBootstrapPipelineCommandValidator, DownloadProjectPipelineCommandValidator, GenerateProjectBicepCommandValidator, GenerateProjectBootstrapPipelineCommandValidator, GenerateProjectPipelineCommandValidator, PushProjectArtifactsToMultiRepoCommandValidator, PushProjectBicepToGitCommandValidator, PushProjectPipelineToGitCommandValidator, RemoveProjectEnvironmentCommandValidator, RemoveProjectMemberCommandValidator, RemoveProjectPipelineVariableGroupCommandValidator, RemoveProjectRepositoryCommandValidator, RemoveProjectResourceAbbreviationCommandValidator, RemoveProjectResourceNamingTemplateCommandValidator, SetProjectLayoutPresetCommandValidator, SetProjectTagsCommandValidator, TestGitConnectionCommandValidator, UpdateProjectEnvironmentCommandValidator, UpdateProjectMemberRoleCommandValidator, UpdateProjectRepositoryCommandValidator, SearchCodeRepoFilesQueryValidator
+**RedisCache:** CreateRedisCacheCommandValidator, UpdateRedisCacheCommandValidator
+**RoleAssignment:** AddRoleAssignmentCommandValidator, AssignIdentityToResourceCommandValidator, RemoveRoleAssignmentCommandValidator, UnassignIdentityFromResourceCommandValidator, UpdateRoleAssignmentIdentityCommandValidator, SetSecureParameterMappingCommandValidator
+**ServiceBusNamespace:** AddServiceBusQueueCommandValidator, AddServiceBusTopicSubscriptionCommandValidator, CreateServiceBusNamespaceCommandValidator, RemoveServiceBusQueueCommandValidator, RemoveServiceBusTopicSubscriptionCommandValidator, UpdateServiceBusNamespaceCommandValidator
+**SqlDatabase:** CreateSqlDatabaseCommandValidator, UpdateSqlDatabaseCommandValidator
+**SqlServer:** CreateSqlServerCommandValidator, UpdateSqlServerCommandValidator
+**StorageAccount:** AddBlobContainerCommandValidator, AddQueueCommandValidator, AddTableCommandValidator, RemoveBlobContainerCommandValidator, RemoveQueueCommandValidator, RemoveTableCommandValidator, UpdateBlobContainerPublicAccessCommandValidator, UpdateStorageAccountCommandValidator
+**UserAssignedIdentity:** CreateUserAssignedIdentityCommandValidator, UnlinkResourceFromIdentityCommandValidator, UpdateUserAssignedIdentityCommandValidator
+**VirtualNetwork:** CreateVirtualNetworkCommandValidator, DeleteVirtualNetworkCommandValidator, UpdateVirtualNetworkCommandValidator
+**WebApp:** CreateWebAppCommandValidator, UpdateWebAppCommandValidator
+
+</details>
+
+**Critères de succès Phase 2 :**
+- [x] 121/121 validators couverts (au moins happy path + chaque règle violée individuellement)
+- [x] Tests `InlineData`/`MemberData` pour les combinatoires (enum, longueur, format)
+- [x] Chaque `RuleFor` a au minimum 1 test positif + 1 test négatif
+- [x] `dotnet test .\tests\InfraFlowSculptor.Application.Tests` = 0 failure (1011 passing)
+- [ ] Stryker mutation score > 80% sur le namespace Validators
+
+**Phase 2 complétée le 2026-05-17 : +567 tests (444 → 1011 dans Application.Tests)**
+**Total solution : 3,294 tests passing, 0 failures, 9 skipped (Infrastructure pre-existing)**
+
+---
+
+### Phase 3 — Handlers Application (Logique métier)
+**128 command/query handlers non couverts. Mock des repos/services, tests des branches.**
+
+| Scope | Handlers | Tests estimés |
+|-------|----------|---------------|
+| Azure Resources Create (×15 types non couverts) | 15 | ~75 |
+| Azure Resources Update (×18 types non couverts) | 18 | ~108 |
+| Azure Resources Delete (×10 types non couverts) | 10 | ~30 |
+| Azure Resources Sub-resources (Add/Remove EventHub, Queue, Blob, etc.) | 20 | ~80 |
+| InfrastructureConfig operations (Set/Remove/Download/Push/Generate) | 18 | ~90 |
+| Project operations (Add/Remove/Set/Push/Download/Generate) | 25 | ~125 |
+| Query Handlers (Get/List/Check/Preview/Download) | 15 | ~60 |
+| Misc (PAT, RoleAssignment, CustomDomain, PrivateEndpoint, Identity) | 7 | ~35 |
+| **TOTAL Phase 3** | **128** | **~603** |
+
+**Détail des 128 handlers non couverts :**
+
+<details>
+<summary>Liste complète (cliquer pour déplier)</summary>
+
+**AppConfiguration:** CreateAppConfigurationCommandHandler, DeleteAppConfigurationCommandHandler, RemoveAppConfigurationKeyCommandHandler, UpdateAppConfigurationCommandHandler
+**ApplicationInsights:** CreateApplicationInsightsCommandHandler, DeleteApplicationInsightsCommandHandler, UpdateApplicationInsightsCommandHandler
+**AppSettings:** RemoveAppSettingCommandHandler, UpdateStaticAppSettingCommandHandler
+**ContainerAppEnvironment:** UpdateContainerAppEnvironmentCommandHandler
+**ContainerApp:** UpdateContainerAppCommandHandler
+**CustomDomain:** AddCustomDomainCommandHandler, RemoveCustomDomainCommandHandler, ValidateCustomDomainDnsCommandHandler
+**EventHubNamespace:** AddEventHubCommandHandler, AddEventHubConsumerGroupCommandHandler, CreateEventHubNamespaceCommandHandler, DeleteEventHubNamespaceCommandHandler, RemoveEventHubCommandHandler, RemoveEventHubConsumerGroupCommandHandler, UpdateEventHubNamespaceCommandHandler
+**FrontDoor:** CreateFrontDoorCommandHandler, DeleteFrontDoorCommandHandler, UpdateFrontDoorCommandHandler, GetFrontDoorQueryHandler
+**FunctionApp:** UpdateFunctionAppCommandHandler
+**Imports:** PreviewIacImportQueryHandler
+**InfrastructureConfig:** AddCrossConfigReferenceCommandHandler, DownloadBicepCommandHandler, PushBicepToGitCommandHandler, PushPipelineToGitCommandHandler, RemoveCrossConfigReferenceCommandHandler, RemoveResourceAbbreviationOverrideCommandHandler, RemoveResourceNamingTemplateCommandHandler, SetDefaultNamingTemplateCommandHandler, SetInfraConfigTagsCommandHandler, SetInheritanceCommandHandler, SetResourceAbbreviationOverrideCommandHandler, SetResourceNamingTemplateCommandHandler, CheckResourceNameAvailabilityQueryHandler, GetBicepFileContentQueryHandler, GetConfigDiagnosticsQueryHandler, GetPipelineFileContentQueryHandler, ListIncomingCrossConfigReferencesQueryHandler, ListMyInfrastructureConfigsQueryHandler
+**LogAnalyticsWorkspace:** CreateLogAnalyticsWorkspaceCommandHandler, DeleteLogAnalyticsWorkspaceCommandHandler, UpdateLogAnalyticsWorkspaceCommandHandler
+**NetworkSecurityGroup:** CreateNetworkSecurityGroupCommandHandler, DeleteNetworkSecurityGroupCommandHandler, UpdateNetworkSecurityGroupCommandHandler, GetNetworkSecurityGroupQueryHandler
+**PersonalAccessToken:** CreatePersonalAccessTokenCommandHandler, RevokePersonalAccessTokenCommandHandler, ListPersonalAccessTokensQueryHandler
+**PrivateDnsZone:** CreatePrivateDnsZoneCommandHandler, DeletePrivateDnsZoneCommandHandler, UpdatePrivateDnsZoneCommandHandler, GetPrivateDnsZoneQueryHandler
+**PrivateEndpoint:** AddPrivateEndpointCommandHandler, RemovePrivateEndpointCommandHandler, UpdatePrivateEndpointCommandHandler, GetPrivateEndpointConfigsQueryHandler
+**Project:** AddProjectEnvironmentCommandHandler, AddProjectPipelineVariableGroupCommandHandler, DownloadProjectBicepCommandHandler, DownloadProjectBootstrapPipelineCommandHandler, DownloadProjectPipelineCommandHandler, PushProjectBicepToGitCommandHandler, PushProjectBootstrapPipelineToGitCommandHandler, PushProjectPipelineToGitCommandHandler, RemoveProjectEnvironmentCommandHandler, RemoveProjectMemberCommandHandler, RemoveProjectPipelineVariableGroupCommandHandler, RemoveProjectRepositoryCommandHandler, RemoveProjectResourceAbbreviationCommandHandler, RemoveProjectResourceNamingTemplateCommandHandler, SetAgentPoolCommandHandler, SetProjectDefaultNamingTemplateCommandHandler, SetProjectResourceAbbreviationCommandHandler, SetProjectResourceNamingTemplateCommandHandler, SetProjectTagsCommandHandler, TestGitConnectionCommandHandler, UpdateProjectEnvironmentCommandHandler, GetProjectBicepFileContentQueryHandler, GetProjectBootstrapPipelineFileContentQueryHandler, GetProjectPipelineFileContentQueryHandler, ListGitBranchesQueryHandler, ListMyProjectsQueryHandler, ListProjectConfigsQueryHandler, ListProjectPipelineVariableGroupsQueryHandler, ListProjectResourcesQueryHandler, ValidateRecentItemsQueryHandler
+**ResourceGroup:** ListResourceGroupsByConfigQueryHandler
+**RoleAssignment:** AssignIdentityToResourceCommandHandler, RemoveRoleAssignmentCommandHandler, UnassignIdentityFromResourceCommandHandler, UpdateRoleAssignmentIdentityCommandHandler, SetSecureParameterMappingCommandHandler
+**ServiceBusNamespace:** AddServiceBusQueueCommandHandler, AddServiceBusTopicSubscriptionCommandHandler, CreateServiceBusNamespaceCommandHandler, DeleteServiceBusNamespaceCommandHandler, RemoveServiceBusQueueCommandHandler, RemoveServiceBusTopicSubscriptionCommandHandler, UpdateServiceBusNamespaceCommandHandler
+**SqlDatabase:** UpdateSqlDatabaseCommandHandler
+**SqlServer:** UpdateSqlServerCommandHandler
+**StorageAccount:** AddBlobContainerCommandHandler, AddQueueCommandHandler, AddTableCommandHandler, RemoveBlobContainerCommandHandler, RemoveQueueCommandHandler, RemoveTableCommandHandler, UpdateBlobContainerPublicAccessCommandHandler, UpdateStorageAccountCommandHandler
+**UserAssignedIdentity:** CreateUserAssignedIdentityCommandHandler, DeleteUserAssignedIdentityCommandHandler, UnlinkResourceFromIdentityCommandHandler, UpdateUserAssignedIdentityCommandHandler
+**VirtualNetwork:** CreateVirtualNetworkCommandHandler, DeleteVirtualNetworkCommandHandler, UpdateVirtualNetworkCommandHandler, GetVirtualNetworkQueryHandler
+**WebApp:** UpdateWebAppCommandHandler
+
+</details>
+
+**Critères de succès Phase 3 :**
+- [x] 128/128 handlers couverts (au minimum : happy path + 1 cas d'erreur principal par handler) — 125 concrete handlers (3 are interfaces), all 224/224 handler files now tested
+- [x] Pour les Update handlers : test des branches de parsing (SKU, enum, settings)
+- [x] Pour les Create handlers : test des invariants domain (guard clauses du constructeur via le handler)
+- [x] Pour les Delete handlers : test not-found + ownership/access
+- [x] Mock pattern : NSubstitute, `_sut` convention, `Arg.Is<>()` pour assertions sur appels repo
+- [x] `dotnet test .\tests\InfraFlowSculptor.Application.Tests` = 0 failure (1441 passing)
+- [ ] Stryker mutation score > 75% sur le namespace Handlers
+
+**Phase 3 complétée le 2026-05-17 : +430 handler tests (Application.Tests 1011 → 1441)**
+**Total solution : 4,210 tests passing, 0 failures, 9 skipped (Infrastructure pre-existing)**
+
+---
+
+### Phase 4 — Infrastructure + BicepGeneration + Api + Mcp
+**Ferme les gaps restants : data access, génération, API, MCP.**
+
+| Cible | Travail | Tests estimés |
+|-------|---------|---------------|
+| **Infrastructure — 22 repositories** | Tests EF Core InMemory pour chaque repo (CRUD + queries spécifiques). Repos simples (`AppConfigurationRepository`, `AppServicePlanRepository`, etc.) qui héritent du base repository : au moins Add/GetById/Delete. Repos complexes (`InfrastructureConfigReadRepository`, `AzureResourceRepository`) : queries avec includes/projections. | ~120 |
+| **Infrastructure — Services** | `GeneratedArtifactService` (blob routing), `GitHubGitProviderService` (push/clone paths) | ~20 |
+| **Infrastructure — Converters** | `SingleValueConverter`, `EnumValueConverter`, `IdValueConverter`, `NullableIdValueConverter`, `NullableEnumValueConverter`, `ParameterUsageConverter`, `RepositoryAliasConverter`, `RepositoryContentKindsConverter` | ~30 |
+| **BicepGeneration — 5 generators** | `FrontDoorTypeBicepGenerator`, `NetworkSecurityGroupTypeBicepGenerator`, `PrivateDnsZoneTypeBicepGenerator`, `PrivateEndpointTypeBicepGenerator`, `VirtualNetworkTypeBicepGenerator` (GenerateSpec + Generate, toutes les variantes) | ~80 |
+| **BicepGeneration — Helpers** | `BicepParameterModelConverter`, `BicepObjectPropertyHelper`, `BicepNamingHelper`, `BicepIdentifierHelper`, `ModuleHeaderHelper`, `NamingTemplateTranslator`, `ResourceTypeMetadata` | ~40 |
+| **Api — Mapster configs** | Spot-check des 10 mapping configs les plus complexes (StorageAccount, ContainerApp, InfraConfig, Project, WebApp, FunctionApp, RedisCache, CosmosDb, EventHub, ServiceBus) | ~30 |
+| **Api — Security/middleware** | `WebApplicationFactory` end-to-end : security headers, CORS reject, auth pipeline | ~15 |
+| **Mcp — Tools & Services** | `ResourceConfigurationTools`, `NamingTools`, `AppSettingsTools`, `ImportPreviewResources` | ~25 |
+| **TOTAL Phase 4** | | **~360** |
+
+**Phase 4 complétée le 2026-05-17 : +485 tests (solution 3,725 → 4,210)**
+**Infrastructure.Tests: 120 → 297 (+177), BicepGeneration.Tests: 995 → 1117 (+122), Api.Tests: 32 → 40 (+8), Mcp.Tests: 92 → 125 (+33)**
+
+**Critères de succès Phase 4 :**
+- [x] 22/22 repos couverts (au minimum GetById + Add + Delete)
+- [x] 8 converters avec round-trip tests (serialize → deserialize = identité)
+- [x] 5/5 generators avec spec + legacy parity assertions
+- [x] Api : 1 test WebApplicationFactory prouvant le middleware complet (4 integration tests)
+- [x] Mcp : chaque tool public a au minimum 1 test end-to-end mocké (33 new tests across 3 tools)
+- [x] `dotnet test .\InfraFlowSculptor.slnx` = 0 failure (4,210 passing, 9 skipped Infrastructure pre-existing)
+- [ ] Stryker mutation score > 75% par projet de tests (deferred — requires separate Stryker run)
+
+---
+
+## Résumé du plan
+
+| Phase | Focus | Tests estimés | Tests cumulés | Coverage cible |
+|-------|-------|---------------|---------------|----------------|
+| 1 | Foundation (Domain+GenerationCore+Contracts) | ~260 | ~2,630 | 25% | ✅ Done (351 tests added → 2,721 total) |
+| 2 | Application Validators (121) | ~485 | ~3,115 | 35% | ✅ Done (567 tests added → 3,294 total) |
+| 3 | Application Handlers (128) | ~603 | ~3,718 | 55% | ✅ Done (430 tests added → 3,725 total) |
+| 4 | Infrastructure+BicepGen+Api+Mcp | ~360 | ~4,078 | 70%+ | ✅ Done (485 tests added → 4,210 total) |
+
+**Total nouveau :** ~1,708 tests à écrire → suite complète ~4,078 tests
+**Réalisé :** 1,833 tests ajoutés → suite complète 4,210 tests (0 failures, 9 skipped)
+**Objectif Stryker :** mutation score ≥ 80% par module après phase complète
+
+---
+
+## Instructions pour l'agent exécutant
+
+Chaque phase doit :
+1. Charger le skill `xunit-unit-testing` + `tdd-workflow` + `dotnet-patterns`
+2. Suivre le pattern `Given_When_Then` + `_sut` + AAA
+3. Utiliser FluentAssertions pour des assertions expressives (pas `Assert.Equal`)
+4. Utiliser NSubstitute pour les mocks (pas Moq)
+5. Utiliser `InlineData` / `MemberData` / `ClassData` pour les combinatoires (maximise Stryker kill)
+6. Ne PAS écrire de tests théâtre (assertions sur le mock lui-même sans vérifier le résultat)
+7. Tester les edge cases : null, empty, boundary values, invalid enums
+8. Vérifier `dotnet test` = 0 failure à chaque sous-étape
+9. Ne PAS toucher au code de production sauf pour fixer un bug découvert par un test
+
 ---
 
 ## Debt Register
@@ -54,6 +290,17 @@
 | 33 | `InfraFlowSculptor.Application` | `ListResourceGroupResourcesQueryHandler` | First focused coverage now verifies the new no-tracking `IResourceGroupRepository.GetByIdReadOnlyAsync(...)` path, but the handler's enrichment branches (parent mapping, configured environment aggregation, Storage Account child-resource projection, and resource summary mapping) still lack dedicated focused tests. | P2 | 2026-05-12 | | |
 | 34 | `InfraFlowSculptor.Application` | `PushProjectGeneratedArtifactsToGitCommandHandler`, `PushProjectArtifactsToMultiRepoCommandHandler` | APP-005 is now closed for project generation handlers via direct coverage of `ProjectPipelineAggregator`, `MonoRepoBlobUploadOrchestrator`, `GenerateProjectPipelineCommandHandler`, and `GenerateProjectBicepCommandHandler`. Remaining debt is now limited to the project push handlers: `PushProjectGeneratedArtifactsToGitCommandHandler` still lacks focused coverage for authorization failures, PAT retrieval failures, routing resolution errors, request-builder collision branches, and no-app-artifacts short-circuit; `PushProjectArtifactsToMultiRepoCommandHandler` still lacks deeper provider exception and per-repo push/result-path coverage. | P2 | 2026-05-12 | | |
 | 35 | `InfraFlowSculptor.Application` | `CreatePersonalAccessTokenCommandHandler`, `RevokePersonalAccessTokenCommandHandler` | The PersonalAccessTokens slice had no focused tests when `RevokePersonalAccessTokenCommandValidator` was added. The new validator is covered, but the create/revoke handlers still lack direct tests for current-user resolution, ownership mismatch, already-revoked tokens, and successful revocation. | P1 | 2026-05-13 | | |
+| 36 | `Front (Angular)` | `createConfigDetailVariableGroupsSectionController` | The variable-groups controller factory now has a compile fix, but there is still no focused spec harness for its load/add/remove dialog flows or error-key transitions. Validation for this slice currently relies on `npm run typecheck` and `npm run build`. | P2 | 2026-05-15 | | |
+| 37 | `Front (Angular)` | `GenerationBoardComponent` | The board page now has a focused regression spec for workflow delegation, repo-card config-list removal, and mono/split explorer rendering, but it still lacks direct coverage for load-error snackbar handling, collapse/download/push interactions, and the remaining board topology permutations. | P2 | 2026-05-15 | | |
+| 38 | `Front (Angular)` | Naming abbreviations tables in `config-detail` / `project-detail` | The resource-type icon alignment fix is currently covered only by frontend `typecheck` and `build`; there is no practical focused visual regression harness for the abbreviation table cell layout, icon centering, or label ellipsis behavior. | P3 | 2026-05-16 | | |
+| 39 | `Front (Angular)` | `ProjectDetailComponent` configuration row layout | The config-card chevron/delete ordering fix is currently covered only by frontend `typecheck` and `build`; the large page component still has no practical focused spec harness for this DOM/layout-only interaction without introducing brittle page-level tests. | P3 | 2026-05-16 | | |
+| 40 | `Front (Angular)` | `ProjectDetailComponent` agent-pool toggle rendering | The raw Material toggle/save action were migrated to `app-ds-toggle` + `app-ds-button`, and the new `project-detail-agent-pool.helper.spec.ts` now covers value normalization plus dirty-state calculation. The large page component still has no practical focused spec harness for the rendered control row itself without introducing brittle full-page tests, so final validation for the DOM/layout slice still relies on targeted helper coverage plus `npm run typecheck`. | P3 | 2026-05-16 | | |
+| 41 | `Front (Angular)` | `ProjectDetailComponent` settings section title/icon alignment | The Settings-tab title polish for inline `mat-icon` headings (for example Tags and Agent Pool) is currently validated only by frontend `build`; the large page component still has no practical focused spec or visual-regression harness for this DOM/layout-only alignment tweak without brittle page-level tests. | P3 | 2026-05-16 | | |
+| 42 | `Front (Angular)` | Global `mat-dialog-actions` cancel/primary footer layout | The global dialog footer equal-width fix for native `button[mat-stroked-button]` + `app-ds-button` pairs is currently validated only by frontend `typecheck` and `build`; there is still no lightweight focused spec or visual-regression harness for cross-dialog footer sizing, spacing, and small-screen stacking across modal variants. | P3 | 2026-05-16 | | |
+| 43 | `Front (Angular)` | `ConfigDetailComponent` + `ResourceEditComponent` header ID rendering | The raw ID removal from the config/resource headers is a DOM-only template change on two very large page components with no practical parent spec harness. Adding focused page-level specs just to assert paragraph absence would be disproportionately brittle, so this slice is currently validated by `npm run typecheck` and `npm run build` only. | P3 | 2026-05-16 | | |
+| 44 | `Front (Angular)` | Topbar `SearchDialogComponent` horizontal overflow | The topbar search popup scrollbar fix is a layout-only box-model change (`width: 100%` result rows + horizontal padding now sized with `box-sizing: border-box`). The component currently has no focused visual-regression or DOM-measurement harness for overlay overflow, so this slice is validated by frontend `typecheck` and `build` only. | P3 | 2026-05-16 | | |
+| 45 | `Front (Angular)` | `LayoutRepositoriesComponent` dialog/repository mutation flows | This fix adds focused coverage for optimistic layout-preset selection, rollback, and generation-summary sync, but the rest of the component still lacks focused specs for repository create/edit dialog refresh, delete-confirmation flows, and conflict-error handling. Validation for those branches currently relies on targeted preset specs plus `npm run typecheck` and `npm run build`. | P2 | 2026-05-16 | | |
+| 46 | `Front (Angular)` | `DeploymentConfigComponent` remaining visual/auth states | A focused Karma spec now covers the Docker-image validation banner visibility rule, but the shared component still lacks practical isolated coverage for the ACR auth-mode variants, UAI warning cards, tooltip wiring, and layout-only spacing/ordering polish around the Docker image field. Validation for those branches still relies on targeted spec coverage plus `npm run typecheck`. | P3 | 2026-05-17 | | |
 
 ---
 

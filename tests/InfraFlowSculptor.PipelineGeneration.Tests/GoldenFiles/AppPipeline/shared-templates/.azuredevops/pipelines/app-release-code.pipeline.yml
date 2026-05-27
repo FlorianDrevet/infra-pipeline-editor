@@ -9,20 +9,31 @@ parameters:
   - name: agentPoolName
     type: string
     default: ''
+  - name: runSmokeTests
+    type: boolean
+    default: false
+  - name: smokeTestCommand
+    type: string
+    default: ''
+  - name: enableNotifications
+    type: boolean
+    default: false
+  - name: notificationWebhookUrl
+    type: string
+    default: ''
   - name: environments
     type: object
     default: []
-
-pool:
-  ${{ if eq(parameters.agentPoolName, '') }}:
-    vmImage: 'ubuntu-latest'
-  ${{ if ne(parameters.agentPoolName, '') }}:
-    name: '${{ parameters.agentPoolName }}'
 
 stages:
   - ${{ each env in parameters.environments }}:
     - stage: Deploy_${{ env.shortName }}
       displayName: 'Deploy to ${{ env.name }}'
+      pool:
+        ${{ if eq(parameters.agentPoolName, '') }}:
+          vmImage: 'ubuntu-latest'
+        ${{ if ne(parameters.agentPoolName, '') }}:
+          name: '${{ parameters.agentPoolName }}'
       lockBehavior: sequential
       variables:
         - template: ${{ env.variablesPath }}
@@ -35,3 +46,7 @@ stages:
             resourceType: ${{ parameters.resourceType }}
             envShortName: ${{ env.shortName }}
             envName: ${{ env.name }}
+            runSmokeTests: ${{ parameters.runSmokeTests }}
+            smokeTestCommand: ${{ parameters.smokeTestCommand }}
+            enableNotifications: ${{ parameters.enableNotifications }}
+            notificationWebhookUrl: ${{ parameters.notificationWebhookUrl }}

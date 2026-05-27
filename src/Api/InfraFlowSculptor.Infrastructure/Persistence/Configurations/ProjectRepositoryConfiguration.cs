@@ -25,11 +25,6 @@ public sealed class ProjectRepositoryConfiguration : IEntityTypeConfiguration<Pr
             .HasConversion(new IdValueConverter<ProjectId>())
             .IsRequired();
 
-        builder.Property(x => x.Alias)
-            .HasConversion(new RepositoryAliasConverter())
-            .HasMaxLength(50)
-            .IsRequired();
-
         builder.Property(x => x.ProviderType)
             .HasConversion(new NullableEnumValueConverter<GitProviderType, GitProviderTypeEnum>())
             .IsRequired(false);
@@ -54,9 +49,5 @@ public sealed class ProjectRepositoryConfiguration : IEntityTypeConfiguration<Pr
             .HasConversion(new RepositoryContentKindsConverter())
             .HasMaxLength(100)
             .IsRequired();
-
-        // Unique alias per project
-        builder.HasIndex(x => new { x.ProjectId, x.Alias })
-            .IsUnique();
     }
 }

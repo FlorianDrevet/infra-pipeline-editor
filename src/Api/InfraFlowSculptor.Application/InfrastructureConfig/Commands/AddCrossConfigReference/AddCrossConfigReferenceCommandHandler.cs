@@ -3,7 +3,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddCrossConfigReference;
 
@@ -47,7 +46,7 @@ public sealed class AddCrossConfigReferenceCommandHandler(
         if (result.IsError)
             return result.Errors;
 
-        await infraConfigRepository.UpdateAsync(config);
+        infraConfigRepository.Update(config);
 
         var reference = result.Value;
         return new CrossConfigReferenceResult(

@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.WebApps.Commands.CreateWebApp;
 using InfraFlowSculptor.Application.WebApps.Commands.UpdateWebApp;
 using InfraFlowSculptor.Application.WebApps.Common;
-using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.WebApps.Requests;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -36,7 +36,9 @@ public sealed class WebAppMappingConfig : IRegister
                 src.Request.DeploymentMode,
                 src.Request.ContainerRegistryId,
                 src.Request.AcrAuthMode,
+                src.Request.AcrPullIdentityId,
                 src.Request.DockerImageName,
+                src.Request.DockerImageValidated,
                 src.Request.DockerfilePath,
                 src.Request.SourceCodePath,
                 src.Request.BuildCommand,
@@ -54,12 +56,13 @@ public sealed class WebAppMappingConfig : IRegister
                     es.AlwaysOn,
                     es.HttpsOnly,
                     es.DockerImageTag)).ToList())
-            .Map(dest => dest.PipelineStepOptions, src => src.PipelineStepOptions.Adapt<PipelineStepOptionsDto>())
+            .Map(dest => dest.PipelineStepOptions, src => PipelineStepOptionsDataMapper.ToDto(src.PipelineStepOptions))
             .Map(dest => dest.RuntimeStack, src => src.RuntimeStack.Value.ToString())
             .Map(dest => dest.AppServicePlanId, src => src.AppServicePlanId.Value)
             .Map(dest => dest.DeploymentMode, src => src.DeploymentMode.Value.ToString())
                     .Map(dest => dest.ContainerRegistryId, src => src.ContainerRegistryId != null ? src.ContainerRegistryId.Value : (Guid?)null)
-                    .Map(dest => dest.AcrAuthMode, src => src.AcrAuthMode != null ? src.AcrAuthMode.Value.ToString() : null);
+                    .Map(dest => dest.AcrAuthMode, src => src.AcrAuthMode != null ? src.AcrAuthMode.Value.ToString() : null)
+                    .Map(dest => dest.AcrPullIdentityId, src => src.AcrPullIdentityId != null ? src.AcrPullIdentityId.Value : (Guid?)null);
 
         config.NewConfig<WebAppEnvironmentConfigData, WebAppEnvironmentConfigResponse>()
             .MapWith(src => new WebAppEnvironmentConfigResponse(

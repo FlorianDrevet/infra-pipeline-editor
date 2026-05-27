@@ -12,13 +12,18 @@ steps:
       displayName: 'Deploy image to Container App'
       inputs:
         azureSubscription: $(azureResourceManagerConnection)
-        scriptType: bash
+        scriptType: ps
         scriptLocation: inlineScript
         inlineScript: |
-          set -euo pipefail
-          imageRepository="$(ImageRepository)"
-          if [ -z "$imageRepository" ] || [ "$imageRepository" = '$(ImageRepository)' ]; then imageRepository="${{ parameters.imageRepository }}"; fi
-          az containerapp update --name "$(containerAppName)" --resource-group "$(resourceGroupName)" --image "$(containerRegistryLoginServer)/${imageRepository}:$(ReleaseTag)"
+          $imageRepository = '$(ImageRepository)'
+          if ([string]::IsNullOrWhiteSpace($imageRepository) -or $imageRepository -eq '$(ImageRepository)') {
+              $imageRepository = '${{ parameters.imageRepository }}'
+          }
+
+          az containerapp update --name "$(containerAppName)" --resource-group "$(resourceGroupName)" --image "$(containerRegistryLoginServer)/$imageRepository:$(ReleaseTag)"
+          if ($LASTEXITCODE -ne 0) {
+              throw 'Container App image deployment failed.'
+          }
 
   - ${{ if eq(parameters.resourceType, 'WebApp') }}:
     - task: AzureWebApp@1

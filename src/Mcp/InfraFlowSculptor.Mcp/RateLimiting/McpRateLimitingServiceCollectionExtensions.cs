@@ -1,8 +1,6 @@
 using System.Threading.RateLimiting;
 using InfraFlowSculptor.WebDefaults.RateLimiting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace InfraFlowSculptor.Mcp.RateLimiting;
@@ -49,5 +47,11 @@ public static class McpRateLimitingServiceCollectionExtensions
             httpContext => RateLimitPartition.GetFixedWindowLimiter(
                 partitionKey: RateLimitingHelper.ResolvePartitionKey(httpContext),
                 factory: _ => RateLimitingHelper.CreateFixedWindowRateLimiterOptions(mcpRateLimitingOptions.Expensive)));
+
+        rateLimiterOptions.AddPolicy(
+            RateLimitingPolicyNames.HealthChecks,
+            httpContext => RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: RateLimitingHelper.ResolvePartitionKey(httpContext),
+                factory: _ => RateLimitingHelper.CreateFixedWindowRateLimiterOptions(mcpRateLimitingOptions.HealthChecks)));
     }
 }

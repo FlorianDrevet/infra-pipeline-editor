@@ -7,7 +7,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.PushPipelineToGit;
 
@@ -51,7 +50,7 @@ public sealed class PushPipelineToGitCommandHandler(
         var target = targetResult.Value;
 
         var secretResult = await keyVaultClient.GetSecretAsync(
-            $"git-pat-{project.Id.Value}", cancellationToken);
+            target.PatSecretName ?? $"git-pat-{project.Id.Value}", cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;
 

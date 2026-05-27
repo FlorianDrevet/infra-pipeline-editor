@@ -7,7 +7,6 @@ using InfraFlowSculptor.Contracts.AppConfigurations.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MediatR;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
@@ -23,7 +22,7 @@ public static class AppConfigurationController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var config = endpoints.MapGroup("/app-configuration")
+            var config = endpoints.MapGroup(Routes.AppConfiguration)
                 .WithTags("App Configurations");
 
             config.MapGet("/{id:guid}",

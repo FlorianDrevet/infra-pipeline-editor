@@ -11,6 +11,9 @@ public sealed class ContainerAppTypeBicepGeneratorTests
 {
     private readonly ContainerAppTypeBicepGenerator _sut = new();
 
+    private const string PendingDnsValidationStatus = "Pending";
+    private const string ValidatedDnsValidationStatus = "Validated";
+
     private static ResourceDefinition CreateNoAcrResource()
     {
         return new ResourceDefinition
@@ -74,6 +77,49 @@ public sealed class ContainerAppTypeBicepGeneratorTests
         };
     }
 
+    private static ResourceDefinition WithCustomDomains(
+        ResourceDefinition resource,
+        params CustomDomainDefinition[] customDomains)
+    {
+        resource.CustomDomains = customDomains;
+        return resource;
+    }
+
+    private static CustomDomainDefinition CreatePendingCustomDomain(string domainName = "pending.contoso.com")
+    {
+        return CreateCustomDomain(domainName, PendingDnsValidationStatus);
+    }
+
+    private static CustomDomainDefinition CreateValidatedCustomDomain(string domainName = "validated.contoso.com")
+    {
+        return CreateCustomDomain(domainName, ValidatedDnsValidationStatus);
+    }
+
+    private static CustomDomainDefinition CreateCustomDomain(string domainName, string dnsValidationStatus)
+    {
+        return new CustomDomainDefinition
+        {
+            EnvironmentName = "dev",
+            DomainName = domainName,
+            CertificateMode = "ManagedCertificate",
+            DnsValidationStatus = dnsValidationStatus,
+        };
+    }
+
+    public static IEnumerable<object[]> LegacyResourcesWithoutValidatedCustomDomains()
+    {
+        yield return [WithCustomDomains(CreateNoAcrResource(), CreatePendingCustomDomain())];
+        yield return [WithCustomDomains(CreateAcrMiResource(), CreatePendingCustomDomain())];
+        yield return [WithCustomDomains(CreateAcrAdminResource(), CreatePendingCustomDomain())];
+    }
+
+    public static IEnumerable<object[]> LegacyResourcesWithValidatedCustomDomains()
+    {
+        yield return [WithCustomDomains(CreateNoAcrResource(), CreateValidatedCustomDomain())];
+        yield return [WithCustomDomains(CreateAcrMiResource(), CreateValidatedCustomDomain())];
+        yield return [WithCustomDomains(CreateAcrAdminResource(), CreateValidatedCustomDomain())];
+    }
+
     // ── Interface contracts ──
 
     [Fact]
@@ -120,7 +166,7 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     // ── NoAcr variant: Params ──
 
     [Fact]
-    public void Given_NoAcrResource_When_GenerateSpec_Then_HasEightParams()
+    public void Given_NoAcrResource_When_GenerateSpec_Then_HasEightParamsWhenNoValidatedCustomDomains()
     {
         var spec = _sut.GenerateSpec(CreateNoAcrResource());
         spec.Parameters.Should().HaveCount(8);
@@ -137,6 +183,17 @@ public sealed class ContainerAppTypeBicepGeneratorTests
             .Which.Type.Should().Be(BicepType.String);
     }
 
+    [Fact]
+    public void Given_NoAcrResource_When_GenerateSpec_Then_ContainerImageDefaultsToAzureDocsHelloWorld()
+    {
+        var spec = _sut.GenerateSpec(CreateNoAcrResource());
+
+        var parameter = spec.Parameters.Should().Contain(p => p.Name == "containerImage").Subject;
+
+        parameter.DefaultValue.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("mcr.microsoft.com/azuredocs/containerapps-helloworld:latest");
+    }
+
     [Theory]
     [InlineData("containerRuntime", "ContainerRuntimeConfig")]
     [InlineData("scaling", "ScalingConfig")]
@@ -150,30 +207,40 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     }
 
     [Fact]
-    public void Given_NoAcrResource_When_GenerateSpec_Then_HasCustomDomainsArrayParamWithEmptyDefault()
+    public void Given_NoAcrResourceWithoutValidatedCustomDomains_When_GenerateSpec_Then_DoesNotDeclareCustomDomainsParam()
     {
-        var spec = _sut.GenerateSpec(CreateNoAcrResource());
-        var param = spec.Parameters.Should().Contain(p => p.Name == "customDomains").Subject;
-        param.Type.Should().Be(BicepType.Array);
-        param.DefaultValue.Should().BeOfType<BicepArrayExpression>()
-            .Which.Items.Should().BeEmpty();
+        var resource = WithCustomDomains(CreateNoAcrResource(), CreatePendingCustomDomain());
+
+        var spec = _sut.GenerateSpec(resource);
+
+        spec.Parameters.Should().NotContain(p => p.Name == "customDomains");
     }
 
     // ── NoAcr variant: Variables ──
 
     [Fact]
-    public void Given_NoAcrResource_When_GenerateSpec_Then_HasOneVariable()
+    public void Given_NoAcrResource_When_GenerateSpec_Then_HasNoVariablesWhenNoValidatedCustomDomains()
     {
         var spec = _sut.GenerateSpec(CreateNoAcrResource());
-        spec.Variables.Should().ContainSingle()
-            .Which.Name.Should().Be("customDomainBindings");
+        spec.Variables.Should().BeEmpty();
     }
 
     [Fact]
-    public void Given_NoAcrResource_When_GenerateSpec_Then_CustomDomainBindingsVarUsesForLoop()
+    public void Given_NoAcrResourceWithValidatedCustomDomains_When_GenerateSpec_Then_DeclaresCustomDomainSupport()
     {
-        var spec = _sut.GenerateSpec(CreateNoAcrResource());
-        var variable = spec.Variables.Should().ContainSingle().Subject;
+        var resource = WithCustomDomains(
+            CreateNoAcrResource(),
+            CreatePendingCustomDomain(),
+            CreateValidatedCustomDomain());
+
+        var spec = _sut.GenerateSpec(resource);
+
+        var parameter = spec.Parameters.Should().Contain(p => p.Name == "customDomains").Subject;
+        parameter.Type.Should().Be(BicepType.Array);
+        parameter.DefaultValue.Should().BeOfType<BicepArrayExpression>()
+            .Which.Items.Should().BeEmpty();
+
+        var variable = spec.Variables.Should().ContainSingle(v => v.Name == "customDomainBindings").Subject;
         variable.Expression.Should().BeOfType<BicepRawExpression>()
             .Which.RawBicep.Should().Contain("for domain in customDomains");
     }
@@ -200,6 +267,30 @@ public sealed class ContainerAppTypeBicepGeneratorTests
         configObject.Properties.Should().NotContain(p => p.Key == "secrets");
         configObject.Properties.Should().NotContain(p => p.Key == "registries");
         configObject.Properties.Should().Contain(p => p.Key == "ingress");
+    }
+
+    [Fact]
+    public void Given_NoAcrResourceWithoutValidatedCustomDomains_When_EmitModule_Then_OmitsCustomDomainsIngressMapping()
+    {
+        var resource = WithCustomDomains(CreateNoAcrResource(), CreatePendingCustomDomain());
+
+        var emitted = new BicepEmitter().EmitModule(_sut.GenerateSpec(resource));
+
+        emitted.Should().NotContain("param customDomains array");
+        emitted.Should().NotContain("var customDomainBindings");
+        emitted.Should().NotContain("customDomains:");
+    }
+
+    [Fact]
+    public void Given_NoAcrResourceWithValidatedCustomDomains_When_EmitModule_Then_IncludesCustomDomainsIngressMapping()
+    {
+        var resource = WithCustomDomains(CreateNoAcrResource(), CreateValidatedCustomDomain());
+
+        var emitted = new BicepEmitter().EmitModule(_sut.GenerateSpec(resource));
+
+        emitted.Should().Contain("param customDomains array = []");
+        emitted.Should().Contain("var customDomainBindings = [for domain in customDomains:");
+        emitted.Should().Contain("customDomains: !empty(customDomains) ? customDomainBindings : null");
     }
 
     // ── NoAcr variant: Outputs ──
@@ -248,17 +339,17 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     // ── ACR ManagedIdentity variant ──
 
     [Fact]
-    public void Given_AcrMiResource_When_GenerateSpec_Then_ModuleFileNameIsContainerAppAcrManagedIdentity()
+    public void Given_AcrMiResource_When_GenerateSpec_Then_ModuleFileNameIsContainerApp()
     {
         var spec = _sut.GenerateSpec(CreateAcrMiResource());
-        spec.ModuleFileName.Should().Be("containerAppAcrManagedIdentity");
+        spec.ModuleFileName.Should().Be("containerApp");
     }
 
     [Fact]
-    public void Given_AcrMiResource_When_GenerateSpec_Then_HasTenParams()
+    public void Given_AcrMiResource_When_GenerateSpec_Then_HasNineParamsWhenNoValidatedCustomDomains()
     {
         var spec = _sut.GenerateSpec(CreateAcrMiResource());
-        spec.Parameters.Should().HaveCount(10);
+        spec.Parameters.Should().HaveCount(9);
     }
 
     [Fact]
@@ -270,12 +361,10 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     }
 
     [Fact]
-    public void Given_AcrMiResource_When_GenerateSpec_Then_HasAcrManagedIdentityClientIdParamWithEmptyDefault()
+    public void Given_AcrMiResource_When_GenerateSpec_Then_NoAcrManagedIdentityClientIdParam()
     {
         var spec = _sut.GenerateSpec(CreateAcrMiResource());
-        var param = spec.Parameters.Should().Contain(p => p.Name == "acrManagedIdentityClientId").Subject;
-        param.Type.Should().Be(BicepType.String);
-        param.DefaultValue.Should().BeOfType<BicepStringLiteral>().Which.Value.Should().Be("");
+        spec.Parameters.Should().NotContain(p => p.Name == "acrManagedIdentityClientId");
     }
 
     [Fact]
@@ -299,7 +388,7 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     }
 
     [Fact]
-    public void Given_AcrMiResource_When_GenerateSpec_Then_RegistriesHasIdentityConditional()
+    public void Given_AcrMiResource_When_GenerateSpec_Then_RegistriesHasIdentityReferenceToUserAssignedIdentityId()
     {
         var spec = _sut.GenerateSpec(CreateAcrMiResource());
         var properties = (BicepObjectExpression)spec.Resource.Body.First(p => p.Key == "properties").Value;
@@ -308,15 +397,15 @@ public sealed class ContainerAppTypeBicepGeneratorTests
         var registry = (BicepObjectExpression)registries.Items[0];
         var identity = registry.Properties.Should().Contain(p => p.Key == "identity").Subject;
 
-        identity.Value.Should().BeOfType<BicepConditionalExpression>();
+        identity.Value.Should().BeOfType<BicepReference>()
+            .Which.Symbol.Should().Be("userAssignedIdentityId");
     }
 
     [Fact]
-    public void Given_AcrMiResource_When_GenerateSpec_Then_HasOneVariable()
+    public void Given_AcrMiResource_When_GenerateSpec_Then_HasNoVariablesWhenNoValidatedCustomDomains()
     {
         var spec = _sut.GenerateSpec(CreateAcrMiResource());
-        spec.Variables.Should().ContainSingle()
-            .Which.Name.Should().Be("customDomainBindings");
+        spec.Variables.Should().BeEmpty();
     }
 
     [Fact]
@@ -324,8 +413,8 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     {
         var spec = _sut.GenerateSpec(CreateAcrDefaultAuthResource());
 
-        spec.ModuleFileName.Should().Be("containerAppAcrManagedIdentity");
-        spec.Parameters.Should().Contain(p => p.Name == "acrManagedIdentityClientId");
+        spec.ModuleFileName.Should().Be("containerApp");
+        spec.Parameters.Should().NotContain(p => p.Name == "acrManagedIdentityClientId");
         spec.Parameters.Should().NotContain(p => p.Name == "acrPassword");
     }
 
@@ -339,7 +428,7 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     }
 
     [Fact]
-    public void Given_AcrAdminResource_When_GenerateSpec_Then_HasTenParams()
+    public void Given_AcrAdminResource_When_GenerateSpec_Then_HasTenParamsWhenNoValidatedCustomDomains()
     {
         var spec = _sut.GenerateSpec(CreateAcrAdminResource());
         spec.Parameters.Should().HaveCount(10);
@@ -362,11 +451,10 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     }
 
     [Fact]
-    public void Given_AcrAdminResource_When_GenerateSpec_Then_HasThreeVariables()
+    public void Given_AcrAdminResource_When_GenerateSpec_Then_HasTwoAcrVariablesWhenNoValidatedCustomDomains()
     {
         var spec = _sut.GenerateSpec(CreateAcrAdminResource());
-        spec.Variables.Should().HaveCount(3);
-        spec.Variables.Should().Contain(v => v.Name == "customDomainBindings");
+        spec.Variables.Should().HaveCount(2);
         spec.Variables.Should().Contain(v => v.Name == "acrUsername");
         spec.Variables.Should().Contain(v => v.Name == "acrPasswordSecretName");
     }
@@ -424,10 +512,18 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     }
 
     [Fact]
+    public void Given_NoAcrResource_When_Generate_Then_ModuleTemplateUsesAzureDocsHelloWorldDefault()
+    {
+        var module = _sut.Generate(CreateNoAcrResource());
+
+        module.ModuleBicepContent.Should().Contain("param containerImage string = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'");
+    }
+
+    [Fact]
     public void Given_AcrMiResource_When_Generate_Then_ModuleFileNameMatchesVariant()
     {
         var module = _sut.Generate(CreateAcrMiResource());
-        module.ModuleFileName.Should().Be("containerAppAcrManagedIdentity.module.bicep");
+        module.ModuleFileName.Should().Be("containerApp.module.bicep");
     }
 
     [Fact]
@@ -451,17 +547,42 @@ public sealed class ContainerAppTypeBicepGeneratorTests
         module.SecureParameters.Should().BeEmpty();
     }
 
+    [Theory]
+    [MemberData(nameof(LegacyResourcesWithoutValidatedCustomDomains))]
+    public void Given_ResourceWithoutValidatedCustomDomains_When_Generate_Then_LegacyModuleOmitsCustomDomainSupport(
+        ResourceDefinition resource)
+    {
+        var module = _sut.Generate(resource);
+
+        module.Parameters.Should().NotContainKey("customDomains");
+        module.ModuleBicepContent.Should().NotContain("param customDomains array");
+        module.ModuleBicepContent.Should().NotContain("var customDomainBindings");
+        module.ModuleBicepContent.Should().NotContain("customDomains:");
+    }
+
+    [Theory]
+    [MemberData(nameof(LegacyResourcesWithValidatedCustomDomains))]
+    public void Given_ResourceWithValidatedCustomDomains_When_Generate_Then_LegacyModuleIncludesCustomDomainSupport(
+        ResourceDefinition resource)
+    {
+        var module = _sut.Generate(resource);
+
+        module.Parameters.Should().ContainKey("customDomains");
+        module.ModuleBicepContent.Should().Contain("param customDomains array = []");
+        module.ModuleBicepContent.Should().Contain("var customDomainBindings = [for domain in customDomains:");
+        module.ModuleBicepContent.Should().Contain("customDomains: !empty(customDomains) ? customDomainBindings : null");
+    }
+
     [Fact]
     public void Given_NoAcrResource_When_Generate_Then_GroupedParameterTypeOverridesStayAligned()
     {
         var module = _sut.Generate(CreateNoAcrResource());
 
-        module.ParameterTypeOverrides.Should().Contain([
+        module.ParameterTypeOverrides.Should().Contain(
             new KeyValuePair<string, string>("containerRuntime", "ContainerRuntimeConfig"),
             new KeyValuePair<string, string>("scaling", "ScalingConfig"),
             new KeyValuePair<string, string>("ingress", "IngressConfig"),
-            new KeyValuePair<string, string>("healthProbes", "HealthProbeConfig"),
-        ]);
+            new KeyValuePair<string, string>("healthProbes", "HealthProbeConfig"));
     }
 
     // ── Emission ──
@@ -484,6 +605,17 @@ public sealed class ContainerAppTypeBicepGeneratorTests
 
         emitted.Should().Contain("registries");
         emitted.Should().NotContain("secrets:");
+    }
+
+    [Fact]
+    public void Given_AcrMiResource_When_EmitModule_Then_IndentsHealthProbeUnion()
+    {
+        var spec = _sut.GenerateSpec(CreateAcrMiResource());
+        var emitted = new BicepEmitter().EmitModule(spec);
+
+        emitted.Should().Contain(
+            "          probes: union(\n" +
+            "            !empty(healthProbes.readiness.path)");
     }
 
     [Fact]

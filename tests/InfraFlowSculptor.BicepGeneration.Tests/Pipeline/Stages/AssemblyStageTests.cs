@@ -1,5 +1,4 @@
 using FluentAssertions;
-using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.Pipeline;
 using InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 using InfraFlowSculptor.GenerationCore.Models;

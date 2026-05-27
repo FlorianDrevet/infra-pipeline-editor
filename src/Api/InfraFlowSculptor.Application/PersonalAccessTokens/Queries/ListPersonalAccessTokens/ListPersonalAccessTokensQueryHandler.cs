@@ -32,7 +32,8 @@ public sealed class ListPersonalAccessTokensQueryHandler(
                 t.ExpiresAt,
                 t.CreatedAt,
                 t.LastUsedAt,
-                t.IsRevoked))
+                t.IsRevoked,
+                t.Scopes.Select(s => s.Value.ToString()).ToList()))
             .ToList();
 
         return results;

@@ -57,7 +57,6 @@ export class DiagnosticPopoverComponent {
     const rect = el.getBoundingClientRect();
     const panelWidth = 360;
     const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceRight = window.innerWidth - rect.left;
 
     let top: number;
     let left: number;

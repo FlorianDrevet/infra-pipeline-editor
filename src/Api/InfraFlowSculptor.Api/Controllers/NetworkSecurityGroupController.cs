@@ -9,7 +9,6 @@ using InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InfraFlowSculptor.Api.Controllers;
@@ -22,7 +21,7 @@ public static class NetworkSecurityGroupController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/network-security-group")
+            var group = endpoints.MapGroup(Routes.NetworkSecurityGroup)
                 .WithTags("NetworkSecurityGroups");
 
             group.MapGet("/{id:guid}",

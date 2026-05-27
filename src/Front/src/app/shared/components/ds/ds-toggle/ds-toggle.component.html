@@ -20,6 +20,7 @@
       class="ds-toggle__input"
       role="switch"
       [attr.aria-label]="ariaLabel()"
+      [attr.aria-checked]="checked()"
       [checked]="checked()"
       [disabled]="disabledState()"
       (change)="onToggle($event)"

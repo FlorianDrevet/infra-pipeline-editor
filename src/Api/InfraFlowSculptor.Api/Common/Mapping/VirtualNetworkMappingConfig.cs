@@ -6,7 +6,6 @@ using InfraFlowSculptor.Contracts.VirtualNetworks.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.VirtualNetworkAggregate;
-using InfraFlowSculptor.Domain.VirtualNetworkAggregate.Entities;
 using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;

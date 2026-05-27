@@ -6,7 +6,7 @@ namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 public sealed class Role(Role.RoleEnum value) : EnumValueObject<Role.RoleEnum>(value)
 {
     /// <summary>Available membership roles.</summary>
-    public enum RoleEnum
+    public enum RoleEnum // NOSONAR S2344
     {
         Owner,
         Contributor,

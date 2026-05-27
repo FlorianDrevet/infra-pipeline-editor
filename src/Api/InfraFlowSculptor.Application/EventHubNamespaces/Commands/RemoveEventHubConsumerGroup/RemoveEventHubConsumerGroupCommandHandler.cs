@@ -37,7 +37,7 @@ public class RemoveEventHubConsumerGroupCommandHandler(
         if (removeResult.IsError)
             return removeResult.Errors;
 
-        await eventHubNamespaceRepository.UpdateAsync(eh);
+        eventHubNamespaceRepository.Update(eh);
 
         return mapper.Map<EventHubNamespaceResult>(eh);
     }

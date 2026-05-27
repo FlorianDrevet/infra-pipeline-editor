@@ -14,11 +14,10 @@ public sealed class InfraConfigRepositoryTests
     private static InfraConfigRepository CreateValidSut()
     {
         var configId = InfrastructureConfigId.CreateUnique();
-        var alias = RepositoryAlias.Create("infra-repo").Value;
         var provider = new GitProviderType(GitProviderTypeEnum.GitHub);
         var contentKinds = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
 
-        return InfraConfigRepository.Create(configId, alias, provider, ValidGitHubUrl, DefaultBranch, contentKinds).Value;
+        return InfraConfigRepository.Create(configId, provider, ValidGitHubUrl, DefaultBranch, contentKinds).Value;
     }
 
     [Fact]
@@ -26,17 +25,15 @@ public sealed class InfraConfigRepositoryTests
     {
         // Arrange
         var configId = InfrastructureConfigId.CreateUnique();
-        var alias = RepositoryAlias.Create("infra-repo").Value;
         var provider = new GitProviderType(GitProviderTypeEnum.GitHub);
         var contentKinds = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
 
         // Act
-        var result = InfraConfigRepository.Create(configId, alias, provider, ValidGitHubUrl, DefaultBranch, contentKinds);
+        var result = InfraConfigRepository.Create(configId, provider, ValidGitHubUrl, DefaultBranch, contentKinds);
 
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.InfrastructureConfigId.Should().Be(configId);
-        result.Value.Alias.Should().Be(alias);
         result.Value.ProviderType.Value.Should().Be(GitProviderTypeEnum.GitHub);
         result.Value.RepositoryUrl.Should().Be(ValidGitHubUrl);
         result.Value.DefaultBranch.Should().Be(DefaultBranch);
@@ -50,12 +47,11 @@ public sealed class InfraConfigRepositoryTests
     {
         // Arrange
         var configId = InfrastructureConfigId.CreateUnique();
-        var alias = RepositoryAlias.Create("infra-repo").Value;
         var provider = new GitProviderType(GitProviderTypeEnum.GitHub);
         var contentKinds = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
 
         // Act
-        var result = InfraConfigRepository.Create(configId, alias, provider, ValidGitHubUrlWithTrailingSlash, DefaultBranch, contentKinds);
+        var result = InfraConfigRepository.Create(configId, provider, ValidGitHubUrlWithTrailingSlash, DefaultBranch, contentKinds);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -69,12 +65,11 @@ public sealed class InfraConfigRepositoryTests
     {
         // Arrange
         var configId = InfrastructureConfigId.CreateUnique();
-        var alias = RepositoryAlias.Create("infra-repo").Value;
         var provider = new GitProviderType(GitProviderTypeEnum.GitHub);
         var contentKinds = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
 
         // Act
-        var result = InfraConfigRepository.Create(configId, alias, provider, url, DefaultBranch, contentKinds);
+        var result = InfraConfigRepository.Create(configId, provider, url, DefaultBranch, contentKinds);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -87,12 +82,11 @@ public sealed class InfraConfigRepositoryTests
     {
         // Arrange
         var configId = InfrastructureConfigId.CreateUnique();
-        var alias = RepositoryAlias.Create("infra-repo").Value;
         var provider = new GitProviderType(GitProviderTypeEnum.GitHub);
         var contentKinds = RepositoryContentKinds.Create(RepositoryContentKindsEnum.Infrastructure).Value;
 
         // Act
-        var result = InfraConfigRepository.Create(configId, alias, provider, ValidGitHubUrl, branch, contentKinds);
+        var result = InfraConfigRepository.Create(configId, provider, ValidGitHubUrl, branch, contentKinds);
 
         // Assert
         result.IsError.Should().BeTrue();

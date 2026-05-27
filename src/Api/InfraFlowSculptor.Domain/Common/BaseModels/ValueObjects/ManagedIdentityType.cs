@@ -6,7 +6,7 @@ namespace InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 public sealed class ManagedIdentityType(ManagedIdentityType.IdentityTypeEnum value) : EnumValueObject<ManagedIdentityType.IdentityTypeEnum>(value)
 {
     /// <summary>Supported managed identity types.</summary>
-    public enum IdentityTypeEnum
+    public enum IdentityTypeEnum // NOSONAR S2344
     {
         SystemAssigned,
         UserAssigned

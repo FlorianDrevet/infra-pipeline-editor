@@ -1,14 +1,16 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { DsButtonComponent, DsTextareaComponent } from '../../../shared/components/ds';
+import {
+  DsAutocompleteComponent,
+  DsAutocompleteOption,
+  DsButtonComponent,
+  DsTextareaComponent,
+} from '../../../shared/components/ds';
 import { MatCardModule } from '@angular/material/card';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -24,12 +26,16 @@ import {
 
 export interface MultiRepoPushDialogData {
   projectId: string;
-  infraAlias: string;
-  codeAlias: string;
+  infraRepositoryId: string;
+  codeRepositoryId: string;
+  infraRepositoryLabel: string;
+  codeRepositoryLabel: string;
   mode?: MultiRepoPushMode;
 }
 
 type DialogState = 'form' | 'pushing' | 'success' | 'partial' | 'error';
+
+const DEFAULT_GIT_BRANCH_NAME = 'main';
 
 interface MultiRepoPushModeContent {
   titleIcon: string;
@@ -87,17 +93,15 @@ const MULTI_REPO_PUSH_MODE_CONTENT: Record<MultiRepoPushMode, MultiRepoPushModeC
   selector: 'app-multi-repo-push-dialog',
   standalone: true,
   imports: [
-    MatAutocompleteModule,
     MatButtonModule,
     MatCardModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
     ReactiveFormsModule,
     TranslateModule,
+    DsAutocompleteComponent,
     DsButtonComponent,
     DsTextareaComponent,
   ],
@@ -116,21 +120,28 @@ export class MultiRepoPushDialogComponent implements OnInit {
   protected readonly infraResult = signal<RepoPushResult | null>(null);
   protected readonly codeResult = signal<RepoPushResult | null>(null);
   protected readonly errorKey = signal('');
-  protected readonly allBranches = signal<string[]>([]);
+  protected readonly allInfraBranches = signal<string[]>([]);
+  protected readonly allCodeBranches = signal<string[]>([]);
   protected readonly filteredInfraBranches = signal<string[]>([]);
   protected readonly filteredCodeBranches = signal<string[]>([]);
   protected readonly branchesLoading = signal(true);
+  protected readonly infraBranchOptions = computed<DsAutocompleteOption<string>[]>(() =>
+    this.filteredInfraBranches().map((branch) => ({ value: branch, label: branch })),
+  );
+  protected readonly codeBranchOptions = computed<DsAutocompleteOption<string>[]>(() =>
+    this.filteredCodeBranches().map((branch) => ({ value: branch, label: branch })),
+  );
 
-  private readonly infraBranchKey = `ifs-push-branch-multi-${this.data.projectId}-${this.data.infraAlias}`;
-  private readonly codeBranchKey = `ifs-push-branch-multi-${this.data.projectId}-${this.data.codeAlias}`;
+  private readonly infraBranchKey = `ifs-push-branch-multi-${this.data.projectId}-${this.data.infraRepositoryId}`;
+  private readonly codeBranchKey = `ifs-push-branch-multi-${this.data.projectId}-${this.data.codeRepositoryId}`;
 
   protected readonly infraForm = new FormGroup({
-    branch: new FormControl<string>(localStorage.getItem(this.infraBranchKey) ?? 'main', { nonNullable: true, validators: [Validators.required] }),
+    branch: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
     commit: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
   });
 
   protected readonly codeForm = new FormGroup({
-    branch: new FormControl<string>(localStorage.getItem(this.codeBranchKey) ?? 'main', { nonNullable: true, validators: [Validators.required] }),
+    branch: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
     commit: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
   });
   private readonly infraFormStatus = toSignal(
@@ -158,10 +169,12 @@ export class MultiRepoPushDialogComponent implements OnInit {
 
   protected readonly canPush = computed(() => {
     const isPushing = this.state() === 'pushing';
+    const areBranchesLoading = this.branchesLoading();
     const infraFormStatus = this.infraFormStatus();
     const codeFormStatus = this.codeFormStatus();
 
     return !isPushing
+      && !areBranchesLoading
       && (!this.showsInfraCard() || infraFormStatus === 'VALID')
       && (!this.showsCodeCard() || codeFormStatus === 'VALID');
   });
@@ -194,7 +207,7 @@ export class MultiRepoPushDialogComponent implements OnInit {
       const infraBranch = this.infraForm.controls.branch.value;
       localStorage.setItem(this.infraBranchKey, infraBranch);
       request.infra = {
-        alias: this.data.infraAlias,
+        repositoryId: this.data.infraRepositoryId,
         branchName: infraBranch,
         commitMessage: this.infraForm.controls.commit.value,
       };
@@ -204,7 +217,7 @@ export class MultiRepoPushDialogComponent implements OnInit {
       const codeBranch = this.codeForm.controls.branch.value;
       localStorage.setItem(this.codeBranchKey, codeBranch);
       request.code = {
-        alias: this.data.codeAlias,
+        repositoryId: this.data.codeRepositoryId,
         branchName: codeBranch,
         commitMessage: this.codeForm.controls.commit.value,
       };
@@ -216,8 +229,8 @@ export class MultiRepoPushDialogComponent implements OnInit {
         request,
       );
 
-      const infra = response.results.find(r => r.alias === this.data.infraAlias) ?? null;
-      const code = response.results.find(r => r.alias === this.data.codeAlias) ?? null;
+      const infra = response.results.find(r => r.repositoryId === this.data.infraRepositoryId) ?? null;
+      const code = response.results.find(r => r.repositoryId === this.data.codeRepositoryId) ?? null;
       this.infraResult.set(infra);
       this.codeResult.set(code);
 
@@ -277,13 +290,20 @@ export class MultiRepoPushDialogComponent implements OnInit {
   private async loadBranches(): Promise<void> {
     this.branchesLoading.set(true);
     try {
-      const branches = await this.projectService.listBranches(this.data.projectId);
-      const branchNames = branches.map(branch => branch.name);
-      this.allBranches.set(branchNames);
-      this.filterInfraBranches(this.infraForm.controls.branch.value);
-      this.filterCodeBranches(this.codeForm.controls.branch.value);
+      const [infraBranches, codeBranches] = await Promise.all([
+        this.showsInfraCard()
+          ? this.projectService.listBranches(this.data.projectId)
+          : Promise.resolve([]),
+        this.showsCodeCard()
+          ? this.projectService.listCodeBranches(this.data.projectId)
+          : Promise.resolve([]),
+      ]);
+      this.allInfraBranches.set(infraBranches.map(b => b.name));
+      this.allCodeBranches.set(codeBranches.map(b => b.name));
+      this.applyPreferredBranches();
     } catch {
-      this.allBranches.set([]);
+      this.allInfraBranches.set([]);
+      this.allCodeBranches.set([]);
       this.filteredInfraBranches.set([]);
       this.filteredCodeBranches.set([]);
     } finally {
@@ -291,20 +311,29 @@ export class MultiRepoPushDialogComponent implements OnInit {
     }
   }
 
+  private applyPreferredBranches(): void {
+    this.infraForm.controls.branch.setValue(this.readPreferredBranch(this.infraBranchKey));
+    this.codeForm.controls.branch.setValue(this.readPreferredBranch(this.codeBranchKey));
+  }
+
+  private readPreferredBranch(storageKey: string): string {
+    return localStorage.getItem(storageKey) ?? DEFAULT_GIT_BRANCH_NAME;
+  }
+
   private filterInfraBranches(search: string): void {
-    this.filteredInfraBranches.set(this.filterBranches(search));
+    this.filteredInfraBranches.set(this.filterBranchesFrom(this.allInfraBranches(), search));
   }
 
   private filterCodeBranches(search: string): void {
-    this.filteredCodeBranches.set(this.filterBranches(search));
+    this.filteredCodeBranches.set(this.filterBranchesFrom(this.allCodeBranches(), search));
   }
 
-  private filterBranches(search: string): string[] {
+  private filterBranchesFrom(branches: string[], search: string): string[] {
     const normalizedSearch = search.trim().toLowerCase();
     if (normalizedSearch === '') {
-      return this.allBranches();
+      return branches;
     }
 
-    return this.allBranches().filter(branch => branch.toLowerCase().includes(normalizedSearch));
+    return branches.filter(branch => branch.toLowerCase().includes(normalizedSearch));
   }
 }

@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
@@ -47,15 +48,18 @@ public sealed class AppPipelineRequestFactory(
             containerApp.ContainerRegistryId,
             cancellationToken).ConfigureAwait(false);
 
-        return new AppPipelineGenerationRequest
+        var request = new AppPipelineGenerationRequest
         {
             ResourceName = containerApp.Name,
             ApplicationName = containerApp.ApplicationName,
             ResourceType = AzureResourceTypes.ContainerApp,
             DeploymentMode = DeploymentMode.DeploymentModeType.Container.ToString(),
+            ApplicationStack = containerApp.PipelineStepOptions.Stack.Value.ToString(),
             DockerfilePath = containerApp.DockerfilePath,
+            SourceCodePath = containerApp.SourceCodePath,
             DockerImageName = containerApp.DockerImageName,
             ContainerRegistryName = containerRegistryName,
+            ContainerRegistryServiceConnections = BuildContainerRegistryServiceConnections(containerApp.EnvironmentSettings),
             AcrAuthMode = containerApp.AcrAuthMode?.Value.ToString(),
             PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
             EnableSecurityScans = true,
@@ -81,6 +85,9 @@ public sealed class AppPipelineRequestFactory(
             RunSmokeTests = containerApp.PipelineStepOptions.RunSmokeTests,
             SmokeTestCommand = containerApp.PipelineStepOptions.SmokeTestCommand,
         };
+
+        StackProfileCommandResolver.ApplyProfileDefaults(request, containerApp.PipelineStepOptions);
+        return request;
     }
 
     private async Task<AppPipelineGenerationRequest?> CreateFromWebAppAsync(
@@ -95,12 +102,13 @@ public sealed class AppPipelineRequestFactory(
             webApp.ContainerRegistryId,
             cancellationToken).ConfigureAwait(false);
 
-        return new AppPipelineGenerationRequest
+        var request = new AppPipelineGenerationRequest
         {
             ResourceName = webApp.Name,
             ApplicationName = webApp.ApplicationName,
             ResourceType = AzureResourceTypes.WebApp,
             DeploymentMode = webApp.DeploymentMode.Value.ToString(),
+            ApplicationStack = webApp.PipelineStepOptions.Stack.Value.ToString(),
             DockerfilePath = webApp.DockerfilePath,
             SourceCodePath = webApp.SourceCodePath,
             BuildCommand = webApp.BuildCommand,
@@ -133,6 +141,9 @@ public sealed class AppPipelineRequestFactory(
             RunSmokeTests = webApp.PipelineStepOptions.RunSmokeTests,
             SmokeTestCommand = webApp.PipelineStepOptions.SmokeTestCommand,
         };
+
+        StackProfileCommandResolver.ApplyProfileDefaults(request, webApp.PipelineStepOptions);
+        return request;
     }
 
     private async Task<AppPipelineGenerationRequest?> CreateFromFunctionAppAsync(
@@ -147,12 +158,13 @@ public sealed class AppPipelineRequestFactory(
             functionApp.ContainerRegistryId,
             cancellationToken).ConfigureAwait(false);
 
-        return new AppPipelineGenerationRequest
+        var request = new AppPipelineGenerationRequest
         {
             ResourceName = functionApp.Name,
             ApplicationName = functionApp.ApplicationName,
             ResourceType = AzureResourceTypes.FunctionApp,
             DeploymentMode = functionApp.DeploymentMode.Value.ToString(),
+            ApplicationStack = functionApp.PipelineStepOptions.Stack.Value.ToString(),
             DockerfilePath = functionApp.DockerfilePath,
             SourceCodePath = functionApp.SourceCodePath,
             BuildCommand = functionApp.BuildCommand,
@@ -185,6 +197,9 @@ public sealed class AppPipelineRequestFactory(
             RunSmokeTests = functionApp.PipelineStepOptions.RunSmokeTests,
             SmokeTestCommand = functionApp.PipelineStepOptions.SmokeTestCommand,
         };
+
+        StackProfileCommandResolver.ApplyProfileDefaults(request, functionApp.PipelineStepOptions);
+        return request;
     }
 
     private async Task<string?> ResolveContainerRegistryNameAsync(
@@ -198,5 +213,16 @@ public sealed class AppPipelineRequestFactory(
             .ConfigureAwait(false);
 
         return containerRegistry?.Name.Value;
+    }
+
+    private static IReadOnlyList<ContainerRegistryServiceConnectionDefinition> BuildContainerRegistryServiceConnections(
+        IEnumerable<Domain.ContainerAppAggregate.Entities.ContainerAppEnvironmentSettings> environmentSettings)
+    {
+        return environmentSettings
+            .Where(settings => !string.IsNullOrWhiteSpace(settings.ContainerRegistryServiceConnection))
+            .Select(settings => new ContainerRegistryServiceConnectionDefinition(
+                settings.EnvironmentName,
+                settings.ContainerRegistryServiceConnection!))
+            .ToList();
     }
 }

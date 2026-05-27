@@ -8,7 +8,7 @@ trigger:
       - release/*
   paths:
     include:
-      - core/myfunc/*
+      - src/Func/*
       - .azuredevops/Common/*
       - .azuredevops/core/apps/MyFunc/*
 

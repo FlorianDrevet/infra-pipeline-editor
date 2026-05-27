@@ -19,4 +19,5 @@ public record ContainerAppEnvironmentConfigData(
     string? LivenessProbePath = null,
     int? LivenessProbePort = null,
     string? StartupProbePath = null,
-    int? StartupProbePort = null);
+    int? StartupProbePort = null,
+    string? ContainerRegistryServiceConnection = null);

@@ -215,6 +215,8 @@ public sealed class MainBicepAssemblerOutputTrackingTests
         // and the value expression references its 'secretUris' output.
         result.UsedOutputsByModulePath.Should().ContainKey(KvSecretsPath);
         result.UsedOutputsByModulePath[KvSecretsPath].Should().Contain("secretUris");
+        result.Content.Should().Contain("// -- Key Vault secrets (batch per Key Vault)");
+        result.Content.Should().NotContain("â");
     }
 
     [Fact]

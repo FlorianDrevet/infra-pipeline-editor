@@ -1,5 +1,4 @@
 using ErrorOr;
-using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using MediatR;
@@ -10,7 +9,6 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddInfraCo
 public sealed record AddInfraConfigRepositoryCommand(
     ProjectId ProjectId,
     InfrastructureConfigId ConfigId,
-    string Alias,
     string ProviderType,
     string RepositoryUrl,
     string DefaultBranch,

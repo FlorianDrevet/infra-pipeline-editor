@@ -1,5 +1,4 @@
 using FluentAssertions;
-using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.ValueObjects;

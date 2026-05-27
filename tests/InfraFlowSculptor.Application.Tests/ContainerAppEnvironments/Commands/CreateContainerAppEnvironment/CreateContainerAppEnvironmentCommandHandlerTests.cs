@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.CreateContainerAppEnvironment;
 using InfraFlowSculptor.Application.ContainerAppEnvironments.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate;
@@ -47,8 +46,8 @@ public sealed class CreateContainerAppEnvironmentCommandHandlerTests
             _resourceGroup.Id,
             new Name(EnvironmentName),
             new Location(Location.LocationEnum.FranceCentral));
-        _environmentRepository.AddAsync(Arg.Any<ContainerAppEnvironment>())
-            .Returns(callInfo => Task.FromResult((ContainerAppEnvironment)callInfo.Args()[0]));
+        _environmentRepository.Add(Arg.Any<ContainerAppEnvironment>())
+            .Returns(callInfo => (ContainerAppEnvironment)callInfo.Args()[0]);
         _sut = new CreateContainerAppEnvironmentCommandHandler(
             _environmentRepository, _resourceGroupRepository, _logAnalyticsWorkspaceRepository, _accessService, _mapper);
     }
@@ -66,7 +65,7 @@ public sealed class CreateContainerAppEnvironmentCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _environmentRepository.DidNotReceive().AddAsync(Arg.Any<ContainerAppEnvironment>());
+        _environmentRepository.DidNotReceive().Add(Arg.Any<ContainerAppEnvironment>());
     }
 
     [Fact]
@@ -83,7 +82,7 @@ public sealed class CreateContainerAppEnvironmentCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _environmentRepository.Received(1).AddAsync(Arg.Is<ContainerAppEnvironment>(e =>
+        _environmentRepository.Received(1).Add(Arg.Is<ContainerAppEnvironment>(e =>
             e.ResourceGroupId == _resourceGroup.Id && e.Name.Value == EnvironmentName));
         _mapper.Received(1).Map<ContainerAppEnvironmentResult>(Arg.Any<ContainerAppEnvironment>());
     }

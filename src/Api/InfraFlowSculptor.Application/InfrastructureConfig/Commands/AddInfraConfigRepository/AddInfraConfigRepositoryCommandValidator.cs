@@ -7,8 +7,6 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddInfraCo
 public sealed class AddInfraConfigRepositoryCommandValidator
     : AbstractValidator<AddInfraConfigRepositoryCommand>
 {
-    private const string AliasPattern = "^[a-z0-9-]+$";
-
     /// <summary>Initializes the validator.</summary>
     public AddInfraConfigRepositoryCommandValidator()
     {
@@ -17,11 +15,6 @@ public sealed class AddInfraConfigRepositoryCommandValidator
 
         RuleFor(x => x.ConfigId.Value)
             .NotEmpty().WithMessage("ConfigId is required.");
-
-        RuleFor(x => x.Alias)
-            .NotEmpty().WithMessage("Alias is required.")
-            .MaximumLength(50).WithMessage("Alias must not exceed 50 characters.")
-            .Matches(AliasPattern).WithMessage("Alias must contain only lowercase letters, digits and hyphens.");
 
         RuleFor(x => x.ProviderType)
             .NotEmpty().WithMessage("ProviderType is required.");

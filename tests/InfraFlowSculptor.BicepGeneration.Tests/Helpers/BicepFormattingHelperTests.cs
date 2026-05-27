@@ -88,6 +88,28 @@ public sealed class BicepFormattingHelperTests
     }
 
     [Fact]
+    public void Given_ObjectWithNestedObject_When_Serializing_Then_NestedPropertiesRemainIndented()
+    {
+        // Arrange
+        var value = new AnnotatedParameterObject
+        {
+            RuntimeStack = "DOTNETCORE",
+            Nested = new NestedAnnotatedParameterObject
+            {
+                TargetPort = 8080,
+            },
+        };
+
+        var expected = "{\n  runtimeStack: 'DOTNETCORE'\n  nested: {\n    targetPort: 8080\n  }\n}";
+
+        // Act
+        var result = BicepFormattingHelper.SerializeToBicep(value).ReplaceLineEndings("\n");
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Fact]
     public void Given_InvalidAnnotatedAndDictionaryKeys_When_Serializing_Then_FormatsBicepObjectKeys()
     {
         // Arrange

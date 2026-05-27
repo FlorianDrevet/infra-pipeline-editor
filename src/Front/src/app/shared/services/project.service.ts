@@ -18,10 +18,12 @@ import {
   GenerateProjectBicepResponse,
   GenerateProjectPipelineResponse,
   GenerateProjectBootstrapPipelineResponse,
+  GetProjectLatestGenerationResponse,
   ProjectPipelineVariableGroupResponse,
   AddProjectPipelineVariableGroupRequest,
   SetProjectTagsRequest,
   SetAgentPoolRequest,
+  SetProjectGitPatRequest,
 } from '../interfaces/project.interface';
 import {
   PushBicepToGitRequest,
@@ -43,6 +45,10 @@ import {
   AddProjectRepositoryRequest,
   UpdateProjectRepositoryRequest,
   ProjectLayoutPreset,
+  VerifyProjectRepositoryRequest,
+  VerifyProjectRepositoryResponse,
+  VerifyGitConnectionRequest,
+  VerifyGitConnectionResponse,
 } from '../interfaces/project-repository.interface';
 import {
   AddInfraConfigRepositoryRequest,
@@ -54,11 +60,26 @@ import {
   MultiRepoPushResponse,
 } from '../interfaces/multi-repo-push.interface';
 
+const HTTP_STATUS_NOT_FOUND = 404;
+
 @Injectable({
   providedIn: 'root',
 })
 export class ProjectService {
   private readonly axios = inject(AxiosService);
+
+  /** Short-lived cache to avoid redundant fetches during navigation (TTL: 30s). */
+  private readonly projectCache = new Map<string, { data: ProjectResponse; timestamp: number }>();
+  private static readonly CACHE_TTL_MS = 30_000;
+
+  /** Cache for project resources with same TTL as project cache. */
+  private readonly projectResourcesCache = new Map<
+    string,
+    { data: ProjectResourceResponse[]; timestamp: number }
+  >();
+
+  /** In-flight requests for project resources to enable coalescing. */
+  private readonly projectResourcesInFlight = new Map<string, Promise<ProjectResourceResponse[]>>();
 
   getMyProjects(): Promise<ProjectResponse[]> {
     return this.axios.request$<ProjectResponse[]>(MethodEnum.GET, '/projects');
@@ -72,8 +93,36 @@ export class ProjectService {
     );
   }
 
-  getProject(id: string): Promise<ProjectResponse> {
-    return this.axios.request$<ProjectResponse>(MethodEnum.GET, `/projects/${id}`);
+  async getProject(id: string): Promise<ProjectResponse> {
+    const cached = this.projectCache.get(id);
+    if (cached && Date.now() - cached.timestamp < ProjectService.CACHE_TTL_MS) {
+      return cached.data;
+    }
+
+    const data = await this.axios.request$<ProjectResponse>(MethodEnum.GET, `/projects/${id}`);
+    this.projectCache.set(id, { data, timestamp: Date.now() });
+    return data;
+  }
+
+  /** Invalidates the cached project entry so the next getProject triggers a fresh fetch. */
+  invalidateProjectCache(id: string): void {
+    this.projectCache.delete(id);
+  }
+
+  /** Invalidates the cached project resources entry so the next getProjectResources triggers a fresh fetch. */
+  invalidateProjectResourcesCache(id: string): void {
+    this.projectResourcesCache.delete(id);
+    this.projectResourcesInFlight.delete(id);
+  }
+
+  private async invalidateProjectCacheAfterSuccess<T>(
+    projectId: string,
+    mutation: Promise<T>
+  ): Promise<T> {
+    const result = await mutation;
+    this.invalidateProjectCache(projectId);
+    this.invalidateProjectResourcesCache(projectId);
+    return result;
   }
 
   createProject(request: CreateProjectRequest): Promise<ProjectResponse> {
@@ -85,7 +134,10 @@ export class ProjectService {
   }
 
   deleteProject(id: string): Promise<void> {
-    return this.axios.request$<void>(MethodEnum.DELETE, `/projects/${id}`);
+    return this.invalidateProjectCacheAfterSuccess(
+      id,
+      this.axios.request$<void>(MethodEnum.DELETE, `/projects/${id}`)
+    );
   }
 
   getProjectConfigs(id: string): Promise<InfrastructureConfigResponse[]> {
@@ -100,10 +152,13 @@ export class ProjectService {
   }
 
   addMember(projectId: string, request: AddProjectMemberRequest): Promise<ProjectResponse> {
-    return this.axios.request$<ProjectResponse>(
-      MethodEnum.POST,
-      `/projects/${projectId}/members`,
-      request
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<ProjectResponse>(
+        MethodEnum.POST,
+        `/projects/${projectId}/members`,
+        request
+      )
     );
   }
 
@@ -112,17 +167,23 @@ export class ProjectService {
     userId: string,
     request: UpdateProjectMemberRoleRequest
   ): Promise<ProjectResponse> {
-    return this.axios.request$<ProjectResponse>(
-      MethodEnum.PUT,
-      `/projects/${projectId}/members/${userId}`,
-      request
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<ProjectResponse>(
+        MethodEnum.PUT,
+        `/projects/${projectId}/members/${userId}`,
+        request
+      )
     );
   }
 
   removeMember(projectId: string, userId: string): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/projects/${projectId}/members/${userId}`
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<void>(
+        MethodEnum.DELETE,
+        `/projects/${projectId}/members/${userId}`
+      )
     );
   }
 
@@ -132,10 +193,13 @@ export class ProjectService {
     projectId: string,
     request: AddProjectEnvironmentRequest
   ): Promise<EnvironmentDefinitionResponse> {
-    return this.axios.request$<EnvironmentDefinitionResponse>(
-      MethodEnum.POST,
-      `/projects/${projectId}/environments`,
-      request
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<EnvironmentDefinitionResponse>(
+        MethodEnum.POST,
+        `/projects/${projectId}/environments`,
+        request
+      )
     );
   }
 
@@ -144,17 +208,23 @@ export class ProjectService {
     envId: string,
     request: UpdateProjectEnvironmentRequest
   ): Promise<EnvironmentDefinitionResponse> {
-    return this.axios.request$<EnvironmentDefinitionResponse>(
-      MethodEnum.PUT,
-      `/projects/${projectId}/environments/${envId}`,
-      request
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<EnvironmentDefinitionResponse>(
+        MethodEnum.PUT,
+        `/projects/${projectId}/environments/${envId}`,
+        request
+      )
     );
   }
 
   removeEnvironment(projectId: string, envId: string): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/projects/${projectId}/environments/${envId}`
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<void>(
+        MethodEnum.DELETE,
+        `/projects/${projectId}/environments/${envId}`
+      )
     );
   }
 
@@ -164,10 +234,13 @@ export class ProjectService {
     projectId: string,
     request: SetDefaultNamingTemplateRequest
   ): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.PUT,
-      `/projects/${projectId}/naming/default`,
-      request
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<void>(
+        MethodEnum.PUT,
+        `/projects/${projectId}/naming/default`,
+        request
+      )
     );
   }
 
@@ -176,10 +249,13 @@ export class ProjectService {
     resourceType: string,
     request: SetResourceNamingTemplateRequest
   ): Promise<ResourceNamingTemplateResponse> {
-    return this.axios.request$<ResourceNamingTemplateResponse>(
-      MethodEnum.PUT,
-      `/projects/${projectId}/naming/resources/${resourceType}`,
-      request
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<ResourceNamingTemplateResponse>(
+        MethodEnum.PUT,
+        `/projects/${projectId}/naming/resources/${resourceType}`,
+        request
+      )
     );
   }
 
@@ -187,9 +263,12 @@ export class ProjectService {
     projectId: string,
     resourceType: string
   ): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/projects/${projectId}/naming/resources/${resourceType}`
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<void>(
+        MethodEnum.DELETE,
+        `/projects/${projectId}/naming/resources/${resourceType}`
+      )
     );
   }
 
@@ -200,10 +279,13 @@ export class ProjectService {
     resourceType: string,
     request: SetResourceAbbreviationOverrideRequest
   ): Promise<ResourceAbbreviationOverrideResponse> {
-    return this.axios.request$<ResourceAbbreviationOverrideResponse>(
-      MethodEnum.PUT,
-      `/projects/${projectId}/naming/abbreviations/${resourceType}`,
-      request
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<ResourceAbbreviationOverrideResponse>(
+        MethodEnum.PUT,
+        `/projects/${projectId}/naming/abbreviations/${resourceType}`,
+        request
+      )
     );
   }
 
@@ -211,9 +293,12 @@ export class ProjectService {
     projectId: string,
     resourceType: string
   ): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/projects/${projectId}/naming/abbreviations/${resourceType}`
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<void>(
+        MethodEnum.DELETE,
+        `/projects/${projectId}/naming/abbreviations/${resourceType}`
+      )
     );
   }
 
@@ -223,6 +308,41 @@ export class ProjectService {
     return this.axios.request$<TestGitConnectionResponse>(
       MethodEnum.POST,
       `/projects/${projectId}/git-config/test`
+    );
+  }
+
+  setGitPat(projectId: string, repoId: string, request: SetProjectGitPatRequest): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/repositories/${repoId}/git-pat`,
+      request
+    );
+  }
+
+  testRepositoryConnection(projectId: string, repoId: string): Promise<TestGitConnectionResponse> {
+    return this.axios.request$<TestGitConnectionResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/repositories/${repoId}/test-connection`
+    );
+  }
+
+  verifyGitConnection(request: VerifyGitConnectionRequest): Promise<VerifyGitConnectionResponse> {
+    return this.axios.request$<VerifyGitConnectionResponse>(MethodEnum.POST, '/git/verify-connection', request);
+  }
+
+  verifyRepositoryConnection(
+    projectId: string,
+    request: VerifyProjectRepositoryRequest,
+    repoId?: string,
+  ): Promise<VerifyProjectRepositoryResponse> {
+    const url = repoId
+      ? `/projects/${projectId}/repositories/${repoId}/verify`
+      : `/projects/${projectId}/repositories/verify`;
+
+    return this.axios.request$<VerifyProjectRepositoryResponse>(
+      MethodEnum.POST,
+      url,
+      request
     );
   }
 
@@ -253,13 +373,64 @@ export class ProjectService {
     );
   }
 
+  searchCodeDirectories(projectId: string, branch: string, prefix?: string, configId?: string): Promise<GitFileResponse[]> {
+    const params = new URLSearchParams({ branch });
+    if (prefix) params.set('prefix', prefix);
+    if (configId) params.set('configId', configId);
+    return this.axios.request$<GitFileResponse[]>(
+      MethodEnum.GET,
+      `/projects/${projectId}/git-config/code-directories?${params.toString()}`
+    );
+  }
+
   // ─── Project Resources ───
 
-  getProjectResources(projectId: string): Promise<ProjectResourceResponse[]> {
-    return this.axios.request$<ProjectResourceResponse[]>(
-      MethodEnum.GET,
-      `/projects/${projectId}/resources`
-    );
+  async getProjectResources(projectId: string): Promise<ProjectResourceResponse[]> {
+    const cached = this.projectResourcesCache.get(projectId);
+    if (cached && Date.now() - cached.timestamp < ProjectService.CACHE_TTL_MS) {
+      return cached.data;
+    }
+
+    const inFlight = this.projectResourcesInFlight.get(projectId);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const request = this.axios
+      .request$<ProjectResourceResponse[]>(MethodEnum.GET, `/projects/${projectId}/resources`)
+      .then((data) => {
+        if (this.projectResourcesInFlight.get(projectId) === request) {
+          this.projectResourcesCache.set(projectId, { data, timestamp: Date.now() });
+          this.projectResourcesInFlight.delete(projectId);
+        }
+
+        return data;
+      })
+      .catch((error) => {
+        if (this.projectResourcesInFlight.get(projectId) === request) {
+          this.projectResourcesInFlight.delete(projectId);
+        }
+
+        throw error;
+      });
+
+    this.projectResourcesInFlight.set(projectId, request);
+    return request;
+  }
+
+  async getProjectLatestGeneration(projectId: string): Promise<GetProjectLatestGenerationResponse | null> {
+    try {
+      return await this.axios.request$<GetProjectLatestGenerationResponse>(
+        MethodEnum.GET,
+        `/projects/${projectId}/latest-generation`
+      );
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === HTTP_STATUS_NOT_FOUND) {
+        return null;
+      }
+
+      throw error;
+    }
   }
 
   generateProjectBicep(projectId: string): Promise<GenerateProjectBicepResponse> {
@@ -417,20 +588,26 @@ export class ProjectService {
   // ─── Tags ───
 
   setTags(projectId: string, request: SetProjectTagsRequest): Promise<ProjectResponse> {
-    return this.axios.request$<ProjectResponse>(
-      MethodEnum.PUT,
-      `/projects/${projectId}/tags`,
-      request
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<ProjectResponse>(
+        MethodEnum.PUT,
+        `/projects/${projectId}/tags`,
+        request
+      )
     );
   }
 
   // ─── Agent Pool ───
 
   async setAgentPool(projectId: string, request: SetAgentPoolRequest): Promise<void> {
-    await this.axios.request$<void>(
-      MethodEnum.PUT,
-      `/projects/${projectId}/agent-pool`,
-      request
+    await this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<void>(
+        MethodEnum.PUT,
+        `/projects/${projectId}/agent-pool`,
+        request
+      )
     );
   }
 
@@ -445,10 +622,13 @@ export class ProjectService {
     projectId: string,
     request: AddProjectRepositoryRequest
   ): Promise<{ id: string }> {
-    return this.axios.request$<{ id: string }>(
-      MethodEnum.POST,
-      `/projects/${projectId}/repositories`,
-      request
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<{ id: string }>(
+        MethodEnum.POST,
+        `/projects/${projectId}/repositories`,
+        request
+      )
     );
   }
 
@@ -457,25 +637,34 @@ export class ProjectService {
     repoId: string,
     request: UpdateProjectRepositoryRequest
   ): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.PUT,
-      `/projects/${projectId}/repositories/${repoId}`,
-      request
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<void>(
+        MethodEnum.PUT,
+        `/projects/${projectId}/repositories/${repoId}`,
+        request
+      )
     );
   }
 
   removeRepository(projectId: string, repoId: string): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/projects/${projectId}/repositories/${repoId}`
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<void>(
+        MethodEnum.DELETE,
+        `/projects/${projectId}/repositories/${repoId}`
+      )
     );
   }
 
   setLayoutPreset(projectId: string, preset: ProjectLayoutPreset): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.PUT,
-      `/projects/${projectId}/layout-preset`,
-      { preset }
+    return this.invalidateProjectCacheAfterSuccess(
+      projectId,
+      this.axios.request$<void>(
+        MethodEnum.PUT,
+        `/projects/${projectId}/layout-preset`,
+        { preset }
+      )
     );
   }
 

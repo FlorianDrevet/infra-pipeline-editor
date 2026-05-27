@@ -13,14 +13,14 @@ public sealed class ContainerAppEnvironmentTypeBicepGeneratorTests
 
     private static ResourceDefinition CreateResource(
         Dictionary<string, string>? properties = null) => new()
-    {
-        ResourceId = Guid.NewGuid(),
-        Name = "my-cae",
-        Type = AzureResourceTypes.ArmTypes.ContainerAppEnvironmentType,
-        ResourceGroupName = "rg-test",
-        ResourceAbbreviation = "cae",
-        Properties = properties ?? new Dictionary<string, string>(),
-    };
+        {
+            ResourceId = Guid.NewGuid(),
+            Name = "my-cae",
+            Type = AzureResourceTypes.ArmTypes.ContainerAppEnvironmentType,
+            ResourceGroupName = "rg-test",
+            ResourceAbbreviation = "cae",
+            Properties = properties ?? new Dictionary<string, string>(),
+        };
 
     // ── Interface contracts ──
 

@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.ContainerRegistries.Commands.CreateContainerRegistry;
 using InfraFlowSculptor.Application.ContainerRegistries.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
@@ -45,8 +44,8 @@ public sealed class CreateContainerRegistryCommandHandlerTests
             _resourceGroup.Id,
             new Name(ContainerRegistryName),
             new Location(Location.LocationEnum.FranceCentral));
-        _registryRepository.AddAsync(Arg.Any<ContainerRegistry>())
-            .Returns(callInfo => Task.FromResult((ContainerRegistry)callInfo.Args()[0]));
+        _registryRepository.Add(Arg.Any<ContainerRegistry>())
+            .Returns(callInfo => (ContainerRegistry)callInfo.Args()[0]);
         _sut = new CreateContainerRegistryCommandHandler(
             _registryRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -64,7 +63,7 @@ public sealed class CreateContainerRegistryCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _registryRepository.DidNotReceive().AddAsync(Arg.Any<ContainerRegistry>());
+        _registryRepository.DidNotReceive().Add(Arg.Any<ContainerRegistry>());
     }
 
     [Fact]
@@ -81,7 +80,7 @@ public sealed class CreateContainerRegistryCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _registryRepository.Received(1).AddAsync(Arg.Is<ContainerRegistry>(cr =>
+        _registryRepository.Received(1).Add(Arg.Is<ContainerRegistry>(cr =>
             cr.ResourceGroupId == _resourceGroup.Id && cr.Name.Value == ContainerRegistryName));
         _mapper.Received(1).Map<ContainerRegistryResult>(Arg.Any<ContainerRegistry>());
     }

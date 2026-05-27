@@ -236,6 +236,48 @@ $custom-theme: mat.define-theme((
   font-weight: 600 !important;
 }
 
+// --- Dialog footer action layout (equal-width secondary + primary pair) ---
+mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) {
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 0.875rem;
+}
+
+mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > button[mat-stroked-button]:first-child,
+mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > app-ds-button:last-child {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+}
+
+mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > button[mat-stroked-button]:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+  padding-inline: 0.875rem;
+}
+
+mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > app-ds-button:last-child {
+  display: flex;
+}
+
+mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > app-ds-button:last-child > .ds-btn {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) {
+    flex-direction: column;
+  }
+
+  mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > button[mat-stroked-button]:first-child,
+  mat-dialog-actions.mat-mdc-dialog-actions:has(> button[mat-stroked-button]:first-child + app-ds-button:last-child) > app-ds-button:last-child {
+    flex-basis: auto;
+    width: 100%;
+  }
+}
+
 // --- Snack bar (V2: surface-2 flat) ---
 .mat-mdc-snack-bar-container {
   --mat-snackbar-container-shape: var(--ifs-radius-md);
@@ -285,4 +327,98 @@ $custom-theme: mat.define-theme((
 ::selection {
   background: rgba(70, 181, 255, 0.32);
   color: var(--ifs-text-on-brand);
+}
+
+// --- Global scrollbar (V2: slim dark-themed scrollbar everywhere) ---
+*,
+*::before,
+*::after {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ifs-border-subtle) transparent;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb {
+  background: var(--ifs-border-subtle);
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+  transition: background 0.2s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ifs-border-strong);
+  background-clip: content-box;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-corner { background: transparent; }
+
+// =============================================================================
+// IFS — Light Theme Material Overrides
+// =============================================================================
+
+$custom-theme-light: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$azure-palette,
+    tertiary: mat.$blue-palette,
+  ),
+  density: (
+    scale: 0,
+  )
+));
+
+[data-theme="light"] {
+  @include mat.all-component-colors($custom-theme-light);
+
+  // Dialog surface
+  .mat-mdc-dialog-surface {
+    background: var(--ifs-surface-1) !important;
+    border-color: var(--ifs-border-subtle);
+  }
+
+  // Menu
+  .mat-mdc-menu-panel {
+    background: var(--ifs-surface-1) !important;
+    border-color: var(--ifs-border-subtle);
+  }
+
+  // Select panel
+  .mat-mdc-select-panel {
+    background: var(--ifs-surface-1) !important;
+    border-color: var(--ifs-border-subtle);
+  }
+
+  // Snack bar
+  .mdc-snackbar__surface {
+    background: var(--ifs-surface-1) !important;
+    border-color: var(--ifs-border-subtle);
+  }
+
+  // Tooltip
+  .mat-mdc-tooltip {
+    --mat-tooltip-container-color: var(--ifs-surface-3);
+    --mat-tooltip-supporting-text-color: var(--ifs-text-primary);
+  }
+
+  // Scrollbar (light variant)
+  scrollbar-color: var(--ifs-border-subtle) transparent;
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--ifs-border-strong);
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ifs-text-muted);
+    background-clip: content-box;
+  }
+
+  // Text selection
+  ::selection {
+    background: rgba(59, 111, 222, 0.20);
+    color: var(--ifs-text-primary);
+  }
 }

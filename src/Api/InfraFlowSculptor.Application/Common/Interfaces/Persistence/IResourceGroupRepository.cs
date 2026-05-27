@@ -1,12 +1,11 @@
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.ResourceGroups.Common;
 
 namespace InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 
-public interface IResourceGroupRepository: IRepository<Domain.ResourceGroupAggregate.ResourceGroup>
+public interface IResourceGroupRepository : IRepository<Domain.ResourceGroupAggregate.ResourceGroup>
 {
     /// <summary>
     /// Retrieves a resource group by identifier without enabling EF Core change tracking.

@@ -18,6 +18,9 @@ public class AppPipelineGenerationRequest
     /// <summary>Deployment mode: "Code" or "Container".</summary>
     public string DeploymentMode { get; set; } = string.Empty;
 
+    /// <summary>Application stack identifier (DotNet, NodeJs, Angular, Java, Python, StaticSite, Custom). Null or empty means Unknown.</summary>
+    public string? ApplicationStack { get; set; }
+
     /// <summary>Relative path to the Dockerfile in the repository (container mode).</summary>
     public string? DockerfilePath { get; set; }
 
@@ -32,6 +35,9 @@ public class AppPipelineGenerationRequest
 
     /// <summary>Name of the ACR resource (e.g., "myregistry").</summary>
     public string? ContainerRegistryName { get; set; }
+
+    /// <summary>Environment-scoped Azure DevOps Docker/ACR service connections used by container CI pipelines.</summary>
+    public IReadOnlyList<ContainerRegistryServiceConnectionDefinition> ContainerRegistryServiceConnections { get; set; } = [];
 
     /// <summary>
     /// Immutable tag pattern used by CI metadata generation.
@@ -120,6 +126,18 @@ public class AppPipelineGenerationRequest
 
     /// <summary>Custom smoke test command or URL to health-check.</summary>
     public string? SmokeTestCommand { get; set; }
+
+    /// <summary>Whether to run license compliance checks on dependencies.</summary>
+    public bool RunLicenseCheck { get; set; }
+
+    /// <summary>License check tool identifier (license-checker, dotnet-delice, licensefinder).</summary>
+    public string? LicenseCheckTool { get; set; }
+
+    /// <summary>Whether to send a webhook notification at the end of the pipeline.</summary>
+    public bool EnableNotifications { get; set; }
+
+    /// <summary>Webhook URL for Teams/Slack notification.</summary>
+    public string? NotificationWebhookUrl { get; set; }
 
     /// <summary>Environment definitions with service connections and subscription IDs.</summary>
     public IReadOnlyList<EnvironmentDefinition> Environments { get; set; } = [];

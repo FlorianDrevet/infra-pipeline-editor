@@ -36,6 +36,9 @@ x86/
 [Ww][Ii][Nn]32/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
+# Exception: source code folders that match the ARM build dir pattern must not be ignored
+!src/**/[Aa][Rr][Mm]/
+!src/**/[Aa][Rr][Mm]/*.cs
 bld/
 [Bb]in/
 [Oo]bj/
@@ -119,6 +122,7 @@ ipch/
 *.opensdf
 *.sdf
 *.cachefile
+*.lscache
 *.VC.db
 *.VC.VC.opendb
 
@@ -414,3 +418,8 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/rider
 .gitnexus
+
+graphify-out/*
+.playwright-mcp/*
+.claude/*
+.graphifyignore

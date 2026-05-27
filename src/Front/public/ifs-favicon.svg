@@ -1,15 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="ifsGradientV2" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#1A3A8A" />
-      <stop offset="0.55" stop-color="#0288D1" />
-      <stop offset="1" stop-color="#00ACC1" />
+    <linearGradient id="ifs-grad" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#274fa7"/>
+      <stop offset="0.55" stop-color="#4e86f4"/>
+      <stop offset="1" stop-color="#46b5ff"/>
     </linearGradient>
   </defs>
-  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#ifsGradientV2)" />
-  <path d="M24 22H40M24 42H40M22 24V40M42 24V40" stroke="#BFEFFF" stroke-width="3" stroke-linecap="round" opacity="0.9" />
-  <rect x="15" y="15" width="14" height="14" rx="4" fill="#FFFFFF" />
-  <rect x="35" y="15" width="14" height="14" rx="4" fill="#FFFFFF" />
-  <rect x="15" y="35" width="14" height="14" rx="4" fill="#FFFFFF" />
-  <rect x="35" y="35" width="14" height="14" rx="4" fill="#FFFFFF" />
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#ifs-grad)"/>
+  <!-- Connection lines -->
+  <line x1="32" y1="19" x2="21" y2="40" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <line x1="32" y1="19" x2="43" y2="40" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <line x1="21" y1="40" x2="43" y2="40" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <!-- Nodes -->
+  <circle cx="32" cy="19" r="5" fill="white"/>
+  <circle cx="21" cy="40" r="5" fill="white"/>
+  <circle cx="43" cy="40" r="5" fill="white"/>
 </svg>

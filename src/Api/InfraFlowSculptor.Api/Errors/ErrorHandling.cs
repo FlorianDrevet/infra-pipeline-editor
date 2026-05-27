@@ -1,6 +1,5 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Diagnostics;
 
 namespace InfraFlowSculptor.Api.Errors;
 
@@ -19,23 +18,29 @@ public static class ErrorHandling
     /// <returns>The updated application builder.</returns>
     public static IApplicationBuilder UseErrorHandling(this IApplicationBuilder builder)
     {
-        return builder.UseExceptionHandler(exceptionHandlerApp
-            => exceptionHandlerApp.Run(async context
-                    =>
-                {
-                    var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
+        return builder.UseExceptionHandler(exceptionHandlerApp =>
+        {
+            var logger = exceptionHandlerApp.ApplicationServices
+                .GetRequiredService<ILoggerFactory>()
+                .CreateLogger("InfraFlowSculptor.Api.ErrorHandling");
 
-                    await Results.Problem(
-                            statusCode: StatusCodes.Status500InternalServerError,
-                            detail: GenericErrorDetail,
-                            extensions: new Dictionary<string, object?>
-                            {
-                                [TraceIdExtensionName] = traceId,
-                            }
-                        )
-                        .ExecuteAsync(context);
-                }
-            )
-        );
+            exceptionHandlerApp.Run(async context =>
+            {
+                var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
+                var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+                logger.LogError(exception, "Unhandled exception {TraceId}", traceId);
+
+                await Results.Problem(
+                        statusCode: StatusCodes.Status500InternalServerError,
+                        detail: GenericErrorDetail,
+                        extensions: new Dictionary<string, object?>
+                        {
+                            [TraceIdExtensionName] = traceId,
+                        }
+                    )
+                    .ExecuteAsync(context);
+            });
+        });
     }
 }

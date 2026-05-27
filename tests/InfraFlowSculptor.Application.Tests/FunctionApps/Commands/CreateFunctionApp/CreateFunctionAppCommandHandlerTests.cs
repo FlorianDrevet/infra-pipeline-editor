@@ -6,7 +6,6 @@ using InfraFlowSculptor.Application.FunctionApps.Commands.CreateFunctionApp;
 using InfraFlowSculptor.Application.FunctionApps.Common;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.FunctionAppAggregate;
@@ -63,9 +62,10 @@ public sealed class CreateFunctionAppCommandHandlerTests
             DeploymentMode: nameof(DeploymentMode.DeploymentModeType.Code),
             ContainerRegistryId: null,
             AcrAuthMode: null,
+            AcrPullIdentityId: null,
             DockerImageName: null);
-        _functionAppRepository.AddAsync(Arg.Any<FunctionApp>())
-            .Returns(callInfo => Task.FromResult((FunctionApp)callInfo.Args()[0]));
+        _functionAppRepository.Add(Arg.Any<FunctionApp>())
+            .Returns(callInfo => (FunctionApp)callInfo.Args()[0]);
         _sut = new CreateFunctionAppCommandHandler(
             _functionAppRepository, _appServicePlanRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -83,7 +83,7 @@ public sealed class CreateFunctionAppCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _functionAppRepository.DidNotReceive().AddAsync(Arg.Any<FunctionApp>());
+        _functionAppRepository.DidNotReceive().Add(Arg.Any<FunctionApp>());
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public sealed class CreateFunctionAppCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _functionAppRepository.DidNotReceive().AddAsync(Arg.Any<FunctionApp>());
+        _functionAppRepository.DidNotReceive().Add(Arg.Any<FunctionApp>());
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public sealed class CreateFunctionAppCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _functionAppRepository.Received(1).AddAsync(Arg.Is<FunctionApp>(f =>
+        _functionAppRepository.Received(1).Add(Arg.Is<FunctionApp>(f =>
             f.ResourceGroupId == _resourceGroup.Id
             && f.Name.Value == FunctionAppName
             && f.AppServicePlanId == _appServicePlan.Id));

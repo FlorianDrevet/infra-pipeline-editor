@@ -2,7 +2,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.CosmosDbs.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using ErrorOr;
 
 namespace InfraFlowSculptor.Application.CosmosDbs.Commands.CreateCosmosDb;
 
@@ -17,4 +16,4 @@ public record CreateCosmosDbCommand(
     Location Location,
     IReadOnlyList<CosmosDbEnvironmentConfigData>? EnvironmentSettings = null,
     bool IsExisting = false
-) : ICommand<CosmosDbResult>;
+) : ICommand<CosmosDbResult>, ICreateResourceCommand;

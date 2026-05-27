@@ -90,7 +90,9 @@ export function buildResourceEditGeneralForm(request: ResourceEditGeneralFormBui
     base['deploymentMode'] = [deploymentMode];
     base['containerRegistryId'] = [selectedContainerRegistryId];
     base['acrAuthMode'] = [acrAuthMode];
+    base['acrPullIdentityId'] = [webApp.acrPullIdentityId ?? null];
     base['dockerImageName'] = [webApp.dockerImageName ?? null];
+    base['dockerImageValidated'] = [webApp.dockerImageValidated ?? false];
     base['runtimeStack'] = [webApp.runtimeStack, [Validators.required]];
     base['runtimeVersion'] = [webApp.runtimeVersion];
     base['alwaysOn'] = [webApp.alwaysOn];
@@ -108,7 +110,9 @@ export function buildResourceEditGeneralForm(request: ResourceEditGeneralFormBui
     base['deploymentMode'] = [deploymentMode];
     base['containerRegistryId'] = [selectedContainerRegistryId];
     base['acrAuthMode'] = [acrAuthMode];
+    base['acrPullIdentityId'] = [functionApp.acrPullIdentityId ?? null];
     base['dockerImageName'] = [functionApp.dockerImageName ?? null];
+    base['dockerImageValidated'] = [functionApp.dockerImageValidated ?? false];
     base['runtimeStack'] = [functionApp.runtimeStack, [Validators.required]];
     base['runtimeVersion'] = [functionApp.runtimeVersion];
     base['httpsOnly'] = [functionApp.httpsOnly];
@@ -133,8 +137,11 @@ export function buildResourceEditGeneralForm(request: ResourceEditGeneralFormBui
     base['containerAppEnvironmentId'] = [containerApp.containerAppEnvironmentId];
     base['containerRegistryId'] = [selectedContainerRegistryId];
     base['acrAuthMode'] = [acrAuthMode];
+    base['acrPullIdentityId'] = [containerApp.acrPullIdentityId ?? null];
     base['dockerImageName'] = [containerApp.dockerImageName ?? null];
+    base['dockerImageValidated'] = [containerApp.dockerImageValidated ?? false];
     base['dockerfilePath'] = [containerApp.dockerfilePath ?? ''];
+    base['sourceCodePath'] = [containerApp.sourceCodePath ?? ''];
     base['applicationName'] = [containerApp.applicationName ?? ''];
   } else if (resourceType === 'ContainerAppEnvironment') {
     const containerAppEnvironment = resource as ContainerAppEnvironmentResponse;
@@ -276,6 +283,7 @@ function buildSingleEnvironmentForm(
         startupProbeEnabled: [Boolean(settings?.startupProbePath)],
         startupProbePath: [settings?.startupProbePath ?? null],
         startupProbePort: [settings?.startupProbePort ?? null],
+        containerRegistryServiceConnection: [settings?.containerRegistryServiceConnection ?? null],
       });
     }
     case 'LogAnalyticsWorkspace': {

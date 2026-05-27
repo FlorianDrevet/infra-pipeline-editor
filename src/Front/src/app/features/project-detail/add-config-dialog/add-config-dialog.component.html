@@ -24,14 +24,14 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+  <app-ds-button variant="ghost" (clicked)="onCancel()" [disabled]="isSubmitting()">
     {{ 'PROJECT_DETAIL.CONFIGS.FORM.CANCEL' | translate }}
-  </button>
-  <button mat-flat-button color="primary" type="submit" form="add-config-form" [disabled]="form.invalid || isSubmitting()">
-    @if (isSubmitting()) {
-      <mat-spinner diameter="18"></mat-spinner>
-    } @else {
-      {{ 'PROJECT_DETAIL.CONFIGS.FORM.ADD' | translate }}
-    }
-  </button>
+  </app-ds-button>
+  <app-ds-button
+    variant="primary"
+    [loading]="isSubmitting()"
+    [disabled]="form.invalid || isSubmitting()"
+    (clicked)="onSubmit()">
+    {{ 'PROJECT_DETAIL.CONFIGS.FORM.ADD' | translate }}
+  </app-ds-button>
 </mat-dialog-actions>

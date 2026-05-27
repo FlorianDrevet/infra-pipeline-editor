@@ -7,7 +7,6 @@ using InfraFlowSculptor.Contracts.WebApps.Requests;
 using InfraFlowSculptor.Contracts.WebApps.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
@@ -23,7 +22,7 @@ public static class WebAppController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/web-app")
+            var group = endpoints.MapGroup(Routes.WebApp)
                 .WithTags("Web Apps");
 
             group.MapGet("/{id:guid}",

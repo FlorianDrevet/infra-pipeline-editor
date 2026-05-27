@@ -2,7 +2,6 @@ using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.OwnedEntities;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ResourceParameterUsage;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.FunctionAppAggregate.Entities;
 using InfraFlowSculptor.Domain.FunctionAppAggregate.ValueObjects;
@@ -39,8 +38,14 @@ public sealed class FunctionApp : AzureResource
     /// <summary>Gets the optional authentication mode used to pull images from Azure Container Registry.</summary>
     public AcrAuthMode? AcrAuthMode { get; private set; }
 
+    /// <summary>Gets the optional User Assigned Identity used exclusively for pulling images from ACR (distinct from the resource-level identity).</summary>
+    public AzureResourceId? AcrPullIdentityId { get; private set; }
+
     /// <summary>Gets the Docker image name for container deployments (e.g., "myapp/func").</summary>
     public string? DockerImageName { get; private set; }
+
+    /// <summary>Gets whether the Docker image name has been validated against the container registry.</summary>
+    public bool DockerImageValidated { get; private set; }
 
     /// <summary>Gets the optional relative path to the Dockerfile in the repository for container deployments.</summary>
     public string? DockerfilePath { get; private set; }
@@ -76,11 +81,13 @@ public sealed class FunctionApp : AzureResource
         DeploymentMode deploymentMode,
         AzureResourceId? containerRegistryId,
         AcrAuthMode? acrAuthMode,
+        AzureResourceId? acrPullIdentityId,
         string? dockerImageName,
+        bool dockerImageValidated,
         string? dockerfilePath,
         string? sourceCodePath,
         string? buildCommand,
-        string? applicationName)
+        string? applicationName) // NOSONAR S107
     {
         SetNameAndLocation(name, location);
 
@@ -94,7 +101,9 @@ public sealed class FunctionApp : AzureResource
         DeploymentMode = deploymentMode;
         ContainerRegistryId = containerRegistryId;
         AcrAuthMode = containerRegistryId is null ? null : acrAuthMode;
+        AcrPullIdentityId = containerRegistryId is null || acrAuthMode?.Value != AcrAuthMode.AcrAuthModeType.ManagedIdentity ? null : acrPullIdentityId;
         DockerImageName = dockerImageName;
+        DockerImageValidated = dockerImageValidated;
         DockerfilePath = dockerfilePath;
         SourceCodePath = sourceCodePath;
         BuildCommand = buildCommand;
@@ -166,14 +175,18 @@ public sealed class FunctionApp : AzureResource
         DeploymentMode deploymentMode,
         AzureResourceId? containerRegistryId,
         AcrAuthMode? acrAuthMode,
-        string? dockerImageName,
+        AzureResourceId? acrPullIdentityId = null,
+        string? dockerImageName = null,
+        bool dockerImageValidated = false,
         string? dockerfilePath = null,
         string? sourceCodePath = null,
         string? buildCommand = null,
         string? applicationName = null,
         IReadOnlyList<(string EnvironmentName, bool? HttpsOnly, int? MaxInstanceCount, string? DockerImageTag)>? environmentSettings = null,
-        bool isExisting = false)
+        bool isExisting = false) // NOSONAR S107
     {
+        var resolvedAcrAuthMode = containerRegistryId is null ? null : acrAuthMode;
+
         var functionApp = new FunctionApp
         {
             Id = AzureResourceId.CreateUnique(),
@@ -187,8 +200,10 @@ public sealed class FunctionApp : AzureResource
             HttpsOnly = httpsOnly,
             DeploymentMode = deploymentMode,
             ContainerRegistryId = containerRegistryId,
-            AcrAuthMode = containerRegistryId is null ? null : acrAuthMode,
+            AcrAuthMode = resolvedAcrAuthMode,
+            AcrPullIdentityId = resolvedAcrAuthMode?.Value == AcrAuthMode.AcrAuthModeType.ManagedIdentity ? acrPullIdentityId : null,
             DockerImageName = dockerImageName,
+            DockerImageValidated = dockerImageValidated,
             DockerfilePath = dockerfilePath,
             SourceCodePath = sourceCodePath,
             BuildCommand = buildCommand,

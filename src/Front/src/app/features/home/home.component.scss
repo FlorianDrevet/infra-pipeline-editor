@@ -153,11 +153,13 @@
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.25rem;
+  min-width: 0;
 }
 
 .dashboard-panel {
+  min-width: 0;
   padding: 1.25rem;
   border-radius: var(--ifs-radius-md);
   background: var(--ifs-surface-2);
@@ -518,7 +520,7 @@
   }
 
   .dashboard-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .overview-grid {

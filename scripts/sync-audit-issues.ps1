@@ -5,7 +5,7 @@ param(
     [string]$ConfigPath = '.github/audit/config.json',
     [switch]$EnsureLabels,
     [switch]$ListLabels,
-    [switch]$WhatIf
+    [switch]$DryRun
 )
 
 Set-StrictMode -Version Latest
@@ -26,7 +26,7 @@ function Invoke-GhJson {
         return $null
     }
 
-    return $output | ConvertFrom-Json -Depth 20
+    return $output | ConvertFrom-Json
 }
 
 function Invoke-Gh {
@@ -35,8 +35,8 @@ function Invoke-Gh {
         [string[]]$Arguments
     )
 
-    if ($WhatIf) {
-        Write-Host ("[WhatIf] gh {0}" -f ($Arguments -join ' '))
+    if ($DryRun) {
+        Write-Output ("[DryRun] gh {0}" -f ($Arguments -join ' '))
         return
     }
 
@@ -53,7 +53,7 @@ function Get-Config {
         throw "Config file not found: $Path"
     }
 
-    return Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -Depth 20
+    return Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
 }
 
 function Get-AuditStamp {
@@ -88,7 +88,7 @@ function Convert-SeverityToLabel {
     $normalized = $RawSeverity.ToLowerInvariant()
     if ($normalized.Contains('crit')) { return 'severity: critical' }
     if ($normalized.Contains('haut') -or $normalized.Contains('high')) { return 'severity: high' }
-    if ($normalized.Contains('moy')) { return 'severity: medium' }
+    if ($normalized.Contains('moy') -or $normalized.Contains('medium')) { return 'severity: medium' }
     return 'severity: low'
 }
 
@@ -174,6 +174,65 @@ function Get-PhaseMapping {
     return $mapping
 }
 
+function Convert-MatchToFinding {
+    param(
+        [System.Text.RegularExpressions.Match]$Match,
+        [System.Text.RegularExpressions.MatchCollection]$SectionMatches,
+        [hashtable]$PhaseMapping,
+        [object]$Config,
+        [object]$AuditStamp
+    )
+
+    $findingId = $Match.Groups['id'].Value.Trim()
+    $title = $Match.Groups['title'].Value.Trim()
+    $body = $Match.Groups['body'].Value.Trim()
+
+    $severityMatch = [regex]::Match($body, "\*\*S[\u00e9e]v[\u00e9e]rit[\u00e9e]\s*:\*\*\s*(?<value>.+)")
+    $severityLabel = if ($severityMatch.Success) {
+        Convert-SeverityToLabel -RawSeverity $severityMatch.Groups['value'].Value.Trim()
+    }
+    else {
+        Get-SectionSeverityLabel -Index $Match.Index -SectionMatches $SectionMatches
+    }
+
+    $severityRaw = if ($severityMatch.Success) { $severityMatch.Groups['value'].Value.Trim() } else { $severityLabel }
+
+    $prefix = ($findingId -split '-')[0]
+    $areaLabel = if ($Config.areaLabelsByPrefix.PSObject.Properties.Name -contains $prefix) {
+        [string]$Config.areaLabelsByPrefix.$prefix
+    }
+    else {
+        'area: application'
+    }
+
+    $typeLabel = Get-TypeLabel -Text ("{0}`n{1}" -f $title, $body) -Config $Config
+    $phaseLabel = if ($PhaseMapping.ContainsKey($findingId)) { [string]$PhaseMapping[$findingId] } else { 'phase: 7-quality' }
+
+    $constat = [regex]::Match($body, '\*\*Constat\s*:\*\*\s*(?<value>.+)')
+    $risk = [regex]::Match($body, '\*\*Risque\s*:\*\*\s*(?<value>.+)')
+    $recommendation = [regex]::Match($body, '\*\*Recommandation\s*:\*\*\s*(?<value>.*)', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+
+    $summaryText = if ($constat.Success) { $constat.Groups['value'].Value.Trim() } else { $body }
+    $riskText = if ($risk.Success) { $risk.Groups['value'].Value.Trim() } else { 'Risk not explicitly documented in audit block.' }
+    $recommendationText = if ($recommendation.Success) { $recommendation.Groups['value'].Value.Trim() } else { 'Review the full audit entry for remediation details.' }
+
+    return [pscustomobject]@{
+        Id = $findingId
+        Title = $title
+        Summary = $summaryText
+        Risk = $riskText
+        Recommendation = $recommendationText
+        SeverityLabel = $severityLabel
+        SeverityRaw = $severityRaw
+        AreaLabel = $areaLabel
+        TypeLabel = $typeLabel
+        PhaseLabel = $phaseLabel
+        AuditLabel = [string]$AuditStamp.Label
+        AuditSource = [string]$AuditStamp.RelativeSource
+        AuditFileName = [string]$AuditStamp.FileName
+    }
+}
+
 function Get-AuditFindings {
     param(
         [string]$Content,
@@ -183,61 +242,14 @@ function Get-AuditFindings {
     )
 
     $results = @()
-    $sectionMatches = [regex]::Matches($Content, '(?mi)^##\s+.*SECTION\s+\d+\s+[—-]\s+FINDINGS\s+(?<bucket>CRITIQUES|HAUTS|MOYENS|BAS)')
-    $matches = [regex]::Matches(
+    $sectionMatches = [regex]::Matches($Content, "(?mi)^##\s+.*SECTION\s+\d+\s+[\u2014-]\s+FINDINGS\s+(?<bucket>CRITIQUES|HAUTS|MOYENS|BAS)")
+    $findingMatches = [regex]::Matches(
         $Content,
-        '(?ms)^###\s+(?<id>[A-Z]+-\d{3})\s+[—-]\s+(?<title>.+?)\r?\n(?<body>.*?)(?=^###\s+[A-Z]+-\d{3}\s+[—-]|^##\s+|\z)'
+        "(?ms)^###\s+(?<id>[A-Z]+-\d{3})\s+[\u2014-]\s+(?<title>.+?)\r?\n(?<body>.*?)(?=^###\s+[A-Z]+-\d{3}\s+[\u2014-]|^##\s+|\z)"
     )
 
-    foreach ($match in $matches) {
-        $findingId = $match.Groups['id'].Value.Trim()
-        $title = $match.Groups['title'].Value.Trim()
-        $body = $match.Groups['body'].Value.Trim()
-
-        $severityMatch = [regex]::Match($body, '\*\*S[ée]v[ée]rit[ée]\s*:\*\*\s*(?<value>.+)')
-        $severityLabel = if ($severityMatch.Success) {
-            Convert-SeverityToLabel -RawSeverity $severityMatch.Groups['value'].Value.Trim()
-        }
-        else {
-            Get-SectionSeverityLabel -Index $match.Index -SectionMatches $sectionMatches
-        }
-
-        $severityRaw = if ($severityMatch.Success) { $severityMatch.Groups['value'].Value.Trim() } else { $severityLabel }
-
-        $prefix = ($findingId -split '-')[0]
-        $areaLabel = if ($Config.areaLabelsByPrefix.PSObject.Properties.Name -contains $prefix) {
-            [string]$Config.areaLabelsByPrefix.$prefix
-        }
-        else {
-            'area: application'
-        }
-
-        $typeLabel = Get-TypeLabel -Text ("{0}`n{1}" -f $title, $body) -Config $Config
-        $phaseLabel = if ($PhaseMapping.ContainsKey($findingId)) { [string]$PhaseMapping[$findingId] } else { 'phase: 7-quality' }
-
-        $constat = [regex]::Match($body, '\*\*Constat\s*:\*\*\s*(?<value>.+)')
-        $risk = [regex]::Match($body, '\*\*Risque\s*:\*\*\s*(?<value>.+)')
-        $recommendation = [regex]::Match($body, '\*\*Recommandation\s*:\*\*\s*(?<value>.*)', [System.Text.RegularExpressions.RegexOptions]::Singleline)
-
-        $summaryText = if ($constat.Success) { $constat.Groups['value'].Value.Trim() } else { $body }
-        $riskText = if ($risk.Success) { $risk.Groups['value'].Value.Trim() } else { 'Risk not explicitly documented in audit block.' }
-        $recommendationText = if ($recommendation.Success) { $recommendation.Groups['value'].Value.Trim() } else { 'Review the full audit entry for remediation details.' }
-
-        $results += [pscustomobject]@{
-            Id = $findingId
-            Title = $title
-            Summary = $summaryText
-            Risk = $riskText
-            Recommendation = $recommendationText
-            SeverityLabel = $severityLabel
-            SeverityRaw = $severityRaw
-            AreaLabel = $areaLabel
-            TypeLabel = $typeLabel
-            PhaseLabel = $phaseLabel
-            AuditLabel = [string]$AuditStamp.Label
-            AuditSource = [string]$AuditStamp.RelativeSource
-            AuditFileName = [string]$AuditStamp.FileName
-        }
+    foreach ($match in $findingMatches) {
+        $results += Convert-MatchToFinding -Match $match -SectionMatches $sectionMatches -PhaseMapping $PhaseMapping -Config $Config -AuditStamp $AuditStamp
     }
 
     return $results
@@ -279,7 +291,7 @@ function Get-AuditIssues {
     $auditIssues = @{}
 
     foreach ($issue in @($issues)) {
-        $body = [string]($issue.body ?? '')
+        $body = if ($null -eq $issue.body) { '' } else { [string]$issue.body }
         $match = [regex]::Match($body, '<!--\s*audit-finding-id:\s*(?<id>[A-Z]+-\d{3})\s*-->')
         if (-not $match.Success) {
             continue
@@ -477,15 +489,15 @@ if (-not $Repo) {
 $existingLabels = Get-ExistingLabels -Repository $Repo
 
 if ($ListLabels) {
-    Write-Host ("Repository labels for {0}:" -f $Repo)
+    Write-Output ("Repository labels for {0}:" -f $Repo)
     foreach ($labelName in ($existingLabels.Keys | Sort-Object)) {
-        Write-Host ("- {0}" -f $labelName)
+        Write-Output ("- {0}" -f $labelName)
     }
 
-    Write-Host ''
-    Write-Host 'Configured audit labels:'
+    Write-Output ''
+    Write-Output 'Configured audit labels:'
     foreach ($label in @($config.requiredLabels)) {
-        Write-Host ("- {0}" -f $label.name)
+        Write-Output ("- {0}" -f $label.name)
     }
 
     return
@@ -497,7 +509,7 @@ if (-not $AuditFile) {
 
 $resolvedAuditFile = Resolve-Path -LiteralPath $AuditFile
 $auditStamp = Get-AuditStamp -Path $resolvedAuditFile
-$auditContent = Get-Content -LiteralPath $resolvedAuditFile -Raw
+$auditContent = Get-Content -LiteralPath $resolvedAuditFile -Raw -Encoding UTF8
 
 if ($EnsureLabels) {
     foreach ($label in @($config.requiredLabels)) {
@@ -525,4 +537,4 @@ foreach ($finding in $findings) {
 
 Close-ResolvedIssues -ExistingIssues $existingIssues -CurrentFindingIds $currentIds -Repository $Repo -AuditFileName $auditStamp.FileName
 
-Write-Host ("Synchronized {0} audit findings against {1}." -f $findings.Count, $Repo)
+Write-Output ("Synchronized {0} audit findings against {1}." -f $findings.Count, $Repo)

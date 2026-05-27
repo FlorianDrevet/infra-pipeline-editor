@@ -7,7 +7,6 @@ using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 using Location = InfraFlowSculptor.Domain.Common.ValueObjects.Location;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
@@ -50,7 +49,7 @@ public sealed class UpdateProjectEnvironmentCommandHandler(
         if (env is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        await projectRepository.UpdateAsync(project);
+        projectRepository.Update(project);
 
         return mapper.Map<ProjectEnvironmentDefinitionResult>(env);
     }

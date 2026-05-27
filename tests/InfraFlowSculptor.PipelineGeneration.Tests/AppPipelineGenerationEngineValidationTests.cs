@@ -46,14 +46,14 @@ public sealed class AppPipelineGenerationEngineValidationTests
         };
 
         // Act
-    var result = sut.Generate(request);
+        var result = sut.Generate(request);
 
         // Assert
-    result.IsError.Should().BeTrue();
-    result.FirstError.Type.Should().Be(ErrorType.Validation);
-    result.FirstError.Code.Should().Be("Generation.MissingAppPipelineGenerator");
-    result.FirstError.Description.Should().Contain("WebApp");
-    result.FirstError.Description.Should().Contain(DeploymentModes.Code);
+        result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.Validation);
+        result.FirstError.Code.Should().Be("Generation.MissingAppPipelineGenerator");
+        result.FirstError.Description.Should().Contain("WebApp");
+        result.FirstError.Description.Should().Contain(DeploymentModes.Code);
     }
 
     [Fact]

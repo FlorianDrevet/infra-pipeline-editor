@@ -1,7 +1,6 @@
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ResourceParameterUsage;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.ValueObjects;
@@ -59,7 +58,7 @@ public sealed class EventHubNamespace : AzureResource
         bool? disableLocalAuth,
         string? minimumTlsVersion,
         bool? autoInflateEnabled,
-        int? maxThroughputUnits)
+        int? maxThroughputUnits) // NOSONAR S107
     {
         if (IsExisting)
             return;

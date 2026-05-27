@@ -2,6 +2,7 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Infrastructure.Services.GitProviders.Models;
 using Octokit;
 
 namespace InfraFlowSculptor.Infrastructure.Services.GitProviders;
@@ -91,13 +92,7 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
             }
 
             var treeItems = pushData.FilesByPath
-                .Select(file => (object)new
-                {
-                    Path = file.Key,
-                    Mode = "100644",
-                    Type = "blob",
-                    Content = file.Value,
-                })
+                .Select(file => GitHubCreateTreeItem.CreateBlob(file.Key, file.Value))
                 .ToList();
 
             var parentCommit = await client.Git.Commit.Get(request.Owner, request.RepositoryName, parentSha);
@@ -110,22 +105,11 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
                     request.RepositoryName,
                     parentTreeSha);
 
-                foreach (var item in existingTree.Tree)
-                {
-                    if (item.Type != TreeType.Blob || string.IsNullOrEmpty(item.Path))
-                        continue;
-
-                    if (ShouldDeleteFile(item.Path, pushData))
-                    {
-                        treeItems.Add(new
-                        {
-                            Path = item.Path,
-                            Mode = "100644",
-                            Type = "blob",
-                            Sha = (string?)null,
-                        });
-                    }
-                }
+                treeItems.AddRange(
+                    existingTree.Tree
+                        .Where(item => item.Type == TreeType.Blob && !string.IsNullOrEmpty(item.Path))
+                        .Where(item => ShouldDeleteFile(item.Path, pushData))
+                        .Select(item => GitHubCreateTreeItem.DeleteBlob(item.Path)));
             }
 
             var treeSha = await CreateTreeAsync(
@@ -174,13 +158,13 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
         string owner,
         string repositoryName,
         string baseTreeSha,
-        IReadOnlyList<object> treeItems,
+        IReadOnlyList<GitHubCreateTreeItem> treeItems,
         CancellationToken cancellationToken)
     {
         var response = await gitHubTreeApi.CreateTreeAsync(
             owner,
             repositoryName,
-            new { base_tree = baseTreeSha, tree = treeItems },
+            new GitHubCreateTreeRequest(baseTreeSha, treeItems),
             token,
             cancellationToken);
 
@@ -243,11 +227,74 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
         }
     }
 
+    /// <inheritdoc />
+    public async Task<ErrorOr<IReadOnlyList<GitFileResult>>> SearchDirectoriesAsync(
+        string token, string owner, string repositoryName,
+        string branch, string? pathPrefix,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var client = CreateClient(token);
+
+            var branchRef = await client.Git.Reference.Get(owner, repositoryName, $"heads/{branch}");
+            var sha = branchRef.Object.Sha;
+
+            var tree = await client.Git.Tree.GetRecursive(owner, repositoryName, sha);
+
+            var results = tree.Tree
+                .Where(item => item.Type == TreeType.Tree && !string.IsNullOrEmpty(item.Path))
+                .Where(item =>
+                {
+                    var name = System.IO.Path.GetFileName(item.Path);
+                    if (name.StartsWith('.'))
+                        return false;
+                    return string.IsNullOrEmpty(pathPrefix)
+                        || item.Path.StartsWith(pathPrefix, StringComparison.OrdinalIgnoreCase);
+                })
+                .Select(item => new GitFileResult(item.Path, System.IO.Path.GetFileName(item.Path)))
+                .ToList();
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            return Errors.GitRepository.SearchFilesFailed(ex.Message);
+        }
+    }
+
     private static GitHubClient CreateClient(string token)
     {
         var client = new GitHubClient(new Octokit.ProductHeaderValue("InfraFlowSculptor"));
         client.Credentials = new Credentials(token);
         return client;
+    }
+
+    /// <inheritdoc />
+    public async Task<ErrorOr<string?>> GetFileContentAsync(
+        string token, string owner, string repositoryName,
+        string branch, string filePath,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var client = CreateClient(token);
+            var contents = await client.Repository.Content.GetAllContentsByRef(
+                owner, repositoryName, filePath, branch);
+
+            if (contents is null || contents.Count == 0)
+                return (string?)null;
+
+            return contents[0].Content;
+        }
+        catch (Octokit.NotFoundException)
+        {
+            return (string?)null;
+        }
+        catch (Exception ex)
+        {
+            return Errors.GitRepository.SearchFilesFailed(ex.Message);
+        }
     }
 
     private static ErrorOr<PreparedGitHubPush> PrepareScopedPush(MultiScopeGitPushRequest request)
@@ -285,13 +332,8 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
         if (pushData.FilesByPath.ContainsKey(path))
             return false;
 
-        foreach (var cleanupRoot in pushData.CleanupRoots)
-        {
-            if (path.StartsWith($"{cleanupRoot}/", StringComparison.Ordinal))
-                return true;
-        }
-
-        return false;
+        return pushData.CleanupRoots.Any(cleanupRoot =>
+            path.StartsWith($"{cleanupRoot}/", StringComparison.Ordinal));
     }
 
     private static string NormalizeBasePath(string? basePath) =>

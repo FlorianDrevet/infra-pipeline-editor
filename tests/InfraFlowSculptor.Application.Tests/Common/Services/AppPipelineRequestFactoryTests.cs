@@ -5,6 +5,7 @@ using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
+using InfraFlowSculptor.Domain.ContainerAppAggregate.Models;
 using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
 using InfraFlowSculptor.Domain.FunctionAppAggregate;
 using InfraFlowSculptor.Domain.FunctionAppAggregate.ValueObjects;
@@ -87,6 +88,82 @@ public sealed class AppPipelineRequestFactoryTests
             .GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
         await _containerRegistryRepository.DidNotReceive()
             .GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Given_ContainerAppWithSourceCodePath_When_CreateAsync_Then_ReturnsPipelineRequestWithSourceCodePathAsync()
+    {
+        // Arrange
+        const string sourceCodePath = "src/front";
+        var containerApp = ContainerApp.Create(
+            _resourceGroup.Id,
+            new Name("ca-source"),
+            new Location(Location.LocationEnum.FranceCentral),
+            AzureResourceId.CreateUnique(),
+            containerRegistryId: null,
+            acrAuthMode: null,
+            sourceCodePath: sourceCodePath);
+        _containerAppRepository.GetByIdReadOnlyAsync(containerApp.Id, Arg.Any<CancellationToken>())
+            .Returns(containerApp);
+
+        // Act
+        var result = await _sut.CreateAsync(
+            containerApp.Id,
+            AzureResourceTypes.ArmTypes.ContainerAppType,
+            CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.SourceCodePath.Should().Be(sourceCodePath);
+    }
+
+    [Fact]
+    public async Task Given_ContainerAppWithEnvironmentAcrServiceConnection_When_CreateAsync_Then_ReturnsPipelineRequestWithConnectionAsync()
+    {
+        // Arrange
+        const string environmentName = "dev";
+        const string serviceConnection = "ifs-dev-acr-sc";
+        var registry = ContainerRegistry.Create(
+            _resourceGroup.Id,
+            new Name("acrshared"),
+            new Location(Location.LocationEnum.FranceCentral));
+        var containerApp = ContainerApp.Create(
+            _resourceGroup.Id,
+            new Name("ca-shared"),
+            new Location(Location.LocationEnum.FranceCentral),
+            AzureResourceId.CreateUnique(),
+            containerRegistryId: registry.Id,
+            acrAuthMode: null,
+            environmentSettings:
+            [
+                new ContainerAppEnvironmentSettingsData(
+                    EnvironmentName: environmentName,
+                    CpuCores: null,
+                    MemoryGi: null,
+                    MinReplicas: null,
+                    MaxReplicas: null,
+                    IngressEnabled: null,
+                    IngressTargetPort: null,
+                    IngressExternal: null,
+                    TransportMethod: null,
+                    ContainerRegistryServiceConnection: serviceConnection),
+            ]);
+        _containerAppRepository.GetByIdReadOnlyAsync(containerApp.Id, Arg.Any<CancellationToken>())
+            .Returns(containerApp);
+        _containerRegistryRepository.GetByIdReadOnlyAsync(registry.Id, Arg.Any<CancellationToken>())
+            .Returns(registry);
+
+        // Act
+        var result = await _sut.CreateAsync(
+            containerApp.Id,
+            AzureResourceTypes.ArmTypes.ContainerAppType,
+            CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.ContainerRegistryServiceConnections.Should().ContainSingle(connection =>
+            connection.EnvironmentName == environmentName &&
+            connection.ServiceConnectionName == serviceConnection);
     }
 
     [Fact]

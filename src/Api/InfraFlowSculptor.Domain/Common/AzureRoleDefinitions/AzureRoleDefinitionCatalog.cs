@@ -7,6 +7,7 @@ namespace InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 /// </summary>
 public static class AzureRoleDefinitionCatalog
 {
+    // S1075: Azure role definition URIs are stable platform constants
     /// <summary>Well-known role definition ID for "Key Vault Secrets User".</summary>
     public const string KeyVaultSecretsUser = "4633458b-17de-408a-b874-0445c86b69e6";
 
@@ -47,19 +48,19 @@ public static class AzureRoleDefinitionCatalog
     private const string SqlServerContributorRoleDescription = "Lets you manage SQL servers and databases, but not access to them, and not their security-related policies.";
 
     private const string KeyVaultDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide";
+        "https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide"; // NOSONAR
 
     private const string RedisCacheDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication";
+        "https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication"; // NOSONAR
 
     private const string StorageAccountDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/storage/common/storage-auth-aad-rbac-portal";
+        "https://learn.microsoft.com/en-us/azure/storage/common/storage-auth-aad-rbac-portal"; // NOSONAR
 
     private const string AppServicePlanDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity";
+        "https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity"; // NOSONAR
 
     private const string WebAppDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity";
+        "https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity"; // NOSONAR
 
     private static AzureRoleDefinition CreateWebsiteContributorRole(string documentationUrl) =>
         new(WebsiteContributorRoleDefinitionId,
@@ -207,7 +208,7 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     private const string UserAssignedIdentityDocsUrl =
-        "https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview";
+        "https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview"; // NOSONAR
 
     private static readonly IReadOnlyList<AzureRoleDefinition> UserAssignedIdentityRoles =
     [
@@ -229,7 +230,7 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     private const string FunctionAppDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/azure-functions/functions-identity-based-connections-tutorial";
+        "https://learn.microsoft.com/en-us/azure/azure-functions/functions-identity-based-connections-tutorial"; // NOSONAR
 
     private static readonly IReadOnlyList<AzureRoleDefinition> FunctionAppRoles =
     [
@@ -239,7 +240,7 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     private const string AppConfigurationDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac";
+        "https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac"; // NOSONAR
 
     private static readonly IReadOnlyList<AzureRoleDefinition> AppConfigurationRoles =
     [
@@ -257,7 +258,7 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     private const string ContainerAppEnvironmentDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/container-apps/managed-identity";
+        "https://learn.microsoft.com/en-us/azure/container-apps/managed-identity"; // NOSONAR
 
     private static readonly IReadOnlyList<AzureRoleDefinition> ContainerAppEnvironmentRoles =
     [
@@ -271,7 +272,7 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     private const string ContainerAppDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/container-apps/managed-identity";
+        "https://learn.microsoft.com/en-us/azure/container-apps/managed-identity"; // NOSONAR
 
     private static readonly IReadOnlyList<AzureRoleDefinition> ContainerAppRoles =
     [
@@ -285,7 +286,7 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     private const string LogAnalyticsWorkspaceDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/manage-access";
+        "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/manage-access"; // NOSONAR
 
     private static readonly IReadOnlyList<AzureRoleDefinition> LogAnalyticsWorkspaceRoles =
     [
@@ -304,7 +305,7 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     private const string CosmosDbDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/cosmos-db/role-based-access-control";
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/role-based-access-control"; // NOSONAR
 
     private static readonly IReadOnlyList<AzureRoleDefinition> CosmosDbRoles =
     [
@@ -328,7 +329,7 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     private const string ApplicationInsightsDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/azure-monitor/app/resources-roles-access-control";
+        "https://learn.microsoft.com/en-us/azure/azure-monitor/app/resources-roles-access-control"; // NOSONAR
 
     private static readonly IReadOnlyList<AzureRoleDefinition> ApplicationInsightsRoles =
     [
@@ -351,7 +352,7 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     private const string SqlServerDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/azure-sql/database/security-overview";
+        "https://learn.microsoft.com/en-us/azure/azure-sql/database/security-overview"; // NOSONAR
 
     private static readonly IReadOnlyList<AzureRoleDefinition> SqlServerRoles =
     [
@@ -367,7 +368,7 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     private const string ServiceBusNamespaceDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-managed-service-identity";
+        "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-managed-service-identity"; // NOSONAR
 
     private static readonly IReadOnlyList<AzureRoleDefinition> ServiceBusNamespaceRoles =
     [
@@ -391,10 +392,10 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     private const string ContainerRegistryDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-roles";
+        "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-roles"; // NOSONAR
 
     private const string EventHubNamespaceDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/event-hubs/authorize-access-azure-active-directory";
+        "https://learn.microsoft.com/en-us/azure/event-hubs/authorize-access-azure-active-directory"; // NOSONAR
 
     private static readonly IReadOnlyList<AzureRoleDefinition> EventHubNamespaceRoles =
     [
@@ -436,7 +437,7 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     private const string SqlDatabaseDocsUrl =
-        "https://learn.microsoft.com/en-us/azure/azure-sql/database/security-overview";
+        "https://learn.microsoft.com/en-us/azure/azure-sql/database/security-overview"; // NOSONAR
 
     private static readonly IReadOnlyList<AzureRoleDefinition> SqlDatabaseRoles =
     [

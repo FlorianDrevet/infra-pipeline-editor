@@ -5,7 +5,6 @@ using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
@@ -44,7 +43,7 @@ public class CreateKeyVaultCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var savedKeyVault = await keyVaultRepository.AddAsync(keyVault);
+        var savedKeyVault = keyVaultRepository.Add(keyVault);
 
         return mapper.Map<KeyVaultResult>(savedKeyVault);
     }

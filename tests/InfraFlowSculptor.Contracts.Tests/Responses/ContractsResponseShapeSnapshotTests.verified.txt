@@ -1,5 +1,5 @@
 Contracts response DTO public shape snapshot
-Count: 98
+Count: 108
 
 Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
 Type: AppConfigurationKeyResponse
@@ -124,23 +124,48 @@ Properties:
   ResourceGroupId: string
 
 Namespace: InfraFlowSculptor.Contracts.ContainerApps.Responses
+Type: ContainerAppEnvironmentConfigResponse
+Constructors:
+  ContainerAppEnvironmentConfigResponse(string EnvironmentName, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod, string? ReadinessProbePath, int? ReadinessProbePort, string? LivenessProbePath, int? LivenessProbePort, string? StartupProbePath, int? StartupProbePort, string? ContainerRegistryServiceConnection)
+Properties:
+  ContainerRegistryServiceConnection: string?
+  CpuCores: string?
+  EnvironmentName: string
+  IngressEnabled: bool?
+  IngressExternal: bool?
+  IngressTargetPort: int?
+  LivenessProbePath: string?
+  LivenessProbePort: int?
+  MaxReplicas: int?
+  MemoryGi: string?
+  MinReplicas: int?
+  ReadinessProbePath: string?
+  ReadinessProbePort: int?
+  StartupProbePath: string?
+  StartupProbePort: int?
+  TransportMethod: string?
+
+Namespace: InfraFlowSculptor.Contracts.ContainerApps.Responses
 Type: ContainerAppResponse
 Constructors:
-  ContainerAppResponse(string Id, string ResourceGroupId, string Name, string Location, string ContainerAppEnvironmentId, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, string? DockerfilePath, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Requests.ContainerAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+  ContainerAppResponse(string Id, string ResourceGroupId, string Name, string Location, string ContainerAppEnvironmentId, string? ContainerRegistryId, string? AcrAuthMode, string? AcrPullIdentityId, string? DockerImageName, bool DockerImageValidated, string? DockerfilePath, string? ApplicationName, string? SourceCodePath, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Responses.ContainerAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
 Properties:
   AcrAuthMode: string?
+  AcrPullIdentityId: string?
   ApplicationName: string?
   ContainerAppEnvironmentId: string
   ContainerRegistryId: string?
   DockerImageName: string?
+  DockerImageValidated: bool
   DockerfilePath: string?
-  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Requests.ContainerAppEnvironmentConfigResponse>
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.ContainerApps.Responses.ContainerAppEnvironmentConfigResponse>
   Id: string
   IsExisting: bool
   Location: string
   Name: string
   PipelineStepOptions: InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto?
   ResourceGroupId: string
+  SourceCodePath: string?
 
 Namespace: InfraFlowSculptor.Contracts.ContainerRegistries.Responses
 Type: CheckAcrPullAccessResponse
@@ -182,13 +207,38 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.CustomDomains.Responses
 Type: CustomDomainResponse
 Constructors:
-  CustomDomainResponse(string Id, string ResourceId, string EnvironmentName, string DomainName, string BindingType)
+  CustomDomainResponse(string Id, string ResourceId, string EnvironmentName, string DomainName, string CertificateMode, string? KeyVaultUrl, string? ManagedIdentityResourceId, string? CertificateName, string DnsValidationStatus)
 Properties:
-  BindingType: string
+  CertificateMode: string
+  CertificateName: string?
+  DnsValidationStatus: string
   DomainName: string
   EnvironmentName: string
   Id: string
+  KeyVaultUrl: string?
+  ManagedIdentityResourceId: string?
   ResourceId: string
+
+Namespace: InfraFlowSculptor.Contracts.CustomDomains.Responses
+Type: DnsInstructionStepResponse
+Constructors:
+  DnsInstructionStepResponse(int Order, string Title, string Description, string? RecordType, string? RecordName, string? RecordValue)
+Properties:
+  Description: string
+  Order: int
+  RecordName: string?
+  RecordType: string?
+  RecordValue: string?
+  Title: string
+
+Namespace: InfraFlowSculptor.Contracts.CustomDomains.Responses
+Type: DnsInstructionsResponse
+Constructors:
+  DnsInstructionsResponse(string DomainName, string DnsValidationStatus, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.CustomDomains.Responses.DnsInstructionStepResponse> Steps)
+Properties:
+  DnsValidationStatus: string
+  DomainName: string
+  Steps: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.CustomDomains.Responses.DnsInstructionStepResponse>
 
 Namespace: InfraFlowSculptor.Contracts.EventHubNamespaces.Responses
 Type: EventHubConsumerGroupResponse
@@ -258,15 +308,17 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.FunctionApps.Responses
 Type: FunctionAppResponse
 Constructors:
-  FunctionAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FunctionApps.Requests.FunctionAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+  FunctionAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? AcrPullIdentityId, string? DockerImageName, bool DockerImageValidated, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FunctionApps.Requests.FunctionAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
 Properties:
   AcrAuthMode: string?
+  AcrPullIdentityId: string?
   AppServicePlanId: string
   ApplicationName: string?
   BuildCommand: string?
   ContainerRegistryId: string?
   DeploymentMode: string
   DockerImageName: string?
+  DockerImageValidated: bool
   DockerfilePath: string?
   EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FunctionApps.Requests.FunctionAppEnvironmentConfigResponse>
   HttpsOnly: bool
@@ -279,6 +331,24 @@ Properties:
   RuntimeStack: string
   RuntimeVersion: string
   SourceCodePath: string?
+
+Namespace: InfraFlowSculptor.Contracts.Git.Responses
+Type: VerifiedGitBranchDto
+Constructors:
+  VerifiedGitBranchDto(string Name, bool IsProtected)
+Properties:
+  IsProtected: bool
+  Name: string
+
+Namespace: InfraFlowSculptor.Contracts.Git.Responses
+Type: VerifyGitConnectionResponse
+Constructors:
+  VerifyGitConnectionResponse(string Owner, string RepositoryName, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Git.Responses.VerifiedGitBranchDto> Branches, string? DefaultBranchCandidate)
+Properties:
+  Branches: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Git.Responses.VerifiedGitBranchDto>
+  DefaultBranchCandidate: string?
+  Owner: string
+  RepositoryName: string
 
 Namespace: InfraFlowSculptor.Contracts.Imports.Responses
 Type: ApplyImportPreviewCreatedResourceResponseItem
@@ -457,9 +527,8 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
 Type: InfraConfigRepositoryResponse
 Constructors:
-  InfraConfigRepositoryResponse(string Id, string Alias, string ProviderType, string RepositoryUrl, string Owner, string RepositoryName, string DefaultBranch, System.Collections.Generic.IReadOnlyList<string> ContentKinds)
+  InfraConfigRepositoryResponse(string Id, string ProviderType, string RepositoryUrl, string Owner, string RepositoryName, string DefaultBranch, System.Collections.Generic.IReadOnlyList<string> ContentKinds)
 Properties:
-  Alias: string
   ContentKinds: System.Collections.Generic.IReadOnlyList<string>
   DefaultBranch: string
   Id: string
@@ -623,7 +692,7 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.PersonalAccessTokens.Responses
 Type: PersonalAccessTokenResponse
 Constructors:
-  PersonalAccessTokenResponse(string Id, string Name, string TokenPrefix, System.DateTime? ExpiresAt, System.DateTime CreatedAt, System.DateTime? LastUsedAt, bool IsRevoked)
+  PersonalAccessTokenResponse(string Id, string Name, string TokenPrefix, System.DateTime? ExpiresAt, System.DateTime CreatedAt, System.DateTime? LastUsedAt, bool IsRevoked, System.Collections.Generic.List<string> Scopes)
 Properties:
   CreatedAt: System.DateTime
   ExpiresAt: System.DateTime?
@@ -631,6 +700,7 @@ Properties:
   IsRevoked: bool
   LastUsedAt: System.DateTime?
   Name: string
+  Scopes: System.Collections.Generic.List<string>
   TokenPrefix: string
 
 Namespace: InfraFlowSculptor.Contracts.PrivateDnsZones.Responses
@@ -705,6 +775,16 @@ Properties:
   InfraConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>>
 
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: GetProjectLatestGenerationResponse
+Constructors:
+  GetProjectLatestGenerationResponse(InfraFlowSculptor.Contracts.Projects.Responses.LatestBicepGenerationResponse? Bicep, InfraFlowSculptor.Contracts.Projects.Responses.LatestPipelineGenerationResponse? Pipeline, InfraFlowSculptor.Contracts.Projects.Responses.LatestBootstrapGenerationResponse? Bootstrap, string? GeneratedAt)
+Properties:
+  Bicep: InfraFlowSculptor.Contracts.Projects.Responses.LatestBicepGenerationResponse?
+  Bootstrap: InfraFlowSculptor.Contracts.Projects.Responses.LatestBootstrapGenerationResponse?
+  GeneratedAt: string?
+  Pipeline: InfraFlowSculptor.Contracts.Projects.Responses.LatestPipelineGenerationResponse?
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
 Type: GitBranchResponse
 Constructors:
   GitBranchResponse(string Name, bool IsProtected)
@@ -719,6 +799,35 @@ Constructors:
 Properties:
   Name: string
   Path: string
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: LatestBicepGenerationResponse
+Constructors:
+  LatestBicepGenerationResponse(System.Collections.Generic.IReadOnlyDictionary<string, string> CommonFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>> ConfigFileUris)
+Properties:
+  CommonFileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+  ConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>>
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: LatestBootstrapGenerationResponse
+Constructors:
+  LatestBootstrapGenerationResponse(System.Collections.Generic.IReadOnlyDictionary<string, string> FileUris, System.Collections.Generic.IReadOnlyDictionary<string, string> InfraFileUris, System.Collections.Generic.IReadOnlyDictionary<string, string> AppFileUris)
+Properties:
+  AppFileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+  FileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+  InfraFileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: LatestPipelineGenerationResponse
+Constructors:
+  LatestPipelineGenerationResponse(System.Collections.Generic.IReadOnlyDictionary<string, string> CommonFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>> ConfigFileUris, System.Collections.Generic.IReadOnlyDictionary<string, string> InfraCommonFileUris, System.Collections.Generic.IReadOnlyDictionary<string, string> AppCommonFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>> InfraConfigFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>> AppConfigFileUris)
+Properties:
+  AppCommonFileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+  AppConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>>
+  CommonFileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+  ConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>>
+  InfraCommonFileUris: System.Collections.Generic.IReadOnlyDictionary<string, string>
+  InfraConfigFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>>
 
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
 Type: PipelineVariableUsageResponse
@@ -753,11 +862,20 @@ Properties:
   Variables: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.PipelineVariableUsageResponse>
 
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: ProjectRepositoryConnectionVerificationResponse
+Constructors:
+  ProjectRepositoryConnectionVerificationResponse(string Owner, string RepositoryName, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.GitBranchResponse> Branches, string? DefaultBranchCandidate)
+Properties:
+  Branches: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.GitBranchResponse>
+  DefaultBranchCandidate: string?
+  Owner: string
+  RepositoryName: string
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
 Type: ProjectRepositoryResponse
 Constructors:
-  ProjectRepositoryResponse(string Id, string Alias, string? ProviderType, string? RepositoryUrl, string? Owner, string? RepositoryName, string? DefaultBranch, bool IsConfigured, System.Collections.Generic.IReadOnlyList<string> ContentKinds)
+  ProjectRepositoryResponse(string Id, string? ProviderType, string? RepositoryUrl, string? Owner, string? RepositoryName, string? DefaultBranch, bool IsConfigured, System.Collections.Generic.IReadOnlyList<string> ContentKinds)
 Properties:
-  Alias: string
   ContentKinds: System.Collections.Generic.IReadOnlyList<string>
   DefaultBranch: string?
   Id: string
@@ -818,14 +936,14 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
 Type: RepoPushResultResponse
 Constructors:
-  RepoPushResultResponse(string Alias, bool Success, string? BranchUrl, string? CommitSha, int FileCount, string? ErrorCode, string? ErrorDescription)
+  RepoPushResultResponse(string RepositoryId, bool Success, string? BranchUrl, string? CommitSha, int FileCount, string? ErrorCode, string? ErrorDescription)
 Properties:
-  Alias: string
   BranchUrl: string?
   CommitSha: string?
   ErrorCode: string?
   ErrorDescription: string?
   FileCount: int
+  RepositoryId: string
   Success: bool
 
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
@@ -1158,9 +1276,10 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.WebApps.Responses
 Type: WebAppResponse
 Constructors:
-  WebAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool AlwaysOn, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? DockerImageName, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.WebApps.Requests.WebAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+  WebAppResponse(string Id, string ResourceGroupId, string Name, string Location, string AppServicePlanId, string RuntimeStack, string RuntimeVersion, bool AlwaysOn, bool HttpsOnly, string DeploymentMode, string? ContainerRegistryId, string? AcrAuthMode, string? AcrPullIdentityId, string? DockerImageName, bool DockerImageValidated, string? DockerfilePath, string? SourceCodePath, string? BuildCommand, string? ApplicationName, InfraFlowSculptor.Contracts.Common.Requests.PipelineStepOptionsDto? PipelineStepOptions, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.WebApps.Requests.WebAppEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
 Properties:
   AcrAuthMode: string?
+  AcrPullIdentityId: string?
   AlwaysOn: bool
   AppServicePlanId: string
   ApplicationName: string?
@@ -1168,6 +1287,7 @@ Properties:
   ContainerRegistryId: string?
   DeploymentMode: string
   DockerImageName: string?
+  DockerImageValidated: bool
   DockerfilePath: string?
   EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.WebApps.Requests.WebAppEnvironmentConfigResponse>
   HttpsOnly: bool

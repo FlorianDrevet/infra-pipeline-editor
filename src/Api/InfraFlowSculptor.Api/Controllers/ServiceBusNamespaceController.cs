@@ -11,7 +11,6 @@ using InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MediatR;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
@@ -27,7 +26,7 @@ public static class ServiceBusNamespaceController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/service-bus")
+            var group = endpoints.MapGroup(Routes.ServiceBus)
                 .WithTags("Service Bus");
 
             group.MapGet("/{id:guid}",

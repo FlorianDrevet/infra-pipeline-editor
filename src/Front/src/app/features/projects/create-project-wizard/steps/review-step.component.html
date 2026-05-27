@@ -72,7 +72,8 @@
         @for (repo of draft().repositories; track $index) {
           <li class="review-step__repo">
             <div class="review-step__repo-main">
-              <span class="review-step__repo-alias">{{ repo.alias || '—' }}</span>
+              <span class="review-step__repo-name">{{ repositoryTitleKey(repo) | translate }}</span>
+              <span class="review-step__repo-subtitle">{{ repositorySubtitle(repo) }}</span>
               <div class="review-step__repo-kinds">
                 @for (kind of repo.contentKinds; track kind) {
                   <app-ds-chip variant="neutral" size="sm">{{ kind }}</app-ds-chip>

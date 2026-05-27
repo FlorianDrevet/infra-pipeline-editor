@@ -9,7 +9,6 @@ using InfraFlowSculptor.Contracts.FrontDoors.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InfraFlowSculptor.Api.Controllers;
@@ -22,7 +21,7 @@ public static class FrontDoorController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/front-door")
+            var group = endpoints.MapGroup(Routes.FrontDoor)
                 .WithTags("FrontDoors");
 
             group.MapGet("/{id:guid}",

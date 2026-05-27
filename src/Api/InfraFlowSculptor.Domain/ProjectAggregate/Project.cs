@@ -1,6 +1,5 @@
-﻿using ErrorOr;
+using ErrorOr;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate.Events;
@@ -323,13 +322,12 @@ public sealed class Project : AggregateRoot<ProjectId>
 
     /// <summary>
     /// Adds a new <see cref="ProjectRepository"/> to this project.
-    /// The alias must be unique within the project. The current <see cref="LayoutPreset"/> must allow the operation.
+    /// The current <see cref="LayoutPreset"/> must allow the operation.
     /// Connection details (<paramref name="providerType"/>, <paramref name="repositoryUrl"/>, <paramref name="defaultBranch"/>)
     /// are optional: pass them all to create a fully configured repository, or pass them all as <c>null</c>/empty
     /// to create an unconfigured slot to be completed later.
     /// </summary>
     public ErrorOr<ProjectRepository> AddRepository(
-        RepositoryAlias alias,
         GitProviderType? providerType,
         string? repositoryUrl,
         string? defaultBranch,
@@ -339,10 +337,7 @@ public sealed class Project : AggregateRoot<ProjectId>
         if (allowed.IsError)
             return allowed.Errors;
 
-        if (_repositories.Any(r => r.Alias == alias))
-            return Domain.Common.Errors.Errors.ProjectRepository.DuplicateAlias(alias);
-
-        var created = ProjectRepository.Create(Id, alias, providerType, repositoryUrl, defaultBranch, contentKinds);
+        var created = ProjectRepository.Create(Id, providerType, repositoryUrl, defaultBranch, contentKinds);
         if (created.IsError)
             return created.Errors;
 
@@ -384,10 +379,6 @@ public sealed class Project : AggregateRoot<ProjectId>
         _repositories.Remove(existing);
         return Result.Deleted;
     }
-
-    /// <summary>Returns the repository matching the given alias, or <c>null</c> if none exists.</summary>
-    public ProjectRepository? GetRepositoryByAlias(RepositoryAlias alias)
-        => _repositories.FirstOrDefault(r => r.Alias == alias);
 
     // â”€â”€â”€ Repository Mode Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -477,21 +468,6 @@ public sealed class Project : AggregateRoot<ProjectId>
 
     private static bool RoleConflicts(RepositoryContentKindsEnum role, RepositoryContentKinds otherKinds) =>
         otherKinds.Has(role);
-
-    private static bool IsValidAllInOne(IReadOnlyCollection<ProjectRepository> repos)
-        => repos.Count == 1
-           && repos.First().ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure)
-           && repos.First().ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode);
-
-    private static bool IsValidSplitInfraCode(IReadOnlyCollection<ProjectRepository> repos)
-    {
-        if (repos.Count != 2) return false;
-        var infraOnly = repos.Count(r => r.ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure)
-                                         && !r.ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode));
-        var appOnly = repos.Count(r => r.ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode)
-                                       && !r.ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure));
-        return infraOnly == 1 && appOnly == 1;
-    }
 
     /// <summary>
     /// Returns <see langword="true"/> when a single project-level "generate all" operation is unambiguous,

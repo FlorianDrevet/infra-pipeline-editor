@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.CosmosDbAggregate;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.CosmosDbs.Commands.CreateCosmosDb;
@@ -42,7 +41,7 @@ public class CreateCosmosDbCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var savedCosmosDb = await cosmosDbRepository.AddAsync(cosmosDb);
+        var savedCosmosDb = cosmosDbRepository.Add(cosmosDb);
 
         return mapper.Map<CosmosDbResult>(savedCosmosDb);
     }

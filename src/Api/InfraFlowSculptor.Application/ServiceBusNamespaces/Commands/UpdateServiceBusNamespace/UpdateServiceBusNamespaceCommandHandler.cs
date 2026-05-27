@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.ServiceBusNamespaces.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.UpdateServiceBusNamespace;
 
@@ -43,7 +42,7 @@ public class UpdateServiceBusNamespaceCommandHandler(
                     .Select(ec => (ec.EnvironmentName, ec.Sku, ec.Capacity, ec.ZoneRedundant, ec.DisableLocalAuth, ec.MinimumTlsVersion))
                     .ToList());
 
-        var updated = await serviceBusNamespaceRepository.UpdateAsync(sb);
+        var updated = serviceBusNamespaceRepository.Update(sb);
 
         return mapper.Map<ServiceBusNamespaceResult>(updated);
     }

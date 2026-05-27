@@ -1,4 +1,3 @@
-using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
@@ -8,7 +7,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBootstr
 /// <param name="ProjectId">The unique identifier of the project.</param>
 public record GenerateProjectBootstrapPipelineCommand(
     ProjectId ProjectId
-) : ICommand<GenerateProjectBootstrapPipelineResult>;
+) : IGenerateCommand<GenerateProjectBootstrapPipelineResult>;
 
 /// <summary>Result of bootstrap pipeline generation containing blob storage URIs keyed by relative file path.</summary>
 /// <param name="FileUris">

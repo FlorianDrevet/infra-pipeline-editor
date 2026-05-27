@@ -15,7 +15,6 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
@@ -29,7 +28,7 @@ public static class StorageAccountController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var storageAccounts = endpoints.MapGroup("/storage-accounts")
+            var storageAccounts = endpoints.MapGroup(Routes.StorageAccounts)
                 .WithTags("StorageAccounts");
 
             storageAccounts.MapGet("/{id:guid}",

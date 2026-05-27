@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.UpdateLogAnalyticsWorkspace;
 
@@ -43,7 +42,7 @@ public sealed class UpdateLogAnalyticsWorkspaceCommandHandler(
                     .Select(ec => (ec.EnvironmentName, ec.Sku, ec.RetentionInDays, ec.DailyQuotaGb))
                     .ToList());
 
-        var updated = await logAnalyticsWorkspaceRepository.UpdateAsync(logAnalyticsWorkspace);
+        var updated = logAnalyticsWorkspaceRepository.Update(logAnalyticsWorkspace);
 
         return mapper.Map<LogAnalyticsWorkspaceResult>(updated);
     }

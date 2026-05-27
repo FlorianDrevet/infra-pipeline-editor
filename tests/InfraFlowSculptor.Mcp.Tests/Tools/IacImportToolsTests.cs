@@ -48,7 +48,11 @@ public sealed class IacImportToolsTests
         // Assert
         var doc = JsonDocument.Parse(json);
         doc.RootElement.GetProperty("summary").GetString().Should().Contain("not supported");
+        doc.RootElement.GetProperty("mappedResources").GetArrayLength().Should().Be(0);
+        doc.RootElement.GetProperty("gaps").GetArrayLength().Should().Be(0);
+        doc.RootElement.GetProperty("unsupportedResources").GetArrayLength().Should().Be(0);
         doc.RootElement.TryGetProperty("previewId", out _).Should().BeFalse("previewId is null and ignored");
+        doc.RootElement.TryGetProperty("suggestedProjectStructure", out _).Should().BeFalse("null-only properties are ignored");
     }
 
     [Fact]

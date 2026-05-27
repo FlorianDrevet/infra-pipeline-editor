@@ -3,9 +3,7 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
-using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.RoleAssignments.Commands.AddRoleAssignment;
 
@@ -55,7 +53,7 @@ public sealed class AddRoleAssignmentCommandHandler(
             request.RoleDefinitionId,
             request.UserAssignedIdentityId);
 
-        var updated = await azureResourceRepository.UpdateAsync(sourceResource, cancellationToken);
+        var updated = azureResourceRepository.Update(sourceResource);
 
         var assignment = updated.RoleAssignments
                              .FirstOrDefault(r => r.TargetResourceId == request.TargetResourceId

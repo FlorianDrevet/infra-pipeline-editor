@@ -1,0 +1,183 @@
+@if (project(); as proj) {
+<div class="tab-content__toolbar naming-toolbar">
+  @if (canWrite()) {
+    <button
+      class="template-action-btn template-action-btn--add"
+      [disabled]="namingActionKey() !== null"
+      (click)="openDefaultNamingTemplateDialog()">
+      <mat-icon>edit</mat-icon>
+      {{ (proj.defaultNamingTemplate
+        ? 'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT_DEFAULT'
+        : 'PROJECT_DETAIL.NAMING_TEMPLATES.ADD_DEFAULT') | translate }}
+    </button>
+    <button
+      class="template-action-btn template-action-btn--add"
+      [disabled]="!canAddResourceNamingTemplate() || namingActionKey() !== null"
+      [matTooltip]="(!canAddResourceNamingTemplate() ? 'PROJECT_DETAIL.NAMING_TEMPLATES.ALL_RESOURCE_TYPES_CONFIGURED' : 'PROJECT_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE') | translate"
+      (click)="openResourceNamingTemplateDialog()">
+      <mat-icon>add_circle_outline</mat-icon>
+      {{ 'PROJECT_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE' | translate }}
+    </button>
+  }
+</div>
+
+<!-- Naming Templates Section Header -->
+<section class="naming-section-header">
+  <h4 class="naming-section-header__title">
+    <mat-icon>label</mat-icon>
+    {{ 'PROJECT_DETAIL.NAMING_TEMPLATES.SECTION_TITLE' | translate }}
+  </h4>
+  <p class="naming-section-header__subtitle">{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.SECTION_SUBTITLE' | translate }}</p>
+</section>
+
+@if (namingErrorKey()) {
+  <p class="action-error">{{ namingErrorKey() | translate }}</p>
+}
+
+<article class="default-template" [class.default-template--busy]="isNamingActionActive('default')">
+  @if (isNamingActionActive('default')) {
+    <div class="default-template__spinner">
+      <mat-spinner diameter="22"></mat-spinner>
+    </div>
+  }
+
+  <div class="default-template__header">
+    <span>{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.DEFAULT' | translate }}</span>
+    @if (canWrite()) {
+      <button
+        class="template-action-btn template-action-btn--inline"
+        [disabled]="namingActionKey() !== null"
+        (click)="openDefaultNamingTemplateDialog()">
+        <mat-icon>edit</mat-icon>
+        {{ 'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT' | translate }}
+      </button>
+    }
+  </div>
+
+  @if (proj.defaultNamingTemplate) {
+    <code>{{ proj.defaultNamingTemplate }}</code>
+  } @else {
+    <p class="default-template__empty">{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.DEFAULT_EMPTY' | translate }}</p>
+  }
+</article>
+
+@if (proj.resourceNamingTemplates.length > 0) {
+  <div class="template-list">
+    @for (tmpl of proj.resourceNamingTemplates; track tmpl.id) {
+      <article class="template-row" [class.template-row--busy]="isResourceNamingTemplateBusy(tmpl.resourceType)">
+        @if (isResourceNamingTemplateBusy(tmpl.resourceType)) {
+          <div class="template-row__spinner">
+            <mat-spinner diameter="18"></mat-spinner>
+          </div>
+        }
+
+        <div class="template-row__meta">
+          <strong>{{ tmpl.resourceType }}</strong>
+          <code>{{ tmpl.template }}</code>
+        </div>
+
+        @if (canWrite()) {
+          <div class="template-row__actions">
+            <button
+              class="template-action-btn template-action-btn--edit"
+              [matTooltip]="'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT' | translate"
+              [disabled]="isResourceNamingTemplateBusy(tmpl.resourceType) || namingActionKey() !== null"
+              (click)="openResourceNamingTemplateDialog(tmpl)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              class="template-action-btn template-action-btn--delete"
+              [matTooltip]="'PROJECT_DETAIL.NAMING_TEMPLATES.REMOVE' | translate"
+              [disabled]="isResourceNamingTemplateBusy(tmpl.resourceType) || namingActionKey() !== null"
+              (click)="openRemoveResourceNamingTemplateDialog(tmpl)">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+        }
+      </article>
+    }
+  </div>
+} @else {
+  <div class="empty-state">
+    <mat-icon class="empty-state__icon">label</mat-icon>
+    <p>{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.EMPTY' | translate }}</p>
+  </div>
+}
+
+<!-- Abbreviation Overrides -->
+<section class="abbreviations-section">
+  <h4 class="abbreviations-section__title">
+    <mat-icon>short_text</mat-icon>
+    {{ 'ABBREVIATIONS.TITLE' | translate }}
+  </h4>
+  <p class="abbreviations-section__subtitle">{{ 'ABBREVIATIONS.SUBTITLE' | translate }}</p>
+
+  @if (namingErrorKey(); as errKey) {
+    <p class="naming-error">{{ errKey | translate }}</p>
+  }
+
+  @if (abbreviationDisplayItems().length > 0) {
+    <div class="abbreviation-list">
+      <div class="abbreviation-list__header">
+        <span class="abbreviation-list__col abbreviation-list__col--type">{{ 'ABBREVIATIONS.COLUMN_RESOURCE' | translate }}</span>
+        <span class="abbreviation-list__col abbreviation-list__col--default">{{ 'ABBREVIATIONS.COLUMN_DEFAULT' | translate }}</span>
+        <span class="abbreviation-list__col abbreviation-list__col--effective">{{ 'ABBREVIATIONS.COLUMN_EFFECTIVE' | translate }}</span>
+        @if (canWrite()) {
+          <span class="abbreviation-list__col abbreviation-list__col--actions"></span>
+        }
+      </div>
+
+      @for (item of abbreviationDisplayItems(); track item.resourceType) {
+        <article class="abbreviation-row" [class.abbreviation-row--busy]="isAbbreviationBusy(item.resourceType)">
+          @if (isAbbreviationBusy(item.resourceType)) {
+            <div class="abbreviation-row__spinner">
+              <mat-spinner diameter="18"></mat-spinner>
+            </div>
+          }
+
+          <span class="abbreviation-list__col abbreviation-list__col--type">
+            <mat-icon class="abbreviation-row__icon">{{ item.icon }}</mat-icon>
+            <span class="abbreviation-row__label">{{ item.resourceType }}</span>
+          </span>
+
+          <span class="abbreviation-list__col abbreviation-list__col--default">
+            <code>{{ item.defaultAbbreviation }}</code>
+          </span>
+
+          <span class="abbreviation-list__col abbreviation-list__col--effective">
+            <span class="effective-abbr" [class.effective-abbr--custom]="item.isCustomized">
+              {{ item.effectiveAbbreviation }}
+            </span>
+          </span>
+
+          @if (canWrite()) {
+            <span class="abbreviation-list__col abbreviation-list__col--actions">
+              <button
+                class="template-action-btn template-action-btn--edit"
+                [matTooltip]="'ABBREVIATIONS.EDIT' | translate"
+                [disabled]="isAbbreviationBusy(item.resourceType) || namingActionKey() !== null"
+                (click)="openEditAbbreviationDialog(item)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              @if (item.isCustomized) {
+                <button
+                  class="template-action-btn template-action-btn--delete"
+                  [matTooltip]="'ABBREVIATIONS.RESET' | translate"
+                  [disabled]="isAbbreviationBusy(item.resourceType) || namingActionKey() !== null"
+                  (click)="openResetAbbreviationDialog(item)">
+                  <mat-icon>restart_alt</mat-icon>
+                </button>
+              }
+            </span>
+          }
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <mat-icon class="empty-state__icon">short_text</mat-icon>
+      <p>{{ 'ABBREVIATIONS.EMPTY' | translate }}</p>
+    </div>
+  }
+</section>
+}

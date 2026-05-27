@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -20,7 +19,6 @@ export interface EditAbbreviationDialogResult {
   selector: 'app-edit-abbreviation-dialog',
   standalone: true,
   imports: [
-    MatButtonModule,
     MatDialogModule,
     FormsModule,
     ReactiveFormsModule,

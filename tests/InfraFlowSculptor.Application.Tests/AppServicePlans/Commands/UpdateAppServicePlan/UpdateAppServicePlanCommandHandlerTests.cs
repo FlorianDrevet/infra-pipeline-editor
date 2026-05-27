@@ -6,7 +6,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -53,8 +52,8 @@ public sealed class UpdateAppServicePlanCommandHandlerTests
             new Name("asp-renamed"),
             new Location(Location.LocationEnum.WestEurope),
             OsType: nameof(AppServicePlanOsType.AppServicePlanOsTypeEnum.Windows));
-        _appServicePlanRepository.UpdateAsync(Arg.Any<AppServicePlan>())
-            .Returns(callInfo => Task.FromResult((AppServicePlan)callInfo.Args()[0]));
+        _appServicePlanRepository.Update(Arg.Any<AppServicePlan>())
+            .Returns(callInfo => (AppServicePlan)callInfo.Args()[0]);
         _sut = new UpdateAppServicePlanCommandHandler(
             _appServicePlanRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -72,7 +71,7 @@ public sealed class UpdateAppServicePlanCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _appServicePlanRepository.DidNotReceive().UpdateAsync(Arg.Any<AppServicePlan>());
+        _appServicePlanRepository.DidNotReceive().Update(Arg.Any<AppServicePlan>());
     }
 
     [Fact]
@@ -90,7 +89,7 @@ public sealed class UpdateAppServicePlanCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _appServicePlanRepository.DidNotReceive().UpdateAsync(Arg.Any<AppServicePlan>());
+        _appServicePlanRepository.DidNotReceive().Update(Arg.Any<AppServicePlan>());
     }
 
     [Fact]
@@ -109,7 +108,7 @@ public sealed class UpdateAppServicePlanCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _appServicePlanRepository.Received(1).UpdateAsync(Arg.Is<AppServicePlan>(p =>
+        _appServicePlanRepository.Received(1).Update(Arg.Is<AppServicePlan>(p =>
             p.Name.Value == "asp-renamed"
             && p.OsType.Value == AppServicePlanOsType.AppServicePlanOsTypeEnum.Windows));
         _mapper.Received(1).Map<AppServicePlanResult>(Arg.Any<AppServicePlan>());

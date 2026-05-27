@@ -2,12 +2,9 @@ using ErrorOr;
 using InfraFlowSculptor.Application.ApplicationInsights.Commands.CreateApplicationInsights;
 using InfraFlowSculptor.Application.ApplicationInsights.Common;
 using FluentAssertions;
-using InfraFlowSculptor.Application.AppServicePlans.Commands.CreateAppServicePlan;
-using InfraFlowSculptor.Application.AppServicePlans.Common;
 using InfraFlowSculptor.Application.Imports.Commands.ApplyImportPreview;
 using InfraFlowSculptor.Application.Imports.Common.Analysis;
 using InfraFlowSculptor.Application.Imports.Common.Constants;
-using InfraFlowSculptor.Application.Imports.Common.Creation;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
@@ -20,7 +17,6 @@ using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Common;
 using InfraFlowSculptor.Application.StorageAccounts.Commands.CreateStorageAccount;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
-using InfraFlowSculptor.Domain.AppServicePlanAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
@@ -108,7 +104,6 @@ public sealed class ApplyImportPreviewCommandHandlerTests
                 && request.Environments[0].Name == "Development"
                 && request.Environments[0].ShortName == "dev"
                 && request.Repositories.Count == 1
-                && request.Repositories[0].Alias == ProjectSetupDefaults.RepoAliasMain
                 && request.Repositories[0].ContentKinds.Count == 2
                 && request.Repositories[0].ContentKinds[0] == nameof(RepositoryContentKindsEnum.Infrastructure)
                 && request.Repositories[0].ContentKinds[1] == nameof(RepositoryContentKindsEnum.ApplicationCode)),

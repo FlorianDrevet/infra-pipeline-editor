@@ -1,7 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using MapsterMapper;
-using MediatR;
 using ErrorOr;
 using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Common;
@@ -23,7 +22,7 @@ public class CreateResourceGroupCommandHandler(
 
         var resourceGroup = Domain.ResourceGroupAggregate.ResourceGroup.Create(request.Name, request.InfraConfigId, request.Location);
 
-        var savedResourceGroup = await resourceGroupRepository.AddAsync(resourceGroup);
+        var savedResourceGroup = resourceGroupRepository.Add(resourceGroup);
 
         return mapper.Map<ResourceGroupResult>(savedResourceGroup);
     }

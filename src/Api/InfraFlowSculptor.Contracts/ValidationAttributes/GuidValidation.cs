@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace InfraFlowSculptor.Contracts.ValidationAttributes;
 
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class GuidValidation : ValidationAttribute
+public sealed class GuidValidation : ValidationAttribute // NOSONAR S3376 — short name without Attribute suffix is intentional
 {
     public GuidValidation()
     {

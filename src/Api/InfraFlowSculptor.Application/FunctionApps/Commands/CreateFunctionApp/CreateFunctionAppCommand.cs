@@ -3,7 +3,6 @@ using InfraFlowSculptor.Application.FunctionApps.Common;
 using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using ErrorOr;
 
 namespace InfraFlowSculptor.Application.FunctionApps.Commands.CreateFunctionApp;
 
@@ -19,7 +18,9 @@ public record CreateFunctionAppCommand(
     string DeploymentMode,
     Guid? ContainerRegistryId,
     string? AcrAuthMode,
+    Guid? AcrPullIdentityId,
     string? DockerImageName,
+    bool DockerImageValidated = false,
     string? DockerfilePath = null,
     string? SourceCodePath = null,
     string? BuildCommand = null,

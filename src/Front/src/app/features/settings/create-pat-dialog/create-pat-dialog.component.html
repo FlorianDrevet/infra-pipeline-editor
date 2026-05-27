@@ -40,9 +40,9 @@
     </mat-dialog-content>
 
     <mat-dialog-actions class="create-pat-dialog__actions" align="end">
-      <button mat-stroked-button (click)="onCancel()" [disabled]="isSubmitting()">
+      <app-ds-button variant="ghost" (clicked)="onCancel()" [disabled]="isSubmitting()">
         {{ 'SETTINGS.CREATE_DIALOG.CANCEL' | translate }}
-      </button>
+      </app-ds-button>
       <app-ds-button
         variant="primary"
         icon="add"
@@ -59,16 +59,25 @@
       {{ 'SETTINGS.TOKEN_CREATED.TITLE' | translate }}
     </h2>
 
-    <mat-dialog-content class="create-pat-dialog__content">
+    <mat-dialog-content class="create-pat-dialog__content create-pat-dialog__content--success">
       <app-ds-alert severity="warning">
         {{ 'SETTINGS.TOKEN_CREATED.WARNING' | translate }}
       </app-ds-alert>
 
       <div class="create-pat-dialog__token-display">
-        <code class="create-pat-dialog__token-value">{{ createdToken() }}</code>
+        <div class="create-pat-dialog__token-content">
+          <div class="create-pat-dialog__token-marker" aria-hidden="true">
+            <mat-icon>vpn_key</mat-icon>
+          </div>
+          <code class="create-pat-dialog__token-value">{{ createdToken() }}</code>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions class="create-pat-dialog__actions create-pat-dialog__actions--success">
+      <div class="create-pat-dialog__action create-pat-dialog__action--copy">
         <app-ds-button
-          [variant]="copied() ? 'success' : 'secondary'"
-          size="sm"
+          [variant]="copied() ? 'success' : 'subtle'"
           [icon]="copied() ? 'check' : 'content_copy'"
           (clicked)="copyToken()">
           @if (copied()) {
@@ -78,12 +87,11 @@
           }
         </app-ds-button>
       </div>
-    </mat-dialog-content>
-
-    <mat-dialog-actions class="create-pat-dialog__actions" align="end">
-      <app-ds-button variant="primary" (clicked)="onDone()">
-        {{ 'SETTINGS.TOKEN_CREATED.DONE' | translate }}
-      </app-ds-button>
+      <div class="create-pat-dialog__action create-pat-dialog__action--done">
+        <app-ds-button variant="primary" (clicked)="onDone()">
+          {{ 'SETTINGS.TOKEN_CREATED.DONE' | translate }}
+        </app-ds-button>
+      </div>
     </mat-dialog-actions>
   }
 </div>

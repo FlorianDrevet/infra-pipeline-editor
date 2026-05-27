@@ -55,6 +55,21 @@ Après lecture de `MEMORY.md`, identifier :
 - **Quel(s) agent(s) spécialisé(s)** à invoquer → voir table de routage ci-dessous
 - **Quel(s) skill(s)** à charger → voir section Skills ci-dessous
 
+### 2a. Passe de contradiction obligatoire
+
+**Avant de planifier ou coder**, faire une passe de contradiction sur la demande utilisateur si elle touche :
+- la génération Bicep
+- les pipelines Azure DevOps
+- le bootstrap DevOps
+- les service connections, repositories, layouts, ou flux multi-environnements
+
+Pour cette passe :
+1. vérifier la demande contre l'architecture existante, la mémoire projet, et les contraintes réelles Azure DevOps / Bicep
+2. expliciter toute hypothèse fragile, notion fausse, ou simplification trompeuse
+3. proposer l'implémentation cohérente si la demande brute est incorrecte
+
+**Règle absolue :** ne jamais exécuter littéralement une demande sur Bicep/pipelines si elle introduit un concept invalide, un fallback qui masque une incohérence, ou une fuite de configuration entre environnements.
+
 ### 2bis. Phase Research — Explorer le codebase avant de déléguer
 
 **Pour les tâches complexes ou cross-cutting**, commencer par GitNexus puis compléter avec `@Explore`.
@@ -124,6 +139,28 @@ Si la tâche touche à la documentation, l'architecture transversale, un audit, 
 
 **Nettoyage :** Supprimer le fichier de session en fin de tâche (les faits durables vont dans `.github/memory/`).
 
+### 2quater. Plan vivant multi-PC — Suivi obligatoire en continu
+
+**Objectif :** quand une implémentation suit un plan (`plan`, `roadmap`, `lot`, backlog), maintenir un suivi exploitable sur n'importe quel PC.
+
+1. **Identifier le fichier de suivi source** :
+  - si l'utilisateur a déjà un fichier de plan/suivi (`docs/features/*.md`), le réutiliser ;
+  - sinon créer `docs/features/<slug>-implementation-tracker.md`.
+2. **Initialiser une structure de suivi minimale** :
+  - `Contexte`
+  - `Statut des lots` (table : lot, statut, owner, dernière mise à jour, reste à faire)
+  - `Journal d'implémentation` (entrées horodatées)
+  - `Prochaines étapes`
+  - `Checklist reprise sur un autre PC` (branche, commit, commandes, migrations, tests à relancer).
+3. **Mettre à jour le suivi au fil de l'eau** (pas uniquement en fin de tâche) :
+  - avant d'implémenter une étape : passer le lot/étape à `In progress` ;
+  - après chaque incrément validé : consigner fichiers touchés, décisions, commandes de validation, résultat ;
+  - en cas de blocage : consigner cause, impact, contournement envisagé, prochaine action.
+4. **Synchroniser toute délégation avec ce fichier** :
+  - passer le chemin du fichier de suivi à chaque sous-agent ;
+  - exiger un retour structuré (delta) pour mise à jour immédiate du tracker.
+5. **Ne jamais clore une implémentation planifiée** sans tracker à jour avec un statut explicite (`Done`, `In progress`, `Blocked`, `Not started`) pour chaque lot connu.
+
 ### 3. Charger les Skills applicables
 
 Avant toute génération de code, si un skill est pertinent :
@@ -144,6 +181,14 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 4. Signaler à l'utilisateur tout écart entre le plan et l'exécution réelle
 
 > Ne jamais clore une tâche planifiée sans avoir relu le plan item par item.
+
+### 4ter. Vérifier la synchronisation du tracker
+
+**Obligatoire pour toute tâche planifiée ou multi-lots** :
+1. Vérifier que le fichier de suivi reflète l'état réel des changements (lots, validations, blocages).
+2. Vérifier qu'aucun lot implémenté n'est laissé en `Not started`.
+3. Vérifier qu'un lot non terminé indique explicitement le reste à faire et la prochaine action.
+4. Vérifier que la section `Checklist reprise sur un autre PC` est exploitable sans contexte oral.
 
 ### 5. Mettre à jour la mémoire projet
 
@@ -176,6 +221,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 | Debug runtime/AppHost Aspire | **`aspire-debug`** | `.github/agents/aspire-debug.agent.md` |
 | Créer ou soumettre une Pull Request | **`pr-manager`** | `.github/agents/pr-manager.agent.md` |
 | Fusionner la branche main sur la courante | **`merge-main`** | `.github/agents/merge-main.agent.md` |
+| Montée de version .NET, Angular, NuGet, npm, TypeScript | **`upgrade-orchestrator`** + charger le skill `dotnet-upgrade` ou `angular-upgrade` | `.github/agents/upgrade-orchestrator.agent.md` |
 | Consolidation mémoire (dream) | **`dream`** | `.github/agents/dream.agent.md` |
 | Toute PR/commit → relire les conventions PR | **`pr-manager`** | `.github/agents/pr-manager.agent.md` |
 
@@ -189,6 +235,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 > 4. Le **résultat attendu** décrit de façon non ambiguë
 > 5. Le **résultat de `gitnexus_impact()`** si la tâche modifie un symbole partagé (pour que le sous-agent connaisse le blast radius)
 > 6. **L'instruction TDD** : rappeler que le skill `tdd-workflow` est obligatoire et que les tests doivent être écrits AVANT le code de production
+> 7. **Le résultat de la passe de contradiction** : ce qui, dans la demande utilisateur, est confirmé, douteux, ou invalide, surtout sur Bicep/pipelines/bootstrap/service connections
 >
 > Un prompt vague produit du code générique qui diverge des conventions du projet.
 
@@ -323,6 +370,16 @@ Un skill est **différent d'un agent** :
 - **Fichier :** `.github/skills/bicep-v2-migration/SKILL.md`
 - **Contenu :** les 7 étapes par générateur (analyse → TDD → migration → parité → pipeline → review → maj skill), l'infrastructure IR prérequise, les pièges connus, et la boucle de retour d'expérience
 
+#### `dotnet-upgrade`
+- **Quand le charger :** dès qu'une tâche porte sur une montée de version .NET (SDK, TFM, NuGet, EF Core, ASP.NET Core, Aspire)
+- **Fichier :** `.github/skills/dotnet-upgrade/SKILL.md`
+- **Contenu :** inventaire de l'état actuel, sources de release notes, procédure SDK+TFM, procédure NuGet par groupes de priorité, patterns de breaking changes courants, propositions de nouvelles features, pièges projet (CPM, Aspire, Npgsql, Refit), checklist de validation
+
+#### `angular-upgrade`
+- **Quand le charger :** dès qu'une tâche porte sur une montée de version Angular (CLI, framework, TypeScript, RxJS, Material, npm packages)
+- **Fichier :** `.github/skills/angular-upgrade/SKILL.md`
+- **Contenu :** inventaire état actuel, sources de release notes, procédure `ng update`, procédure TS, patterns de breaking changes Angular (control flow, signals, standalone, inject), gestion npm, pièges projet (Axios, Material+Tailwind, MSAL, i18n), checklist de validation
+
 ---
 
 ## Discipline de prompt — Static vs Dynamic
@@ -354,6 +411,7 @@ Son rôle est de **lire la mémoire, analyser, charger les bons outils de connai
 
 ```
 [ ] Plan vérifié item par item (step 4bis) — tout item manquant complété avant de continuer
+[ ] Tracker de plan mis à jour en continu (step 2quater) et synchronisé (step 4ter)
 [ ] TDD vérifié : tests écrits AVANT le code de production (si code modifié)
 [ ] Tests passés : dotnet test .\InfraFlowSculptor.slnx (si code C# touché)
 [ ] Build vérifié : dotnet build .\InfraFlowSculptor.slnx (si code C# touché)

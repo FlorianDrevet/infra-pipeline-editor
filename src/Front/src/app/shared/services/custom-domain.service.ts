@@ -4,6 +4,7 @@ import { MethodEnum } from '../enums/method.enum';
 import {
   CustomDomainResponse,
   AddCustomDomainRequest,
+  DnsInstructionsResponse,
 } from '../interfaces/custom-domain.interface';
 
 @Injectable({
@@ -31,6 +32,20 @@ export class CustomDomainService {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
       `/azure-resources/${resourceId}/custom-domains/${customDomainId}`
+    );
+  }
+
+  validateDns(resourceId: string, customDomainId: string): Promise<CustomDomainResponse> {
+    return this.axios.request$<CustomDomainResponse>(
+      MethodEnum.POST,
+      `/azure-resources/${resourceId}/custom-domains/${customDomainId}/validate-dns`
+    );
+  }
+
+  getDnsInstructions(resourceId: string, customDomainId: string): Promise<DnsInstructionsResponse> {
+    return this.axios.request$<DnsInstructionsResponse>(
+      MethodEnum.GET,
+      `/azure-resources/${resourceId}/custom-domains/${customDomainId}/dns-instructions`
     );
   }
 }

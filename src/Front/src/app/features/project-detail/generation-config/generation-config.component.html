@@ -1,0 +1,65 @@
+<section class="board" [attr.aria-label]="'PROJECT_DETAIL.GENERATION_CONFIG.PAGE_TITLE' | translate">
+  <div class="board__hero">
+    <app-ds-page-header
+      [title]="'PROJECT_DETAIL.GENERATION_CONFIG.PAGE_TITLE' | translate"
+      [subtitle]="'PROJECT_DETAIL.GENERATION_CONFIG.PAGE_SUBTITLE' | translate"
+      icon="settings"
+      variant="plain">
+      <div ds-page-breadcrumbs class="board__breadcrumbs">
+        <a [routerLink]="['/projects']">{{ 'PROJECTS.TITLE' | translate }}</a>
+        <mat-icon aria-hidden="true">chevron_right</mat-icon>
+        @if (project()?.id) {
+          <a [routerLink]="['/projects', project()!.id]">{{ project()!.name }}</a>
+        } @else {
+          <span>{{ 'PROJECT_DETAIL.BOARD.PROJECT_PLACEHOLDER' | translate }}</span>
+        }
+        <mat-icon aria-hidden="true">chevron_right</mat-icon>
+        <span>{{ 'PROJECT_DETAIL.GENERATION_CONFIG.BREADCRUMB_CURRENT' | translate }}</span>
+      </div>
+
+      <div ds-page-actions class="board__actions">
+        <app-ds-button variant="secondary" icon="arrow_back" (clicked)="openProjectDetail()">
+          {{ 'PROJECT_DETAIL.BOARD.OPEN_PROJECT' | translate }}
+        </app-ds-button>
+        <app-ds-button variant="primary" icon="rocket_launch" (clicked)="navigateToGenerate()">
+          {{ 'PROJECT_DETAIL.GENERATION_CONFIG.NAVIGATE_GENERATE' | translate }}
+        </app-ds-button>
+      </div>
+    </app-ds-page-header>
+
+    @if (!isLoading()) {
+      <div class="board__summary-grid">
+        <div class="summary-card summary-card--layout">
+          <mat-icon class="summary-card__icon" aria-hidden="true">account_tree</mat-icon>
+          <span class="summary-card__label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_LAYOUT' | translate }}</span>
+          <strong class="summary-card__value">{{ layoutPresetLabelKey() | translate }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <mat-icon class="summary-card__icon" aria-hidden="true">inventory_2</mat-icon>
+          <span class="summary-card__label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_REPOSITORIES' | translate }}</span>
+          <strong class="summary-card__value">{{ repositoryCount() }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <mat-icon class="summary-card__icon" aria-hidden="true">tune</mat-icon>
+          <span class="summary-card__label">{{ 'PROJECT_DETAIL.BOARD.SUMMARY_CONFIGS' | translate }}</span>
+          <strong class="summary-card__value">{{ configCount() }}</strong>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <app-ds-card>
+      <div class="board-state board-state--loading" aria-live="polite">
+        <mat-spinner diameter="32"></mat-spinner>
+        <div>
+          <strong>{{ 'PROJECT_DETAIL.BOARD.LOADING' | translate }}</strong>
+        </div>
+      </div>
+    </app-ds-card>
+  } @else if (project()?.id) {
+    <app-layout-repositories [projectId]="project()!.id" />
+  }
+</section>

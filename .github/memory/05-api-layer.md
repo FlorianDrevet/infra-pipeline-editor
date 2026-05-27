@@ -60,6 +60,11 @@ result.Match(
 - The generic `/{id:guid}/dependents` Minimal API block is now centralized in `Controllers/Common/DependentResourcesEndpointMapper.cs`.
 - When a controller exposes the standard dependent-resources flow, prefer `group.MapDependentResourcesEndpoint(routeName, resourceDisplayName)` over duplicating the `GetDependentResourcesQuery` + `ErrorOr` mapping block inline.
 
+## Container Registry Access Check [2026-05-19]
+
+- `GET /container-registries/{containerRegistryId}/check-acr-pull-access/{resourceId}` accepts optional query `acrPullIdentityId` in addition to `acrAuthMode`.
+- When `acrPullIdentityId` is provided, `CheckAcrPullAccessQueryHandler` validates that specific UAI has `AcrPull`; when omitted, the endpoint keeps the backward-compatible “any assigned UAI with AcrPull” behavior. `AdminCredentials` mode bypasses UAI diagnostics.
+
 ## Response DTO Convention (API-002) [2026-04-16]
 
 - All response DTO ID fields use `string` (not `Guid`). Mapster config maps `Id.Value.ToString()`.

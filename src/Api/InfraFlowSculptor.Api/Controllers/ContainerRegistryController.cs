@@ -8,7 +8,6 @@ using InfraFlowSculptor.Contracts.ContainerRegistries.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MediatR;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
@@ -24,7 +23,7 @@ public static class ContainerRegistryController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/container-registry")
+            var group = endpoints.MapGroup(Routes.ContainerRegistry)
                 .WithTags("Container Registries");
 
             group.MapGet("/{id:guid}",
@@ -122,17 +121,18 @@ public static class ContainerRegistryController
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // Endpoint to check whether a compute resource has AcrPull access on a Container Registry
-            var acrAccessGroup = endpoints.MapGroup("/azure-resources/{resourceId:guid}/check-acr-pull-access")
+            var acrAccessGroup = endpoints.MapGroup(Routes.AzureResourceCheckAcrPullAccess)
                 .WithTags("Container Registries");
 
             acrAccessGroup.MapGet("/{containerRegistryId:guid}",
                     async ([FromRoute] Guid resourceId, [FromRoute] Guid containerRegistryId, [FromQuery] string? acrAuthMode,
-                        IMediator mediator, IMapper mapper) =>
+                        [FromQuery] Guid? acrPullIdentityId, IMediator mediator, IMapper mapper) =>
                     {
                         var query = new CheckAcrPullAccessQuery(
                             new AzureResourceId(resourceId),
                             new AzureResourceId(containerRegistryId),
-                            acrAuthMode);
+                            acrAuthMode,
+                            acrPullIdentityId.HasValue ? new AzureResourceId(acrPullIdentityId.Value) : null);
                         var result = await mediator.Send(query);
 
                         return result.Match(

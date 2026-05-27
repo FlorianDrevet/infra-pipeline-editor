@@ -108,7 +108,6 @@ public sealed class InfraConfigMappingConfig : IRegister
         // InfraConfigRepository entity -> InfraConfigRepositoryResult
         config.NewConfig<Domain.InfrastructureConfigAggregate.Entities.InfraConfigRepository, InfraConfigRepositoryResult>()
             .Map(dest => dest.Id, src => src.Id.Value)
-            .Map(dest => dest.Alias, src => src.Alias.Value)
             .Map(dest => dest.ProviderType, src => src.ProviderType.Value.ToString())
             .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
             .Map(dest => dest.Owner, src => src.Owner)
@@ -120,7 +119,6 @@ public sealed class InfraConfigMappingConfig : IRegister
         // InfraConfigRepositoryResult -> InfraConfigRepositoryResponse
         config.NewConfig<InfraConfigRepositoryResult, InfraConfigRepositoryResponse>()
             .Map(dest => dest.Id, src => src.Id.ToString())
-            .Map(dest => dest.Alias, src => src.Alias)
             .Map(dest => dest.ProviderType, src => src.ProviderType)
             .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
             .Map(dest => dest.Owner, src => src.Owner)

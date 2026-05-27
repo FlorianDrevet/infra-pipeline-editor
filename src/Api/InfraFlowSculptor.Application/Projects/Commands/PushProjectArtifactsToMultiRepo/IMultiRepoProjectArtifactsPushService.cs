@@ -13,12 +13,10 @@ public interface IMultiRepoProjectArtifactsPushService
     /// </summary>
     /// <param name="command">The command describing which repositories should receive artifacts.</param>
     /// <param name="project">The loaded split-layout project.</param>
-    /// <param name="token">The Git personal access token used for the push.</param>
     /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
     /// <returns>The per-repository push result.</returns>
     Task<ErrorOr<PushProjectArtifactsToMultiRepoResult>> PushAsync(
         PushProjectArtifactsToMultiRepoCommand command,
         Project project,
-        string token,
         CancellationToken cancellationToken);
 }

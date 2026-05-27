@@ -11,6 +11,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 import { DsRadioGroupDirection } from './ds-radio-group.types';
 
+export type DsRadioValue = string | number | null;
+
 export interface DsRadioOption {
   value: string | number;
   label: string;
@@ -43,19 +45,19 @@ export class DsRadioGroupComponent implements ControlValueAccessor {
   public readonly disabled = input<boolean>(false);
   public readonly direction = input<DsRadioGroupDirection>('vertical');
 
-  protected readonly value = signal<string | number | null>(null);
+  protected readonly value = signal<DsRadioValue>(null);
   private readonly internalDisabled = signal(false);
 
   protected readonly disabledState = computed(() => this.disabled() || this.internalDisabled());
 
-  private onChangeFn: (v: string | number | null) => void = () => {};
+  private onChangeFn: (v: DsRadioValue) => void = () => {};
   private onTouchedFn: () => void = () => {};
 
-  public writeValue(v: string | number | null): void {
+  public writeValue(v: DsRadioValue): void {
     this.value.set(v ?? null);
   }
 
-  public registerOnChange(fn: (v: string | number | null) => void): void {
+  public registerOnChange(fn: (v: DsRadioValue) => void): void {
     this.onChangeFn = fn;
   }
 

@@ -1,0 +1,122 @@
+<div
+  class="ds-field"
+  [class.ds-field--invalid]="!!error()"
+  [class.ds-field--disabled]="disabledState()"
+  [class.ds-field--focused]="focused()"
+>
+  @if (label()) {
+    <label class="ds-field__label" [for]="inputId()">
+      {{ label() }}
+      @if (required()) {
+        <span class="ds-field__required">*</span>
+      }
+    </label>
+  }
+
+  <div class="ds-field__control ds-autocomplete__control">
+    @if (prefixIcon()) {
+      <mat-icon class="ds-field__icon ds-field__icon--prefix">{{ prefixIcon() }}</mat-icon>
+    }
+
+    <input
+      #inputRef
+      class="ds-field__input ds-autocomplete__input"
+      [class.ds-field__input--with-prefix]="!!prefixIcon()"
+      [class.ds-field__input--with-clear]="clearable() && !!value() && !disabledState()"
+      [class.ds-field__input--with-spinner]="loading()"
+      [id]="inputId()"
+      type="text"
+      [placeholder]="placeholder()"
+      [disabled]="disabledState()"
+      [required]="required()"
+      [autocomplete]="autocomplete()"
+      [value]="value()"
+      [matAutocomplete]="auto"
+      (input)="onInput($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+    />
+
+    @if (loading()) {
+      <mat-spinner
+        class="ds-autocomplete__spinner"
+        [class.ds-autocomplete__spinner--with-clear]="clearable() && !!value() && !disabledState()"
+        diameter="16" />
+    }
+
+    @if (clearable() && value() && !disabledState()) {
+      <button
+        type="button"
+        class="ds-field__clear"
+        (click)="clear()"
+        tabindex="-1"
+        aria-label="Clear"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </div>
+
+  <mat-autocomplete
+    #auto="matAutocomplete"
+    class="ds-autocomplete__panel"
+    [displayWith]="displayOptionLabel"
+    (closed)="onClosed()"
+    (optionSelected)="onOptionSelected($event)"
+  >
+    @if (loading()) {
+      <mat-option disabled class="ds-autocomplete__state-option">
+        <div class="ds-autocomplete__state ds-autocomplete__state--loading">
+          <div class="ds-autocomplete__state-icon-shell">
+            <mat-spinner diameter="18"></mat-spinner>
+          </div>
+          <div class="ds-autocomplete__state-copy">
+            <span class="ds-autocomplete__state-title">{{ loadingStateLabel() }}</span>
+          </div>
+        </div>
+      </mat-option>
+    } @else {
+      @for (opt of options(); track $index) {
+        <mat-option class="ds-autocomplete__option" [value]="opt" [disabled]="opt.disabled">
+          <div class="ds-autocomplete__option-content">
+            @if (opt.icon) {
+              <mat-icon class="ds-autocomplete__option-icon">{{ opt.icon }}</mat-icon>
+            } @else {
+              <div class="ds-autocomplete__option-bullet" aria-hidden="true"></div>
+            }
+
+            <div class="ds-autocomplete__option-text">
+              <span class="ds-autocomplete__option-label">{{ opt.label }}</span>
+              @if (opt.description) {
+                <small class="ds-autocomplete__option-description">{{ opt.description }}</small>
+              }
+            </div>
+
+            @if (opt.label === value()) {
+              <mat-icon class="ds-autocomplete__check">check</mat-icon>
+            }
+          </div>
+        </mat-option>
+      }
+
+      @if (!hasOptions()) {
+        <mat-option disabled class="ds-autocomplete__state-option">
+          <div class="ds-autocomplete__state ds-autocomplete__state--empty">
+            <div class="ds-autocomplete__state-icon-shell" aria-hidden="true">
+              <mat-icon>person_search</mat-icon>
+            </div>
+            <div class="ds-autocomplete__state-copy">
+              <span class="ds-autocomplete__state-title">{{ emptyStateLabel() }}</span>
+            </div>
+          </div>
+        </mat-option>
+      }
+    }
+  </mat-autocomplete>
+
+  @if (error()) {
+    <span class="ds-field__message ds-field__message--error">{{ error() }}</span>
+  } @else if (hint()) {
+    <span class="ds-field__message ds-field__message--hint">{{ hint() }}</span>
+  }
+</div>

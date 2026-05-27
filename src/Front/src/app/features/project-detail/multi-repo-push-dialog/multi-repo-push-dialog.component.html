@@ -1,4 +1,12 @@
 <div class="mr-dialog" [class.mr-dialog--single]="!isBothMode()">
+  <header class="mr-dialog__header" mat-dialog-title>
+    <mat-icon class="mr-dialog__title-icon" aria-hidden="true">{{ titleIcon() }}</mat-icon>
+    <div class="mr-dialog__header-text">
+      <h2 class="mr-dialog__title">{{ titleKey() | translate }}</h2>
+      <p class="mr-dialog__subtitle">{{ subtitleKey() | translate }}</p>
+    </div>
+  </header>
+
   <mat-dialog-content class="mr-dialog__content">
     @if (state() === 'error') {
       <div class="mr-banner mr-banner--error">
@@ -35,28 +43,27 @@
           class="mr-card mr-card--infra"
           [class.mr-card--ok]="infraResult()?.success === true"
           [class.mr-card--ko]="infraResult() && infraResult()!.success === false">
-          <div class="mr-card__header">
-            <div class="mr-card__icon-shell" aria-hidden="true">
-              <mat-icon>dns</mat-icon>
-            </div>
-
-            <div class="mr-card__header-copy">
-              <div class="mr-card__title-row">
+          @if (isBothMode()) {
+            <div class="mr-card__header">
+              <div class="mr-card__icon-shell" aria-hidden="true">
+                <mat-icon>dns</mat-icon>
+              </div>
+              <div class="mr-card__header-copy">
                 <h3 class="mr-card__title">{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.INFRA_CARD_TITLE' | translate }}</h3>
-                <code class="mr-card__alias">{{ data.infraAlias }}</code>
+                <code class="mr-card__repository" [matTooltip]="data.infraRepositoryLabel">{{ data.infraRepositoryLabel }}</code>
               </div>
             </div>
-          </div>
+          } @else {
+            <code class="mr-card__repository mr-card__repository--standalone" [matTooltip]="data.infraRepositoryLabel">{{ data.infraRepositoryLabel }}</code>
+          }
 
           <div class="mr-card__content">
             @if (state() === 'pushing') {
-              <div class="mr-card__overlay">
-                <mat-spinner diameter="28"></mat-spinner>
-                <span>{{ pushingKey() | translate }}</span>
+              <div class="mr-card__state mr-card__state--loading">
+                <mat-spinner diameter="32"></mat-spinner>
+                <p>{{ pushingKey() | translate }}</p>
               </div>
-            }
-
-            @if (infraResult()?.success === true) {
+            } @else if (infraResult()?.success === true) {
               <div class="mr-card__result mr-card__result--ok">
                 <p class="mr-card__result-title">
                   <mat-icon>check_circle</mat-icon>
@@ -81,7 +88,7 @@
                   <div class="mr-card__row">
                     <span>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_URL_LABEL' | translate }}</span>
                     <a class="mr-card__link" [href]="infraResult()!.branchUrl!" target="_blank" rel="noopener">
-                      <span>{{ data.infraAlias }}</span>
+                      <span>{{ data.infraRepositoryLabel }}</span>
                       <mat-icon>open_in_new</mat-icon>
                     </a>
                   </div>
@@ -104,32 +111,18 @@
               </div>
             } @else {
               <form [formGroup]="infraForm" class="mr-form">
-                <mat-form-field appearance="outline" class="mr-branch-field">
-                  <mat-label>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate }}</mat-label>
-                  <input
-                    matInput
-                    formControlName="branch"
-                    [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate"
-                    [matAutocomplete]="infraBranchAuto"
-                    (focus)="showAllInfraBranches()" />
-                  <mat-autocomplete #infraBranchAuto="matAutocomplete">
-                    @if (branchesLoading()) {
-                      <mat-option disabled>
-                        <div class="mr-branch-loading">
-                          <mat-spinner diameter="18"></mat-spinner>
-                          <span>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.LOADING_BRANCHES' | translate }}</span>
-                        </div>
-                      </mat-option>
-                    } @else {
-                      @for (branch of filteredInfraBranches(); track branch) {
-                        <mat-option [value]="branch">{{ branch }}</mat-option>
-                      }
-                      @if (filteredInfraBranches().length === 0) {
-                        <mat-option disabled>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.NO_BRANCHES' | translate }}</mat-option>
-                      }
-                    }
-                  </mat-autocomplete>
-                </mat-form-field>
+                <app-ds-autocomplete
+                  class="mr-branch-field"
+                  formControlName="branch"
+                  [label]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate"
+                  [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate"
+                  [options]="infraBranchOptions()"
+                  [loading]="branchesLoading()"
+                  [loadingStateLabel]="'CONFIG_DETAIL.PUSH_TO_GIT.LOADING_BRANCHES' | translate"
+                  [emptyStateLabel]="'CONFIG_DETAIL.PUSH_TO_GIT.NO_BRANCHES' | translate"
+                  prefixIcon="account_tree"
+                  [clearable]="true"
+                  (inputFocused)="showAllInfraBranches()" />
 
                 <app-ds-textarea
                   formControlName="commit"
@@ -150,28 +143,27 @@
           class="mr-card mr-card--code"
           [class.mr-card--ok]="codeResult()?.success === true"
           [class.mr-card--ko]="codeResult() && codeResult()!.success === false">
-          <div class="mr-card__header">
-            <div class="mr-card__icon-shell" aria-hidden="true">
-              <mat-icon>code</mat-icon>
-            </div>
-
-            <div class="mr-card__header-copy">
-              <div class="mr-card__title-row">
+          @if (isBothMode()) {
+            <div class="mr-card__header">
+              <div class="mr-card__icon-shell" aria-hidden="true">
+                <mat-icon>code</mat-icon>
+              </div>
+              <div class="mr-card__header-copy">
                 <h3 class="mr-card__title">{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CODE_CARD_TITLE' | translate }}</h3>
-                <code class="mr-card__alias">{{ data.codeAlias }}</code>
+                <code class="mr-card__repository" [matTooltip]="data.codeRepositoryLabel">{{ data.codeRepositoryLabel }}</code>
               </div>
             </div>
-          </div>
+          } @else {
+            <code class="mr-card__repository mr-card__repository--standalone" [matTooltip]="data.codeRepositoryLabel">{{ data.codeRepositoryLabel }}</code>
+          }
 
           <div class="mr-card__content">
             @if (state() === 'pushing') {
-              <div class="mr-card__overlay">
-                <mat-spinner diameter="28"></mat-spinner>
-                <span>{{ pushingKey() | translate }}</span>
+              <div class="mr-card__state mr-card__state--loading">
+                <mat-spinner diameter="32"></mat-spinner>
+                <p>{{ pushingKey() | translate }}</p>
               </div>
-            }
-
-            @if (codeResult()?.success === true) {
+            } @else if (codeResult()?.success === true) {
               <div class="mr-card__result mr-card__result--ok">
                 <p class="mr-card__result-title">
                   <mat-icon>check_circle</mat-icon>
@@ -196,7 +188,7 @@
                   <div class="mr-card__row">
                     <span>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_URL_LABEL' | translate }}</span>
                     <a class="mr-card__link" [href]="codeResult()!.branchUrl!" target="_blank" rel="noopener">
-                      <span>{{ data.codeAlias }}</span>
+                      <span>{{ data.codeRepositoryLabel }}</span>
                       <mat-icon>open_in_new</mat-icon>
                     </a>
                   </div>
@@ -219,32 +211,18 @@
               </div>
             } @else {
               <form [formGroup]="codeForm" class="mr-form">
-                <mat-form-field appearance="outline" class="mr-branch-field">
-                  <mat-label>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate }}</mat-label>
-                  <input
-                    matInput
-                    formControlName="branch"
-                    [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate"
-                    [matAutocomplete]="codeBranchAuto"
-                    (focus)="showAllCodeBranches()" />
-                  <mat-autocomplete #codeBranchAuto="matAutocomplete">
-                    @if (branchesLoading()) {
-                      <mat-option disabled>
-                        <div class="mr-branch-loading">
-                          <mat-spinner diameter="18"></mat-spinner>
-                          <span>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.LOADING_BRANCHES' | translate }}</span>
-                        </div>
-                      </mat-option>
-                    } @else {
-                      @for (branch of filteredCodeBranches(); track branch) {
-                        <mat-option [value]="branch">{{ branch }}</mat-option>
-                      }
-                      @if (filteredCodeBranches().length === 0) {
-                        <mat-option disabled>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.NO_BRANCHES' | translate }}</mat-option>
-                      }
-                    }
-                  </mat-autocomplete>
-                </mat-form-field>
+                <app-ds-autocomplete
+                  class="mr-branch-field"
+                  formControlName="branch"
+                  [label]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate"
+                  [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate"
+                  [options]="codeBranchOptions()"
+                  [loading]="branchesLoading()"
+                  [loadingStateLabel]="'CONFIG_DETAIL.PUSH_TO_GIT.LOADING_BRANCHES' | translate"
+                  [emptyStateLabel]="'CONFIG_DETAIL.PUSH_TO_GIT.NO_BRANCHES' | translate"
+                  prefixIcon="account_tree"
+                  [clearable]="true"
+                  (inputFocused)="showAllCodeBranches()" />
 
                 <app-ds-textarea
                   formControlName="commit"

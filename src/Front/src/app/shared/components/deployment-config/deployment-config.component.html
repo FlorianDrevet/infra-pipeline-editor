@@ -55,14 +55,45 @@
         (ngModelChange)="containerRegistryChange.emit($event)"
         [disabled]="!canWrite() || disabled()" />
       @if (showDockerImageName()) {
-        <app-ds-text-field
-          class="form-field"
-          [label]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate"
-          [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate"
-          [ngModel]="dockerImageName() ?? ''"
-          (ngModelChange)="dockerImageNameChange.emit($event)"
-          [disabled]="!canWrite() || disabled()" />
-      }
+        <div class="docker-image-field-group">
+          <div class="docker-image-field">
+            <app-ds-text-field
+              class="form-field"
+              [label]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate"
+              [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate"
+              [ngModel]="dockerImageName() ?? ''"
+              (ngModelChange)="onDockerImageNameChanged($event)"
+              [disabled]="!canWrite() || disabled()" />
+            @if (hasDockerImageName) {
+              <button
+                type="button"
+                mat-icon-button
+                class="docker-image-field__validate-btn"
+                [class.docker-image-field__validate-btn--validated]="dockerImageValidated()"
+                [attr.aria-label]="(dockerImageValidated() ? 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.UNVALIDATE' : 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.VALIDATE') | translate"
+                [matTooltip]="(dockerImageValidated() ? 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.UNVALIDATE' : 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.VALIDATE') | translate"
+                [disabled]="!canWrite() || disabled()"
+                (click)="toggleDockerImageValidated()">
+                <mat-icon>{{ dockerImageValidated() ? 'check_circle' : 'help_outline' }}</mat-icon>
+              </button>
+            }
+            <button
+              type="button"
+              mat-icon-button
+              class="docker-image-field__info-btn"
+              [attr.aria-label]="'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.TITLE' | translate"
+              (click)="openDockerImageInstructions()">
+              <mat-icon>info_outline</mat-icon>
+            </button>
+          </div>
+          @if (hasDockerImageName && !dockerImageValidated()) {
+            <div class="docker-image-validation-hint">
+              <mat-icon class="docker-image-validation-hint__icon">warning_amber</mat-icon>
+              <span>{{ 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.HINT_NOT_VALIDATED' | translate }}</span>
+            </div>
+          }
+        </div>
+        }
     </div>
 
     @if (hasContainerRegistrySelected) {
@@ -71,7 +102,7 @@
           <span class="acr-auth-mode__label">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE' | translate }}</span>
           <span class="acr-auth-mode__hint">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_HINT' | translate }}</span>
         </div>
-        <div class="acr-auth-mode__toggle" role="group" [attr.aria-label]="'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE' | translate">
+        <fieldset class="acr-auth-mode__toggle" [attr.aria-label]="'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE' | translate">
           <button
             type="button"
             class="acr-auth-mode__option"
@@ -89,11 +120,11 @@
             (click)="acrAuthModeChange.emit('AdminCredentials')">
             <span class="acr-auth-mode__option-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_ADMIN_CREDENTIALS' | translate }}</span>
           </button>
-        </div>
+        </fieldset>
       </div>
     }
 
-    <!-- ACR Pull access check banner (UAI flow) -->
+    <!-- ACR Admin Credentials info banner -->
     @if (hasContainerRegistrySelected && isAdminCredentialsAcrMode) {
       <div class="acr-inline-status acr-inline-status--info">
         <mat-icon>vpn_key</mat-icon>
@@ -101,119 +132,116 @@
       </div>
     }
 
-    @if (hasContainerRegistrySelected && isManagedIdentityAcrMode) {
-      @switch (acrUaiState()) {
-        @case ('checking') {
-          <div class="acr-inline-status acr-inline-status--checking">
-            <mat-spinner diameter="16"></mat-spinner>
-            <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
-          </div>
-        }
-        @case ('ok') {
-          <div class="acr-inline-status acr-inline-status--ok">
-            <mat-icon>check_circle</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
-          </div>
-        }
-        @case ('uai-missing-role') {
-          <div class="acr-identity-card acr-identity-card--warn">
-            <div class="acr-identity-card__header">
-              <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
-              <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
+    <!-- ACR Managed Identity flow: UAI selection block + status cards -->
+    @if (hasContainerRegistrySelected && isManagedIdentityAcrMode && showAcrPullIdentitySelector()) {
+      <section class="acr-access-section" aria-label="ACR pull identity section">
+        <div class="acr-access-section__header">
+          <div class="acr-access-section__title-group">
+            <span class="acr-access-section__eyebrow">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_MANAGED_IDENTITY' | translate }}</span>
+            <div class="acr-access-section__title-row">
+              <mat-icon class="acr-access-section__title-icon">shield</mat-icon>
+              <span class="acr-access-section__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
             </div>
-            <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}</p>
+          </div>
+        </div>
+        <div class="acr-access-section__body">
+          <!-- Common UAI selection block (visible in all states) -->
+          <div class="acr-identity-card acr-identity-card--selector">
             <div class="acr-identity-card__identity-section">
               <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
               <div class="acr-identity-card__identity-row">
-                <app-compact-select
+                <app-ds-select
                   [options]="uaiOptions()"
-                  [value]="acrSelectedUaiId()"
+                  [ngModel]="acrSelectedUaiId()"
+                  (ngModelChange)="acrSelectedUaiIdChange.emit($event)"
                   [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
-                  [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
-                  (valueChange)="acrSelectedUaiIdChange.emit($event)">
-                </app-compact-select>
-                <button class="acr-identity-card__create-link" (click)="createUai.emit()">
+                  [clearable]="true">
+                </app-ds-select>
+                <button class="acr-identity-card__create-link" (click)="createUai.emit()" type="button">
                   <mat-icon>add_circle_outline</mat-icon>
                   {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
                 </button>
               </div>
             </div>
-            <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()">
-              @if (acrRoleAssigning()) {
-                <mat-spinner diameter="14"></mat-spinner>
-              } @else {
-                <mat-icon>add_circle_outline</mat-icon>
-              }
-              {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
-            </button>
-            <div class="acr-identity-card__why-section">
-              <button class="acr-identity-card__why-toggle" (click)="showWhyUai = !showWhyUai" type="button">
-                <mat-icon class="acr-identity-card__why-arrow" [class.acr-identity-card__why-arrow--open]="showWhyUai">chevron_right</mat-icon>
-                <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
-              </button>
-              @if (showWhyUai) {
-                <div class="acr-identity-card__why-content">
-                  <p>{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TEXT' | translate }}</p>
-                  <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
-                    {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
-                    <mat-icon>open_in_new</mat-icon>
-                  </a>
+          </div>
+
+          <div class="acr-access-section__status">
+            <!-- Status cards (based on state) -->
+            @switch (acrUaiState()) {
+              @case ('checking') {
+                <div class="acr-inline-status acr-inline-status--checking">
+                  <mat-spinner diameter="16"></mat-spinner>
+                  <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
                 </div>
               }
-            </div>
-          </div>
-        }
-        @case ('no-uai') {
-          <div class="acr-identity-card acr-identity-card--warn">
-            <div class="acr-identity-card__header">
-              <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
-              <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
-            </div>
-            <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI_MSG' | translate }}</p>
-            <div class="acr-identity-card__identity-section">
-              <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
-              <div class="acr-identity-card__identity-row">
-                <app-compact-select
-                  [options]="uaiOptions()"
-                  [value]="acrSelectedUaiId()"
-                  [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
-                  [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
-                  (valueChange)="acrSelectedUaiIdChange.emit($event)">
-                </app-compact-select>
-                <button class="acr-identity-card__create-link" (click)="createUai.emit()">
-                  <mat-icon>add_circle_outline</mat-icon>
-                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                </button>
-              </div>
-            </div>
-            @if (acrSelectedUaiId()) {
-              <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()">
-                @if (acrRoleAssigning()) {
-                  <mat-spinner diameter="14"></mat-spinner>
-                } @else {
-                  <mat-icon>add_circle_outline</mat-icon>
-                }
-                {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
-              </button>
+              @case ('ok') {
+                <div class="acr-inline-status acr-inline-status--ok">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
+                </div>
+              }
+              @case ('uai-missing-role') {
+                <div class="acr-identity-card acr-identity-card--warn">
+                  <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}</p>
+                  <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()" type="button">
+                    @if (acrRoleAssigning()) {
+                      <mat-spinner diameter="14"></mat-spinner>
+                    } @else {
+                      <mat-icon>add_circle_outline</mat-icon>
+                    }
+                    {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
+                  </button>
+                  <div class="acr-identity-card__why-section">
+                    <button class="acr-identity-card__why-toggle" (click)="showWhyUai = !showWhyUai" type="button">
+                      <mat-icon class="acr-identity-card__why-arrow" [class.acr-identity-card__why-arrow--open]="showWhyUai">chevron_right</mat-icon>
+                      <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
+                    </button>
+                    @if (showWhyUai) {
+                      <div class="acr-identity-card__why-content">
+                        <p>{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TEXT' | translate }}</p>
+                        <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
+                          {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
+                          <mat-icon>open_in_new</mat-icon>
+                        </a>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              @case ('no-uai') {
+                <div class="acr-identity-card acr-identity-card--warn">
+                  <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI_MSG' | translate }}</p>
+                  @if (acrSelectedUaiId()) {
+                    <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()" type="button">
+                      @if (acrRoleAssigning()) {
+                        <mat-spinner diameter="14"></mat-spinner>
+                      } @else {
+                        <mat-icon>add_circle_outline</mat-icon>
+                      }
+                      {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
+                    </button>
+                  }
+                  <div class="acr-identity-card__why-section">
+                    <button class="acr-identity-card__why-toggle" (click)="showWhyUai = !showWhyUai" type="button">
+                      <mat-icon class="acr-identity-card__why-arrow" [class.acr-identity-card__why-arrow--open]="showWhyUai">chevron_right</mat-icon>
+                      <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
+                    </button>
+                    @if (showWhyUai) {
+                      <div class="acr-identity-card__why-content">
+                        <p>{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TEXT' | translate }}</p>
+                        <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
+                          {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
+                          <mat-icon>open_in_new</mat-icon>
+                        </a>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
             }
-            <div class="acr-identity-card__why-section">
-              <button class="acr-identity-card__why-toggle" (click)="showWhyUai = !showWhyUai" type="button">
-                <mat-icon class="acr-identity-card__why-arrow" [class.acr-identity-card__why-arrow--open]="showWhyUai">chevron_right</mat-icon>
-                <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
-              </button>
-              @if (showWhyUai) {
-                <div class="acr-identity-card__why-content">
-                  <p>{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TEXT' | translate }}</p>
-                  <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
-                    {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
-                    <mat-icon>open_in_new</mat-icon>
-                  </a>
-                </div>
-              }
-            </div>
           </div>
-        }
-      }
+        </div>
+      </section>
     }
   }
 </div>

@@ -1,5 +1,5 @@
 import { Component, DestroyRef, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -50,17 +50,25 @@ import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { ServiceBusNamespaceService } from '../../shared/services/service-bus-namespace.service';
 import { ContainerRegistryService } from '../../shared/services/container-registry.service';
 import { ProjectService } from '../../shared/services/project.service';
+import { CustomDomainDiagnosticsService } from '../../shared/services/custom-domain-diagnostics.service';
 import { CascadeDeleteDialogComponent, CascadeDeleteDialogData } from '../../shared/components/cascade-delete-dialog/cascade-delete-dialog.component';
 import { DependentResourceResponse } from '../../shared/interfaces/dependent-resource.interface';
 import { ResourceDiagnosticResponse } from '../../shared/interfaces/bicep-generator.interface';
+import { PendingCustomDomainIssue } from '../../shared/interfaces/pending-custom-domain-issue.interface';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { PageContextService } from '../../shared/services/page-context.service';
 import { SidebarContextService } from '../../core/layouts/sidebar/sidebar-context.service';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
-import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS, PARENT_CHILD_RESOURCE_TYPES, CHILD_RESOURCE_TYPES } from '../../shared/resource-metadata/resource-type.metadata';
+import {
+  CHILD_RESOURCE_TYPES,
+  PARENT_CHILD_RESOURCE_TYPES,
+  RESOURCE_TYPES_WITHOUT_ENVIRONMENT_SETTINGS,
+  RESOURCE_TYPE_ABBREVIATIONS,
+  RESOURCE_TYPE_ICONS,
+  RESOURCE_TYPE_OPTIONS,
+} from '../../shared/resource-metadata/resource-type.metadata';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { StorageAccountSubResourcesResponse } from '../../shared/interfaces/storage-account.interface';
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
 import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
@@ -93,6 +101,7 @@ import { ConfigDetailTagsSectionComponent } from './sections/tags/config-detail-
 import { createConfigDetailTagsSectionController } from './sections/tags/config-detail-tags-section.controller';
 import { ConfigDetailVariableGroupsSectionComponent } from './sections/variable-groups/config-detail-variable-groups-section.component';
 import { createConfigDetailVariableGroupsSectionController } from './sections/variable-groups/config-detail-variable-groups-section.controller';
+import { CONFIG_DETAIL_ROUTE_TABS, getConfigDetailTabIndex, getConfigDetailTabQuery } from '../../shared/enums/detail-route-tabs';
 
 type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | undefined };
 
@@ -109,7 +118,6 @@ type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | un
     MatDialogModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
     ConfigDetailGenerationSectionComponent,
@@ -126,6 +134,9 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly routeQueryParamMap = toSignal(this.route.queryParamMap, {
+    initialValue: this.route.snapshot.queryParamMap,
+  });
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly keyVaultService = inject(KeyVaultService);
@@ -146,6 +157,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
   private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
   private readonly containerRegistryService = inject(ContainerRegistryService);
   private readonly projectService = inject(ProjectService);
+  private readonly customDomainDiagnosticsService = inject(CustomDomainDiagnosticsService);
   private readonly authService = inject(AuthenticationService);
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
@@ -237,16 +249,13 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     return [...envs].sort((a, b) => a.order - b.order);
   });
 
-  /** Resource types that have no per-environment settings. */
-  private readonly ENV_SETTINGS_EXCLUDED_TYPES = new Set(['UserAssignedIdentity']);
-
   /**
    * Returns the list of environment names that are defined in the project
    * but not yet configured for the given resource. Returns empty array if
    * the resource type has no environment settings or if all environments are configured.
    */
   protected getMissingEnvironments(resource: AzureResourceResponse): string[] {
-    return getMissingEnvironmentNames(resource, this.projectSortedEnvironments(), this.ENV_SETTINGS_EXCLUDED_TYPES);
+    return getMissingEnvironmentNames(resource, this.projectSortedEnvironments(), RESOURCE_TYPES_WITHOUT_ENVIRONMENT_SETTINGS);
   }
 
   /**
@@ -318,6 +327,29 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     const id = this.previewEnvId();
     if (!id) return null;
     return this.effectiveEnvironments().find((e) => e.id === id) ?? null;
+  });
+  private readonly currentTabQuery = computed(() => this.routeQueryParamMap().get('tab'));
+  private readonly normalizeUnavailableGitTabEffect = effect(() => {
+    const project = this.project();
+
+    if (!project || this.currentTabQuery() !== CONFIG_DETAIL_ROUTE_TABS.git || this.isProjectMultiRepo()) {
+      return;
+    }
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    }).catch(() => undefined);
+  });
+  protected readonly selectedTabIndex = computed(() => {
+    const index = getConfigDetailTabIndex(this.currentTabQuery());
+    if (index === 5 && !this.isProjectMultiRepo()) {
+      return 0;
+    }
+
+    return index;
   });
   protected readonly resourcesSectionViewModel = computed<ConfigDetailResourcesSectionViewModel | null>(() => {
     const config = this.config();
@@ -477,6 +509,12 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
             .getProject(config.projectId)
             .then((project) => {
               this.project.set(project);
+              this.sidebarContextService.setConfigContext(
+                config.id,
+                config.name,
+                config.projectId,
+                project.layoutPreset === 'MultiRepo'
+              );
               // Pre-select the first effective environment for the naming preview
               const effectiveEnvs = project?.environmentDefinitions ?? [];
               const firstEnv = [...effectiveEnvs].sort((a, b) => a.order - b.order)[0];
@@ -1299,8 +1337,13 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     const currentDiagnostics = this.diagnostics();
     const allResources = await this.getAllResourceGroupResources();
     const missingEnvResources = this.collectMissingEnvResources(allResources);
+    const pendingCustomDomains = await this.customDomainDiagnosticsService.collectPendingIssues(
+      Object.values(allResources).flatMap((resources) => resources ?? []),
+    );
 
-    if (currentDiagnostics.length === 0 && missingEnvResources.length === 0) {
+    if (currentDiagnostics.length === 0
+      && missingEnvResources.length === 0
+      && pendingCustomDomains.length === 0) {
       return true;
     }
 
@@ -1309,6 +1352,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
       currentConfig.name,
       currentDiagnostics,
       missingEnvResources,
+      pendingCustomDomains,
     );
     const dialogRef = this.dialog.open(GenerationDiagnosticsDialogComponent, {
       data: dialogData,
@@ -1378,6 +1422,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     configName: string,
     diagnostics: ResourceDiagnosticResponse[],
     missingEnvResources: MissingEnvResource[],
+    pendingCustomDomains: PendingCustomDomainIssue[],
   ): GenerationDiagnosticsDialogData {
     return {
       configDiagnostics: diagnostics.length > 0
@@ -1392,6 +1437,13 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
           configId,
           configName,
           resources: missingEnvResources,
+        }]
+        : undefined,
+      pendingCustomDomainConfigs: pendingCustomDomains.length > 0
+        ? [{
+          configId,
+          configName,
+          domains: pendingCustomDomains,
         }]
         : undefined,
     };
@@ -1416,6 +1468,15 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
   // ─── Cross-Config References ───
 
   protected async onTabChange(index: number): Promise<void> {
+    const tab = getConfigDetailTabQuery(index);
+    if (tab !== this.currentTabQuery()) {
+      await this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { tab },
+        queryParamsHandling: 'merge',
+      });
+    }
+
     // Tab 3 (0-indexed) is cross-config references — lazy load on first visit
     if (index === 3 && !this.crossConfigLoaded()) {
       await this.loadCrossConfigReferences();

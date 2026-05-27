@@ -1,5 +1,4 @@
 # Domain Model
-
 ## Aggregates
 
 | Aggregate | Root | Key Entities | Notes |
@@ -29,7 +28,7 @@
 | `NetworkSecurityGroup` | extends `AzureResource` | `NsgRule` | TPT; abbreviation `nsg`; Rules have priority/direction/access/protocol/CIDR |
 | `PrivateDnsZone` | extends `AzureResource` | `VirtualNetworkLink` | TPT; abbreviation `pdnsz`; VNet links with auto-registration flag |
 | `FrontDoor` | extends `AzureResource` | `FrontDoorOrigin`, `FrontDoorEnvironmentSettings` | TPT; abbreviation `afd`; WAF policy flag; Origins with target resource, private link, weight/priority; per-env SKU (Standard/Premium) |
-| `PersonalAccessToken` | `PersonalAccessToken` | `TokenHash` (VO), `PersonalAccessTokenId` (VO) | PAT for MCP auth. `ifs_` prefix + SHA-256 hash stored, plaintext returned once. `UserId` FK. `Revoke()`, `RecordUsage()`, `IsValid()` methods. |
+| `PersonalAccessToken` | `PersonalAccessToken` | `TokenHash` (VO), `PersonalAccessTokenId` (VO), `PatScope` (VO) | PAT for MCP auth. `ifs_` prefix + SHA-256 hash stored, plaintext returned once. `UserId` FK. Owns `PatScope` values (`Read` default, `Write`, `Generate`). Methods: `Revoke()`, `RecordUsage()`, `IsValid()`, `HasScope()`. |
 | `User` | `User` | — | Azure AD user info |
 
 ## Shared Base Entities (Common/BaseModels/Entites)
@@ -54,12 +53,18 @@ These reusable entity types are owned by multiple aggregates:
 
 `ContainerApp` owns `DockerImageName` at the resource level (not per-env). The `containerImage` property was removed from `ContainerAppEnvironmentSettings`. Bicep generator reads `resource.Properties["dockerImageName"]`.
 
+## Compute Docker Image Validation [2026-05-17]
+
+- `ContainerApp`, `WebApp`, and `FunctionApp` now persist `DockerImageValidated` alongside `DockerImageName`.
+- The flag defaults to `false` and is the canonical cross-layer signal for “image name entered” versus “image confirmed”, reused by frontend validation UX, diagnostics, and generation.
 ## Application Pipeline Properties [2026-04-04]
 
 3 compute aggregates now have CI/CD pipeline config properties:
 - **ContainerApp**: `DockerfilePath` (string?), `ApplicationName` (string?)
 - **WebApp/FunctionApp**: `DockerfilePath`, `SourceCodePath`, `BuildCommand`, `ApplicationName` (all string?)
 - `AppPipelineStepOptions` now lives under `Domain/Common/OwnedEntities/` and is shared by `WebApp`, `FunctionApp`, and `ContainerApp`. Update it through the single `AppPipelineStepOptionsData` payload instead of reintroducing long flat mutator signatures [2026-05-15].
+- `ApplicationStack` is the pipeline-app stack selector and is intentionally distinct from Azure hosting runtime stacks (`WebAppRuntimeStack` / `FunctionAppRuntimeStack`). It lives on `AppPipelineStepOptions` with an optional typed `AppPipelineStackProfile` hierarchy (`DotNet`, `NodeJs`, `Angular`, `Java`, `Python`, `StaticSite`, `Custom`) to drive future stack-aware pipeline options [2026-05-21].
+- `AppPipelineStackProfile` classes are plain owned profile classes, not `ValueObject` derivatives; this avoids treating nested stack payloads as generic structural value objects while keeping one typed profile per application stack [2026-05-21].
 - `ApplicationName` is a user-friendly name displayed in Azure DevOps pipeline runs (fallback: resource name)
 - `InfrastructureConfig` has `AppPipelineMode` enum (`Isolated`/`Combined`) — controls whether app pipelines are generated per-resource or as a single combined pipeline
 - `Project` has `AgentPoolName` (string?) — when set, pipeline YAML uses `pool: name: '<value>'` (self-hosted); when null, `pool: vmImage: ubuntu-latest` (Microsoft-hosted). Endpoint: `PUT /projects/{id}/agent-pool`
@@ -79,16 +84,18 @@ These reusable entity types are owned by multiple aggregates:
 ## Custom Domains & Secure Parameter Mappings [2026-04-23]
 
 - `AzureResource` now owns `_customDomains` and `_secureParameterMappings` backing collections on the base class.
-- `CustomDomain` stores `EnvironmentName`, normalized `DomainName`, and `BindingType` (`SniEnabled` or `Disabled`). Duplicate `(EnvironmentName, DomainName)` pairs are rejected.
+- `CustomDomain` stores `EnvironmentName`, normalized `DomainName`, `CertificateMode` (`ManagedCertificate`, `KeyVaultCertificate`, `ManualCertificate`, or `Disabled`), optional `KeyVaultUrl` / `ManagedIdentityResourceId` / `CertificateName`, and `DnsValidationStatus` (`Pending` or `Validated`). Duplicate `(EnvironmentName, DomainName)` pairs are rejected.
+- `DnsValidationStatus` is an `EnumValueObject<DnsValidationStatus>` (sealed) with values `Pending` and `Validated`. New domains start as `Pending`. Methods: `ValidateDns()` → sets `Validated`, `ResetDnsValidation()` → resets to `Pending`.
 - Custom domains are supported for compute resources only (ContainerApp, WebApp, FunctionApp) and are blocked on `IsExisting` resources.
+- `ManagedCertificate` is the default replacement for the legacy `BindingType` flow; downstream Bicep emission maps `CertificateMode` back to the resource-specific binding representation expected by Container App versus Web/Function App.
+- Bicep generators only emit custom domain bindings for domains where `DnsValidationStatus == Validated`; `Pending` domains are excluded from generated artifacts.
 - `SecureParameterMapping` stores `SecureParameterName`, optional `VariableGroupId`, and `PipelineVariableName` so a secure Bicep param can be injected from an Azure DevOps variable group.
 - `AzureResource.SetSecureParameterMapping(...)` acts as upsert/clear: `null` group clears an existing mapping, inconsistent half-filled mappings are rejected.
 
 ## Domain Events [2026-05-13]
 
 - `AggregateRoot<TId>` now implements `IHasDomainEvents` and owns an in-process `IReadOnlyCollection<IDomainEvent>` exposed through `DomainEvents`, plus `AddDomainEvent(...)` / `ClearDomainEvents()` helpers.
-- `Project.Create(...)` is the first event producer on the current branch and raises `ProjectCreatedDomainEvent`.
-- This seam is intentionally narrow: in-process only, no outbox, no integration-event rollout, and no requirement that every aggregate emits events yet.
+- `Project.Create(...)` is the first event producer on the current branch and raises `ProjectCreatedDomainEvent`; keep this seam intentionally narrow (in-process only, no outbox, no integration-event rollout, and no requirement that every aggregate emits events yet).
 
 ## Domain Invariants
 
@@ -105,17 +112,13 @@ These reusable entity types are owned by multiple aggregates:
 
 ## Domain Code Quality Rules [2026-03-30]
 
-- All domain classes must have XML `<summary>` docs.
-- Concrete aggregates inheriting from `AzureResource` must be declared `sealed`.
-- All `EnumValueObject<T>`-derived classes must be declared `sealed` [2026-04-16].
+- Domain classes must keep XML `<summary>` docs, concrete aggregates inheriting from `AzureResource` must be `sealed`, and all `EnumValueObject<T>`-derived classes stay `sealed` [2026-04-16].
 - Value object properties must use `private set`.
 - `tests/InfraFlowSculptor.Domain.Tests/Common/Models/ValueObjectEqualityComponentsCoverageTests.cs` is the DOM-012 guardrail: every covered concrete `ValueObject` must change structural equality when one meaningful public instance property changes. Keep computed/read-only projections out of that guard by leaving them without a writable path or compiler-generated backing field [2026-05-13].
-- `Name` rejects `null`, empty, and whitespace strings, and `EntraId` rejects `Guid.Empty`; keep these guards local to the owning value objects and do not generalize them to every `SingleValueObject<string>` / `SingleValueObject<Guid>` because some setup flows still rely on `Guid.Empty` sentinels such as `SubscriptionId` [2026-05-13].
-- `SingleValueObject<T>.ToString()` now returns the wrapped value string (or `string.Empty` for `null`) instead of the CLR type name [2026-05-12].
+- `Name` rejects `null`, empty, and whitespace strings, `EntraId` rejects `Guid.Empty`, and `SingleValueObject<T>.ToString()` returns the wrapped value string (or `string.Empty` for `null`) instead of the CLR type name [2026-05-12/13].
 - Regex-backed domain validation must declare an explicit timeout; `VirtualNetworkAggregate.Entities.Subnet.ServiceEndpointPattern` (100 ms) is the current reference fix for regex guards in the domain layer [2026-05-15].
-- Error strings must be in English.
+- Error strings must stay in English.
 - `Location` is the canonical source for Azure wire-format region keys: use `Location.DefaultAzureRegionKey` for the default region and `Location.ToAzureRegionKey(...)` instead of hardcoding values like `westeurope` or `francecentral` [2026-04-29].
-
 ## IsExisting Resources [2026-04-23]
 
 All 18 concrete `AzureResource` aggregates support `IsExisting` (bool, `protected set`, default `false`):
@@ -133,18 +136,14 @@ Two-level abbreviation override system matching NamingTemplate precedence:
 - **Resolution precedence** in Bicep/Pipeline generation: Config override → Project override → `ResourceAbbreviationCatalog` default.
 - Validation: regex `^[a-z0-9]+$`, max 10 chars.
 - `NamingContextReadModel` includes `ResourceAbbreviations` dictionary (already merged at read time). All 4 generator handlers + `InfrastructureConfigReadRepository.BuildNamingContext` use `MergeAbbreviations()` helper.
-- Collection initializers: prefer `= []` over `= new()`.
-- `EnumValueObject` types: use primary constructor pattern.
-
 ## Layout-Driven Repository Topology [2026-04-23]
 
 - `Project.LayoutPreset` is now the top-level switch: `AllInOne`, `SplitInfraCode`, or `MultiRepo`. Switching preset clears `Project.Repositories` so the repository slots can be reconfigured safely.
 - `ProjectRepository.ContentKinds` only supports `Infrastructure` and `ApplicationCode`. `AllInOne` requires exactly one repo carrying both flags; `SplitInfraCode` requires exactly two repos, one infra-only and one app-only; `MultiRepo` forbids project-level repositories entirely.
 - `InfrastructureConfig` now owns nullable `LayoutMode` (`AllInOne` or `SplitInfraCode`) plus a `Repositories` collection of `InfraConfigRepository` entities used only when the parent project layout is `MultiRepo`.
 - `InfrastructureConfig.SetLayoutMode(...)` clears config-level repositories whenever the mode changes, mirroring the project-level reset behavior.
-- `Project.CanGenerateAllFromProjectLevel(...)` now returns `false` for `MultiRepo`; project-level generate-all remains reserved for layouts where the project itself owns the effective repositories.
+- Repository aliases were fully removed from the active project/config repository domain model on 2026-05-19. Repository identity is now the typed repository id (`ProjectRepositoryId` / `InfraConfigRepositoryId`), while routing stays role-based through `RepositoryContentKinds`. Do not reintroduce alias-based lookup, duplicate-alias checks, or alias route payloads; cross-config reference aliases remain a separate Bicep concept.
 - Legacy `GitRepositoryConfiguration`, `RepositoryMode`, `RepositoryBinding`, and `CommonsStrategy` were removed during the V3/layout-driven cleanup. Only persisted data repair remains relevant (see `06-persistence.md`).
-
 ## Error Definitions
 
-Errors live in `src/Api/InfraFlowSculptor.Domain/Common/Errors/Errors.*.cs` as partial static classes. When adding a new aggregate, add `Errors.AggregateName.cs`. Convention: no inline `Error.*()` calls in handlers — always use `Errors.AggregateName.MethodName()`. New in V1: `Errors.ProjectRepository.cs` (`InvalidAlias`, `DuplicateAlias`, `NotFound(id|alias)`, `NoContentKind`, `UnsupportedCommonsStrategy`, `RepositoryInUse`); extensions `Errors.Project.InvalidLayoutPreset`, `Errors.Project.InvalidCommonsStrategy`.
+Errors live in `src/Api/InfraFlowSculptor.Domain/Common/Errors/Errors.*.cs` as partial static classes. When adding a new aggregate, add `Errors.AggregateName.cs`. Convention: no inline `Error.*()` calls in handlers — always use `Errors.AggregateName.MethodName()`. Current repository errors are id/role oriented: `ProjectRepository.NotFound(id)`, `RepositoryInUse(id)`, `PersonalAccessTokenRequired()`, and `DefaultBranchNotFound(branch)`; Git routing exposes id/role errors such as `RepositorySlotNotConfigured(id)` and `RepositoryRoleMismatch(id, contentKind)`. Alias-specific repository errors are obsolete.

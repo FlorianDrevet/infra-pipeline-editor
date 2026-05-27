@@ -1,126 +1,138 @@
-<h2 mat-dialog-title>
-  {{ (isEditMode ? 'PROJECT_DETAIL.ENVIRONMENTS.FORM.DIALOG_TITLE_EDIT' : 'PROJECT_DETAIL.ENVIRONMENTS.FORM.DIALOG_TITLE_ADD') | translate }}
-</h2>
+<div class="dialog-shell">
+  <h2 mat-dialog-title class="dialog-title">
+    {{ (isEditMode ? 'PROJECT_DETAIL.ENVIRONMENTS.FORM.DIALOG_TITLE_EDIT' : 'PROJECT_DETAIL.ENVIRONMENTS.FORM.DIALOG_TITLE_ADD') | translate }}
+  </h2>
 
-<mat-dialog-content>
-  <form [formGroup]="form" class="env-form" (ngSubmit)="onSubmit()">
-    <app-ds-text-field
-      class="full-width"
-      formControlName="name"
-      [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.NAME' | translate"
-      [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.NAME_PLACEHOLDER' | translate" />
-
-    <app-ds-select
-      class="full-width"
-      formControlName="location"
-      [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.LOCATION' | translate"
-      [options]="locationDsOptions" />
-
-    <div class="form-row">
+  <mat-dialog-content class="dialog-scroll-content">
+    <form [formGroup]="form" class="env-form" (ngSubmit)="onSubmit()">
       <app-ds-text-field
-        class="half-width"
-        formControlName="subscriptionId"
-        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SUBSCRIPTION_ID' | translate" />
+        class="full-width"
+        formControlName="name"
+        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.NAME' | translate"
+        [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.NAME_PLACEHOLDER' | translate" />
 
-      <app-ds-text-field
-        class="half-width"
-        formControlName="azureResourceManagerConnection"
-        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.AZURE_RM_CONNECTION' | translate"
-        [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.AZURE_RM_CONNECTION_PLACEHOLDER' | translate" />
-    </div>
+      <app-ds-select
+        class="full-width"
+        formControlName="location"
+        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.LOCATION' | translate"
+        [options]="locationDsOptions" />
 
-    <div class="form-row">
-      <app-ds-text-field
-        class="half-width"
-        formControlName="shortName"
-        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SHORT_NAME' | translate"
-        [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SHORT_NAME_PLACEHOLDER' | translate" />
-    </div>
-
-    <div class="form-row">
-      <app-ds-text-field
-        class="half-width"
-        formControlName="prefix"
-        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.PREFIX' | translate"
-        [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.PREFIX_PLACEHOLDER' | translate" />
-
-      <app-ds-text-field
-        class="half-width"
-        formControlName="suffix"
-        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SUFFIX' | translate"
-        [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SUFFIX_PLACEHOLDER' | translate" />
-    </div>
-
-    <div class="order-section">
-      <span class="order-section__label">{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.ORDER' | translate }}</span>
-
-      @if (timelineItems().length > 0) {
-        <div class="order-timeline" role="list" [attr.aria-label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.TIMELINE_ARIA' | translate">
-          @for (item of timelineItems(); track $index; let i = $index; let last = $last) {
-            <div class="timeline-step" [class.timeline-step--current]="item.isCurrent" role="listitem">
-              <div class="timeline-step__dot"></div>
-              <span class="timeline-step__label">{{ item.name }}</span>
-            </div>
-            @if (!last) {
-              <div class="timeline-connector" [class.timeline-connector--before-current]="timelineItems()[i + 1].isCurrent" [class.timeline-connector--after-current]="item.isCurrent"></div>
-            }
-          }
-        </div>
-
-        <div class="order-arrows">
-          <button type="button" class="order-arrow-btn" [disabled]="currentOrder() <= minOrder" (click)="moveOrder(-1)">
-            <mat-icon>arrow_back</mat-icon>
-          </button>
-          <button type="button" class="order-arrow-btn" [disabled]="currentOrder() >= maxOrder" (click)="moveOrder(1)">
-            <mat-icon>arrow_forward</mat-icon>
-          </button>
-        </div>
-      }
-    </div>
-
-    <!-- Tags -->
-    <div class="tags-section">
-      <p class="tags-section__label">{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAGS' | translate }}</p>
-      <div class="tags-add-row">
+      <div class="form-row">
         <app-ds-text-field
-          class="tag-name-field"
-          [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAG_NAME' | translate"
-          [formControl]="tagNameCtrl" />
+          class="half-width"
+          formControlName="subscriptionId"
+          [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SUBSCRIPTION_ID' | translate" />
+
         <app-ds-text-field
-          class="tag-value-field"
-          [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAG_VALUE' | translate"
-          [formControl]="tagValueCtrl" />
-        <button type="button" mat-icon-button (click)="addTag()" [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()">
-          <mat-icon>add</mat-icon>
-        </button>
+          class="half-width"
+          formControlName="azureResourceManagerConnection"
+          [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.AZURE_RM_CONNECTION' | translate"
+          [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.AZURE_RM_CONNECTION_PLACEHOLDER' | translate" />
       </div>
-      @if (localTags().length > 0) {
-        <mat-chip-set>
-          @for (tag of localTags(); track tag.name) {
-            <mat-chip (removed)="removeTag(tag.name)">
-              <span>{{ tag.name }}: {{ tag.value }}</span>
-              <button matChipRemove><mat-icon>cancel</mat-icon></button>
-            </mat-chip>
-          }
-        </mat-chip-set>
+
+      <div class="form-row">
+        <app-ds-text-field
+          class="half-width"
+          formControlName="shortName"
+          [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SHORT_NAME' | translate"
+          [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SHORT_NAME_PLACEHOLDER' | translate" />
+      </div>
+
+      <div class="form-row">
+        <app-ds-text-field
+          class="half-width"
+          formControlName="prefix"
+          [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.PREFIX' | translate"
+          [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.PREFIX_PLACEHOLDER' | translate" />
+
+        <app-ds-text-field
+          class="half-width"
+          formControlName="suffix"
+          [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SUFFIX' | translate"
+          [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SUFFIX_PLACEHOLDER' | translate" />
+      </div>
+
+      <div class="order-section">
+        <span class="order-section__label">{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.ORDER' | translate }}</span>
+
+        @if (timelineItems().length > 0) {
+          <ol class="order-timeline" [attr.aria-label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.TIMELINE_ARIA' | translate">
+            @for (item of timelineItems(); track $index; let i = $index; let last = $last) {
+              <li class="timeline-step" [class.timeline-step--current]="item.isCurrent">
+                <div class="timeline-step__dot"></div>
+                <span class="timeline-step__label">{{ item.name }}</span>
+              </li>
+              @if (!last) {
+                <li class="timeline-connector" aria-hidden="true" [class.timeline-connector--before-current]="timelineItems()[i + 1].isCurrent" [class.timeline-connector--after-current]="item.isCurrent"></li>
+              }
+            }
+          </ol>
+
+          <div class="order-arrows">
+            <button type="button" class="order-arrow-btn" [disabled]="currentOrder() <= minOrder" (click)="moveOrder(-1)">
+              <mat-icon>arrow_back</mat-icon>
+            </button>
+            <button type="button" class="order-arrow-btn" [disabled]="currentOrder() >= maxOrder" (click)="moveOrder(1)">
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+
+      <div class="tags-section">
+        <p class="tags-section__label">{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAGS' | translate }}</p>
+        <div class="tags-add-row">
+          <app-ds-text-field
+            class="tag-name-field"
+            [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAG_NAME' | translate"
+            [formControl]="tagNameCtrl" />
+          <app-ds-text-field
+            class="tag-value-field"
+            [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAG_VALUE' | translate"
+            [formControl]="tagValueCtrl" />
+          <button type="button" mat-icon-button (click)="addTag()" [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+        @if (localTags().length > 0) {
+          <mat-chip-set>
+            @for (tag of localTags(); track tag.name) {
+              <mat-chip (removed)="removeTag(tag.name)">
+                <span>{{ tag.name }}: {{ tag.value }}</span>
+                <button matChipRemove><mat-icon>cancel</mat-icon></button>
+              </mat-chip>
+            }
+          </mat-chip-set>
+        }
+      </div>
+
+      <app-ds-toggle
+        formControlName="requiresApproval"
+        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.REQUIRES_APPROVAL' | translate">
+      </app-ds-toggle>
+
+      @if (errorKey()) {
+        <p class="dialog-error">{{ errorKey() | translate }}</p>
       }
-    </div>
+    </form>
+  </mat-dialog-content>
 
-    <mat-slide-toggle formControlName="requiresApproval" color="primary">
-      {{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.REQUIRES_APPROVAL' | translate }}
-    </mat-slide-toggle>
-
-    @if (errorKey()) {
-      <p class="dialog-error">{{ errorKey() | translate }}</p>
-    }
-  </form>
-</mat-dialog-content>
-
-<mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
-    {{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.CANCEL' | translate }}
-  </button>
-  <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="form.invalid" (clicked)="onSubmit()">
-    {{ (isEditMode ? 'PROJECT_DETAIL.ENVIRONMENTS.FORM.SAVE' : 'PROJECT_DETAIL.ENVIRONMENTS.FORM.ADD') | translate }}
-  </app-ds-button>
-</mat-dialog-actions>
+  <mat-dialog-actions class="dialog-actions dialog-actions--compact">
+    <app-ds-button
+      class="dialog-action dialog-action--cancel"
+      variant="ghost"
+      (clicked)="onCancel()"
+      [disabled]="isSubmitting()">
+      {{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.CANCEL' | translate }}
+    </app-ds-button>
+    <app-ds-button
+      class="dialog-action dialog-action--submit"
+      variant="primary"
+      [fullWidth]="true"
+      [loading]="isSubmitting()"
+      [disabled]="form.invalid"
+      (clicked)="onSubmit()">
+      {{ (isEditMode ? 'PROJECT_DETAIL.ENVIRONMENTS.FORM.SAVE' : 'PROJECT_DETAIL.ENVIRONMENTS.FORM.ADD') | translate }}
+    </app-ds-button>
+  </mat-dialog-actions>
+</div>

@@ -3,7 +3,6 @@ using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.ValidationAttributes;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.FunctionAppAggregate.ValueObjects;
-using static InfraFlowSculptor.Domain.Common.ValueObjects.DeploymentMode;
 
 namespace InfraFlowSculptor.Contracts.FunctionApps.Requests;
 
@@ -45,15 +44,22 @@ public abstract class FunctionAppRequestBase
     [EnumValidation(typeof(AcrAuthMode.AcrAuthModeType))]
     public string? AcrAuthMode { get; init; }
 
+    /// <summary>Optional User Assigned Identity identifier used exclusively for ACR image pull (distinct from the resource-level identity).</summary>
+    [GuidValidation]
+    public Guid? AcrPullIdentityId { get; init; }
+
     /// <summary>Docker image name for container deployments (e.g., "myapp/func").</summary>
     public string? DockerImageName { get; init; }
 
+    /// <summary>Whether the Docker image name has been validated against the container registry.</summary>
+    public bool DockerImageValidated { get; init; }
+
     /// <summary>Relative path to the Dockerfile in the repository for container pipeline generation.</summary>
-    [MaxLength(500)]
+    [MaxLength(500), SafeRelativePathValidation]
     public string? DockerfilePath { get; init; }
 
     /// <summary>Relative path to the source code folder for code pipeline generation.</summary>
-    [MaxLength(500)]
+    [MaxLength(500), SafeRelativePathValidation]
     public string? SourceCodePath { get; init; }
 
     /// <summary>Optional custom build command for pipeline generation.</summary>

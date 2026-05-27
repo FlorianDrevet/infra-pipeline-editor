@@ -1,5 +1,18 @@
-import { Routes } from '@angular/router';
+import { Route, Routes } from '@angular/router';
 import { AuthenticationGuard } from './shared/guards/authentication.guard';
+import { environment } from '../environments/environment';
+
+const devOnlyRoutes: Route[] = environment.production
+  ? []
+  : [
+      {
+        path: 'design-system',
+        loadComponent: () =>
+          import('./features/design-system/design-system.component').then(
+            (m) => m.DesignSystemComponent
+          ),
+      },
+    ];
 
 export const routes: Routes = [
   {
@@ -28,6 +41,27 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/project-detail/project-detail.component').then(
             (m) => m.ProjectDetailComponent
+          ),
+      },
+      {
+        path: 'projects/:id/members',
+        loadComponent: () =>
+          import('./features/project-members/project-members.component').then(
+            (m) => m.ProjectMembersComponent
+          ),
+      },
+      {
+        path: 'projects/:id/settings',
+        loadComponent: () =>
+          import('./features/project-settings/project-settings.component').then(
+            (m) => m.ProjectSettingsComponent
+          ),
+      },
+      {
+        path: 'projects/:id/generate/config',
+        loadComponent: () =>
+          import('./features/project-detail/generation-config/generation-config.component').then(
+            (m) => m.GenerationConfigComponent
           ),
       },
       {
@@ -65,13 +99,7 @@ export const routes: Routes = [
             (m) => m.SettingsComponent
           ),
       },
-      {
-        path: 'design-system',
-        loadComponent: () =>
-          import('./features/design-system/design-system.component').then(
-            (m) => m.DesignSystemComponent
-          ),
-      },
+      ...devOnlyRoutes,
     ],
   },
   {

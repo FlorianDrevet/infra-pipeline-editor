@@ -3,7 +3,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
 

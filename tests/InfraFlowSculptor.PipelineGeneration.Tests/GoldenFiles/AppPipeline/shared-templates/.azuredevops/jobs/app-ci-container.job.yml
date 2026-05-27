@@ -21,6 +21,9 @@ parameters:
   - name: containerRegistryName
     type: string
     default: ''
+  - name: containerRegistryServiceConnection
+    type: string
+    default: '$(containerRegistryServiceConnection)'
   - name: acrAuthMode
     type: string
     default: 'ServiceConnection'
@@ -52,6 +55,7 @@ jobs:
       - template: ../steps/app-acr-login.step.yml
         parameters:
           acrAuthMode: ${{ parameters.acrAuthMode }}
+          containerRegistryServiceConnection: ${{ parameters.containerRegistryServiceConnection }}
 
       - template: ../steps/app-docker-buildx-push.step.yml
         parameters:

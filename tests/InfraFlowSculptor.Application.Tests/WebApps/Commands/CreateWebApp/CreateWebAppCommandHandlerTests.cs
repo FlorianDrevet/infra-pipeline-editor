@@ -6,7 +6,6 @@ using InfraFlowSculptor.Application.WebApps.Commands.CreateWebApp;
 using InfraFlowSculptor.Application.WebApps.Common;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -64,9 +63,10 @@ public sealed class CreateWebAppCommandHandlerTests
             DeploymentMode: nameof(DeploymentMode.DeploymentModeType.Code),
             ContainerRegistryId: null,
             AcrAuthMode: null,
+            AcrPullIdentityId: null,
             DockerImageName: null);
-        _webAppRepository.AddAsync(Arg.Any<WebApp>())
-            .Returns(callInfo => Task.FromResult((WebApp)callInfo.Args()[0]));
+        _webAppRepository.Add(Arg.Any<WebApp>())
+            .Returns(callInfo => (WebApp)callInfo.Args()[0]);
         _sut = new CreateWebAppCommandHandler(
             _webAppRepository, _appServicePlanRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -84,7 +84,7 @@ public sealed class CreateWebAppCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _webAppRepository.DidNotReceive().AddAsync(Arg.Any<WebApp>());
+        _webAppRepository.DidNotReceive().Add(Arg.Any<WebApp>());
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public sealed class CreateWebAppCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _webAppRepository.DidNotReceive().AddAsync(Arg.Any<WebApp>());
+        _webAppRepository.DidNotReceive().Add(Arg.Any<WebApp>());
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public sealed class CreateWebAppCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _webAppRepository.Received(1).AddAsync(Arg.Is<WebApp>(w =>
+        _webAppRepository.Received(1).Add(Arg.Is<WebApp>(w =>
             w.ResourceGroupId == _resourceGroup.Id
             && w.Name.Value == WebAppName
             && w.AppServicePlanId == _appServicePlan.Id));

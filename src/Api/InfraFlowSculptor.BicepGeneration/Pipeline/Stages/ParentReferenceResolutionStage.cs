@@ -1,4 +1,4 @@
-﻿using InfraFlowSculptor.GenerationCore;
+using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.BicepGeneration.Models;
 
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
@@ -22,6 +22,9 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
 {
     private const string AppServicePlanIdPropertyName = "appServicePlanId";
     private const string AcrLoginServerParameterName = "acrLoginServer";
+    private const string AcrPullIdentityIdPropertyName = "acrPullIdentityId";
+    private const string AcrUserManagedIdentityIdParameterName = "acrUserManagedIdentityId";
+    private const string UserAssignedIdentityResourceIdOutputName = "resourceId";
     private const string ContainerRegistryIdPropertyName = "containerRegistryId";
     private const string ContainerRegistryLoginServerOutputName = "loginServer";
     private const string ContainerRegistryLoginServerPropertyPath = "properties.loginServer";
@@ -55,6 +58,7 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
                 context,
                 parentModuleOutputRefs,
                 existingResourcePropertyRefs);
+            ResolveAcrPullIdentityReference(item.Module, resource, context, parentModuleOutputRefs);
             ResolveLogAnalyticsWorkspaceReference(resource, context, parentModuleIdRefs, existingResourceIdRefs);
             TryResolveNameReference(resource, resourceIdToInfo, SqlServerIdPropertyName, SqlServerNameReferenceKey, parentModuleNameRefs);
 
@@ -211,5 +215,35 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
         {
             existingResourceIdRefs[LogAnalyticsWorkspaceIdPropertyName] = existingLaw.ResourceName;
         }
+    }
+
+    private static void ResolveAcrPullIdentityReference(
+        GeneratedTypeModule module,
+        ResourceDefinition resource,
+        BicepGenerationContext context,
+        IDictionary<string, (string Name, string ResourceTypeName, string OutputName)> parentModuleOutputRefs)
+    {
+        if (!resource.Properties.TryGetValue(AcrPullIdentityIdPropertyName, out var acrPullIdentityIdStr)
+            || string.IsNullOrEmpty(acrPullIdentityIdStr)
+            || !Guid.TryParse(acrPullIdentityIdStr, out var acrPullIdentityId))
+        {
+            return;
+        }
+
+        if (!context.ResourceIdToInfo.TryGetValue(acrPullIdentityId, out var uaiInfo)
+            || !string.Equals(uaiInfo.ResourceTypeName, AzureResourceTypes.UserAssignedIdentity, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        // Container App modules no longer use acrManagedIdentityClientId — they reference
+        // userAssignedIdentityId directly for registry identity (ARM resource ID).
+        // FunctionApp modules still use acrUserManagedIdentityId.
+        if (!module.Parameters.ContainsKey(AcrUserManagedIdentityIdParameterName))
+        {
+            return;
+        }
+
+        parentModuleOutputRefs[AcrUserManagedIdentityIdParameterName] = (uaiInfo.Name, AzureResourceTypes.UserAssignedIdentity, UserAssignedIdentityResourceIdOutputName);
     }
 }

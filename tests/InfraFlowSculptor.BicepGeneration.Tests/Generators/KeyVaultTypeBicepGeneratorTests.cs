@@ -13,15 +13,15 @@ public sealed class KeyVaultTypeBicepGeneratorTests
 
     private static ResourceDefinition CreateResource(
         Dictionary<string, string>? properties = null) => new()
-    {
-        ResourceId = Guid.NewGuid(),
-        Name = "my-kv",
-        Type = AzureResourceTypes.ArmTypes.KeyVaultType,
-        ResourceGroupName = "rg-test",
-        ResourceAbbreviation = "kv",
-        Sku = "Standard",
-        Properties = properties ?? new Dictionary<string, string>(),
-    };
+        {
+            ResourceId = Guid.NewGuid(),
+            Name = "my-kv",
+            Type = AzureResourceTypes.ArmTypes.KeyVaultType,
+            ResourceGroupName = "rg-test",
+            ResourceAbbreviation = "kv",
+            Sku = "Standard",
+            Properties = properties ?? new Dictionary<string, string>(),
+        };
 
     // ── Interface contracts ──
 

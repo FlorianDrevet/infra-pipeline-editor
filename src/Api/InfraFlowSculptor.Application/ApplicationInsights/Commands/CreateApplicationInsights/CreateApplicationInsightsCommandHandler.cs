@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.ApplicationInsights.Commands.CreateApplicationInsights;
@@ -47,7 +46,7 @@ public sealed class CreateApplicationInsightsCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await applicationInsightsRepository.AddAsync(applicationInsights);
+        var saved = applicationInsightsRepository.Add(applicationInsights);
 
         return mapper.Map<ApplicationInsightsResult>(saved);
     }

@@ -2,7 +2,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveCrossConfigReference;
 
@@ -29,7 +28,7 @@ public sealed class RemoveCrossConfigReferenceCommandHandler(
         if (result.IsError)
             return result.Errors;
 
-        await infraConfigRepository.UpdateAsync(config);
+        infraConfigRepository.Update(config);
 
         return Result.Deleted;
     }

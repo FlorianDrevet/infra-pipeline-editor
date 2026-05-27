@@ -1,9 +1,7 @@
 using System.Threading.RateLimiting;
 using InfraFlowSculptor.Api.Options;
 using InfraFlowSculptor.WebDefaults.RateLimiting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace InfraFlowSculptor.Api.RateLimiting;

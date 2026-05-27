@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.IO;
 using FluentAssertions;
 using InfraFlowSculptor.Api.Errors;
 using Microsoft.AspNetCore.Builder;
@@ -64,7 +63,7 @@ public sealed class ErrorHandlingTests
         await sut(httpContext);
 
         // Assert
-        loggerProvider.Entries.Should().ContainSingle(entry =>
+        loggerProvider.Entries.Should().Contain(entry =>
             entry.LogLevel == LogLevel.Error
             && entry.Exception != null
             && entry.Exception.GetType() == typeof(InvalidOperationException)

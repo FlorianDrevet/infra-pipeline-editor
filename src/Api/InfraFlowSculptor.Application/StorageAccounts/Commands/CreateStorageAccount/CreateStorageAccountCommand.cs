@@ -1,5 +1,4 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
-using ErrorOr;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
@@ -20,4 +19,4 @@ public record CreateStorageAccountCommand(
     IReadOnlyList<CorsRuleResult>? TableCorsRules = null,
     IReadOnlyList<BlobLifecycleRuleResult>? LifecycleRules = null,
     bool IsExisting = false
-) : ICommand<StorageAccountResult>;
+) : ICommand<StorageAccountResult>, ICreateResourceCommand, IStorageAccountCommandProperties;

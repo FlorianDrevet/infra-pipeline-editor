@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.RoleAssignments.Commands.UpdateRoleAssignmentIdentity;
 
@@ -54,7 +53,7 @@ public sealed class UpdateRoleAssignmentIdentityCommandHandler(
         if (assignment is null)
             return Errors.RoleAssignment.NotFound(request.RoleAssignmentId);
 
-        await azureResourceRepository.UpdateAsync(sourceResource, cancellationToken);
+        azureResourceRepository.Update(sourceResource);
 
         return new RoleAssignmentResult(
             assignment.Id,

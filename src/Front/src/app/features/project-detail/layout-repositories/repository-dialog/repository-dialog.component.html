@@ -1,16 +1,14 @@
-<h2 mat-dialog-title>
+<h2 mat-dialog-title class="repo-dialog-title">
   {{ (isEditMode ? 'PROJECT_DETAIL.LAYOUT.EDIT_REPO' : 'PROJECT_DETAIL.LAYOUT.ADD_REPO') | translate }}
+  @if (lockedKinds.length > 0) {
+    @for (kind of lockedKinds; track kind) {
+      <span class="repo-dialog-title__tag">{{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}</span>
+    }
+  }
 </h2>
 
 <mat-dialog-content>
   <form [formGroup]="form" class="repo-form" (ngSubmit)="onSubmit()">
-    <app-ds-text-field
-      formControlName="alias"
-      [label]="'PROJECT_DETAIL.LAYOUT.FORM.ALIAS' | translate"
-      [placeholder]="'PROJECT_DETAIL.LAYOUT.FORM.ALIAS_PLACEHOLDER' | translate"
-      [hint]="'PROJECT_DETAIL.LAYOUT.FORM.ALIAS_HINT' | translate"
-      [error]="form.controls.alias.hasError('pattern') && form.controls.alias.touched ? ('PROJECT_DETAIL.LAYOUT.FORM.ALIAS_PATTERN_ERROR' | translate) : undefined" />
-
     <app-ds-select
       formControlName="providerType"
       [label]="'PROJECT_DETAIL.LAYOUT.FORM.PROVIDER' | translate"
@@ -22,28 +20,57 @@
       [placeholder]="'PROJECT_DETAIL.LAYOUT.FORM.REPO_URL_PLACEHOLDER' | translate" />
 
     <app-ds-text-field
-      formControlName="defaultBranch"
-      [label]="'PROJECT_DETAIL.LAYOUT.FORM.DEFAULT_BRANCH' | translate"
-      placeholder="main" />
+      formControlName="personalAccessToken"
+      type="password"
+      autocomplete="off"
+      [label]="'PROJECT_DETAIL.LAYOUT.FORM.PAT' | translate"
+      [placeholder]="'PROJECT_DETAIL.LAYOUT.FORM.PAT_PLACEHOLDER' | translate"
+      [hint]="(isEditMode ? 'PROJECT_DETAIL.LAYOUT.FORM.PAT_EDIT_HINT' : 'PROJECT_DETAIL.LAYOUT.FORM.PAT_CREATE_HINT') | translate" />
 
-    <div class="content-kinds">
-      <span class="content-kinds__label">{{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KINDS' | translate }}</span>
-      <div class="content-kinds__list" formArrayName="contentKinds">
-        @for (kind of contentKinds; track kind; let i = $index) {
-          <mat-checkbox [formControlName]="i">
-            {{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}
-            @if (isContentKindLocked(kind)) {
-              <span class="content-kinds__locked">
-                {{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KIND_LOCKED' | translate }}
-              </span>
-            }
-          </mat-checkbox>
-        }
-      </div>
-      @if (contentKindsArray.hasError('required') && contentKindsArray.touched) {
-        <p class="content-kinds__error">{{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KINDS_REQUIRED' | translate }}</p>
+    <div class="verification-row">
+      <app-ds-button
+        type="button"
+        variant="secondary"
+        [loading]="verificationState() === 'checking'"
+        [disabled]="!canVerify()"
+        (clicked)="verifyConnection()">
+        {{ 'PROJECT_DETAIL.LAYOUT.FORM.VERIFY' | translate }}
+      </app-ds-button>
+
+      @if (verificationStatusKey()) {
+        <span class="verification-row__status" [class.verification-row__status--success]="verificationState() === 'verified'" [class.verification-row__status--error]="verificationState() === 'failed'">
+          {{ verificationStatusKey() | translate }}
+        </span>
       }
     </div>
+
+    <app-ds-autocomplete
+      formControlName="defaultBranch"
+      [options]="branchOptions()"
+      [label]="'PROJECT_DETAIL.LAYOUT.FORM.DEFAULT_BRANCH' | translate"
+      [placeholder]="'PROJECT_DETAIL.LAYOUT.FORM.DEFAULT_BRANCH_PLACEHOLDER' | translate"
+      [hint]="'PROJECT_DETAIL.LAYOUT.FORM.DEFAULT_BRANCH_HINT' | translate"
+      [emptyStateLabel]="'PROJECT_DETAIL.LAYOUT.FORM.DEFAULT_BRANCH_EMPTY' | translate"
+      [error]="branchErrorKey() ? (branchErrorKey() | translate) : undefined"
+      [clearable]="true"
+      (optionSelected)="onBranchSelected($event)"
+      (searchChanged)="onBranchSearchChanged($event)" />
+
+    @if (!hasLockedKinds) {
+      <div class="content-kinds">
+        <span class="content-kinds__label">{{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KINDS' | translate }}</span>
+        <div class="content-kinds__list" formArrayName="contentKinds">
+          @for (kind of contentKinds; track kind; let i = $index) {
+            <mat-checkbox [formControlName]="i">
+              {{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}
+            </mat-checkbox>
+          }
+        </div>
+        @if (contentKindsArray.hasError('required') && contentKindsArray.touched) {
+          <p class="content-kinds__error">{{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KINDS_REQUIRED' | translate }}</p>
+        }
+      </div>
+    }
 
     @if (errorKey()) {
       <p class="dialog-error">{{ errorKey() | translate }}</p>
@@ -52,10 +79,10 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+  <app-ds-button variant="ghost" (clicked)="onCancel()" [disabled]="isSubmitting()">
     {{ 'PROJECT_DETAIL.LAYOUT.FORM.CANCEL' | translate }}
-  </button>
-  <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="form.invalid" (clicked)="onSubmit()">
+  </app-ds-button>
+  <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="!canSave()" (clicked)="onSubmit()">
     {{ 'PROJECT_DETAIL.LAYOUT.FORM.SAVE' | translate }}
   </app-ds-button>
 </mat-dialog-actions>

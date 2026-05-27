@@ -28,9 +28,9 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="onCancel()">
+  <app-ds-button variant="ghost" (clicked)="onCancel()">
     {{ 'ABBREVIATIONS.EDIT_DIALOG_CANCEL' | translate }}
-  </button>
+  </app-ds-button>
   <app-ds-button variant="primary" (clicked)="onSubmit()" [disabled]="form.invalid">
     {{ 'ABBREVIATIONS.EDIT_DIALOG_SAVE' | translate }}
   </app-ds-button>

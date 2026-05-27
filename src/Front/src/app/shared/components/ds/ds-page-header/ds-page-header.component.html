@@ -4,11 +4,13 @@
       <ng-content select="[ds-page-breadcrumbs]"></ng-content>
     </div>
     <div class="ds-page-header__main">
-      @if (icon()) {
-        <mat-icon class="ds-page-header__icon" aria-hidden="true">{{ icon() }}</mat-icon>
-      }
       <div class="ds-page-header__text">
-        <h1 class="ds-page-header__title">{{ title() }}</h1>
+        <div class="ds-page-header__title-row">
+          @if (icon()) {
+            <mat-icon class="ds-page-header__icon" aria-hidden="true">{{ icon() }}</mat-icon>
+          }
+          <h1 class="ds-page-header__title">{{ title() }}</h1>
+        </div>
         @if (subtitle()) {
           <p class="ds-page-header__subtitle">{{ subtitle() }}</p>
         }

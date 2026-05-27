@@ -23,39 +23,50 @@ parameters:
     default: false
 
 steps:
-  - bash: |
-      set -euo pipefail
-      sourceVersion="$(Build.SourceVersion)"
-      shortSha=$(echo "$sourceVersion" | cut -c1-7)
-      branchName="$(Build.SourceBranchName)"
-      sanitizedBranch=$(echo "$branchName" | tr '/_' '-' | tr '[:upper:]' '[:lower:]')
-      releaseTagPattern="${{ parameters.imageTagPattern }}"
-      releaseTag=${releaseTagPattern//\{buildNumber\}/$(Build.BuildNumber)}
-      releaseTag=${releaseTag//\{shortSha\}/$shortSha}
-      releaseTag=${releaseTag//\{branch\}/$sanitizedBranch}
-      releaseTag=$(echo "$releaseTag" | tr '[:upper:]' '[:lower:]')
-      ${{ if parameters.includeRegistryMetadata }}:
-        sourceRegistryName="$(containerRegistryName)"
-        if [ -z "$sourceRegistryName" ] || [ "$sourceRegistryName" = '$(containerRegistryName)' ]; then sourceRegistryName="${{ parameters.containerRegistryName }}"; fi
-        sourceRegistryLoginServer="$(containerRegistryLoginServer)"
-        if [ -z "$sourceRegistryLoginServer" ] || [ "$sourceRegistryLoginServer" = '$(containerRegistryLoginServer)' ]; then sourceRegistryLoginServer="${{ parameters.containerRegistryName }}.azurecr.io"; fi
-      ${{ if not(parameters.includeRegistryMetadata) }}:
-        sourceRegistryName=""
-        sourceRegistryLoginServer=""
-      mkdir -p "$(Build.ArtifactStagingDirectory)/app-metadata"
-      cat > "$(Build.ArtifactStagingDirectory)/app-metadata/metadata.json" <<EOF
-      {
-        "releaseTag": "$releaseTag",
-        "shortSha": "$shortSha",
-        "imageRepository": "${{ parameters.imageRepository }}",
-        "sourceRegistryName": "$sourceRegistryName",
-        "sourceRegistryLoginServer": "$sourceRegistryLoginServer",
-        "configName": "${{ parameters.configName }}",
-        "resourceName": "${{ parameters.resourceName }}",
-        "resourceType": "${{ parameters.resourceType }}",
-        "promotionStrategy": "${{ parameters.promotionStrategy }}"
+  - powershell: |
+      $sourceVersion = '$(Build.SourceVersion)'
+      $shortShaLength = [Math]::Min(7, $sourceVersion.Length)
+      $shortSha = $sourceVersion.Substring(0, $shortShaLength)
+      $branchName = '$(Build.SourceBranchName)'
+      $sanitizedBranch = $branchName.Replace('/', '-').Replace('_', '-').ToLowerInvariant()
+      $releaseTag = '${{ parameters.imageTagPattern }}'
+      $releaseTag = $releaseTag.Replace('{buildNumber}', '$(Build.BuildNumber)')
+      $releaseTag = $releaseTag.Replace('{shortSha}', $shortSha)
+      $releaseTag = $releaseTag.Replace('{branch}', $sanitizedBranch)
+      $releaseTag = $releaseTag.ToLowerInvariant()
+
+      if ('${{ parameters.includeRegistryMetadata }}' -eq 'True') {
+          $sourceRegistryName = '$(containerRegistryName)'
+          if ([string]::IsNullOrWhiteSpace($sourceRegistryName) -or $sourceRegistryName -eq '$(containerRegistryName)') {
+              $sourceRegistryName = '${{ parameters.containerRegistryName }}'
+          }
+
+          $sourceRegistryLoginServer = '$(containerRegistryLoginServer)'
+          if ([string]::IsNullOrWhiteSpace($sourceRegistryLoginServer) -or $sourceRegistryLoginServer -eq '$(containerRegistryLoginServer)') {
+              $sourceRegistryLoginServer = '${{ parameters.containerRegistryName }}.azurecr.io'
+          }
       }
-      EOF
-      echo "##vso[task.setvariable variable=ReleaseTag]$releaseTag"
-      echo "##vso[task.setvariable variable=ShortSha]$shortSha"
+      else {
+          $sourceRegistryName = ''
+          $sourceRegistryLoginServer = ''
+      }
+
+      $metadataDirectory = '$(Build.ArtifactStagingDirectory)/app-metadata'
+      New-Item -ItemType Directory -Path $metadataDirectory -Force | Out-Null
+
+      $metadata = [ordered]@{
+          releaseTag = $releaseTag
+          shortSha = $shortSha
+          imageRepository = '${{ parameters.imageRepository }}'
+          sourceRegistryName = $sourceRegistryName
+          sourceRegistryLoginServer = $sourceRegistryLoginServer
+          configName = '${{ parameters.configName }}'
+          resourceName = '${{ parameters.resourceName }}'
+          resourceType = '${{ parameters.resourceType }}'
+          promotionStrategy = '${{ parameters.promotionStrategy }}'
+      }
+
+      $metadata | ConvertTo-Json | Set-Content -LiteralPath "$metadataDirectory/metadata.json" -Encoding utf8
+      Write-Host "##vso[task.setvariable variable=ReleaseTag]$releaseTag"
+      Write-Host "##vso[task.setvariable variable=ShortSha]$shortSha"
     displayName: 'Compute immutable release tag'

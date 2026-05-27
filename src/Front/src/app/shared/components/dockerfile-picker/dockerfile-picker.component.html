@@ -30,39 +30,38 @@
     } @else {
       <!-- Branch selector -->
       <div class="picker-panel__section">
-        <label class="picker-panel__label">{{ 'RESOURCE_EDIT.APP_PIPELINE.SELECT_BRANCH' | translate }}</label>
-        @if (loadingBranches()) {
-          <div class="picker-panel__loading">
-            <mat-spinner diameter="20"></mat-spinner>
-            <span>{{ 'RESOURCE_EDIT.APP_PIPELINE.LOADING_BRANCHES' | translate }}</span>
-          </div>
-        } @else {
-          <select
-            class="picker-panel__select"
-            [value]="selectedBranch()"
-            (change)="onBranchChange($event)">
-            @for (branch of branches(); track branch.name) {
-              <option [value]="branch.name">{{ branch.name }}</option>
-            }
-          </select>
-        }
+        <app-ds-autocomplete
+          [label]="'RESOURCE_EDIT.APP_PIPELINE.SELECT_BRANCH' | translate"
+          [options]="branchOptions()"
+          [loading]="loadingBranches()"
+          [loadingStateLabel]="'RESOURCE_EDIT.APP_PIPELINE.LOADING_BRANCHES' | translate"
+          [emptyStateLabel]="'RESOURCE_EDIT.APP_PIPELINE.NO_BRANCHES' | translate"
+          prefixIcon="account_tree"
+          [clearable]="true"
+          [ngModel]="selectedBranch()"
+          [ngModelOptions]="{ standalone: true }"
+          (optionSelected)="onBranchSelected($event)"
+          (searchChanged)="onBranchSearchChanged($event)"
+          (inputFocused)="onBranchSearchChanged('')" />
       </div>
 
       <!-- File list -->
       <div class="picker-panel__section">
-        <label class="picker-panel__label">Dockerfiles</label>
+        <span class="picker-panel__label" id="dockerfile-list-label">Dockerfiles</span>
         @if (loadingFiles()) {
           <div class="picker-panel__loading">
             <mat-spinner diameter="20"></mat-spinner>
             <span>{{ 'RESOURCE_EDIT.APP_PIPELINE.LOADING_FILES' | translate }}</span>
           </div>
         } @else if (hasFiles()) {
-          <ul class="picker-panel__file-list" role="listbox">
+          <ul class="picker-panel__file-list" role="listbox" aria-labelledby="dockerfile-list-label">
             @for (file of files(); track file.path) {
               <li
                 class="picker-panel__file-item"
                 role="option"
                 tabindex="0"
+                [attr.aria-label]="file.path"
+                [attr.aria-selected]="false"
                 (click)="selectFile(file)"
                 (keydown.enter)="selectFile(file)"
                 (keydown.space)="selectFile(file)">

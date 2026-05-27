@@ -7,7 +7,6 @@ using InfraFlowSculptor.Contracts.SqlDatabases.Requests;
 using InfraFlowSculptor.Contracts.SqlDatabases.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
@@ -23,7 +22,7 @@ public static class SqlDatabaseController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/sql-database")
+            var group = endpoints.MapGroup(Routes.SqlDatabase)
                 .WithTags("SQL Databases");
 
             group.MapGet("/{id:guid}",

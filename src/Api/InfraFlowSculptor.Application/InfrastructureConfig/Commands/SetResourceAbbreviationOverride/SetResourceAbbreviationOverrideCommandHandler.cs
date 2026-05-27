@@ -28,7 +28,7 @@ public sealed class SetResourceAbbreviationOverrideCommandHandler(
 
         var entry = infraConfig.SetResourceAbbreviationOverride(command.ResourceType, command.Abbreviation);
 
-        await repository.UpdateAsync(infraConfig);
+        repository.Update(infraConfig);
 
         return mapper.Map<ResourceAbbreviationOverrideResult>(entry);
     }

@@ -1,38 +1,33 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { DsIconButtonComponent } from '../../../shared/components/ds/ds-icon-button/ds-icon-button.component';
-import { SidebarStateService } from './sidebar-state.service';
+import { ProjectResponse } from '../../../shared/interfaces/project.interface';
+import { ProjectService } from '../../../shared/services/project.service';
 import { SidebarContextService } from './sidebar-context.service';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, MatIconModule, TranslateModule, DsIconButtonComponent],
+  imports: [RouterLink, RouterLinkActive, MatIconModule, TranslateModule],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: {
-    '[class.sidebar--collapsed]': 'collapsed()',
-    '[style.width]': 'width()',
-  },
 })
-export class SidebarComponent {
-  private readonly state = inject(SidebarStateService);
+export class SidebarComponent implements OnInit {
   private readonly context = inject(SidebarContextService);
+  private readonly projectService = inject(ProjectService);
 
-  protected readonly collapsed = this.state.collapsed;
-  protected readonly width = this.state.width;
   protected readonly contextState = this.context.contextState;
   protected readonly mode = this.context.mode;
   protected readonly favoriteIds = this.context.favoriteIds;
   protected readonly recentItems = this.context.recentItems;
-
-  protected readonly toggleIcon = computed(() => (this.collapsed() ? 'chevron_right' : 'chevron_left'));
-  protected readonly toggleAriaLabelKey = computed(() =>
-    this.collapsed() ? 'SIDEBAR.EXPAND_ARIA' : 'SIDEBAR.COLLAPSE_ARIA'
+  protected readonly projects = signal<ProjectResponse[]>([]);
+  protected readonly favoriteProjects = computed(() =>
+    this.projects()
+      .filter((project) => this.favoriteIds().includes(project.id))
+      .slice(0, 4)
   );
 
   protected readonly defineItems = computed(() =>
@@ -48,7 +43,16 @@ export class SidebarComponent {
     this.contextState().items.filter((i) => !i.section)
   );
 
-  protected onToggle(): void {
-    this.state.toggle();
+  public ngOnInit(): void {
+    void this.loadProjects();
+  }
+
+  private async loadProjects(): Promise<void> {
+    try {
+      const projects = await this.projectService.getMyProjects();
+      this.projects.set(projects);
+    } catch {
+      this.projects.set([]);
+    }
   }
 }

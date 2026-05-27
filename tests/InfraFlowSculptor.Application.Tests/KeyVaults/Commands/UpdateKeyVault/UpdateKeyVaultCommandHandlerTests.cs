@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.KeyVaults.Commands.UpdateKeyVault;
 using InfraFlowSculptor.Application.KeyVaults.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
@@ -54,8 +53,8 @@ public sealed class UpdateKeyVaultCommandHandlerTests
             EnabledForTemplateDeployment: true,
             EnablePurgeProtection: false,
             EnableSoftDelete: false);
-        _keyVaultRepository.UpdateAsync(Arg.Any<KeyVault>())
-            .Returns(callInfo => Task.FromResult((KeyVault)callInfo.Args()[0]));
+        _keyVaultRepository.Update(Arg.Any<KeyVault>())
+            .Returns(callInfo => (KeyVault)callInfo.Args()[0]);
         _sut = new UpdateKeyVaultCommandHandler(
             _keyVaultRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -73,7 +72,7 @@ public sealed class UpdateKeyVaultCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _keyVaultRepository.DidNotReceive().UpdateAsync(Arg.Any<KeyVault>());
+        _keyVaultRepository.DidNotReceive().Update(Arg.Any<KeyVault>());
     }
 
     [Fact]
@@ -91,7 +90,7 @@ public sealed class UpdateKeyVaultCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _keyVaultRepository.DidNotReceive().UpdateAsync(Arg.Any<KeyVault>());
+        _keyVaultRepository.DidNotReceive().Update(Arg.Any<KeyVault>());
     }
 
     [Fact]
@@ -110,7 +109,7 @@ public sealed class UpdateKeyVaultCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _keyVaultRepository.Received(1).UpdateAsync(Arg.Is<KeyVault>(kv =>
+        _keyVaultRepository.Received(1).Update(Arg.Is<KeyVault>(kv =>
             kv.Name.Value == "kv-renamed"
             && kv.EnableRbacAuthorization == false
             && kv.EnabledForDeployment == true));

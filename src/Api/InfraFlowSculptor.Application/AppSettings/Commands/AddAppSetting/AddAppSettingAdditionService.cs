@@ -83,7 +83,7 @@ public sealed class AddAppSettingAdditionService(
             request.SecretName!,
             request.SecretValueAssignment ?? SecretValueAssignment.DirectInKeyVault);
 
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken).ConfigureAwait(false);
+        azureResourceRepository.Update(resource);
 
         var hasAccess = await CheckKeyVaultAccessAsync(
                 request.ResourceId,
@@ -112,7 +112,7 @@ public sealed class AddAppSettingAdditionService(
             variableGroupLookup.Value.Id,
             request.PipelineVariableName!);
 
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken).ConfigureAwait(false);
+        azureResourceRepository.Update(resource);
         return ToResult(setting, null, variableGroupLookup.Value.GroupName);
     }
 
@@ -143,7 +143,7 @@ public sealed class AddAppSettingAdditionService(
             request.KeyVaultResourceId!,
             request.SecretName!);
 
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken).ConfigureAwait(false);
+        azureResourceRepository.Update(resource);
 
         var hasAccess = await CheckKeyVaultAccessAsync(
                 request.ResourceId,
@@ -171,7 +171,7 @@ public sealed class AddAppSettingAdditionService(
             request.SecretName!,
             request.SecretValueAssignment ?? SecretValueAssignment.DirectInKeyVault);
 
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken).ConfigureAwait(false);
+        azureResourceRepository.Update(resource);
 
         var hasAccess = await CheckKeyVaultAccessAsync(
                 request.ResourceId,
@@ -199,7 +199,7 @@ public sealed class AddAppSettingAdditionService(
             request.SourceResourceId!,
             request.SourceOutputName!);
 
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken).ConfigureAwait(false);
+        azureResourceRepository.Update(resource);
         return ToResult(setting, null);
     }
 
@@ -212,7 +212,7 @@ public sealed class AddAppSettingAdditionService(
             request.Name,
             request.EnvironmentValues ?? new Dictionary<string, string>());
 
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken).ConfigureAwait(false);
+        azureResourceRepository.Update(resource);
         return ToResult(setting, null);
     }
 

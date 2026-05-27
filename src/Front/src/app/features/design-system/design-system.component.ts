@@ -1,22 +1,39 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import {
   DsAlertComponent,
+  DsAutocompleteComponent,
+  DsBannerComponent,
   DsButtonComponent,
   DsCardComponent,
   DsCheckboxComponent,
   DsChipComponent,
+  DsDatePickerComponent,
+  DsEmptyStateComponent,
   DsIconButtonComponent,
+  DsOptionCardComponent,
   DsPageHeaderComponent,
+  DsPanelActionButtonComponent,
   DsRadioGroupComponent,
   DsRadioOption,
   DsSectionHeaderComponent,
+  DsSegmentedControlComponent,
+  DsSegmentedOption,
   DsSelectComponent,
   DsSelectOption,
+  DsSkeletonComponent,
+  DsStatusDotComponent,
+  DsTabDefinition,
+  DsTableColumn,
+  DsTableComponent,
+  DsTabsComponent,
   DsTextFieldComponent,
   DsTextareaComponent,
   DsToggleComponent,
+  DsTooltipDirective,
+  DsTreeNode,
+  DsTreeViewComponent,
 } from '../../shared/components/ds';
 
 interface Swatch {
@@ -41,6 +58,7 @@ interface RadiusSample {
 
 /**
  * Internal showcase page documenting Design System tokens and components.
+ * Only available in development mode.
  */
 @Component({
   selector: 'app-design-system',
@@ -48,18 +66,31 @@ interface RadiusSample {
   imports: [
     ReactiveFormsModule,
     DsAlertComponent,
+    DsAutocompleteComponent,
+    DsBannerComponent,
     DsButtonComponent,
     DsCardComponent,
     DsCheckboxComponent,
     DsChipComponent,
+    DsDatePickerComponent,
+    DsEmptyStateComponent,
     DsIconButtonComponent,
+    DsOptionCardComponent,
     DsPageHeaderComponent,
+    DsPanelActionButtonComponent,
     DsRadioGroupComponent,
     DsSectionHeaderComponent,
+    DsSegmentedControlComponent,
     DsSelectComponent,
+    DsSkeletonComponent,
+    DsStatusDotComponent,
+    DsTableComponent,
+    DsTabsComponent,
     DsTextFieldComponent,
     DsTextareaComponent,
-    DsToggleComponent
+    DsToggleComponent,
+    DsTooltipDirective,
+    DsTreeViewComponent,
 ],
   templateUrl: './design-system.component.html',
   styleUrl: './design-system.component.scss',
@@ -153,4 +184,68 @@ export class DesignSystemComponent {
     { value: 'pro', label: 'Pro', description: 'For growing teams' },
     { value: 'enterprise', label: 'Enterprise', description: 'For large organizations' },
   ];
+
+  // --- Tabs ---
+  protected readonly demaTabs: readonly DsTabDefinition[] = [
+    { id: 'overview', label: 'Overview', icon: 'dashboard' },
+    { id: 'settings', label: 'Settings', icon: 'settings' },
+    { id: 'logs', label: 'Logs', icon: 'receipt_long', badge: '3' },
+    { id: 'disabled', label: 'Disabled', disabled: true },
+  ];
+  protected readonly activeTabId = signal<string | null>('overview');
+
+  // --- Segmented Control ---
+  protected readonly segmentedOptions: readonly DsSegmentedOption[] = [
+    { value: 'day', label: 'Day', icon: 'today' },
+    { value: 'week', label: 'Week' },
+    { value: 'month', label: 'Month' },
+  ];
+  protected readonly segmentedForm = new FormControl<string>('week');
+
+  // --- Table ---
+  protected readonly tableColumns: readonly DsTableColumn<{ name: string; role: string; status: string; email: string }>[] = [
+    { key: 'name', header: 'Name', sortable: true },
+    { key: 'email', header: 'Email', width: '1.5fr' },
+    { key: 'role', header: 'Role', width: '120px' },
+    { key: 'status', header: 'Status', width: '100px', align: 'center' },
+  ];
+  protected readonly tableRows = [
+    { name: 'Alice Martin', email: 'alice@example.com', role: 'Owner', status: 'Active' },
+    { name: 'Bob Dupont', email: 'bob@example.com', role: 'Contributor', status: 'Active' },
+    { name: 'Charlie Durand', email: 'charlie@example.com', role: 'Reader', status: 'Inactive' },
+  ];
+
+  // --- Tree View ---
+  protected readonly treeNodes: readonly DsTreeNode[] = [
+    {
+      id: 'rg-1', label: 'rg-production', icon: 'folder',
+      children: [
+        { id: 'app-1', label: 'container-app-api', icon: 'cloud', badge: 'Running' },
+        { id: 'app-2', label: 'container-app-front', icon: 'cloud', badge: 'Running' },
+        { id: 'db-1', label: 'postgres-server', icon: 'storage' },
+      ],
+    },
+    {
+      id: 'rg-2', label: 'rg-staging', icon: 'folder',
+      children: [
+        { id: 'app-3', label: 'container-app-api', icon: 'cloud', badge: 'Stopped', disabled: true },
+      ],
+    },
+  ];
+  protected readonly expandedTreeIds = new Set(['rg-1']);
+
+  // --- Autocomplete ---
+  protected readonly autocompleteOptions = [
+    { value: 'azure', label: 'Azure', icon: 'cloud' },
+    { value: 'aws', label: 'AWS', icon: 'cloud_queue' },
+    { value: 'gcp', label: 'Google Cloud', icon: 'cloud_circle' },
+    { value: 'docker', label: 'Docker', icon: 'inventory_2' },
+    { value: 'kubernetes', label: 'Kubernetes', icon: 'hub' },
+  ];
+
+  // --- Date Picker ---
+  protected readonly dateForm = new FormControl<string | null>(null);
+
+  // --- Option Card ---
+  protected readonly selectedOption = signal<string | null>(null);
 }

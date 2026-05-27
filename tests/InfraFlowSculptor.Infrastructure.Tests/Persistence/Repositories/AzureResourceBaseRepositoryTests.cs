@@ -43,7 +43,7 @@ public sealed class AzureResourceBaseRepositoryTests
 
         await using (var seedContext = CreateContext(databaseName, databaseRoot))
         {
-            await seedContext.AzureResources.AddAsync(resource);
+            seedContext.AzureResources.Add(resource);
             await seedContext.SaveChangesAsync();
         }
 
@@ -80,7 +80,7 @@ public sealed class AzureResourceBaseRepositoryTests
 
         await using (var seedContext = CreateContext(databaseName, databaseRoot))
         {
-            await seedContext.AzureResources.AddAsync(resource);
+            seedContext.AzureResources.Add(resource);
             await seedContext.SaveChangesAsync();
         }
 
@@ -120,7 +120,7 @@ public sealed class AzureResourceBaseRepositoryTests
 
         await using (var seedContext = CreateContext(databaseName, databaseRoot))
         {
-            await seedContext.AzureResources.AddAsync(resource);
+            seedContext.AzureResources.Add(resource);
             await seedContext.SaveChangesAsync();
         }
 

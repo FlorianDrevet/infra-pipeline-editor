@@ -2,6 +2,7 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.CustomDomains.Common;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.GenerationCore;
 
@@ -47,17 +48,40 @@ public sealed class AddCustomDomainCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
+        var certificateMode = ParseCertificateMode(request.CertificateMode);
+
         var result = resource.AddCustomDomain(
             request.EnvironmentName,
             request.DomainName,
-            request.BindingType);
+            certificateMode,
+            request.KeyVaultUrl,
+            request.ManagedIdentityResourceId,
+            request.CertificateName);
 
         if (result.IsError)
             return result.Errors;
 
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken);
+        azureResourceRepository.Update(resource);
 
         var cd = result.Value;
-        return new CustomDomainResult(cd.Id, cd.ResourceId, cd.EnvironmentName, cd.DomainName, cd.BindingType);
+        return new CustomDomainResult(
+            cd.Id,
+            cd.ResourceId,
+            cd.EnvironmentName,
+            cd.DomainName,
+            cd.CertificateMode.Value.ToString(),
+            cd.KeyVaultUrl,
+            cd.ManagedIdentityResourceId,
+            cd.CertificateName,
+            cd.DnsValidationStatus.Value.ToString());
     }
+
+    private static CertificateMode ParseCertificateMode(string mode) => mode switch
+    {
+        "ManagedCertificate" => CertificateMode.ManagedCertificate,
+        "KeyVaultCertificate" => CertificateMode.KeyVaultCertificate,
+        "ManualCertificate" => CertificateMode.ManualCertificate,
+        "Disabled" => CertificateMode.Disabled,
+        _ => CertificateMode.ManagedCertificate,
+    };
 }

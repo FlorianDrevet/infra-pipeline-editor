@@ -45,14 +45,14 @@ public interface IRepository<T>
     /// </summary>
     /// <param name="entity">The entity to add.</param>
     /// <returns>The tracked entity instance.</returns>
-    Task<T> AddAsync(T entity);
+    T Add(T entity);
 
     /// <summary>
     /// Marks an entity as modified in the current unit of work.
     /// </summary>
     /// <param name="entity">The entity to update.</param>
     /// <returns>The tracked entity instance.</returns>
-    Task<T> UpdateAsync(T entity);
+    T Update(T entity);
 
     /// <summary>
     /// Deletes an entity by its identifier.

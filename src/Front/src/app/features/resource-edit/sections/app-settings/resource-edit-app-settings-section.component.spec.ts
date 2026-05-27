@@ -25,6 +25,20 @@ describe('ResourceEditAppSettingsSectionComponent', () => {
     expect(getElement('.empty-state')).not.toBeNull();
   });
 
+  it('renders a padded content shell and design system header actions', () => {
+    fixture.componentRef.setInput('canWrite', true);
+    fixture.componentRef.setInput('environments', [{ id: 'env-1', name: 'dev', order: 1 }]);
+    fixture.componentRef.setInput('section', createSection());
+    fixture.detectChanges();
+
+    const actionButtons = getButtons('.ra-actions app-ds-button button');
+
+    expect(getElement('.tab-content__inner')).not.toBeNull();
+    expect(actionButtons.length).toBe(2);
+    expect(actionButtons[0].className).toContain('ds-btn--primary');
+    expect(actionButtons[1].className).toContain('ds-btn--secondary');
+  });
+
   it('delegates add, import, edit, and remove actions to the section controller', () => {
     const addSetting = jasmine.createSpy('addSetting');
     const importSettings = jasmine.createSpy('importSettings');
@@ -44,8 +58,10 @@ describe('ResourceEditAppSettingsSectionComponent', () => {
     }));
     fixture.detectChanges();
 
-    getButton('.ra-add-btn').click();
-    getButton('.ra-add-btn--secondary').click();
+    const actionButtons = getButtons('.ra-actions app-ds-button button');
+
+    actionButtons[0].click();
+    actionButtons[1].click();
     getButton('.as-row__edit').click();
     getButton('.as-row__delete').click();
 
@@ -57,6 +73,10 @@ describe('ResourceEditAppSettingsSectionComponent', () => {
 
   function getButton(selector: string): HTMLButtonElement {
     return fixture.nativeElement.querySelector(selector) as HTMLButtonElement;
+  }
+
+  function getButtons(selector: string): HTMLButtonElement[] {
+    return Array.from(fixture.nativeElement.querySelectorAll(selector)) as HTMLButtonElement[];
   }
 
   function getElement(selector: string): HTMLElement | null {

@@ -1,0 +1,65 @@
+<div class="repo-connection-form">
+  <div class="repo-connection-form__fields">
+    <app-ds-select
+      [label]="'PROJECT_CREATE.STEP.REPOSITORIES.PROVIDER' | translate"
+      [options]="providerOptions"
+      [required]="true"
+      [ngModel]="providerType()"
+      (ngModelChange)="onProviderChange($event)"
+    />
+
+    <app-ds-text-field
+      [label]="'PROJECT_CREATE.STEP.REPOSITORIES.URL' | translate"
+      [placeholder]="'https://dev.azure.com/org/project/_git/repo'"
+      [required]="true"
+      [ngModel]="repositoryUrl()"
+      (ngModelChange)="onUrlChange($event)"
+    />
+
+    <app-ds-text-field
+      [label]="'PROJECT_CREATE.STEP.LAYOUT.PAT_LABEL' | translate"
+      type="password"
+      [required]="true"
+      [ngModel]="personalAccessToken()"
+      (ngModelChange)="onPatChange($event)"
+    />
+  </div>
+
+  <div class="repo-connection-form__verify-row">
+    <app-ds-button
+      [variant]="verifyButtonVariant()"
+      size="sm"
+      [icon]="verifyButtonIcon()"
+      [disabled]="!canVerify()"
+      [loading]="verificationState() === 'checking'"
+      (clicked)="verifyConnection()"
+    >
+      {{ 'PROJECT_CREATE.STEP.LAYOUT.VERIFY_CONNECTION' | translate }}
+    </app-ds-button>
+
+    @if (verificationStatusKey()) {
+      <span
+        class="repo-connection-form__status"
+        [class.repo-connection-form__status--success]="verificationState() === 'verified'"
+        [class.repo-connection-form__status--error]="verificationState() === 'failed'"
+      >
+        {{ verificationStatusKey() | translate }}
+      </span>
+    }
+  </div>
+
+  @if (verificationState() === 'verified') {
+    <div class="repo-connection-form__branch">
+      <app-ds-autocomplete
+        [label]="'PROJECT_CREATE.STEP.REPOSITORIES.BRANCH' | translate"
+        [options]="branchOptions()"
+        [placeholder]="'main'"
+        [required]="true"
+        [disabled]="isBranchDisabled()"
+        [ngModel]="defaultBranch()"
+        (optionSelected)="onBranchSelected($event)"
+        (searchChanged)="onBranchSearchChanged($event)"
+      />
+    </div>
+  }
+</div>

@@ -6,6 +6,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.GenerationCore;
+using InfraFlowSculptor.PipelineGeneration;
 using InfraFlowSculptor.PipelineGeneration.Models;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBootstrapPipeline;
@@ -15,7 +16,8 @@ namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBootstr
 /// </summary>
 public sealed class ProjectBootstrapDefinitionBuilder(
     IProjectRepository projectRepository,
-    IApplicationFolderNameResolver applicationFolderNameResolver)
+    IApplicationFolderNameResolver applicationFolderNameResolver,
+    IContainerAppRepository containerAppRepository)
     : IProjectBootstrapDefinitionBuilder
 {
     /// <inheritdoc />
@@ -53,11 +55,15 @@ public sealed class ProjectBootstrapDefinitionBuilder(
 
         var bootstrapEnvironments = BuildEnvironmentDefinitions(project.EnvironmentDefinitions, configs);
 
+        var serviceConnections = await BuildServiceConnectionDefinitionsAsync(project, configs, cancellationToken)
+            .ConfigureAwait(false);
+
         return new ProjectBootstrapDefinitions(
             infraPipelines,
             appPipelines,
             variableGroups,
-            bootstrapEnvironments);
+            bootstrapEnvironments,
+            serviceConnections);
     }
 
     private async Task<(IReadOnlyList<BootstrapPipelineDefinition> Infra, IReadOnlyList<BootstrapPipelineDefinition> App)>
@@ -103,15 +109,15 @@ public sealed class ProjectBootstrapDefinitionBuilder(
         return
         [
             new BootstrapPipelineDefinition(
-                Name: $"{sanitizedConfigName} - CI",
+                Name: AzureDevOpsPipelineNameHelper.BuildInfrastructureCiName(sanitizedConfigName),
                 YamlPath: $"/{basePrefix}.azuredevops/{sanitizedConfigName}/ci.pipeline.yml",
                 Folder: $"\\{sanitizedConfigName}"),
             new BootstrapPipelineDefinition(
-                Name: $"{sanitizedConfigName} - PR",
+                Name: AzureDevOpsPipelineNameHelper.BuildInfrastructurePrName(sanitizedConfigName),
                 YamlPath: $"/{basePrefix}.azuredevops/{sanitizedConfigName}/pr.pipeline.yml",
                 Folder: $"\\{sanitizedConfigName}"),
             new BootstrapPipelineDefinition(
-                Name: $"{sanitizedConfigName} - Release",
+                Name: AzureDevOpsPipelineNameHelper.BuildInfrastructureReleaseName(sanitizedConfigName),
                 YamlPath: $"/{basePrefix}.azuredevops/{sanitizedConfigName}/release.pipeline.yml",
                 Folder: $"\\{sanitizedConfigName}"),
         ];
@@ -139,13 +145,18 @@ public sealed class ProjectBootstrapDefinitionBuilder(
             var folder = $"\\{sanitizedConfigName}\\Applications\\{sanitizedAppName}";
 
             pipelines.Add(new BootstrapPipelineDefinition(
-                Name: $"{config.Name} - {resource.Name} - CI",
-                YamlPath: $"{yamlBasePath}/ci.app-pipeline.yml",
+                Name: AzureDevOpsPipelineNameHelper.BuildApplicationCiName(config.Name, resource.Name),
+                YamlPath: $"{yamlBasePath}/{AppPipelineFileNames.Ci}",
                 Folder: folder));
 
             pipelines.Add(new BootstrapPipelineDefinition(
-                Name: $"{config.Name} - {resource.Name} - Release",
-                YamlPath: $"{yamlBasePath}/release.app-pipeline.yml",
+                Name: AzureDevOpsPipelineNameHelper.BuildApplicationPrName(config.Name, resource.Name),
+                YamlPath: $"{yamlBasePath}/{AppPipelineFileNames.Pr}",
+                Folder: folder));
+
+            pipelines.Add(new BootstrapPipelineDefinition(
+                Name: AzureDevOpsPipelineNameHelper.BuildApplicationReleaseName(config.Name, resource.Name),
+                YamlPath: $"{yamlBasePath}/{AppPipelineFileNames.Release}",
                 Folder: folder));
         }
 
@@ -249,5 +260,55 @@ public sealed class ProjectBootstrapDefinitionBuilder(
         return environments
             .Select(environment => groupName.Replace("{env}", environment.ShortName, StringComparison.OrdinalIgnoreCase))
             .Distinct(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private async Task<IReadOnlyList<BootstrapServiceConnectionDefinition>> BuildServiceConnectionDefinitionsAsync(
+        Project project,
+        IReadOnlyList<InfrastructureConfigReadModel> configs,
+        CancellationToken cancellationToken)
+    {
+        var definitions = new List<BootstrapServiceConnectionDefinition>();
+
+        // ARM service connections from project environment definitions.
+        foreach (var env in project.EnvironmentDefinitions.Where(
+                 env => !string.IsNullOrWhiteSpace(env.AzureResourceManagerConnection)))
+        {
+            definitions.Add(new BootstrapServiceConnectionDefinition(
+                env.AzureResourceManagerConnection!,
+                BootstrapServiceConnectionTypes.AzureRM,
+                env.ShortName.Value));
+        }
+
+        // Container Registry service connections from Container App environment settings.
+        var containerAppResourceIds = configs
+            .SelectMany(config => config.ResourceGroups)
+            .SelectMany(rg => rg.Resources)
+            .Where(resource => !resource.IsExisting
+                               && resource.ResourceType == AzureResourceTypes.ArmTypes.ContainerAppType)
+            .Select(resource => new AzureResourceId(resource.Id))
+            .ToList();
+
+        foreach (var resourceId in containerAppResourceIds)
+        {
+            var containerApp = await containerAppRepository.GetByIdReadOnlyAsync(resourceId, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (containerApp is null)
+                continue;
+
+            foreach (var envSettings in containerApp.EnvironmentSettings.Where(
+                         envSettings => !string.IsNullOrWhiteSpace(envSettings.ContainerRegistryServiceConnection)))
+            {
+                definitions.Add(new BootstrapServiceConnectionDefinition(
+                    envSettings.ContainerRegistryServiceConnection!,
+                    BootstrapServiceConnectionTypes.DockerRegistry,
+                    envSettings.EnvironmentName));
+            }
+        }
+
+        return definitions
+            .DistinctBy(sc => sc.Name, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(sc => sc.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 }

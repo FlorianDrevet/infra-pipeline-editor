@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.ServiceBusNamespaces.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.CreateServiceBusNamespace;
 
@@ -41,7 +40,7 @@ public class CreateServiceBusNamespaceCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await serviceBusNamespaceRepository.AddAsync(serviceBusNamespace);
+        var saved = serviceBusNamespaceRepository.Add(serviceBusNamespace);
 
         return mapper.Map<ServiceBusNamespaceResult>(saved);
     }

@@ -14,6 +14,7 @@ using Microsoft.Extensions.Options;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Infrastructure.Auth;
+using InfraFlowSculptor.Application.Common.Diagnostics;
 using InfraFlowSculptor.Infrastructure.DomainEvents;
 using InfraFlowSculptor.Infrastructure.Extensions;
 using InfraFlowSculptor.Infrastructure.Persistence;
@@ -23,15 +24,20 @@ using InfraFlowSculptor.Infrastructure.Services.AzureNameAvailability;
 using InfraFlowSculptor.Infrastructure.Services.BlobService;
 using InfraFlowSculptor.Infrastructure.Services.GitProviders;
 using InfraFlowSculptor.Infrastructure.Services.KeyVault;
+using InfraFlowSculptor.Infrastructure.Services.PipelineDetection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web;
 using Refit;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using InfraFlowSculptor.Application.Common.Interfaces.DomainEvents;
+using InfraFlowSculptor.Application.ContainerApps;
+using InfraFlowSculptor.Application.Projects;
+using InfraFlowSculptor.Infrastructure.Persistence.ReadRepositories;
 
 namespace InfraFlowSculptor.Infrastructure;
 
@@ -60,20 +66,21 @@ public static class DependencyInjection
             .AddRepositories()
             .AddGitProviders(builderConfiguration, hostEnvironment)
             .AddObservability(builderConfiguration, hostEnvironment)
-            .AddDefaultHealthChecks();
+            .AddDefaultHealthChecks(builderConfiguration);
 
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        
+
         services.AddMigration<ProjectDbContext>();
 
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-        
+
         services.AddScoped<ICurrentUser, CurrentUser>();
         services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         services.AddHttpContextAccessor();
 
         services.AddSingleton<IAzureNameAvailabilityChecker, DnsNameAvailabilityChecker>();
+        services.AddScoped<IPipelineOptionDetectionService, PipelineOptionDetectionService>();
 
         return services;
     }
@@ -83,6 +90,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IInfrastructureConfigRepository, InfrastructureConfigRepository>();
         services.AddScoped<IProjectRepository, ProjectRepository>();
+        services.AddScoped<IProjectResourceReadRepository, ProjectResourceReadRepository>();
         services.AddScoped<IKeyVaultRepository, KeyVaultRepository>();
         services.AddScoped<IRedisCacheRepository, RedisCacheRepository>();
         services.AddScoped<IResourceGroupRepository, ResourceGroupRepository>();
@@ -96,6 +104,7 @@ public static class DependencyInjection
         services.AddScoped<IAppConfigurationRepository, AppConfigurationRepository>();
         services.AddScoped<IContainerAppEnvironmentRepository, ContainerAppEnvironmentRepository>();
         services.AddScoped<IContainerAppRepository, ContainerAppRepository>();
+        services.AddScoped<IContainerAppReadRepository, ContainerAppReadRepository>();
         services.AddScoped<ILogAnalyticsWorkspaceRepository, LogAnalyticsWorkspaceRepository>();
         services.AddScoped<IApplicationInsightsRepository, ApplicationInsightsRepository>();
         services.AddScoped<ICosmosDbRepository, CosmosDbRepository>();
@@ -148,7 +157,7 @@ public static class DependencyInjection
     {
         services.AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builderConfiguration.GetSection("AzureAd"));
-        
+
         return services;
     }
 
@@ -201,13 +210,13 @@ public static class DependencyInjection
         services.AddSingleton<IKeyVaultSecretClient, KeyVaultSecretClient>();
 
         services.AddRefitClient<IGitHubTreeApi>(new RefitSettings
-            {
-                ContentSerializer = new SystemTextJsonContentSerializer(
+        {
+            ContentSerializer = new SystemTextJsonContentSerializer(
                     new JsonSerializerOptions(JsonSerializerDefaults.Web)),
-            })
+        })
             .ConfigureHttpClient(c =>
             {
-                c.BaseAddress = new Uri("https://api.github.com");
+                c.BaseAddress = new Uri("https://api.github.com"); // NOSONAR
                 c.DefaultRequestHeaders.UserAgent.Add(
                     new ProductInfoHeaderValue("InfraFlowSculptor", "1.0"));
             });
@@ -242,12 +251,13 @@ public static class DependencyInjection
                 otel.IncludeScopes = true;
             }));
 
-        services.AddOpenTelemetry()
+        var otelBuilder = services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
                 metrics.AddMeter(ExperimentalMcpTelemetryName)
                     .AddMeter(McpTelemetryName)
                     .AddMeter(McpCoreTelemetryName)
+                    .AddMeter(ApplicationMetrics.MeterName)
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation();
@@ -262,22 +272,46 @@ public static class DependencyInjection
                         options.Filter = context =>
                             !context.Request.Path.StartsWithSegments("/health")
                             && !context.Request.Path.StartsWithSegments("/alive"))
-                    .AddHttpClientInstrumentation();
+                    .AddHttpClientInstrumentation()
+                    .AddEntityFrameworkCoreInstrumentation(options =>
+                    {
+                        options.SetDbStatementForText = true;
+                    });
             });
 
+        // Azure Monitor: enabled when APPLICATIONINSIGHTS_CONNECTION_STRING is set
+        var appInsightsConnectionString = configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+        if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
+        {
+            otelBuilder.UseAzureMonitor(options =>
+            {
+                options.ConnectionString = appInsightsConnectionString;
+            });
+        }
+
+        // OTLP exporter for Aspire Dashboard local dev
         var useOtlpExporter = !string.IsNullOrWhiteSpace(configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
         if (useOtlpExporter)
         {
-            services.AddOpenTelemetry().UseOtlpExporter();
+            otelBuilder.UseOtlpExporter();
         }
+
+        // Application metrics singleton
+        services.AddSingleton<ApplicationMetrics>();
 
         return services;
     }
 
-    private static IServiceCollection AddDefaultHealthChecks(this IServiceCollection services)
+    private static IServiceCollection AddDefaultHealthChecks(
+        this IServiceCollection services,
+        ConfigurationManager configuration)
     {
         services.AddHealthChecks()
-            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"])
+            .AddNpgSql(
+                configuration.GetConnectionString("infraDb")!,
+                name: "postgresql",
+                tags: ["ready", "db"]);
 
         return services;
     }

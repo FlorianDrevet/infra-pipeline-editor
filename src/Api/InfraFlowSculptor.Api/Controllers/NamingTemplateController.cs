@@ -10,7 +10,6 @@ using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
@@ -24,7 +23,7 @@ public static class NamingTemplateController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var naming = endpoints.MapGroup("/infra-config/{id:guid}/naming")
+            var naming = endpoints.MapGroup(Routes.InfraConfigNaming)
                 .WithTags("Naming Templates");
 
             naming.MapPut("/default",
@@ -154,7 +153,7 @@ public static class NamingTemplateController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            var nameCheck = endpoints.MapGroup("/naming")
+            var nameCheck = endpoints.MapGroup(Routes.Naming)
                 .WithTags("Naming Templates");
 
             nameCheck.MapPost("/check-availability/{resourceType}",

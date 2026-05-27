@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.StorageAccounts.Commands.CreateStorageAccount;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -51,8 +50,8 @@ public sealed class CreateStorageAccountCommandHandlerTests
             AllowBlobPublicAccess: false,
             EnableHttpsTrafficOnly: true,
             MinimumTlsVersion: nameof(StorageAccountTlsVersion.Version.Tls12));
-        _storageAccountRepository.AddAsync(Arg.Any<StorageAccount>())
-            .Returns(callInfo => Task.FromResult((StorageAccount)callInfo.Args()[0]));
+        _storageAccountRepository.Add(Arg.Any<StorageAccount>())
+            .Returns(callInfo => (StorageAccount)callInfo.Args()[0]);
         _sut = new CreateStorageAccountCommandHandler(
             _storageAccountRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -70,7 +69,7 @@ public sealed class CreateStorageAccountCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _storageAccountRepository.DidNotReceive().AddAsync(Arg.Any<StorageAccount>());
+        _storageAccountRepository.DidNotReceive().Add(Arg.Any<StorageAccount>());
     }
 
     [Fact]
@@ -87,7 +86,7 @@ public sealed class CreateStorageAccountCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _storageAccountRepository.Received(1).AddAsync(Arg.Is<StorageAccount>(s =>
+        _storageAccountRepository.Received(1).Add(Arg.Is<StorageAccount>(s =>
             s.ResourceGroupId == _resourceGroup.Id && s.Name.Value == StorageAccountName));
         _mapper.Received(1).Map<StorageAccountResult>(Arg.Any<StorageAccount>());
     }

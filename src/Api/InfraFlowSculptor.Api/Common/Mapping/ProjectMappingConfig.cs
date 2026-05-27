@@ -1,4 +1,3 @@
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 using InfraFlowSculptor.Contracts.Projects.Requests;
@@ -6,7 +5,6 @@ using InfraFlowSculptor.Contracts.Projects.Responses;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;
@@ -105,7 +103,6 @@ public sealed class ProjectMappingConfig : IRegister
         // ProjectRepository entity -> ProjectRepositoryResult
         config.NewConfig<ProjectRepository, ProjectRepositoryResult>()
             .Map(dest => dest.Id, src => src.Id)
-            .Map(dest => dest.Alias, src => src.Alias.Value)
             .Map(dest => dest.ProviderType, src => src.ProviderType != null ? src.ProviderType.Value.ToString() : null)
             .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
             .Map(dest => dest.Owner, src => src.Owner)
@@ -138,7 +135,6 @@ public sealed class ProjectMappingConfig : IRegister
         // ProjectRepositoryResult -> ProjectRepositoryResponse
         config.NewConfig<ProjectRepositoryResult, ProjectRepositoryResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
-            .Map(dest => dest.Alias, src => src.Alias)
             .Map(dest => dest.ProviderType, src => src.ProviderType)
             .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
             .Map(dest => dest.Owner, src => src.Owner)
@@ -149,6 +145,9 @@ public sealed class ProjectMappingConfig : IRegister
 
         // TestGitConnectionResult -> TestGitConnectionResponse
         config.NewConfig<TestGitConnectionResult, TestGitConnectionResponse>();
+
+        // ProjectRepositoryConnectionVerificationResult -> ProjectRepositoryConnectionVerificationResponse
+        config.NewConfig<ProjectRepositoryConnectionVerificationResult, ProjectRepositoryConnectionVerificationResponse>();
 
         // GitBranchResult -> GitBranchResponse
         config.NewConfig<GitBranchResult, GitBranchResponse>();

@@ -1,12 +1,10 @@
 using System.Net;
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.GitRouting;
-using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Domain.Common.Errors;
-using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.PipelineGeneration;
 using InfraFlowSculptor.PipelineGeneration.Models;
@@ -39,7 +37,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        // Resolve the project-level target (alias "default") for bootstrap artifacts.
+        // Resolve the project-level target for bootstrap artifacts.
         var targetResult = targetResolver.Resolve(project, config: null, ArtifactKind.Bootstrap);
         if (targetResult.IsError)
             return targetResult.Errors;
@@ -80,6 +78,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         var appPipelines = definitions.AppPipelines;
         var variableGroups = definitions.VariableGroups;
         var bootstrapEnvironments = definitions.Environments;
+        var serviceConnections = definitions.ServiceConnections;
 
         var prefix = $"bootstrap/project/{command.ProjectId.Value}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
         var unionFileUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
@@ -99,6 +98,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
                 Pipelines = infraPipelines,
                 Environments = bootstrapEnvironments,
                 VariableGroups = variableGroups,
+                ServiceConnections = serviceConnections,
                 Mode = BootstrapMode.FullOwner,
             };
 
@@ -121,6 +121,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
                 Pipelines = appPipelines,
                 Environments = bootstrapEnvironments,
                 VariableGroups = variableGroups,
+                ServiceConnections = serviceConnections,
                 Mode = BootstrapMode.ApplicationOnly,
             };
 
@@ -149,6 +150,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
                 Pipelines = allPipelines,
                 Environments = bootstrapEnvironments,
                 VariableGroups = variableGroups,
+                ServiceConnections = serviceConnections,
                 Mode = BootstrapMode.FullOwner,
             };
 

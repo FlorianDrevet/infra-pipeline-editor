@@ -1,10 +1,13 @@
-using InfraFlowSculptor.BicepGeneration.Generators.ParameterModels;
 using System.Text.Json.Serialization;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators.ParameterModels.ContainerApp;
 
 internal sealed record ContainerAppParameters
 {
+    [JsonPropertyName("containerImage")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ContainerImage { get; init; }
+
     [JsonPropertyName("containerRuntime")]
     public required ContainerRuntimeParameters ContainerRuntime { get; init; }
 
@@ -19,9 +22,6 @@ internal sealed record ContainerAppParameters
 
     [JsonPropertyName("acrLoginServer")]
     public string? AcrLoginServer { get; init; }
-
-    [JsonPropertyName("acrManagedIdentityClientId")]
-    public string? AcrManagedIdentityClientId { get; init; }
 
     [JsonPropertyName("customDomains")]
     public IReadOnlyList<CustomDomainParameter>? CustomDomains { get; init; }

@@ -11,12 +11,12 @@ if (-not $ContainerId) {
         throw "No running postgres:17.6 container was found. Start the Aspire AppHost first or pass -ContainerId explicitly."
     }
 
-    $matches = @($containers)
-    if ($matches.Count -gt 1) {
-        throw "Multiple PostgreSQL containers were found. Pass -ContainerId explicitly. Found: $($matches -join ', ')"
+    $containerList = @($containers)
+    if ($containerList.Count -gt 1) {
+        throw "Multiple PostgreSQL containers were found. Pass -ContainerId explicitly. Found: $($containerList -join ', ')"
     }
 
-    $ContainerId = ($matches[0] -split ' ')[0]
+    $ContainerId = ($containerList[0] -split ' ')[0]
 }
 
 $sql = @'

@@ -6,7 +6,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -47,8 +46,8 @@ public sealed class CreateAppServicePlanCommandHandlerTests
             new Name(AppServicePlanName),
             new Location(Location.LocationEnum.FranceCentral),
             OsType: nameof(AppServicePlanOsType.AppServicePlanOsTypeEnum.Linux));
-        _appServicePlanRepository.AddAsync(Arg.Any<AppServicePlan>())
-            .Returns(callInfo => Task.FromResult((AppServicePlan)callInfo.Args()[0]));
+        _appServicePlanRepository.Add(Arg.Any<AppServicePlan>())
+            .Returns(callInfo => (AppServicePlan)callInfo.Args()[0]);
         _sut = new CreateAppServicePlanCommandHandler(
             _appServicePlanRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -66,7 +65,7 @@ public sealed class CreateAppServicePlanCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _appServicePlanRepository.DidNotReceive().AddAsync(Arg.Any<AppServicePlan>());
+        _appServicePlanRepository.DidNotReceive().Add(Arg.Any<AppServicePlan>());
     }
 
     [Fact]
@@ -83,7 +82,7 @@ public sealed class CreateAppServicePlanCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _appServicePlanRepository.Received(1).AddAsync(Arg.Is<AppServicePlan>(p =>
+        _appServicePlanRepository.Received(1).Add(Arg.Is<AppServicePlan>(p =>
             p.ResourceGroupId == _resourceGroup.Id
             && p.Name.Value == AppServicePlanName
             && p.OsType.Value == AppServicePlanOsType.AppServicePlanOsTypeEnum.Linux));

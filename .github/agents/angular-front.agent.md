@@ -27,6 +27,10 @@ Tu privilégies aussi le typage fort TypeScript, l'extraction des littéraux mé
 6. Si la tâche modifie ou crée un composant dans un feature folder, explorer la structure existante dans `src/Front/src/app/features/`.
 7. Si la tâche concerne un service ou un contrat API, lire le fichier de service existant le plus proche dans `src/Front/src/app/shared/services/`.
 8. **Analyse d'impact GitNexus** — Avant de modifier un service partagé (`shared/services/`) consommé par plusieurs composants, exécuter `gitnexus_impact(target, "upstream")` pour identifier tous les composants consommateurs. Si risque HIGH → alerter l'utilisateur.
+9. **Suivi plan vivant** — Si un fichier de plan/tracker est fourni (`docs/features/*.md`), le mettre à jour au fil de l'implémentation frontend :
+    - marquer l'étape frontend courante en `In progress` avant de coder ;
+    - après chaque incrément validé, consigner composants/services touchés, typecheck/build/tests et résultat ;
+    - en cas de blocage UX/contrat, consigner le blocage et la prochaine action.
 
 ### Skill UI/UX obligatoire
 
@@ -127,3 +131,4 @@ src/Front/src/app/
 5. Si la zone touchée n'a aucun test et qu'un service critique ou une logique métier est modifié, enregistrer la dette dans `.github/test-debt.md` avec le préfixe `Front/`.
 6. Documenter les nouveaux composants/services/interfaces dans `MEMORY.md` section 13.
 7. Si les contrats API ont changé, mettre à jour les interfaces frontend ET signaler la dépendance dans la PR.
+8. Si un tracker de plan est utilisé, mettre à jour son statut frontend final (`Done` / `In progress` / `Blocked`) avec validations et reste à faire.

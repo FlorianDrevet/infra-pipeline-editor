@@ -5,7 +5,6 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate;
 using MapsterMapper;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.CreateContainerAppEnvironment;
@@ -54,7 +53,7 @@ public sealed class CreateContainerAppEnvironmentCommandHandler(
                 .ToList(),
             isExisting: request.IsExisting);
 
-        var saved = await containerAppEnvironmentRepository.AddAsync(containerAppEnvironment);
+        var saved = containerAppEnvironmentRepository.Add(containerAppEnvironment);
 
         return mapper.Map<ContainerAppEnvironmentResult>(saved);
     }

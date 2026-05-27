@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.SqlDatabases.Commands.CreateSqlDatabase;
 using InfraFlowSculptor.Application.SqlDatabases.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -59,8 +58,8 @@ public sealed class CreateSqlDatabaseCommandHandlerTests
             new Location(Location.LocationEnum.FranceCentral),
             SqlServerId: _sqlServer.Id.Value,
             Collation: Collation);
-        _sqlDatabaseRepository.AddAsync(Arg.Any<SqlDatabase>())
-            .Returns(callInfo => Task.FromResult((SqlDatabase)callInfo.Args()[0]));
+        _sqlDatabaseRepository.Add(Arg.Any<SqlDatabase>())
+            .Returns(callInfo => (SqlDatabase)callInfo.Args()[0]);
         _sut = new CreateSqlDatabaseCommandHandler(
             _sqlDatabaseRepository, _sqlServerRepository, _resourceGroupRepository, _accessService, _mapper);
     }
@@ -78,7 +77,7 @@ public sealed class CreateSqlDatabaseCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _sqlDatabaseRepository.DidNotReceive().AddAsync(Arg.Any<SqlDatabase>());
+        _sqlDatabaseRepository.DidNotReceive().Add(Arg.Any<SqlDatabase>());
     }
 
     [Fact]
@@ -98,7 +97,7 @@ public sealed class CreateSqlDatabaseCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        await _sqlDatabaseRepository.DidNotReceive().AddAsync(Arg.Any<SqlDatabase>());
+        _sqlDatabaseRepository.DidNotReceive().Add(Arg.Any<SqlDatabase>());
     }
 
     [Fact]
@@ -117,7 +116,7 @@ public sealed class CreateSqlDatabaseCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _sqlDatabaseRepository.Received(1).AddAsync(Arg.Is<SqlDatabase>(d =>
+        _sqlDatabaseRepository.Received(1).Add(Arg.Is<SqlDatabase>(d =>
             d.ResourceGroupId == _resourceGroup.Id
             && d.Name.Value == SqlDatabaseName
             && d.SqlServerId == _sqlServer.Id

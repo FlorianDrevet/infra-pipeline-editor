@@ -13,7 +13,7 @@ public sealed class GeneratedArtifactService(IBlobService blobService) : IGenera
     public async Task<(byte[] ZipContent, string FileName)?> DownloadLatestAsync(
         string artifactType, Guid configId, CancellationToken cancellationToken = default)
     {
-        var latestBlobs = await GetLatestBlobsAsync(artifactType, configId);
+        var latestBlobs = await GetLatestBlobsAsync(artifactType, configId, cancellationToken);
         if (latestBlobs is null)
             return null;
 
@@ -41,7 +41,7 @@ public sealed class GeneratedArtifactService(IBlobService blobService) : IGenera
     public async Task<string?> GetFileContentAsync(
         string artifactType, Guid configId, string filePath, CancellationToken cancellationToken = default)
     {
-        var latestBlobs = await GetLatestBlobsAsync(artifactType, configId);
+        var latestBlobs = await GetLatestBlobsAsync(artifactType, configId, cancellationToken);
         if (latestBlobs is null)
             return null;
 
@@ -53,7 +53,7 @@ public sealed class GeneratedArtifactService(IBlobService blobService) : IGenera
     public async Task<IReadOnlyDictionary<string, string>?> GetLatestFilesAsync(
         string artifactType, Guid configId, CancellationToken cancellationToken = default)
     {
-        var latestBlobs = await GetLatestBlobsAsync(artifactType, configId);
+        var latestBlobs = await GetLatestBlobsAsync(artifactType, configId, cancellationToken);
         if (latestBlobs is null)
             return null;
 
@@ -80,7 +80,7 @@ public sealed class GeneratedArtifactService(IBlobService blobService) : IGenera
     }
 
     private async Task<(string LatestPrefix, List<string> Blobs)?> GetLatestBlobsAsync(
-        string artifactType, Guid configId)
+        string artifactType, Guid configId, CancellationToken cancellationToken = default)
     {
         var prefix = $"{artifactType}/{configId}/";
         var allBlobs = await blobService.ListBlobsAsync(prefix);

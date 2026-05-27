@@ -11,7 +11,7 @@ import {
   providedIn: 'root',
 })
 export class ResourceGroupService {
-  private axios = inject(AxiosService);
+  private readonly axios = inject(AxiosService);
 
   getById(id: string): Promise<ResourceGroupResponse> {
     return this.axios.request$<ResourceGroupResponse>(

@@ -5,21 +5,19 @@ import {
   computed,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
+
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AxiosError } from 'axios';
-import { ProjectResponse } from '../../../shared/interfaces/project.interface';
+import {
+  ProjectResponse,
+} from '../../../shared/interfaces/project.interface';
 import {
   ProjectLayoutPreset,
   ProjectRepositoryResponse,
@@ -34,7 +32,10 @@ import {
   RepositoryDialogComponent,
   RepositoryDialogData,
 } from './repository-dialog/repository-dialog.component';
-import { DsOptionCardComponent } from '../../../shared/components/ds';
+import {
+  DsOptionCardComponent,
+} from '../../../shared/components/ds';
+import { extractLayoutRepositoriesApiErrorMessage } from './layout-repositories-api-error';
 
 interface PresetOption {
   value: ProjectLayoutPreset;
@@ -48,6 +49,8 @@ interface RepoSlot {
   readonly labelKey: string;
   readonly repo: ProjectRepositoryResponse | null;
 }
+
+const DEFAULT_LAYOUT_PRESET: ProjectLayoutPreset = 'AllInOne';
 
 const LAYOUT_PRESETS: ReadonlyArray<PresetOption> = [
   {
@@ -70,20 +73,22 @@ const LAYOUT_PRESETS: ReadonlyArray<PresetOption> = [
   },
 ];
 
+function normalizeLayoutPreset(preset?: string): ProjectLayoutPreset {
+  if (preset === 'SplitInfraCode' || preset === 'MultiRepo') {
+    return preset;
+  }
+
+  return DEFAULT_LAYOUT_PRESET;
+}
+
 @Component({
   selector: 'app-layout-repositories',
   standalone: true,
   imports: [
     TranslateModule,
-    MatButtonModule,
-    MatCardModule,
-    MatChipsModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
-    MatTooltipModule,
     DsOptionCardComponent,
   ],
   templateUrl: './layout-repositories.component.html',
@@ -97,18 +102,27 @@ export class LayoutRepositoriesComponent implements OnInit {
   private readonly translate = inject(TranslateService);
 
   readonly projectId = input.required<string>();
+  readonly presetChanged = output<ProjectLayoutPreset>();
+  readonly projectChanged = output<ProjectResponse>();
 
   protected readonly project = signal<ProjectResponse | null>(null);
   protected readonly isLoading = signal(false);
   protected readonly presetSaving = signal(false);
   protected readonly repoActionId = signal<string | null>(null);
+  protected readonly testingRepoId = signal<string | null>(null);
+  protected readonly testResultMap = signal<Record<string, 'success' | 'failure'>>({});
+  protected readonly testErrorMap = signal<Record<string, string>>({});
+  protected readonly optimisticPreset = signal<ProjectLayoutPreset | null>(null);
 
   protected readonly layoutPresets = LAYOUT_PRESETS;
 
   protected readonly currentPreset = computed<ProjectLayoutPreset>(() => {
-    const preset = this.project()?.layoutPreset;
-    if (preset === 'SplitInfraCode' || preset === 'MultiRepo') return preset;
-    return 'AllInOne';
+    const optimisticPreset = this.optimisticPreset();
+    if (optimisticPreset) {
+      return optimisticPreset;
+    }
+
+    return normalizeLayoutPreset(this.project()?.layoutPreset);
   });
 
   protected readonly repositories = computed<ProjectRepositoryResponse[]>(
@@ -137,15 +151,18 @@ export class LayoutRepositoriesComponent implements OnInit {
     ];
   });
 
-  async ngOnInit(): Promise<void> {
-    await this.load();
+  ngOnInit(): void {
+    void this.load();
   }
 
-  private async load(): Promise<void> {
+  private async load(emitProjectChanged = false): Promise<void> {
     this.isLoading.set(true);
     try {
       const project = await this.projectService.getProject(this.projectId());
       this.project.set(project);
+      if (emitProjectChanged) {
+        this.projectChanged.emit(project);
+      }
     } catch {
       this.showError('PROJECT_DETAIL.LAYOUT.LOAD_ERROR');
     } finally {
@@ -153,15 +170,40 @@ export class LayoutRepositoriesComponent implements OnInit {
     }
   }
 
+  private async refreshProjectState(): Promise<void> {
+    this.projectService.invalidateProjectCache(this.projectId());
+    await this.load(true);
+  }
+
   protected async onPresetChange(preset: ProjectLayoutPreset): Promise<void> {
     if (preset === this.currentPreset()) return;
+
+    const previousPreset = this.currentPreset();
+
+    this.optimisticPreset.set(preset);
+    this.presetChanged.emit(preset);
     this.presetSaving.set(true);
+
     try {
       await this.projectService.setLayoutPreset(this.projectId(), preset);
-      await this.load();
+
+      this.project.update((project) => {
+        if (!project) {
+          return project;
+        }
+
+        return {
+          ...project,
+          layoutPreset: preset,
+        };
+      });
+
+      await this.refreshProjectState();
     } catch (error) {
+      this.presetChanged.emit(previousPreset);
       this.showError(this.mapError(error, 'PROJECT_DETAIL.LAYOUT.PRESET_ERROR'));
     } finally {
+      this.optimisticPreset.set(null);
       this.presetSaving.set(false);
     }
   }
@@ -176,7 +218,9 @@ export class LayoutRepositoriesComponent implements OnInit {
     };
     const ref = this.dialog.open(RepositoryDialogComponent, { data, width: '560px' });
     ref.afterClosed().subscribe(async (result) => {
-      if (result) await this.load();
+      if (result) {
+        await this.refreshProjectState();
+      }
     });
   }
 
@@ -189,7 +233,9 @@ export class LayoutRepositoriesComponent implements OnInit {
     };
     const ref = this.dialog.open(RepositoryDialogComponent, { data, width: '560px' });
     ref.afterClosed().subscribe(async (result) => {
-      if (result) await this.load();
+      if (result) {
+        await this.refreshProjectState();
+      }
     });
   }
 
@@ -197,7 +243,7 @@ export class LayoutRepositoriesComponent implements OnInit {
     const data: ConfirmDialogData = {
       titleKey: 'PROJECT_DETAIL.LAYOUT.DELETE_CONFIRM_TITLE',
       messageKey: 'PROJECT_DETAIL.LAYOUT.DELETE_CONFIRM_MESSAGE',
-      messageParams: { alias: repo.alias },
+      messageParams: { repositoryName: this.repositoryDisplayName(repo) },
       confirmKey: 'PROJECT_DETAIL.LAYOUT.DELETE_CONFIRM_YES',
       cancelKey: 'PROJECT_DETAIL.LAYOUT.DELETE_CONFIRM_CANCEL',
     };
@@ -207,7 +253,7 @@ export class LayoutRepositoriesComponent implements OnInit {
       this.repoActionId.set(repo.id);
       try {
         await this.projectService.removeRepository(this.projectId(), repo.id);
-        await this.load();
+        await this.refreshProjectState();
       } catch (error) {
         if (this.isConflict(error)) {
           this.showError('PROJECT_DETAIL.LAYOUT.REPO_DELETE_IN_USE');
@@ -220,8 +266,66 @@ export class LayoutRepositoriesComponent implements OnInit {
     });
   }
 
+  protected async testRepositoryConnection(repo: ProjectRepositoryResponse): Promise<void> {
+    this.repoActionId.set(repo.id);
+    this.testingRepoId.set(repo.id);
+
+    // Clear previous result for this repo
+    this.testResultMap.update((map) => {
+      const next = { ...map };
+      delete next[repo.id];
+      return next;
+    });
+    this.testErrorMap.update((map) => {
+      const next = { ...map };
+      delete next[repo.id];
+      return next;
+    });
+
+    try {
+      const response = await this.projectService.testRepositoryConnection(this.projectId(), repo.id);
+
+      if (response.success) {
+        this.testResultMap.update((map) => ({ ...map, [repo.id]: 'success' }));
+      } else {
+        this.testResultMap.update((map) => ({ ...map, [repo.id]: 'failure' }));
+        if (response.errorMessage) {
+          this.testErrorMap.update((map) => ({ ...map, [repo.id]: response.errorMessage! }));
+        }
+      }
+    } catch (error) {
+      this.testResultMap.update((map) => ({ ...map, [repo.id]: 'failure' }));
+      const errorMessage = this.extractConnectionErrorMessage(error);
+      if (errorMessage) {
+        this.testErrorMap.update((map) => ({ ...map, [repo.id]: errorMessage }));
+      }
+    } finally {
+      this.testingRepoId.set(null);
+      this.repoActionId.set(null);
+    }
+  }
+
+  protected repositoryDisplayName(repo: ProjectRepositoryResponse): string {
+    if (repo.owner && repo.repositoryName) {
+      return `${repo.owner}/${repo.repositoryName}`;
+    }
+
+    return repo.repositoryName ?? repo.repositoryUrl ?? repo.id;
+  }
+
+  protected repositoryProviderLabel(repo: ProjectRepositoryResponse): string {
+    return repo.providerType ?? this.translate.instant('PROJECT_DETAIL.LAYOUT.REPOSITORY_NOT_CONFIGURED');
+  }
+
   private isConflict(error: unknown): boolean {
     return error instanceof AxiosError && error.response?.status === 409;
+  }
+
+  private extractConnectionErrorMessage(error: unknown): string | null {
+    return extractLayoutRepositoriesApiErrorMessage(
+      error,
+      this.translate.instant('PROJECT_DETAIL.LAYOUT.AUTH.CONNECTION_ERROR'),
+    );
   }
 
   private mapError(error: unknown, fallbackKey: string): string {

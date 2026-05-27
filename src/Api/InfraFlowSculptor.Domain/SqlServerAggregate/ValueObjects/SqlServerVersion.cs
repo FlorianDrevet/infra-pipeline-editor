@@ -6,7 +6,7 @@ namespace InfraFlowSculptor.Domain.SqlServerAggregate.ValueObjects;
 public sealed class SqlServerVersion(SqlServerVersion.SqlServerVersionEnum value)
     : EnumValueObject<SqlServerVersion.SqlServerVersionEnum>(value)
 {
-    public enum SqlServerVersionEnum
+    public enum SqlServerVersionEnum // NOSONAR S2344
     {
         /// <summary>SQL Server version 12.0 (default for Azure SQL).</summary>
         V12

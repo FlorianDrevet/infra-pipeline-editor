@@ -3,7 +3,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateInfraConfigRepository;
 using InfraFlowSculptor.Domain.Common.Errors;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -56,7 +55,7 @@ public sealed class UpdateInfraConfigRepositoryCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.GitRepository.InvalidProviderType("Unsupported").Code);
-        await _infrastructureConfigRepository.DidNotReceive().UpdateAsync(Arg.Any<DomainInfrastructureConfig>());
+        _infrastructureConfigRepository.DidNotReceive().Update(Arg.Any<DomainInfrastructureConfig>());
     }
 
     [Fact]
@@ -78,6 +77,6 @@ public sealed class UpdateInfraConfigRepositoryCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.ProjectRepository.NoContentKind().Code);
-        await _infrastructureConfigRepository.DidNotReceive().UpdateAsync(Arg.Any<DomainInfrastructureConfig>());
+        _infrastructureConfigRepository.DidNotReceive().Update(Arg.Any<DomainInfrastructureConfig>());
     }
 }

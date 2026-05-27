@@ -31,7 +31,7 @@ public sealed class UpdatePrivateDnsZoneCommandHandler(
 
         zone.Update(request.Name, request.Location);
 
-        var updated = await privateDnsZoneRepository.UpdateAsync(zone);
+        var updated = privateDnsZoneRepository.Update(zone);
         return mapper.Map<PrivateDnsZoneResult>(updated);
     }
 }

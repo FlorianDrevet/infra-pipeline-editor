@@ -76,7 +76,7 @@ public sealed class AddAppSettingAdditionServiceTests
 
         _projectRepository.GetByIdWithPipelineVariableGroupsAsync(_project.Id, Arg.Any<CancellationToken>())
             .Returns(_project);
-        _azureResourceRepository.UpdateAsync(_resource, Arg.Any<CancellationToken>())
+        _azureResourceRepository.Update(_resource)
             .Returns(_resource);
 
         // Act
@@ -95,8 +95,8 @@ public sealed class AddAppSettingAdditionServiceTests
 
         await _projectRepository.Received(1)
             .GetByIdWithPipelineVariableGroupsAsync(_project.Id, Arg.Any<CancellationToken>());
-        await _azureResourceRepository.Received(1)
-            .UpdateAsync(_resource, Arg.Any<CancellationToken>());
+        _azureResourceRepository.Received(1)
+            .Update(_resource);
         await _azureResourceRepository.DidNotReceive()
             .GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>());
         await _azureResourceRepository.DidNotReceive()
@@ -116,7 +116,7 @@ public sealed class AddAppSettingAdditionServiceTests
             KeyVaultResourceId: null,
             SecretName: null);
 
-        _azureResourceRepository.UpdateAsync(_resource, Arg.Any<CancellationToken>())
+        _azureResourceRepository.Update(_resource)
             .Returns(_resource);
 
         // Act
@@ -134,7 +134,7 @@ public sealed class AddAppSettingAdditionServiceTests
 
         await _projectRepository.DidNotReceive()
             .GetByIdWithPipelineVariableGroupsAsync(Arg.Any<ProjectId>(), Arg.Any<CancellationToken>());
-        await _azureResourceRepository.Received(1)
-            .UpdateAsync(_resource, Arg.Any<CancellationToken>());
+        _azureResourceRepository.Received(1)
+            .Update(_resource);
     }
 }

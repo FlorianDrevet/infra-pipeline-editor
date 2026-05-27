@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.KeyVaults.Commands.UpdateKeyVault;
 
@@ -48,7 +47,7 @@ public class UpdateKeyVaultCommandHandler(
                         ec.Sku is not null ? new Sku(Enum.Parse<Sku.SkuEnum>(ec.Sku)) : (Sku?)null))
                     .ToList());
 
-        var updatedKeyVault = await keyVaultRepository.UpdateAsync(keyVault);
+        var updatedKeyVault = keyVaultRepository.Update(keyVault);
 
         return mapper.Map<KeyVaultResult>(updatedKeyVault);
     }

@@ -32,7 +32,7 @@ public sealed class CreatePrivateDnsZoneCommandHandler(
             request.Location,
             isExisting: request.IsExisting);
 
-        var saved = await privateDnsZoneRepository.AddAsync(zone);
+        var saved = privateDnsZoneRepository.Add(zone);
         return mapper.Map<PrivateDnsZoneResult>(saved);
     }
 }

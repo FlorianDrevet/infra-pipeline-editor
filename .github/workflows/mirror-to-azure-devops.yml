@@ -1,0 +1,151 @@
+name: mirror-to-azure-devops
+
+on:
+  workflow_dispatch:
+  push:
+  create:
+  delete:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mirror-to-azure-devops
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      AZURE_DEVOPS_MIRROR_URL: ${{ vars.AZURE_DEVOPS_MIRROR_URL }}
+      AZURE_DEVOPS_MIRROR_PAT: ${{ secrets.AZURE_DEVOPS_MIRROR_PAT }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate mirror configuration
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          if ([string]::IsNullOrWhiteSpace($env:AZURE_DEVOPS_MIRROR_URL)) {
+            throw 'Repository variable AZURE_DEVOPS_MIRROR_URL is required.'
+          }
+
+          if ([string]::IsNullOrWhiteSpace($env:AZURE_DEVOPS_MIRROR_PAT)) {
+            throw 'Repository secret AZURE_DEVOPS_MIRROR_PAT is required.'
+          }
+
+      - name: Mirror branches and tags to Azure DevOps
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-StrictMode -Version Latest
+
+          function Invoke-Git {
+            param(
+              [Parameter(Mandatory)]
+              [string[]] $Arguments
+            )
+
+            & git @Arguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "Git command failed: git $($Arguments -join ' ')"
+            }
+          }
+
+          function Invoke-GitLines {
+            param(
+              [Parameter(Mandatory)]
+              [string[]] $Arguments
+            )
+
+            $lines = & git @Arguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "Git command failed: git $($Arguments -join ' ')"
+            }
+
+            return $lines
+          }
+
+          $targetRemote = 'azure-devops'
+          $authorizationBytes = [System.Text.Encoding]::ASCII.GetBytes("git:$env:AZURE_DEVOPS_MIRROR_PAT")
+          $authorizationHeader = 'AUTHORIZATION: basic ' + [Convert]::ToBase64String($authorizationBytes)
+
+          if ((Invoke-GitLines @('remote')) -contains $targetRemote) {
+            Invoke-Git @('remote', 'remove', $targetRemote)
+          }
+
+          Invoke-Git @('remote', 'add', $targetRemote, $env:AZURE_DEVOPS_MIRROR_URL)
+          Invoke-Git @('fetch', 'origin', '+refs/heads/*:refs/remotes/origin/*', '--prune')
+          Invoke-Git @('fetch', 'origin', '+refs/tags/*:refs/tags/*', '--prune')
+
+          $sourceBranches = @(Invoke-GitLines @('ls-remote', '--heads', 'origin') |
+            ForEach-Object {
+              if ($_ -match '^(?<sha>[0-9a-f]{40})\s+refs/heads/(?<name>.+)$') {
+                [pscustomobject]@{
+                  Name = $matches['name']
+                  Sha = $matches['sha']
+                }
+              }
+            } |
+            Sort-Object Name -Unique)
+
+          if ($sourceBranches.Count -eq 0) {
+            throw 'No source branches were discovered on origin. Aborting mirror to avoid destructive prune.'
+          }
+
+          $targetBranches = @(Invoke-GitLines @('-c', "http.extraheader=$authorizationHeader", 'ls-remote', '--heads', $targetRemote) |
+            ForEach-Object {
+              if ($_ -match 'refs/heads/(.+)$') {
+                $matches[1]
+              }
+            } |
+            Sort-Object -Unique)
+
+          foreach ($branch in $sourceBranches) {
+            Invoke-Git @('-c', "http.extraheader=$authorizationHeader", 'push', $targetRemote, "+$($branch.Sha):refs/heads/$($branch.Name)")
+          }
+
+          $sourceBranchNames = @($sourceBranches | ForEach-Object { $_.Name })
+          $branchesToDelete = @($targetBranches | Where-Object { $_ -notin $sourceBranchNames })
+          foreach ($branch in $branchesToDelete) {
+            Invoke-Git @('-c', "http.extraheader=$authorizationHeader", 'push', $targetRemote, ":refs/heads/$branch")
+          }
+
+          $sourceTags = @(Invoke-GitLines @('ls-remote', '--tags', '--refs', 'origin') |
+            ForEach-Object {
+              if ($_ -match '^[0-9a-f]{40}\s+refs/tags/(?<name>.+)$') {
+                $matches['name']
+              }
+            } |
+            Sort-Object -Unique)
+
+          $targetTags = @(Invoke-GitLines @('-c', "http.extraheader=$authorizationHeader", 'ls-remote', '--tags', '--refs', $targetRemote) |
+            ForEach-Object {
+              if ($_ -match 'refs/tags/(.+)$') {
+                $matches[1]
+              }
+            } |
+            Sort-Object -Unique)
+
+          foreach ($tag in $sourceTags) {
+            Invoke-Git @('-c', "http.extraheader=$authorizationHeader", 'push', $targetRemote, "+refs/tags/$tag:refs/tags/$tag")
+          }
+
+          $tagsToDelete = @($targetTags | Where-Object { $_ -notin $sourceTags })
+          foreach ($tag in $tagsToDelete) {
+            Invoke-Git @('-c', "http.extraheader=$authorizationHeader", 'push', $targetRemote, ":refs/tags/$tag")
+          }
+
+          @(
+            "Mirrored $($sourceBranchNames.Count) branches to Azure DevOps."
+            "Mirrored $($sourceTags.Count) tags to Azure DevOps."
+            "Pruned $($branchesToDelete.Count) branches missing from GitHub."
+            "Pruned $($tagsToDelete.Count) tags missing from GitHub."
+          ) | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append

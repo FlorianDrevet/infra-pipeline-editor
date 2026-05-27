@@ -38,7 +38,7 @@ public sealed class UpdateFrontDoorCommandHandler(
                     .Select(ec => (ec.EnvironmentName, new FrontDoorSku(Enum.Parse<FrontDoorSku.Sku>(ec.Sku, ignoreCase: true))))
                     .ToList());
 
-        var updated = await frontDoorRepository.UpdateAsync(fd);
+        var updated = frontDoorRepository.Update(fd);
         return mapper.Map<FrontDoorResult>(updated);
     }
 }

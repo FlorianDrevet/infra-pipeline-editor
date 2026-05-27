@@ -7,7 +7,6 @@ using InfraFlowSculptor.Contracts.RedisCaches.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
@@ -21,7 +20,7 @@ public static class RedisCacheController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var config = endpoints.MapGroup("/redis-cache")
+            var config = endpoints.MapGroup(Routes.RedisCache)
                 .WithTags("RedisCaches");
 
             config.MapGet("/{id:guid}",

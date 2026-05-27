@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 
-public class KeyVaultRepository: AzureResourceRepository<KeyVault>, IKeyVaultRepository
+public class KeyVaultRepository : AzureResourceRepository<KeyVault>, IKeyVaultRepository
 {
     public KeyVaultRepository(ProjectDbContext context) : base(context)
     {

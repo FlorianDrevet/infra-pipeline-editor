@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
@@ -31,7 +31,6 @@ using InfraFlowSculptor.Domain.ContainerAppAggregate;
 using InfraFlowSculptor.Domain.ContainerAppAggregate.Entities;
 using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate;
 using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities;
-using InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
 using InfraFlowSculptor.Domain.ApplicationInsightsAggregate.Entities;
 using InfraFlowSculptor.Domain.CosmosDbAggregate;
 using InfraFlowSculptor.Domain.CosmosDbAggregate.Entities;
@@ -47,7 +46,6 @@ using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
-using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
@@ -591,7 +589,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["deploymentMode"] = wa.DeploymentMode.Value.ToString(),
                     ["containerRegistryId"] = wa.ContainerRegistryId?.Value.ToString() ?? "",
                     ["acrAuthMode"] = wa.AcrAuthMode?.Value.ToString() ?? "",
-                    ["dockerImageName"] = wa.DockerImageName ?? ""
+                    ["acrPullIdentityId"] = wa.AcrPullIdentityId?.Value.ToString() ?? "",
+                    ["dockerImageName"] = wa.DockerImageName ?? "",
+                    ["dockerImageValidated"] = wa.DockerImageValidated.ToString().ToLowerInvariant()
                 },
                 waSettings
                     .Where(es => es.WebAppId == wa.Id)
@@ -611,7 +611,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["deploymentMode"] = fa.DeploymentMode.Value.ToString(),
                     ["containerRegistryId"] = fa.ContainerRegistryId?.Value.ToString() ?? "",
                     ["acrAuthMode"] = fa.AcrAuthMode?.Value.ToString() ?? "",
-                    ["dockerImageName"] = fa.DockerImageName ?? ""
+                    ["acrPullIdentityId"] = fa.AcrPullIdentityId?.Value.ToString() ?? "",
+                    ["dockerImageName"] = fa.DockerImageName ?? "",
+                    ["dockerImageValidated"] = fa.DockerImageValidated.ToString().ToLowerInvariant()
                 },
                 faSettings
                     .Where(es => es.FunctionAppId == fa.Id)
@@ -656,7 +658,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["containerAppEnvironmentId"] = ca.ContainerAppEnvironmentId.Value.ToString(),
                     ["containerRegistryId"] = ca.ContainerRegistryId?.Value.ToString() ?? "",
                     ["acrAuthMode"] = ca.AcrAuthMode?.Value.ToString() ?? "",
-                    ["dockerImageName"] = ca.DockerImageName ?? ""
+                    ["acrPullIdentityId"] = ca.AcrPullIdentityId?.Value.ToString() ?? "",
+                    ["dockerImageName"] = ca.DockerImageName ?? "",
+                    ["dockerImageValidated"] = ca.DockerImageValidated.ToString().ToLowerInvariant()
                 },
                 caSettings
                     .Where(es => es.ContainerAppId == ca.Id)
@@ -948,7 +952,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
 
         var resourceCustomDomains = customDomains
             .Where(cd => cd.ResourceId == r.Id)
-            .Select(cd => new CustomDomainReadModel(cd.EnvironmentName, cd.DomainName, cd.BindingType))
+            .Select(cd => new CustomDomainReadModel(cd.EnvironmentName, cd.DomainName, cd.CertificateMode.Value.ToString(), cd.KeyVaultUrl, cd.ManagedIdentityResourceId, cd.CertificateName, cd.DnsValidationStatus.Value.ToString()))
             .ToList();
 
         return readModel with

@@ -1,6 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
 import { DsButtonComponent, DsTextFieldComponent } from '../../../shared/components/ds';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -8,7 +7,6 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import axios from 'axios';
 import { UserAssignedIdentityService } from '../../../shared/services/user-assigned-identity.service';
-import { UserAssignedIdentityResponse } from '../../../shared/interfaces/user-assigned-identity.interface';
 
 export interface CreateUaiDialogData {
   resourceGroupId: string;
@@ -22,11 +20,10 @@ export interface CreateUaiDialogData {
     TranslateModule,
     FormsModule,
     MatDialogModule,
-    MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-      DsButtonComponent,
-      DsTextFieldComponent,
+    DsButtonComponent,
+    DsTextFieldComponent,
   ],
   templateUrl: './create-uai-dialog.component.html',
   styleUrl: './create-uai-dialog.component.scss',

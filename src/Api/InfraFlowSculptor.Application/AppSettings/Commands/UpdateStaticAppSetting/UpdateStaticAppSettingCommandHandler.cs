@@ -65,7 +65,7 @@ public sealed class UpdateStaticAppSettingCommandHandler(
 
         resource.UpdateAppSettingToStatic(request.AppSettingId, request.Name, request.EnvironmentValues);
 
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken);
+        azureResourceRepository.Update(resource);
 
         return ToResult(setting);
     }

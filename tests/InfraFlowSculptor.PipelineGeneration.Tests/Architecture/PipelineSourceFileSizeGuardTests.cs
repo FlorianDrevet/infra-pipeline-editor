@@ -1,5 +1,3 @@
-using FluentAssertions;
-
 namespace InfraFlowSculptor.PipelineGeneration.Tests.Architecture;
 
 public sealed class PipelineSourceFileSizeGuardTests

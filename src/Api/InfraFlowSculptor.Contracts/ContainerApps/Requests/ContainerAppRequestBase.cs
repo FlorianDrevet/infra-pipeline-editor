@@ -28,16 +28,27 @@ public abstract class ContainerAppRequestBase
     [EnumValidation(typeof(AcrAuthMode.AcrAuthModeType))]
     public string? AcrAuthMode { get; init; }
 
+    /// <summary>Optional User Assigned Identity identifier used exclusively for ACR image pull (distinct from the resource-level identity).</summary>
+    [GuidValidation]
+    public Guid? AcrPullIdentityId { get; init; }
+
     /// <summary>Optional base Docker image name (e.g., "myregistry.azurecr.io/myapp/api") without the tag.</summary>
     public string? DockerImageName { get; init; }
 
+    /// <summary>Whether the user has confirmed that the Docker image exists in the container registry.</summary>
+    public bool DockerImageValidated { get; init; }
+
     /// <summary>Relative path to the Dockerfile in the repository for pipeline generation.</summary>
-    [MaxLength(500)]
+    [MaxLength(500), SafeRelativePathValidation]
     public string? DockerfilePath { get; init; }
 
     /// <summary>User-friendly application name displayed in Azure DevOps pipeline runs.</summary>
     [MaxLength(200)]
     public string? ApplicationName { get; init; }
+
+    /// <summary>Relative path to the source code directory used as Docker build context.</summary>
+    [MaxLength(500), SafeRelativePathValidation]
+    public string? SourceCodePath { get; init; }
 
     /// <summary>Optional pipeline step options for CI/CD generation.</summary>
     public PipelineStepOptionsDto? PipelineStepOptions { get; init; }
@@ -45,71 +56,3 @@ public abstract class ContainerAppRequestBase
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<ContainerAppEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }
-
-/// <summary>Typed per-environment configuration entry for a Container App.</summary>
-public class ContainerAppEnvironmentConfigEntry
-{
-    /// <summary>Name of the target environment (e.g., "dev", "staging", "prod").</summary>
-    [Required]
-    public required string EnvironmentName { get; init; }
-
-    /// <summary>Optional CPU cores allocation (e.g., "0.25", "0.5", "1.0", "2.0").</summary>
-    public string? CpuCores { get; init; }
-
-    /// <summary>Optional memory allocation (e.g., "0.5Gi", "1.0Gi", "2.0Gi").</summary>
-    public string? MemoryGi { get; init; }
-
-    /// <summary>Optional minimum number of replicas override.</summary>
-    public int? MinReplicas { get; init; }
-
-    /// <summary>Optional maximum number of replicas override.</summary>
-    public int? MaxReplicas { get; init; }
-
-    /// <summary>Optional flag to enable ingress.</summary>
-    public bool? IngressEnabled { get; init; }
-
-    /// <summary>Optional ingress target port.</summary>
-    public int? IngressTargetPort { get; init; }
-
-    /// <summary>Optional flag for external ingress.</summary>
-    public bool? IngressExternal { get; init; }
-
-    /// <summary>Optional transport method (e.g., "auto", "http", "http2", "tcp").</summary>
-    public string? TransportMethod { get; init; }
-
-    /// <summary>Optional HTTP path for the readiness probe (e.g., "/healthz/ready").</summary>
-    public string? ReadinessProbePath { get; init; }
-
-    /// <summary>Optional port for the readiness probe (1-65535).</summary>
-    public int? ReadinessProbePort { get; init; }
-
-    /// <summary>Optional HTTP path for the liveness probe (e.g., "/healthz/live").</summary>
-    public string? LivenessProbePath { get; init; }
-
-    /// <summary>Optional port for the liveness probe (1-65535).</summary>
-    public int? LivenessProbePort { get; init; }
-
-    /// <summary>Optional HTTP path for the startup probe (e.g., "/healthz/startup").</summary>
-    public string? StartupProbePath { get; init; }
-
-    /// <summary>Optional port for the startup probe (1-65535).</summary>
-    public int? StartupProbePort { get; init; }
-}
-
-/// <summary>Response DTO for a typed per-environment Container App configuration.</summary>
-public record ContainerAppEnvironmentConfigResponse(
-    string EnvironmentName,
-    string? CpuCores,
-    string? MemoryGi,
-    int? MinReplicas,
-    int? MaxReplicas,
-    bool? IngressEnabled,
-    int? IngressTargetPort,
-    bool? IngressExternal,
-    string? TransportMethod,
-    string? ReadinessProbePath = null,
-    int? ReadinessProbePort = null,
-    string? LivenessProbePath = null,
-    int? LivenessProbePort = null,
-    string? StartupProbePath = null,
-    int? StartupProbePort = null);

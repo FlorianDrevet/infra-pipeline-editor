@@ -4,29 +4,17 @@
   @switch (state()) {
     @case ('form') {
       <form [formGroup]="form" class="push-form" (ngSubmit)="onPush()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.BRANCH_NAME' | translate }}</mat-label>
-          <input matInput formControlName="branchName"
-                 [placeholder]="'CONFIG_DETAIL.PUSH_TO_GIT.BRANCH_NAME_PLACEHOLDER' | translate"
-                 [matAutocomplete]="branchAuto" />
-          <mat-autocomplete #branchAuto="matAutocomplete">
-            @if (branchesLoading()) {
-              <mat-option disabled>
-                <div class="branch-loading">
-                  <mat-spinner diameter="18"></mat-spinner>
-                  <span>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.LOADING_BRANCHES' | translate }}</span>
-                </div>
-              </mat-option>
-            } @else {
-              @for (branch of filteredBranches(); track branch) {
-                <mat-option [value]="branch">{{ branch }}</mat-option>
-              }
-              @if (filteredBranches().length === 0) {
-                <mat-option disabled>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.NO_BRANCHES' | translate }}</mat-option>
-              }
-            }
-          </mat-autocomplete>
-        </mat-form-field>
+        <app-ds-autocomplete
+          formControlName="branchName"
+          [label]="'CONFIG_DETAIL.PUSH_TO_GIT.BRANCH_NAME' | translate"
+          [placeholder]="'CONFIG_DETAIL.PUSH_TO_GIT.BRANCH_NAME_PLACEHOLDER' | translate"
+          [options]="branchOptions()"
+          [loading]="branchesLoading()"
+          [loadingStateLabel]="'CONFIG_DETAIL.PUSH_TO_GIT.LOADING_BRANCHES' | translate"
+          [emptyStateLabel]="'CONFIG_DETAIL.PUSH_TO_GIT.NO_BRANCHES' | translate"
+          prefixIcon="account_tree"
+          [clearable]="true"
+          (inputFocused)="showAllBranches()" />
 
         <app-ds-text-field
           formControlName="commitMessage"
@@ -87,7 +75,7 @@
       <button mat-stroked-button type="button" (click)="onClose()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.CLOSE' | translate }}
       </button>
-      <app-ds-button variant="primary" icon="rocket_launch" [disabled]="form.invalid" (clicked)="onPush()">
+      <app-ds-button variant="primary" icon="rocket_launch" [disabled]="form.invalid || branchesLoading()" (clicked)="onPush()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.PUSH' | translate }}
       </app-ds-button>
     }

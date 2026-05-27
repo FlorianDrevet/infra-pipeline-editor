@@ -27,7 +27,17 @@ internal static class AppNamingHelper
     /// <returns>A human-readable CI pipeline definition name.</returns>
     internal static string BuildCiPipelineDefinitionName(AppPipelineGenerationRequest request)
     {
-        return $"{request.ConfigName} - {request.ResourceName} - CI";
+        return AzureDevOpsPipelineNameHelper.BuildApplicationCiName(request.ConfigName, request.ResourceName);
+    }
+
+    /// <summary>
+    /// Builds the PR validation pipeline definition name from the configuration and resource names.
+    /// </summary>
+    /// <param name="request">The application pipeline generation request.</param>
+    /// <returns>A human-readable PR validation pipeline definition name.</returns>
+    internal static string BuildPrPipelineDefinitionName(AppPipelineGenerationRequest request)
+    {
+        return AzureDevOpsPipelineNameHelper.BuildApplicationPrName(request.ConfigName, request.ResourceName);
     }
 
     /// <summary>

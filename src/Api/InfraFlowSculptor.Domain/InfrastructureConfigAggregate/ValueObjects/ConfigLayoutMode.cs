@@ -6,7 +6,7 @@ namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 /// Defines the per-configuration repository layout when the parent project is in
 /// <see cref="ProjectAggregate.ValueObjects.LayoutPresetEnum.MultiRepo"/> mode.
 /// </summary>
-public enum ConfigLayoutModeEnum
+public enum ConfigLayoutModeEnum // NOSONAR S2344
 {
     /// <summary>One single repository hosts both infrastructure and application code for this configuration.</summary>
     AllInOne,

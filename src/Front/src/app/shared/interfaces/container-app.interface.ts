@@ -19,6 +19,7 @@ export interface ContainerAppEnvironmentConfigEntry {
   livenessProbePort?: number | null;
   startupProbePath?: string | null;
   startupProbePort?: number | null;
+  containerRegistryServiceConnection?: string | null;
 }
 
 export interface ContainerAppEnvironmentConfigResponse {
@@ -37,6 +38,7 @@ export interface ContainerAppEnvironmentConfigResponse {
   livenessProbePort: number | null;
   startupProbePath: string | null;
   startupProbePort: number | null;
+  containerRegistryServiceConnection?: string | null;
   isExisting?: boolean;
 }
 
@@ -50,8 +52,11 @@ export interface ContainerAppResponse {
   containerAppEnvironmentId: string;
   containerRegistryId: string | null;
   acrAuthMode?: AcrAuthMode | null;
+  acrPullIdentityId?: string | null;
   dockerImageName: string | null;
+  dockerImageValidated: boolean;
   dockerfilePath: string | null;
+  sourceCodePath?: string | null;
   applicationName: string | null;
   pipelineStepOptions?: PipelineStepOptions | null;
   environmentSettings: ContainerAppEnvironmentConfigResponse[];
@@ -67,8 +72,11 @@ export interface CreateContainerAppRequest {
   containerAppEnvironmentId: string;
   containerRegistryId?: string | null;
   acrAuthMode?: AcrAuthMode | null;
+  acrPullIdentityId?: string | null;
   dockerImageName?: string | null;
+  dockerImageValidated?: boolean;
   dockerfilePath?: string | null;
+  sourceCodePath?: string | null;
   applicationName?: string | null;
   pipelineStepOptions?: PipelineStepOptions | null;
   environmentSettings?: ContainerAppEnvironmentConfigEntry[];
@@ -81,8 +89,11 @@ export interface UpdateContainerAppRequest {
   containerAppEnvironmentId: string;
   containerRegistryId?: string | null;
   acrAuthMode?: AcrAuthMode | null;
+  acrPullIdentityId?: string | null;
   dockerImageName?: string | null;
+  dockerImageValidated?: boolean;
   dockerfilePath?: string | null;
+  sourceCodePath?: string | null;
   applicationName?: string | null;
   pipelineStepOptions?: PipelineStepOptions | null;
   environmentSettings?: ContainerAppEnvironmentConfigEntry[];

@@ -16,9 +16,12 @@ public record ContainerAppResult(
     Guid ContainerAppEnvironmentId,
     Guid? ContainerRegistryId,
     string? AcrAuthMode,
+    Guid? AcrPullIdentityId,
     string? DockerImageName,
+    bool DockerImageValidated,
     string? DockerfilePath,
     string? ApplicationName,
+    string? SourceCodePath,
     PipelineStepOptionsDto? PipelineStepOptions,
     IReadOnlyList<ContainerAppEnvironmentConfigData> EnvironmentSettings,
     bool IsExisting = false

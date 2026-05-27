@@ -41,12 +41,26 @@
   white-space: nowrap;
 }
 
-// --- Subtle scrollbar (kept, retoned for dark) ---
+// --- Subtle scrollbar (V2: slim, padded thumb, hover reveal, Firefox support) ---
 @mixin ifs-scrollbar-soft {
-  &::-webkit-scrollbar { width: 8px; height: 8px; }
+  scrollbar-width: thin;
+  scrollbar-color: var(--ifs-border-subtle) transparent;
+
+  &::-webkit-scrollbar { width: 6px; height: 6px; }
   &::-webkit-scrollbar-thumb {
-    background: $ifs-border-strong;
+    background: var(--ifs-border-subtle);
+    border-radius: $ifs-radius-pill;
+    border: 1px solid transparent;
+    background-clip: content-box;
+    transition: background 0.2s ease;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--ifs-border-strong);
+    background-clip: content-box;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
     border-radius: $ifs-radius-pill;
   }
-  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-corner { background: transparent; }
 }

@@ -2,7 +2,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.SetAgentPool;
 
@@ -25,7 +24,7 @@ public sealed class SetAgentPoolCommandHandler(
             return Errors.Project.NotFoundError(command.ProjectId);
 
         project.SetAgentPoolName(command.AgentPoolName);
-        await projectRepository.UpdateAsync(project);
+        projectRepository.Update(project);
 
         return Result.Success;
     }

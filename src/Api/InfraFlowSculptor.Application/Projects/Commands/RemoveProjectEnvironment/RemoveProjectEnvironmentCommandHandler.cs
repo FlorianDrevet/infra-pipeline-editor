@@ -2,7 +2,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectEnvironment;
 
@@ -28,7 +27,7 @@ public sealed class RemoveProjectEnvironmentCommandHandler(
         if (!removed)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        await projectRepository.UpdateAsync(project);
+        projectRepository.Update(project);
 
         return Result.Deleted;
     }

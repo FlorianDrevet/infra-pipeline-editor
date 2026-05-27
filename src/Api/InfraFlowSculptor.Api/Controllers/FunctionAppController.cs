@@ -7,7 +7,6 @@ using InfraFlowSculptor.Contracts.FunctionApps.Requests;
 using InfraFlowSculptor.Contracts.FunctionApps.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
@@ -23,7 +22,7 @@ public static class FunctionAppController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/function-app")
+            var group = endpoints.MapGroup(Routes.FunctionApp)
                 .WithTags("Function Apps");
 
             group.MapGet("/{id:guid}",

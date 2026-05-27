@@ -24,7 +24,7 @@ public static class RoleAssignmentController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/azure-resources/{resourceId:guid}/role-assignments")
+            var group = endpoints.MapGroup(Routes.AzureResourceRoleAssignments)
                 .WithTags("RoleAssignments");
 
             group.MapGet("",
@@ -210,7 +210,7 @@ public static class RoleAssignmentController
                 });
 
             // Assigned Identity endpoints
-            var identityGroup = endpoints.MapGroup("/azure-resources/{resourceId:guid}/assigned-identity")
+            var identityGroup = endpoints.MapGroup(Routes.AzureResourceAssignedIdentity)
                 .WithTags("AssignedIdentity");
 
             identityGroup.MapPut("",

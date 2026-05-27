@@ -34,9 +34,17 @@ public sealed class ContainerAppConfiguration : IEntityTypeConfiguration<Contain
                         Enum.Parse<AcrAuthMode.AcrAuthModeType>(v)))
             .IsRequired(false);
 
+        builder.Property(x => x.AcrPullIdentityId)
+            .HasConversion(new NullableIdValueConverter<AzureResourceId>())
+            .IsRequired(false);
+
         builder.Property(x => x.DockerImageName)
             .HasMaxLength(512)
             .IsRequired(false);
+
+        builder.Property(x => x.DockerImageValidated)
+            .HasDefaultValue(false)
+            .IsRequired();
 
         builder.Property(x => x.DockerfilePath)
             .HasMaxLength(500)
@@ -44,6 +52,10 @@ public sealed class ContainerAppConfiguration : IEntityTypeConfiguration<Contain
 
         builder.Property(x => x.ApplicationName)
             .HasMaxLength(200)
+            .IsRequired(false);
+
+        builder.Property(x => x.SourceCodePath)
+            .HasMaxLength(500)
             .IsRequired(false);
 
         builder.OwnsOne(x => x.PipelineStepOptions, AppPipelineStepOptionsConfiguration.Configure);

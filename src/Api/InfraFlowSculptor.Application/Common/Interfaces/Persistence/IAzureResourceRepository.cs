@@ -43,7 +43,7 @@ public interface IAzureResourceRepository
     Task<AzureResource?> GetByIdWithPrivateEndpointsReadOnlyAsync(AzureResourceId id, CancellationToken cancellationToken = default);
 
     Task<bool> ExistsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
-    Task<AzureResource> UpdateAsync(AzureResource resource, CancellationToken cancellationToken = default);
+    AzureResource Update(AzureResource resource);
 
     /// <summary>
     /// Returns all role assignments that reference the specified User-Assigned Identity.

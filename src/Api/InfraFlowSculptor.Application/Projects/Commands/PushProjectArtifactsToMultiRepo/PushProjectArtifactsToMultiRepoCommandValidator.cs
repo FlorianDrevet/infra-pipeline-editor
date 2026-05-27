@@ -16,9 +16,8 @@ public sealed class PushProjectArtifactsToMultiRepoCommandValidator : AbstractVa
 
         When(x => x.Infra != null, () =>
         {
-            RuleFor(x => x.Infra!.Alias)
-                .NotEmpty().WithMessage("Infra alias is required.")
-                .MaximumLength(255).WithMessage("Infra alias must not exceed 255 characters.");
+            RuleFor(x => x.Infra!.RepositoryId.Value)
+                .NotEmpty().WithMessage("Infra repository id is required.");
             RuleFor(x => x.Infra!.BranchName)
                 .NotEmpty().WithMessage("Infra branch name is required.")
                 .MaximumLength(255).WithMessage("Infra branch name must not exceed 255 characters.");
@@ -29,9 +28,8 @@ public sealed class PushProjectArtifactsToMultiRepoCommandValidator : AbstractVa
 
         When(x => x.Code != null, () =>
         {
-            RuleFor(x => x.Code!.Alias)
-                .NotEmpty().WithMessage("Code alias is required.")
-                .MaximumLength(255).WithMessage("Code alias must not exceed 255 characters.");
+            RuleFor(x => x.Code!.RepositoryId.Value)
+                .NotEmpty().WithMessage("Code repository id is required.");
             RuleFor(x => x.Code!.BranchName)
                 .NotEmpty().WithMessage("Code branch name is required.")
                 .MaximumLength(255).WithMessage("Code branch name must not exceed 255 characters.");

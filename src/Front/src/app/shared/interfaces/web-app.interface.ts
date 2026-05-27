@@ -29,7 +29,9 @@ export interface WebAppResponse {
   deploymentMode: string;
   containerRegistryId: string | null;
   acrAuthMode?: AcrAuthMode | null;
+  acrPullIdentityId?: string | null;
   dockerImageName: string | null;
+  dockerImageValidated: boolean;
   dockerfilePath: string | null;
   sourceCodePath: string | null;
   buildCommand: string | null;
@@ -50,10 +52,13 @@ export interface CreateWebAppRequest {
   name: string;
   location: string;
   appServicePlanId: string;
+  isExisting?: boolean;
   deploymentMode?: string;
   containerRegistryId?: string | null;
   acrAuthMode?: AcrAuthMode | null;
+  acrPullIdentityId?: string | null;
   dockerImageName?: string | null;
+  dockerImageValidated?: boolean;
   dockerfilePath?: string | null;
   sourceCodePath?: string | null;
   buildCommand?: string | null;
@@ -73,7 +78,9 @@ export interface UpdateWebAppRequest {
   deploymentMode?: string;
   containerRegistryId?: string | null;
   acrAuthMode?: AcrAuthMode | null;
+  acrPullIdentityId?: string | null;
   dockerImageName?: string | null;
+  dockerImageValidated?: boolean;
   dockerfilePath?: string | null;
   sourceCodePath?: string | null;
   buildCommand?: string | null;

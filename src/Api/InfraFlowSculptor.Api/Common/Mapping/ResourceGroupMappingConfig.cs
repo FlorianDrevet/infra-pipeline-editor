@@ -15,7 +15,7 @@ public sealed class ResourceGroupMappingConfig : IRegister
 
         config.NewConfig<ResourceGroupId, string>()
             .MapWith(src => src.Value.ToString());
-        
+
         config.NewConfig<Guid, ResourceGroupId>()
             .MapWith(src => ResourceGroupId.Create(src));
 

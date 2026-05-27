@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.Projects.Commands.AddProjectMember;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
-using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using MapsterMapper;
 using NSubstitute;
@@ -30,8 +29,8 @@ public sealed class AddProjectMemberCommandHandlerTests
 
         _accessService.VerifyOwnerAccessAsync(_project.Id, Arg.Any<CancellationToken>())
             .Returns(_project);
-        _projectRepository.UpdateAsync(Arg.Any<Project>())
-            .Returns(callInfo => Task.FromResult((Project)callInfo.Args()[0]));
+        _projectRepository.Update(Arg.Any<Project>())
+            .Returns(callInfo => (Project)callInfo.Args()[0]);
         _mapper.Map<ProjectResult>(Arg.Any<Project>())
             .Returns(callInfo => CreateProjectResult((Project)callInfo.Args()[0]));
 
@@ -50,7 +49,7 @@ public sealed class AddProjectMemberCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _projectRepository.Received(1).UpdateAsync(Arg.Is<Project>(project =>
+        _projectRepository.Received(1).Update(Arg.Is<Project>(project =>
             project.Members.Any(member =>
                 member.UserId == UserId.Create(userId)
                 && member.Role.Value == Role.RoleEnum.Contributor)));

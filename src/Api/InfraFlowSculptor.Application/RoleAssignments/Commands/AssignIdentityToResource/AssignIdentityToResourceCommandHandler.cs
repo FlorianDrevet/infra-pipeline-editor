@@ -3,7 +3,6 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using InfraFlowSculptor.Domain.Common.Errors;
 
 namespace InfraFlowSculptor.Application.RoleAssignments.Commands.AssignIdentityToResource;
 
@@ -54,7 +53,7 @@ public sealed class AssignIdentityToResourceCommandHandler(
             resource.RemoveRoleAssignment(dup.Id);
         }
 
-        await azureResourceRepository.UpdateAsync(resource, cancellationToken);
+        azureResourceRepository.Update(resource);
 
         return new Success();
     }

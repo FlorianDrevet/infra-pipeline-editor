@@ -303,7 +303,7 @@ public sealed class StorageAccount : AzureResource
 
     /// <summary>Creates a new Storage Account with resource-level configuration.</summary>
     /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
-    public static StorageAccount Create(
+    public static StorageAccount Create( // NOSONAR S107
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,

@@ -32,7 +32,7 @@ public sealed class CreateNetworkSecurityGroupCommandHandler(
             request.Location,
             isExisting: request.IsExisting);
 
-        var saved = await nsgRepository.AddAsync(nsg);
+        var saved = nsgRepository.Add(nsg);
         return mapper.Map<NetworkSecurityGroupResult>(saved);
     }
 }

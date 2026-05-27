@@ -8,7 +8,6 @@ using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.FunctionAppAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.FunctionApps.Commands.UpdateFunctionApp;
 
@@ -58,7 +57,10 @@ public sealed class UpdateFunctionAppCommandHandler(
             !string.IsNullOrWhiteSpace(request.AcrAuthMode)
                 ? new AcrAuthMode(Enum.Parse<AcrAuthMode.AcrAuthModeType>(request.AcrAuthMode))
                 : null,
-            request.DockerImageName, request.DockerfilePath, request.SourceCodePath, request.BuildCommand, request.ApplicationName);
+            request.AcrPullIdentityId.HasValue
+                ? new AzureResourceId(request.AcrPullIdentityId.Value)
+                : null,
+            request.DockerImageName, request.DockerImageValidated, request.DockerfilePath, request.SourceCodePath, request.BuildCommand, request.ApplicationName);
 
         if (request.EnvironmentSettings is not null)
             functionApp.SetAllEnvironmentSettings(
@@ -74,7 +76,7 @@ public sealed class UpdateFunctionAppCommandHandler(
             functionApp.PipelineStepOptions.Update(PipelineStepOptionsDataMapper.ToDomainData(opts));
         }
 
-        var updated = await functionAppRepository.UpdateAsync(functionApp);
+        var updated = functionAppRepository.Update(functionApp);
 
         return mapper.Map<FunctionAppResult>(updated);
     }

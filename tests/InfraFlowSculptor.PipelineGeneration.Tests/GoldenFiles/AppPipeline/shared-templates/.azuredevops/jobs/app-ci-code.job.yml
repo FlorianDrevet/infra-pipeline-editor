@@ -27,9 +27,72 @@ parameters:
   - name: buildCommand
     type: string
     default: ''
+  - name: runUnitTests
+    type: boolean
+    default: false
+  - name: testFramework
+    type: string
+    default: ''
+  - name: testResultsFormat
+    type: string
+    default: 'VSTest'
+  - name: testResultsPath
+    type: string
+    default: '$(Common.TestResultsDirectory)/**/*.trx'
+  - name: publishTestResults
+    type: boolean
+    default: false
+  - name: publishCodeCoverage
+    type: boolean
+    default: false
+  - name: coverageTool
+    type: string
+    default: 'Cobertura'
+  - name: coverageReportPath
+    type: string
+    default: '$(Common.TestResultsDirectory)/**/coverage.cobertura.xml'
   - name: promotionStrategy
     type: string
     default: 'AcrImport'
+  - name: enableDependencyCache
+    type: boolean
+    default: false
+  - name: runDependencyScan
+    type: boolean
+    default: false
+  - name: dependencyScanTool
+    type: string
+    default: 'OWASPDependencyCheck'
+  - name: runSonarAnalysis
+    type: boolean
+    default: false
+  - name: sonarProjectKey
+    type: string
+    default: ''
+  - name: sonarOrganization
+    type: string
+    default: ''
+  - name: sonarServiceConnection
+    type: string
+    default: ''
+  - name: runLinting
+    type: boolean
+    default: false
+  - name: lintCommand
+    type: string
+    default: ''
+  - name: runLicenseCheck
+    type: boolean
+    default: false
+  - name: licenseCheckTool
+    type: string
+    default: 'license-checker'
+  - name: enableNotifications
+    type: boolean
+    default: false
+  - name: notificationWebhookUrl
+    type: string
+    default: ''
 
 jobs:
   - job: BuildAndPublish
@@ -53,12 +116,51 @@ jobs:
           runtimeStack: ${{ parameters.runtimeStack }}
           runtimeVersion: ${{ parameters.runtimeVersion }}
 
+      - ${{ if parameters.enableDependencyCache }}:
+        - template: ../steps/app-dependency-cache.step.yml
+          parameters:
+            runtimeStack: ${{ parameters.runtimeStack }}
+
       - template: ../steps/app-build-code.step.yml
         parameters:
           runtimeStack: ${{ parameters.runtimeStack }}
           sourcePath: ${{ parameters.sourcePath }}
           testCommand: ${{ parameters.testCommand }}
           buildCommand: ${{ parameters.buildCommand }}
+          runUnitTests: ${{ parameters.runUnitTests }}
+          testFramework: ${{ parameters.testFramework }}
+          testResultsFormat: ${{ parameters.testResultsFormat }}
+          testResultsPath: ${{ parameters.testResultsPath }}
+          publishTestResults: ${{ parameters.publishTestResults }}
+          publishCodeCoverage: ${{ parameters.publishCodeCoverage }}
+          coverageTool: ${{ parameters.coverageTool }}
+          coverageReportPath: ${{ parameters.coverageReportPath }}
+
+      - ${{ if parameters.runDependencyScan }}:
+        - template: ../steps/app-dependency-scan.step.yml
+          parameters:
+            dependencyScanTool: ${{ parameters.dependencyScanTool }}
+            runtimeStack: ${{ parameters.runtimeStack }}
+            sourcePath: ${{ parameters.sourcePath }}
+
+      - ${{ if parameters.runSonarAnalysis }}:
+        - template: ../steps/app-sonar-analysis.step.yml
+          parameters:
+            sonarProjectKey: ${{ parameters.sonarProjectKey }}
+            sonarOrganization: ${{ parameters.sonarOrganization }}
+            sonarServiceConnection: ${{ parameters.sonarServiceConnection }}
+
+      - ${{ if parameters.runLinting }}:
+        - template: ../steps/app-linting.step.yml
+          parameters:
+            lintCommand: ${{ parameters.lintCommand }}
+
+      - ${{ if parameters.runLicenseCheck }}:
+        - template: ../steps/app-license-check.step.yml
+          parameters:
+            licenseCheckTool: ${{ parameters.licenseCheckTool }}
+            runtimeStack: ${{ parameters.runtimeStack }}
+            sourcePath: ${{ parameters.sourcePath }}
 
       - task: PublishPipelineArtifact@1
         displayName: 'Publish app metadata'
@@ -71,3 +173,8 @@ jobs:
         inputs:
           targetPath: '$(Build.ArtifactStagingDirectory)/application-package'
           artifact: 'application-package'
+
+      - ${{ if parameters.enableNotifications }}:
+        - template: ../steps/app-notification.step.yml
+          parameters:
+            notificationWebhookUrl: ${{ parameters.notificationWebhookUrl }}

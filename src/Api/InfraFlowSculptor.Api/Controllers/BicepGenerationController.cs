@@ -21,7 +21,7 @@ public static class BicepGenerationController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup("/generate-bicep")
+            var group = endpoints.MapGroup(Routes.GenerateBicep)
                 .WithTags("Generate Bicep");
 
             group.MapPost("",

@@ -2,7 +2,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Projects.Common;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
 

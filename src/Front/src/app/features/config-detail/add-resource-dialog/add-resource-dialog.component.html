@@ -173,8 +173,8 @@
                   <mat-icon class="name-availability-env__icon">
                     @switch (env.status) {
                       @case ('available') { check_circle }
-                      @case ('unavailable') { error }
-                      @case ('invalid') { warning }
+                      @case ('unavailable') { warning }
+                      @case ('invalid') { error }
                       @default { help }
                     }
                   </mat-icon>
@@ -185,7 +185,7 @@
                     @switch (env.status) {
                       @case ('available') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_AVAILABLE' | translate }} }
                       @case ('unavailable') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_UNAVAILABLE' | translate }} }
-                      @case ('invalid') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_INVALID' | translate }} }
+                      @case ('invalid') { {{ env.message || ('RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_INVALID' | translate) }} }
                       @default { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_UNKNOWN' | translate }} }
                     }
                   </span>
@@ -193,7 +193,7 @@
               }
             </div>
 
-            @if (isSubmitBlockedByNameAvailability() && nameAvailabilityOverallState() !== 'checking') {
+            @if (isSubmitBlockedByNameAvailability() && nameAvailabilityOverallState() === 'has-unavailable') {
               <div class="name-availability-override">
                 <span class="name-availability-override__text">{{ 'RESOURCE_EDIT.ACTIONS.NAME_OVERRIDE_HINT' | translate }}</span>
                 <button type="button" class="name-availability-override__btn" (click)="overrideNameAvailability()">
@@ -751,9 +751,9 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting() || isCreatingPlan()">
+  <app-ds-button variant="ghost" (clicked)="onCancel()" [disabled]="isSubmitting() || isCreatingPlan()">
     {{ 'CONFIG_DETAIL.RESOURCES.FORM.CANCEL' | translate }}
-  </button>
+  </app-ds-button>
   @if (step() === 'create-plan') {
     <app-ds-button
       variant="primary"

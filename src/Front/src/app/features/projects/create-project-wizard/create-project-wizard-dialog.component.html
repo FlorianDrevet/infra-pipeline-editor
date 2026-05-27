@@ -72,15 +72,6 @@
       ></app-environment-step>
     </mat-step>
 
-    @if (needsRepositoriesStep()) {
-      <mat-step [completed]="repositoriesValid()" [editable]="true" [label]="'PROJECT_CREATE.STEP.REPOSITORIES.LABEL' | translate">
-        <app-repositories-step
-          [(draft)]="draft"
-          (validityChange)="onRepositoriesValidity($event)"
-        ></app-repositories-step>
-      </mat-step>
-    }
-
     <mat-step [label]="'PROJECT_CREATE.STEP.REVIEW.LABEL' | translate">
       @if (submitErrorText()) {
         <div class="wizard__submit-error">
@@ -103,7 +94,7 @@
       </app-ds-button>
     }
 
-    @if (activeStepIndex() === reviewStepIndex()) {
+    @if (activeStepIndex() === 3) {
       <app-ds-button
         variant="primary"
         icon="rocket_launch"

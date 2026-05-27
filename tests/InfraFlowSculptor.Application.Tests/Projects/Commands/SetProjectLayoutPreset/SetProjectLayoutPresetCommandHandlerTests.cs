@@ -43,6 +43,6 @@ public sealed class SetProjectLayoutPresetCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.Project.InvalidLayoutPreset("Unsupported").Code);
-        await _projectRepository.DidNotReceive().UpdateAsync(Arg.Any<Project>());
+        _projectRepository.DidNotReceive().Update(Arg.Any<Project>());
     }
 }

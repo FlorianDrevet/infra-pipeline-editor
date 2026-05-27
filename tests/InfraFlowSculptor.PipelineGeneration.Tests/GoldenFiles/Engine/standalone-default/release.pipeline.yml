@@ -6,7 +6,7 @@ trigger: none
 resources:
   pipelines:
     - pipeline: ci
-      source: 'core - CI'
+      source: '[Infra] core - CI'
       trigger: none
 
 variables:

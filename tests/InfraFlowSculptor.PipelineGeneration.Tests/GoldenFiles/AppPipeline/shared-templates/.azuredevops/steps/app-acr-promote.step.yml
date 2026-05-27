@@ -14,13 +14,22 @@ steps:
     displayName: 'Promote image in ACR'
     inputs:
       azureSubscription: $(azureResourceManagerConnection)
-      scriptType: bash
+      scriptType: ps
       scriptLocation: inlineScript
       inlineScript: |
-        set -euo pipefail
-        imageRepository="$(ImageRepository)"
-        if [ -z "$imageRepository" ] || [ "$imageRepository" = '$(ImageRepository)' ]; then imageRepository="${{ parameters.imageRepository }}"; fi
-        if [ "${{ parameters.promotionStrategy }}" = "AcrImport" ] && [ "$(containerRegistryLoginServer)" != "$(SourceRegistryLoginServer)" ]; then
-          az acr import --name "$(containerRegistryName)" --source "$(SourceRegistryLoginServer)/${imageRepository}:$(ReleaseTag)" --image "${imageRepository}:$(ReleaseTag)" --force
-        fi
-        az acr import --name "$(containerRegistryName)" --source "$(containerRegistryLoginServer)/${imageRepository}:$(ReleaseTag)" --image "${imageRepository}:env-${{ parameters.envShortName }}" --force
+        $imageRepository = '$(ImageRepository)'
+        if ([string]::IsNullOrWhiteSpace($imageRepository) -or $imageRepository -eq '$(ImageRepository)') {
+            $imageRepository = '${{ parameters.imageRepository }}'
+        }
+
+        if ('${{ parameters.promotionStrategy }}' -eq 'AcrImport' -and '$(containerRegistryLoginServer)' -ne '$(SourceRegistryLoginServer)') {
+            az acr import --name "$(containerRegistryName)" --source "$(SourceRegistryLoginServer)/$imageRepository:$(ReleaseTag)" --image "$imageRepository:$(ReleaseTag)" --force
+            if ($LASTEXITCODE -ne 0) {
+                throw 'ACR immutable tag promotion failed.'
+            }
+        }
+
+        az acr import --name "$(containerRegistryName)" --source "$(containerRegistryLoginServer)/$imageRepository:$(ReleaseTag)" --image "$imageRepository:env-${{ parameters.envShortName }}" --force
+        if ($LASTEXITCODE -ne 0) {
+            throw 'ACR environment tag promotion failed.'
+        }

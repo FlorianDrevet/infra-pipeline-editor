@@ -1,7 +1,6 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -21,6 +20,10 @@ public sealed class AzureDevOpsGitProviderService(
     : IGitProviderService, IGitMultiScopePushProviderService
 {
     private const string ApiVersion = "7.1";
+    private const string ChangeTypeAdd = "add";
+    private const string ChangeTypeDelete = "delete";
+    private const string ChangeTypeEdit = "edit";
+    private const string ContentTypeRawText = "rawtext";
 
     /// <inheritdoc />
     public async Task<ErrorOr<TestGitConnectionResult>> TestConnectionAsync(
@@ -192,19 +195,17 @@ public sealed class AzureDevOpsGitProviderService(
         return (existingFilePaths, allExistingFilesInCleanupRoots);
     }
 
-    private static List<object> BuildChangeList(
+    private static List<AzureDevOpsPushChange> BuildChangeList(
         PreparedAzureDevOpsPush pushData,
         (HashSet<string> ExistingFilePaths, HashSet<string> AllExistingFilesInCleanupRoots) existing)
     {
-        var changes = new List<object>(pushData.FilesByPath.Count + existing.AllExistingFilesInCleanupRoots.Count);
+        var changes = new List<AzureDevOpsPushChange>(pushData.FilesByPath.Count + existing.AllExistingFilesInCleanupRoots.Count);
         foreach (var (filePath, content) in pushData.FilesByPath)
         {
-            changes.Add(new
-            {
-                changeType = existing.ExistingFilePaths.Contains(filePath) ? "edit" : "add",
-                item = new { path = $"/{filePath}" },
-                newContent = new { content, contentType = "rawtext" },
-            });
+            changes.Add(new AzureDevOpsPushChange(
+                existing.ExistingFilePaths.Contains(filePath) ? ChangeTypeEdit : ChangeTypeAdd,
+                new AzureDevOpsPushItem($"/{filePath}"),
+                new AzureDevOpsPushContent(content, ContentTypeRawText)));
         }
 
         foreach (var existingFile in existing.AllExistingFilesInCleanupRoots)
@@ -212,11 +213,10 @@ public sealed class AzureDevOpsGitProviderService(
             if (pushData.FilesByPath.ContainsKey(existingFile))
                 continue;
 
-            changes.Add(new
-            {
-                changeType = "delete",
-                item = new { path = $"/{existingFile}" },
-            });
+            changes.Add(new AzureDevOpsPushChange(
+                ChangeTypeDelete,
+                new AzureDevOpsPushItem($"/{existingFile}"),
+                NewContent: null));
         }
 
         return changes;
@@ -415,6 +415,76 @@ public sealed class AzureDevOpsGitProviderService(
         }
     }
 
+    /// <inheritdoc />
+    public async Task<ErrorOr<IReadOnlyList<GitFileResult>>> SearchDirectoriesAsync(
+        string token, string owner, string repositoryName,
+        string branch, string? pathPrefix,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var client = CreateClient(token);
+            var (org, project) = ParseOwner(owner);
+
+            var url = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{repositoryName}/items?recursionLevel=full&versionDescriptor.version={Uri.EscapeDataString(branch)}&versionDescriptor.versionType=branch&api-version={ApiVersion}";
+            var response = await client.GetFromJsonAsync<AdoItemList>(url, cancellationToken);
+
+            var results = (response?.Value ?? [])
+                .Where(item => item is { IsFolder: true, Path: not null })
+                .Where(item =>
+                {
+                    var path = item.Path!.TrimStart('/');
+                    if (string.IsNullOrEmpty(path))
+                        return false;
+                    var name = System.IO.Path.GetFileName(path);
+                    if (name.StartsWith('.'))
+                        return false;
+                    return string.IsNullOrEmpty(pathPrefix)
+                        || path.StartsWith(pathPrefix, StringComparison.OrdinalIgnoreCase);
+                })
+                .Select(item =>
+                {
+                    var path = item.Path!.TrimStart('/');
+                    var name = System.IO.Path.GetFileName(path);
+                    return new GitFileResult(path, name);
+                })
+                .ToList();
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            return Errors.GitRepository.SearchFilesFailed(ex.Message);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<ErrorOr<string?>> GetFileContentAsync(
+        string token, string owner, string repositoryName,
+        string branch, string filePath,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var client = CreateClient(token);
+            var (org, project) = ParseOwner(owner);
+
+            var escapedPath = Uri.EscapeDataString(filePath);
+            var url = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{repositoryName}/items?path={escapedPath}&versionDescriptor.version={Uri.EscapeDataString(branch)}&versionDescriptor.versionType=branch&api-version={ApiVersion}";
+
+            var response = await client.GetAsync(url, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                return (string?)null;
+
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            return content;
+        }
+        catch (Exception ex)
+        {
+            return Errors.GitRepository.SearchFilesFailed(ex.Message);
+        }
+    }
+
     private HttpClient CreateClient(string token)
     {
         var client = httpClientFactory.CreateClient();
@@ -488,7 +558,21 @@ public sealed class AzureDevOpsGitProviderService(
         PreparedAzureDevOpsPush PushData,
         string ParentSha,
         bool TargetBranchExists,
-        List<object> Changes);
+        List<AzureDevOpsPushChange> Changes);
+
+    private sealed record AzureDevOpsPushChange(
+        [property: JsonPropertyName("changeType")] string ChangeType,
+        [property: JsonPropertyName("item")] AzureDevOpsPushItem Item,
+        [property: JsonPropertyName("newContent")]
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        AzureDevOpsPushContent? NewContent);
+
+    private sealed record AzureDevOpsPushItem(
+        [property: JsonPropertyName("path")] string Path);
+
+    private sealed record AzureDevOpsPushContent(
+        [property: JsonPropertyName("content")] string Content,
+        [property: JsonPropertyName("contentType")] string ContentType);
 
     // â”€â”€â”€ ADO API response models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

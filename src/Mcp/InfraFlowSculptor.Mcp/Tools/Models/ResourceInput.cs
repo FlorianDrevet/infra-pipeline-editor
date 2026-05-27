@@ -17,4 +17,7 @@ public sealed class ResourceInput
 
     /// <summary>Gets optional extracted properties for overriding default values.</summary>
     public IReadOnlyDictionary<string, object?>? ExtractedProperties { get; init; }
+
+    /// <summary>Gets the suggested application stack for compute resources (e.g. "DotNet", "NodeJs").</summary>
+    public string? ApplicationStack { get; init; }
 }

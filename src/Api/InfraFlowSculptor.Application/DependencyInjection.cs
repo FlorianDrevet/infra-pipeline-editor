@@ -41,8 +41,10 @@ public static class DependencyInjection
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssemblies(typeof(DependencyInjection).Assembly, Assembly.GetExecutingAssembly()));
 
-        // Behaviors (order matters: Validation runs first, then UoW wraps the handler)
+        // Behaviors (order matters: Logging wraps all, then Validation, then PAT scope, then UoW)
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(PersonalAccessTokenScopeBehavior<,>));
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
 
         // Validators
@@ -70,6 +72,9 @@ public static class DependencyInjection
 
         // V2 multi-repo Git routing
         services.AddScoped<IRepositoryTargetResolver, RepositoryTargetResolver>();
+
+        // Git repo query helper (shared setup for branch/file query handlers)
+        services.AddScoped<IGitRepoQueryHelper, GitRepoQueryHelper>();
 
         // Role assignment domain services
         services.AddScoped<IRoleAssignmentDomainService, RoleAssignmentDomainService>();
@@ -143,6 +148,8 @@ public static class DependencyInjection
         services.AddScoped<IDiagnosticRule, AcrPullDiagnosticRule>();
         services.AddScoped<IDiagnosticRule, KeyVaultAccessDiagnosticRule>();
         services.AddScoped<IDiagnosticRule, NameAvailabilityDiagnosticRule>();
+        services.AddScoped<IDiagnosticRule, DockerImageNotSetDiagnosticRule>();
+        services.AddScoped<IDiagnosticRule, DockerImageNotValidatedDiagnosticRule>();
 
         return services;
     }

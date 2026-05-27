@@ -1,7 +1,6 @@
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ParameterDefinition;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -23,6 +22,10 @@ public sealed class InfrastructureConfigConfiguration
         builder.HasKey(x => x.Id);
 
         builder.ConfigureAggregateRootId<InfrastructureConfig, InfrastructureConfigId>();
+
+        builder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .IsRowVersion();
 
         builder.Property(x => x.Name)
             .HasConversion(new SingleValueConverter<Name, string>())

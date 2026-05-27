@@ -19,7 +19,7 @@
   &:hover:not(.picker-trigger--disabled) {
     background: rgba(58, 180, 217, 0.15);
     border-color: var(--ifs-accent-500);
-    color: #0a4f95;
+    color: var(--ifs-accent-700, #063a6e);
   }
 
   &--disabled {
@@ -63,27 +63,6 @@
     margin-bottom: 8px;
   }
 
-  &__select {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--ifs-border-strong);
-    border-radius: 8px;
-    background: var(--ifs-surface-3);
-    color: #0d2f66;
-    font-size: 14px;
-    outline: none;
-
-    &:focus {
-      border-color: var(--ifs-accent-500);
-      box-shadow: 0 0 0 3px rgba(58, 180, 217, 0.15);
-    }
-
-    option {
-      background: var(--ifs-surface-3);
-      color: #0d2f66;
-    }
-  }
-
   &__loading {
     display: flex;
     align-items: center;
@@ -107,7 +86,7 @@
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.15s ease;
-    color: #0d2f66;
+    color: var(--ifs-text-primary);
 
     &:hover,
     &:focus {

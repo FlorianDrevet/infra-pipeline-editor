@@ -3,31 +3,36 @@ import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import {
   ensureProjectArchiveEntrySizeWithinLimits,
   ensureProjectArchiveSourceSizeWithinLimits,
-  resolveProjectDetailSplitRepoAliases,
+  resolveProjectDetailSplitRepoTargets,
   tryGetProjectArchiveEntryUncompressedSize,
 } from './project-detail-generation.helper';
 import { ProjectRepositoryResponse } from '../../shared/interfaces/project-repository.interface';
 
 describe('project detail generation helper', () => {
-  it('returns the infrastructure and application repository aliases for split infra/code layouts', () => {
-    const aliases = resolveProjectDetailSplitRepoAliases(createProject({
+  it('returns the infrastructure and application repository ids for split infra/code layouts', () => {
+    const targets = resolveProjectDetailSplitRepoTargets(createProject({
       repositories: [
-        createRepository({ alias: 'infra', contentKinds: ['Infrastructure'] }),
-        createRepository({ alias: 'app', contentKinds: ['ApplicationCode'] }),
+        createRepository({ id: 'repo-infra', repositoryName: 'infra', contentKinds: ['Infrastructure'] }),
+        createRepository({ id: 'repo-app', repositoryName: 'app', contentKinds: ['ApplicationCode'] }),
       ],
     }));
 
-    expect(aliases).toEqual({ infraAlias: 'infra', codeAlias: 'app' });
+    expect(targets).toEqual({
+      infraRepositoryId: 'repo-infra',
+      codeRepositoryId: 'repo-app',
+      infraRepositoryLabel: 'org/infra',
+      codeRepositoryLabel: 'org/app',
+    });
   });
 
   it('returns null when one split repository slot is missing', () => {
-    const aliases = resolveProjectDetailSplitRepoAliases(createProject({
+    const targets = resolveProjectDetailSplitRepoTargets(createProject({
       repositories: [
-        createRepository({ alias: 'infra', contentKinds: ['Infrastructure'] }),
+        createRepository({ id: 'repo-infra', repositoryName: 'infra', contentKinds: ['Infrastructure'] }),
       ],
     }));
 
-    expect(aliases).toBeNull();
+    expect(targets).toBeNull();
   });
 
   it('reads the uncompressed size when JSZip exposes it on the entry metadata', () => {
@@ -76,12 +81,12 @@ function createProject(overrides: Partial<ProjectResponse>): ProjectResponse {
 function createRepository(overrides: Partial<ProjectRepositoryResponse>): ProjectRepositoryResponse {
   return {
     id: 'repo-1',
-    alias: 'default',
     providerType: 'AzureDevOps',
     repositoryUrl: 'https://dev.azure.com/org/project/_git/repository',
     owner: 'org',
     repositoryName: 'repository',
     defaultBranch: 'main',
+    isConfigured: true,
     contentKinds: ['Infrastructure'],
     ...overrides,
   };

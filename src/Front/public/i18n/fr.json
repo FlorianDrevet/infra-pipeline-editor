@@ -1,4 +1,4 @@
-{
+﻿{
   "LANGUAGE": {
     "FRENCH_SHORT": "FR",
     "ENGLISH_SHORT": "EN"
@@ -32,8 +32,6 @@
   "SIDEBAR": {
     "BRAND_ARIA": "Ouvrir la page d'accueil InfraFlowSculptor",
     "NAV_ARIA": "Navigation principale",
-    "COLLAPSE_ARIA": "Réduire la navigation",
-    "EXPAND_ARIA": "Étendre la navigation",
     "HOME": "Accueil",
     "PROJECTS": "Projets",
     "SETTINGS": "Paramètres",
@@ -51,7 +49,9 @@
       "CONFIGURATIONS": "Configurations",
       "ENVIRONMENTS": "Environnements",
       "NAMING": "Modèles de nommage",
+      "TAGS": "Tags",
       "VARIABLES": "Variables pipeline",
+      "GENERATION_CONFIG": "Configuration",
       "GENERATION": "Génération",
       "MEMBERS": "Membres",
       "GIT": "Dépôts Git",
@@ -188,7 +188,14 @@
         "SPLIT_TITLE": "Infra / Code séparés",
         "SPLIT_DESC": "Deux repositories distincts: un pour l'infra, un pour le code.",
         "MULTI_TITLE": "Multi-repository",
-        "MULTI_DESC": "Repositories définis par configuration. Pour les setups avancés."
+        "MULTI_DESC": "Repositories définis par configuration. Pour les setups avancés.",
+        "REPOS_TITLE": "Connexion aux repositories",
+        "REPOS_HINT": "Connectez vos dépôts Git pour vérifier l'accès. Vous pouvez laisser vide et configurer plus tard.",
+        "VERIFY_CONNECTION": "Vérifier la connexion",
+        "VERIFICATION_CHECKING": "Vérification en cours…",
+        "VERIFICATION_SUCCESS": "Connexion vérifiée",
+        "VERIFICATION_FAILED": "Échec de la vérification",
+        "PAT_LABEL": "Personal Access Token"
       },
       "ENVIRONMENTS": {
         "LABEL": "Environnements",
@@ -214,8 +221,6 @@
         "MAIN": "Repository principal",
         "INFRA": "Repository infrastructure",
         "APP": "Repository application",
-        "ALIAS": "Alias",
-        "ALIAS_HINT": "Lettres minuscules, chiffres et tirets uniquement",
         "PROVIDER": "Fournisseur Git",
         "URL": "URL du repository",
         "BRANCH": "Branche par défaut",
@@ -340,15 +345,12 @@
       "ADD_SLOT": "Ajouter le dépôt",
       "DELETE_ERROR": "Impossible de supprimer le dépôt.",
       "LAYOUT_MODE_SAVE_ERROR": "Impossible d'enregistrer le mode de dépôt de la configuration.",
+      "UNCONFIGURED": "Non configuré",
       "SLOT_INFRASTRUCTURE": "Dépôt pour l'infrastructure",
       "SLOT_APPLICATION_CODE": "Dépôt pour le code applicatif",
       "DIALOG": {
         "TITLE_CREATE": "Ajouter un dépôt",
         "TITLE_EDIT": "Modifier le dépôt",
-        "ALIAS": "Alias",
-        "ALIAS_PLACEHOLDER": "ex : infra-app ou app-code",
-        "ALIAS_HINT": "Lettres minuscules, chiffres et tirets uniquement.",
-        "ALIAS_PATTERN_ERROR": "Seules les lettres minuscules, les chiffres et les tirets sont autorisés.",
         "PROVIDER": "Fournisseur",
         "REPO_URL": "URL du dépôt",
         "REPO_URL_PLACEHOLDER": "https://github.com/org/repo",
@@ -778,6 +780,7 @@
       "RETRY": "Reessayer",
       "DOWNLOAD": "Telecharger tous les fichiers",
       "DOWNLOADING": "Telechargement...",
+      "BACK_TO_FILE_LIST": "Retour a la liste des fichiers",
       "FILE_LOADING": "Chargement du fichier...",
       "FILE_ERROR": "Impossible de charger le contenu du fichier.",
       "WARNINGS_TITLE": "Avertissements de configuration détectés"
@@ -787,7 +790,9 @@
       "UNKNOWN_RULE": "{{ruleCode}} : {{target}}",
       "ACR_PULL_MISSING": "Rôle AcrPull manquant sur {{target}}",
       "KEY_VAULT_ACCESS_MISSING": "Rôle Key Vault Secrets User manquant sur {{target}}",
-      "NAME_UNAVAILABLE": "Nom déjà pris sur Azure : {{target}}"
+      "NAME_UNAVAILABLE": "Nom déjà pris sur Azure : {{target}}",
+      "DOCKER_IMAGE_NOT_SET": "Aucune image Docker configurée pour {{target}} — une image par défaut (pause) sera utilisée",
+      "DOCKER_IMAGE_NOT_VALIDATED": "Image Docker non validée pour {{target}} — une image par défaut (pause) sera utilisée tant que l'image n'est pas confirmée"
     },
     "GENERATION": {
       "TITLE": "Résultats de génération",
@@ -929,6 +934,82 @@
   "RESOURCE_LIST": {
     "EXISTING_BADGE": "Existant"
   },
+  "PROJECT_MEMBERS": {
+    "TITLE": "Membres du projet",
+    "SUBTITLE": "Gérez les accès et permissions des membres de {{project}} ({{count}} membre(s))",
+    "BREADCRUMB": "Membres",
+    "ADD": "Ajouter un membre",
+    "REMOVE": "Retirer",
+    "SEARCH_PLACEHOLDER": "Rechercher un membre...",
+    "EMPTY": "Aucun membre dans ce projet.",
+    "NO_RESULTS": "Aucun résultat pour cette recherche.",
+    "COL_USER": "Utilisateur",
+    "COL_ROLE": "Rôle",
+    "ROLE_OWNER": "Propriétaire",
+    "ROLE_CONTRIBUTOR": "Contributeur",
+    "ROLE_READER": "Lecteur",
+    "ROLE_DESC_OWNER": "Accès complet : gestion des membres, paramètres, configurations et génération.",
+    "ROLE_DESC_CONTRIBUTOR": "Peut modifier les configurations, ressources et lancer la génération.",
+    "ROLE_DESC_READER": "Accès en lecture seule à l'ensemble du projet.",
+    "REMOVE_CONFIRM_TITLE": "Retirer le membre",
+    "REMOVE_CONFIRM_MESSAGE": "Voulez-vous vraiment retirer {{name}} de ce projet ?",
+    "REMOVE_CONFIRM_YES": "Retirer",
+    "REMOVE_CONFIRM_CANCEL": "Annuler",
+    "REMOVE_ERROR": "Impossible de retirer le membre.",
+    "ROLE_CHANGE_ERROR": "Impossible de modifier le rôle.",
+    "STATE": {
+      "LOADING": "Chargement des membres..."
+    },
+    "ERROR": {
+      "NO_ID": "Identifiant de projet manquant.",
+      "LOAD_FAILED": "Impossible de charger les membres."
+    },
+    "ACTIONS": {
+      "BACK": "Retour"
+    }
+  },
+  "PROJECT_SETTINGS": {
+    "TITLE": "Paramètres du projet",
+    "SUBTITLE": "Configuration avancée de {{project}}",
+    "BREADCRUMB": "Paramètres",
+    "UPCOMING": "Bientôt disponible",
+    "AGENT_POOL": {
+      "TITLE": "Pool d'agents",
+      "DESCRIPTION": "Définissez un pool d'agents personnalisé pour les pipelines générés. Par défaut, le pool Microsoft-hosted est utilisé.",
+      "USE_CUSTOM": "Utiliser un pool personnalisé",
+      "POOL_NAME": "Nom du pool",
+      "POOL_HINT": "Ex : my-self-hosted-pool",
+      "SAVE": "Enregistrer",
+      "SAVE_SUCCESS": "Pool d'agents mis à jour.",
+      "SAVE_ERROR": "Impossible de mettre à jour le pool d'agents."
+    },
+    "NOTIFICATIONS": {
+      "TITLE": "Notifications",
+      "DESCRIPTION": "Configurez les webhooks et alertes lors de la génération ou de modifications de ressources."
+    },
+    "AUTO_GENERATION": {
+      "TITLE": "Génération automatique",
+      "DESCRIPTION": "Déclenchez automatiquement la génération Bicep/Pipeline lorsqu'une configuration est modifiée."
+    },
+    "RETENTION": {
+      "TITLE": "Politique de rétention",
+      "DESCRIPTION": "Définissez la durée de conservation des artefacts générés (Bicep, pipelines, bootstrap)."
+    },
+    "SERVICE_CONNECTIONS": {
+      "TITLE": "Connexions de service",
+      "DESCRIPTION": "Gérez les service principals et tokens utilisés pour le déploiement automatisé."
+    },
+    "STATE": {
+      "LOADING": "Chargement des paramètres..."
+    },
+    "ERROR": {
+      "NO_ID": "Identifiant de projet manquant.",
+      "LOAD_FAILED": "Impossible de charger les paramètres."
+    },
+    "ACTIONS": {
+      "BACK": "Retour"
+    }
+  },
   "PROJECT_DETAIL": {
     "HEADER": {
       "OVERLINE": "Detail du projet"
@@ -937,15 +1018,20 @@
       "CONFIGURATIONS": "Configurations",
       "ENVIRONMENTS": "Environnements",
       "NAMING_TEMPLATES": "Nommage",
-      "MEMBERS": "Membres",
+      "TAGS": "Tags",
       "PIPELINE_VARIABLES": "Variables Pipeline",
-      "GIT": "Git",
-      "SETTINGS": "Parametres"
+      "GIT": "Git"
     },
     "GENERATE_ALL": {
       "BUTTON": "Générer",
       "VALIDATING": "Vérification en cours...",
       "PUSH_TO_GIT": "Tout pousser vers Git"
+    },
+    "GENERATION_CONFIG": {
+      "PAGE_TITLE": "Configurer la génération",
+      "PAGE_SUBTITLE": "Choisissez le layout de déploiement et configurez les dépôts cibles pour la génération des artefacts.",
+      "BREADCRUMB_CURRENT": "Configuration",
+      "NAVIGATE_GENERATE": "Générer"
     },
     "BOARD": {
       "LOADING": "Chargement de la topologie des dépôts...",
@@ -955,12 +1041,18 @@
       "PROJECT_PLACEHOLDER": "Projet courant",
       "BREADCRUMB_CURRENT": "Générer",
       "OPEN_PROJECT": "Ouvrir le projet",
+      "CONFIGURE": "Configurer",
+      "READY_TITLE": "Prêt à générer",
+      "READY_DESC": "Lancez la génération pour produire les artefacts Bicep, Pipeline et Bootstrap de votre projet.",
       "LAYOUT_PRESET_UNKNOWN": "Layout inconnu",
       "SUMMARY_LAYOUT": "Layout dépôt",
       "SUMMARY_REPOSITORIES": "Dépôts",
       "SUMMARY_CONFIGS": "Configurations",
       "SUMMARY_RESOURCE_GROUPS": "Groupes de ressources",
       "SUMMARY_RESOURCES": "Ressources",
+      "SUMMARY_APPLICATIONS": "Applications",
+      "SUMMARY_PIPELINE_SCOPES": "Périmètres pipeline",
+      "SUMMARY_SHARED_PIPELINES": "Pipelines mutualisés",
       "EMPTY_TITLE": "Aucun dépôt configuré",
       "EMPTY_DESC": "Configurez d'abord les dépôts au niveau projet pour générer les artefacts par dépôt.",
       "EMPTY_CONFIGS_TITLE": "Aucune configuration à générer pour le moment",
@@ -977,6 +1069,12 @@
       "CONFIG_RESOURCES": "{{count}} ressources",
       "CONFIG_GENERATE": "Ouvrir la configuration",
       "GENERATE_ALL_CONFIGS": "Générer toutes les configurations",
+      "LOAD_LAST_GENERATION": "Afficher la dernière génération",
+      "HISTORICAL_GENERATION_TITLE": "Vous consultez une génération précédente",
+      "HISTORICAL_GENERATION_DESCRIPTION": "Artefacts chargés depuis la génération du {{generatedAt}}.",
+      "HISTORICAL_GENERATION_ACTION": "Relancer une génération",
+      "LAST_GENERATION_EXPIRED": "Aucune génération précédente disponible. Les fichiers ont expiré ou aucune génération n'a encore été effectuée.",
+      "LAST_GENERATION_ERROR": "Impossible de charger la dernière génération. Veuillez réessayer.",
       "NO_GIT_CONFIG": "Aucun dépôt au niveau projet n'est configuré.",
       "LOAD_ERROR": "Impossible de charger la topologie des dépôts.",
       "PUSH_AMBIGUOUS_DESC": "Ce push ne peut pas être lancé au niveau projet car les artefacts générés ciblent plusieurs dépôts."
@@ -1095,6 +1193,7 @@
       "GENERATE": "Générer Bootstrap",
       "GENERATING": "Génération en cours...",
       "DOWNLOAD": "Télécharger Bootstrap",
+      "DOWNLOADING": "Téléchargement du bootstrap...",
       "PUSH_TO_GIT": "Pousser bootstrap.pipeline.yml vers Git",
       "NO_FILES": "Aucun fichier bootstrap généré",
       "ARTIFACTS": "sortie",
@@ -1184,16 +1283,44 @@
       "REMOVE": "Supprimer",
       "EMPTY": "Aucun environnement defini pour ce projet.",
       "LOCATION": "Localisation",
+      "ORDER": "Ordre",
+      "SHORT_NAME": "Nom court",
+      "PREFIX": "Prefixe",
+      "SUFFIX": "Suffixe",
+      "TENANT_ID": "Tenant ID",
+      "SUBSCRIPTION_ID": "Subscription ID",
+      "REQUIRES_APPROVAL": "Approbation",
+      "ARM_CONNECTION": "Connexion Azure",
+      "NOT_CONFIGURED": "Non configure",
+      "NO_TAGS": "Aucun tag defini pour cet environnement.",
+      "META": {
+        "ORDER": "Ordre {{order}}",
+        "APPROVAL_REQUIRED": "Approbation requise",
+        "STANDARD_RELEASE": "Deploiement standard"
+      },
+      "SECTIONS": {
+        "OVERVIEW": {
+          "TITLE": "General",
+          "DESCRIPTION": "Identifiants principaux et portee de l'abonnement Azure."
+        },
+        "NAMING": {
+          "TITLE": "Nommage",
+          "DESCRIPTION": "Prefixe et suffixe appliques aux noms generes."
+        },
+        "GOVERNANCE": {
+          "TITLE": "Gouvernance",
+          "DESCRIPTION": "Controles de deploiement et liaison de connexion Azure."
+        },
+        "TAGS": {
+          "TITLE": "Tags",
+          "DESCRIPTION": "Metadonnees propagees avec cet environnement."
+        }
+      },
       "REMOVE_CONFIRM_TITLE": "Supprimer l'environnement",
       "REMOVE_CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer l'environnement « {{name}} » ?",
       "REMOVE_CONFIRM_YES": "Supprimer",
       "REMOVE_CONFIRM_CANCEL": "Annuler",
       "REMOVE_ERROR": "Impossible de supprimer l'environnement.",
-      "ORDER": "Ordre",
-      "TENANT_ID": "Tenant ID",
-      "SUBSCRIPTION_ID": "Subscription ID",      "SHORT_NAME": "Nom court",      "PREFIX": "Prefixe",
-      "SUFFIX": "Suffixe",
-      "REQUIRES_APPROVAL": "Approbation",
       "ADD_DIALOG_TITLE": "Ajouter un environnement",
       "EDIT_DIALOG_TITLE": "Modifier l'environnement",
       "ADD_DIALOG_ERROR": "Impossible d'ajouter l'environnement. Veuillez reessayer.",
@@ -1386,6 +1513,18 @@
     },
     "LAYOUT": {
       "TAB_TITLE": "Layout & dépôts",
+      "AUTH": {
+        "TITLE": "Authentification du projet",
+        "DESCRIPTION": "Configurez le jeton d'accès personnel au niveau du projet utilisé pour tester ou pousser les dépôts depuis cet écran de topologie.",
+        "SHARED_SCOPE": "PAT au scope projet",
+        "SHARED_SCOPE_DETAIL": "Ce jeton est partagé entre tous les dépôts du projet. Il n'est pas configuré dépôt par dépôt.",
+        "REPLACE_HINT": "Enregistrer un nouveau jeton remplace le PAT partagé actuellement stocké pour ce projet.",
+        "CTA": "Configurer le PAT",
+        "CTA_SHORT": "PAT",
+        "DIALOG_TITLE": "Configurer le PAT du dépôt",
+        "CONNECTION_ERROR": "Impossible de tester la connexion du dépôt pour le moment.",
+        "SAVE_ERROR": "Impossible d'enregistrer le PAT du dépôt."
+      },
       "PRESET": "Preset de layout",
       "PRESET_HELP": "Choisissez comment l'infrastructure et le code applicatif sont répartis entre les dépôts Git.",
       "PRESET_ALL_IN_ONE": "Tout-en-un (mono-repo)",
@@ -1426,9 +1565,10 @@
       "REPO_DELETE_IN_USE": "Suppression impossible : ce dépôt est lié à une ou plusieurs configurations.",
       "DELETE_ERROR": "Impossible de supprimer le dépôt.",
       "DELETE_CONFIRM_TITLE": "Supprimer le dépôt",
-      "DELETE_CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer le dépôt \"{{alias}}\" ?",
+      "DELETE_CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer le dépôt \"{{repositoryName}}\" ?",
       "DELETE_CONFIRM_YES": "Supprimer",
       "DELETE_CONFIRM_CANCEL": "Annuler",
+      "REPOSITORY_NOT_CONFIGURED": "Non configuré",
       "LOAD_ERROR": "Impossible de charger les données du projet.",
       "INVALID_VALUE": "Valeur invalide.",
       "DIALOG_ERROR": "Impossible d'enregistrer le dépôt.",
@@ -1438,14 +1578,22 @@
         "Pipelines": "Pipelines"
       },
       "FORM": {
-        "ALIAS": "Alias",
-        "ALIAS_PLACEHOLDER": "ex : infra, app, pipelines",
-        "ALIAS_HINT": "Lettres minuscules, chiffres et tirets uniquement. Ne peut pas être modifié après la création.",
-        "ALIAS_PATTERN_ERROR": "Seules les lettres minuscules, les chiffres et les tirets sont autorisés.",
         "PROVIDER": "Fournisseur",
         "REPO_URL": "URL du dépôt",
         "REPO_URL_PLACEHOLDER": "https://github.com/org/repo",
+        "PAT": "Jeton d'accès personnel",
+        "PAT_PLACEHOLDER": "Collez le PAT du dépôt",
+        "PAT_CREATE_HINT": "Requis pour vérifier et enregistrer ce dépôt.",
+        "PAT_EDIT_HINT": "Laissez vide pour réutiliser le jeton stocké, ou collez un nouveau jeton pour le remplacer à l'enregistrement.",
+        "VERIFY": "Vérifier la connexion",
+        "VERIFY_CHECKING": "Vérification de l'accès au dépôt...",
+        "VERIFY_SUCCESS": "Dépôt vérifié. Choisissez une branche dans la liste vérifiée.",
+        "VERIFY_FAILED": "Impossible de vérifier ce dépôt.",
         "DEFAULT_BRANCH": "Branche par défaut",
+        "DEFAULT_BRANCH_PLACEHOLDER": "Rechercher une branche vérifiée",
+        "DEFAULT_BRANCH_HINT": "Vérifiez le dépôt avant de choisir une branche.",
+        "DEFAULT_BRANCH_EMPTY": "Aucune branche vérifiée ne correspond à cette recherche",
+        "DEFAULT_BRANCH_UNVERIFIED": "Choisissez une branche vérifiée.",
         "CONTENT_KINDS": "Types de contenu",
         "CONTENT_KIND_LOCKED": "Imposé par le slot de layout sélectionné",
         "CONTENT_KINDS_REQUIRED": "Au moins un type de contenu est requis.",
@@ -1519,10 +1667,18 @@
       "APPLICATION_NAME_HINT": "Nom affich\u00e9 dans Azure DevOps lors des ex\u00e9cutions de pipeline (par d\u00e9faut : nom de la ressource)",
       "BROWSE_DOCKERFILE": "Parcourir",
       "SELECT_BRANCH": "Branche",
+      "NO_BRANCHES": "Aucune branche correspondante",
       "NO_REPO_CONFIGURED": "Aucun d\u00e9p\u00f4t Git configur\u00e9",
       "NO_DOCKERFILES_FOUND": "Aucun Dockerfile trouv\u00e9 sur cette branche",
       "LOADING_BRANCHES": "Chargement des branches\u2026",
-      "LOADING_FILES": "Recherche des Dockerfiles\u2026"
+      "LOADING_FILES": "Recherche des Dockerfiles\u2026",
+      "BUILD_CONTEXT": "Contexte de build",
+      "BUILD_CONTEXT_HINT": "Chemin relatif vers le r\u00e9pertoire de contexte Docker build (par d\u00e9faut la racine du d\u00e9p\u00f4t)",
+      "BROWSE_BUILD_CONTEXT": "Parcourir le contexte de build",
+      "DIRECTORIES": "R\u00e9pertoires",
+      "LOADING_DIRECTORIES": "Chargement des r\u00e9pertoires...",
+      "NO_DIRECTORIES_FOUND": "Aucun r\u00e9pertoire trouv\u00e9",
+      "REPO_ROOT": "racine du d\u00e9p\u00f4t"
     },
     "NETWORKING": {
       "TITLE": "R\u00e9seau",
@@ -1543,6 +1699,61 @@
     },
     "PIPELINE_OPTIONS": {
       "DESCRIPTION": "Configurez les étapes optionnelles du pipeline : tests, analyse de code, linting et validation post-déploiement.",
+      "AUTO_DETECT": "Détection automatique depuis le dépôt",
+      "STACK": {
+        "LABEL": "Stack applicatif",
+        "PROFILE_TITLE": "Profil de stack",
+        "PROFILE_SUBTITLE": "Configuration de build et test spécifique à la stack",
+        "DOTNET": {
+          "TEST_FRAMEWORK": "Framework de test",
+          "COLLECT_COVERAGE": "Collecter la couverture de code",
+          "TEST_PROJECT_GLOB": "Glob des projets de test",
+          "TEST_PROJECT_GLOB_HINT": "Pattern glob pour localiser les projets de test (ex: **/*.Tests.csproj)"
+        },
+        "NODEJS": {
+          "PACKAGE_MANAGER": "Gestionnaire de paquets",
+          "TEST_FRAMEWORK": "Framework de test",
+          "RUN_LINT_SCRIPT": "Exécuter le script lint",
+          "TEST_SCRIPT_NAME": "Nom du script de test",
+          "LINT_SCRIPT_NAME": "Nom du script de lint"
+        },
+        "ANGULAR": {
+          "PACKAGE_MANAGER": "Gestionnaire de paquets",
+          "RUN_NG_TEST": "Exécuter ng test",
+          "RUN_NG_LINT": "Exécuter ng lint",
+          "RUN_NG_BUILD_PROD": "Exécuter ng build --production",
+          "PROJECT_NAME": "Nom du projet Angular",
+          "PROJECT_NAME_HINT": "Nom du projet Angular dans angular.json (laisser vide pour le défaut)"
+        },
+        "JAVA": {
+          "BUILD_TOOL": "Outil de build",
+          "TEST_FRAMEWORK": "Framework de test",
+          "COLLECT_COVERAGE": "Collecter la couverture de code"
+        },
+        "PYTHON": {
+          "PACKAGE_MANAGER": "Gestionnaire de paquets",
+          "TEST_FRAMEWORK": "Framework de test",
+          "COLLECT_COVERAGE": "Collecter la couverture de code"
+        },
+        "STATIC_SITE": {
+          "BUILD_COMMAND": "Commande de build",
+          "BUILD_COMMAND_HINT": "Commande pour construire le site statique (ex: npm run build)",
+          "OUTPUT_DIRECTORY": "Répertoire de sortie",
+          "OUTPUT_DIRECTORY_HINT": "Répertoire contenant les fichiers construits (ex: dist/)"
+        },
+        "CUSTOM": {
+          "TEST_COMMAND": "Commande de test",
+          "LINT_COMMAND": "Commande de lint",
+          "BUILD_COMMAND": "Commande de build"
+        }
+      },
+      "ACR_SERVICE_CONNECTIONS": {
+        "TITLE": "Connexion de service ACR",
+        "DESCRIPTION": "Nom de la connexion Azure DevOps Docker/ACR utilisée par chaque environnement pour pousser son image vers le registre lié.",
+        "ENVIRONMENT_LABEL": "Connexion Docker/ACR - {{ envName }}",
+        "FIELD_HINT": "Nom exact de la service connection Azure DevOps.",
+        "PLACEHOLDER": "acr-prod-docker"
+      },
       "TESTS": {
         "TITLE": "Tests unitaires",
         "SUBTITLE": "Exécuter les tests unitaires dans le pipeline",
@@ -1879,6 +2090,25 @@
       "UNLINK_CANCEL": "Annuler",
       "UNLINK_ERROR": "Impossible de d\u00e9lier la ressource. Veuillez r\u00e9essayer."
     },
+    "DOCKER_IMAGE_INSTRUCTIONS": {
+      "TITLE": "Image Docker — Comment vérifier et déployer",
+      "SUBTITLE": "Voici les étapes pour vérifier que votre image existe dans le container registry et comment la déployer via la pipeline de code.",
+      "DEFAULT_IMAGE_TITLE": "Image par défaut",
+      "DEFAULT_IMAGE_MESSAGE": "Tant qu'aucune image Docker n'est renseignée, une image par défaut (pause) sera utilisée lors de la génération Bicep. Votre application ne sera fonctionnelle qu'après le premier déploiement via la pipeline CI/CD.",
+      "STEP1_TITLE": "Vérifier que l'image existe dans le registry",
+      "STEP1_DESC": "Connectez-vous au portail Azure, accédez à votre Container Registry (ACR), puis dans la section « Repositories », vérifiez que votre image et le tag souhaité sont bien présents. Vous pouvez aussi utiliser la commande : az acr repository show-tags --name <acr-name> --repository <image-name>.",
+      "STEP2_TITLE": "Builder et pousser l'image via la pipeline",
+      "STEP2_DESC": "La pipeline CI/CD générée contient les étapes pour builder votre image Docker et la pousser vers l'ACR. Lancez la pipeline depuis Azure DevOps ou GitHub Actions pour que l'image soit construite et publiée automatiquement.",
+      "STEP3_TITLE": "Renseigner le nom de l'image",
+      "STEP3_DESC": "Une fois l'image disponible dans le registry, renseignez son nom (ex : myapp/api) dans le champ « Nom de l'image Docker ». Le tag sera géré automatiquement par la pipeline de déploiement.",
+      "CLOSE": "Fermer"
+    },
+    "DOCKER_IMAGE_VALIDATION": {
+      "VALIDATE": "Confirmer que cette image existe dans le registry",
+      "UNVALIDATE": "Annuler la confirmation de l'image",
+      "HINT_NOT_VALIDATED": "Image non confirmée — une image par défaut sera utilisée dans le Bicep généré",
+      "HINT_VALIDATED": "Image confirmée — cette image sera utilisée dans le Bicep généré"
+    },
     "CUSTOM_DOMAINS": {
       "SECTION_TITLE": "Domaines personnalisés",
       "SECTION_SUBTITLE": "Configurez les liaisons de domaines personnalisés pour cet environnement.",
@@ -1908,12 +2138,37 @@
       "DNS_STEP4_TITLE": "Créer un enregistrement TXT de vérification",
       "DNS_STEP4_DESC": "Chez votre fournisseur DNS, créez un enregistrement TXT : Hôte = « asuid. » suivi de votre sous-domaine (ex : « asuid.api » pour api.example.com) → Valeur = l'ID de vérification copié à l'étape 2. Cela prouve que vous êtes propriétaire du domaine.",
       "DNS_STEP5_TITLE": "Ajoutez votre domaine ici et attendez la validation",
-      "DNS_STEP5_DESC": "Une fois les enregistrements DNS propagés (cela peut prendre quelques minutes à 48 heures), revenez ici et ajoutez votre domaine avec le bouton ci-dessus. Azure vérifiera automatiquement les enregistrements DNS et provisionnera un certificat TLS géré."
+      "DNS_STEP5_DESC": "Une fois les enregistrements DNS propagés (cela peut prendre quelques minutes à 48 heures), revenez ici et ajoutez votre domaine avec le bouton ci-dessus. Azure vérifiera automatiquement les enregistrements DNS et provisionnera un certificat TLS géré.",
+      "DNS_VALIDATED": "DNS validé",
+      "DNS_PENDING": "En attente",
+      "DNS_INSTRUCTIONS": "Instructions DNS",
+      "VALIDATE_DNS": "Marquer le DNS comme validé",
+      "VALIDATE_ERROR": "Erreur lors de la validation DNS",
+      "DNS_DIALOG_TITLE": "Configuration DNS",
+      "DNS_DIALOG_SUBTITLE": "Suivez ces étapes pour configurer votre domaine et récupérer les valeurs nécessaires dans le portail Azure.",
+      "DNS_DIALOG_PREREQUISITE_TITLE": "Avant de commencer",
+      "DNS_DIALOG_PREREQUISITE": "Commencez par déployer l’infrastructure. Tant que l’infra n’est pas déployée, Azure ne fournit pas le domaine par défaut ni le jeton de vérification nécessaires pour configurer le DNS.",
+      "DNS_DIALOG_RECORD_CARD": "Enregistrement DNS à créer",
+      "DNS_DIALOG_RECORD_TYPE": "Type",
+      "DNS_DIALOG_RECORD_NAME": "Nom",
+      "DNS_DIALOG_RECORD_VALUE": "Valeur",
+      "DNS_DIALOG_COPIED": "Copié !",
+      "DNS_DIALOG_CLOSE": "Fermer",
+      "DNS_DIALOG_STEPS": {
+        "CNAME_TITLE": "Déployer l’infrastructure puis créer un enregistrement CNAME",
+        "TXT_TITLE": "Créer un enregistrement TXT de validation",
+        "VALIDATE_TITLE": "Valider le DNS",
+        "CONTAINER_APP_CNAME_DESC": "Déployez d’abord l’infrastructure. Ensuite, dans le portail Azure, ouvrez votre Container App, puis allez dans Networking > Custom domains > Add custom domain. Si l’entrée réseau n’est pas encore activée, activez d’abord l’ingress sur le Container App. Dans la section Domain validation, copiez la valeur Generated domain et utilisez-la comme cible CNAME pour '{{domainName}}'. N’ouvrez pas l’environnement Container App pour cette étape.",
+        "WEB_LIKE_CNAME_DESC": "Déployez d’abord l’infrastructure. Ensuite, dans le portail Azure, ouvrez votre ressource puis allez dans Vue d’ensemble > Domaine par défaut pour récupérer la cible CNAME '{{recordValue}}'. Pointez '{{domainName}}' vers cette valeur.",
+        "CONTAINER_APP_TXT_DESC": "Toujours dans le Container App, dans Networking > Custom domains > Add custom domain, récupérez la valeur Domain verification code affichée dans la section Domain validation. Créez ensuite un enregistrement TXT sur '{{recordName}}' avec cette valeur.",
+        "WEB_LIKE_TXT_DESC": "Dans le portail Azure, ouvrez votre ressource puis allez dans Domaines personnalisés pour copier l’identifiant de vérification du domaine personnalisé. Créez ensuite un enregistrement TXT sur '{{recordName}}' avec cette valeur.",
+        "VALIDATE_DESC": "Après propagation DNS, retournez dans le Container App sur Networking > Custom domains, relancez Add custom domain si nécessaire, puis cliquez sur Validate dans Azure. Une fois les valeurs reconnues, revenez ici et cliquez sur « Valider le DNS »."
+      }
     },
     "APP_SETTINGS": {
       "DESCRIPTION": "Configurez les variables d'environnement pour cette ressource de calcul. Référencez les sorties d'autres ressources ou définissez des valeurs statiques.",
       "ADD": "Ajouter une variable",
-      "IMPORT": "Importer depuis JSON",
+      "IMPORT": "Importer depuis un fichier",
       "EMPTY": "Aucune variable d'environnement configurée. Ajoutez un paramètre pour injecter des variables d'environnement ou des sorties de ressources.",
       "LOADING": "Chargement des variables d'environnement...",
       "STATIC_VALUE": "Valeur statique",
@@ -2324,7 +2579,13 @@
     "CANCEL": "Annuler",
     "RBAC_SECTION_TITLE": "Problèmes de droits",
     "MISSING_ENV_TITLE": "Paramètres d'environnement manquants",
-    "MISSING_ENV_SUBTITLE": "Les ressources suivantes n'ont pas été configurées pour tous les environnements définis dans le projet."
+    "MISSING_ENV_SUBTITLE": "Les ressources suivantes n'ont pas été configurées pour tous les environnements définis dans le projet.",
+    "PENDING_CUSTOM_DOMAINS_TITLE": "Domaines personnalisés DNS non validés",
+    "PENDING_CUSTOM_DOMAINS_SUBTITLE": "Les domaines suivants ne sont pas marqués comme validés. Ils ne seront pas inclus dans le Bicep généré tant que vous ne les aurez pas validés dans l'onglet Configuration.",
+    "PENDING_CUSTOM_DOMAINS_ITEM": "Domaine « {{domain}} » sur l'environnement {{environment}}.",
+    "PENDING_DOCKER_IMAGES_TITLE": "Images Docker non confirmées",
+    "PENDING_DOCKER_IMAGES_SUBTITLE": "Les images suivantes n'ont pas été confirmées par l'utilisateur. Une image par défaut (pause) sera utilisée dans le Bicep généré tant qu'elles ne seront pas validées.",
+    "PENDING_DOCKER_IMAGES_ITEM": "Image « {{image}} » non confirmée"
   },
   "ABBREVIATIONS": {
     "TITLE": "Abréviations des ressources",
@@ -2362,7 +2623,35 @@
     "PREFERENCES": {
       "TITLE": "Préférences",
       "SUBTITLE": "Personnalisez votre expérience",
-      "LANGUAGE": "Langue"
+      "LANGUAGE": "Langue",
+      "APP_THEME": "Thème de l'application",
+      "APP_THEME_HINT": "Choisissez entre un affichage clair ou sombre pour l'ensemble de l'interface.",
+      "APP_THEME_OPTIONS": {
+        "DARK": {
+          "LABEL": "Sombre",
+          "DESCRIPTION": "Interface foncée, idéale pour les environnements peu éclairés."
+        },
+        "LIGHT": {
+          "LABEL": "Clair",
+          "DESCRIPTION": "Interface lumineuse, confortable en plein jour."
+        }
+      },
+      "BICEP_THEME": "Thème du code Bicep",
+      "BICEP_THEME_HINT": "Choisissez les couleurs de syntaxe utilisées pour afficher les fichiers Bicep générés.",
+      "BICEP_THEME_OPTIONS": {
+        "AZURE_NIGHT": {
+          "LABEL": "Azure Night",
+          "DESCRIPTION": "Contraste bleu et cyan proche du viewer actuel."
+        },
+        "GRAPHITE_FROST": {
+          "LABEL": "Graphite Frost",
+          "DESCRIPTION": "Palette neutre et froide avec moins d'éblouissement."
+        },
+        "SAND_DUSK": {
+          "LABEL": "Sand Dusk",
+          "DESCRIPTION": "Accents ambrés plus chaleureux pour une lecture posée."
+        }
+      }
     },
     "PAT_SECTION_TITLE": "Jetons d'accès personnels",
     "PAT_SECTION_DESCRIPTION": "Les jetons d'accès personnels sont utilisés pour authentifier les clients MCP (Model Context Protocol). Créez un jeton et configurez-le dans votre client MCP.",

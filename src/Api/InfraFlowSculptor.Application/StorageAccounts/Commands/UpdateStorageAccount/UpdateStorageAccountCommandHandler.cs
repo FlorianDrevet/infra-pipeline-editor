@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.StorageAccounts.Commands.UpdateStorageAccount;
 
@@ -76,7 +75,7 @@ public class UpdateStorageAccountCommandHandler(
                         rule.TimeToLiveInDays))
                     .ToList());
 
-        var updated = await storageAccountRepository.UpdateAsync(storageAccount);
+        var updated = storageAccountRepository.Update(storageAccount);
 
         return mapper.Map<StorageAccountResult>(updated);
     }

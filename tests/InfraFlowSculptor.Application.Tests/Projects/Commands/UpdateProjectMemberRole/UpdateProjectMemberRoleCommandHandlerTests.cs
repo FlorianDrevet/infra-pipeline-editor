@@ -32,8 +32,8 @@ public sealed class UpdateProjectMemberRoleCommandHandlerTests
 
         _accessService.VerifyOwnerAccessAsync(_project.Id, Arg.Any<CancellationToken>())
             .Returns(_project);
-        _projectRepository.UpdateAsync(Arg.Any<Project>())
-            .Returns(callInfo => Task.FromResult((Project)callInfo.Args()[0]));
+        _projectRepository.Update(Arg.Any<Project>())
+            .Returns(callInfo => (Project)callInfo.Args()[0]);
         _mapper.Map<ProjectResult>(Arg.Any<Project>())
             .Returns(callInfo => CreateProjectResult((Project)callInfo.Args()[0]));
 
@@ -51,7 +51,7 @@ public sealed class UpdateProjectMemberRoleCommandHandlerTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        await _projectRepository.Received(1).UpdateAsync(Arg.Is<Project>(project =>
+        _projectRepository.Received(1).Update(Arg.Is<Project>(project =>
             project.Members.Any(member =>
                 member.UserId == _memberUserId
                 && member.Role.Value == Role.RoleEnum.Contributor)));

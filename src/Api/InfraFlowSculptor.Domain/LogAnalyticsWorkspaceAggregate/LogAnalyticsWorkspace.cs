@@ -1,7 +1,6 @@
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ResourceParameterUsage;
 using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 

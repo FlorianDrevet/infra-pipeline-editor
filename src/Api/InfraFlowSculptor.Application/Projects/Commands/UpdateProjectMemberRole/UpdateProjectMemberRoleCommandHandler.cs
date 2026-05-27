@@ -7,7 +7,6 @@ using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using MapsterMapper;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.UpdateProjectMemberRole;
 
@@ -42,7 +41,7 @@ public sealed class UpdateProjectMemberRoleCommandHandler(
             return roleResult.Errors;
 
         project.ChangeRole(targetUserId, roleResult.Value);
-        var saved = await projectRepository.UpdateAsync(project);
+        var saved = projectRepository.Update(project);
 
         return mapper.Map<ProjectResult>(saved);
     }

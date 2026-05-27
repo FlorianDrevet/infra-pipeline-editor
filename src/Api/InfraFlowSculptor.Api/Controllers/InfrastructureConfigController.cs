@@ -16,7 +16,6 @@ using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 using InfraFlowSculptor.Contracts.ResourceGroups.Responses;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
 
@@ -30,7 +29,7 @@ public static class InfrastructureConfigController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var config = endpoints.MapGroup("/infra-config")
+            var config = endpoints.MapGroup(Routes.InfraConfig)
                 .WithTags("Infrastructure Configuration");
 
             // ── Core CRUD ────────────────────────────────────────────────────

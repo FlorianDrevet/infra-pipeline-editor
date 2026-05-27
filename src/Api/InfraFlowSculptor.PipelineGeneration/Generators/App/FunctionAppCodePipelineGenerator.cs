@@ -20,8 +20,9 @@ public sealed class FunctionAppCodePipelineGenerator : IAppPipelineGenerator
     {
         var files = new Dictionary<string, string>
         {
-            ["ci.app-pipeline.yml"] = AppCiPipelineBuilder.BuildCodePipeline(request),
-            ["release.app-pipeline.yml"] = AppReleasePipelineBuilder.BuildCodePipeline(request),
+            [AppPipelineFileNames.Ci] = AppCiPipelineBuilder.BuildCodePipeline(request),
+            [AppPipelineFileNames.Pr] = AppPrPipelineBuilder.BuildCodePipeline(request),
+            [AppPipelineFileNames.Release] = AppReleasePipelineBuilder.BuildCodePipeline(request),
         };
 
         return new AppPipelineGenerationResult { Files = files };

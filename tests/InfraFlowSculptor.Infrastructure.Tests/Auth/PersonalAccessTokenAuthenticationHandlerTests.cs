@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using FluentAssertions;
 using InfraFlowSculptor.Domain.PersonalAccessTokenAggregate;
+using InfraFlowSculptor.Domain.PersonalAccessTokenAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using InfraFlowSculptor.Infrastructure.Auth;
 using InfraFlowSculptor.Infrastructure.Persistence;
@@ -44,6 +45,7 @@ public sealed class PersonalAccessTokenAuthenticationHandlerTests : IAsyncDispos
 
         // Act
         var result = await AuthenticateAsync(httpContext);
+        httpContext.User = result.Principal!;
 
         // Assert
         result.Succeeded.Should().BeTrue();
@@ -64,6 +66,7 @@ public sealed class PersonalAccessTokenAuthenticationHandlerTests : IAsyncDispos
 
         // Act
         var result = await AuthenticateAsync(httpContext);
+        httpContext.User = result.Principal!;
 
         // Assert
         result.Succeeded.Should().BeTrue();
@@ -91,6 +94,41 @@ public sealed class PersonalAccessTokenAuthenticationHandlerTests : IAsyncDispos
         _dbContext.SaveChangesCallCount.Should().Be(1);
         token.LastUsedAt.Should().NotBe(staleLastUsedAt);
         await AssertCurrentUserResolutionAsync(httpContext, token.UserId);
+    }
+
+    [Fact]
+    public async Task Given_PatWithGrantedScopes_When_Authenticate_Then_EmitsScopeClaimsAndResolvesThemFromCurrentUserAsync()
+    {
+        // Arrange
+        var scopes = new[]
+        {
+            new PatScope(PatScopeType.Read),
+            new PatScope(PatScopeType.Generate),
+        };
+        var (token, plainTextToken) = PersonalAccessToken.Create(
+            UserId.CreateUnique(),
+            PersonalAccessTokenName,
+            expiresAt: null,
+            scopes);
+        await SeedTokenAsync(token);
+        var httpContext = CreateHttpContext(plainTextToken);
+
+        // Act
+        var result = await AuthenticateAsync(httpContext);
+        httpContext.User = result.Principal!;
+
+        // Assert
+        result.Succeeded.Should().BeTrue();
+        result.Principal?.FindAll(PersonalAccessTokenClaimNames.Scope)
+            .Select(claim => claim.Value)
+            .Should()
+            .BeEquivalentTo(new[] { nameof(PatScopeType.Read), nameof(PatScopeType.Generate) });
+
+        var currentUser = new CurrentUser(new HttpContextAccessor { HttpContext = httpContext });
+
+        (await currentUser.HasPersonalAccessTokenScopeAsync(PatScopeType.Read)).Should().BeTrue();
+        (await currentUser.HasPersonalAccessTokenScopeAsync(PatScopeType.Write)).Should().BeFalse();
+        (await currentUser.HasPersonalAccessTokenScopeAsync(PatScopeType.Generate)).Should().BeTrue();
     }
 
     private static DefaultHttpContext CreateHttpContext(string plainTextToken)
@@ -123,7 +161,7 @@ public sealed class PersonalAccessTokenAuthenticationHandlerTests : IAsyncDispos
 
     private async Task SeedTokenAsync(PersonalAccessToken token, DateTime? lastUsedAt = null)
     {
-        await _dbContext.PersonalAccessTokens.AddAsync(token);
+        _dbContext.PersonalAccessTokens.Add(token);
         await _dbContext.SaveChangesAsync();
 
         if (lastUsedAt.HasValue)

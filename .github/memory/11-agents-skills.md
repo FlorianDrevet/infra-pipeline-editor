@@ -1,5 +1,4 @@
 # Agents & Skills Registry
-
 ## Agents
 
 | Agent | Role | File |
@@ -17,6 +16,7 @@
 | `pr-manager` | Conventions PR (titre, description, template) | `.github/agents/pr-manager.agent.md` |
 | `merge-main` | Fusion main sur branche courante | `.github/agents/merge-main.agent.md` |
 | `dream` | Consolidation mémoire (4 phases Dream) | `.github/agents/dream.agent.md` |
+| `upgrade-orchestrator` | Orchestrateur montées de version (.NET, Angular, NuGet, npm, TS) — lit release notes, planifie, délègue | `.github/agents/upgrade-orchestrator.agent.md` |
 | `memory` | **DEPRECATED** — redirecteur vers `dev` | `.github/agents/memory.agent.md` |
 
 ## Dream concurrency [2026-04-25]
@@ -42,12 +42,28 @@
 | `tdd-workflow` | **Any code modification** — enforces TDD Red→Green→Refactor→Verify cycle, test project init, test debt tracking in `.github/test-debt.md` | `.github/skills/tdd-workflow/SKILL.md` |
 | `angular-patterns` | Angular frontend patterns for ce repo : Signals, standalone components, forms, Axios, routing, Material+Tailwind, i18n | `.github/skills/angular-patterns/SKILL.md` |
 | `bicep-v2-migration` | Migrating an IResourceTypeBicepGenerator from legacy string template to Builder + IR (Vague 2), including TDD tests, emitter parity, review cycle, and skill feedback loop | `.github/skills/bicep-v2-migration/SKILL.md` |
+| `dotnet-upgrade` | .NET version upgrade: SDK, TFM, NuGet, EF Core, ASP.NET Core, Aspire — breaking changes detection, migration procedure, new feature proposals | `.github/skills/dotnet-upgrade/SKILL.md` |
+| `angular-upgrade` | Angular version upgrade: CLI, framework, TypeScript, RxJS, Material, npm packages — breaking changes detection, ng update, new syntax proposals | `.github/skills/angular-upgrade/SKILL.md` |
 
 ## Code Generation Guardrails [2026-04-29]
 
 - New workspace instruction: `.github/instructions/code-quality-guardrails.instructions.md` auto-attaches on C# and Angular source edits.
 - Guardrails now repeated across `dev`, `architect`, `dotnet-dev`, `angular-front`, `vibe-coding-refractaire`, `dotnet-patterns`, and `angular-patterns`.
 - Mandatory rules: no magic strings, one public top-level type/class per file, strongly typed contracts/models/persistence before `object` / `Dictionary` / `JsonDocument` / weak JSON, and explicit design-pattern choice based on readability, maintainability, and scalability.
+
+## Request Contradiction Pass [2026-05-20]
+
+- `.github/copilot-instructions.md`, `.github/agents/dev.agent.md`, and `.github/prompts/InfraFlowProject.prompt.md` now require an explicit contradiction pass for Bicep generation, Azure DevOps pipelines, bootstrap flows, service connections, repository layouts, and multi-environment configuration requests.
+- Agents must challenge technically false or architecture-breaking asks before coding, instead of treating the latest user wording as a sufficient specification.
+- Hidden compatibility fallbacks or UI shortcuts that weaken environment isolation are now treated as risks to question, not conveniences to preserve by default.
+
+## Plan vivant multi-PC [2026-05-21]
+
+- `dev.agent.md` impose désormais un **tracker de plan vivant** pour toute implémentation par lots/phases (`plan`, `roadmap`, backlog) : réutiliser le fichier existant ou créer `docs/features/<slug>-implementation-tracker.md`.
+- Le suivi doit être **mis à jour pendant l'exécution** (avant étape = `In progress`, après incrément = validations et résultat, blocage = cause + prochaine action), pas seulement en fin de tâche.
+- Le protocole `dev` inclut maintenant une vérification dédiée (`step 4ter`) pour garantir que le tracker reflète réellement l'état des lots et qu'une reprise sur un autre PC est possible sans contexte oral.
+- `architect.agent.md` doit inclure dans son plan un bloc `Fichier de suivi vivant` avec table de statuts par lot et règles de mise à jour.
+- `dotnet-dev.agent.md` et `angular-front.agent.md` doivent synchroniser le tracker pendant et en fin d'implémentation backend/frontend (`Done` / `In progress` / `Blocked` + validations exécutées).
 
 ## Unit Test Routing [2026-04-27]
 
@@ -116,8 +132,6 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 
 ## MCP Skill [2026-04-29]
 
-- New skill: `mcp-dotnet-server`.
-- Scope: official MCP + C# SDK baseline, `stdio` vs Streamable HTTP, `.vscode/mcp.json`, auth/authorization, tasks, observability, testing, and project-specific integration rules.
 - Project stance: MCP must stay an adapter layer over `Application`/generation services; import/migration logic should be reusable outside MCP via canonical import services and contracts.
 - **Current state [2026-04-29]:** MCP runs as ASP.NET Core HTTP host (`/mcp`, port 5258) under Aspire, secured with PAT auth. Import preview/apply logic extracted to `Application/Imports/` for shared API+MCP use. `ResourceCommandFactory` + `ProjectSetupOrchestrator` wire end-to-end resource creation. One-class-per-file enforced, `LayoutPresetEnum` replaces magic strings.
 - Conversational creation rule: a prompt like "create a project with a Key Vault" must first go through a draft/clarification step; repository topology (`MonoRepo`, `SplitInfraCode`, etc.) must not be guessed by a mutating tool.
@@ -136,7 +150,3 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 - Controlled VS Code integration rule: prefer `python -m graphify copilot install` over `graphify vscode install` for this repository. `vscode install` appends a generic `## graphify` section to `.github/copilot-instructions.md`, while this repo already has a stronger custom orchestration for memory, GitNexus, Graphify, and agents.
 - 2026-04-29 validation: the Graphify user skill is installed at `%USERPROFILE%\.copilot\skills\graphify\SKILL.md`, and the Python user Scripts directory is now present on the user PATH so `graphify --help` works directly in terminal.
 - 2026-05-12 validation: `.graphifyignore` excludes `MEMORY.md` and `.github/memory/`, but does not exclude the `ifs/` Obsidian vault. Graphify can index Obsidian notes kept under `ifs/`, while the current agent memory remains outside the Graphify corpus unless the ignore rules are changed.
-
-## CQRS Skill [2026-04-29]
-
-- `cqrs-feature` now has valid skill frontmatter and explicitly enforces one public top-level type per file, no magic strings, strong typing over weak objects/dictionaries/JSON, and deliberate pattern selection before introducing abstractions.

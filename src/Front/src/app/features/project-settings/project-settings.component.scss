@@ -1,0 +1,163 @@
+@use "scss/main" as *;
+
+.settings-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+// ─── States ───
+.state-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  border-radius: var(--ifs-radius-lg);
+  background: var(--ifs-surface-2);
+
+  &--loading { justify-content: center; }
+
+  &--error {
+    border: 1px solid var(--ifs-danger);
+    color: var(--ifs-text-primary);
+  }
+}
+
+.pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ifs-accent-500);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.ghost-button {
+  color: var(--ifs-accent-500);
+  text-decoration: none;
+  font-weight: 500;
+  &:hover { text-decoration: underline; }
+}
+
+// ─── Header ───
+.settings-header {
+  margin-bottom: 2rem;
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--ifs-text-primary);
+    margin: 0;
+  }
+
+  &__icon {
+    font-size: 1.75rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    color: var(--ifs-accent-500);
+  }
+
+  &__subtitle {
+    margin: 0.25rem 0 0;
+    color: var(--ifs-text-secondary);
+    font-size: 0.875rem;
+  }
+}
+
+// ─── Settings Cards ───
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.settings-card {
+  border-radius: var(--ifs-radius-lg);
+  border: 1px solid var(--ifs-border-subtle);
+  background: var(--ifs-surface-1);
+  overflow: hidden;
+
+  &--upcoming {
+    opacity: 0.7;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--ifs-border-subtle);
+    background: var(--ifs-surface-2);
+  }
+
+  &__icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--ifs-accent-500);
+    margin-top: 0.125rem;
+  }
+
+  &__title-block {
+    flex: 1;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--ifs-text-primary);
+  }
+
+  &__description {
+    margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--ifs-text-secondary);
+  }
+
+  &__body {
+    padding: 1.25rem 1.5rem;
+
+    &--upcoming {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+  }
+}
+
+// ─── Agent Pool Form ───
+.agent-pool-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pool-name-field {
+  max-width: 400px;
+}
+
+.agent-pool-actions {
+  padding-top: 0.5rem;
+}
+
+// ─── Upcoming Badge ───
+.upcoming-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  background: var(--ifs-surface-3);
+  color: var(--ifs-text-tertiary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}

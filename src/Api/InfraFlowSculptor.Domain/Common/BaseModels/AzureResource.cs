@@ -4,7 +4,6 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ResourceParameterUsage;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
@@ -23,7 +22,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// Persisted as a discriminator column to enable lightweight queries without TPT resolution.
     /// Automatically set by <see cref="Infrastructure"/> on entity creation.
     /// </summary>
-    public string ResourceType { get; private set; } = string.Empty;
+    public ResourceTypeName ResourceType { get; private set; } = null!;
 
     /// <summary>Gets the parent resource group identifier.</summary>
     public ResourceGroupId ResourceGroupId { get; protected set; } = null!;
@@ -446,12 +445,18 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// </summary>
     /// <param name="environmentName">The deployment environment name.</param>
     /// <param name="domainName">The fully qualified domain name.</param>
-    /// <param name="bindingType">The SSL binding type (default: "SniEnabled").</param>
+    /// <param name="certificateMode">The certificate provisioning mode (defaults to ManagedCertificate if null).</param>
+    /// <param name="keyVaultUrl">Key Vault secret URL (Key Vault mode only).</param>
+    /// <param name="managedIdentityResourceId">Managed identity resource ID (Key Vault mode only).</param>
+    /// <param name="certificateName">Certificate name in the environment (Manual mode only).</param>
     /// <returns>The created <see cref="CustomDomain"/>, or an error if duplicate.</returns>
     public ErrorOr<CustomDomain> AddCustomDomain(
         string environmentName,
         string domainName,
-        string bindingType = "SniEnabled")
+        CertificateMode? certificateMode = null,
+        string? keyVaultUrl = null,
+        string? managedIdentityResourceId = null,
+        string? certificateName = null)
     {
         if (IsExisting)
             return Errors.Errors.CustomDomain.NotSupportedForExistingResource();
@@ -463,7 +468,14 @@ public class AzureResource : AggregateRoot<AzureResourceId>
                 cd.DomainName == normalizedDomain))
             return Errors.Errors.CustomDomain.DuplicateDomain(environmentName, normalizedDomain);
 
-        var customDomain = CustomDomain.Create(Id, environmentName, normalizedDomain, bindingType);
+        var customDomain = CustomDomain.Create(
+            Id,
+            environmentName,
+            normalizedDomain,
+            certificateMode ?? CertificateMode.ManagedCertificate,
+            keyVaultUrl,
+            managedIdentityResourceId,
+            certificateName);
         _customDomains.Add(customDomain);
         return customDomain;
     }
