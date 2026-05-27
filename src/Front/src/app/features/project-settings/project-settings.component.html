@@ -1,7 +1,7 @@
 <div class="settings-page">
   @if (isLoading()) {
     <div class="state-card state-card--loading" aria-live="polite">
-      <div class="pulse-dot"></div>
+      <app-ds-spinner size="lg" />
       <div>
         <strong>{{ 'PROJECT_SETTINGS.STATE.LOADING' | translate }}</strong>
       </div>
