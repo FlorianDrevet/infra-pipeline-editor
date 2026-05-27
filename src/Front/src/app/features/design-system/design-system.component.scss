@@ -164,3 +164,28 @@
   gap: 1.25rem;
   width: 100%;
 }
+
+.ds-option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.ds-showcase__info {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--ifs-text-secondary);
+
+  code {
+    font-family: monospace;
+    color: var(--ifs-accent-500);
+  }
+}
+
+.ds-showcase__dot-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--ifs-text-primary);
+}

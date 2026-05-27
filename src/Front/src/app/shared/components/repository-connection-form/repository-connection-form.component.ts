@@ -15,6 +15,7 @@ import {
   DsAutocompleteComponent,
   DsAutocompleteOption,
   DsButtonComponent,
+  DsButtonVariant,
   DsSelectComponent,
   DsTextFieldComponent,
 } from '../ds';
@@ -92,6 +93,28 @@ export class RepositoryConnectionFormComponent implements OnInit {
   });
 
   protected readonly isBranchDisabled = computed(() => this.verificationState() !== 'verified');
+
+  protected readonly verifyButtonVariant = computed<DsButtonVariant>(() => {
+    switch (this.verificationState()) {
+      case 'verified':
+        return 'success';
+      case 'failed':
+        return 'danger';
+      default:
+        return 'secondary';
+    }
+  });
+
+  protected readonly verifyButtonIcon = computed(() => {
+    switch (this.verificationState()) {
+      case 'verified':
+        return 'check_circle';
+      case 'failed':
+        return 'error';
+      default:
+        return 'verified';
+    }
+  });
 
   protected readonly verificationStatusKey = computed(() => {
     switch (this.verificationState()) {

@@ -23,6 +23,7 @@ public sealed class CreateProjectCommandHandler(
     {
         ["ResourceGroup"] = "{resourceAbbr}-{name}{suffix}",
         ["StorageAccount"] = "{name}{resourceAbbr}{envShort}",
+        ["ContainerRegistry"] = "{name}{resourceAbbr}{envShort}",
     };
 
     /// <inheritdoc />

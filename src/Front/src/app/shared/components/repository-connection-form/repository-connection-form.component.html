@@ -27,9 +27,9 @@
 
   <div class="repo-connection-form__verify-row">
     <app-ds-button
-      variant="secondary"
+      [variant]="verifyButtonVariant()"
       size="sm"
-      icon="verified"
+      [icon]="verifyButtonIcon()"
       [disabled]="!canVerify()"
       [loading]="verificationState() === 'checking'"
       (clicked)="verifyConnection()"

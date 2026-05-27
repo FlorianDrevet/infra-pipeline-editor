@@ -122,25 +122,43 @@ public class ResourceGroupRepository : BaseRepository<ResourceGroup, ProjectDbCo
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        var links = await Context.Set<WebApp>()
+        var webApps = await Context.Set<WebApp>()
             .Where(x => x.ResourceGroupId == resourceGroupId)
             .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.AppServicePlanId.Value })
-            .Concat(Context.Set<FunctionApp>()
-                .Where(x => x.ResourceGroupId == resourceGroupId)
-                .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.AppServicePlanId.Value }))
-            .Concat(Context.Set<ContainerApp>()
-                .Where(x => x.ResourceGroupId == resourceGroupId)
-                .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.ContainerAppEnvironmentId.Value }))
-            .Concat(Context.Set<SqlDatabase>()
-                .Where(x => x.ResourceGroupId == resourceGroupId)
-                .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.SqlServerId.Value }))
-            .Concat(Context.Set<ApplicationInsights>()
-                .Where(x => x.ResourceGroupId == resourceGroupId)
-                .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.LogAnalyticsWorkspaceId.Value }))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        return links.ToDictionary(l => l.ChildResourceId, l => l.ParentResourceId);
+        var functionApps = await Context.Set<FunctionApp>()
+            .Where(x => x.ResourceGroupId == resourceGroupId)
+            .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.AppServicePlanId.Value })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var containerApps = await Context.Set<ContainerApp>()
+            .Where(x => x.ResourceGroupId == resourceGroupId)
+            .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.ContainerAppEnvironmentId.Value })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var sqlDatabases = await Context.Set<SqlDatabase>()
+            .Where(x => x.ResourceGroupId == resourceGroupId)
+            .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.SqlServerId.Value })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var appInsights = await Context.Set<ApplicationInsights>()
+            .Where(x => x.ResourceGroupId == resourceGroupId)
+            .Select(x => new { ChildResourceId = x.Id.Value, ParentResourceId = x.LogAnalyticsWorkspaceId.Value })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var result = new Dictionary<Guid, Guid>();
+        foreach (var link in webApps.Concat(functionApps).Concat(containerApps).Concat(sqlDatabases).Concat(appInsights))
+        {
+            result[link.ChildResourceId] = link.ParentResourceId;
+        }
+
+        return result;
     }
 
     public async Task<ResourceGroup?> GetByContainedResourceIdAsync(
@@ -160,59 +178,116 @@ public class ResourceGroupRepository : BaseRepository<ResourceGroup, ProjectDbCo
         var resourcesInGroup = Context.AzureResources
             .Where(r => r.ResourceGroupId == resourceGroupId);
 
-        var entries = await Context.Set<KeyVaultEnvironmentSettings>()
+        var keyVault = await Context.Set<KeyVaultEnvironmentSettings>()
             .Join(resourcesInGroup, es => es.KeyVaultId, r => r.Id,
                 (es, _) => new { ResourceId = es.KeyVaultId.Value, es.EnvironmentName })
-            .Concat(Context.Set<RedisCacheEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.RedisCacheId, r => r.Id,
-                    (es, _) => new { ResourceId = es.RedisCacheId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<StorageAccountEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.StorageAccountId, r => r.Id,
-                    (es, _) => new { ResourceId = es.StorageAccountId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<AppServicePlanEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.AppServicePlanId, r => r.Id,
-                    (es, _) => new { ResourceId = es.AppServicePlanId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<WebAppEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.WebAppId, r => r.Id,
-                    (es, _) => new { ResourceId = es.WebAppId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<FunctionAppEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.FunctionAppId, r => r.Id,
-                    (es, _) => new { ResourceId = es.FunctionAppId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<AppConfigurationEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.AppConfigurationId, r => r.Id,
-                    (es, _) => new { ResourceId = es.AppConfigurationId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<ContainerAppEnvironmentEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.ContainerAppEnvironmentId, r => r.Id,
-                    (es, _) => new { ResourceId = es.ContainerAppEnvironmentId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<ContainerAppEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.ContainerAppId, r => r.Id,
-                    (es, _) => new { ResourceId = es.ContainerAppId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<LogAnalyticsWorkspaceEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.LogAnalyticsWorkspaceId, r => r.Id,
-                    (es, _) => new { ResourceId = es.LogAnalyticsWorkspaceId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<ApplicationInsightsEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.ApplicationInsightsId, r => r.Id,
-                    (es, _) => new { ResourceId = es.ApplicationInsightsId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<CosmosDbEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.CosmosDbId, r => r.Id,
-                    (es, _) => new { ResourceId = es.CosmosDbId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<SqlServerEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.SqlServerId, r => r.Id,
-                    (es, _) => new { ResourceId = es.SqlServerId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<SqlDatabaseEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.SqlDatabaseId, r => r.Id,
-                    (es, _) => new { ResourceId = es.SqlDatabaseId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<ServiceBusNamespaceEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.ServiceBusNamespaceId, r => r.Id,
-                    (es, _) => new { ResourceId = es.ServiceBusNamespaceId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<ContainerRegistryEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.ContainerRegistryId, r => r.Id,
-                    (es, _) => new { ResourceId = es.ContainerRegistryId.Value, es.EnvironmentName }))
-            .Concat(Context.Set<EventHubNamespaceEnvironmentSettings>()
-                .Join(resourcesInGroup, es => es.EventHubNamespaceId, r => r.Id,
-                    (es, _) => new { ResourceId = es.EventHubNamespaceId.Value, es.EnvironmentName }))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+
+        var redis = await Context.Set<RedisCacheEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.RedisCacheId, r => r.Id,
+                (es, _) => new { ResourceId = es.RedisCacheId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var storage = await Context.Set<StorageAccountEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.StorageAccountId, r => r.Id,
+                (es, _) => new { ResourceId = es.StorageAccountId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var appServicePlan = await Context.Set<AppServicePlanEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.AppServicePlanId, r => r.Id,
+                (es, _) => new { ResourceId = es.AppServicePlanId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var webApp = await Context.Set<WebAppEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.WebAppId, r => r.Id,
+                (es, _) => new { ResourceId = es.WebAppId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var functionApp = await Context.Set<FunctionAppEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.FunctionAppId, r => r.Id,
+                (es, _) => new { ResourceId = es.FunctionAppId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var appConfig = await Context.Set<AppConfigurationEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.AppConfigurationId, r => r.Id,
+                (es, _) => new { ResourceId = es.AppConfigurationId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var containerAppEnv = await Context.Set<ContainerAppEnvironmentEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.ContainerAppEnvironmentId, r => r.Id,
+                (es, _) => new { ResourceId = es.ContainerAppEnvironmentId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var containerApp = await Context.Set<ContainerAppEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.ContainerAppId, r => r.Id,
+                (es, _) => new { ResourceId = es.ContainerAppId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var logAnalytics = await Context.Set<LogAnalyticsWorkspaceEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.LogAnalyticsWorkspaceId, r => r.Id,
+                (es, _) => new { ResourceId = es.LogAnalyticsWorkspaceId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var appInsights = await Context.Set<ApplicationInsightsEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.ApplicationInsightsId, r => r.Id,
+                (es, _) => new { ResourceId = es.ApplicationInsightsId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var cosmosDb = await Context.Set<CosmosDbEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.CosmosDbId, r => r.Id,
+                (es, _) => new { ResourceId = es.CosmosDbId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var sqlServer = await Context.Set<SqlServerEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.SqlServerId, r => r.Id,
+                (es, _) => new { ResourceId = es.SqlServerId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var sqlDatabase = await Context.Set<SqlDatabaseEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.SqlDatabaseId, r => r.Id,
+                (es, _) => new { ResourceId = es.SqlDatabaseId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var serviceBus = await Context.Set<ServiceBusNamespaceEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.ServiceBusNamespaceId, r => r.Id,
+                (es, _) => new { ResourceId = es.ServiceBusNamespaceId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var containerRegistry = await Context.Set<ContainerRegistryEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.ContainerRegistryId, r => r.Id,
+                (es, _) => new { ResourceId = es.ContainerRegistryId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var eventHub = await Context.Set<EventHubNamespaceEnvironmentSettings>()
+            .Join(resourcesInGroup, es => es.EventHubNamespaceId, r => r.Id,
+                (es, _) => new { ResourceId = es.EventHubNamespaceId.Value, es.EnvironmentName })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var entries = keyVault
+            .Concat(redis).Concat(storage).Concat(appServicePlan)
+            .Concat(webApp).Concat(functionApp).Concat(appConfig)
+            .Concat(containerAppEnv).Concat(containerApp)
+            .Concat(logAnalytics).Concat(appInsights).Concat(cosmosDb)
+            .Concat(sqlServer).Concat(sqlDatabase).Concat(serviceBus)
+            .Concat(containerRegistry).Concat(eventHub)
+            .ToList();
 
         return entries
             .GroupBy(e => e.ResourceId)

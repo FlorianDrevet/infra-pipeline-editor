@@ -1,4 +1,5 @@
 export * from './ds-button/ds-button.component';
+export * from './ds-button/ds-button.types';
 export * from './ds-card/ds-card.component';
 export * from './ds-alert/ds-alert.component';
 export * from './ds-section-header/ds-section-header.component';

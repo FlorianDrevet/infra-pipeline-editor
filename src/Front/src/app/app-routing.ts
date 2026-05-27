@@ -1,5 +1,18 @@
-import { Routes } from '@angular/router';
+import { Route, Routes } from '@angular/router';
 import { AuthenticationGuard } from './shared/guards/authentication.guard';
+import { environment } from '../environments/environment';
+
+const devOnlyRoutes: Route[] = environment.production
+  ? []
+  : [
+      {
+        path: 'design-system',
+        loadComponent: () =>
+          import('./features/design-system/design-system.component').then(
+            (m) => m.DesignSystemComponent
+          ),
+      },
+    ];
 
 export const routes: Routes = [
   {
@@ -86,13 +99,7 @@ export const routes: Routes = [
             (m) => m.SettingsComponent
           ),
       },
-      {
-        path: 'design-system',
-        loadComponent: () =>
-          import('./features/design-system/design-system.component').then(
-            (m) => m.DesignSystemComponent
-          ),
-      },
+      ...devOnlyRoutes,
     ],
   },
   {
