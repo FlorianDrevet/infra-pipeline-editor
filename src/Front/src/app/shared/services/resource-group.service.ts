@@ -5,6 +5,7 @@ import {
   ResourceGroupResponse,
   AzureResourceResponse,
   CreateResourceGroupRequest,
+  UpdateResourceGroupRequest,
 } from '../interfaces/resource-group.interface';
 
 @Injectable({
@@ -31,6 +32,14 @@ export class ResourceGroupService {
     return this.axios.request$<ResourceGroupResponse>(
       MethodEnum.POST,
       '/resource-group',
+      request
+    );
+  }
+
+  update(id: string, request: UpdateResourceGroupRequest): Promise<ResourceGroupResponse> {
+    return this.axios.request$<ResourceGroupResponse>(
+      MethodEnum.PUT,
+      `/resource-group/${id}`,
       request
     );
   }

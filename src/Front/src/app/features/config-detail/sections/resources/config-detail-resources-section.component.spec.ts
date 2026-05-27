@@ -84,6 +84,7 @@ function createViewModel(overrides: Partial<Record<string, unknown>> = {}): Reco
     getResourceDiagnostics: () => [],
     onOpenAddResourceDialog: () => undefined,
     onOpenDeleteResourceGroupDialog: () => undefined,
+    onOpenEditResourceGroupDialog: () => undefined,
     onOpenDeleteResourceDialog: () => undefined,
     isParentExpanded: () => false,
     onToggleParentExpand: () => undefined,

@@ -471,6 +471,9 @@
       "PREVIEW_TOOLTIP": "Estimated deployment name for this environment",
       "ADD_DIALOG_TITLE": "New resource group",
       "ADD_DIALOG_ERROR": "Failed to create the resource group.",
+      "EDIT": "Edit resource group",
+      "EDIT_DIALOG_TITLE": "Edit resource group",
+      "EDIT_DIALOG_ERROR": "Failed to update the resource group.",
       "REFRESH_ERROR": "Failed to reload resource groups.",
       "DELETE": "Delete resource group",
       "DELETE_CONFIRM_TITLE": "Delete resource group",
@@ -483,7 +486,8 @@
         "NAME_PLACEHOLDER": "e.g. rg-my-project-dev",
         "LOCATION": "Azure region",
         "CANCEL": "Cancel",
-        "ADD": "Add"
+        "ADD": "Add",
+        "SAVE": "Save"
       }
     },
     "RESOURCES": {

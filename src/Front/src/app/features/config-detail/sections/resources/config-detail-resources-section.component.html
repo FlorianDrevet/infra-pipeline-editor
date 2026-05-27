@@ -57,6 +57,12 @@
                 {{ 'CONFIG_DETAIL.RESOURCES.ADD' | translate }}
               </app-ds-button>
               <app-ds-icon-button
+                variant="neutral"
+                icon="edit"
+                [tooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.EDIT' | translate"
+                [ariaLabel]="'CONFIG_DETAIL.RESOURCE_GROUPS.EDIT' | translate"
+                (clicked)="viewModel().onOpenEditResourceGroupDialog(resourceGroup); $event.stopPropagation()" />
+              <app-ds-icon-button
                 variant="danger"
                 icon="delete_outline"
                 [tooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE' | translate"

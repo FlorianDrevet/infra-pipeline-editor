@@ -26,6 +26,7 @@ import {
   EditAbbreviationDialogResult,
 } from '../../shared/components/edit-abbreviation-dialog/edit-abbreviation-dialog.component';
 import { AddResourceGroupDialogComponent, AddResourceGroupDialogData } from './add-resource-group-dialog/add-resource-group-dialog.component';
+import { EditResourceGroupDialogComponent, EditResourceGroupDialogData } from './edit-resource-group-dialog/edit-resource-group-dialog.component';
 import { AddResourceDialogComponent, AddResourceDialogData } from './add-resource-dialog/add-resource-dialog.component';
 import {
   AddNamingTemplateDialogComponent,
@@ -423,6 +424,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
       getResourceDiagnostics: (resourceId) => this.getResourceDiagnostics(resourceId),
       onOpenAddResourceDialog: (resourceGroupId) => this.openAddResourceDialog(resourceGroupId),
       onOpenDeleteResourceGroupDialog: (resourceGroup) => this.openDeleteResourceGroupDialog(resourceGroup),
+      onOpenEditResourceGroupDialog: (resourceGroup) => this.openEditResourceGroupDialog(resourceGroup),
       onOpenDeleteResourceDialog: (resource, resourceGroupId) => {
         this.openDeleteResourceDialog(resource, resourceGroupId);
       },
@@ -1186,6 +1188,31 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
         }
       } catch {
         this.rgErrorKey.set('CONFIG_DETAIL.RESOURCE_GROUPS.DELETE_ERROR');
+      }
+    });
+  }
+
+  // ─── Edit Resource Group ───
+
+  protected openEditResourceGroupDialog(rg: ResourceGroupResponse): void {
+    const dialogRef = this.dialog.open(EditResourceGroupDialogComponent, {
+      data: {
+        resourceGroup: rg,
+      } satisfies EditResourceGroupDialogData,
+      width: '440px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: ResourceGroupResponse | null) => {
+      if (result) {
+        try {
+          const currentConfig = this.config();
+          if (currentConfig) {
+            const resourceGroups = await this.infraConfigService.getResourceGroups(currentConfig.id);
+            this.resourceGroups.set(resourceGroups);
+          }
+        } catch {
+          this.rgErrorKey.set('CONFIG_DETAIL.RESOURCE_GROUPS.REFRESH_ERROR');
+        }
       }
     });
   }

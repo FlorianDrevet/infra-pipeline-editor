@@ -29,3 +29,8 @@ export interface CreateResourceGroupRequest {
   location: string;
   isExisting?: boolean;
 }
+
+export interface UpdateResourceGroupRequest {
+  name: string;
+  location: string;
+}

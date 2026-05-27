@@ -31,6 +31,7 @@ export interface ConfigDetailResourcesSectionViewModel {
   getResourceDiagnostics: (resourceId: string) => ResourceDiagnosticResponse[];
   onOpenAddResourceDialog: (resourceGroupId: string) => void;
   onOpenDeleteResourceGroupDialog: (resourceGroup: ResourceGroupResponse) => void;
+  onOpenEditResourceGroupDialog: (resourceGroup: ResourceGroupResponse) => void;
   onOpenDeleteResourceDialog: (resource: AzureResourceResponse, resourceGroupId: string) => void;
   isParentExpanded: (parentId: string) => boolean;
   onToggleParentExpand: (parentId: string) => void;
