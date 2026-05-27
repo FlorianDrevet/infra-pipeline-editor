@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
@@ -36,7 +36,7 @@ const ROLE_DESCRIPTIONS: Record<string, string> = {
     RouterLink,
     FormsModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     MatTooltipModule,
     DsButtonComponent,
     DsSelectComponent,

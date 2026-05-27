@@ -2,14 +2,12 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatCheckboxModule } from '@angular/material/checkbox';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { DsButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsCheckboxComponent, DsProgressBarComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent } from '../../../shared/components/ds';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { AppSettingService } from '../../../shared/services/app-setting.service';
 import { AppSettingResponse, OutputDefinitionResponse } from '../../../shared/interfaces/app-setting.interface';
@@ -71,9 +69,9 @@ interface ImportEntry {
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
-    MatProgressBarModule,
-    MatCheckboxModule,
+    DsSpinnerComponent,
+    DsProgressBarComponent,
+    DsCheckboxComponent,
     MatTooltipModule,
     DsButtonComponent,
     DsSelectComponent,

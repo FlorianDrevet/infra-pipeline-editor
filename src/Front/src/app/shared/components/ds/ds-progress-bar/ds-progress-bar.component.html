@@ -1,0 +1,19 @@
+<div class="ds-progress">
+  @if (label()) {
+    <div class="ds-progress__label">{{ label() }}</div>
+  }
+  <div
+    class="ds-progress__track ds-progress__track--{{ tone() }}"
+    role="progressbar"
+    [attr.aria-valuemin]="0"
+    [attr.aria-valuemax]="100"
+    [attr.aria-valuenow]="ariaValueNow()"
+    [attr.aria-label]="label() ?? null"
+  >
+    @if (isIndeterminate()) {
+      <div class="ds-progress__bar ds-progress__bar--indeterminate"></div>
+    } @else {
+      <div class="ds-progress__bar" [style.width]="fillWidth()"></div>
+    }
+  </div>
+</div>

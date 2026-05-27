@@ -39,7 +39,7 @@ describe('ResourceEditUsedBySectionComponent', () => {
     }));
     fixture.detectChanges();
 
-    (fixture.nativeElement.querySelector('.uai-used-row__unlink') as HTMLButtonElement).click();
+    (fixture.nativeElement.querySelector('app-ds-button[icon="link_off"] button') as HTMLButtonElement).click();
 
     expect(openUnlinkResourceFromIdentityDialog).toHaveBeenCalledOnceWith(group);
   });

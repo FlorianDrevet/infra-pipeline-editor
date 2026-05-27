@@ -5,14 +5,12 @@ import {
   FormControl,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent } from '../../../shared/components/ds';
-import { MatCheckboxModule } from '@angular/material/checkbox';
+import { DsButtonComponent, DsCheckboxComponent, DsTextFieldComponent, DsSelectComponent } from '../../../shared/components/ds';
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import { RepositoryContentKind } from '../../../shared/interfaces/project-repository.interface';
 import {
@@ -42,11 +40,10 @@ export interface InfraConfigRepositoryDialogData {
   standalone: true,
   imports: [
     MatDialogModule,
-    MatCheckboxModule,
-    MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
     DsButtonComponent,
+    DsCheckboxComponent,
     DsTextFieldComponent,
     DsSelectComponent,
   ],

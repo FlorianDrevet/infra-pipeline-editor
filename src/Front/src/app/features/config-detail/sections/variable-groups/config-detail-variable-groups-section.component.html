@@ -10,16 +10,18 @@
 
   @if (canWrite()) {
     <div class="tab-content__toolbar">
-      <button class="add-rg-btn" (click)="section().openAddDialog()">
-        <mat-icon class="add-rg-btn__icon">add_circle_outline</mat-icon>
+      <app-ds-button
+        variant="primary"
+        icon="add_circle_outline"
+        (clicked)="section().openAddDialog()">
         {{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.ADD_GROUP' | translate }}
-      </button>
+      </app-ds-button>
     </div>
   }
 
   @if (section().isLoading()) {
     <div class="empty-state">
-      <mat-spinner diameter="32"></mat-spinner>
+      <app-ds-spinner size="lg" />
     </div>
   } @else if (section().configVariableGroups().length > 0) {
     <div class="vg-list">
@@ -32,12 +34,12 @@
               <span class="vg-card__count">{{ group.variables.length }}</span>
             </div>
             @if (canWrite()) {
-              <button
-                class="vg-card__delete"
-                (click)="section().openRemoveDialog(group)"
-                [matTooltip]="'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP' | translate">
-                <mat-icon>delete_outline</mat-icon>
-              </button>
+              <app-ds-icon-button
+                icon="delete_outline"
+                variant="danger"
+                [tooltip]="'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP' | translate"
+                [ariaLabel]="'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP' | translate"
+                (clicked)="section().openRemoveDialog(group)" />
             }
           </div>
 

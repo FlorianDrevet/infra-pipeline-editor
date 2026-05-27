@@ -21,7 +21,7 @@ Ce dépôt utilise **deux graphes complémentaires** :
 ## Index status
 
 - **Repo indexé :** `infra-pipeline-editor`
-- **Workspace instruction snapshot [2026-05-20] :** 25 353 symbols, 140 141 relationships, 300 execution flows.
+- **Workspace instruction snapshot [2026-05-27] :** ~26 398 symbols, ~145 783 relationships, 300 execution flows. Includes 5 new DS primitives (ds-spinner, ds-progress-bar, ds-tag-input, ds-menu, ds-card-mat) and PipelineOptionDetectionService infrastructure tests added 2026-05-22→27.
 - **Règle pratique :** pour les noms partagés entre entités métier et classes d'erreur, fournir `file_path` à `gitnexus_context()` pour obtenir le bon symbole du premier coup.
 
 ## Symboles à haut risque (beaucoup de dépendants upstream)
@@ -83,4 +83,4 @@ Ce dépôt utilise **deux graphes complémentaires** :
 
 ---
 
-*Dernière mise à jour : 2026-05-20 — Dream consolidation*
+*Dernière mise à jour : 2026-05-27 — Dream consolidation*

@@ -5,9 +5,11 @@
       {{ 'PROJECT_DETAIL.TAGS.TITLE' | translate }}
     </h3>
     @if (canWrite() && !isEditingProjectTags()) {
-      <button class="template-action-btn template-action-btn--inline" (click)="startEditProjectTags()">
-        <mat-icon>edit</mat-icon>
-      </button>
+      <app-ds-icon-button
+        icon="edit"
+        variant="neutral"
+        [ariaLabel]="'PROJECT_DETAIL.TAGS.EDIT' | translate"
+        (clicked)="startEditProjectTags()" />
     }
   </div>
 
@@ -17,7 +19,7 @@
     @if (projectTags().length > 0) {
       <div class="tags-display">
         @for (tag of projectTags(); track tag.name) {
-          <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
+          <app-ds-chip variant="neutral" size="sm">{{ tag.name }}: {{ tag.value }}</app-ds-chip>
         }
       </div>
     } @else {
@@ -25,31 +27,26 @@
     }
   } @else {
     <div class="tags-editor">
-      <div class="tags-add-row">
-        <app-ds-text-field
-          class="tag-name-field"
-          [label]="'PROJECT_DETAIL.TAGS.TAG_NAME' | translate"
-          [formControl]="tagNameCtrl"
-          (keydown.enter)="addProjectTag()" />
-        <app-ds-text-field
-          class="tag-value-field"
-          [label]="'PROJECT_DETAIL.TAGS.TAG_VALUE' | translate"
-          [formControl]="tagValueCtrl"
-          (keydown.enter)="addProjectTag()" />
-        <button type="button" mat-icon-button (click)="addProjectTag()" [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()">
-          <mat-icon>add</mat-icon>
-        </button>
-      </div>
+      <app-ds-key-value-input
+        [keyLabel]="'PROJECT_DETAIL.TAGS.TAG_NAME' | translate"
+        [valueLabel]="'PROJECT_DETAIL.TAGS.TAG_VALUE' | translate"
+        [addButtonLabel]="'PROJECT_DETAIL.TAGS.ADD_TAG' | translate"
+        [duplicateKeyError]="'DS.KEY_VALUE_INPUT.DUPLICATE_KEY' | translate"
+        [disabled]="tagsSaving()"
+        (itemsChange)="onTagsChange($event)" />
 
       @if (editingTags().length > 0) {
-        <mat-chip-set>
+        <div class="tags-display">
           @for (tag of editingTags(); track tag.name) {
-            <mat-chip (removed)="removeProjectTag(tag.name)">
-              <span>{{ tag.name }}: {{ tag.value }}</span>
-              <button matChipRemove><mat-icon>cancel</mat-icon></button>
-            </mat-chip>
+            <app-ds-chip
+              variant="neutral"
+              size="sm"
+              [removable]="!tagsSaving()"
+              (removed)="onTagsChange(editingKvItems().filter((_, i) => i !== $index))">
+              {{ tag.name }}: {{ tag.value }}
+            </app-ds-chip>
           }
-        </mat-chip-set>
+        </div>
       }
 
       @if (tagsErrorKey()) {

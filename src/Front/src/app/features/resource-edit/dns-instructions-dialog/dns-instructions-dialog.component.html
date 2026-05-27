@@ -12,7 +12,7 @@
 
   @if (isLoading()) {
     <div class="dns-dialog__loading">
-      <mat-spinner diameter="24"></mat-spinner>
+      <app-ds-spinner size="lg" />
     </div>
   } @else if (errorKey()) {
     <div class="dns-dialog__error" role="alert">

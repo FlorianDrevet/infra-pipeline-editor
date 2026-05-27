@@ -1,17 +1,16 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import {
   DsAutocompleteComponent,
   DsAutocompleteOption,
   DsButtonComponent,
+  DsCardMatComponent,
   DsTextareaComponent,
 } from '../../../shared/components/ds';
-import { MatCardModule } from '@angular/material/card';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -93,11 +92,10 @@ const MULTI_REPO_PUSH_MODE_CONTENT: Record<MultiRepoPushMode, MultiRepoPushModeC
   selector: 'app-multi-repo-push-dialog',
   standalone: true,
   imports: [
-    MatButtonModule,
-    MatCardModule,
+    DsCardMatComponent,
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     MatTooltipModule,
     ReactiveFormsModule,
     TranslateModule,

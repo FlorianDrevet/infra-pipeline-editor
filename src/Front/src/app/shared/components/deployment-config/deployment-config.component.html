@@ -1,23 +1,12 @@
 <!-- ─── Deployment Mode Toggle (code-or-container only) ─── -->
 @if (mode() === 'code-or-container') {
   <div class="deployment-mode">
-    <div class="deployment-mode__toggle" [class.deployment-mode__toggle--container]="isContainerMode">
-      <div class="deployment-mode__slider"></div>
-      <button class="deployment-mode__segment"
-              [class.deployment-mode__segment--active]="!isContainerMode"
-              [disabled]="!canWrite()"
-              (click)="deploymentModeChange.emit('Code')">
-        <mat-icon class="deployment-mode__icon">code</mat-icon>
-        <span class="deployment-mode__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CODE' | translate }}</span>
-      </button>
-      <button class="deployment-mode__segment"
-              [class.deployment-mode__segment--active]="isContainerMode"
-              [disabled]="!canWrite()"
-              (click)="deploymentModeChange.emit('Container')">
-        <mat-icon class="deployment-mode__icon">inventory_2</mat-icon>
-        <span class="deployment-mode__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CONTAINER' | translate }}</span>
-      </button>
-    </div>
+    <app-ds-segmented-control
+      [options]="deploymentModeSegmentedOptions()"
+      [ngModel]="deploymentMode()"
+      (ngModelChange)="deploymentModeChange.emit($any($event))"
+      [ariaLabel]="'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CODE' | translate"
+      [disabled]="!canWrite()" />
   </div>
 }
 
@@ -65,26 +54,21 @@
               (ngModelChange)="onDockerImageNameChanged($event)"
               [disabled]="!canWrite() || disabled()" />
             @if (hasDockerImageName) {
-              <button
-                type="button"
-                mat-icon-button
+              <app-ds-icon-button
                 class="docker-image-field__validate-btn"
-                [class.docker-image-field__validate-btn--validated]="dockerImageValidated()"
-                [attr.aria-label]="(dockerImageValidated() ? 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.UNVALIDATE' : 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.VALIDATE') | translate"
-                [matTooltip]="(dockerImageValidated() ? 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.UNVALIDATE' : 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.VALIDATE') | translate"
+                [icon]="dockerImageValidated() ? 'check_circle' : 'help_outline'"
+                [variant]="dockerImageValidated() ? 'accent' : 'neutral'"
+                [tooltip]="(dockerImageValidated() ? 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.UNVALIDATE' : 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.VALIDATE') | translate"
+                [ariaLabel]="(dockerImageValidated() ? 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.UNVALIDATE' : 'RESOURCE_EDIT.DOCKER_IMAGE_VALIDATION.VALIDATE') | translate"
                 [disabled]="!canWrite() || disabled()"
-                (click)="toggleDockerImageValidated()">
-                <mat-icon>{{ dockerImageValidated() ? 'check_circle' : 'help_outline' }}</mat-icon>
-              </button>
+                (clicked)="toggleDockerImageValidated()" />
             }
-            <button
-              type="button"
-              mat-icon-button
+            <app-ds-icon-button
               class="docker-image-field__info-btn"
-              [attr.aria-label]="'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.TITLE' | translate"
-              (click)="openDockerImageInstructions()">
-              <mat-icon>info_outline</mat-icon>
-            </button>
+              icon="info_outline"
+              variant="neutral"
+              [ariaLabel]="'RESOURCE_EDIT.DOCKER_IMAGE_INSTRUCTIONS.TITLE' | translate"
+              (clicked)="openDockerImageInstructions()" />
           </div>
           @if (hasDockerImageName && !dockerImageValidated()) {
             <div class="docker-image-validation-hint">
@@ -103,23 +87,12 @@
           <span class="acr-auth-mode__hint">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_HINT' | translate }}</span>
         </div>
         <fieldset class="acr-auth-mode__toggle" [attr.aria-label]="'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE' | translate">
-          <button
-            type="button"
-            class="acr-auth-mode__option"
-            [class.acr-auth-mode__option--active]="isManagedIdentityAcrMode"
-            [disabled]="!canWrite() || disabled()"
-            (click)="acrAuthModeChange.emit('ManagedIdentity')">
-            <span class="acr-auth-mode__option-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_MANAGED_IDENTITY' | translate }}</span>
-            <span class="acr-auth-mode__badge">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_RECOMMENDED' | translate }}</span>
-          </button>
-          <button
-            type="button"
-            class="acr-auth-mode__option"
-            [class.acr-auth-mode__option--active]="isAdminCredentialsAcrMode"
-            [disabled]="!canWrite() || disabled()"
-            (click)="acrAuthModeChange.emit('AdminCredentials')">
-            <span class="acr-auth-mode__option-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_ADMIN_CREDENTIALS' | translate }}</span>
-          </button>
+          <app-ds-segmented-control
+            [options]="acrAuthModeSegmentedOptions()"
+            [ngModel]="resolvedAcrAuthMode"
+            (ngModelChange)="acrAuthModeChange.emit($any($event))"
+            [ariaLabel]="'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE' | translate"
+            [disabled]="!canWrite() || disabled()" />
         </fieldset>
       </div>
     }
@@ -157,10 +130,14 @@
                   [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
                   [clearable]="true">
                 </app-ds-select>
-                <button class="acr-identity-card__create-link" (click)="createUai.emit()" type="button">
-                  <mat-icon>add_circle_outline</mat-icon>
+                <app-ds-button
+                  class="acr-identity-card__create-link"
+                  variant="ghost"
+                  size="sm"
+                  icon="add_circle_outline"
+                  (clicked)="createUai.emit()">
                   {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                </button>
+                </app-ds-button>
               </div>
             </div>
           </div>
@@ -170,7 +147,7 @@
             @switch (acrUaiState()) {
               @case ('checking') {
                 <div class="acr-inline-status acr-inline-status--checking">
-                  <mat-spinner diameter="16"></mat-spinner>
+                  <app-ds-spinner size="sm" />
                   <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
                 </div>
               }
@@ -183,19 +160,25 @@
               @case ('uai-missing-role') {
                 <div class="acr-identity-card acr-identity-card--warn">
                   <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}</p>
-                  <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()" type="button">
-                    @if (acrRoleAssigning()) {
-                      <mat-spinner diameter="14"></mat-spinner>
-                    } @else {
-                      <mat-icon>add_circle_outline</mat-icon>
-                    }
+                  <app-ds-button
+                    class="acr-identity-card__action-btn"
+                    variant="primary"
+                    size="sm"
+                    icon="add_circle_outline"
+                    [disabled]="acrRoleAssigning()"
+                    [loading]="acrRoleAssigning()"
+                    (clicked)="addAcrPullRole.emit()">
                     {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
-                  </button>
+                  </app-ds-button>
                   <div class="acr-identity-card__why-section">
-                    <button class="acr-identity-card__why-toggle" (click)="showWhyUai = !showWhyUai" type="button">
-                      <mat-icon class="acr-identity-card__why-arrow" [class.acr-identity-card__why-arrow--open]="showWhyUai">chevron_right</mat-icon>
-                      <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
-                    </button>
+                    <app-ds-button
+                      class="acr-identity-card__why-toggle"
+                      variant="ghost"
+                      size="sm"
+                      [icon]="showWhyUai ? 'keyboard_arrow_down' : 'chevron_right'"
+                      (clicked)="showWhyUai = !showWhyUai">
+                      {{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}
+                    </app-ds-button>
                     @if (showWhyUai) {
                       <div class="acr-identity-card__why-content">
                         <p>{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TEXT' | translate }}</p>
@@ -212,20 +195,26 @@
                 <div class="acr-identity-card acr-identity-card--warn">
                   <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI_MSG' | translate }}</p>
                   @if (acrSelectedUaiId()) {
-                    <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()" type="button">
-                      @if (acrRoleAssigning()) {
-                        <mat-spinner diameter="14"></mat-spinner>
-                      } @else {
-                        <mat-icon>add_circle_outline</mat-icon>
-                      }
+                    <app-ds-button
+                      class="acr-identity-card__action-btn"
+                      variant="primary"
+                      size="sm"
+                      icon="add_circle_outline"
+                      [disabled]="acrRoleAssigning()"
+                      [loading]="acrRoleAssigning()"
+                      (clicked)="addAcrPullRole.emit()">
                       {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
-                    </button>
+                    </app-ds-button>
                   }
                   <div class="acr-identity-card__why-section">
-                    <button class="acr-identity-card__why-toggle" (click)="showWhyUai = !showWhyUai" type="button">
-                      <mat-icon class="acr-identity-card__why-arrow" [class.acr-identity-card__why-arrow--open]="showWhyUai">chevron_right</mat-icon>
-                      <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
-                    </button>
+                    <app-ds-button
+                      class="acr-identity-card__why-toggle"
+                      variant="ghost"
+                      size="sm"
+                      [icon]="showWhyUai ? 'keyboard_arrow_down' : 'chevron_right'"
+                      (clicked)="showWhyUai = !showWhyUai">
+                      {{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}
+                    </app-ds-button>
                     @if (showWhyUai) {
                       <div class="acr-identity-card__why-content">
                         <p>{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TEXT' | translate }}</p>

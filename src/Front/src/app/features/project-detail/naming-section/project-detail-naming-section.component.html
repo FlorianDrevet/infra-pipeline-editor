@@ -1,23 +1,23 @@
 @if (project(); as proj) {
 <div class="tab-content__toolbar naming-toolbar">
   @if (canWrite()) {
-    <button
-      class="template-action-btn template-action-btn--add"
+    <app-ds-button
+      variant="primary"
+      icon="edit"
       [disabled]="namingActionKey() !== null"
-      (click)="openDefaultNamingTemplateDialog()">
-      <mat-icon>edit</mat-icon>
+      (clicked)="openDefaultNamingTemplateDialog()">
       {{ (proj.defaultNamingTemplate
         ? 'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT_DEFAULT'
         : 'PROJECT_DETAIL.NAMING_TEMPLATES.ADD_DEFAULT') | translate }}
-    </button>
-    <button
-      class="template-action-btn template-action-btn--add"
+    </app-ds-button>
+    <app-ds-button
+      variant="primary"
+      icon="add_circle_outline"
       [disabled]="!canAddResourceNamingTemplate() || namingActionKey() !== null"
       [matTooltip]="(!canAddResourceNamingTemplate() ? 'PROJECT_DETAIL.NAMING_TEMPLATES.ALL_RESOURCE_TYPES_CONFIGURED' : 'PROJECT_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE') | translate"
-      (click)="openResourceNamingTemplateDialog()">
-      <mat-icon>add_circle_outline</mat-icon>
+      (clicked)="openResourceNamingTemplateDialog()">
       {{ 'PROJECT_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE' | translate }}
-    </button>
+    </app-ds-button>
   }
 </div>
 
@@ -37,20 +37,21 @@
 <article class="default-template" [class.default-template--busy]="isNamingActionActive('default')">
   @if (isNamingActionActive('default')) {
     <div class="default-template__spinner">
-      <mat-spinner diameter="22"></mat-spinner>
+      <app-ds-spinner size="md" />
     </div>
   }
 
   <div class="default-template__header">
     <span>{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.DEFAULT' | translate }}</span>
     @if (canWrite()) {
-      <button
-        class="template-action-btn template-action-btn--inline"
+      <app-ds-button
+        variant="secondary"
+        size="sm"
+        icon="edit"
         [disabled]="namingActionKey() !== null"
-        (click)="openDefaultNamingTemplateDialog()">
-        <mat-icon>edit</mat-icon>
+        (clicked)="openDefaultNamingTemplateDialog()">
         {{ 'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT' | translate }}
-      </button>
+      </app-ds-button>
     }
   </div>
 
@@ -67,7 +68,7 @@
       <article class="template-row" [class.template-row--busy]="isResourceNamingTemplateBusy(tmpl.resourceType)">
         @if (isResourceNamingTemplateBusy(tmpl.resourceType)) {
           <div class="template-row__spinner">
-            <mat-spinner diameter="18"></mat-spinner>
+            <app-ds-spinner size="md" />
           </div>
         }
 
@@ -78,20 +79,22 @@
 
         @if (canWrite()) {
           <div class="template-row__actions">
-            <button
-              class="template-action-btn template-action-btn--edit"
-              [matTooltip]="'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT' | translate"
+            <app-ds-icon-button
+              variant="neutral"
+              icon="edit"
+              [tooltip]="'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT' | translate"
+              [ariaLabel]="'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT' | translate"
               [disabled]="isResourceNamingTemplateBusy(tmpl.resourceType) || namingActionKey() !== null"
-              (click)="openResourceNamingTemplateDialog(tmpl)">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button
-              class="template-action-btn template-action-btn--delete"
-              [matTooltip]="'PROJECT_DETAIL.NAMING_TEMPLATES.REMOVE' | translate"
+              (clicked)="openResourceNamingTemplateDialog(tmpl)">
+            </app-ds-icon-button>
+            <app-ds-icon-button
+              variant="danger"
+              icon="delete_outline"
+              [tooltip]="'PROJECT_DETAIL.NAMING_TEMPLATES.REMOVE' | translate"
+              [ariaLabel]="'PROJECT_DETAIL.NAMING_TEMPLATES.REMOVE' | translate"
               [disabled]="isResourceNamingTemplateBusy(tmpl.resourceType) || namingActionKey() !== null"
-              (click)="openRemoveResourceNamingTemplateDialog(tmpl)">
-              <mat-icon>delete_outline</mat-icon>
-            </button>
+              (clicked)="openRemoveResourceNamingTemplateDialog(tmpl)">
+            </app-ds-icon-button>
           </div>
         }
       </article>
@@ -131,7 +134,7 @@
         <article class="abbreviation-row" [class.abbreviation-row--busy]="isAbbreviationBusy(item.resourceType)">
           @if (isAbbreviationBusy(item.resourceType)) {
             <div class="abbreviation-row__spinner">
-              <mat-spinner diameter="18"></mat-spinner>
+              <app-ds-spinner size="md" />
             </div>
           }
 
@@ -152,21 +155,23 @@
 
           @if (canWrite()) {
             <span class="abbreviation-list__col abbreviation-list__col--actions">
-              <button
-                class="template-action-btn template-action-btn--edit"
-                [matTooltip]="'ABBREVIATIONS.EDIT' | translate"
+              <app-ds-icon-button
+                variant="neutral"
+                icon="edit"
+                [tooltip]="'ABBREVIATIONS.EDIT' | translate"
+                [ariaLabel]="'ABBREVIATIONS.EDIT' | translate"
                 [disabled]="isAbbreviationBusy(item.resourceType) || namingActionKey() !== null"
-                (click)="openEditAbbreviationDialog(item)">
-                <mat-icon>edit</mat-icon>
-              </button>
+                (clicked)="openEditAbbreviationDialog(item)">
+              </app-ds-icon-button>
               @if (item.isCustomized) {
-                <button
-                  class="template-action-btn template-action-btn--delete"
-                  [matTooltip]="'ABBREVIATIONS.RESET' | translate"
+                <app-ds-icon-button
+                  variant="neutral"
+                  icon="restart_alt"
+                  [tooltip]="'ABBREVIATIONS.RESET' | translate"
+                  [ariaLabel]="'ABBREVIATIONS.RESET' | translate"
                   [disabled]="isAbbreviationBusy(item.resourceType) || namingActionKey() !== null"
-                  (click)="openResetAbbreviationDialog(item)">
-                  <mat-icon>restart_alt</mat-icon>
-                </button>
+                  (clicked)="openResetAbbreviationDialog(item)">
+                </app-ds-icon-button>
               }
             </span>
           }

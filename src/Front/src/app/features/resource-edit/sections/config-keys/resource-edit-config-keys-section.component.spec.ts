@@ -40,8 +40,8 @@ describe('ResourceEditConfigKeysSectionComponent', () => {
     }));
     fixture.detectChanges();
 
-    getButton('.ra-add-btn').click();
-    getButton('.as-row__delete').click();
+    getButton('.ra-actions app-ds-button button').click();
+    getButton('app-ds-icon-button[icon="close"] button').click();
 
     expect(addConfigKey).toHaveBeenCalledOnceWith();
     expect(removeConfigKey).toHaveBeenCalledOnceWith(configKey);

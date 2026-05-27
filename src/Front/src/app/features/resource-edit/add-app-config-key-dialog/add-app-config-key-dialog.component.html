@@ -1,28 +1,11 @@
 <div class="as-dialog">
   <!-- ─── Mode selector ─── -->
-  <div class="as-dialog__mode-bar">
-    <button
-      class="mode-btn"
-      [class.mode-btn--active]="mode() === 'output'"
-      (click)="onModeChange('output')">
-      <mat-icon>swap_horiz</mat-icon>
-      {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.MODE_OUTPUT' | translate }}
-    </button>
-    <button
-      class="mode-btn"
-      [class.mode-btn--active]="mode() === 'static'"
-      (click)="onModeChange('static')">
-      <mat-icon>tune</mat-icon>
-      {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.MODE_STATIC' | translate }}
-    </button>
-    <button
-      class="mode-btn"
-      [class.mode-btn--active]="mode() === 'secret'"
-      (click)="onModeChange('secret')">
-      <mat-icon>vpn_key</mat-icon>
-      {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.MODE_SECRET' | translate }}
-    </button>
-  </div>
+  <app-ds-segmented-control
+    class="as-dialog__mode-bar"
+    [options]="modeOptions"
+    [ngModel]="mode()"
+    (ngModelChange)="onModeChange($event)"
+    [ngModelOptions]="{ standalone: true }" />
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- STATIC / SECRET MODES                                          -->
@@ -122,7 +105,7 @@
         <div class="config-section vg-section">
           @if (vgLoading()) {
             <div class="as-dialog__loading">
-              <mat-spinner diameter="20"></mat-spinner>
+              <app-ds-spinner size="md" />
             </div>
           } @else {
             <app-ds-select
@@ -188,7 +171,7 @@
           <!-- Access check -->
           @if (kvAccessChecking()) {
             <div class="as-dialog__loading">
-              <mat-spinner diameter="20"></mat-spinner>
+              <app-ds-spinner size="md" />
               <span>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.KV_CHECKING_ACCESS' | translate }}</span>
             </div>
           } @else if (kvHasAccess() === false) {
@@ -199,18 +182,19 @@
                 <span class="kv-access-warning__desc">
                   {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.KV_NO_ACCESS_DESC' | translate: { role: kvMissingRoleName() } }}
                 </span>
-                <button
-                  mat-stroked-button
+                <app-ds-button
+                  variant="secondary"
+                  icon="shield"
                   class="assign-role-btn"
                   [disabled]="sensitiveRoleAssigning()"
-                  (click)="assignRole(); $event.stopPropagation()">
+                  [loading]="sensitiveRoleAssigning()"
+                  (clicked)="assignRole(); $event.stopPropagation()">
                   @if (sensitiveRoleAssigning()) {
-                    <mat-spinner diameter="14" class="submit-spinner"></mat-spinner>
                     {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.ASSIGNING_ROLE' | translate }}
                   } @else {
-                    <span class="btn-content"><mat-icon>shield</mat-icon> {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.ASSIGN_ROLE' | translate }}</span>
+                    {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.ASSIGN_ROLE' | translate }}
                   }
-                </button>
+                </app-ds-button>
                 @if (sensitiveRoleError()) {
                   <span class="assign-role-error">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.ROLE_ERROR' | translate }}</span>
                 }
@@ -279,7 +263,7 @@
           <div class="config-section vg-section">
             @if (vgLoading()) {
               <div class="as-dialog__loading">
-                <mat-spinner diameter="20"></mat-spinner>
+                <app-ds-spinner size="md" />
               </div>
             } @else {
               <app-ds-select
@@ -403,7 +387,7 @@
 
         @if (outputsLoading()) {
           <div class="as-dialog__loading">
-            <mat-spinner diameter="24"></mat-spinner>
+            <app-ds-spinner size="lg" />
             <span>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.LOADING_OUTPUTS' | translate }}</span>
           </div>
         } @else if (availableOutputs().length === 0) {
@@ -463,9 +447,9 @@
       </mat-dialog-content>
 
       <mat-dialog-actions class="as-dialog__actions" align="end">
-        <button mat-stroked-button (click)="goBack()">
+        <app-ds-button variant="secondary" (clicked)="goBack()">
           {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.BACK' | translate }}
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
 
@@ -549,7 +533,7 @@
             @if (selectedKeyVault()) {
               @if (kvAccessChecking()) {
                 <div class="as-dialog__loading">
-                  <mat-spinner diameter="20"></mat-spinner>
+                  <app-ds-spinner size="md" />
                   <span>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.KV_CHECKING_ACCESS' | translate }}</span>
                 </div>
               } @else if (kvHasAccess() === false) {
@@ -560,18 +544,19 @@
                     <span class="kv-access-warning__desc">
                       {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.KV_NO_ACCESS_DESC' | translate: { role: kvMissingRoleName() } }}
                     </span>
-                    <button
-                      mat-stroked-button
+                    <app-ds-button
+                      variant="secondary"
+                      icon="shield"
                       class="assign-role-btn"
                       [disabled]="sensitiveRoleAssigning()"
-                      (click)="assignSensitiveRole(); $event.stopPropagation()">
+                      [loading]="sensitiveRoleAssigning()"
+                      (clicked)="assignSensitiveRole(); $event.stopPropagation()">
                       @if (sensitiveRoleAssigning()) {
-                        <mat-spinner diameter="14" class="submit-spinner"></mat-spinner>
                         {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_ASSIGNING_ROLE' | translate }}
                       } @else {
-                        <span class="btn-content"><mat-icon>shield</mat-icon> {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_ASSIGN_ROLE' | translate }}</span>
+                        {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_ASSIGN_ROLE' | translate }}
                       }
-                    </button>
+                    </app-ds-button>
                     @if (sensitiveRoleError()) {
                       <span class="assign-role-error">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_ROLE_ERROR' | translate }}</span>
                     }
@@ -611,20 +596,20 @@
             </div>
 
             <div class="sensitive-confirm-checkbox">
-              <mat-checkbox
+              <app-ds-checkbox
                 [ngModel]="sensitiveDirectConfirmed()"
-                (ngModelChange)="sensitiveDirectConfirmed.set($event)">
-                {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_DIRECT_CONFIRM' | translate }}
-              </mat-checkbox>
+                (ngModelChange)="sensitiveDirectConfirmed.set($event)"
+                [ngModelOptions]="{ standalone: true }"
+                [label]="'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_DIRECT_CONFIRM' | translate" />
             </div>
           </div>
         }
       </mat-dialog-content>
 
       <mat-dialog-actions class="as-dialog__actions" align="end">
-        <button mat-stroked-button (click)="goBack()">
+        <app-ds-button variant="secondary" (clicked)="goBack()">
           {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.BACK' | translate }}
-        </button>
+        </app-ds-button>
         <app-ds-button
           variant="primary"
           [disabled]="!canProceedFromSensitiveStep()"
@@ -702,9 +687,9 @@
       </mat-dialog-content>
 
       <mat-dialog-actions class="as-dialog__actions" align="end">
-        <button mat-stroked-button (click)="goBack()">
+        <app-ds-button variant="secondary" (clicked)="goBack()">
           {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.BACK' | translate }}
-        </button>
+        </app-ds-button>
         <app-ds-button
           variant="primary"
           [disabled]="!canSubmit()"

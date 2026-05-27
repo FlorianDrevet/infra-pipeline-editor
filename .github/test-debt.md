@@ -15,6 +15,14 @@
 ## Incremental Entries
 
 - [2026-05-18] **P2 — Infrastructure / KeyVaultSecretClient**: `tests/InfraFlowSculptor.Infrastructure.Tests/Services/KeyVault/KeyVaultSecretClientTests.cs` now covers PAT write failure mapping in `SetSecretAsync(...)` and PAT read failure logging in `GetSecretAsync(...)`; `DeleteSecretAsync(...)` still lacks a focused regression test for exception logging and error mapping.
+- [2026-05-27] ~~**Front/P2 — DS migration W4.3 specs broken**~~ **RESOLVED [2026-05-27]**: 5 specs migrated from legacy CSS selectors (`.uai-used-row__unlink`, `.custom-domains-section__add-btn`, `.as-row__delete`, `.as-row__edit`, `.ra-add-btn`) to DS-aware selectors (`app-ds-button[icon="..."] button`, `app-ds-icon-button[icon="..."] button`). All 51 Karma specs pass. SCSS dead-classes purged from 5 files (custom-domains, app-settings, pipeline-options, add-app-config-key-dialog, add-app-setting-dialog).
+- [2026-05-27] ~~**Front/P3 — DS migration W2 (tag-input rollout) NOT EXECUTED**~~ **RESOLVED [2026-05-27]**: Created `app-ds-key-value-input` primitive (`DsKeyValueItem { key, value }`, ControlValueAccessor, validators, chips display). Migrated 3 files: `config-detail-tags-section`, `project-detail-tags-section`, `add-project-environment-dialog`. Naming-template files (2) excluded by design (they are cursor-placement UIs, not key-value inputs). `mat-chip-set` removed from the 3 migrated files.
+- [2026-05-27] **Front/P3 — DS migration N7 accordion RESOLVED [2026-05-27]**: Created `app-ds-accordion` primitive (expand/collapse, ARIA, icon, tone). Migrated DNS tutorial in `resource-edit-custom-domains-section`. 0 `mat-expansion-panel` remaining in frontend.
+- [2026-05-27] **Front/P3 — Bicep palette extraction RESOLVED [2026-05-27]**: Extracted shared `_bicep-syntax-palette.scss` partial. Used by `settings.component.scss` and `bicep-file-panel.component.scss` via `@use` + `@include bicep.tokens`.
+- [2026-05-27] **Front/P2 — W1 DS primitive specs**: The 4 new W1 primitives (`ds-spinner`, `ds-progress-bar`, `ds-tag-input`, `ds-menu`) have spec files and compile correctly. Confirmed passing with typecheck.
+
+### Remaining open debt (Front)
+- **P3** — 2 `mat-chip-set` remain in naming-template dialogs (cursor-placement UIs, not tag inputs — excluded by design)
 
 ---
 
@@ -344,3 +352,15 @@ When modifying code and discovering the target zone has no tests:
 - **~~P3~~ RÉSOLU 2026-05-11** — UI Refresh — Suppression du compat layer SCSS legacy dans `_tokens.scss` : 106 lignes deprecated supprimées, 5 mixins deprecated supprimées de `_mixins.scss`, 168 occurrences migrées dans 15 fichiers. Zero consommateurs restants.
 - **~~P3~~ RÉSOLU 2026-05-11** — Anti-patterns résiduels : `ds-panel-action-button.scss` (22→0 hits, refonte flat V2), `ds-date-picker.scss` (4→0 hits, header flat + selected accent), compat layer SCSS supprimé (106 lignes `_tokens.scss` + 5 mixins `_mixins.scss`). `ds-button.scss` (1 hit gradient CTA whitelisté, intentionnel).
 - **~~P3~~ RÉSOLU 2026-05-11** — Suppression compat layer SCSS legacy : 168 occurrences migrées vers V2 CSS vars dans 15 fichiers via script `tmp/purge-compat-layer.ps1`.
+
+## Front/UI Refresh Vague W1 � Fondations DS (2026-05-27)
+
+- **P2** � Validation runtime Karma � ex�cuter pour les 4 nouvelles primitives DS (ds-spinner, ds-progress-bar, ds-tag-input, ds-menu). Specs �crites mais non ex�cut�es (Karma non lanc� dans cette session).
+- **P3** � Specs Karma � ajouter pour DsMenuDirective (overlay open/close, backdrop click, aria-expanded toggle).
+
+## Front/UI Refresh Vague W8 � Finalisation DS (2026-05-27)
+
+- **P3** � N7 `app-ds-accordion` non impl�ment� (autoris� par utilisateur en vague finale). DNS validation panel (`resource-edit-custom-domains-section`) conserve `mat-expansion-panel` natif Material. Co�t cr�ation primitive vs unique usage non rentable. � cr�er si un 2e usage appara�t.
+- **P3** � `settings.component.scss` lignes 279�313 : palette `--bicep-syntax-*` (3 th�mes) dupliqu�e de `bicep-file-panel`. Refactor en partial SCSS partag� (`@use 'shared/bicep-syntax-palette' as bicep;`) report� pour �viter de toucher `bicep-file-panel` (hors scope audit). Trace : audit-design-system-2026-05-27 �3.17.
+- **P3** � `split-generation-switcher.component.scss` lignes 79�89 : `background: rgba(55,78,110,0.94)` et `rgba(43,83,86,0.94)` non tokenis�s (chips infra/code � couleurs sp�cifiques sans �quivalent DS exact). � �valuer cr�ation tokens `--ifs-chip-infra-bg` / `--ifs-chip-code-bg` si pattern se r�pand.
+

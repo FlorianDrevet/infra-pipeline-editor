@@ -61,9 +61,9 @@
         <span class="content-kinds__label">{{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KINDS' | translate }}</span>
         <div class="content-kinds__list" formArrayName="contentKinds">
           @for (kind of contentKinds; track kind; let i = $index) {
-            <mat-checkbox [formControlName]="i">
-              {{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}
-            </mat-checkbox>
+            <app-ds-checkbox
+              [formControlName]="i"
+              [label]="('PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind) | translate" />
           }
         </div>
         @if (contentKindsArray.hasError('required') && contentKindsArray.touched) {

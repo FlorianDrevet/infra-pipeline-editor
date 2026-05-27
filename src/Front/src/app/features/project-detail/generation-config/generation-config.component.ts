@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { SidebarContextService } from '../../../core/layouts/sidebar/sidebar-context.service';
 import { ProjectResponse } from '../../../shared/interfaces/project.interface';
@@ -35,7 +35,7 @@ const LAYOUT_PRESET_LABEL_KEYS: Record<ProjectLayoutPreset, string> = {
     TranslateModule,
     RouterLink,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     LayoutRepositoriesComponent,
     DsButtonComponent,
     DsCardComponent,

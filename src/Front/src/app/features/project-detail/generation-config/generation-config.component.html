@@ -53,7 +53,7 @@
   @if (isLoading()) {
     <app-ds-card>
       <div class="board-state board-state--loading" aria-live="polite">
-        <mat-spinner diameter="32"></mat-spinner>
+        <app-ds-spinner size="lg" />
         <div>
           <strong>{{ 'PROJECT_DETAIL.BOARD.LOADING' | translate }}</strong>
         </div>

@@ -1,12 +1,12 @@
 import { Component, DestroyRef, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTabsModule } from '@angular/material/tabs';
+import { DsSpinnerComponent } from '../../shared/components/ds/ds-spinner/ds-spinner.component';
+import { DsTabsComponent } from '../../shared/components/ds/ds-tabs/ds-tabs.component';
+import { DsTabDefinition } from '../../shared/components/ds/ds-tabs/ds-tabs.types';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
@@ -18,6 +18,7 @@ import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import {
   DsSelectOption,
+  DsButtonComponent,
 } from '../../shared/components/ds';
 import {
   EditAbbreviationDialogComponent,
@@ -101,7 +102,14 @@ import { ConfigDetailTagsSectionComponent } from './sections/tags/config-detail-
 import { createConfigDetailTagsSectionController } from './sections/tags/config-detail-tags-section.controller';
 import { ConfigDetailVariableGroupsSectionComponent } from './sections/variable-groups/config-detail-variable-groups-section.component';
 import { createConfigDetailVariableGroupsSectionController } from './sections/variable-groups/config-detail-variable-groups-section.controller';
-import { CONFIG_DETAIL_ROUTE_TABS, getConfigDetailTabIndex, getConfigDetailTabQuery } from '../../shared/enums/detail-route-tabs';
+import {
+  CONFIG_DETAIL_ROUTE_TABS,
+  CONFIG_DETAIL_TAB_IDS,
+  ConfigDetailTabId,
+  getConfigDetailQueryFromTabId,
+  getConfigDetailTabIdFromQuery,
+} from '../../shared/enums/detail-route-tabs';
+import { LanguageService } from '../../shared/services/language.service';
 
 type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | undefined };
 
@@ -112,13 +120,12 @@ type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | un
   imports: [
     TranslateModule,
     RouterLink,
-    MatButtonModule,
     MatCardModule,
     MatChipsModule,
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
-    MatTabsModule,
+    DsSpinnerComponent,
+    DsTabsComponent,
     MatTooltipModule,
     ConfigDetailGenerationSectionComponent,
     ConfigDetailGitSectionComponent,
@@ -126,6 +133,7 @@ type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | un
     ConfigDetailResourcesSectionComponent,
     ConfigDetailTagsSectionComponent,
     ConfigDetailVariableGroupsSectionComponent,
+    DsButtonComponent,
   ],
   templateUrl: './config-detail.component.html',
   styleUrl: './config-detail.component.scss',
@@ -301,6 +309,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
   protected readonly previewEnvId = signal<string | null>(null);
 
   private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
   private readonly previewNoneLabel = this.translate.instant('CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_NONE');
 
   private readonly breadcrumbEffect = effect(() => {
@@ -343,14 +352,45 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
       replaceUrl: true,
     }).catch(() => undefined);
   });
-  protected readonly selectedTabIndex = computed(() => {
-    const index = getConfigDetailTabIndex(this.currentTabQuery());
-    if (index === 5 && !this.isProjectMultiRepo()) {
-      return 0;
+  protected readonly activeConfigTabId = computed<ConfigDetailTabId>(() => {
+    const tabId = getConfigDetailTabIdFromQuery(this.currentTabQuery());
+    if (tabId === 'git' && !this.isProjectMultiRepo()) {
+      return 'resource-groups';
     }
 
-    return index;
+    return tabId;
   });
+  protected readonly configDetailTabs = computed<readonly DsTabDefinition[]>(() => {
+    this.languageService.currentLanguage();
+    const tabs: DsTabDefinition[] = [
+      { id: 'resource-groups', label: this.translate.instant('CONFIG_DETAIL.TABS.RESOURCE_GROUPS'), icon: 'dns', badge: String(this.resourceGroups().length) },
+      { id: 'tags', label: this.translate.instant('CONFIG_DETAIL.TABS.TAGS'), icon: 'label_important', badge: String(this.tagsSection.configTags().length) },
+      { id: 'naming', label: this.translate.instant('CONFIG_DETAIL.TABS.NAMING_TEMPLATES'), icon: 'label', badge: String(this.config()?.resourceNamingTemplates.length ?? 0) },
+      { id: 'cross-config-refs', label: this.translate.instant('CONFIG_DETAIL.TABS.CROSS_CONFIG_REFS'), icon: 'link', badge: String(this.crossConfigReferences().length) },
+      { id: 'variables', label: this.translate.instant('CONFIG_DETAIL.TABS.PIPELINE_VARIABLES'), icon: 'library_books', badge: String(this.variableGroupsSection.configVariableGroups().length) },
+    ];
+    if (this.isProjectMultiRepo()) {
+      tabs.push({ id: 'git', label: this.translate.instant('CONFIG_DETAIL.TABS.GIT'), icon: 'code' });
+    }
+    return tabs;
+  });
+  protected async onConfigTabIdChange(tabId: string): Promise<void> {
+    const typedTabId = CONFIG_DETAIL_TAB_IDS.includes(tabId as ConfigDetailTabId)
+      ? (tabId as ConfigDetailTabId)
+      : 'resource-groups';
+    const tabQuery = getConfigDetailQueryFromTabId(typedTabId);
+    if (tabQuery !== this.currentTabQuery()) {
+      await this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { tab: tabQuery },
+        queryParamsHandling: 'merge',
+      });
+    }
+
+    if (typedTabId === 'cross-config-refs' && !this.crossConfigLoaded()) {
+      await this.loadCrossConfigReferences();
+    }
+  }
   protected readonly resourcesSectionViewModel = computed<ConfigDetailResourcesSectionViewModel | null>(() => {
     const config = this.config();
     if (!config) {
@@ -1466,23 +1506,6 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
   }
 
   // ─── Cross-Config References ───
-
-  protected async onTabChange(index: number): Promise<void> {
-    const tab = getConfigDetailTabQuery(index);
-    if (tab !== this.currentTabQuery()) {
-      await this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { tab },
-        queryParamsHandling: 'merge',
-      });
-    }
-
-    // Tab 3 (0-indexed) is cross-config references — lazy load on first visit
-    if (index === 3 && !this.crossConfigLoaded()) {
-      await this.loadCrossConfigReferences();
-    }
-    // Variable groups are now loaded eagerly in loadConfig()
-  }
 
   protected async loadCrossConfigReferences(): Promise<void> {
     const configId = this.config()?.id;

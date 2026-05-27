@@ -1,15 +1,20 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatRadioModule } from '@angular/material/radio';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { DsButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent } from '../../../shared/components/ds';
+import {
+  DsButtonComponent,
+  DsCheckboxComponent,
+  DsSegmentedControlComponent,
+  DsSegmentedOption,
+  DsSelectComponent,
+  DsSelectOption,
+  DsTextFieldComponent,
+} from '../../../shared/components/ds';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
 import { ProjectService } from '../../../shared/services/project.service';
@@ -42,13 +47,12 @@ function toConfigSecretNameSegment(value: string): string {
     TranslateModule,
     FormsModule,
     MatDialogModule,
-    MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
-    MatRadioModule,
+    DsSpinnerComponent,
     MatTooltipModule,
-    MatCheckboxModule,
     DsButtonComponent,
+    DsCheckboxComponent,
+    DsSegmentedControlComponent,
     DsSelectComponent,
     DsTextFieldComponent,
   ],
@@ -78,6 +82,24 @@ export class AddAppConfigKeyDialogComponent {
 
   // ─── Mode: static value, secret, or output ───
   protected readonly mode = signal<'static' | 'secret' | 'output'>('static');
+
+  protected readonly modeOptions: readonly DsSegmentedOption[] = [
+    {
+      value: 'output',
+      label: this.translate.instant('RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.MODE_OUTPUT'),
+      icon: 'swap_horiz',
+    },
+    {
+      value: 'static',
+      label: this.translate.instant('RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.MODE_STATIC'),
+      icon: 'tune',
+    },
+    {
+      value: 'secret',
+      label: this.translate.instant('RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.MODE_SECRET'),
+      icon: 'vpn_key',
+    },
+  ];
 
   // ─── Static sub-step ───
   protected readonly staticValueSource = signal<'environments' | 'variableGroup' | null>(null);
@@ -187,7 +209,10 @@ export class AddAppConfigKeyDialogComponent {
     return false;
   });
 
-  protected onModeChange(value: 'static' | 'secret' | 'output'): void {
+  protected onModeChange(value: string): void {
+    if (value !== 'static' && value !== 'secret' && value !== 'output') {
+      return;
+    }
     this.mode.set(value);
     this.staticValueSource.set(null);
     this.secretValueSource.set(null);

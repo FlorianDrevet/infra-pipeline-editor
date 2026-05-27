@@ -151,84 +151,6 @@
   }
 }
 
-.delete-btn {
-  @extend %cd-btn;
-  background: color-mix(in srgb, var(--project-surface-panel) 78%, var(--ifs-danger));
-  border-color: color-mix(in srgb, var(--project-border-strong) 36%, var(--ifs-danger));
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ifs-danger) 18%, white);
-  color: color-mix(in srgb, var(--ifs-text-primary) 92%, var(--ifs-danger));
-
-  &:hover {
-    background: color-mix(in srgb, var(--project-surface-hover) 62%, var(--ifs-danger));
-    border-color: color-mix(in srgb, var(--project-border-strong) 8%, var(--ifs-danger));
-    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ifs-danger) 24%, white), var(--ifs-shadow-md);
-  }
-
-  &__icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-    color: var(--ifs-danger);
-  }
-}
-
-.add-resource-btn,
-.add-child-resource-btn,
-.add-rg-btn {
-  @extend %cd-btn;
-
-  &__icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-  }
-
-  &--inline {
-    padding: var(--ifs-space-4) var(--ifs-space-8);
-    font-size: 12px;
-  }
-}
-
-.bicep-cta {
-  @extend %cd-btn;
-  background: var(--ifs-surface-3);
-
-  &:hover {
-    background: var(--ifs-surface-2);
-    border-color: var(--ifs-accent-500);
-    color: var(--ifs-accent-500);
-  }
-
-  &__icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-  }
-
-  &__spinner {
-    width: 14px;
-    height: 14px;
-  }
-}
-
-.bicep-download-btn,
-.bicep-retry-btn {
-  @extend %cd-btn;
-
-  &__spinner {
-    width: 14px;
-    height: 14px;
-  }
-}
-
-.resource-action-btn,
-.template-action-btn {
-  @extend %cd-btn;
-  height: 28px;
-  padding: 0 var(--ifs-space-8);
-  font-size: 12px;
-}
-
 // ─── State / banners ────────────────────────────────────────────────────────
 
 .state-card {
@@ -350,7 +272,7 @@
   }
 }
 
-// ─── Tabs (Material override) ───────────────────────────────────────────────
+// ─── Tabs (panel wrapper around app-ds-tabs) ────────────────────────────────
 
 .config-tabs,
 .generation-tabs {
@@ -359,91 +281,6 @@
   border-radius: var(--ifs-radius-md);
   box-shadow: var(--ifs-shadow-sm);
   overflow: hidden;
-
-  ::ng-deep .mat-mdc-tab-header {
-    border-bottom: 1px solid var(--project-border-accent);
-    background: color-mix(in srgb, var(--ifs-surface-2) 82%, var(--ifs-brand-700));
-    padding: 0 var(--ifs-space-8);
-  }
-
-  ::ng-deep .mat-mdc-tab {
-    min-width: 0;
-    padding: 0 var(--ifs-space-12);
-    height: 40px;
-    opacity: 1;
-    margin-top: var(--ifs-space-6);
-    border-radius: var(--ifs-radius-md) var(--ifs-radius-md) 0 0;
-    transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
-  }
-
-  ::ng-deep .mat-mdc-tab:hover {
-    background: var(--project-surface-hover);
-  }
-
-  ::ng-deep .mdc-tab__text-label {
-    display: flex;
-    align-items: center;
-    gap: var(--ifs-space-6);
-    color: var(--ifs-text-secondary);
-    font-weight: 500;
-    font-size: 13px;
-    transition: color var(--ifs-duration-fast) var(--ifs-ease-standard);
-  }
-
-  ::ng-deep .mat-mdc-tab:hover .mdc-tab__text-label {
-    color: var(--ifs-text-primary);
-  }
-
-  ::ng-deep .mdc-tab--active {
-    background: var(--project-surface-active);
-    box-shadow: inset 0 0 0 1px var(--project-border-accent);
-  }
-
-  ::ng-deep .mdc-tab--active .mdc-tab__text-label {
-    color: var(--ifs-text-primary);
-  }
-
-  ::ng-deep .mdc-tab--active .tab-icon {
-    color: var(--ifs-accent-400);
-  }
-
-  ::ng-deep .mdc-tab--active .tab-count {
-    background: var(--project-pill-active);
-    border-color: var(--project-border-strong);
-    color: var(--ifs-text-primary);
-  }
-
-  ::ng-deep .mdc-tab-indicator__content--underline {
-    border-color: var(--ifs-accent-500);
-    border-width: 2px;
-  }
-
-  ::ng-deep .mat-mdc-tab-body-content {
-    overflow: visible;
-  }
-}
-
-.tab-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  color: inherit;
-}
-
-.tab-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 var(--ifs-space-6);
-  border-radius: var(--ifs-radius-pill);
-  background: var(--project-pill-surface);
-  border: 1px solid var(--project-border-accent);
-  color: var(--ifs-text-secondary);
-  font-size: 11px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 
 .tab-content,
@@ -949,8 +786,7 @@
 
 // ─── Empty / slot empty ────────────────────────────────────────────────────
 
-.empty-state,
-.slot-empty {
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1019,41 +855,10 @@
   }
 }
 
-.preset-grid,
 .repo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: var(--ifs-space-12);
-}
-
-.preset-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ifs-space-6);
-  padding: var(--ifs-space-12);
-  background: var(--ifs-surface-1);
-  border: 1px solid var(--ifs-border-subtle);
-  border-radius: var(--ifs-radius-md);
-  cursor: pointer;
-  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard);
-
-  &:hover {
-    background: var(--ifs-surface-2);
-  }
-
-  &__title {
-    margin: 0;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ifs-text-primary);
-  }
-
-  &__desc {
-    margin: 0;
-    color: var(--ifs-text-secondary);
-    font-size: 12px;
-    line-height: 1.5;
-  }
 }
 
 .repo-card {

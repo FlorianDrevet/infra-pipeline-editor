@@ -10,16 +10,15 @@ import {
   DsAutocompleteComponent,
   DsAutocompleteOption,
   DsButtonComponent,
+  DsCheckboxComponent,
   DsSelectComponent,
   DsTextFieldComponent,
 } from '../../../../shared/components/ds';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import {
   AddProjectRepositoryRequest,
@@ -55,11 +54,10 @@ type RepositoryVerificationState = 'idle' | 'checking' | 'verified' | 'failed';
   standalone: true,
   imports: [
     MatDialogModule,
-    MatCheckboxModule,
-    MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
     DsButtonComponent,
+    DsCheckboxComponent,
     DsAutocompleteComponent,
     DsTextFieldComponent,
     DsSelectComponent,

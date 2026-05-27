@@ -33,6 +33,12 @@
     padding-left: 0.25rem;
   }
 
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
   &__error {
     margin: 0;
     color: var(--ifs-danger);

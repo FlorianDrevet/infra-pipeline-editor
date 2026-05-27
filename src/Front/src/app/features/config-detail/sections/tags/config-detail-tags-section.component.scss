@@ -66,30 +66,6 @@
   flex-wrap: wrap;
 }
 
-// ─── Buttons ────────────────────────────────────────────────────────────────
-
-.template-action-btn {
-  @extend %cd-btn;
-  height: 28px;
-  padding: 0 var(--ifs-space-8);
-  font-size: 12px;
-}
-
-.template-action-btn--add {
-  color: var(--ifs-accent-400);
-  border-color: var(--ifs-border-strong);
-  background: var(--ifs-surface-2);
-}
-
-.template-action-btn--delete {
-  color: var(--ifs-danger);
-
-  &:hover {
-    background: var(--ifs-danger-bg);
-    border-color: var(--ifs-danger);
-  }
-}
-
 // ─── Tags display ───────────────────────────────────────────────────────────
 
 .tags-view-list,

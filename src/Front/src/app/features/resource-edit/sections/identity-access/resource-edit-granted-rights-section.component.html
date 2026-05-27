@@ -6,10 +6,9 @@
 
   @if (canWrite()) {
     <div class="ra-actions">
-      <button class="ra-add-btn" (click)="section().openAddRoleAssignmentDialog()">
-        <mat-icon>add</mat-icon>
+      <app-ds-button variant="primary" icon="add" (clicked)="section().openAddRoleAssignmentDialog()">
         {{ 'RESOURCE_EDIT.GRANTED_RIGHTS.ASSIGN_RIGHT' | translate }}
-      </button>
+      </app-ds-button>
     </div>
   }
 
@@ -22,7 +21,7 @@
 
   @if (section().identityRoleAssignmentsLoading()) {
     <div class="ra-loading">
-      <mat-spinner diameter="28"></mat-spinner>
+      <app-ds-spinner size="lg" />
       <span>{{ 'RESOURCE_EDIT.GRANTED_RIGHTS.LOADING' | translate }}</span>
     </div>
   } @else if (section().identityRoleAssignments().length === 0) {

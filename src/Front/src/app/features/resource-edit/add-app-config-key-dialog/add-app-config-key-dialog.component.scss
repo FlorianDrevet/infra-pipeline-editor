@@ -11,38 +11,6 @@
   padding: 1rem 1.5rem 0;
 }
 
-.mode-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  border: 1.5px solid var(--ifs-border-subtle);
-  background: var(--ifs-surface-2);
-  color: var(--ifs-text-secondary);
-  cursor: pointer;
-  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
-
-  mat-icon {
-    font-size: 1rem;
-    width: 1rem;
-    height: 1rem;
-  }
-
-  &:hover {
-    border-color: var(--ifs-accent-500);
-    background: var(--ifs-surface-3);
-  }
-
-  &--active {
-    border-color: var(--ifs-accent-500);
-    background: var(--ifs-info-bg);
-    color: var(--ifs-accent-500);
-  }
-}
-
 .as-dialog__title {
   display: flex;
   align-items: center;

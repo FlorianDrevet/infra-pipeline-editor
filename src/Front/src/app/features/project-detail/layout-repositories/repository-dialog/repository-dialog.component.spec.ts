@@ -75,7 +75,7 @@ describe('RepositoryDialogComponent', () => {
     const dialogText = fixture.nativeElement.textContent ?? '';
 
     expect(fixture.nativeElement.querySelector('.repo-dialog-title__tag')).not.toBeNull();
-    expect(fixture.nativeElement.querySelectorAll('mat-checkbox').length).toBe(0);
+    expect(fixture.nativeElement.querySelectorAll('app-ds-checkbox').length).toBe(0);
     expect(dialogText).toContain('PROJECT_DETAIL.LAYOUT.CONTENT_KIND.Infrastructure');
     expect(dialogText).toContain('PROJECT_DETAIL.LAYOUT.CONTENT_KIND.ApplicationCode');
   });
@@ -156,7 +156,7 @@ describe('RepositoryDialogComponent', () => {
     createComponent();
 
     expect(fixture.nativeElement.querySelector('.locked-kinds-summary')).toBeNull();
-    expect(fixture.nativeElement.querySelectorAll('mat-checkbox').length).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('app-ds-checkbox').length).toBe(2);
   });
 
   function createComponent(): void {

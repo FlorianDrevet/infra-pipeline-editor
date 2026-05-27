@@ -1,4 +1,14 @@
 ﻿{
+  "DS": {
+    "SPINNER": {
+      "LOADING": "Chargement..."
+    },
+    "KEY_VALUE_INPUT": {
+      "DUPLICATE_KEY": "Cette clé existe déjà",
+      "KEY_REQUIRED": "La clé est requise",
+      "VALUE_REQUIRED": "La valeur est requise"
+    }
+  },
   "LANGUAGE": {
     "FRENCH_SHORT": "FR",
     "ENGLISH_SHORT": "EN"
@@ -320,6 +330,7 @@
       "OVERLINE": "Detail de la configuration"
     },
     "TABS": {
+      "ARIA": "Sections de la configuration",
       "RESOURCE_GROUPS": "Groupes de ressources",
       "TAGS": "Tags",
       "MEMBERS": "Membres",
@@ -440,13 +451,16 @@
         "ORDER": "Ordre de deploiement",
         "ORDER_HINT": "Entre {{min}} et {{max}}",
         "TIMELINE_ARIA": "Ordre de deploiement des environnements",
+        "MOVE_LEFT": "Deplacer plus tot",
+        "MOVE_RIGHT": "Deplacer plus tard",
         "REQUIRES_APPROVAL": "Approbation requise avant deploiement",
         "CANCEL": "Annuler",
         "ADD": "Ajouter",
         "SAVE": "Enregistrer",
         "TAGS": "Tags",
         "TAG_NAME": "Clé",
-        "TAG_VALUE": "Valeur"
+        "TAG_VALUE": "Valeur",
+        "ADD_TAG": "Ajouter le tag"
       }
     },
     "RESOURCE_GROUPS": {
@@ -1015,6 +1029,7 @@
       "OVERLINE": "Detail du projet"
     },
     "TABS": {
+      "ARIA": "Onglets du projet",
       "CONFIGURATIONS": "Configurations",
       "ENVIRONMENTS": "Environnements",
       "NAMING_TEMPLATES": "Nommage",
@@ -1080,6 +1095,9 @@
       "PUSH_AMBIGUOUS_DESC": "Ce push ne peut pas être lancé au niveau projet car les artefacts générés ciblent plusieurs dépôts."
     },
     "SWITCHER": {
+      "OUTER_TABS_ARIA": "Onglets infra et code",
+      "INFRA_TABS_ARIA": "Onglets de l'infrastructure",
+      "CODE_TABS_ARIA": "Onglets du code applicatif",
       "INFRA_TAB": "Infra",
       "CODE_TAB": "Code",
       "FILES_COUNT": "{{count}} fichier(s)",
@@ -1142,6 +1160,7 @@
     },
     "GENERATION": {
       "TITLE": "Résultats de génération",
+      "TABS_ARIA": "Onglets de génération",
       "TAB_BICEP": "Bicep",
       "TAB_PIPELINE": "Pipeline",
       "TAB_BOOTSTRAP": "Bootstrap ADO",
@@ -1355,9 +1374,12 @@
         "TIMELINE_ARIA": "Ordre de deploiement des environnements",
         "ORDER_HELP": "Position dans le pipeline",
         "ORDER_LABEL": "Ordre de deploiement",
+        "MOVE_LEFT": "Deplacer plus tot",
+        "MOVE_RIGHT": "Deplacer plus tard",
         "TAGS": "Tags",
         "TAG_NAME": "Clé",
-        "TAG_VALUE": "Valeur"
+        "TAG_VALUE": "Valeur",
+        "ADD_TAG": "Ajouter le tag"
       }
     },
     "NAMING_TEMPLATES": {
@@ -1505,6 +1527,9 @@
     "TAGS": {
       "TITLE": "Tags",
       "EMPTY": "Aucun tag défini",
+      "EMPTY_HINT": "Ajoutez des tags pour categoriser ce projet.",
+      "EDIT": "Modifier les tags",
+      "ADD_TAG": "Ajouter le tag",
       "SAVE": "Enregistrer les tags",
       "CANCEL": "Annuler",
       "TAG_NAME": "Clé",
@@ -1650,6 +1675,7 @@
       "CONFIG_KEYS": "Clés de configuration",
       "APP_PIPELINE": "Pipeline applicative",
       "NETWORKING": "R\u00e9seau",
+      "ARIA": "Onglets de la ressource",
       "WARNING_MISSING_ROLE": "Un r\u00f4le requis n'est pas attribu\u00e9",
       "WARNING_MISSING_ENV_CONFIG": "Certains environnements ne sont pas configur\u00e9s"
     },
@@ -2490,6 +2516,7 @@
       "BLOB_CONTAINERS": "Conteneurs Blob",
       "QUEUES": "Files d\u2019attente",
       "TABLES": "Tables",
+      "SUB_TABS_ARIA": "Onglets des services Storage",
         "BLOB_CORS": {
           "TITLE": "CORS du service Blob",
           "DESCRIPTION": "Définissez les origines, méthodes, en-têtes et la durée de cache appliqués au service Blob.",

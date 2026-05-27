@@ -3,7 +3,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkConnectedOverlay, CdkOverlayOrigin, ConnectedPosition } from '@angular/cdk/overlay';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../ds/ds-spinner/ds-spinner.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { DsSelectComponent, DsSelectOption } from '../ds/ds-select/ds-select.component';
 import { ProjectService } from '../../services/project.service';
@@ -25,7 +25,7 @@ export interface DirectoryTreeNode {
     CdkConnectedOverlay,
     CdkOverlayOrigin,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     TranslateModule,
     DsSelectComponent,
   ],

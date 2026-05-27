@@ -1,10 +1,12 @@
 <div class="tab-content">
   <div class="tab-content__toolbar">
     @if (canWrite() && !section().isEditing()) {
-      <button class="template-action-btn template-action-btn--add" (click)="section().startEdit()">
-        <mat-icon>edit</mat-icon>
+      <app-ds-button
+        variant="primary"
+        icon="edit"
+        (clicked)="section().startEdit()">
         {{ 'CONFIG_DETAIL.TAGS.EDIT_BUTTON' | translate }}
-      </button>
+      </app-ds-button>
     }
   </div>
 
@@ -15,25 +17,13 @@
         <span>{{ 'CONFIG_DETAIL.TAGS.EDITING_TITLE' | translate }}</span>
       </div>
 
-      <div class="tags-edit-card__form">
-        <app-ds-text-field
-          class="tags-edit-card__name"
-          [label]="'CONFIG_DETAIL.TAGS.TAG_NAME' | translate"
-          [formControl]="section().tagNameControl"
-          (keydown.enter)="section().addTag(); $event.preventDefault()" />
-        <app-ds-text-field
-          class="tags-edit-card__value"
-          [label]="'CONFIG_DETAIL.TAGS.TAG_VALUE' | translate"
-          [formControl]="section().tagValueControl"
-          (keydown.enter)="section().addTag(); $event.preventDefault()" />
-        <button
-          class="template-action-btn template-action-btn--add"
-          (click)="section().addTag()"
-          [disabled]="!section().tagNameControl.value.trim()">
-          <mat-icon>add</mat-icon>
-          {{ 'CONFIG_DETAIL.TAGS.ADD' | translate }}
-        </button>
-      </div>
+      <app-ds-key-value-input
+        [keyLabel]="'CONFIG_DETAIL.TAGS.TAG_NAME' | translate"
+        [valueLabel]="'CONFIG_DETAIL.TAGS.TAG_VALUE' | translate"
+        [addButtonLabel]="'CONFIG_DETAIL.TAGS.ADD' | translate"
+        [duplicateKeyError]="'DS.KEY_VALUE_INPUT.DUPLICATE_KEY' | translate"
+        [disabled]="section().isSaving()"
+        (itemsChange)="section().onItemsChange($event)" />
 
       @if (section().editingTags().length > 0) {
         <div class="tags-edit-list">
@@ -43,12 +33,12 @@
                 <strong>{{ tag.name }}</strong>
                 <span class="tag-row__value">{{ tag.value || '—' }}</span>
               </div>
-              <button
-                class="template-action-btn template-action-btn--delete"
-                [matTooltip]="'CONFIG_DETAIL.TAGS.REMOVE_TOOLTIP' | translate"
-                (click)="section().removeTag(tag.name)">
-                <mat-icon>delete_outline</mat-icon>
-              </button>
+              <app-ds-icon-button
+                icon="delete_outline"
+                variant="danger"
+                [tooltip]="'CONFIG_DETAIL.TAGS.REMOVE_TOOLTIP' | translate"
+                [ariaLabel]="'CONFIG_DETAIL.TAGS.REMOVE_TOOLTIP' | translate"
+                (clicked)="section().removeTag(tag.name)" />
             </article>
           }
         </div>

@@ -1,15 +1,14 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PrivateEndpointService } from '../../../../shared/services/private-endpoint.service';
 import { PrivateEndpointConfigResponse, AddPrivateEndpointRequest } from '../../../../shared/interfaces/private-endpoint.interface';
-import { DsToggleComponent } from '../../../../shared/components/ds';
+import { DsCardMatComponent, DsToggleComponent } from '../../../../shared/components/ds';
 
 /**
  * Resource types that support private endpoints.
@@ -37,9 +36,9 @@ const PE_SUPPORTED_TYPES = new Set<string>([
     CommonModule,
     FormsModule,
     MatButtonModule,
-    MatCardModule,
+    DsCardMatComponent,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     TranslateModule,
     DsToggleComponent,
   ],

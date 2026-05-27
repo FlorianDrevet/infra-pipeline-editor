@@ -16,8 +16,8 @@
 
     <!-- Add Form (inline) -->
     @if (showAddForm()) {
-      <mat-card class="networking-tab__add-form">
-        <mat-card-content>
+      <app-ds-card-mat class="networking-tab__add-form">
+        <div ds-card-content>
           <div class="add-form-grid">
             <div class="add-form-field">
               <label class="add-form-label" for="pe-subnet-id">{{ 'RESOURCE_EDIT.NETWORKING.SUBNET' | translate }}</label>
@@ -43,19 +43,19 @@
           <div class="add-form-actions">
             <button mat-flat-button color="primary" (click)="submitAdd()" [disabled]="isSaving() || !subnetId || !groupId">
               @if (isSaving()) {
-                <mat-spinner diameter="16"></mat-spinner>
+                <app-ds-spinner size="sm" />
               }
               {{ 'RESOURCE_EDIT.NETWORKING.ADD_PE' | translate }}
             </button>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </app-ds-card-mat>
     }
 
     <!-- Loading state -->
     @if (isLoading()) {
       <div class="networking-tab__loading">
-        <mat-spinner diameter="24"></mat-spinner>
+        <app-ds-spinner size="lg" />
       </div>
     } @else if (loadError()) {
       <div class="networking-tab__error">
@@ -71,8 +71,8 @@
       <!-- Endpoint list -->
       <div class="networking-tab__list">
         @for (pe of endpoints(); track pe.id) {
-          <mat-card class="pe-card">
-            <mat-card-content>
+          <app-ds-card-mat class="pe-card">
+            <div ds-card-content>
               <div class="pe-card__row">
                 <span class="pe-card__label">{{ 'RESOURCE_EDIT.NETWORKING.SUBNET' | translate }}</span>
                 <code class="pe-card__value">{{ pe.subnetId }}</code>
@@ -104,14 +104,14 @@
                   [disabled]="pendingDeleteId() === pe.id"
                   [attr.aria-label]="'RESOURCE_EDIT.NETWORKING.REMOVE_PE' | translate">
                   @if (pendingDeleteId() === pe.id) {
-                    <mat-spinner diameter="16"></mat-spinner>
+                    <app-ds-spinner size="sm" />
                   } @else {
                     <mat-icon>delete_outline</mat-icon>
                   }
                 </button>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </app-ds-card-mat>
         }
       </div>
     }

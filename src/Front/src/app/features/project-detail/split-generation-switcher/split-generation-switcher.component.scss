@@ -48,80 +48,11 @@
   --split-switcher-muted: rgba(198, 211, 226, 0.78);
   --split-switcher-subtle: rgba(150, 168, 190, 0.88);
   --split-switcher-border: rgba(148, 163, 184, 0.16);
-  --split-switcher-infra-accent: #7e99bd;
-  --split-switcher-code-accent: #6f9da1;
+  --split-switcher-infra-accent: var(--ifs-brand-400);
+  --split-switcher-code-accent: var(--ifs-accent-400);
   border-radius: var(--ifs-radius-md);
   background: var(--project-surface-panel, var(--ifs-surface-1));
   overflow: hidden;
-
-  // Angular Material CSS vars for outer Infra/Code tabs
-  --mat-tab-inactive-label-text-color: var(--ifs-text-secondary);
-  --mat-tab-inactive-hover-label-text-color: var(--ifs-text-primary);
-  --mat-tab-inactive-focus-label-text-color: var(--ifs-text-primary);
-  --mat-tab-active-label-text-color: var(--ifs-text-primary);
-  --mat-tab-active-hover-label-text-color: #ffffff;
-  --mat-tab-active-focus-label-text-color: #ffffff;
-  --mat-tab-active-focus-state-layer-opacity: 0;
-  --mat-tab-active-pressed-state-layer-opacity: 0;
-  --mat-tab-inactive-focus-state-layer-opacity: 0;
-  --mat-tab-inactive-pressed-state-layer-opacity: 0;
-  --mat-tab-inactive-hover-state-layer-opacity: 0;
-
-  ::ng-deep > .mat-mdc-tab-header {
-    border-bottom: 1px solid var(--project-border-accent, var(--split-switcher-border));
-    background: color-mix(in srgb, var(--ifs-surface-2) 82%, var(--ifs-brand-700));
-    padding: 0 4.2rem 0 var(--ifs-space-8);
-  }
-
-  ::ng-deep > .mat-mdc-tab-header .mat-mdc-tab {
-    height: 40px;
-    min-width: 0;
-    padding: 0 var(--ifs-space-12);
-    margin-top: var(--ifs-space-6);
-    border-radius: var(--ifs-radius-md) var(--ifs-radius-md) 0 0;
-    transition:
-      background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
-      box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
-  }
-
-  ::ng-deep > .mat-mdc-tab-header .mat-mdc-tab:hover {
-    background: var(--project-surface-hover, var(--ifs-surface-2));
-  }
-
-  ::ng-deep > .mat-mdc-tab-header .mdc-tab__text-label {
-    display: flex;
-    align-items: center;
-    gap: var(--ifs-space-6);
-    font-weight: 500;
-    font-size: 13px;
-    letter-spacing: 0.01em;
-    transition: color var(--ifs-duration-fast) var(--ifs-ease-standard);
-  }
-
-  ::ng-deep > .mat-mdc-tab-header .mdc-tab--active {
-    background: var(--project-surface-active, var(--ifs-surface-3));
-    box-shadow: inset 0 0 0 1px var(--project-border-accent, var(--ifs-border-strong));
-  }
-
-  ::ng-deep > .mat-mdc-tab-header .mdc-tab-indicator__content--underline {
-    border-color: var(--split-switcher-infra-accent);
-    border-width: 2px;
-  }
-
-  ::ng-deep > .mat-mdc-tab-header .mat-mdc-tab:nth-of-type(2).mdc-tab--active .mdc-tab-indicator__content--underline {
-    border-color: var(--split-switcher-code-accent);
-  }
-
-  // Active second-tab color override (Code tab uses teal)
-  ::ng-deep > .mat-mdc-tab-header .mat-mdc-tab:nth-of-type(2).mdc-tab--active .mdc-tab__text-label {
-    color: var(--split-switcher-ink);
-  }
-}
-
-.split-switcher__tab-icon {
-  font-size: 1.2rem;
-  width: 1.2rem;
-  height: 1.2rem;
 }
 
 .split-switcher__info-icon {
@@ -148,13 +79,13 @@
   &--infra {
     border-color: rgba(152, 184, 226, 0.42);
     background: rgba(55, 78, 110, 0.94);
-    color: #f0f4fa;
+    color: var(--ifs-text-primary);
   }
 
   &--code {
     border-color: rgba(132, 190, 193, 0.42);
     background: rgba(43, 83, 86, 0.94);
-    color: #ecf7f7;
+    color: var(--ifs-text-primary);
   }
 
   &--empty {
@@ -250,86 +181,6 @@
   border: none !important;
   box-shadow: none !important;
   background: var(--project-surface-panel, var(--ifs-surface-1));
-
-  --mat-tab-inactive-label-text-color: var(--ifs-text-secondary);
-  --mat-tab-inactive-hover-label-text-color: var(--ifs-text-primary);
-  --mat-tab-inactive-focus-label-text-color: var(--ifs-text-primary);
-  --mat-tab-active-label-text-color: var(--ifs-text-primary);
-  --mat-tab-active-hover-label-text-color: #ffffff;
-  --mat-tab-active-focus-label-text-color: #ffffff;
-  --mat-tab-active-focus-state-layer-opacity: 0;
-  --mat-tab-active-pressed-state-layer-opacity: 0;
-  --mat-tab-inactive-focus-state-layer-opacity: 0;
-  --mat-tab-inactive-pressed-state-layer-opacity: 0;
-  --mat-tab-inactive-hover-state-layer-opacity: 0;
-
-  ::ng-deep .mat-mdc-tab-header {
-    border-bottom: 1px solid var(--project-border-accent, var(--split-switcher-border));
-    background: color-mix(in srgb, var(--ifs-surface-2) 82%, var(--ifs-brand-700));
-    padding: 0 var(--ifs-space-8);
-  }
-
-  ::ng-deep .mat-mdc-tab {
-    min-width: 0;
-    height: 40px;
-    padding: 0 var(--ifs-space-12);
-    margin-top: var(--ifs-space-6);
-    border-radius: var(--ifs-radius-md) var(--ifs-radius-md) 0 0;
-    transition:
-      background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
-      box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
-  }
-
-  ::ng-deep .mat-mdc-tab:hover {
-    background: var(--project-surface-hover, var(--ifs-surface-2));
-  }
-
-  ::ng-deep .mdc-tab__text-label {
-    display: flex;
-    align-items: center;
-    gap: var(--ifs-space-6);
-    color: var(--ifs-text-secondary);
-    font-weight: 500;
-    font-size: 13px;
-    letter-spacing: 0.01em;
-    transition: color var(--ifs-duration-fast) var(--ifs-ease-standard);
-  }
-
-  ::ng-deep .mat-mdc-tab:hover .mdc-tab__text-label {
-    color: var(--ifs-text-primary);
-  }
-
-  ::ng-deep .mdc-tab--active {
-    background: var(--project-surface-active, var(--ifs-surface-3));
-    box-shadow: inset 0 0 0 1px var(--project-border-accent, var(--ifs-border-strong));
-  }
-
-  ::ng-deep .mdc-tab--active .mdc-tab__text-label {
-    color: var(--ifs-text-primary);
-  }
-
-  ::ng-deep .mdc-tab--active .tab-icon {
-    color: var(--ifs-accent-400);
-  }
-
-  ::ng-deep .mdc-tab-indicator__content--underline {
-    border-color: var(--split-switcher-infra-accent);
-    border-width: 2px;
-  }
-
-  ::ng-deep .mat-mdc-tab-body-content {
-    overflow: visible;
-  }
-
-  &--code {
-    --mat-tab-active-label-text-color: var(--ifs-text-primary);
-    --mat-tab-active-hover-label-text-color: #ffffff;
-    --mat-tab-active-focus-label-text-color: #ffffff;
-
-    ::ng-deep .mdc-tab-indicator__content--underline {
-      border-color: var(--split-switcher-code-accent);
-    }
-  }
 }
 
 .split-switcher__loading {
@@ -463,8 +314,4 @@
   gap: 1rem;
 }
 
-.tab-icon {
-  font-size: 1.1rem;
-  width: 1.1rem;
-  height: 1.1rem;
-}
+

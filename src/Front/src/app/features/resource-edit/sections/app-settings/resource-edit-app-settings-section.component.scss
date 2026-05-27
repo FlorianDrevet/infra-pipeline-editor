@@ -521,31 +521,3 @@
     color: var(--ifs-text-secondary);
   }
 }
-
-.as-row__edit,
-.as-row__delete {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: 1px solid transparent;
-  border-radius: var(--ifs-radius-sm);
-  background: transparent;
-  cursor: pointer;
-
-  mat-icon {
-    font-size: 14px;
-    width: 14px;
-    height: 14px;
-  }
-}
-
-.as-row__delete {
-  color: var(--ifs-danger);
-
-  &:hover {
-    background: var(--ifs-danger-bg);
-    border-color: var(--ifs-danger);
-  }
-}

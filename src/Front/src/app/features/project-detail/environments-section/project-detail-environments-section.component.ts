@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
+import { DsButtonComponent, DsIconButtonComponent } from '../../../shared/components/ds';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -69,7 +70,7 @@ interface EnvironmentPanelViewModel {
 @Component({
   selector: 'app-project-detail-environments-section',
   standalone: true,
-  imports: [MatIconModule, MatProgressSpinnerModule, MatTooltipModule, TranslateModule],
+  imports: [MatIconModule, DsSpinnerComponent, DsButtonComponent, DsIconButtonComponent, MatTooltipModule, TranslateModule],
   templateUrl: './project-detail-environments-section.component.html',
   styleUrl: './project-detail-environments-section.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

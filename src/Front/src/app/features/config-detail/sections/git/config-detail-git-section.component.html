@@ -11,24 +11,20 @@
       </header>
 
       <div class="preset-grid">
-        <button
-          type="button"
-          class="preset-card config-detail-git__mode-card config-detail-git__mode-card--all-in-one"
-          [class.preset-card--active]="viewModel().layoutMode === 'AllInOne'"
+        <app-ds-option-card
+          icon="workspaces"
+          [title]="'CONFIG_DETAIL.REPOSITORIES.MODE_ALL_IN_ONE' | translate"
+          [description]="'PROJECT_DETAIL.LAYOUT.SLOT_ALL_IN_ONE_HELP' | translate"
+          [selected]="viewModel().layoutMode === 'AllInOne'"
           [disabled]="!viewModel().canWrite || viewModel().layoutModeSaving"
-          (click)="viewModel().onSetLayoutMode('AllInOne')">
-          <span class="preset-card__title">{{ 'CONFIG_DETAIL.REPOSITORIES.MODE_ALL_IN_ONE' | translate }}</span>
-          <span class="preset-card__desc">{{ 'PROJECT_DETAIL.LAYOUT.SLOT_ALL_IN_ONE_HELP' | translate }}</span>
-        </button>
-        <button
-          type="button"
-          class="preset-card config-detail-git__mode-card config-detail-git__mode-card--split"
-          [class.preset-card--active]="viewModel().layoutMode === 'SplitInfraCode'"
+          (cardSelect)="viewModel().onSetLayoutMode('AllInOne')" />
+        <app-ds-option-card
+          icon="call_split"
+          [title]="'CONFIG_DETAIL.REPOSITORIES.MODE_SPLIT' | translate"
+          [description]="'PROJECT_DETAIL.LAYOUT.SLOTS_SPLIT_HELP' | translate"
+          [selected]="viewModel().layoutMode === 'SplitInfraCode'"
           [disabled]="!viewModel().canWrite || viewModel().layoutModeSaving"
-          (click)="viewModel().onSetLayoutMode('SplitInfraCode')">
-          <span class="preset-card__title">{{ 'CONFIG_DETAIL.REPOSITORIES.MODE_SPLIT' | translate }}</span>
-          <span class="preset-card__desc">{{ 'PROJECT_DETAIL.LAYOUT.SLOTS_SPLIT_HELP' | translate }}</span>
-        </button>
+          (cardSelect)="viewModel().onSetLayoutMode('SplitInfraCode')" />
       </div>
     </section>
 
@@ -41,16 +37,16 @@
           </header>
 
           @if (viewModel().allInOneRepo; as repo) {
-            <mat-card class="repo-card" [class.repo-card--busy]="viewModel().actionRepoId === repo.id">
-              <mat-card-header>
-                <mat-card-title class="repo-card__title">
-                  <mat-icon class="repo-card__icon">folder_open</mat-icon>
-                  <span>{{ repositoryDisplayName(repo) }}</span>
-                </mat-card-title>
-                <mat-card-subtitle>{{ repo.providerType ?? (repositoryProviderLabel(repo) | translate) }}</mat-card-subtitle>
-              </mat-card-header>
+            <app-ds-card-mat class="repo-card" [class.repo-card--busy]="viewModel().actionRepoId === repo.id">
+              <div ds-card-header class="repo-card__title">
+                <mat-icon class="repo-card__icon">folder_open</mat-icon>
+                <div class="repo-card__title-text">
+                  <strong>{{ repositoryDisplayName(repo) }}</strong>
+                  <small>{{ repo.providerType ?? (repositoryProviderLabel(repo) | translate) }}</small>
+                </div>
+              </div>
 
-              <mat-card-content class="repo-card__content">
+              <div ds-card-content class="repo-card__content">
                 <div class="repo-card__row">
                   <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
                   <a class="repo-card__link" [href]="repo.repositoryUrl ?? undefined" target="_blank" rel="noopener">
@@ -66,30 +62,32 @@
                     <mat-chip disableRipple>{{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}</mat-chip>
                   }
                 </div>
-              </mat-card-content>
+              </div>
 
-              <mat-card-actions align="end">
-                <button mat-stroked-button (click)="viewModel().onOpenAllInOne()" [disabled]="!viewModel().canWrite || viewModel().actionRepoId === repo.id">
-                  <mat-icon>edit</mat-icon>
+              <div ds-card-actions class="repo-card__actions">
+                <app-ds-button
+                  variant="ghost"
+                  icon="edit"
+                  [disabled]="!viewModel().canWrite || viewModel().actionRepoId === repo.id"
+                  (clicked)="viewModel().onOpenAllInOne()">
                   {{ 'PROJECT_DETAIL.LAYOUT.EDIT' | translate }}
-                </button>
-                <button
-                  mat-stroked-button
-                  color="warn"
-                  class="config-detail-git__remove-repo"
-                  (click)="viewModel().onRemoveRepository(repo)"
-                  [disabled]="!viewModel().canWrite || viewModel().actionRepoId === repo.id">
-                  <mat-icon>delete_outline</mat-icon>
+                </app-ds-button>
+                <app-ds-button
+                  variant="danger"
+                  icon="delete_outline"
+                  [disabled]="!viewModel().canWrite || viewModel().actionRepoId === repo.id"
+                  (clicked)="viewModel().onRemoveRepository(repo)">
                   {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
-                </button>
-              </mat-card-actions>
-            </mat-card>
+                </app-ds-button>
+              </div>
+            </app-ds-card-mat>
           } @else {
-            <button type="button" class="slot-empty config-detail-git__slot-empty" [disabled]="!viewModel().canWrite" (click)="viewModel().onOpenAllInOne()">
-              <mat-icon class="slot-empty__icon">add_circle_outline</mat-icon>
-              <span class="slot-empty__title">{{ 'CONFIG_DETAIL.REPOSITORIES.ADD_ALL_IN_ONE' | translate }}</span>
-              <span class="slot-empty__desc">{{ 'PROJECT_DETAIL.LAYOUT.SLOT_ALL_IN_ONE_HELP' | translate }}</span>
-            </button>
+            <app-ds-option-card
+              icon="add_circle_outline"
+              [title]="'CONFIG_DETAIL.REPOSITORIES.ADD_ALL_IN_ONE' | translate"
+              [description]="'PROJECT_DETAIL.LAYOUT.SLOT_ALL_IN_ONE_HELP' | translate"
+              [disabled]="!viewModel().canWrite"
+              (cardSelect)="viewModel().onOpenAllInOne()" />
           }
         </section>
       }
@@ -103,16 +101,16 @@
           <div class="repo-grid">
             @for (slot of viewModel().splitSlots; track slot.kind) {
               @if (slot.repo; as repo) {
-                <mat-card class="repo-card" [class.repo-card--busy]="viewModel().actionRepoId === repo.id">
-                  <mat-card-header>
-                    <mat-card-title class="repo-card__title">
-                      <mat-icon class="repo-card__icon">folder_open</mat-icon>
-                      <span>{{ slot.labelKey | translate }}</span>
-                    </mat-card-title>
-                    <mat-card-subtitle>{{ repositoryDisplayName(repo) }} · {{ repo.providerType ?? (repositoryProviderLabel(repo) | translate) }}</mat-card-subtitle>
-                  </mat-card-header>
+                <app-ds-card-mat class="repo-card" [class.repo-card--busy]="viewModel().actionRepoId === repo.id">
+                  <div ds-card-header class="repo-card__title">
+                    <mat-icon class="repo-card__icon">folder_open</mat-icon>
+                    <div class="repo-card__title-text">
+                      <strong>{{ slot.labelKey | translate }}</strong>
+                      <small>{{ repositoryDisplayName(repo) }} · {{ repo.providerType ?? (repositoryProviderLabel(repo) | translate) }}</small>
+                    </div>
+                  </div>
 
-                  <mat-card-content class="repo-card__content">
+                  <div ds-card-content class="repo-card__content">
                     <div class="repo-card__row">
                       <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
                       <a class="repo-card__link" [href]="repo.repositoryUrl ?? undefined" target="_blank" rel="noopener">
@@ -123,30 +121,32 @@
                       <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
                       <strong>{{ repo.defaultBranch ?? ('CONFIG_DETAIL.REPOSITORIES.UNCONFIGURED' | translate) }}</strong>
                     </div>
-                  </mat-card-content>
+                  </div>
 
-                  <mat-card-actions align="end">
-                    <button mat-stroked-button (click)="viewModel().onOpenSlot(slot.kind, repo)" [disabled]="!viewModel().canWrite || viewModel().actionRepoId === repo.id">
-                      <mat-icon>edit</mat-icon>
+                  <div ds-card-actions class="repo-card__actions">
+                    <app-ds-button
+                      variant="ghost"
+                      icon="edit"
+                      [disabled]="!viewModel().canWrite || viewModel().actionRepoId === repo.id"
+                      (clicked)="viewModel().onOpenSlot(slot.kind, repo)">
                       {{ 'PROJECT_DETAIL.LAYOUT.EDIT' | translate }}
-                    </button>
-                    <button
-                      mat-stroked-button
-                      color="warn"
-                      class="config-detail-git__remove-repo"
-                      (click)="viewModel().onRemoveRepository(repo)"
-                      [disabled]="!viewModel().canWrite || viewModel().actionRepoId === repo.id">
-                      <mat-icon>delete_outline</mat-icon>
+                    </app-ds-button>
+                    <app-ds-button
+                      variant="danger"
+                      icon="delete_outline"
+                      [disabled]="!viewModel().canWrite || viewModel().actionRepoId === repo.id"
+                      (clicked)="viewModel().onRemoveRepository(repo)">
                       {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
-                    </button>
-                  </mat-card-actions>
-                </mat-card>
+                    </app-ds-button>
+                  </div>
+                </app-ds-card-mat>
               } @else {
-                <button type="button" class="slot-empty config-detail-git__slot-empty" [disabled]="!viewModel().canWrite" (click)="viewModel().onOpenSlot(slot.kind, null)">
-                  <mat-icon class="slot-empty__icon">add_circle_outline</mat-icon>
-                  <span class="slot-empty__title">{{ slot.labelKey | translate }}</span>
-                  <span class="slot-empty__desc">{{ 'PROJECT_DETAIL.LAYOUT.SLOT_ADD_HINT' | translate }}</span>
-                </button>
+                <app-ds-option-card
+                  icon="add_circle_outline"
+                  [title]="slot.labelKey | translate"
+                  [description]="'PROJECT_DETAIL.LAYOUT.SLOT_ADD_HINT' | translate"
+                  [disabled]="!viewModel().canWrite"
+                  (cardSelect)="viewModel().onOpenSlot(slot.kind, null)" />
               }
             }
           </div>

@@ -23,10 +23,9 @@
         </a>
         <div class="resource-header__actions">
           @if (isOwner()) {
-            <button class="delete-btn" (click)="openDeleteDialog()" [disabled]="isSaving()">
-              <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
+            <app-ds-button variant="danger" icon="delete_outline" (clicked)="openDeleteDialog()" [disabled]="isSaving()">
               {{ 'RESOURCE_EDIT.DELETE.BUTTON' | translate }}
-            </button>
+            </app-ds-button>
           }
         </div>
       </div>
@@ -60,16 +59,14 @@
         <span>{{ 'RESOURCE_EDIT.EXISTING_RESOURCE_INFO' | translate }}</span>
       </div>
     }
-    <mat-tab-group class="resource-tabs" animationDuration="200ms" [selectedIndex]="mainTabIndex()" (selectedIndexChange)="mainTabIndex.set($event)">
+    <app-ds-tabs class="resource-tabs"
+                 [tabs]="mainTabs()"
+                 [activeTabId]="activeMainTabId()"
+                 (tabChange)="onMainTabChange($event)"
+                 [ariaLabel]="'RESOURCE_EDIT.TABS.ARIA' | translate" />
+
       <!-- General Tab -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">settings</mat-icon>
-          <span>{{ 'RESOURCE_EDIT.TABS.GENERAL' | translate }}</span>
-          @if (generalTabHasWarning()) {
-            <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ROLE' | translate">warning</mat-icon>
-          }
-        </ng-template>
+      @if (activeMainTabId() === 'general') {
         <div class="tab-content">
           <form [formGroup]="generalForm" class="general-form">
             <!-- Common fields -->
@@ -91,7 +88,7 @@
               @if (isNameAvailabilityCheckEnabled()) {
                 @if (nameAvailabilityOverallState() === 'checking') {
                   <div class="name-availability-inline name-availability-inline--checking">
-                    <mat-spinner diameter="14"></mat-spinner>
+                    <app-ds-spinner size="sm" />
                     <span>{{ 'RESOURCE_EDIT.NAME_AVAILABILITY.CHECKING' | translate }}</span>
                   </div>
                 }
@@ -344,26 +341,19 @@
                 </div>
                 <p class="form-section__description">{{ 'RESOURCE_EDIT.SECURE_PARAM.DESCRIPTION' | translate }}</p>
 
-                <mat-radio-group [ngModel]="passwordMode()" (ngModelChange)="passwordMode.set($event)" [ngModelOptions]="{standalone: true}" class="password-mode-group">
-                  <mat-radio-button value="random" class="password-mode-option">
-                    <div class="password-mode-content">
-                      <span class="password-mode-label">{{ 'RESOURCE_EDIT.SECURE_PARAM.RANDOM' | translate }}</span>
-                      <span class="password-mode-hint">{{ 'RESOURCE_EDIT.SECURE_PARAM.RANDOM_HINT' | translate }}</span>
-                    </div>
-                  </mat-radio-button>
-                  <mat-radio-button value="variableGroup" class="password-mode-option">
-                    <div class="password-mode-content">
-                      <span class="password-mode-label">{{ 'RESOURCE_EDIT.SECURE_PARAM.FROM_VARIABLE_GROUP' | translate }}</span>
-                      <span class="password-mode-hint">{{ 'RESOURCE_EDIT.SECURE_PARAM.FROM_VARIABLE_GROUP_HINT' | translate }}</span>
-                    </div>
-                  </mat-radio-button>
-                </mat-radio-group>
+                <app-ds-radio-group
+                  class="password-mode-group"
+                  name="sqlPasswordMode"
+                  [options]="passwordModeOptions()"
+                  [ngModel]="passwordMode()"
+                  (ngModelChange)="passwordMode.set($event)"
+                  [ngModelOptions]="{ standalone: true }" />
 
                 @if (passwordMode() === 'variableGroup') {
                   <div class="vg-config-section">
                     @if (passwordVgLoading()) {
                       <div class="vg-config-loading">
-                        <mat-spinner diameter="20"></mat-spinner>
+                        <app-ds-spinner size="md" />
                       </div>
                     } @else {
                       <app-ds-select
@@ -383,17 +373,12 @@
                             [placeholder]="'RESOURCE_EDIT.SECURE_PARAM.NEW_GROUP_NAME_PLACEHOLDER' | translate" />
                           <div class="vg-scope-selector">
                             <span class="vg-scope-label">{{ 'RESOURCE_EDIT.SECURE_PARAM.SCOPE_LABEL' | translate }}</span>
-                            <mat-button-toggle-group [ngModel]="passwordNewGroupScope()" (ngModelChange)="passwordNewGroupScope.set($event)"
-                                                     [ngModelOptions]="{standalone: true}" class="vg-scope-toggle">
-                              <mat-button-toggle value="project">
-                                <mat-icon>folder_shared</mat-icon>
-                                {{ 'RESOURCE_EDIT.SECURE_PARAM.SCOPE_PROJECT' | translate }}
-                              </mat-button-toggle>
-                              <mat-button-toggle value="configuration">
-                                <mat-icon>settings</mat-icon>
-                                {{ 'RESOURCE_EDIT.SECURE_PARAM.SCOPE_CONFIGURATION' | translate }}
-                              </mat-button-toggle>
-                            </mat-button-toggle-group>
+                            <app-ds-segmented-control
+                              [ngModel]="passwordNewGroupScope()"
+                              (ngModelChange)="passwordNewGroupScope.set($event)"
+                              [ngModelOptions]="{standalone: true}"
+                              [options]="passwordNewGroupScopeOptions()"
+                              class="vg-scope-toggle" />
                             <span class="vg-scope-hint">
                               @if (passwordNewGroupScope() === 'project') {
                                 {{ 'RESOURCE_EDIT.SECURE_PARAM.SCOPE_PROJECT_HINT' | translate }}
@@ -418,14 +403,12 @@
 
                 <div class="secure-param-actions">
                   @if (hasPasswordConfigChanged()) {
-                    <button mat-flat-button color="primary" class="save-password-btn"
-                            [disabled]="!canSavePasswordConfig()"
-                            (click)="savePasswordConfig()">
-                      @if (passwordSaving()) {
-                        <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
-                      }
+                    <app-ds-button variant="primary"
+                                   [loading]="passwordSaving()"
+                                   [disabled]="!canSavePasswordConfig()"
+                                   (clicked)="savePasswordConfig()">
                       {{ 'RESOURCE_EDIT.SECURE_PARAM.SAVE' | translate }}
-                    </button>
+                    </app-ds-button>
                   }
                   @if (passwordSaveSuccess()) {
                     <span class="save-success-indicator">
@@ -498,19 +481,10 @@
 
           </form>
         </div>
-      </mat-tab>
+      }
 
       <!-- Environment Configuration Tab (hidden for UserAssignedIdentity and existing resources) -->
-      @if (!isUserAssignedIdentity() && !isExistingResource()) {
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">cloud_queue</mat-icon>
-          <span>{{ 'RESOURCE_EDIT.TABS.ENVIRONMENTS' | translate }}</span>
-          <span class="tab-count">{{ environments().length }}</span>
-          @if (environmentsTabHasWarning()) {
-            <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ENV_CONFIG' | translate">warning</mat-icon>
-          }
-        </ng-template>
+      @if (!isUserAssignedIdentity() && !isExistingResource() && activeMainTabId() === 'environments') {
         <div class="tab-content">
           @if (environments().length === 0) {
             <div class="empty-state">
@@ -1122,67 +1096,42 @@
             }
           }
         </div>
-      </mat-tab>
       }
 
       <!-- Identity & Access Tab (hidden for UserAssignedIdentity) -->
-      @if (!isUserAssignedIdentity()) {
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">security</mat-icon>
-          <span>{{ 'RESOURCE_EDIT.TABS.IDENTITY_ACCESS' | translate }}</span>
-          @if (identityAccessSection.roleAssignments().length > 0) {
-            <span class="tab-count">{{ identityAccessSection.roleAssignments().length }}</span>
-          }
-        </ng-template>
+      @if (!isUserAssignedIdentity() && activeMainTabId() === 'identity-access') {
         <app-resource-edit-role-assignments-section
           [canWrite]="canWrite()"
           [configId]="configId"
           [section]="identityAccessSection">
         </app-resource-edit-role-assignments-section>
-      </mat-tab>
       }
 
       <!-- Networking Tab (PE-supported resources only) -->
-      @if (supportsNetworking()) {
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">lan</mat-icon>
-          <span>{{ 'RESOURCE_EDIT.TABS.NETWORKING' | translate }}</span>
-        </ng-template>
+      @if (supportsNetworking() && activeMainTabId() === 'networking') {
         <div class="tab-content">
           <app-networking-tab
             [resourceId]="resource()!.id"
             [resourceType]="resourceType" />
         </div>
-      </mat-tab>
       }
 
       <!-- Storage Services Tab (StorageAccount only) / App Configuration Tab (others) -->
-      @if (isStorageAccount()) {
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">storage</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.STORAGE_SERVICES' | translate }}</span>
-            <span class="tab-count">{{ storageBlobContainers().length + storageQueues().length + storageTables().length }}</span>
-          </ng-template>
-          <div class="tab-content">
+      @if (isStorageAccount() && activeMainTabId() === 'storage') {
+        <div class="tab-content">
             @if (storageActionError()) {
               <div class="feedback-banner feedback-banner--error" role="alert">
                 <mat-icon>error_outline</mat-icon>
                 {{ storageActionError() | translate }}
               </div>
             }
-            <mat-tab-group class="storage-sub-tabs" animationDuration="150ms"
-              [selectedIndex]="storageSubTabIndex()"
-              (selectedIndexChange)="storageSubTabIndex.set($event)">
+            <app-ds-tabs class="storage-sub-tabs"
+                         [tabs]="storageSubTabs()"
+                         [activeTabId]="activeStorageSubTabId()"
+                         (tabChange)="onStorageSubTabChange($event)"
+                         [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.SUB_TABS_ARIA' | translate" />
               <!-- Blob Containers sub-tab -->
-              <mat-tab>
-                <ng-template mat-tab-label>
-                  <mat-icon class="tab-icon">folder</mat-icon>
-                  <span>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CONTAINERS' | translate }}</span>
-                  <span class="tab-count">{{ storageBlobContainers().length }}</span>
-                </ng-template>
+              @if (activeStorageSubTabId() === 'blob_containers') {
                 <div class="storage-services-panel">
                   @if (storageBlobContainers().length === 0 && !showBlobAddForm()) {
                     <div class="storage-empty">
@@ -1206,12 +1155,11 @@
                             <span class="storage-item__badge">{{ publicAccessI18nKey(blob.publicAccess) | translate }}</span>
                           }
                           @if (canWrite()) {
-                            <button class="storage-item__remove"
-                              (click)="openRemoveStorageItemDialog('BlobContainer', blob.id, blob.name)"
+                            <app-ds-icon-button icon="close" variant="danger" size="sm"
+                              [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
+                              [appDsTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
                               [disabled]="storageActionLoading()"
-                              [matTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate">
-                              <mat-icon>close</mat-icon>
-                            </button>
+                              (clicked)="openRemoveStorageItemDialog('BlobContainer', blob.id, blob.name)" />
                           }
                         </div>
                       }
@@ -1230,9 +1178,9 @@
                             [label]="'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_LABEL' | translate"
                             [options]="publicAccessSelectOptions()" />
                           <div class="storage-add-form__actions">
-                            <button mat-stroked-button type="button" (click)="showBlobAddForm.set(false)">
+                            <app-ds-button variant="secondary" type="button" (clicked)="showBlobAddForm.set(false)">
                               {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
-                            </button>
+                            </app-ds-button>
                             <app-ds-button variant="primary" type="submit"
                               [disabled]="blobAddForm.invalid || storageActionLoading()"
                               [loading]="storageActionLoading()">
@@ -1242,10 +1190,9 @@
                         </form>
                       </div>
                     } @else {
-                      <button class="ra-add-btn" (click)="showBlobAddForm.set(true)">
-                        <mat-icon>add</mat-icon>
+                      <app-ds-button variant="secondary" icon="add" (clicked)="showBlobAddForm.set(true)">
                         {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_BLOB' | translate }}
-                      </button>
+                      </app-ds-button>
                     }
                   }
                   <!-- ��������� Blob CORS ��������� -->
@@ -1256,10 +1203,9 @@
                         <p class="cors-editor__description">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.DESCRIPTION' | translate }}</p>
                       </div>
                       @if (canWrite()) {
-                        <button class="ghost-button cors-editor__add" type="button" (click)="addCorsRule()">
-                          <mat-icon>add</mat-icon>
+                        <app-ds-button variant="ghost" icon="add" type="button" (clicked)="addCorsRule()">
                           {{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_RULE' | translate }}
-                        </button>
+                        </app-ds-button>
                       }
                     </div>
 
@@ -1275,9 +1221,9 @@
                             <div class="cors-rule-card__topbar">
                               <span class="cors-rule-card__badge">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.RULE' | translate }} {{ i + 1 }}</span>
                               @if (canWrite()) {
-                                <button class="cors-rule-card__remove" type="button" (click)="removeCorsRule(i)">
-                                  <mat-icon>close</mat-icon>
-                                </button>
+                                <app-ds-icon-button icon="close" variant="danger" size="sm" type="button"
+                                  [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
+                                  (clicked)="removeCorsRule(i)" />
                               }
                             </div>
                             <div class="cors-rule-card__fields">
@@ -1291,7 +1237,9 @@
                                     <span class="cors-field__chip">
                                       {{ origin }}
                                       @if (canWrite()) {
-                                        <button class="cors-field__chip-remove" type="button" (click)="removeCorsRuleValue(i, 'allowedOrigins', vi)">&times;</button>
+                                        <app-ds-icon-button icon="close" variant="neutral" size="sm" type="button"
+                                          [ariaLabel]="origin"
+                                          (clicked)="removeCorsRuleValue(i, 'allowedOrigins', vi)" />
                                       }
                                     </span>
                                   }
@@ -1301,10 +1249,9 @@
                                     <input #blobOriginInput class="cors-field__input"
                                       [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
                                       (keydown.enter)="addCorsRuleValue(i, 'allowedOrigins', blobOriginInput.value); blobOriginInput.value = ''; $event.preventDefault()" />
-                                    <button class="cors-field__add-btn" type="button"
-                                      (click)="addCorsRuleValue(i, 'allowedOrigins', blobOriginInput.value); blobOriginInput.value = ''">
-                                      <mat-icon>add</mat-icon>
-                                    </button>
+                                    <app-ds-icon-button icon="add" variant="accent" size="md" type="button"
+                                      [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (clicked)="addCorsRuleValue(i, 'allowedOrigins', blobOriginInput.value); blobOriginInput.value = ''" />
                                   </div>
                                 }
                                 @if (corsFieldError('blob', i, 'allowedOrigins')) {
@@ -1352,7 +1299,9 @@
                                     <span class="cors-field__chip">
                                       {{ header }}
                                       @if (canWrite()) {
-                                        <button class="cors-field__chip-remove" type="button" (click)="removeCorsRuleValue(i, 'allowedHeaders', vi)">&times;</button>
+                                        <app-ds-icon-button icon="close" variant="neutral" size="sm" type="button"
+                                          [ariaLabel]="header"
+                                          (clicked)="removeCorsRuleValue(i, 'allowedHeaders', vi)" />
                                       }
                                     </span>
                                   }
@@ -1362,10 +1311,9 @@
                                     <input #blobAllowedHeaderInput class="cors-field__input"
                                       [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
                                       (keydown.enter)="addCorsRuleValue(i, 'allowedHeaders', blobAllowedHeaderInput.value); blobAllowedHeaderInput.value = ''; $event.preventDefault()" />
-                                    <button class="cors-field__add-btn" type="button"
-                                      (click)="addCorsRuleValue(i, 'allowedHeaders', blobAllowedHeaderInput.value); blobAllowedHeaderInput.value = ''">
-                                      <mat-icon>add</mat-icon>
-                                    </button>
+                                    <app-ds-icon-button icon="add" variant="accent" size="md" type="button"
+                                      [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (clicked)="addCorsRuleValue(i, 'allowedHeaders', blobAllowedHeaderInput.value); blobAllowedHeaderInput.value = ''" />
                                   </div>
                                 }
                                 @if (corsFieldError('blob', i, 'allowedHeaders')) {
@@ -1391,7 +1339,9 @@
                                     <span class="cors-field__chip">
                                       {{ header }}
                                       @if (canWrite()) {
-                                        <button class="cors-field__chip-remove" type="button" (click)="removeCorsRuleValue(i, 'exposedHeaders', vi)">&times;</button>
+                                        <app-ds-icon-button icon="close" variant="neutral" size="sm" type="button"
+                                          [ariaLabel]="header"
+                                          (clicked)="removeCorsRuleValue(i, 'exposedHeaders', vi)" />
                                       }
                                     </span>
                                   }
@@ -1401,10 +1351,9 @@
                                     <input #blobExposedHeaderInput class="cors-field__input"
                                       [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
                                       (keydown.enter)="addCorsRuleValue(i, 'exposedHeaders', blobExposedHeaderInput.value); blobExposedHeaderInput.value = ''; $event.preventDefault()" />
-                                    <button class="cors-field__add-btn" type="button"
-                                      (click)="addCorsRuleValue(i, 'exposedHeaders', blobExposedHeaderInput.value); blobExposedHeaderInput.value = ''">
-                                      <mat-icon>add</mat-icon>
-                                    </button>
+                                    <app-ds-icon-button icon="add" variant="accent" size="md" type="button"
+                                      [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (clicked)="addCorsRuleValue(i, 'exposedHeaders', blobExposedHeaderInput.value); blobExposedHeaderInput.value = ''" />
                                   </div>
                                 }
                                 @if (corsFieldError('blob', i, 'exposedHeaders')) {
@@ -1448,10 +1397,9 @@
                         <p class="cors-editor__description">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.DESCRIPTION' | translate }}</p>
                       </div>
                       @if (canWrite()) {
-                        <button class="ghost-button cors-editor__add" type="button" (click)="addLifecycleRule()">
-                          <mat-icon>add</mat-icon>
+                        <app-ds-button variant="ghost" icon="add" type="button" (clicked)="addLifecycleRule()">
                           {{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.ADD_RULE' | translate }}
-                        </button>
+                        </app-ds-button>
                       }
                     </div>
 
@@ -1467,9 +1415,9 @@
                             <div class="cors-rule-card__topbar">
                               <span class="cors-rule-card__badge">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.RULE' | translate }} {{ i + 1 }}</span>
                               @if (canWrite()) {
-                                <button class="cors-rule-card__remove" type="button" (click)="removeLifecycleRule(i)">
-                                  <mat-icon>close</mat-icon>
-                                </button>
+                                <app-ds-icon-button icon="close" variant="danger" size="sm" type="button"
+                                  [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
+                                  (clicked)="removeLifecycleRule(i)" />
                               }
                             </div>
                             <div class="cors-rule-card__fields">
@@ -1522,15 +1470,10 @@
                     }
                   </div>
                 </div>
-              </mat-tab>
+              }
 
               <!-- Queues sub-tab -->
-              <mat-tab>
-                <ng-template mat-tab-label>
-                  <mat-icon class="tab-icon">queue</mat-icon>
-                  <span>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.QUEUES' | translate }}</span>
-                  <span class="tab-count">{{ storageQueues().length }}</span>
-                </ng-template>
+              @if (activeStorageSubTabId() === 'queues') {
                 <div class="storage-services-panel">
                   @if (storageQueues().length === 0 && !showQueueAddForm()) {
                     <div class="storage-empty">
@@ -1544,12 +1487,11 @@
                           <mat-icon class="storage-item__icon">queue</mat-icon>
                           <span class="storage-item__name">{{ q.name }}</span>
                           @if (canWrite()) {
-                            <button class="storage-item__remove"
-                              (click)="openRemoveStorageItemDialog('Queue', q.id, q.name)"
+                            <app-ds-icon-button icon="close" variant="danger" size="sm"
+                              [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
+                              [appDsTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
                               [disabled]="storageActionLoading()"
-                              [matTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate">
-                              <mat-icon>close</mat-icon>
-                            </button>
+                              (clicked)="openRemoveStorageItemDialog('Queue', q.id, q.name)" />
                           }
                         </div>
                       }
@@ -1564,9 +1506,9 @@
                             [label]="'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate"
                             [error]="queueAddForm.get('name')?.hasError('duplicateName') ? ('RESOURCE_EDIT.STORAGE_SERVICES.DUPLICATE_NAME_ERROR' | translate) : undefined" />
                           <div class="storage-add-form__actions">
-                            <button mat-stroked-button type="button" (click)="showQueueAddForm.set(false)">
+                            <app-ds-button variant="secondary" type="button" (clicked)="showQueueAddForm.set(false)">
                               {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
-                            </button>
+                            </app-ds-button>
                             <app-ds-button variant="primary" type="submit"
                               [disabled]="queueAddForm.invalid || storageActionLoading()"
                               [loading]="storageActionLoading()">
@@ -1576,22 +1518,16 @@
                         </form>
                       </div>
                     } @else {
-                      <button class="ra-add-btn" (click)="showQueueAddForm.set(true)">
-                        <mat-icon>add</mat-icon>
+                      <app-ds-button variant="secondary" icon="add" (clicked)="showQueueAddForm.set(true)">
                         {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_QUEUE' | translate }}
-                      </button>
+                      </app-ds-button>
                     }
                   }
                 </div>
-              </mat-tab>
+              }
 
               <!-- Tables sub-tab -->
-              <mat-tab>
-                <ng-template mat-tab-label>
-                  <mat-icon class="tab-icon">table_chart</mat-icon>
-                  <span>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLES' | translate }}</span>
-                  <span class="tab-count">{{ storageTables().length }}</span>
-                </ng-template>
+              @if (activeStorageSubTabId() === 'tables') {
                 <div class="storage-services-panel">
                   @if (storageTables().length === 0 && !showTableAddForm()) {
                     <div class="storage-empty">
@@ -1605,12 +1541,11 @@
                           <mat-icon class="storage-item__icon">table_chart</mat-icon>
                           <span class="storage-item__name">{{ t.name }}</span>
                           @if (canWrite()) {
-                            <button class="storage-item__remove"
-                              (click)="openRemoveStorageItemDialog('Table', t.id, t.name)"
+                            <app-ds-icon-button icon="close" variant="danger" size="sm"
+                              [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
+                              [appDsTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
                               [disabled]="storageActionLoading()"
-                              [matTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate">
-                              <mat-icon>close</mat-icon>
-                            </button>
+                              (clicked)="openRemoveStorageItemDialog('Table', t.id, t.name)" />
                           }
                         </div>
                       }
@@ -1625,9 +1560,9 @@
                             [label]="'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate"
                             [error]="tableAddForm.get('name')?.hasError('duplicateName') ? ('RESOURCE_EDIT.STORAGE_SERVICES.DUPLICATE_NAME_ERROR' | translate) : undefined" />
                           <div class="storage-add-form__actions">
-                            <button mat-stroked-button type="button" (click)="showTableAddForm.set(false)">
+                            <app-ds-button variant="secondary" type="button" (clicked)="showTableAddForm.set(false)">
                               {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
-                            </button>
+                            </app-ds-button>
                             <app-ds-button variant="primary" type="submit"
                               [disabled]="tableAddForm.invalid || storageActionLoading()"
                               [loading]="storageActionLoading()">
@@ -1637,10 +1572,9 @@
                         </form>
                       </div>
                     } @else {
-                      <button class="ra-add-btn" (click)="showTableAddForm.set(true)">
-                        <mat-icon>add</mat-icon>
+                      <app-ds-button variant="secondary" icon="add" (clicked)="showTableAddForm.set(true)">
                         {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_TABLE' | translate }}
-                      </button>
+                      </app-ds-button>
                     }
                   }
                   <!-- ��������� Table CORS ��������� -->
@@ -1651,10 +1585,9 @@
                         <p class="cors-editor__description">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.DESCRIPTION' | translate }}</p>
                       </div>
                       @if (canWrite()) {
-                        <button class="ghost-button cors-editor__add" type="button" (click)="addTableCorsRule()">
-                          <mat-icon>add</mat-icon>
+                        <app-ds-button variant="ghost" icon="add" type="button" (clicked)="addTableCorsRule()">
                           {{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_RULE' | translate }}
-                        </button>
+                        </app-ds-button>
                       }
                     </div>
 
@@ -1670,9 +1603,9 @@
                             <div class="cors-rule-card__topbar">
                               <span class="cors-rule-card__badge">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.RULE' | translate }} {{ i + 1 }}</span>
                               @if (canWrite()) {
-                                <button class="cors-rule-card__remove" type="button" (click)="removeTableCorsRule(i)">
-                                  <mat-icon>close</mat-icon>
-                                </button>
+                                <app-ds-icon-button icon="close" variant="danger" size="sm" type="button"
+                                  [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate"
+                                  (clicked)="removeTableCorsRule(i)" />
                               }
                             </div>
                             <div class="cors-rule-card__fields">
@@ -1686,7 +1619,9 @@
                                     <span class="cors-field__chip">
                                       {{ origin }}
                                       @if (canWrite()) {
-                                        <button class="cors-field__chip-remove" type="button" (click)="removeTableCorsRuleValue(i, 'allowedOrigins', vi)">&times;</button>
+                                        <app-ds-icon-button icon="close" variant="neutral" size="sm" type="button"
+                                          [ariaLabel]="origin"
+                                          (clicked)="removeTableCorsRuleValue(i, 'allowedOrigins', vi)" />
                                       }
                                     </span>
                                   }
@@ -1696,10 +1631,9 @@
                                     <input #tableOriginInput class="cors-field__input"
                                       [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
                                       (keydown.enter)="addTableCorsRuleValue(i, 'allowedOrigins', tableOriginInput.value); tableOriginInput.value = ''; $event.preventDefault()" />
-                                    <button class="cors-field__add-btn" type="button"
-                                      (click)="addTableCorsRuleValue(i, 'allowedOrigins', tableOriginInput.value); tableOriginInput.value = ''">
-                                      <mat-icon>add</mat-icon>
-                                    </button>
+                                    <app-ds-icon-button icon="add" variant="accent" size="md" type="button"
+                                      [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (clicked)="addTableCorsRuleValue(i, 'allowedOrigins', tableOriginInput.value); tableOriginInput.value = ''" />
                                   </div>
                                 }
                                 @if (corsFieldError('table', i, 'allowedOrigins')) {
@@ -1747,7 +1681,9 @@
                                     <span class="cors-field__chip">
                                       {{ header }}
                                       @if (canWrite()) {
-                                        <button class="cors-field__chip-remove" type="button" (click)="removeTableCorsRuleValue(i, 'allowedHeaders', vi)">&times;</button>
+                                        <app-ds-icon-button icon="close" variant="neutral" size="sm" type="button"
+                                          [ariaLabel]="header"
+                                          (clicked)="removeTableCorsRuleValue(i, 'allowedHeaders', vi)" />
                                       }
                                     </span>
                                   }
@@ -1757,10 +1693,9 @@
                                     <input #tableAllowedHeaderInput class="cors-field__input"
                                       [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
                                       (keydown.enter)="addTableCorsRuleValue(i, 'allowedHeaders', tableAllowedHeaderInput.value); tableAllowedHeaderInput.value = ''; $event.preventDefault()" />
-                                    <button class="cors-field__add-btn" type="button"
-                                      (click)="addTableCorsRuleValue(i, 'allowedHeaders', tableAllowedHeaderInput.value); tableAllowedHeaderInput.value = ''">
-                                      <mat-icon>add</mat-icon>
-                                    </button>
+                                    <app-ds-icon-button icon="add" variant="accent" size="md" type="button"
+                                      [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (clicked)="addTableCorsRuleValue(i, 'allowedHeaders', tableAllowedHeaderInput.value); tableAllowedHeaderInput.value = ''" />
                                   </div>
                                 }
                                 @if (corsFieldError('table', i, 'allowedHeaders')) {
@@ -1786,7 +1721,9 @@
                                     <span class="cors-field__chip">
                                       {{ header }}
                                       @if (canWrite()) {
-                                        <button class="cors-field__chip-remove" type="button" (click)="removeTableCorsRuleValue(i, 'exposedHeaders', vi)">&times;</button>
+                                        <app-ds-icon-button icon="close" variant="neutral" size="sm" type="button"
+                                          [ariaLabel]="header"
+                                          (clicked)="removeTableCorsRuleValue(i, 'exposedHeaders', vi)" />
                                       }
                                     </span>
                                   }
@@ -1796,10 +1733,9 @@
                                     <input #tableExposedHeaderInput class="cors-field__input"
                                       [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
                                       (keydown.enter)="addTableCorsRuleValue(i, 'exposedHeaders', tableExposedHeaderInput.value); tableExposedHeaderInput.value = ''; $event.preventDefault()" />
-                                    <button class="cors-field__add-btn" type="button"
-                                      (click)="addTableCorsRuleValue(i, 'exposedHeaders', tableExposedHeaderInput.value); tableExposedHeaderInput.value = ''">
-                                      <mat-icon>add</mat-icon>
-                                    </button>
+                                    <app-ds-icon-button icon="add" variant="accent" size="md" type="button"
+                                      [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (clicked)="addTableCorsRuleValue(i, 'exposedHeaders', tableExposedHeaderInput.value); tableExposedHeaderInput.value = ''" />
                                   </div>
                                 }
                                 @if (corsFieldError('table', i, 'exposedHeaders')) {
@@ -1835,89 +1771,43 @@
                     }
                   </div>
                 </div>
-              </mat-tab>
-            </mat-tab-group>
+              }
           </div>
-        </mat-tab>
-      } @else if (supportsAppSettings()) {
+      } @else if (supportsAppSettings() && activeMainTabId() === 'app-settings') {
         <!-- App Settings Tab (WebApp / FunctionApp / ContainerApp) -->
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">data_object</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.APP_SETTINGS' | translate }}</span>
-            @if (appSettingsSection.appSettings().length > 0) {
-              <span class="tab-count">{{ appSettingsSection.appSettings().length }}</span>
-            }
-            @if (appSettingsSection.hasWarning()) {
-              <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ROLE' | translate">warning</mat-icon>
-            }
-          </ng-template>
-          <app-resource-edit-app-settings-section
-            [canWrite]="canWrite()"
-            [environments]="environments()"
-            [section]="appSettingsSection">
-          </app-resource-edit-app-settings-section>
-        </mat-tab>
-      } @else if (supportsConfigKeys()) {
+        <app-resource-edit-app-settings-section
+          [canWrite]="canWrite()"
+          [environments]="environments()"
+          [section]="appSettingsSection">
+        </app-resource-edit-app-settings-section>
+      } @else if (supportsConfigKeys() && activeMainTabId() === 'config-keys') {
         <!-- Configuration Keys Tab (AppConfiguration only) -->
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">settings</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.CONFIG_KEYS' | translate }}</span>
-            @if (configKeysSection.configKeys().length > 0) {
-              <span class="tab-count">{{ configKeysSection.configKeys().length }}</span>
-            }
-            @if (configKeysSection.hasWarning()) {
-              <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ROLE' | translate">warning</mat-icon>
-            }
-          </ng-template>
-          <app-resource-edit-config-keys-section
-            [canWrite]="canWrite()"
-            [environments]="environments()"
-            [section]="configKeysSection">
-          </app-resource-edit-config-keys-section>
-        </mat-tab>
+        <app-resource-edit-config-keys-section
+          [canWrite]="canWrite()"
+          [environments]="environments()"
+          [section]="configKeysSection">
+        </app-resource-edit-config-keys-section>
       } @else if (isUserAssignedIdentity()) {
-        <!-- Granted Rights Tab (UserAssignedIdentity only) -->
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">verified_user</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.GRANTED_RIGHTS' | translate }}</span>
-            @if (identityAccessSection.identityRoleAssignments().length > 0) {
-              <span class="tab-count">{{ identityAccessSection.identityRoleAssignments().length }}</span>
-            }
-          </ng-template>
+        @if (activeMainTabId() === 'granted-rights') {
+          <!-- Granted Rights Tab (UserAssignedIdentity only) -->
           <app-resource-edit-granted-rights-section
             [canWrite]="canWrite()"
             [section]="identityAccessSection">
           </app-resource-edit-granted-rights-section>
-        </mat-tab>
+        }
 
-        <!-- Used By Tab (UserAssignedIdentity only) -->
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">device_hub</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.USED_BY' | translate }}</span>
-            @if (identityAccessSection.usedByResources().length > 0) {
-              <span class="tab-count">{{ identityAccessSection.usedByResources().length }}</span>
-            }
-          </ng-template>
+        @if (activeMainTabId() === 'used-by') {
+          <!-- Used By Tab (UserAssignedIdentity only) -->
           <app-resource-edit-used-by-section
             [canWrite]="canWrite()"
             [section]="identityAccessSection">
           </app-resource-edit-used-by-section>
-        </mat-tab>
+        }
       }
 
       <!-- App Pipeline Tab (WebApp / FunctionApp / ContainerApp only, hidden for existing resources) -->
-      @if (supportsAppPipeline() && !isExistingResource()) {
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">terminal</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.APP_PIPELINE' | translate }}</span>
-          </ng-template>
-
-          <div class="tab-content">
+      @if (supportsAppPipeline() && !isExistingResource() && activeMainTabId() === 'app-pipeline') {
+        <div class="tab-content">
             <!-- Description banner -->
             <div class="env-description">
               <mat-icon class="env-description__icon">terminal</mat-icon>
@@ -1990,9 +1880,7 @@
               (optionsChanged)="onPipelineOptionsChanged($event)"
               (detectOptions)="onDetectPipelineOptions()" />
           </div>
-        </mat-tab>
       }
-    </mat-tab-group>
 
     <!-- ��������� Floating Save Bar ��������� -->
     @if (showSaveBar()) {
@@ -2015,25 +1903,19 @@
         </div>
         <div class="save-bar__actions">
           @if (isSaveBlockedByNameAvailability() && nameAvailabilityOverallState() === 'has-unavailable') {
-            <button class="save-bar__override" (click)="overrideNameAvailability()">
-              <mat-icon class="save-bar__override-icon">verified_user</mat-icon>
+            <app-ds-button variant="secondary" icon="verified_user" (clicked)="overrideNameAvailability()">
               {{ 'RESOURCE_EDIT.ACTIONS.NAME_OVERRIDE' | translate }}
-            </button>
+            </app-ds-button>
           }
-          <button class="save-bar__discard" (click)="discardChanges()">
+          <app-ds-button variant="ghost" (clicked)="discardChanges()">
             {{ 'RESOURCE_EDIT.ACTIONS.DISCARD' | translate }}
-          </button>
-          <button
-            class="save-bar__save"
-            (click)="onSave()"
-            [disabled]="isSaving() || generalForm.invalid || isSaveBlockedByAcr() || isSaveBlockedByNameAvailability()">
-            @if (isSaving()) {
-              <mat-spinner diameter="16" class="save-bar__spinner"></mat-spinner>
-            } @else {
-              <mat-icon class="save-bar__save-icon">save</mat-icon>
-            }
+          </app-ds-button>
+          <app-ds-button variant="primary" icon="save"
+            [loading]="isSaving()"
+            [disabled]="isSaving() || generalForm.invalid || isSaveBlockedByAcr() || isSaveBlockedByNameAvailability()"
+            (clicked)="onSave()">
             {{ (isSaving() ? 'RESOURCE_EDIT.ACTIONS.SAVING' : 'RESOURCE_EDIT.ACTIONS.SAVE') | translate }}
-          </button>
+          </app-ds-button>
         </div>
       </div>
     }

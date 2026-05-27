@@ -8,20 +8,4 @@
   &__field {
     width: 100%;
   }
-
-  &__radio-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  &__radio-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-secondary, var(--ifs-text-secondary));
-  }
-}
-
-mat-radio-button {
-  margin-right: 1rem;
 }

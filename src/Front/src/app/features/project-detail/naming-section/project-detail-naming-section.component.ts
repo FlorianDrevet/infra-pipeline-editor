@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
+import { DsButtonComponent, DsIconButtonComponent } from '../../../shared/components/ds';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -31,7 +32,9 @@ import {
   imports: [
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
+    DsButtonComponent,
+    DsIconButtonComponent,
     MatTooltipModule,
     TranslateModule,
   ],

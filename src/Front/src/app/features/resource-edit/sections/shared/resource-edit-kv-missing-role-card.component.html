@@ -11,12 +11,11 @@
     <div class="kv-access-card__identity-section">
       <span class="kv-access-card__section-label">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ON' | translate }}</span>
       <div class="kv-access-card__identity-row">
-        <mat-button-toggle-group
-          [value]="entry().selectedIdentityType"
-          (change)="onIdentityTypeChange($event.value)">
-          <mat-button-toggle value="UserAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_UAI' | translate }}</mat-button-toggle>
-          <mat-button-toggle value="SystemAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_SAI' | translate }}</mat-button-toggle>
-        </mat-button-toggle-group>
+        <app-ds-segmented-control
+          size="sm"
+          [options]="identityTypeOptions"
+          [ngModel]="entry().selectedIdentityType"
+          (ngModelChange)="onIdentityTypeChange($event)" />
       </div>
 
       @if (entry().selectedIdentityType === 'UserAssigned') {
@@ -34,26 +33,22 @@
               [emptyText]="'RESOURCE_EDIT.APP_SETTINGS.KV_NO_UAI_AVAILABLE' | translate"
               (valueChange)="onUaiIdChange($event)">
             </app-compact-select>
-            <button class="kv-access-card__create-uai-btn" type="button" (click)="onCreateUai()">
-              <mat-icon>add</mat-icon>
+            <app-ds-button variant="secondary" size="sm" icon="add" (clicked)="onCreateUai()">
               {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_CREATE_UAI' | translate }}
-            </button>
+            </app-ds-button>
           </div>
         }
       }
     </div>
 
-    <button
+    <app-ds-button
       class="kv-access-card__action-btn"
-      type="button"
+      variant="primary"
+      icon="add_circle_outline"
+      [loading]="entry().assigning"
       [disabled]="entry().assigning || (entry().selectedIdentityType === 'UserAssigned' && !assignedUai() && !entry().selectedUaiId)"
-      (click)="onAssignRole()">
-      @if (entry().assigning) {
-        <mat-spinner diameter="14"></mat-spinner>
-      } @else {
-        <mat-icon>add_circle_outline</mat-icon>
-      }
+      (clicked)="onAssignRole()">
       {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ROLE' | translate }}
-    </button>
+    </app-ds-button>
   }
 </div>

@@ -1,15 +1,13 @@
 import { Component, inject } from '@angular/core';
 
 import { Router } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ResourceDiagnosticResponse } from '../../interfaces/bicep-generator.interface';
 import { PendingCustomDomainIssue } from '../../interfaces/pending-custom-domain-issue.interface';
 import { RESOURCE_TYPE_ABBREVIATIONS } from '../../resource-metadata/resource-type.metadata';
-import { DsButtonComponent } from '../ds';
+import { DsButtonComponent, DsIconButtonComponent } from '../ds';
 
 const ARM_TYPE_TO_FRIENDLY: Record<string, string> = {
   'Microsoft.KeyVault/vaults': 'KeyVault',
@@ -91,12 +89,11 @@ export interface GenerationDiagnosticsDialogData {
   selector: 'app-generation-diagnostics-dialog',
   standalone: true,
   imports: [
-    MatButtonModule,
     MatDialogModule,
     MatIconModule,
-    MatTooltipModule,
     TranslateModule,
-    DsButtonComponent
+    DsButtonComponent,
+    DsIconButtonComponent
 ],
   templateUrl: './generation-diagnostics-dialog.component.html',
   styleUrl: './generation-diagnostics-dialog.component.scss',

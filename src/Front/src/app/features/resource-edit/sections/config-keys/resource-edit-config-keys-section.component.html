@@ -6,10 +6,9 @@
 
   @if (canWrite()) {
     <div class="ra-actions">
-      <button class="ra-add-btn" type="button" (click)="section().openAddDialog()">
-        <mat-icon>add</mat-icon>
+      <app-ds-button variant="primary" icon="add" (clicked)="section().openAddDialog()">
         {{ 'RESOURCE_EDIT.CONFIG_KEYS.ADD' | translate }}
-      </button>
+      </app-ds-button>
     </div>
   }
 
@@ -35,7 +34,7 @@
 
   @if (section().isLoading()) {
     <div class="ra-loading">
-      <mat-spinner diameter="28"></mat-spinner>
+      <app-ds-spinner size="lg" />
       <span>{{ 'RESOURCE_EDIT.CONFIG_KEYS.LOADING' | translate }}</span>
     </div>
   } @else if (section().configKeys().length === 0) {
@@ -86,9 +85,13 @@
                       </span>
                     }
                     @if (canWrite()) {
-                      <button class="as-row__delete" type="button" (click)="section().openRemoveDialog(configKey)" [matTooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate">
-                        <mat-icon>close</mat-icon>
-                      </button>
+                      <app-ds-icon-button
+                        icon="close"
+                        variant="danger"
+                        size="sm"
+                        [ariaLabel]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate"
+                        [tooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate"
+                        (clicked)="section().openRemoveDialog(configKey)" />
                     }
                   </div>
                 </div>
@@ -139,9 +142,13 @@
                   </span>
                 }
                 @if (canWrite()) {
-                  <button class="as-row__delete" type="button" (click)="section().openRemoveDialog(configKey)" [matTooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate">
-                    <mat-icon>close</mat-icon>
-                  </button>
+                  <app-ds-icon-button
+                    icon="close"
+                    variant="danger"
+                    size="sm"
+                    [ariaLabel]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate"
+                    [tooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate"
+                    (clicked)="section().openRemoveDialog(configKey)" />
                 }
               </div>
             </div>
@@ -195,9 +202,13 @@
               </div>
               <div class="as-row__right">
                 @if (canWrite()) {
-                  <button class="as-row__delete" type="button" (click)="section().openRemoveDialog(configKey)" [matTooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate">
-                    <mat-icon>close</mat-icon>
-                  </button>
+                  <app-ds-icon-button
+                    icon="close"
+                    variant="danger"
+                    size="sm"
+                    [ariaLabel]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate"
+                    [tooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate"
+                    (clicked)="section().openRemoveDialog(configKey)" />
                 }
               </div>
             </div>

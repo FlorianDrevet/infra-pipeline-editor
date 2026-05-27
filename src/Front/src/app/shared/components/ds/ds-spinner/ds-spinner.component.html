@@ -1,0 +1,33 @@
+<span
+  class="ds-spinner ds-spinner--{{ size() }}"
+  [class.ds-spinner--inline]="inline()"
+  role="status"
+  [attr.aria-label]="hasCustomLabel() ? label() : (resolvedLabelKey() | translate)"
+>
+  <svg
+    class="ds-spinner__svg"
+    [attr.width]="diameter()"
+    [attr.height]="diameter()"
+    [attr.viewBox]="'0 0 ' + diameter() + ' ' + diameter()"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <circle
+      class="ds-spinner__track"
+      [attr.cx]="diameter() / 2"
+      [attr.cy]="diameter() / 2"
+      [attr.r]="(diameter() - 2) / 2"
+      fill="none"
+      stroke-width="2"
+    ></circle>
+    <circle
+      class="ds-spinner__arc"
+      [attr.cx]="diameter() / 2"
+      [attr.cy]="diameter() / 2"
+      [attr.r]="(diameter() - 2) / 2"
+      fill="none"
+      stroke-width="2"
+      stroke-linecap="round"
+    ></circle>
+  </svg>
+</span>

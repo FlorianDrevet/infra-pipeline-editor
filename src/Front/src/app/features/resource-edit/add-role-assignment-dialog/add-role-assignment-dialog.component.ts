@@ -1,13 +1,18 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatRadioModule } from '@angular/material/radio';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption } from '../../../shared/components/ds';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import {
+  DsButtonComponent,
+  DsRadioGroupComponent,
+  DsRadioOption,
+  DsSelectComponent,
+  DsSelectOption,
+  DsTextFieldComponent,
+} from '../../../shared/components/ds';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
 import { UserAssignedIdentityService } from '../../../shared/services/user-assigned-identity.service';
@@ -44,10 +49,9 @@ export interface AddRoleAssignmentDialogData {
     TranslateModule,
     FormsModule,
     MatDialogModule,
-    MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
-    MatRadioModule,
+    DsSpinnerComponent,
+    DsRadioGroupComponent,
     MatTooltipModule,
     DsButtonComponent,
     DsTextFieldComponent,
@@ -61,6 +65,7 @@ export class AddRoleAssignmentDialogComponent {
   private readonly data: AddRoleAssignmentDialogData = inject(MAT_DIALOG_DATA);
   private readonly roleAssignmentService = inject(RoleAssignmentService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
 
@@ -103,6 +108,19 @@ export class AddRoleAssignmentDialogComponent {
   protected readonly selectedRoleRequiresUserAssignedIdentity = computed(() =>
     this.availableRoles().find(role => role.id === this.selectedRoleId())?.requiresUserAssignedIdentity ?? false
   );
+
+  /** Identity type options for the DS radio group; SystemAssigned is disabled when the role requires UAI. */
+  protected readonly identityTypeOptions = computed<DsRadioOption[]>(() => [
+    {
+      value: 'SystemAssigned',
+      label: this.translate.instant('RESOURCE_EDIT.ROLE_ASSIGNMENTS.SYSTEM_ASSIGNED'),
+      disabled: this.selectedRoleRequiresUserAssignedIdentity(),
+    },
+    {
+      value: 'UserAssigned',
+      label: this.translate.instant('RESOURCE_EDIT.ROLE_ASSIGNMENTS.USER_ASSIGNED'),
+    },
+  ]);
   // ─── User-Assigned Identity picker ───
   private readonly extraIdentities = signal<AzureResourceResponse[]>([]);
   protected readonly availableIdentities = computed(() => {

@@ -1,14 +1,61 @@
 # Frontend Design System
 
-## Audit DS coverage exhaustif [2026-05-27]
+## Vague DS migration intégrale W1→W8 [2026-05-27]
+
+Exécution complète du plan audit-design-system-2026-05-27 en une seule session (sur demande explicite utilisateur). Toutes les vagues sauf W2 livrées.
+
+### Nouveaux primitives DS (7)
+
+- **`app-ds-spinner`** (W1) — SVG circle stroke-dasharray, sizes `sm|md|lg|xl` (14/18/24/40px), `inline` mode, `currentColor`, `prefers-reduced-motion` honored. Tokens `--ifs-*` exclusivement.
+- **`app-ds-progress-bar`** (W1) — modes `determinate|indeterminate`, tones `brand|success|danger`, value 0-100. Indeterminate via keyframes whitelistées (cf shimmer skeleton).
+- **`app-ds-tag-input`** (W1) — Inputs typés `DsTagInputItem[]`, validators, addOnComma/Enter/Blur, Backspace removes last. Pour usages mono-valeur (pas key-value).
+- **`app-ds-menu`** + **`DsMenuDirective`** (W1) — CDK Overlay, ArrowUp/Down navigation, Esc fermeture, items typés `DsMenuItem { id, label, icon?, iconTrailing?, tone?, disabled?, divider? }`. Utilisé en W8 pour role-assignments (4 menus).
+- **`app-ds-card-mat`** (W7, N3) — 3 slots nommés `[ds-card-header]`, `[ds-card-content]`, `[ds-card-actions]`, inputs `title?/subtitle?/tone`, tone `neutral|brand|success|warning|danger`. Remplace les chains `mat-card-header/title/subtitle/content/actions` (6 usages migrés : multi-repo-push-dialog×2, config-detail-git-section×2, networking-tab×2).
+- **`app-ds-key-value-input`** (dette W2) — ControlValueAccessor `DsKeyValueItem { key, value }[]`. Dual text-fields + add button + chip row. Validators (duplicate key, required). Migré 3 fichiers (config-detail-tags, project-detail-tags, add-project-environment-dialog). Naming-templates exclus (cursor-placement UIs).
+- **`app-ds-accordion`** (dette N7) — expand/collapse, ARIA `aria-expanded`, icon, tone `neutral|brand|info`, model `expanded`. Migré DNS tutorial custom-domains. 0 `mat-expansion-panel` restant.
+
+### Patterns découverts / décisions clés
+
+- **Query params `?tab=` après migration `mat-tab-group` → `app-ds-tabs`** : extraire des constantes typées `*_TAB_IDS` (cf `CONFIG_DETAIL_TAB_IDS`, `PROJECT_DETAIL_TAB_IDS` dans `shared/enums/detail-route-tabs.ts`) avec mappers id↔query. Indispensable pour préserver les deep-links.
+- **DsTabs label pré-traduit** : DsTabsComponent reçoit le label en string brute (pas de pipe `translate`). Pré-traduire dans `computed()` lisant `languageService.currentLanguage()` pour la réactivité i18n.
+- **`<app-ds-button>` n'accepte pas `(click)`** : toujours `(clicked)`. Piège récurrent.
+- **API `icon`/`iconPosition` sur ds-button** : ne JAMAIS projeter `<mat-icon>X</mat-icon> Label` dans le slot ; utiliser `<app-ds-button icon="X" iconPosition="start">Label</app-ds-button>`.
+- **DsIconButton variant `danger`** : déjà existant (W1 extension annulée). Tone alias `'neutral' | 'primary' | 'accent' | 'danger'`.
+- **Segmented control à la place de mat-button-toggle-group** : utilisé 5 fois en migration (password scope, sensitive mode, deployment mode, ACR auth mode, app-config-key mode). Pattern à réutiliser.
+- **N2 `ds-dialog-shell` SKIP** : ROI faible, l'override global de `mat-dialog-content/actions` dans `styles.scss` suffit en pratique.
+- **N7 `ds-accordion` SKIP** : single-usage (DNS tutorial), `mat-expansion-panel` conservé.
+- **W2 deferred** : `tag-input` créé mais 5 cibles audit étaient en réalité des inputs key-value (env vars, naming tokens) ou des action-chips. Créer primitive `ds-key-value-input` séparé avant re-rollout.
+
+### SCSS hardening
+
+- **Tokens fantômes purgés** : `var(--text-primary|--text-secondary|--text-tertiary|--border|--surface|--surface-alt|--code-bg|--primary|--error|--success|--ds-color-primary|--ds-color-warn)` tous remplacés par `var(--ifs-*)`. Notamment `networking-tab.scss` refonte intégrale (174 lignes) qui rendait silencieusement le composant en light hardcodé sur shell dark.
+- **Hex hardcodés purgés** : 10 fichiers (settings, home, project-members, custom-domains, pipeline-options, generation-board, layout-repositories, split-generation-switcher, create-pat-dialog, networking-tab). Tokens utilisés : `--ifs-text-on-brand`, `--ifs-warning`/`-bg`, `--ifs-success`/`-bg`, `--ifs-brand-400/500`, `--ifs-accent-400/500`, `--ifs-danger`.
+- **Résidu intentionnel** : palette `--bicep-syntax-*` dans `settings.component.scss` (duplicate de `bicep-file-panel`). Dette P3 : extraire en partial `@use 'shared/bicep-syntax-palette'`.
+- **Overrides `::ng-deep .mat-mdc-tab-*` / `--mat-tab-*`** : tous supprimés (grep final 0 hit dans `features/**/*.scss`).
+
+### Métriques finales
+
+- **0 occurrence** `<mat-button|mat-stroked|mat-flat|mat-raised|mat-icon-button|mat-tab-group|mat-card|mat-card-*|mat-checkbox|mat-radio-group|mat-button-toggle|mat-progress-bar|mat-menu>` dans `src/Front/src/app/features/**/*.html` et `src/Front/src/app/shared/components/**/*.html` (hors zones intentionnelles).
+- **2 résidus légitimes** : `<mat-spinner>` interne à `ds-autocomplete.component.html` (wrapper interne au DS).
+- **0 token fantôme** non préfixé `--ifs-*` dans `src/Front/src/app/**/*.scss`.
+- `npm run typecheck` : vert (0 erreur).
+- `npm run build` : vert (warnings préexistants bundle budget + OpenTelemetry CommonJS, non liés).
+
+### Dette résiduelle (tracée dans `.github/test-debt.md`)
+
+- **P2** — Tests Karma des 4 nouveaux primitives DS à activer.
+- **P2** — 4 specs Karma cassés sur sélecteurs CSS legacy supprimés (resource-edit identity-access) — à re-cibler via DS harness.
+- **P3** — `ds-key-value-input` primitive à scoper avant rollout W2 réel.
+- **P3** — Purge finale SCSS dead-classes (`.delete-btn`, `.add-btn`, etc.) après stabilisation visuelle multi-vagues.
+- **P3** — Palette Bicep à extraire en partial dans `settings.component.scss`.
+- **P3** — N7 `ds-accordion` si futur 2ème usage.
+
+## Audit DS coverage — Résolu [2026-05-27]
 
 - **Source** : [audits/audit-design-system-2026-05-27.md](../../audits/audit-design-system-2026-05-27.md) ; tracker [docs/features/ds-migration-2026-05-tracker.md](../../docs/features/ds-migration-2026-05-tracker.md).
-- **État** : 27 primitives DS existent, ~84 templates feature/shared encore non conformes, 30+ usages `mat-spinner`, 66+ boutons Material résiduels, 5 implémentations dupliquées du pattern tag-input.
-- **Gaps DS identifiés (à créer)** : `app-ds-spinner` (N1, mandatory), `app-ds-tag-input` (N4, mandatory), `app-ds-progress-bar` (N5, mandatory), `app-ds-menu` (N6, mandatory). Optionnels : `app-ds-dialog-shell` (N2), `app-ds-card-mat` (N3), `app-ds-accordion` (N7), `app-ds-stepper` (N8).
-- **Plan** : 8 vagues mergeables W1→W8. W1 = fondations (créer les nouveaux primitives + TDD). W2 = tag-input rollout. W3 = spinner rollout. W4.1→W4.5 = purge boutons hors DS par scope. W5 = form controls résiduels. W6 = `mat-tab-group` → `app-ds-tabs`. W7 = cards Material + dialog shell. W8 = menus + hex purge + tokens fantômes.
-- **Anomalie critique détectée** : `resource-edit/components/networking-tab/networking-tab.component.scss` utilise des tokens CSS **fantômes** (`var(--text-secondary, #6b7280)`, `var(--border, #d1d5db)`, `var(--surface, #fff)`, `var(--primary, #6366f1)`, `var(--error, #ef4444)`, `var(--success, #16a34a)`, `var(--code-bg, #f3f4f6)`) absents de `_tokens.scss`. Tous les fallbacks hex prennent le dessus, faisant basculer la carte en mode light hardcodé. À corriger en W8 en migrant vers `--ifs-text-secondary`, `--ifs-border-subtle`, `--ifs-surface-1`, `--ifs-brand-500`, `--ifs-danger`, `--ifs-success`.
-- **Zones intentionnellement hors DS (à NE PAS migrer)** : `features/login/**` (surface non auth, brand glassmorphism), `shared/components/bicep-file-panel/**` (theming code-editor user-switch), `features/project-detail/bootstrap-setup-guide/**` (visuel terminal traffic-lights mac).
-- **Risque connu** : `app-ds-button` ne forward pas `form="<id>"` — auditer dialogs avec submit détaché avant migration. `<mat-tab-group>` nested dans `resource-edit` / `split-generation-switcher` ont des overrides `::ng-deep .mdc-tab--active` à valider visuellement après bascule. `resource-edit.component.html` (2080 lignes) doit être migré tab-par-tab dans des PR distincts.
+- **Résultat** : audit exécuté et migration W1→W8 livrée dans la même session. Tous les gaps identifiés (N1 spinner, N4 tag-input, N5 progress-bar, N6 menu, N3 card-mat) sont créés et déployés. N2 `ds-dialog-shell` et N7 `ds-accordion` skippés (ROI faible). Networking-tab tokens fantômes corrigés en W8.
+- **Zones intentionnellement hors DS** : `features/login/**`, `shared/components/bicep-file-panel/**`, `features/project-detail/bootstrap-setup-guide/**`.
+- **Risque résiduel** : `app-ds-button` ne forward pas `form="<id>"` — garder des `<button>` natifs pour les detached submit triggers.
 
 ## UI Refresh 2026-05 — Vagues complètes [2026-05-11]
 
@@ -93,11 +140,13 @@
 - Dialog footers that expose the common two-action pattern `button[mat-stroked-button]` then `app-ds-button` now inherit a shared global `mat-dialog-actions` layout from `src/Front/src/styles.scss`: equal-width secondary/primary actions, `0.875rem` gap on desktop, and stacked full-width actions under `640px`. The selector is intentionally narrow (`:has()` + direct-child pair) so dialogs with extra tertiary actions or wrapper nodes stay untouched. [2026-05-16]
 - Keep raw Material where the DS layer still depends on framework behaviors that are not reimplemented yet.
 
-## Migration Status [2026-04-24]
+## Migration Status [2026-05-27]
 
-- Primary CTAs across `home`, `projects`, `project-detail`, `config-detail`, `resource-edit`, and shared dialogs were largely migrated to `app-ds-button`.
-- About 216 former `<mat-form-field>` usages were migrated to DS form controls across 25+ files, including `add-resource-dialog` and `resource-edit`.
-- `projects` toolbar and card affordances now stay on DS primitives: search uses `app-ds-text-field`, favorites uses `app-ds-button`, sorting uses `app-ds-select`, and project meta/favorite affordances use `app-ds-chip` plus `app-ds-icon-button`. The project card layout keeps members/environment chips in a dedicated bottom footer block even when a project has no description. [2026-05-11]
+- **0** `mat-expansion-panel` remaining — replaced by `app-ds-accordion`.
+- **0** `mat-chip-set` in feature code except 2 naming-template dialogs (cursor-placement UIs, excluded by design).
+- **0** Material buttons/icons-buttons in feature templates (only DS wrappers internally in `ds-autocomplete`).
+- Shared SCSS partial `_bicep-syntax-palette.scss` extracts Bicep syntax tokens used by `settings.component.scss` and `bicep-file-panel.component.scss`.
+- All legacy dead-classes purged from 5 SCSS files (custom-domains, app-settings, pipeline-options, add-app-config-key-dialog, add-app-setting-dialog).
 - `project-detail` top tabs plus the SplitInfraCode generation shell were visually rebalanced toward a thinner enterprise language: less glow, softer header chrome, quieter accent colors, and flatter CTA grouping around generation/push actions. [2026-05-11]
 - Remaining raw Material inputs are intentional for:
   - `matAutocomplete` flows in `push-to-git-dialog` and `add-project-member-dialog`

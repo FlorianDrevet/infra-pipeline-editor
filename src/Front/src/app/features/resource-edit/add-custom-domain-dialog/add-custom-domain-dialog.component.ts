@@ -1,10 +1,16 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { DsButtonComponent, DsSelectComponent, DsTextFieldComponent, type DsSelectOption } from '../../../shared/components/ds';
+import {
+  DsButtonComponent,
+  DsRadioGroupComponent,
+  DsRadioOption,
+  DsSelectComponent,
+  DsTextFieldComponent,
+  type DsSelectOption,
+} from '../../../shared/components/ds';
 import { MatIconModule } from '@angular/material/icon';
-import { MatRadioModule } from '@angular/material/radio';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EnvironmentDefinitionResponse } from '../../../shared/interfaces/infra-config.interface';
 import { CustomDomainResponse, AddCustomDomainRequest } from '../../../shared/interfaces/custom-domain.interface';
 
@@ -14,6 +20,8 @@ export interface AddCustomDomainDialogData {
   preselectedEnvironment?: string;
 }
 
+type CustomDomainBindingType = 'SniEnabled' | 'Disabled';
+
 @Component({
   selector: 'app-add-custom-domain-dialog',
   standalone: true,
@@ -22,8 +30,8 @@ export interface AddCustomDomainDialogData {
     FormsModule,
     MatDialogModule,
     MatIconModule,
-    MatRadioModule,
     DsButtonComponent,
+    DsRadioGroupComponent,
     DsSelectComponent,
     DsTextFieldComponent,
   ],
@@ -32,15 +40,27 @@ export interface AddCustomDomainDialogData {
 })
 export class AddCustomDomainDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<AddCustomDomainDialogComponent>);
+  private readonly translate = inject(TranslateService);
   protected readonly data: AddCustomDomainDialogData = inject(MAT_DIALOG_DATA);
 
   protected readonly environmentName = signal(this.data.preselectedEnvironment ?? '');
   protected readonly domainName = signal('');
-  protected readonly bindingType = signal('SniEnabled');
+  protected readonly bindingType = signal<CustomDomainBindingType>('SniEnabled');
 
   protected readonly environmentOptions = computed<DsSelectOption[]>(() =>
     this.data.environments.map((env) => ({ value: env.name, label: env.name })),
   );
+
+  protected readonly bindingTypeOptions = computed<DsRadioOption[]>(() => [
+    {
+      value: 'SniEnabled',
+      label: this.translate.instant('RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_SNI'),
+    },
+    {
+      value: 'Disabled',
+      label: this.translate.instant('RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_DISABLED'),
+    },
+  ]);
 
   private readonly fqdnPattern = /^(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(\.[a-zA-Z0-9-]{1,63})*\.[a-zA-Z]{2,}$/;
 

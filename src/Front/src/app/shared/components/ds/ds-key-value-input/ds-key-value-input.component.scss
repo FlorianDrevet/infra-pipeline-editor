@@ -1,0 +1,58 @@
+// ============================================================================
+// app-ds-key-value-input
+// ============================================================================
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.ds-kv-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-8);
+}
+
+.ds-kv-input__label {
+  font: var(--ifs-text-body-sm);
+  color: var(--ifs-text-secondary);
+  font-weight: 500;
+}
+
+.ds-kv-input__required {
+  color: var(--ifs-danger);
+  margin-left: var(--ifs-space-2);
+}
+
+.ds-kv-input__row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--ifs-space-8);
+  flex-wrap: wrap;
+}
+
+.ds-kv-input__key,
+.ds-kv-input__value {
+  flex: 1;
+  min-width: 140px;
+}
+
+.ds-kv-input__add-btn {
+  flex-shrink: 0;
+}
+
+.ds-kv-input__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ifs-space-4);
+}
+
+.ds-kv-input__error {
+  font: var(--ifs-text-body-sm);
+  color: var(--ifs-danger);
+}
+
+.ds-kv-input__helper {
+  font: var(--ifs-text-body-sm);
+  color: var(--ifs-text-tertiary);
+}

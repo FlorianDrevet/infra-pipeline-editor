@@ -68,7 +68,7 @@
 
           @if (rolesLoading()) {
             <div class="role-dialog__loading">
-              <mat-spinner diameter="24"></mat-spinner>
+              <app-ds-spinner size="lg" />
               <span>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.LOADING_ROLES' | translate }}</span>
             </div>
           } @else if (availableRoles().length === 0) {
@@ -112,10 +112,9 @@
       </mat-dialog-content>
 
       <mat-dialog-actions class="role-dialog__actions" align="end">
-        <button mat-stroked-button (click)="goBack()">
-          <mat-icon>arrow_back</mat-icon>
+        <app-ds-button variant="secondary" icon="arrow_back" (clicked)="goBack()">
           {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
-        </button>
+        </app-ds-button>
         <app-ds-button
           variant="primary"
           [disabled]="!canSubmit()"
@@ -197,18 +196,14 @@
 
         <!-- Identity type -->
         <div class="config-section">
-          <label class="config-section__label">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.IDENTITY_TYPE_LABEL' | translate }}</label>
-          <mat-radio-group
+          <app-ds-radio-group
             class="identity-radio-group"
-            [value]="selectedIdentityType()"
-            (change)="onIdentityTypeChange($event.value)">
-            <mat-radio-button value="SystemAssigned" [disabled]="selectedRoleRequiresUserAssignedIdentity()">
-              {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SYSTEM_ASSIGNED' | translate }}
-            </mat-radio-button>
-            <mat-radio-button value="UserAssigned">
-              {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.USER_ASSIGNED' | translate }}
-            </mat-radio-button>
-          </mat-radio-group>
+            name="roleAssignmentIdentityType"
+            [label]="'RESOURCE_EDIT.ADD_ROLE_DIALOG.IDENTITY_TYPE_LABEL' | translate"
+            [options]="identityTypeOptions()"
+            [ngModel]="selectedIdentityType()"
+            (ngModelChange)="onIdentityTypeChange($event)"
+            [ngModelOptions]="{ standalone: true }" />
           @if (selectedRoleRequiresUserAssignedIdentity()) {
             <p class="config-section__hint">
               <mat-icon>info_outline</mat-icon>
@@ -226,10 +221,9 @@
               <div class="identity-empty">
                 <mat-icon>fingerprint</mat-icon>
                 <p>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_IDENTITIES' | translate }}</p>
-                <button mat-stroked-button (click)="toggleCreateIdentity(true)">
-                  <mat-icon>add</mat-icon>
+                <app-ds-button variant="secondary" icon="add" (clicked)="toggleCreateIdentity(true)">
                   {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY' | translate }}
-                </button>
+                </app-ds-button>
               </div>
             } @else {
               @if (availableIdentities().length > 0) {
@@ -253,10 +247,13 @@
               }
 
               @if (!showCreateIdentity() && !hasAssignedUai()) {
-                <button mat-stroked-button class="identity-create-btn" (click)="toggleCreateIdentity(true)">
-                  <mat-icon>add</mat-icon>
+                <app-ds-button
+                  variant="secondary"
+                  icon="add"
+                  class="identity-create-btn"
+                  (clicked)="toggleCreateIdentity(true)">
                   {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY' | translate }}
-                </button>
+                </app-ds-button>
               }
             }
 
@@ -269,21 +266,23 @@
                   (ngModelChange)="newIdentityName.set($event)"
                   [ngModelOptions]="{ standalone: true }" />
                 <div class="identity-create-inline__actions">
-                  <button
-                    mat-flat-button
-                    color="primary"
+                  <app-ds-button
+                    variant="primary"
                     [disabled]="!newIdentityName().trim() || isCreatingIdentity()"
-                    (click)="createIdentity()">
+                    [loading]="isCreatingIdentity()"
+                    (clicked)="createIdentity()">
                     @if (isCreatingIdentity()) {
-                      <mat-spinner diameter="16" class="submit-spinner"></mat-spinner>
                       {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATING_IDENTITY' | translate }}
                     } @else {
                       {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY_SUBMIT' | translate }}
                     }
-                  </button>
-                  <button mat-stroked-button (click)="toggleCreateIdentity(false)" [disabled]="isCreatingIdentity()">
+                  </app-ds-button>
+                  <app-ds-button
+                    variant="secondary"
+                    [disabled]="isCreatingIdentity()"
+                    (clicked)="toggleCreateIdentity(false)">
                     {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CANCEL_CREATE' | translate }}
-                  </button>
+                  </app-ds-button>
                 </div>
               </div>
             }
@@ -296,7 +295,7 @@
 
           @if (rolesLoading()) {
             <div class="role-dialog__loading">
-              <mat-spinner diameter="24"></mat-spinner>
+              <app-ds-spinner size="lg" />
               <span>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.LOADING_ROLES' | translate }}</span>
             </div>
           } @else if (availableRoles().length === 0) {
@@ -340,10 +339,9 @@
       </mat-dialog-content>
 
       <mat-dialog-actions class="role-dialog__actions" align="end">
-        <button mat-stroked-button (click)="goBack()">
-          <mat-icon>arrow_back</mat-icon>
+        <app-ds-button variant="secondary" icon="arrow_back" (clicked)="goBack()">
           {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
-        </button>
+        </app-ds-button>
         <app-ds-button
           variant="primary"
           [disabled]="!canSubmit()"

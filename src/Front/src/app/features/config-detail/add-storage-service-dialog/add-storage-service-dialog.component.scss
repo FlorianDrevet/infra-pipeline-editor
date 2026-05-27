@@ -51,36 +51,3 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
 }
-
-.type-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 1.25rem 0.75rem;
-  border-radius: 1rem;
-  border: 1.5px solid var(--ifs-border-subtle);
-  background: var(--ifs-surface-1);
-  cursor: pointer;
-  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), border-color var(--ifs-duration-fast) var(--ifs-ease-standard), color var(--ifs-duration-fast) var(--ifs-ease-standard);
-
-  &:hover {
-    border-color: var(--ifs-accent-500);
-    background: var(--ifs-surface-1);
-    box-shadow: var(--ifs-shadow-md);
-  }
-
-  &__icon {
-    font-size: 2rem;
-    width: 2rem;
-    height: 2rem;
-    color: var(--ifs-accent-500);
-  }
-
-  &__label {
-    font-size: 0.84rem;
-    font-weight: 700;
-    color: var(--ifs-text-primary);
-    text-align: center;
-  }
-}

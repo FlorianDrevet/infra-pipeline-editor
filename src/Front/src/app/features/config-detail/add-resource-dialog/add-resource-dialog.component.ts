@@ -2,12 +2,11 @@ import { Component, DestroyRef, inject, OnInit, signal, computed } from '@angula
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, Observable, switchMap, tap } from 'rxjs';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTabsModule } from '@angular/material/tabs';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
+import { DsTabsComponent } from '../../../shared/components/ds/ds-tabs/ds-tabs.component';
+import { DsTabDefinition } from '../../../shared/components/ds/ds-tabs/ds-tabs.types';
 import { TranslateModule } from '@ngx-translate/core';
 import { LOCATION_OPTIONS } from '../enums/location.enum';
 import { RESOURCE_TYPE_OPTIONS, ResourceTypeEnum, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_CATEGORIES } from '../enums/resource-type.enum';
@@ -23,7 +22,7 @@ import { NameAvailabilityService } from '../../../shared/services/name-availabil
 import { EnvironmentNameAvailabilityResponseItem } from '../../../shared/interfaces/name-availability.interface';
 import { ToggleSectionCardComponent } from '../../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DeploymentConfigComponent } from '../../../shared/components/deployment-config/deployment-config.component';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsToggleComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsToggleComponent, DsIconButtonComponent, DsOptionCardComponent } from '../../../shared/components/ds';
 import {
   applyAddResourceProbeToggle,
   copyAddResourceEnvironmentSettings,
@@ -237,18 +236,18 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
   selector: 'app-add-resource-dialog',
   standalone: true,
   imports: [
-    MatButtonModule,
-    MatButtonToggleModule,
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     DsToggleComponent,
-    MatTabsModule,
+    DsTabsComponent,
     ReactiveFormsModule,
     TranslateModule,
     ToggleSectionCardComponent,
     DeploymentConfigComponent,
     DsButtonComponent,
+    DsIconButtonComponent,
+    DsOptionCardComponent,
     DsTextFieldComponent,
     DsSelectComponent,
   ],
@@ -344,6 +343,12 @@ export class AddResourceDialogComponent implements OnInit {
 
   protected readonly environments = this.data.environments;
   protected readonly hasEnvironments = this.data.environments.length > 0;
+
+  protected readonly envTabs: readonly DsTabDefinition[] = this.data.environments.map((env) => ({
+    id: env.name,
+    label: env.name,
+  }));
+  protected readonly activeEnvTabId = signal<string | null>(this.data.environments[0]?.name ?? null);
 
   protected readonly needsEnvironmentSettings = computed(() => {
     return hasResourceTypeEnvironmentSettings(this.selectedType());
@@ -842,7 +847,11 @@ export class AddResourceDialogComponent implements OnInit {
     applyAddResourceProbeToggle(this.envFormArray, envIndex, probeType, enabled);
   }
 
-  protected onTabChange(index: number): void {
+  protected onEnvTabChange(envName: string): void {
+    const index = this.environments.findIndex((env) => env.name === envName);
+    if (index < 0) {
+      return;
+    }
     if (!this.shouldCopyFromFirstEnvironment(index)) {
       return;
     }

@@ -52,12 +52,13 @@
                         <span class="diagnostics-dialog__message">{{ getTranslatedMessage(diag) }}</span>
                       </div>
 
-                      <button mat-icon-button
-                              class="diagnostics-dialog__navigate-btn"
-                              [matTooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
-                              (click)="navigateToResource(group.configId, diag)">
-                        <mat-icon>arrow_forward</mat-icon>
-                      </button>
+                      <app-ds-icon-button
+                        class="diagnostics-dialog__navigate-btn"
+                        icon="arrow_forward"
+                        variant="neutral"
+                        [tooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                        [ariaLabel]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                        (clicked)="navigateToResource(group.configId, diag)" />
                     </div>
                   }
                 </div>
@@ -108,12 +109,13 @@
                           }
                         </div>
                       </div>
-                      <button mat-icon-button
-                              class="diagnostics-dialog__navigate-btn"
-                              [matTooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
-                              (click)="navigateToMissingEnvResource(group.configId, res)">
-                        <mat-icon>arrow_forward</mat-icon>
-                      </button>
+                      <app-ds-icon-button
+                        class="diagnostics-dialog__navigate-btn"
+                        icon="arrow_forward"
+                        variant="neutral"
+                        [tooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                        [ariaLabel]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                        (clicked)="navigateToMissingEnvResource(group.configId, res)" />
                     </div>
                   }
                 </div>
@@ -162,12 +164,13 @@
                           {{ 'GENERATION_DIAGNOSTICS.PENDING_CUSTOM_DOMAINS_ITEM' | translate: { domain: issue.domainName, environment: issue.environmentName } }}
                         </span>
                       </div>
-                      <button mat-icon-button
-                              class="diagnostics-dialog__navigate-btn"
-                              [matTooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
-                              (click)="navigateToPendingCustomDomainResource(group.configId, issue)">
-                        <mat-icon>arrow_forward</mat-icon>
-                      </button>
+                      <app-ds-icon-button
+                        class="diagnostics-dialog__navigate-btn"
+                        icon="arrow_forward"
+                        variant="neutral"
+                        [tooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                        [ariaLabel]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                        (clicked)="navigateToPendingCustomDomainResource(group.configId, issue)" />
                     </div>
                   }
                 </div>
@@ -214,12 +217,13 @@
                         </div>
                         <span class="diagnostics-dialog__message">{{ getTranslatedMessage(diag) }}</span>
                       </div>
-                      <button mat-icon-button
-                              class="diagnostics-dialog__navigate-btn"
-                              [matTooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
-                              (click)="navigateToResource(group.configId, diag)">
-                        <mat-icon>arrow_forward</mat-icon>
-                      </button>
+                      <app-ds-icon-button
+                        class="diagnostics-dialog__navigate-btn"
+                        icon="arrow_forward"
+                        variant="neutral"
+                        [tooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                        [ariaLabel]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                        (clicked)="navigateToResource(group.configId, diag)" />
                     </div>
                   }
 
@@ -236,12 +240,13 @@
                           {{ 'GENERATION_DIAGNOSTICS.PENDING_DOCKER_IMAGES_ITEM' | translate: { image: issue.dockerImageName } }}
                         </span>
                       </div>
-                      <button mat-icon-button
-                              class="diagnostics-dialog__navigate-btn"
-                              [matTooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
-                              (click)="navigateToPendingDockerImageResource(group.configId, issue)">
-                        <mat-icon>arrow_forward</mat-icon>
-                      </button>
+                      <app-ds-icon-button
+                        class="diagnostics-dialog__navigate-btn"
+                        icon="arrow_forward"
+                        variant="neutral"
+                        [tooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                        [ariaLabel]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                        (clicked)="navigateToPendingDockerImageResource(group.configId, issue)" />
                     </div>
                   }
                 </div>

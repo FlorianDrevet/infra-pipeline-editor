@@ -7,18 +7,21 @@
       <mat-dialog-content>
         <p class="storage-dialog__subtitle">{{ 'CONFIG_DETAIL.RESOURCES.ADD_STORAGE_STEP_TYPE' | translate }}</p>
         <div class="type-chooser">
-          <button class="type-card" (click)="selectType('BlobContainer')">
-            <mat-icon class="type-card__icon">folder</mat-icon>
-            <span class="type-card__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CONTAINERS' | translate }}</span>
-          </button>
-          <button class="type-card" (click)="selectType('Queue')">
-            <mat-icon class="type-card__icon">queue</mat-icon>
-            <span class="type-card__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.QUEUES' | translate }}</span>
-          </button>
-          <button class="type-card" (click)="selectType('Table')">
-            <mat-icon class="type-card__icon">table_chart</mat-icon>
-            <span class="type-card__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLES' | translate }}</span>
-          </button>
+          <app-ds-option-card
+            icon="folder"
+            [title]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CONTAINERS' | translate"
+            description=""
+            (cardSelect)="selectType('BlobContainer')" />
+          <app-ds-option-card
+            icon="queue"
+            [title]="'RESOURCE_EDIT.STORAGE_SERVICES.QUEUES' | translate"
+            description=""
+            (cardSelect)="selectType('Queue')" />
+          <app-ds-option-card
+            icon="table_chart"
+            [title]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLES' | translate"
+            description=""
+            (cardSelect)="selectType('Table')" />
         </div>
       </mat-dialog-content>
       <mat-dialog-actions align="end">
@@ -63,9 +66,9 @@
         </form>
       </mat-dialog-content>
       <mat-dialog-actions align="end">
-        <button mat-stroked-button (click)="goBack()" [disabled]="isSubmitting()">
+        <app-ds-button variant="ghost" (clicked)="goBack()" [disabled]="isSubmitting()">
           {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
-        </button>
+        </app-ds-button>
         <app-ds-button
           variant="primary"
           (clicked)="onSubmit()"

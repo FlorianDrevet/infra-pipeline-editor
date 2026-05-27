@@ -1,12 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { ToggleSectionCardComponent } from '../../../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DsTextFieldComponent, DsSelectComponent, DsSelectOption } from '../../../../shared/components/ds';
+import { DsButtonComponent } from '../../../../shared/components/ds/ds-button/ds-button.component';
 import {
   PipelineStepOptions,
   PipelineStackProfile,
@@ -37,9 +35,7 @@ import {
   standalone: true,
   imports: [
     FormsModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
+    DsButtonComponent,
     TranslateModule,
     ToggleSectionCardComponent,
     DsTextFieldComponent,

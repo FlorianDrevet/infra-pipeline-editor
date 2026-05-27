@@ -173,12 +173,7 @@
 }
 
 .identity-radio-group {
-  display: flex;
-  gap: 1.5rem;
-
-  ::ng-deep .mat-mdc-radio-button {
-    font-size: 0.88rem;
-  }
+  display: block;
 }
 
 .role-select-field {

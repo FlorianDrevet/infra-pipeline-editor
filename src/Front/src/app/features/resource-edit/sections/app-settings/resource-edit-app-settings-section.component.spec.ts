@@ -62,8 +62,8 @@ describe('ResourceEditAppSettingsSectionComponent', () => {
 
     actionButtons[0].click();
     actionButtons[1].click();
-    getButton('.as-row__edit').click();
-    getButton('.as-row__delete').click();
+    getButton('app-ds-icon-button[icon="edit"] button').click();
+    getButton('app-ds-icon-button[icon="close"] button').click();
 
     expect(addSetting).toHaveBeenCalledOnceWith();
     expect(importSettings).toHaveBeenCalledOnceWith();

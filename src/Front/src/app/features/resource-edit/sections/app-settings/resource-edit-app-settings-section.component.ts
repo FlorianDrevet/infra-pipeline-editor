@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { DsButtonComponent } from '../../../../shared/components/ds/ds-button/ds-button.component';
+import { DsIconButtonComponent } from '../../../../shared/components/ds/ds-icon-button/ds-icon-button.component';
 import { EnvironmentDefinitionResponse } from '../../../../shared/interfaces/infra-config.interface';
 import { RESOURCE_TYPE_ICONS } from '../../../../shared/resource-metadata/resource-type.metadata';
 import { ResourceEditKvMissingRoleCardComponent } from '../shared/resource-edit-kv-missing-role-card.component';
@@ -15,8 +16,9 @@ import { ResourceEditAppSettingsSection } from './resource-edit-app-settings-sec
   standalone: true,
   imports: [
     DsButtonComponent,
+    DsIconButtonComponent,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     MatTooltipModule,
     ResourceEditKvMissingRoleCardComponent,
     TranslateModule,

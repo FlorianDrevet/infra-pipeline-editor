@@ -1,0 +1,86 @@
+:host {
+  display: block;
+}
+
+.ds-accordion {
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
+  overflow: hidden;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: var(--ifs-space-8);
+    width: 100%;
+    padding: var(--ifs-space-12) var(--ifs-space-16);
+    background: var(--ifs-surface-1);
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    color: var(--ifs-text-primary);
+    text-align: left;
+    transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard);
+
+    &:hover:not(:disabled) {
+      background: var(--ifs-surface-2);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &__icon {
+    color: var(--ifs-text-secondary);
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  &__title {
+    flex: 1;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  &__indicator {
+    transition: transform var(--ifs-duration-fast) var(--ifs-ease-standard);
+    color: var(--ifs-text-muted);
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+
+    &--rotated {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__body {
+    padding: var(--ifs-space-16);
+    border-top: 1px solid var(--ifs-border-subtle);
+  }
+
+  &--disabled {
+    opacity: 0.6;
+  }
+
+  // Tone: brand
+  &--brand &__icon {
+    color: var(--ifs-accent-500);
+  }
+
+  &--brand &__indicator {
+    color: var(--ifs-accent-500);
+  }
+
+  // Tone: info
+  &--info &__icon {
+    color: var(--ifs-info);
+  }
+
+  &--info &__indicator {
+    color: var(--ifs-info);
+  }
+}

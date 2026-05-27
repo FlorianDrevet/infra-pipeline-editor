@@ -1,4 +1,5 @@
 @use "scss/main" as *;
+@use '../../shared/styles/bicep-syntax-palette' as bicep;
 
 :host {
   display: block;
@@ -120,7 +121,7 @@
   &--active {
     background: var(--ifs-brand-500);
     border-color: var(--ifs-brand-500);
-    color: #fff;
+    color: var(--ifs-text-on-brand);
   }
 }
 
@@ -275,15 +276,7 @@
 }
 
 .bicep-preview {
-  --bicep-syntax-plain: rgba(244, 248, 252, 0.9);
-  --bicep-syntax-keyword: #adc8ff;
-  --bicep-syntax-type: #89bcc9;
-  --bicep-syntax-string: #d8c490;
-  --bicep-syntax-comment: #6f7f97;
-  --bicep-syntax-decorator: #86b8a4;
-  --bicep-syntax-constant: #c5addc;
-  --bicep-syntax-number: #c5addc;
-  --bicep-syntax-property: #b5d0e6;
+  @include bicep.tokens;
   display: block;
   border-radius: 0.78rem;
   overflow: hidden;

@@ -28,37 +28,6 @@
   }
 }
 
-.ra-add-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ifs-space-6);
-  min-height: 36px;
-  padding: 0 var(--ifs-space-12);
-  border: 1px solid var(--ifs-border-subtle);
-  border-radius: var(--ifs-radius-md);
-  background: var(--ifs-surface-1);
-  color: var(--ifs-text-primary);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
-    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
-    color var(--ifs-duration-fast) var(--ifs-ease-standard);
-
-  &:hover {
-    background: var(--ifs-surface-2);
-    border-color: var(--ifs-border-strong);
-  }
-
-  mat-icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-  }
-}
-
 .ra-loading {
   display: flex;
   align-items: center;
@@ -175,15 +144,15 @@
   }
 
   &--pending {
-    background: rgba(255, 152, 0, 0.15);
-    color: #bf360c;
-    border-color: rgba(255, 152, 0, 0.4);
+    background: var(--ifs-warning-bg);
+    color: var(--ifs-warning);
+    border-color: var(--ifs-warning);
   }
 
   &--validated {
-    background: rgba(76, 175, 80, 0.15);
-    color: #1b5e20;
-    border-color: rgba(76, 175, 80, 0.4);
+    background: var(--ifs-success-bg);
+    color: var(--ifs-success);
+    border-color: var(--ifs-success);
   }
 
   &__icon {
@@ -257,24 +226,6 @@
 
 .cd-dns-tutorial {
   margin-top: var(--ifs-space-12);
-  border-radius: var(--ifs-radius-md) !important;
-  box-shadow: none !important;
-  border: 1px solid var(--ifs-border-subtle);
-  background: var(--ifs-surface-1);
-
-  .mat-expansion-panel-header {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ifs-text-primary);
-
-    mat-icon {
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
-      margin-right: var(--ifs-space-6);
-      vertical-align: middle;
-    }
-  }
 
   &__steps {
     display: flex;

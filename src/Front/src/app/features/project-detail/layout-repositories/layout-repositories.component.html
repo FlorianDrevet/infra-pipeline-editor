@@ -1,7 +1,7 @@
 <div class="layout-repos">
   @if (isLoading()) {
     <div class="layout-repos__loading">
-      <mat-spinner diameter="32"></mat-spinner>
+      <app-ds-spinner size="lg" />
     </div>
   } @else if (project()) {
     <section class="layout-repos__section">
@@ -69,26 +69,33 @@
               </div>
 
               <div class="repo-card__actions">
-                <button class="repo-card__action-btn"
+                <app-ds-button
+                  variant="secondary"
+                  icon="published_with_changes"
+                  [disabled]="repoActionId() === repo.id"
                   [class.repo-card__action-btn--success]="testResultMap()[repo.id] === 'success'"
                   [class.repo-card__action-btn--failure]="testResultMap()[repo.id] === 'failure'"
-                  (click)="testRepositoryConnection(repo)"
-                  [disabled]="repoActionId() === repo.id">
-                  <mat-icon>published_with_changes</mat-icon>
+                  (clicked)="testRepositoryConnection(repo)">
                   @if (testingRepoId() === repo.id) {
                     {{ 'PROJECT_DETAIL.GIT_CONFIG.TESTING' | translate }}
                   } @else {
                     {{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_CONNECTION' | translate }}
                   }
-                </button>
-                <button class="repo-card__action-btn" (click)="openAllInOneDialog()" [disabled]="repoActionId() === repo.id">
-                  <mat-icon>edit</mat-icon>
+                </app-ds-button>
+                <app-ds-button
+                  variant="secondary"
+                  icon="edit"
+                  [disabled]="repoActionId() === repo.id"
+                  (clicked)="openAllInOneDialog()">
                   {{ 'PROJECT_DETAIL.LAYOUT.EDIT' | translate }}
-                </button>
-                <button class="repo-card__action-btn repo-card__action-btn--danger" (click)="openRemoveRepoDialog(repo)" [disabled]="repoActionId() === repo.id">
-                  <mat-icon>delete_outline</mat-icon>
+                </app-ds-button>
+                <app-ds-button
+                  variant="danger"
+                  icon="delete_outline"
+                  [disabled]="repoActionId() === repo.id"
+                  (clicked)="openRemoveRepoDialog(repo)">
                   {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
-                </button>
+                </app-ds-button>
               </div>
 
               @if (testResultMap()[repo.id] === 'failure' && testErrorMap()[repo.id]) {
@@ -145,26 +152,33 @@
                   </div>
 
                   <div class="repo-card__actions">
-                    <button class="repo-card__action-btn"
+                    <app-ds-button
+                      variant="secondary"
+                      icon="published_with_changes"
+                      [disabled]="repoActionId() === repo.id"
                       [class.repo-card__action-btn--success]="testResultMap()[repo.id] === 'success'"
                       [class.repo-card__action-btn--failure]="testResultMap()[repo.id] === 'failure'"
-                      (click)="testRepositoryConnection(repo)"
-                      [disabled]="repoActionId() === repo.id">
-                      <mat-icon>published_with_changes</mat-icon>
+                      (clicked)="testRepositoryConnection(repo)">
                       @if (testingRepoId() === repo.id) {
                         {{ 'PROJECT_DETAIL.GIT_CONFIG.TESTING' | translate }}
                       } @else {
                         {{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_CONNECTION' | translate }}
                       }
-                    </button>
-                    <button class="repo-card__action-btn" (click)="openSlotDialog(slot)" [disabled]="repoActionId() === repo.id">
-                      <mat-icon>edit</mat-icon>
+                    </app-ds-button>
+                    <app-ds-button
+                      variant="secondary"
+                      icon="edit"
+                      [disabled]="repoActionId() === repo.id"
+                      (clicked)="openSlotDialog(slot)">
                       {{ 'PROJECT_DETAIL.LAYOUT.EDIT' | translate }}
-                    </button>
-                    <button class="repo-card__action-btn repo-card__action-btn--danger" (click)="openRemoveRepoDialog(repo)" [disabled]="repoActionId() === repo.id">
-                      <mat-icon>delete_outline</mat-icon>
+                    </app-ds-button>
+                    <app-ds-button
+                      variant="danger"
+                      icon="delete_outline"
+                      [disabled]="repoActionId() === repo.id"
+                      (clicked)="openRemoveRepoDialog(repo)">
                       {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
-                    </button>
+                    </app-ds-button>
                   </div>
 
                   @if (testResultMap()[repo.id] === 'failure' && testErrorMap()[repo.id]) {

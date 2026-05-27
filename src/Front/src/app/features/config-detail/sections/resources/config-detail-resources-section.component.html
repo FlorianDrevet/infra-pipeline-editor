@@ -1,10 +1,9 @@
 <div class="tab-content">
   <div class="tab-content__toolbar">
     @if (viewModel().canWrite) {
-      <button class="add-rg-btn" (click)="viewModel().onOpenAddResourceGroupDialog()">
-        <mat-icon class="add-rg-btn__icon">add_circle_outline</mat-icon>
+      <app-ds-button variant="primary" icon="add_circle_outline" (clicked)="viewModel().onOpenAddResourceGroupDialog()">
         {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.ADD' | translate }}
-      </button>
+      </app-ds-button>
     }
 
     @if (viewModel().sortedEnvironments.length > 0) {
@@ -50,16 +49,19 @@
               </div>
             </button>
             @if (viewModel().canWrite) {
-              <button class="add-resource-btn add-resource-btn--inline" (click)="viewModel().onOpenAddResourceDialog(resourceGroup.id); $event.stopPropagation()">
-                <mat-icon class="add-resource-btn__icon">add_circle_outline</mat-icon>
+              <app-ds-button
+                variant="secondary"
+                size="sm"
+                icon="add_circle_outline"
+                (clicked)="viewModel().onOpenAddResourceDialog(resourceGroup.id); $event.stopPropagation()">
                 {{ 'CONFIG_DETAIL.RESOURCES.ADD' | translate }}
-              </button>
-              <button
-                class="resource-action-btn resource-action-btn--delete"
-                [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE' | translate"
-                (click)="viewModel().onOpenDeleteResourceGroupDialog(resourceGroup); $event.stopPropagation()">
-                <mat-icon>delete_outline</mat-icon>
-              </button>
+              </app-ds-button>
+              <app-ds-icon-button
+                variant="danger"
+                icon="delete_outline"
+                [tooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE' | translate"
+                [ariaLabel]="'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE' | translate"
+                (clicked)="viewModel().onOpenDeleteResourceGroupDialog(resourceGroup); $event.stopPropagation()" />
             }
             <span class="rg-accordion__count">{{ viewModel().rgResources[resourceGroup.id]?.length ?? '…' }}</span>
           </div>
@@ -68,7 +70,7 @@
             <div class="rg-accordion__body" [attr.id]="'rg-body-' + resourceGroup.id">
               @if (viewModel().rgResourcesLoading === resourceGroup.id) {
                 <div class="rg-resources-loading">
-                  <mat-spinner diameter="22"></mat-spinner>
+                  <app-ds-spinner size="md" />
                   <span>{{ 'CONFIG_DETAIL.RESOURCES.LOADING' | translate }}</span>
                 </div>
               } @else {
@@ -107,12 +109,12 @@
                                 <mat-icon>edit</mat-icon>
                               </a>
                               @if (viewModel().canWrite) {
-                                <button
-                                  class="resource-action-btn resource-action-btn--delete"
-                                  [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
-                                  (click)="viewModel().onOpenDeleteResourceDialog(item.resource, resourceGroup.id); $event.stopPropagation()">
-                                  <mat-icon>delete_outline</mat-icon>
-                                </button>
+                                <app-ds-icon-button
+                                  variant="danger"
+                                  icon="delete_outline"
+                                  [tooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                  [ariaLabel]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                  (clicked)="viewModel().onOpenDeleteResourceDialog(item.resource, resourceGroup.id); $event.stopPropagation()" />
                               }
                             </div>
                           </button>
@@ -120,7 +122,7 @@
                             <div class="resource-children">
                               @if (viewModel().storageDetailsLoading === item.resource.id) {
                                 <div class="rg-resources-loading">
-                                  <mat-spinner diameter="18"></mat-spinner>
+                                  <app-ds-spinner size="md" />
                                   <span>{{ 'CONFIG_DETAIL.RESOURCES.LOADING' | translate }}</span>
                                 </div>
                               } @else if (viewModel().storageAccountDetails[item.resource.id]) {
@@ -183,10 +185,9 @@
                                 </div>
                               }
                               @if (viewModel().canWrite) {
-                                <button class="add-child-resource-btn" (click)="viewModel().onOpenAddStorageSubResourceDialog(item.resource.id)">
-                                  <mat-icon class="add-child-resource-btn__icon">add_circle_outline</mat-icon>
+                                <app-ds-button variant="secondary" size="sm" icon="add_circle_outline" (clicked)="viewModel().onOpenAddStorageSubResourceDialog(item.resource.id)">
                                   {{ 'CONFIG_DETAIL.RESOURCES.ADD_STORAGE_SERVICE' | translate }}
-                                </button>
+                                </app-ds-button>
                               }
                             </div>
                           }
@@ -232,12 +233,12 @@
                                   <mat-icon>edit</mat-icon>
                                 </a>
                                 @if (viewModel().canWrite) {
-                                  <button
-                                    class="resource-action-btn resource-action-btn--delete"
-                                    [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
-                                    (click)="viewModel().onOpenDeleteResourceDialog(item.resource, resourceGroup.id); $event.stopPropagation()">
-                                    <mat-icon>delete_outline</mat-icon>
-                                  </button>
+                                  <app-ds-icon-button
+                                    variant="danger"
+                                    icon="delete_outline"
+                                    [tooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                    [ariaLabel]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                    (clicked)="viewModel().onOpenDeleteResourceDialog(item.resource, resourceGroup.id); $event.stopPropagation()" />
                                 }
                               </div>
                             }
@@ -265,9 +266,7 @@
                                         <mat-icon>edit</mat-icon>
                                       </a>
                                       @if (viewModel().canWrite) {
-                                        <button class="resource-action-btn resource-action-btn--delete" [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate" (click)="viewModel().onOpenDeleteResourceDialog(child, resourceGroup.id)">
-                                          <mat-icon>delete_outline</mat-icon>
-                                        </button>
+                                        <app-ds-icon-button variant="danger" icon="delete_outline" [tooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate" [ariaLabel]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate" (clicked)="viewModel().onOpenDeleteResourceDialog(child, resourceGroup.id)" />
                                       }
                                     </div>
                                   </div>
@@ -300,10 +299,9 @@
                               }
 
                               @if (viewModel().canWrite) {
-                                <button class="add-child-resource-btn" (click)="viewModel().onOpenAddChildResourceDialog(item.resource, resourceGroup.id)">
-                                  <mat-icon class="add-child-resource-btn__icon">add_circle_outline</mat-icon>
+                                <app-ds-button variant="secondary" size="sm" icon="add_circle_outline" (clicked)="viewModel().onOpenAddChildResourceDialog(item.resource, resourceGroup.id)">
                                   {{ 'CONFIG_DETAIL.RESOURCES.ADD_CHILD' | translate }}
-                                </button>
+                                </app-ds-button>
                               }
                             </div>
                           }
@@ -327,9 +325,7 @@
                               <mat-icon>edit</mat-icon>
                             </a>
                             @if (viewModel().canWrite) {
-                              <button class="resource-action-btn resource-action-btn--delete" [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate" (click)="viewModel().onOpenDeleteResourceDialog(item.resource, resourceGroup.id)">
-                                <mat-icon>delete_outline</mat-icon>
-                              </button>
+                              <app-ds-icon-button variant="danger" icon="delete_outline" [tooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate" [ariaLabel]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate" (clicked)="viewModel().onOpenDeleteResourceDialog(item.resource, resourceGroup.id)" />
                             }
                           </div>
                         </div>
@@ -369,10 +365,9 @@
       <mat-icon class="empty-state__icon">dns</mat-icon>
       <p>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.EMPTY' | translate }}</p>
       @if (viewModel().canWrite) {
-        <button class="add-rg-btn" (click)="viewModel().onOpenAddResourceGroupDialog()">
-          <mat-icon class="add-rg-btn__icon">add_circle_outline</mat-icon>
+        <app-ds-button variant="primary" icon="add_circle_outline" (clicked)="viewModel().onOpenAddResourceGroupDialog()">
           {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.ADD' | translate }}
-        </button>
+        </app-ds-button>
       }
     </div>
   }

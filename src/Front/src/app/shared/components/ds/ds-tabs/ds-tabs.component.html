@@ -1,4 +1,4 @@
-<div class="ds-tabs" role="tablist" [attr.aria-label]="ariaLabel() ?? null">
+<div class="ds-tabs" [class.ds-tabs--stretch]="stretch()" role="tablist" [attr.aria-label]="ariaLabel() ?? null">
   @for (tab of tabs(); track tab.id; let index = $index) {
     <button
       #tabButton

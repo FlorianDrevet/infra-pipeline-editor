@@ -1,18 +1,20 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { DsSpinnerComponent } from '../ds/ds-spinner/ds-spinner.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AcrAuthMode } from '../../interfaces/container-registry.interface';
 import {
+  DsButtonComponent,
+  DsIconButtonComponent,
+  DsSegmentedControlComponent,
   DsSelectComponent,
   DsSelectOption,
   DsTextFieldComponent,
 } from '../ds';
+import { DsSegmentedOption } from '../ds/ds-segmented-control/ds-segmented-control.types';
 
 export type DeploymentConfigMode = 'code-or-container' | 'container-only';
 export type DeploymentModeValue = 'Code' | 'Container';
@@ -23,11 +25,12 @@ export type AcrUaiStateValue = 'idle' | 'checking' | 'ok' | 'uai-missing-role' |
   standalone: true,
   imports: [
     FormsModule,
-    MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     TranslateModule,
-    MatTooltipModule,
+    DsButtonComponent,
+    DsIconButtonComponent,
+    DsSegmentedControlComponent,
     DsSelectComponent,
     DsTextFieldComponent,
   ],
@@ -84,6 +87,30 @@ export class DeploymentConfigComponent {
   protected readonly containerRegistryDsOptions = computed<DsSelectOption[]>(() => [
     { value: null, label: this.acrNoneLabel },
     ...this.availableContainerRegistries().map((acr) => ({ value: acr.id, label: acr.name })),
+  ]);
+
+  protected readonly deploymentModeSegmentedOptions = computed<readonly DsSegmentedOption[]>(() => [
+    {
+      value: 'Code',
+      label: this.translate.instant('RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CODE'),
+      icon: 'code',
+    },
+    {
+      value: 'Container',
+      label: this.translate.instant('RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CONTAINER'),
+      icon: 'inventory_2',
+    },
+  ]);
+
+  protected readonly acrAuthModeSegmentedOptions = computed<readonly DsSegmentedOption[]>(() => [
+    {
+      value: 'ManagedIdentity',
+      label: `${this.translate.instant('RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_MANAGED_IDENTITY')} · ${this.translate.instant('RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_RECOMMENDED')}`,
+    },
+    {
+      value: 'AdminCredentials',
+      label: this.translate.instant('RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_ADMIN_CREDENTIALS'),
+    },
   ]);
 
   protected get isContainerMode(): boolean {

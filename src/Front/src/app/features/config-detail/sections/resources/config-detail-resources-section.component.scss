@@ -71,28 +71,6 @@
   }
 }
 
-.add-resource-btn,
-.add-child-resource-btn,
-.add-rg-btn {
-  @extend %cd-btn;
-  --cd-btn-bg: var(--resource-btn-add-bg);
-  --cd-btn-bg-hover: var(--resource-btn-add-bg-hover);
-  --cd-btn-border: var(--resource-btn-add-border);
-  --cd-btn-border-hover: var(--resource-btn-add-border-hover);
-  --cd-btn-icon-color: var(--resource-btn-add-icon);
-
-  &__icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-  }
-
-  &--inline {
-    padding: var(--ifs-space-4) var(--ifs-space-8);
-    font-size: 12px;
-  }
-}
-
 .resource-action-btn {
   @extend %cd-btn;
   height: 28px;
@@ -105,15 +83,6 @@
     --cd-btn-border: var(--resource-btn-edit-border);
     --cd-btn-border-hover: var(--resource-btn-edit-border-hover);
     --cd-btn-icon-color: var(--resource-btn-edit-icon);
-  }
-
-  &--delete {
-    --cd-btn-bg: var(--resource-btn-delete-bg);
-    --cd-btn-bg-hover: var(--resource-btn-delete-bg-hover);
-    --cd-btn-border: var(--resource-btn-delete-border);
-    --cd-btn-border-hover: var(--resource-btn-delete-border-hover);
-    --cd-btn-color: color-mix(in srgb, var(--ifs-text-primary) 94%, var(--ifs-danger));
-    --cd-btn-icon-color: var(--resource-btn-delete-icon);
   }
 }
 

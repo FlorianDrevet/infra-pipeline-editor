@@ -3,14 +3,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { EMPTY, Subscription, catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs';
-import { MatButtonModule } from '@angular/material/button';
-import { MatRadioModule } from '@angular/material/radio';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTabsModule } from '@angular/material/tabs';
+import { DsSpinnerComponent } from '../../shared/components/ds/ds-spinner/ds-spinner.component';
+import { DsTabsComponent } from '../../shared/components/ds/ds-tabs/ds-tabs.component';
+import type { DsTabDefinition } from '../../shared/components/ds/ds-tabs/ds-tabs.types';
+import { LanguageService } from '../../shared/services/language.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -81,7 +80,7 @@ import { ResourceEditGrantedRightsSectionComponent } from './sections/identity-a
 import { ResourceEditRoleAssignmentsSectionComponent } from './sections/identity-access/resource-edit-role-assignments-section.component';
 import { ResourceEditUsedBySectionComponent } from './sections/identity-access/resource-edit-used-by-section.component';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent } from '../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent, DsIconButtonComponent, DsSegmentedControlComponent, DsSegmentedOption, DsTooltipDirective, DsRadioGroupComponent, DsRadioOption } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
 import { BuildContextPickerComponent } from '../../shared/components/build-context-picker/build-context-picker.component';
 import { ContainerAppAcrServiceConnectionsComponent } from './components/container-app-acr-service-connections/container-app-acr-service-connections.component';
@@ -162,6 +161,21 @@ type CorsListField = 'allowedOrigins' | 'allowedHeaders' | 'exposedHeaders';
 type CorsMethodField = 'allowedMethods';
 type CorsFieldKey = CorsListField | CorsMethodField | 'maxAgeInSeconds';
 
+const RESOURCE_EDIT_MAIN_TAB_IDS = [
+  'general',
+  'environments',
+  'identity-access',
+  'networking',
+  'storage',
+  'app-settings',
+  'config-keys',
+  'granted-rights',
+  'used-by',
+  'app-pipeline',
+] as const;
+type MainTabId = typeof RESOURCE_EDIT_MAIN_TAB_IDS[number];
+type StorageSubTabId = 'blob_containers' | 'queues' | 'tables';
+
 @Component({
   selector: 'app-resource-edit',
   standalone: true,
@@ -170,15 +184,13 @@ type CorsFieldKey = CorsListField | CorsMethodField | 'maxAgeInSeconds';
     RouterLink,
     FormsModule,
     ReactiveFormsModule,
-    MatButtonModule,
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
-    MatRadioModule,
+    DsSpinnerComponent,
+    DsTabsComponent,
+    DsRadioGroupComponent,
     DsToggleComponent,
-    MatTabsModule,
     MatTooltipModule,
-    MatButtonToggleModule,
     MatExpansionModule,
     DeploymentConfigComponent,
     ResourceEditAppSettingsSectionComponent,
@@ -189,6 +201,9 @@ type CorsFieldKey = CorsListField | CorsMethodField | 'maxAgeInSeconds';
     ResourceEditUsedBySectionComponent,
     ToggleSectionCardComponent,
     DsButtonComponent,
+    DsIconButtonComponent,
+    DsSegmentedControlComponent,
+    DsTooltipDirective,
     DsTextFieldComponent,
     DockerfilePickerComponent,
     BuildContextPickerComponent,
@@ -232,6 +247,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly pipelineDetectionService = inject(PipelineDetectionService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
   private readonly pageContextService = inject(PageContextService);
 
   // ─── Route params ───
@@ -257,7 +273,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly saveSuccess = signal(false);
 
   // ─── Storage Services ───
-  protected readonly storageSubTabIndex = signal(0);
+  protected readonly activeStorageSubTabId = signal<StorageSubTabId>('blob_containers');
   protected readonly storageActionLoading = signal(false);
   protected readonly storageActionError = signal('');
   protected readonly showBlobAddForm = signal(false);
@@ -589,9 +605,29 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     { value: '__create_new__', label: this.translate.instant('RESOURCE_EDIT.SECURE_PARAM.CREATE_NEW_GROUP') },
   ]);
 
+  /** Segmented control options for the new Variable Group scope (project vs configuration). */
+  protected readonly passwordNewGroupScopeOptions = computed<DsSegmentedOption[]>(() => [
+    { value: 'project', label: this.translate.instant('RESOURCE_EDIT.SECURE_PARAM.SCOPE_PROJECT'), icon: 'folder_shared' },
+    { value: 'configuration', label: this.translate.instant('RESOURCE_EDIT.SECURE_PARAM.SCOPE_CONFIGURATION'), icon: 'settings' },
+  ]);
+
   // ─── Secure Parameter Mappings (SqlServer password config) ───
   protected readonly secureParamMappings = signal<SecureParameterMappingResponse[]>([]);
   protected readonly passwordMode = signal<'random' | 'variableGroup'>('random');
+
+  /** Radio options for the password mode selector. */
+  protected readonly passwordModeOptions = computed<DsRadioOption[]>(() => [
+    {
+      value: 'random',
+      label: this.translate.instant('RESOURCE_EDIT.SECURE_PARAM.RANDOM'),
+      description: this.translate.instant('RESOURCE_EDIT.SECURE_PARAM.RANDOM_HINT'),
+    },
+    {
+      value: 'variableGroup',
+      label: this.translate.instant('RESOURCE_EDIT.SECURE_PARAM.FROM_VARIABLE_GROUP'),
+      description: this.translate.instant('RESOURCE_EDIT.SECURE_PARAM.FROM_VARIABLE_GROUP_HINT'),
+    },
+  ]);
   protected readonly passwordVgOptions = signal<ProjectPipelineVariableGroupResponse[]>([]);
   protected readonly passwordVgLoading = signal(false);
   protected readonly passwordSelectedVgId = signal<string | null>(null);
@@ -657,15 +693,108 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     return me?.role === 'Owner';
   });
 
-  // ─── Main tab index (for programmatic selection) ───
-  protected readonly mainTabIndex = signal(0);
+  // ─── Main tab state (DS tabs) ───
+  protected readonly activeMainTabId = signal<MainTabId>('general');
 
-  // ─── Save bar visibility (only on General/Environments tabs when dirty) ───
+  protected readonly mainTabs = computed<readonly DsTabDefinition[]>(() => {
+    this.languageService.currentLanguage();
+    const t = (k: string): string => this.translate.instant(k) as string;
+    const tabs: DsTabDefinition[] = [
+      { id: 'general', label: t('RESOURCE_EDIT.TABS.GENERAL'), icon: 'settings' },
+    ];
+    if (!this.isUserAssignedIdentity() && !this.isExistingResource()) {
+      tabs.push({
+        id: 'environments',
+        label: t('RESOURCE_EDIT.TABS.ENVIRONMENTS'),
+        icon: 'cloud_queue',
+        badge: String(this.environments().length),
+      });
+    }
+    if (!this.isUserAssignedIdentity()) {
+      const count = this.identityAccessSection.roleAssignments().length;
+      tabs.push({
+        id: 'identity-access',
+        label: t('RESOURCE_EDIT.TABS.IDENTITY_ACCESS'),
+        icon: 'security',
+        badge: count > 0 ? String(count) : undefined,
+      });
+    }
+    if (this.supportsNetworking()) {
+      tabs.push({ id: 'networking', label: t('RESOURCE_EDIT.TABS.NETWORKING'), icon: 'lan' });
+    }
+    if (this.isStorageAccount()) {
+      tabs.push({
+        id: 'storage',
+        label: t('RESOURCE_EDIT.TABS.STORAGE_SERVICES'),
+        icon: 'storage',
+        badge: String(this.storageBlobContainers().length + this.storageQueues().length + this.storageTables().length),
+      });
+    } else if (this.supportsAppSettings()) {
+      const count = this.appSettingsSection.appSettings().length;
+      tabs.push({
+        id: 'app-settings',
+        label: t('RESOURCE_EDIT.TABS.APP_SETTINGS'),
+        icon: 'data_object',
+        badge: count > 0 ? String(count) : undefined,
+      });
+    } else if (this.supportsConfigKeys()) {
+      const count = this.configKeysSection.configKeys().length;
+      tabs.push({
+        id: 'config-keys',
+        label: t('RESOURCE_EDIT.TABS.CONFIG_KEYS'),
+        icon: 'settings',
+        badge: count > 0 ? String(count) : undefined,
+      });
+    } else if (this.isUserAssignedIdentity()) {
+      const count = this.identityAccessSection.identityRoleAssignments().length;
+      tabs.push({
+        id: 'granted-rights',
+        label: t('RESOURCE_EDIT.TABS.GRANTED_RIGHTS'),
+        icon: 'verified_user',
+        badge: count > 0 ? String(count) : undefined,
+      });
+      const usedByCount = this.identityAccessSection.usedByResources().length;
+      tabs.push({
+        id: 'used-by',
+        label: t('RESOURCE_EDIT.TABS.USED_BY'),
+        icon: 'device_hub',
+        badge: usedByCount > 0 ? String(usedByCount) : undefined,
+      });
+    }
+    if (this.supportsAppPipeline() && !this.isExistingResource()) {
+      tabs.push({ id: 'app-pipeline', label: t('RESOURCE_EDIT.TABS.APP_PIPELINE'), icon: 'terminal' });
+    }
+    return tabs;
+  });
+
+  protected readonly storageSubTabs = computed<readonly DsTabDefinition[]>(() => {
+    this.languageService.currentLanguage();
+    const t = (k: string): string => this.translate.instant(k) as string;
+    return [
+      { id: 'blob_containers', label: t('RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CONTAINERS'), icon: 'folder', badge: String(this.storageBlobContainers().length) },
+      { id: 'queues', label: t('RESOURCE_EDIT.STORAGE_SERVICES.QUEUES'), icon: 'queue', badge: String(this.storageQueues().length) },
+      { id: 'tables', label: t('RESOURCE_EDIT.STORAGE_SERVICES.TABLES'), icon: 'table_chart', badge: String(this.storageTables().length) },
+    ];
+  });
+
+  protected onMainTabChange(tabId: string): void {
+    if (RESOURCE_EDIT_MAIN_TAB_IDS.includes(tabId as MainTabId)) {
+      this.activeMainTabId.set(tabId as MainTabId);
+    }
+  }
+
+  protected onStorageSubTabChange(tabId: string): void {
+    if (tabId === 'blob_containers' || tabId === 'queues' || tabId === 'tables') {
+      this.activeStorageSubTabId.set(tabId);
+    }
+  }
+
+  // ─── Save bar visibility (only on saveable tabs when dirty) ───
   protected readonly showSaveBar = computed(() => {
-    const tabIndex = this.mainTabIndex();
+    const tabId = this.activeMainTabId();
     const isOnSaveableTab = this.isUserAssignedIdentity()
-      ? tabIndex === 0
-      : tabIndex === 0 || tabIndex === 1 || (this.isStorageAccount() && tabIndex === 3) || (this.supportsAppPipeline() && tabIndex === 4);
+      ? tabId === 'general'
+      : tabId === 'general' || tabId === 'environments' || (this.isStorageAccount() && tabId === 'storage') || (this.supportsAppPipeline() && tabId === 'app-pipeline');
     return this.formsDirty() && isOnSaveableTab && this.canWrite();
   });
 
@@ -706,11 +835,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     // Handle storage sub-tab query param
     const tab = this.route.snapshot.queryParamMap.get('tab');
     if (tab && this.resourceType === 'StorageAccount') {
-      this.mainTabIndex.set(3); // Storage Services tab
-      switch (tab) {
-        case 'blob_containers': this.storageSubTabIndex.set(0); break;
-        case 'queues': this.storageSubTabIndex.set(1); break;
-        case 'tables': this.storageSubTabIndex.set(2); break;
+      this.activeMainTabId.set('storage');
+      if (tab === 'blob_containers' || tab === 'queues' || tab === 'tables') {
+        this.activeStorageSubTabId.set(tab);
       }
     }
 

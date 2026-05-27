@@ -10,16 +10,18 @@
 
 @if (canWrite()) {
   <div class="tab-content__toolbar">
-    <button class="add-btn" (click)="openAddVariableGroupDialog()">
-      <mat-icon class="add-btn__icon">add_circle_outline</mat-icon>
+    <app-ds-button
+      variant="primary"
+      icon="add_circle_outline"
+      (clicked)="openAddVariableGroupDialog()">
       {{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.ADD_GROUP' | translate }}
-    </button>
+    </app-ds-button>
   </div>
 }
 
 @if (vgLoading()) {
   <div class="empty-state">
-    <mat-spinner diameter="32"></mat-spinner>
+    <app-ds-spinner size="lg" />
   </div>
 } @else if (variableGroups().length > 0) {
   <div class="vg-list">
@@ -32,10 +34,13 @@
             <span class="vg-card__count">{{ group.variables.length }}</span>
           </div>
           @if (canWrite()) {
-            <button class="vg-card__delete" (click)="openRemoveVariableGroupDialog(group)"
-                    [matTooltip]="'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP' | translate">
-              <mat-icon>delete_outline</mat-icon>
-            </button>
+            <app-ds-icon-button
+              class="vg-card__delete"
+              icon="delete_outline"
+              variant="danger"
+              [tooltip]="'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP' | translate"
+              [ariaLabel]="'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP' | translate"
+              (clicked)="openRemoveVariableGroupDialog(group)" />
           }
         </div>
 

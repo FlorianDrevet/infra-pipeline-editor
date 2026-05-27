@@ -50,21 +50,21 @@
   } @else {
     <div class="tab-content__toolbar naming-toolbar">
       @if (viewModel().canWrite) {
-        <button
-          class="template-action-btn template-action-btn--add"
+        <app-ds-button
+          variant="primary"
+          icon="edit"
           [disabled]="viewModel().namingActionKey !== null"
-          (click)="viewModel().onOpenDefaultNamingTemplateDialog()">
-          <mat-icon>edit</mat-icon>
+          (clicked)="viewModel().onOpenDefaultNamingTemplateDialog()">
           {{ (viewModel().config.defaultNamingTemplate ? 'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT_DEFAULT' : 'CONFIG_DETAIL.NAMING_TEMPLATES.ADD_DEFAULT') | translate }}
-        </button>
-        <button
-          class="template-action-btn template-action-btn--add"
+        </app-ds-button>
+        <app-ds-button
+          variant="primary"
+          icon="add_circle_outline"
           [disabled]="!viewModel().canAddResourceNamingTemplate || viewModel().namingActionKey !== null"
           [matTooltip]="(!viewModel().canAddResourceNamingTemplate ? 'CONFIG_DETAIL.NAMING_TEMPLATES.ALL_RESOURCE_TYPES_CONFIGURED' : 'CONFIG_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE') | translate"
-          (click)="viewModel().onOpenResourceNamingTemplateDialog()">
-          <mat-icon>add_circle_outline</mat-icon>
+          (clicked)="viewModel().onOpenResourceNamingTemplateDialog()">
           {{ 'CONFIG_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE' | translate }}
-        </button>
+        </app-ds-button>
       }
     </div>
 
@@ -75,20 +75,21 @@
     <article class="default-template" [class.default-template--busy]="viewModel().isNamingActionActive('default')">
       @if (viewModel().isNamingActionActive('default')) {
         <div class="default-template__spinner">
-          <mat-spinner diameter="22"></mat-spinner>
+          <app-ds-spinner size="md" />
         </div>
       }
 
       <div class="default-template__header">
         <span>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT' | translate }}</span>
         @if (viewModel().canWrite) {
-          <button
-            class="template-action-btn template-action-btn--inline"
+          <app-ds-button
+            variant="subtle"
+            size="sm"
+            icon="edit"
             [disabled]="viewModel().namingActionKey !== null"
-            (click)="viewModel().onOpenDefaultNamingTemplateDialog()">
-            <mat-icon>edit</mat-icon>
+            (clicked)="viewModel().onOpenDefaultNamingTemplateDialog()">
             {{ 'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT' | translate }}
-          </button>
+          </app-ds-button>
         }
       </div>
 
@@ -105,7 +106,7 @@
           <article class="template-row" [class.template-row--busy]="viewModel().isResourceNamingTemplateBusy(template.resourceType)">
             @if (viewModel().isResourceNamingTemplateBusy(template.resourceType)) {
               <div class="template-row__spinner">
-                <mat-spinner diameter="18"></mat-spinner>
+                <app-ds-spinner size="md" />
               </div>
             }
 
@@ -116,20 +117,20 @@
 
             @if (viewModel().canWrite) {
               <div class="template-row__actions">
-                <button
-                  class="template-action-btn template-action-btn--edit"
-                  [matTooltip]="'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT' | translate"
+                <app-ds-icon-button
+                  icon="edit"
+                  variant="neutral"
+                  [tooltip]="'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT' | translate"
+                  [ariaLabel]="'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT' | translate"
                   [disabled]="viewModel().isResourceNamingTemplateBusy(template.resourceType) || viewModel().namingActionKey !== null"
-                  (click)="viewModel().onOpenResourceNamingTemplateDialog(template)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button
-                  class="template-action-btn template-action-btn--delete"
-                  [matTooltip]="'CONFIG_DETAIL.NAMING_TEMPLATES.REMOVE' | translate"
+                  (clicked)="viewModel().onOpenResourceNamingTemplateDialog(template)" />
+                <app-ds-icon-button
+                  icon="delete_outline"
+                  variant="danger"
+                  [tooltip]="'CONFIG_DETAIL.NAMING_TEMPLATES.REMOVE' | translate"
+                  [ariaLabel]="'CONFIG_DETAIL.NAMING_TEMPLATES.REMOVE' | translate"
                   [disabled]="viewModel().isResourceNamingTemplateBusy(template.resourceType) || viewModel().namingActionKey !== null"
-                  (click)="viewModel().onOpenRemoveResourceNamingTemplateDialog(template)">
-                  <mat-icon>delete_outline</mat-icon>
-                </button>
+                  (clicked)="viewModel().onOpenRemoveResourceNamingTemplateDialog(template)" />
               </div>
             }
           </article>
@@ -169,7 +170,7 @@
           <article class="abbreviation-row" [class.abbreviation-row--busy]="viewModel().isAbbreviationBusy(item.resourceType)">
             @if (viewModel().isAbbreviationBusy(item.resourceType)) {
               <div class="abbreviation-row__spinner">
-                <mat-spinner diameter="18"></mat-spinner>
+                <app-ds-spinner size="md" />
               </div>
             }
 
@@ -190,21 +191,21 @@
             </span>
             @if (viewModel().canWrite) {
               <span class="abbreviation-list__col abbreviation-list__col--actions">
-                <button
-                  class="template-action-btn template-action-btn--edit"
-                  [matTooltip]="'ABBREVIATIONS.EDIT' | translate"
+                <app-ds-icon-button
+                  icon="edit"
+                  variant="neutral"
+                  [tooltip]="'ABBREVIATIONS.EDIT' | translate"
+                  [ariaLabel]="'ABBREVIATIONS.EDIT' | translate"
                   [disabled]="viewModel().isAbbreviationBusy(item.resourceType) || viewModel().namingActionKey !== null"
-                  (click)="viewModel().onOpenEditAbbreviationDialog(item)">
-                  <mat-icon>edit</mat-icon>
-                </button>
+                  (clicked)="viewModel().onOpenEditAbbreviationDialog(item)" />
                 @if (item.isCustomized) {
-                  <button
-                    class="template-action-btn template-action-btn--delete"
-                    [matTooltip]="'ABBREVIATIONS.RESET' | translate"
+                  <app-ds-icon-button
+                    icon="restart_alt"
+                    variant="danger"
+                    [tooltip]="'ABBREVIATIONS.RESET' | translate"
+                    [ariaLabel]="'ABBREVIATIONS.RESET' | translate"
                     [disabled]="viewModel().isAbbreviationBusy(item.resourceType) || viewModel().namingActionKey !== null"
-                    (click)="viewModel().onOpenResetAbbreviationDialog(item)">
-                    <mat-icon>restart_alt</mat-icon>
-                  </button>
+                    (clicked)="viewModel().onOpenResetAbbreviationDialog(item)" />
                 }
               </span>
             }

@@ -1,6 +1,8 @@
 export * from './ds-button/ds-button.component';
 export * from './ds-button/ds-button.types';
 export * from './ds-card/ds-card.component';
+export * from './ds-card-mat/ds-card-mat.component';
+export * from './ds-card-mat/ds-card-mat.types';
 export * from './ds-alert/ds-alert.component';
 export * from './ds-section-header/ds-section-header.component';
 export * from './ds-page-header/ds-page-header.component';
@@ -34,4 +36,17 @@ export * from './ds-banner/ds-banner.component';
 export * from './ds-banner/ds-banner.types';
 export * from './ds-status-dot/ds-status-dot.component';
 export * from './ds-status-dot/ds-status-dot.types';
+export * from './ds-spinner/ds-spinner.component';
+export * from './ds-spinner/ds-spinner.types';
+export * from './ds-progress-bar/ds-progress-bar.component';
+export * from './ds-progress-bar/ds-progress-bar.types';
+export * from './ds-tag-input/ds-tag-input.component';
+export * from './ds-tag-input/ds-tag-input.types';
+export * from './ds-key-value-input/ds-key-value-input.component';
+export * from './ds-key-value-input/ds-key-value-input.types';
+export * from './ds-menu/ds-menu.component';
+export * from './ds-menu/ds-menu.directive';
+export * from './ds-menu/ds-menu.types';
+export * from './ds-accordion/ds-accordion.component';
+export * from './ds-accordion/ds-accordion.types';
 

@@ -2,7 +2,6 @@ import { Component, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { DsButtonComponent, DsTextFieldComponent } from '../../../shared/components/ds';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import axios from 'axios';
@@ -21,7 +20,6 @@ export interface CreateUaiDialogData {
     FormsModule,
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     DsButtonComponent,
     DsTextFieldComponent,
   ],

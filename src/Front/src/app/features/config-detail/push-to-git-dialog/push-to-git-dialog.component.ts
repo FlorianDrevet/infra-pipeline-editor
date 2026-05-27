@@ -1,6 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import {
   DsAutocompleteComponent,
   DsAutocompleteOption,
@@ -9,7 +8,7 @@ import {
 } from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { TranslateModule } from '@ngx-translate/core';
 import axios from 'axios';
 import { BicepGeneratorService } from '../../../shared/services/bicep-generator.service';
@@ -47,9 +46,8 @@ interface PushErrorInfo {
   standalone: true,
   imports: [
     MatDialogModule,
-    MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     ReactiveFormsModule,
     TranslateModule,
     DsAutocompleteComponent,

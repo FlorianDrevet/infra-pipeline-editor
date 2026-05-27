@@ -38,7 +38,7 @@
 
     @if (section().isLoading()) {
       <div class="ra-loading">
-        <mat-spinner diameter="28"></mat-spinner>
+        <app-ds-spinner size="lg" />
         <span>{{ 'RESOURCE_EDIT.APP_SETTINGS.LOADING' | translate }}</span>
       </div>
     } @else if (section().appSettings().length === 0) {
@@ -86,9 +86,13 @@
                         </span>
                       }
                       @if (canWrite()) {
-                        <button class="as-row__delete" type="button" (click)="section().openRemoveDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
-                          <mat-icon>close</mat-icon>
-                        </button>
+                        <app-ds-icon-button
+                          icon="close"
+                          variant="danger"
+                          size="sm"
+                          [ariaLabel]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate"
+                          [tooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate"
+                          (clicked)="section().openRemoveDialog(setting)" />
                       }
                     </div>
                   </div>
@@ -136,9 +140,13 @@
                     </span>
                   }
                   @if (canWrite()) {
-                    <button class="as-row__delete" type="button" (click)="section().openRemoveDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
-                      <mat-icon>close</mat-icon>
-                    </button>
+                    <app-ds-icon-button
+                      icon="close"
+                      variant="danger"
+                      size="sm"
+                      [ariaLabel]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate"
+                      [tooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate"
+                      (clicked)="section().openRemoveDialog(setting)" />
                   }
                 </div>
               </div>
@@ -189,14 +197,22 @@
                 </div>
                 <div class="as-row__right">
                   @if (canWrite() && !setting.isKeyVaultReference) {
-                    <button class="as-row__edit" type="button" (click)="section().openEditStaticDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.EDIT' | translate">
-                      <mat-icon>edit</mat-icon>
-                    </button>
+                    <app-ds-icon-button
+                      icon="edit"
+                      variant="neutral"
+                      size="sm"
+                      [ariaLabel]="'RESOURCE_EDIT.APP_SETTINGS.EDIT' | translate"
+                      [tooltip]="'RESOURCE_EDIT.APP_SETTINGS.EDIT' | translate"
+                      (clicked)="section().openEditStaticDialog(setting)" />
                   }
                   @if (canWrite()) {
-                    <button class="as-row__delete" type="button" (click)="section().openRemoveDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
-                      <mat-icon>close</mat-icon>
-                    </button>
+                    <app-ds-icon-button
+                      icon="close"
+                      variant="danger"
+                      size="sm"
+                      [ariaLabel]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate"
+                      [tooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate"
+                      (clicked)="section().openRemoveDialog(setting)" />
                   }
                 </div>
               </div>

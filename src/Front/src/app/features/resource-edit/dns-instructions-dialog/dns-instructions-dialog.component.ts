@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
@@ -31,7 +31,7 @@ export interface DnsInstructionsDialogData {
     MatButtonModule,
     DsAlertComponent,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     MatSnackBarModule,
     TranslateModule,
   ],
