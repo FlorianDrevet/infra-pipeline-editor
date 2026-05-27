@@ -43,7 +43,7 @@
           <div class="add-form-actions">
             <button mat-flat-button color="primary" (click)="submitAdd()" [disabled]="isSaving() || !subnetId || !groupId">
               @if (isSaving()) {
-                <mat-spinner diameter="16"></mat-spinner>
+                <app-ds-spinner size="sm" />
               }
               {{ 'RESOURCE_EDIT.NETWORKING.ADD_PE' | translate }}
             </button>
@@ -55,7 +55,7 @@
     <!-- Loading state -->
     @if (isLoading()) {
       <div class="networking-tab__loading">
-        <mat-spinner diameter="24"></mat-spinner>
+        <app-ds-spinner size="lg" />
       </div>
     } @else if (loadError()) {
       <div class="networking-tab__error">
@@ -104,7 +104,7 @@
                   [disabled]="pendingDeleteId() === pe.id"
                   [attr.aria-label]="'RESOURCE_EDIT.NETWORKING.REMOVE_PE' | translate">
                   @if (pendingDeleteId() === pe.id) {
-                    <mat-spinner diameter="16"></mat-spinner>
+                    <app-ds-spinner size="sm" />
                   } @else {
                     <mat-icon>delete_outline</mat-icon>
                   }

@@ -2,13 +2,13 @@ import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { DiagnosticPopoverComponent } from '../../../../shared/components/diagnostic-popover/diagnostic-popover.component';
-import { DsSelectComponent } from '../../../../shared/components/ds';
+import { DsButtonComponent, DsIconButtonComponent, DsSelectComponent } from '../../../../shared/components/ds';
 import { ConfigDetailResourcesSectionViewModel } from './config-detail-resources-section.view-model';
 
 @Component({
@@ -16,10 +16,12 @@ import { ConfigDetailResourcesSectionViewModel } from './config-detail-resources
   standalone: true,
   imports: [
     DiagnosticPopoverComponent,
+    DsButtonComponent,
+    DsIconButtonComponent,
     DsSelectComponent,
     FormsModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     MatTooltipModule,
     NgTemplateOutlet,
     RouterLink,

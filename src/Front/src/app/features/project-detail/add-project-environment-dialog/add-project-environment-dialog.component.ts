@@ -1,9 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DsButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent, DsToggleComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsIconButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent, DsToggleComponent } from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { TranslateModule } from '@ngx-translate/core';
 import { EnvironmentDefinitionResponse, TagRequest } from '../../../shared/interfaces/infra-config.interface';
@@ -23,10 +22,10 @@ export interface AddProjectEnvironmentDialogData {
     MatChipsModule,
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
     DsButtonComponent,
+    DsIconButtonComponent,
     DsSelectComponent,
     DsTextFieldComponent,
     DsToggleComponent,

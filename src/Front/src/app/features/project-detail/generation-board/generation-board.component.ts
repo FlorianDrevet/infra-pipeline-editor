@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -260,7 +260,7 @@ function isApplicationCodeRepository(repo: ProjectRepositoryResponse): boolean {
     RouterLink,
     MatTabsModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     BicepFilePanelComponent,
     SplitGenerationSwitcherComponent,
     DsBannerComponent,

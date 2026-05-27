@@ -3,7 +3,7 @@
 <mat-dialog-content>
   @if (isLoading()) {
     <div class="dialog-loading">
-      <mat-spinner diameter="40"></mat-spinner>
+      <app-ds-spinner size="xl" />
       <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.LOADING' | translate }}</p>
     </div>
   } @else if (errorKey()) {
@@ -103,9 +103,9 @@
     </app-ds-button>
   }
   @if (step() === 2) {
-    <button mat-stroked-button (click)="goBack()">
+    <app-ds-button variant="ghost" (clicked)="goBack()">
       {{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_BACK' | translate }}
-    </button>
+    </app-ds-button>
     <app-ds-button
       variant="primary"
       [disabled]="form.invalid"

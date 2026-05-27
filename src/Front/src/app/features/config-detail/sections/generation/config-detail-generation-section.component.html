@@ -32,17 +32,15 @@
           <div class="generation-tab-content">
             <div class="generation-tab-content__toolbar">
               @if (viewModel().bicepResult) {
-                <button
-                  class="bicep-download-btn config-detail-generation__download-bicep"
-                  (click)="viewModel().onDownloadBicepFiles()"
-                  [disabled]="viewModel().bicepDownloading">
-                  @if (viewModel().bicepDownloading) {
-                    <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
-                  } @else {
-                    <mat-icon>download</mat-icon>
-                  }
+                <app-ds-button
+                  class="config-detail-generation__download-bicep"
+                  variant="secondary"
+                  icon="download"
+                  [loading]="viewModel().bicepDownloading"
+                  [disabled]="viewModel().bicepDownloading"
+                  (clicked)="viewModel().onDownloadBicepFiles()">
                   {{ (viewModel().bicepDownloading ? 'CONFIG_DETAIL.BICEP.DOWNLOADING' : 'CONFIG_DETAIL.BICEP.DOWNLOAD') | translate }}
-                </button>
+                </app-ds-button>
               }
             </div>
 
@@ -69,10 +67,13 @@
             @if (viewModel().bicepErrorKey) {
               <div class="bicep-panel__error-body">
                 <p>{{ viewModel().bicepErrorKey | translate }}</p>
-                <button class="bicep-retry-btn config-detail-generation__retry-bicep" (click)="viewModel().onGenerateBicep()">
-                  <mat-icon>refresh</mat-icon>
+                <app-ds-button
+                  class="config-detail-generation__retry-bicep"
+                  variant="secondary"
+                  icon="refresh"
+                  (clicked)="viewModel().onGenerateBicep()">
                   {{ 'CONFIG_DETAIL.BICEP.RETRY' | translate }}
-                </button>
+                </app-ds-button>
               </div>
             }
 
@@ -114,17 +115,15 @@
           <div class="generation-tab-content">
             <div class="generation-tab-content__toolbar">
               @if (viewModel().pipelineResult) {
-                <button
-                  class="bicep-download-btn config-detail-generation__download-pipeline"
-                  (click)="viewModel().onDownloadPipelineFiles()"
-                  [disabled]="viewModel().pipelineDownloading">
-                  @if (viewModel().pipelineDownloading) {
-                    <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
-                  } @else {
-                    <mat-icon>download</mat-icon>
-                  }
+                <app-ds-button
+                  class="config-detail-generation__download-pipeline"
+                  variant="secondary"
+                  icon="download"
+                  [loading]="viewModel().pipelineDownloading"
+                  [disabled]="viewModel().pipelineDownloading"
+                  (clicked)="viewModel().onDownloadPipelineFiles()">
                   {{ (viewModel().pipelineDownloading ? 'CONFIG_DETAIL.BICEP.DOWNLOADING' : 'CONFIG_DETAIL.PIPELINE.DOWNLOAD') | translate }}
-                </button>
+                </app-ds-button>
               }
             </div>
 
@@ -151,10 +150,13 @@
             @if (viewModel().pipelineErrorKey) {
               <div class="bicep-panel__error-body">
                 <p>{{ viewModel().pipelineErrorKey | translate }}</p>
-                <button class="bicep-retry-btn config-detail-generation__retry-pipeline" (click)="viewModel().onGeneratePipeline()">
-                  <mat-icon>refresh</mat-icon>
+                <app-ds-button
+                  class="config-detail-generation__retry-pipeline"
+                  variant="secondary"
+                  icon="refresh"
+                  (clicked)="viewModel().onGeneratePipeline()">
                   {{ 'CONFIG_DETAIL.BICEP.RETRY' | translate }}
-                </button>
+                </app-ds-button>
               </div>
             }
 

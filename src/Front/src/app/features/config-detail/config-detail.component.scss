@@ -151,84 +151,6 @@
   }
 }
 
-.delete-btn {
-  @extend %cd-btn;
-  background: color-mix(in srgb, var(--project-surface-panel) 78%, var(--ifs-danger));
-  border-color: color-mix(in srgb, var(--project-border-strong) 36%, var(--ifs-danger));
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ifs-danger) 18%, white);
-  color: color-mix(in srgb, var(--ifs-text-primary) 92%, var(--ifs-danger));
-
-  &:hover {
-    background: color-mix(in srgb, var(--project-surface-hover) 62%, var(--ifs-danger));
-    border-color: color-mix(in srgb, var(--project-border-strong) 8%, var(--ifs-danger));
-    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ifs-danger) 24%, white), var(--ifs-shadow-md);
-  }
-
-  &__icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-    color: var(--ifs-danger);
-  }
-}
-
-.add-resource-btn,
-.add-child-resource-btn,
-.add-rg-btn {
-  @extend %cd-btn;
-
-  &__icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-  }
-
-  &--inline {
-    padding: var(--ifs-space-4) var(--ifs-space-8);
-    font-size: 12px;
-  }
-}
-
-.bicep-cta {
-  @extend %cd-btn;
-  background: var(--ifs-surface-3);
-
-  &:hover {
-    background: var(--ifs-surface-2);
-    border-color: var(--ifs-accent-500);
-    color: var(--ifs-accent-500);
-  }
-
-  &__icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-  }
-
-  &__spinner {
-    width: 14px;
-    height: 14px;
-  }
-}
-
-.bicep-download-btn,
-.bicep-retry-btn {
-  @extend %cd-btn;
-
-  &__spinner {
-    width: 14px;
-    height: 14px;
-  }
-}
-
-.resource-action-btn,
-.template-action-btn {
-  @extend %cd-btn;
-  height: 28px;
-  padding: 0 var(--ifs-space-8);
-  font-size: 12px;
-}
-
 // ─── State / banners ────────────────────────────────────────────────────────
 
 .state-card {
@@ -949,8 +871,7 @@
 
 // ─── Empty / slot empty ────────────────────────────────────────────────────
 
-.empty-state,
-.slot-empty {
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1019,41 +940,10 @@
   }
 }
 
-.preset-grid,
 .repo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: var(--ifs-space-12);
-}
-
-.preset-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ifs-space-6);
-  padding: var(--ifs-space-12);
-  background: var(--ifs-surface-1);
-  border: 1px solid var(--ifs-border-subtle);
-  border-radius: var(--ifs-radius-md);
-  cursor: pointer;
-  transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard);
-
-  &:hover {
-    background: var(--ifs-surface-2);
-  }
-
-  &__title {
-    margin: 0;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ifs-text-primary);
-  }
-
-  &__desc {
-    margin: 0;
-    color: var(--ifs-text-secondary);
-    font-size: 12px;
-    line-height: 1.5;
-  }
 }
 
 .repo-card {

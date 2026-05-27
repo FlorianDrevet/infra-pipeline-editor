@@ -320,7 +320,7 @@
             >
               @switch (entry.status) {
                 @case ('importing') {
-                  <mat-spinner diameter="16"></mat-spinner>
+                  <app-ds-spinner size="sm" />
                 }
                 @case ('success') {
                   <mat-icon class="import-result-row__icon--success">check_circle</mat-icon>

@@ -12,7 +12,6 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import { RepositoryContentKind } from '../../../shared/interfaces/project-repository.interface';
 import {
@@ -43,7 +42,6 @@ export interface InfraConfigRepositoryDialogData {
   imports: [
     MatDialogModule,
     MatCheckboxModule,
-    MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
     DsButtonComponent,

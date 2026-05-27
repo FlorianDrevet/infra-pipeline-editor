@@ -69,12 +69,20 @@
           </ol>
 
           <div class="order-arrows">
-            <button type="button" class="order-arrow-btn" [disabled]="currentOrder() <= minOrder" (click)="moveOrder(-1)">
-              <mat-icon>arrow_back</mat-icon>
-            </button>
-            <button type="button" class="order-arrow-btn" [disabled]="currentOrder() >= maxOrder" (click)="moveOrder(1)">
-              <mat-icon>arrow_forward</mat-icon>
-            </button>
+            <app-ds-icon-button
+              variant="neutral"
+              icon="arrow_back"
+              [ariaLabel]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.MOVE_LEFT' | translate"
+              [disabled]="currentOrder() <= minOrder"
+              (clicked)="moveOrder(-1)">
+            </app-ds-icon-button>
+            <app-ds-icon-button
+              variant="neutral"
+              icon="arrow_forward"
+              [ariaLabel]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.MOVE_RIGHT' | translate"
+              [disabled]="currentOrder() >= maxOrder"
+              (clicked)="moveOrder(1)">
+            </app-ds-icon-button>
           </div>
         }
       </div>
@@ -90,9 +98,13 @@
             class="tag-value-field"
             [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAG_VALUE' | translate"
             [formControl]="tagValueCtrl" />
-          <button type="button" mat-icon-button (click)="addTag()" [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()">
-            <mat-icon>add</mat-icon>
-          </button>
+          <app-ds-icon-button
+            variant="accent"
+            icon="add"
+            [ariaLabel]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.ADD_TAG' | translate"
+            [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()"
+            (clicked)="addTag()">
+          </app-ds-icon-button>
         </div>
         @if (localTags().length > 0) {
           <mat-chip-set>

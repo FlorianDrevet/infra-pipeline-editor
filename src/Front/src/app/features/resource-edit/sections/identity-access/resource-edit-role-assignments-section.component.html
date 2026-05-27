@@ -78,7 +78,7 @@
 
   @if (section().roleAssignmentsLoading()) {
     <div class="ra-loading">
-      <mat-spinner diameter="28"></mat-spinner>
+      <app-ds-spinner size="lg" />
       <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.LOADING' | translate }}</span>
     </div>
   } @else if (section().roleAssignments().length === 0 && !section().assignedUai()) {

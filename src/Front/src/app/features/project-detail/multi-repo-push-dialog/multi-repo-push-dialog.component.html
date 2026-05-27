@@ -60,7 +60,7 @@
           <div class="mr-card__content">
             @if (state() === 'pushing') {
               <div class="mr-card__state mr-card__state--loading">
-                <mat-spinner diameter="32"></mat-spinner>
+                <app-ds-spinner size="lg" />
                 <p>{{ pushingKey() | translate }}</p>
               </div>
             } @else if (infraResult()?.success === true) {
@@ -160,7 +160,7 @@
           <div class="mr-card__content">
             @if (state() === 'pushing') {
               <div class="mr-card__state mr-card__state--loading">
-                <mat-spinner diameter="32"></mat-spinner>
+                <app-ds-spinner size="lg" />
                 <p>{{ pushingKey() | translate }}</p>
               </div>
             } @else if (codeResult()?.success === true) {
@@ -243,17 +243,17 @@
   <mat-dialog-actions align="end" class="mr-dialog__actions">
     @switch (state()) {
       @case ('form') {
-        <button mat-stroked-button type="button" (click)="onClose()">
+        <app-ds-button variant="secondary" (clicked)="onClose()">
           {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CANCEL' | translate }}
-        </button>
+        </app-ds-button>
         <app-ds-button variant="primary" icon="cloud_upload" [disabled]="!canPush()" (clicked)="onPush()">
           {{ pushActionKey() | translate }}
         </app-ds-button>
       }
       @case ('pushing') {
-        <button mat-stroked-button type="button" disabled>
+        <app-ds-button variant="secondary" [disabled]="true">
           {{ pushingKey() | translate }}
-        </button>
+        </app-ds-button>
       }
       @case ('success') {
         <app-ds-button variant="primary" (clicked)="onClose()">
@@ -261,17 +261,17 @@
         </app-ds-button>
       }
       @case ('partial') {
-        <button mat-stroked-button type="button" (click)="onClose()">
+        <app-ds-button variant="secondary" (clicked)="onClose()">
           {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CLOSE' | translate }}
-        </button>
+        </app-ds-button>
         <app-ds-button variant="primary" icon="refresh" (clicked)="onRetry()">
           {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.RETRY' | translate }}
         </app-ds-button>
       }
       @case ('error') {
-        <button mat-stroked-button type="button" (click)="onClose()">
+        <app-ds-button variant="secondary" (clicked)="onClose()">
           {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CLOSE' | translate }}
-        </button>
+        </app-ds-button>
         <app-ds-button variant="primary" icon="refresh" (clicked)="onRetry()">
           {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.RETRY' | translate }}
         </app-ds-button>

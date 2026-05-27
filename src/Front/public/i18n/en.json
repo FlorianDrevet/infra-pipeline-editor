@@ -1,4 +1,9 @@
 {
+  "DS": {
+    "SPINNER": {
+      "LOADING": "Loading..."
+    }
+  },
   "LANGUAGE": {
     "FRENCH_SHORT": "FR",
     "ENGLISH_SHORT": "EN"
@@ -442,6 +447,8 @@
         "ORDER": "Deployment order",
         "ORDER_HINT": "Between {{min}} and {{max}}",
         "TIMELINE_ARIA": "Environment deployment order",
+        "MOVE_LEFT": "Move earlier",
+        "MOVE_RIGHT": "Move later",
         "REQUIRES_APPROVAL": "Requires approval before deployment",
         "CANCEL": "Cancel",
         "ADD": "Add",
@@ -1361,13 +1368,16 @@
         "SUFFIX_PLACEHOLDER": "Example: 01, we",
         "ORDER": "Deployment order",
         "TIMELINE_ARIA": "Environment deployment order",
+        "MOVE_LEFT": "Move earlier",
+        "MOVE_RIGHT": "Move later",
         "REQUIRES_APPROVAL": "Requires approval before deployment",
         "CANCEL": "Cancel",
         "ADD": "Add",
         "SAVE": "Save",
         "TAGS": "Tags",
         "TAG_NAME": "Key",
-        "TAG_VALUE": "Value"
+        "TAG_VALUE": "Value",
+        "ADD_TAG": "Add tag"
       }
     },
     "NAMING_TEMPLATES": {
@@ -1513,6 +1523,9 @@
     "TAGS": {
       "TITLE": "Tags",
       "EMPTY": "No tags defined",
+      "EMPTY_HINT": "Add tags to categorize this project.",
+      "EDIT": "Edit tags",
+      "ADD_TAG": "Add tag",
       "SAVE": "Save tags",
       "CANCEL": "Cancel",
       "TAG_NAME": "Key",

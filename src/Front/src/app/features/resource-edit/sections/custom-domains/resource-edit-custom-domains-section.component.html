@@ -5,10 +5,9 @@
       <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.SECTION_TITLE' | translate }}</span>
     </div>
     <p class="env-extra-section__desc custom-domains-section__desc">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.SECTION_SUBTITLE' | translate }}</p>
-    <button class="ra-add-btn custom-domains-section__add-btn" type="button" (click)="section().openAddDialog(environmentName())">
-      <mat-icon>add</mat-icon>
+    <app-ds-button variant="primary" icon="add" (clicked)="section().openAddDialog(environmentName())">
       {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.ADD' | translate }}
-    </button>
+    </app-ds-button>
   </div>
 
   @if (section().errorKey()) {
@@ -20,7 +19,7 @@
 
   @if (section().isLoading()) {
     <div class="ra-loading">
-      <mat-spinner diameter="24"></mat-spinner>
+      <app-ds-spinner size="lg" />
       <span>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.LOADING' | translate }}</span>
     </div>
   } @else {
@@ -57,20 +56,26 @@
               </span>
             </div>
             <div class="cd-domain-row__actions">
-              <button mat-icon-button type="button" (click)="section().showDnsInstructions(domain)"
-                      [matTooltip]="'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_INSTRUCTIONS' | translate">
-                <mat-icon>info_outline</mat-icon>
-              </button>
+              <app-ds-icon-button
+                icon="info_outline"
+                variant="neutral"
+                [ariaLabel]="'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_INSTRUCTIONS' | translate"
+                [tooltip]="'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_INSTRUCTIONS' | translate"
+                (clicked)="section().showDnsInstructions(domain)" />
               @if (domain.dnsValidationStatus === 'Pending') {
-                <button mat-icon-button color="primary" type="button" (click)="section().validateDns(domain)"
-                        [matTooltip]="'RESOURCE_EDIT.CUSTOM_DOMAINS.VALIDATE_DNS' | translate">
-                  <mat-icon>verified</mat-icon>
-                </button>
+                <app-ds-icon-button
+                  icon="verified"
+                  variant="accent"
+                  [ariaLabel]="'RESOURCE_EDIT.CUSTOM_DOMAINS.VALIDATE_DNS' | translate"
+                  [tooltip]="'RESOURCE_EDIT.CUSTOM_DOMAINS.VALIDATE_DNS' | translate"
+                  (clicked)="section().validateDns(domain)" />
               }
-              <button mat-icon-button color="warn" type="button" (click)="section().removeDomain(domain)"
-                      [matTooltip]="'COMMON.DELETE' | translate">
-                <mat-icon>delete_outline</mat-icon>
-              </button>
+              <app-ds-icon-button
+                icon="delete_outline"
+                variant="danger"
+                [ariaLabel]="'COMMON.DELETE' | translate"
+                [tooltip]="'COMMON.DELETE' | translate"
+                (clicked)="section().removeDomain(domain)" />
             </div>
           </div>
         }

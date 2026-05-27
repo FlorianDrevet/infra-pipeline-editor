@@ -17,10 +17,12 @@
       <div class="detail-header__nav">
         <a class="ghost-button" routerLink="/">{{ 'PROJECT_DETAIL.ACTIONS.BACK' | translate }}</a>
         @if (isOwner()) {
-          <button class="delete-btn" (click)="openDeleteProjectDialog()">
-            <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
+          <app-ds-button
+            variant="danger"
+            icon="delete_outline"
+            (clicked)="openDeleteProjectDialog()">
             {{ 'PROJECT_DETAIL.DELETE.BUTTON' | translate }}
-          </button>
+          </app-ds-button>
         }
       </div>
       <div class="detail-header__info">
@@ -45,17 +47,21 @@
           <div class="tab-content__toolbar">
             <!-- Navigate to Generation Board -->
             @if (canWrite()) {
-              <button class="bicep-btn" (click)="navigateToGenerate()">
-                <mat-icon class="bicep-btn__icon">rocket_launch</mat-icon>
+              <app-ds-button
+                variant="primary"
+                icon="rocket_launch"
+                (clicked)="navigateToGenerate()">
                 {{ 'PROJECT_DETAIL.GENERATE_ALL.BUTTON' | translate }}
-              </button>
+              </app-ds-button>
             }
 
             @if (canWrite()) {
-              <button class="add-btn" (click)="openAddConfigDialog()">
-                <mat-icon class="add-btn__icon">add_circle_outline</mat-icon>
+              <app-ds-button
+                variant="primary"
+                icon="add_circle_outline"
+                (clicked)="openAddConfigDialog()">
                 {{ 'PROJECT_DETAIL.CONFIGS.ADD' | translate }}
-              </button>
+              </app-ds-button>
             }
           </div>
 
@@ -78,12 +84,13 @@
                     <span>{{ 'PROJECT_DETAIL.CONFIGS.RESOURCES' | translate: { count: config.resourceCount } }}</span>
                   </div>
                   @if (isOwner()) {
-                    <button
+                    <app-ds-icon-button
                       class="config-card__delete-btn"
-                      [matTooltip]="'PROJECT_DETAIL.DELETE_CONFIG.BUTTON' | translate"
-                      (click)="$event.preventDefault(); $event.stopPropagation(); openDeleteConfigDialog(config)">
-                      <mat-icon>delete_outline</mat-icon>
-                    </button>
+                      icon="delete_outline"
+                      variant="danger"
+                      [tooltip]="'PROJECT_DETAIL.DELETE_CONFIG.BUTTON' | translate"
+                      [ariaLabel]="'PROJECT_DETAIL.DELETE_CONFIG.BUTTON' | translate"
+                      (clicked)="$event.preventDefault(); $event.stopPropagation(); openDeleteConfigDialog(config)" />
                   }
                 </a>
               }
@@ -93,10 +100,12 @@
               <mat-icon class="empty-state__icon">settings</mat-icon>
               <p>{{ 'PROJECT_DETAIL.CONFIGS.EMPTY' | translate }}</p>
               @if (canWrite()) {
-                <button class="add-btn" (click)="openAddConfigDialog()">
-                  <mat-icon class="add-btn__icon">add_circle_outline</mat-icon>
+                <app-ds-button
+                  variant="primary"
+                  icon="add_circle_outline"
+                  (clicked)="openAddConfigDialog()">
                   {{ 'PROJECT_DETAIL.CONFIGS.ADD' | translate }}
-                </button>
+                </app-ds-button>
               }
             </div>
           }

@@ -170,7 +170,7 @@
             @switch (acrUaiState()) {
               @case ('checking') {
                 <div class="acr-inline-status acr-inline-status--checking">
-                  <mat-spinner diameter="16"></mat-spinner>
+                  <app-ds-spinner size="sm" />
                   <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
                 </div>
               }
@@ -185,7 +185,7 @@
                   <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}</p>
                   <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()" type="button">
                     @if (acrRoleAssigning()) {
-                      <mat-spinner diameter="14"></mat-spinner>
+                      <app-ds-spinner size="sm" />
                     } @else {
                       <mat-icon>add_circle_outline</mat-icon>
                     }
@@ -214,7 +214,7 @@
                   @if (acrSelectedUaiId()) {
                     <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()" type="button">
                       @if (acrRoleAssigning()) {
-                        <mat-spinner diameter="14"></mat-spinner>
+                        <app-ds-spinner size="sm" />
                       } @else {
                         <mat-icon>add_circle_outline</mat-icon>
                       }

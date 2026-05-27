@@ -60,17 +60,16 @@
           <div class="generation-tab-content">
             @if (isGeneratingBicep() || deferBatchReveal()) {
               <div class="split-switcher__loading">
-                <mat-spinner diameter="22"></mat-spinner>
+                <app-ds-spinner size="md" />
                 <span>{{ 'PROJECT_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}</span>
               </div>
             }
             @if (bicepGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__error">
                 <p>{{ bicepGenerationError()! | translate }}</p>
-                <button class="split-switcher__retry" type="button" (click)="onRetryBicep()">
-                  <mat-icon>refresh</mat-icon>
+                <app-ds-button variant="secondary" icon="refresh" (clicked)="onRetryBicep()">
                   {{ 'PROJECT_DETAIL.BICEP.RETRY' | translate }}
-                </button>
+                </app-ds-button>
               </div>
             }
             @if (bicepNodes().length > 0 && !deferBatchReveal()) {
@@ -98,17 +97,16 @@
           <div class="generation-tab-content">
             @if (isGeneratingPipeline() || deferBatchReveal()) {
               <div class="split-switcher__loading">
-                <mat-spinner diameter="22"></mat-spinner>
+                <app-ds-spinner size="md" />
                 <span>{{ 'PROJECT_DETAIL.PIPELINE.TERMINAL_GENERATING' | translate }}</span>
               </div>
             }
             @if (pipelineGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__error">
                 <p>{{ pipelineGenerationError()! | translate }}</p>
-                <button class="split-switcher__retry" type="button" (click)="onRetryPipeline()">
-                  <mat-icon>refresh</mat-icon>
+                <app-ds-button variant="secondary" icon="refresh" (clicked)="onRetryPipeline()">
                   {{ 'PROJECT_DETAIL.PIPELINE.RETRY' | translate }}
-                </button>
+                </app-ds-button>
               </div>
             }
             @if (hasInfraPipeline() && !deferBatchReveal()) {
@@ -136,20 +134,19 @@
           <div class="generation-tab-content">
             @if (isGeneratingBootstrap() || deferBatchReveal()) {
               <div class="split-switcher__loading">
-                <mat-spinner diameter="22"></mat-spinner>
+                <app-ds-spinner size="md" />
                 <span>{{ 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' | translate }}</span>
               </div>
             }
             @if (bootstrapGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__error">
                 <p>{{ bootstrapGenerationError()! | translate }}</p>
-                <button class="split-switcher__retry" type="button" (click)="onRetryBootstrap()">
-                  <mat-icon>refresh</mat-icon>
+                <app-ds-button variant="secondary" icon="refresh" (clicked)="onRetryBootstrap()">
                   {{ 'PROJECT_DETAIL.BOOTSTRAP.RETRY' | translate }}
-                </button>
+                </app-ds-button>
               </div>
             }
-            @if (infraBootstrapNodes().length > 0 && !deferBatchReveal()) {
+            @if (hasInfraBootstrap() && !deferBatchReveal()) {
               <app-bicep-file-panel
                 [nodes]="infraBootstrapNodes()"
                 [barTitle]="'bootstrap-generator \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
@@ -225,17 +222,16 @@
           <div class="generation-tab-content">
             @if (isGeneratingPipeline() || deferBatchReveal()) {
               <div class="split-switcher__loading">
-                <mat-spinner diameter="22"></mat-spinner>
+                <app-ds-spinner size="md" />
                 <span>{{ 'PROJECT_DETAIL.PIPELINE.TERMINAL_GENERATING' | translate }}</span>
               </div>
             }
             @if (pipelineGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__error">
                 <p>{{ pipelineGenerationError()! | translate }}</p>
-                <button class="split-switcher__retry" type="button" (click)="onRetryPipeline()">
-                  <mat-icon>refresh</mat-icon>
+                <app-ds-button variant="secondary" icon="refresh" (clicked)="onRetryPipeline()">
                   {{ 'PROJECT_DETAIL.PIPELINE.RETRY' | translate }}
-                </button>
+                </app-ds-button>
               </div>
             }
             @if (hasAppPipeline() && !deferBatchReveal()) {
@@ -284,17 +280,16 @@
 
             @if (isGeneratingBootstrap() || deferBatchReveal()) {
               <div class="split-switcher__loading">
-                <mat-spinner diameter="22"></mat-spinner>
+                <app-ds-spinner size="md" />
                 <span>{{ 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' | translate }}</span>
               </div>
             }
             @if (bootstrapGenerationError() && !deferBatchReveal()) {
               <div class="split-switcher__error">
                 <p>{{ bootstrapGenerationError()! | translate }}</p>
-                <button class="split-switcher__retry" type="button" (click)="onRetryBootstrap()">
-                  <mat-icon>refresh</mat-icon>
+                <app-ds-button variant="secondary" icon="refresh" (clicked)="onRetryBootstrap()">
                   {{ 'PROJECT_DETAIL.BOOTSTRAP.RETRY' | translate }}
-                </button>
+                </app-ds-button>
               </div>
             }
             @if (appBootstrapNodes().length > 0 && !deferBatchReveal()) {

@@ -1,13 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { StorageAccountService } from '../../../shared/services/storage-account.service';
 import { StorageAccountResponse } from '../../../shared/interfaces/storage-account.interface';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsOptionCardComponent } from '../../../shared/components/ds';
 
 export interface AddStorageServiceDialogData {
   storageAccountId: string;
@@ -30,12 +28,11 @@ type StorageServiceType = 'BlobContainer' | 'Queue' | 'Table';
     TranslateModule,
     ReactiveFormsModule,
     MatDialogModule,
-    MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     DsButtonComponent,
     DsTextFieldComponent,
     DsSelectComponent,
+    DsOptionCardComponent,
   ],
   templateUrl: './add-storage-service-dialog.component.html',
   styleUrl: './add-storage-service-dialog.component.scss',

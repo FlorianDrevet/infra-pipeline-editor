@@ -18,26 +18,30 @@
         <a class="ghost-button" [routerLink]="['/projects', config()!.projectId]">{{ 'CONFIG_DETAIL.ACTIONS.BACK' | translate }}</a>
         <div class="detail-header__actions">
           @if (isProjectMultiRepo()) {
-            <button class="bicep-cta" (click)="generationSection.generateAll()" [disabled]="generationSection.generateAllLoading()">
-              @if (generationSection.generateAllLoading()) {
-                <mat-spinner diameter="18" class="bicep-cta__spinner"></mat-spinner>
-              } @else {
-                <mat-icon class="bicep-cta__icon">terminal</mat-icon>
-              }
+            <app-ds-button
+              variant="primary"
+              icon="terminal"
+              [loading]="generationSection.generateAllLoading()"
+              [disabled]="generationSection.generateAllLoading()"
+              (clicked)="generationSection.generateAll()">
               {{ (generationSection.validatingDiagnostics() ? 'CONFIG_DETAIL.GENERATE_ALL.VALIDATING' : generationSection.generateAllLoading() ? 'CONFIG_DETAIL.GENERATE_ALL.GENERATING' : 'CONFIG_DETAIL.GENERATE_ALL.BUTTON') | translate }}
-            </button>
+            </app-ds-button>
             @if ((project()?.repositories?.length ?? 0) > 0) {
-              <button class="bicep-cta bicep-cta--git" (click)="openPushToGitDialog()">
-                <mat-icon class="bicep-cta__icon">rocket_launch</mat-icon>
+              <app-ds-button
+                variant="primary"
+                icon="rocket_launch"
+                (clicked)="openPushToGitDialog()">
                 {{ 'CONFIG_DETAIL.PUSH_TO_GIT.BUTTON' | translate }}
-              </button>
+              </app-ds-button>
             }
           }
           @if (isOwner()) {
-            <button class="delete-btn" (click)="openDeleteConfigDialog()">
-              <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
+            <app-ds-button
+              variant="danger"
+              icon="delete_outline"
+              (clicked)="openDeleteConfigDialog()">
               {{ 'CONFIG_DETAIL.DELETE.BUTTON' | translate }}
-            </button>
+            </app-ds-button>
           }
         </div>
       </div>
@@ -100,7 +104,7 @@
 
           @if (crossConfigLoading()) {
             <div class="empty-state">
-              <mat-spinner diameter="32"></mat-spinner>
+              <app-ds-spinner size="lg" />
               <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.LOADING' | translate }}</p>
             </div>
           } @else if (crossConfigReferences().length > 0) {

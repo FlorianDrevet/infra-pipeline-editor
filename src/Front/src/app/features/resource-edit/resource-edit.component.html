@@ -91,7 +91,7 @@
               @if (isNameAvailabilityCheckEnabled()) {
                 @if (nameAvailabilityOverallState() === 'checking') {
                   <div class="name-availability-inline name-availability-inline--checking">
-                    <mat-spinner diameter="14"></mat-spinner>
+                    <app-ds-spinner size="sm" />
                     <span>{{ 'RESOURCE_EDIT.NAME_AVAILABILITY.CHECKING' | translate }}</span>
                   </div>
                 }
@@ -363,7 +363,7 @@
                   <div class="vg-config-section">
                     @if (passwordVgLoading()) {
                       <div class="vg-config-loading">
-                        <mat-spinner diameter="20"></mat-spinner>
+                        <app-ds-spinner size="md" />
                       </div>
                     } @else {
                       <app-ds-select
@@ -422,7 +422,7 @@
                             [disabled]="!canSavePasswordConfig()"
                             (click)="savePasswordConfig()">
                       @if (passwordSaving()) {
-                        <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                        <app-ds-spinner class="btn-spinner" size="md" />
                       }
                       {{ 'RESOURCE_EDIT.SECURE_PARAM.SAVE' | translate }}
                     </button>
@@ -2028,7 +2028,7 @@
             (click)="onSave()"
             [disabled]="isSaving() || generalForm.invalid || isSaveBlockedByAcr() || isSaveBlockedByNameAvailability()">
             @if (isSaving()) {
-              <mat-spinner diameter="16" class="save-bar__spinner"></mat-spinner>
+              <app-ds-spinner class="save-bar__spinner" size="sm" />
             } @else {
               <mat-icon class="save-bar__save-icon">save</mat-icon>
             }

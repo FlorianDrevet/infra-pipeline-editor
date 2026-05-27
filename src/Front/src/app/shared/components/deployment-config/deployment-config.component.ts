@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../ds/ds-spinner/ds-spinner.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AcrAuthMode } from '../../interfaces/container-registry.interface';
@@ -25,7 +25,7 @@ export type AcrUaiStateValue = 'idle' | 'checking' | 'ok' | 'uai-missing-role' |
     FormsModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     TranslateModule,
     MatTooltipModule,
     DsSelectComponent,

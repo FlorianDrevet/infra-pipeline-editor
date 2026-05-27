@@ -1,14 +1,11 @@
 import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
-import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
@@ -35,6 +32,8 @@ import { ProjectDetailNamingSectionComponent } from './naming-section/project-de
 
 import { ProjectDetailGenerationWorkflowService } from './project-detail-generation-workflow.service';
 import { getProjectDetailTabIndex, getProjectDetailTabQuery, isProjectDetailTab } from '../../shared/enums/detail-route-tabs';
+import { DsButtonComponent } from '../../shared/components/ds/ds-button/ds-button.component';
+import { DsIconButtonComponent } from '../../shared/components/ds/ds-icon-button/ds-icon-button.component';
 
 
 @Component({
@@ -47,13 +46,12 @@ import { getProjectDetailTabIndex, getProjectDetailTabQuery, isProjectDetailTab 
     ProjectDetailTagsSectionComponent,
     ProjectDetailVariableGroupsSectionComponent,
     ProjectDetailNamingSectionComponent,
-    MatButtonModule,
+    DsButtonComponent,
+    DsIconButtonComponent,
     MatButtonToggleModule,
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     MatTabsModule,
-    MatTooltipModule,
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',

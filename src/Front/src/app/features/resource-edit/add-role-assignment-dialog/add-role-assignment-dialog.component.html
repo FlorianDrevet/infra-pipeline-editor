@@ -68,7 +68,7 @@
 
           @if (rolesLoading()) {
             <div class="role-dialog__loading">
-              <mat-spinner diameter="24"></mat-spinner>
+              <app-ds-spinner size="lg" />
               <span>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.LOADING_ROLES' | translate }}</span>
             </div>
           } @else if (availableRoles().length === 0) {
@@ -275,7 +275,7 @@
                     [disabled]="!newIdentityName().trim() || isCreatingIdentity()"
                     (click)="createIdentity()">
                     @if (isCreatingIdentity()) {
-                      <mat-spinner diameter="16" class="submit-spinner"></mat-spinner>
+                      <app-ds-spinner class="submit-spinner" size="sm" />
                       {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATING_IDENTITY' | translate }}
                     } @else {
                       {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY_SUBMIT' | translate }}
@@ -296,7 +296,7 @@
 
           @if (rolesLoading()) {
             <div class="role-dialog__loading">
-              <mat-spinner diameter="24"></mat-spinner>
+              <app-ds-spinner size="lg" />
               <span>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.LOADING_ROLES' | translate }}</span>
             </div>
           } @else if (availableRoles().length === 0) {

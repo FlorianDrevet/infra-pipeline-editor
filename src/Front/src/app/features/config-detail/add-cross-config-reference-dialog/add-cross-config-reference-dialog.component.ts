@@ -1,9 +1,8 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { ProjectService } from '../../../shared/services/project.service';
 import {
@@ -30,10 +29,9 @@ interface ResourceGroup {
   imports: [
     ReactiveFormsModule,
     FormsModule,
-    MatButtonModule,
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     TranslateModule,
     DsButtonComponent,
     DsTextFieldComponent,

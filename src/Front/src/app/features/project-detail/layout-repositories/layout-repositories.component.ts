@@ -11,7 +11,7 @@ import {
 
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AxiosError } from 'axios';
@@ -33,6 +33,7 @@ import {
   RepositoryDialogData,
 } from './repository-dialog/repository-dialog.component';
 import {
+  DsButtonComponent,
   DsOptionCardComponent,
 } from '../../../shared/components/ds';
 import { extractLayoutRepositoriesApiErrorMessage } from './layout-repositories-api-error';
@@ -88,7 +89,8 @@ function normalizeLayoutPreset(preset?: string): ProjectLayoutPreset {
     TranslateModule,
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
+    DsButtonComponent,
     DsOptionCardComponent,
   ],
   templateUrl: './layout-repositories.component.html',

@@ -47,13 +47,6 @@
   }
 }
 
-.template-action-btn {
-  @extend %cd-btn;
-  height: 28px;
-  padding: 0 var(--ifs-space-8);
-  font-size: 12px;
-}
-
 .tab-content {
   padding: var(--ifs-space-16) var(--ifs-space-20);
   display: flex;

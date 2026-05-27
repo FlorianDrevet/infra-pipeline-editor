@@ -2,11 +2,10 @@ import { Component, DestroyRef, inject, OnInit, signal, computed } from '@angula
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, Observable, switchMap, tap } from 'rxjs';
-import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TranslateModule } from '@ngx-translate/core';
 import { LOCATION_OPTIONS } from '../enums/location.enum';
@@ -23,7 +22,7 @@ import { NameAvailabilityService } from '../../../shared/services/name-availabil
 import { EnvironmentNameAvailabilityResponseItem } from '../../../shared/interfaces/name-availability.interface';
 import { ToggleSectionCardComponent } from '../../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DeploymentConfigComponent } from '../../../shared/components/deployment-config/deployment-config.component';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsToggleComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsToggleComponent, DsIconButtonComponent, DsOptionCardComponent } from '../../../shared/components/ds';
 import {
   applyAddResourceProbeToggle,
   copyAddResourceEnvironmentSettings,
@@ -237,11 +236,10 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
   selector: 'app-add-resource-dialog',
   standalone: true,
   imports: [
-    MatButtonModule,
     MatButtonToggleModule,
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     DsToggleComponent,
     MatTabsModule,
     ReactiveFormsModule,
@@ -249,6 +247,8 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
     ToggleSectionCardComponent,
     DeploymentConfigComponent,
     DsButtonComponent,
+    DsIconButtonComponent,
+    DsOptionCardComponent,
     DsTextFieldComponent,
     DsSelectComponent,
   ],

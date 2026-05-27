@@ -13,7 +13,7 @@
 
   @if (section().identityRoleAssignmentsLoading()) {
     <div class="ra-loading">
-      <mat-spinner diameter="28"></mat-spinner>
+      <app-ds-spinner size="lg" />
       <span>{{ 'RESOURCE_EDIT.USED_BY.LOADING' | translate }}</span>
     </div>
   } @else if (section().usedByResources().length === 0) {
@@ -34,13 +34,13 @@
           </div>
 
           @if (canWrite()) {
-            <button
-              class="uai-used-row__unlink"
-              (click)="section().openUnlinkResourceFromIdentityDialog(group)"
-              [matTooltip]="'RESOURCE_EDIT.USED_BY.UNLINK' | translate">
-              <mat-icon>link_off</mat-icon>
-              <span>{{ 'RESOURCE_EDIT.USED_BY.UNLINK' | translate }}</span>
-            </button>
+            <app-ds-button
+              variant="ghost"
+              icon="link_off"
+              [appDsTooltip]="'RESOURCE_EDIT.USED_BY.UNLINK' | translate"
+              (clicked)="section().openUnlinkResourceFromIdentityDialog(group)">
+              {{ 'RESOURCE_EDIT.USED_BY.UNLINK' | translate }}
+            </app-ds-button>
           }
         </div>
       }

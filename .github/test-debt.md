@@ -15,6 +15,7 @@
 ## Incremental Entries
 
 - [2026-05-18] **P2 — Infrastructure / KeyVaultSecretClient**: `tests/InfraFlowSculptor.Infrastructure.Tests/Services/KeyVault/KeyVaultSecretClientTests.cs` now covers PAT write failure mapping in `SetSecretAsync(...)` and PAT read failure logging in `GetSecretAsync(...)`; `DeleteSecretAsync(...)` still lacks a focused regression test for exception logging and error mapping.
+- [2026-05-27] **Front/P3 — DS migration W2 (tag-input rollout) NOT EXECUTED**: aucun des 5 fichiers ciblés par l'audit §3.16 n'est migrable vers `app-ds-tag-input` dans son état actuel. Files 1-3 (`add-project-environment-dialog`, `project-detail/tags-section`, `config-detail/sections/tags`) utilisent `TagRequest { name, value }` (paires clé+valeur, 2 inputs) — incompatible avec `DsTagInputItem { value }` mono-string. Files 4-5 (`add-naming-template-dialog`, `add-project-naming-template-dialog`) sont des palettes de placeholders cliquables avec `viewChild<ElementRef>` + `insertPlaceholderAtCursor` — pas un tag-input. Recommandation : W1.5 créer `app-ds-key-value-input` pour Pattern A (3 fichiers), exclure Pattern B (2 fichiers naming-template) du scope DS tag-input.
 
 ---
 
@@ -344,3 +345,9 @@ When modifying code and discovering the target zone has no tests:
 - **~~P3~~ RÉSOLU 2026-05-11** — UI Refresh — Suppression du compat layer SCSS legacy dans `_tokens.scss` : 106 lignes deprecated supprimées, 5 mixins deprecated supprimées de `_mixins.scss`, 168 occurrences migrées dans 15 fichiers. Zero consommateurs restants.
 - **~~P3~~ RÉSOLU 2026-05-11** — Anti-patterns résiduels : `ds-panel-action-button.scss` (22→0 hits, refonte flat V2), `ds-date-picker.scss` (4→0 hits, header flat + selected accent), compat layer SCSS supprimé (106 lignes `_tokens.scss` + 5 mixins `_mixins.scss`). `ds-button.scss` (1 hit gradient CTA whitelisté, intentionnel).
 - **~~P3~~ RÉSOLU 2026-05-11** — Suppression compat layer SCSS legacy : 168 occurrences migrées vers V2 CSS vars dans 15 fichiers via script `tmp/purge-compat-layer.ps1`.
+
+## Front/UI Refresh Vague W1 � Fondations DS (2026-05-27)
+
+- **P2** � Validation runtime Karma � ex�cuter pour les 4 nouvelles primitives DS (ds-spinner, ds-progress-bar, ds-tag-input, ds-menu). Specs �crites mais non ex�cut�es (Karma non lanc� dans cette session).
+- **P3** � Specs Karma � ajouter pour DsMenuDirective (overlay open/close, backdrop click, aria-expanded toggle).
+

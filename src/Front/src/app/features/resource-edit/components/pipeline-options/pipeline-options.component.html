@@ -15,25 +15,14 @@
     </div>
 
     <div class="pipeline-options__actions">
-      <button
-        mat-stroked-button
-        color="primary"
-        class="pipeline-options__detect-button"
-        (click)="onAutoDetect()"
-        [disabled]="detecting()">
-        <span class="pipeline-options__detect-button-content">
-          <span class="pipeline-options__detect-button-icon" aria-hidden="true">
-            @if (detecting()) {
-              <mat-spinner diameter="18"></mat-spinner>
-            } @else {
-              <mat-icon>manage_search</mat-icon>
-            }
-          </span>
-          <span class="pipeline-options__detect-button-label">
-            {{ 'RESOURCE_EDIT.PIPELINE_OPTIONS.AUTO_DETECT' | translate }}
-          </span>
-        </span>
-      </button>
+      <app-ds-button
+        variant="secondary"
+        icon="manage_search"
+        [loading]="detecting()"
+        [disabled]="detecting()"
+        (clicked)="onAutoDetect()">
+        {{ 'RESOURCE_EDIT.PIPELINE_OPTIONS.AUTO_DETECT' | translate }}
+      </app-ds-button>
     </div>
   </div>
 

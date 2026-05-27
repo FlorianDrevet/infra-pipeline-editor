@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,11 +6,12 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { ConfigDetailGitSectionViewModel } from './config-detail-git-section.view-model';
 import { InfraConfigRepositoryResponse } from '../../../../shared/interfaces/infra-config-repository.interface';
+import { DsButtonComponent, DsOptionCardComponent } from '../../../../shared/components/ds';
 
 @Component({
   selector: 'app-config-detail-git-section',
   standalone: true,
-  imports: [MatButtonModule, MatCardModule, MatChipsModule, MatIconModule, TranslateModule],
+  imports: [MatCardModule, MatChipsModule, MatIconModule, TranslateModule, DsButtonComponent, DsOptionCardComponent],
   templateUrl: './config-detail-git-section.component.html',
   styleUrl: './config-detail-git-section.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -68,7 +68,7 @@
   @if (isLoading()) {
     <app-ds-card>
       <div class="board-state board-state--loading" aria-live="polite">
-        <mat-spinner diameter="32"></mat-spinner>
+        <app-ds-spinner size="lg" />
         <div>
           <strong>{{ 'PROJECT_DETAIL.BOARD.LOADING' | translate }}</strong>
         </div>
@@ -198,14 +198,14 @@
                   <div class="generation-tab-content">
                     <div class="generation-tab-content__toolbar">
                       @if (tab.result() && !deferMonoRepoBatchReveal()) {
-                        <button class="bicep-download-btn" (click)="tab.download()" [disabled]="tab.isDownloading()">
-                          @if (tab.isDownloading()) {
-                            <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
-                          } @else {
-                            <mat-icon>download</mat-icon>
-                          }
+                        <app-ds-button
+                          variant="primary"
+                          icon="download"
+                          [disabled]="tab.isDownloading()"
+                          [loading]="tab.isDownloading()"
+                          (clicked)="tab.download()">
                           {{ (tab.isDownloading() ? tab.downloadBusyLabelKey : tab.downloadLabelKey) | translate }}
-                        </button>
+                        </app-ds-button>
                       }
                     </div>
 
@@ -232,10 +232,12 @@
                     @if (tab.errorKey() && !deferMonoRepoBatchReveal()) {
                       <div class="bicep-panel__error-body">
                         <p>{{ tab.errorKey() | translate }}</p>
-                        <button class="bicep-retry-btn" (click)="tab.retry()">
-                          <mat-icon>refresh</mat-icon>
+                        <app-ds-button
+                          variant="secondary"
+                          icon="refresh"
+                          (clicked)="tab.retry()">
                           {{ tab.retryLabelKey | translate }}
-                        </button>
+                        </app-ds-button>
                       </div>
                     }
 

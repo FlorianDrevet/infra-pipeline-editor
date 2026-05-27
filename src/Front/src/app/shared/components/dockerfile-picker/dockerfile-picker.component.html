@@ -50,7 +50,7 @@
         <span class="picker-panel__label" id="dockerfile-list-label">Dockerfiles</span>
         @if (loadingFiles()) {
           <div class="picker-panel__loading">
-            <mat-spinner diameter="20"></mat-spinner>
+            <app-ds-spinner size="md" />
             <span>{{ 'RESOURCE_EDIT.APP_PIPELINE.LOADING_FILES' | translate }}</span>
           </div>
         } @else if (hasFiles()) {

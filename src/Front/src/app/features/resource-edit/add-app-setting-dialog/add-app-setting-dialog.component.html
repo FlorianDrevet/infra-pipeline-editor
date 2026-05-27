@@ -130,7 +130,7 @@
           <div class="config-section vg-section">
             @if (vgLoading()) {
               <div class="as-dialog__loading">
-                <mat-spinner diameter="20"></mat-spinner>
+                <app-ds-spinner size="md" />
               </div>
             } @else {
               <app-ds-select
@@ -196,7 +196,7 @@
             <!-- Access check -->
             @if (kvAccessChecking()) {
               <div class="as-dialog__loading">
-                <mat-spinner diameter="20"></mat-spinner>
+                <app-ds-spinner size="md" />
                 <span>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_CHECKING_ACCESS' | translate }}</span>
               </div>
             } @else if (kvHasAccess() === false) {
@@ -213,7 +213,7 @@
                     [disabled]="sensitiveRoleAssigning()"
                     (click)="assignSensitiveRole(); $event.stopPropagation()">
                     @if (sensitiveRoleAssigning()) {
-                      <mat-spinner diameter="14" class="submit-spinner"></mat-spinner>
+                      <app-ds-spinner class="submit-spinner" size="sm" />
                       {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGNING_ROLE' | translate }}
                     } @else {
                       <span class="btn-content"><mat-icon>shield</mat-icon> {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGN_ROLE' | translate }}</span>
@@ -290,7 +290,7 @@
             <div class="config-section vg-section">
               @if (vgLoading()) {
                 <div class="as-dialog__loading">
-                  <mat-spinner diameter="20"></mat-spinner>
+                  <app-ds-spinner size="md" />
                 </div>
               } @else {
                 <app-ds-select
@@ -420,7 +420,7 @@
 
         @if (outputsLoading()) {
           <div class="as-dialog__loading">
-            <mat-spinner diameter="24"></mat-spinner>
+            <app-ds-spinner size="lg" />
             <span>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.LOADING_OUTPUTS' | translate }}</span>
           </div>
         } @else if (availableOutputs().length === 0) {
@@ -566,7 +566,7 @@
             @if (selectedKeyVault()) {
               @if (kvAccessChecking()) {
                 <div class="as-dialog__loading">
-                  <mat-spinner diameter="20"></mat-spinner>
+                  <app-ds-spinner size="md" />
                   <span>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_CHECKING_ACCESS' | translate }}</span>
                 </div>
               } @else if (kvHasAccess() === false) {
@@ -583,7 +583,7 @@
                       [disabled]="sensitiveRoleAssigning()"
                       (click)="assignSensitiveRole(); $event.stopPropagation()">
                       @if (sensitiveRoleAssigning()) {
-                        <mat-spinner diameter="14" class="submit-spinner"></mat-spinner>
+                        <app-ds-spinner class="submit-spinner" size="sm" />
                         {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGNING_ROLE' | translate }}
                       } @else {
                         <span class="btn-content"><mat-icon>shield</mat-icon> {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGN_ROLE' | translate }}</span>

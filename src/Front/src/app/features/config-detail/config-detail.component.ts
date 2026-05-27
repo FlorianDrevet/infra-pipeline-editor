@@ -1,11 +1,10 @@
 import { Component, DestroyRef, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DsSpinnerComponent } from '../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -18,6 +17,7 @@ import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import {
   DsSelectOption,
+  DsButtonComponent,
 } from '../../shared/components/ds';
 import {
   EditAbbreviationDialogComponent,
@@ -112,12 +112,11 @@ type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | un
   imports: [
     TranslateModule,
     RouterLink,
-    MatButtonModule,
     MatCardModule,
     MatChipsModule,
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    DsSpinnerComponent,
     MatTabsModule,
     MatTooltipModule,
     ConfigDetailGenerationSectionComponent,
@@ -126,6 +125,7 @@ type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | un
     ConfigDetailResourcesSectionComponent,
     ConfigDetailTagsSectionComponent,
     ConfigDetailVariableGroupsSectionComponent,
+    DsButtonComponent,
   ],
   templateUrl: './config-detail.component.html',
   styleUrl: './config-detail.component.scss',

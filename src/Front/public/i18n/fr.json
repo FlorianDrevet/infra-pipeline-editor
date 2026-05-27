@@ -1,4 +1,9 @@
 ﻿{
+  "DS": {
+    "SPINNER": {
+      "LOADING": "Chargement..."
+    }
+  },
   "LANGUAGE": {
     "FRENCH_SHORT": "FR",
     "ENGLISH_SHORT": "EN"
@@ -440,13 +445,16 @@
         "ORDER": "Ordre de deploiement",
         "ORDER_HINT": "Entre {{min}} et {{max}}",
         "TIMELINE_ARIA": "Ordre de deploiement des environnements",
+        "MOVE_LEFT": "Deplacer plus tot",
+        "MOVE_RIGHT": "Deplacer plus tard",
         "REQUIRES_APPROVAL": "Approbation requise avant deploiement",
         "CANCEL": "Annuler",
         "ADD": "Ajouter",
         "SAVE": "Enregistrer",
         "TAGS": "Tags",
         "TAG_NAME": "Clé",
-        "TAG_VALUE": "Valeur"
+        "TAG_VALUE": "Valeur",
+        "ADD_TAG": "Ajouter le tag"
       }
     },
     "RESOURCE_GROUPS": {
@@ -1355,9 +1363,12 @@
         "TIMELINE_ARIA": "Ordre de deploiement des environnements",
         "ORDER_HELP": "Position dans le pipeline",
         "ORDER_LABEL": "Ordre de deploiement",
+        "MOVE_LEFT": "Deplacer plus tot",
+        "MOVE_RIGHT": "Deplacer plus tard",
         "TAGS": "Tags",
         "TAG_NAME": "Clé",
-        "TAG_VALUE": "Valeur"
+        "TAG_VALUE": "Valeur",
+        "ADD_TAG": "Ajouter le tag"
       }
     },
     "NAMING_TEMPLATES": {
@@ -1505,6 +1516,9 @@
     "TAGS": {
       "TITLE": "Tags",
       "EMPTY": "Aucun tag défini",
+      "EMPTY_HINT": "Ajoutez des tags pour categoriser ce projet.",
+      "EDIT": "Modifier les tags",
+      "ADD_TAG": "Ajouter le tag",
       "SAVE": "Enregistrer les tags",
       "CANCEL": "Annuler",
       "TAG_NAME": "Clé",

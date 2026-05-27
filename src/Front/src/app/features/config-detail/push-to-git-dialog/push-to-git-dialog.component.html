@@ -25,7 +25,7 @@
 
     @case ('pushing') {
       <div class="push-state push-state--loading">
-        <mat-spinner diameter="36"></mat-spinner>
+        <app-ds-spinner size="xl" />
         <p>{{ pushingMessageKey | translate }}</p>
       </div>
     }
@@ -72,9 +72,9 @@
 <mat-dialog-actions align="end">
   @switch (state()) {
     @case ('form') {
-      <button mat-stroked-button type="button" (click)="onClose()">
+      <app-ds-button variant="ghost" (clicked)="onClose()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.CLOSE' | translate }}
-      </button>
+      </app-ds-button>
       <app-ds-button variant="primary" icon="rocket_launch" [disabled]="form.invalid || branchesLoading()" (clicked)="onPush()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.PUSH' | translate }}
       </app-ds-button>
@@ -91,9 +91,9 @@
     }
 
     @case ('error') {
-      <button mat-stroked-button type="button" (click)="onClose()">
+      <app-ds-button variant="ghost" (clicked)="onClose()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.CLOSE' | translate }}
-      </button>
+      </app-ds-button>
       <app-ds-button variant="primary" (clicked)="onRetry()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.RETRY' | translate }}
       </app-ds-button>

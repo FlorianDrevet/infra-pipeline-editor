@@ -3,7 +3,6 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DsButtonComponent, DsSelectComponent, DsTextFieldComponent } from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import { ResourceGroupResponse } from '../../../shared/interfaces/resource-group.interface';
 import { ResourceGroupService } from '../../../shared/services/resource-group.service';
@@ -19,7 +18,6 @@ export interface AddResourceGroupDialogData {
   imports: [
     MatDialogModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
     DsButtonComponent,

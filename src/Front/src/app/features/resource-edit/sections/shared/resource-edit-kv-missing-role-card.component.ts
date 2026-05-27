@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
+import { DsButtonComponent } from '../../../../shared/components/ds/ds-button/ds-button.component';
+import { DsSegmentedControlComponent } from '../../../../shared/components/ds/ds-segmented-control/ds-segmented-control.component';
+import { DsSegmentedOption } from '../../../../shared/components/ds/ds-segmented-control/ds-segmented-control.types';
 import {
   CompactSelectComponent,
   CompactSelectOption,
@@ -16,10 +17,10 @@ import { ResourceEditKvMissingRoleEntry } from './resource-edit-kv-missing-role-
   standalone: true,
   imports: [
     CompactSelectComponent,
-    MatButtonModule,
-    MatButtonToggleModule,
+    DsButtonComponent,
+    DsSegmentedControlComponent,
+    FormsModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     TranslateModule,
   ],
   templateUrl: './resource-edit-kv-missing-role-card.component.html',
@@ -27,6 +28,8 @@ import { ResourceEditKvMissingRoleEntry } from './resource-edit-kv-missing-role-
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ResourceEditKvMissingRoleCardComponent {
+  private readonly translate = inject(TranslateService);
+
   readonly canWrite = input.required<boolean>();
   readonly entry = input.required<ResourceEditKvMissingRoleEntry>();
   readonly assignedUai = input<{ identityId: string; identityName: string } | null>(null);
@@ -36,6 +39,11 @@ export class ResourceEditKvMissingRoleCardComponent {
   readonly uaiIdChange = output<string | null>();
   readonly createUai = output<void>();
   readonly assignRole = output<void>();
+
+  protected readonly identityTypeOptions: readonly DsSegmentedOption[] = [
+    { value: 'UserAssigned', label: this.translate.instant('RESOURCE_EDIT.APP_SETTINGS.KV_ON_UAI') },
+    { value: 'SystemAssigned', label: this.translate.instant('RESOURCE_EDIT.APP_SETTINGS.KV_ON_SAI') },
+  ];
 
   protected onIdentityTypeChange(identityType: ResourceEditKvMissingRoleEntry['selectedIdentityType']): void {
     this.identityTypeChange.emit(identityType);
