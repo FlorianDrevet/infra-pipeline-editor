@@ -112,6 +112,20 @@ internal static class MainBicepAssembler
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToList());
 
+        // Enrich with UAI assignments from identity analysis (AssignedUserAssignedIdentityName, acrPullIdentityId)
+        // that may not have corresponding role assignments.
+        foreach (var module in modules)
+        {
+            if (module.AssignedUserAssignedIdentityNames.Count == 0)
+                continue;
+
+            var moduleKey = (module.LogicalResourceName, module.ResourceTypeName);
+            if (uaiBySourceResource.ContainsKey(moduleKey))
+                continue;
+
+            uaiBySourceResource[moduleKey] = module.AssignedUserAssignedIdentityNames.ToList();
+        }
+
         foreach (var module in modules)
         {
             MainBicepModuleSectionAssembler.AppendModuleDeclaration(
