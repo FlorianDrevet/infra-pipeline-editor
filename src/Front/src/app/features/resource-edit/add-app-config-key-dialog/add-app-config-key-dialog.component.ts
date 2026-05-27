@@ -2,14 +2,13 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
-import { MatRadioModule } from '@angular/material/radio';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   DsButtonComponent,
+  DsCheckboxComponent,
   DsSegmentedControlComponent,
   DsSegmentedOption,
   DsSelectComponent,
@@ -50,10 +49,9 @@ function toConfigSecretNameSegment(value: string): string {
     MatDialogModule,
     MatIconModule,
     DsSpinnerComponent,
-    MatRadioModule,
     MatTooltipModule,
-    MatCheckboxModule,
     DsButtonComponent,
+    DsCheckboxComponent,
     DsSegmentedControlComponent,
     DsSelectComponent,
     DsTextFieldComponent,

@@ -11,7 +11,8 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
-import { MatTabsModule } from '@angular/material/tabs';
+import { DsTabsComponent } from '../../../shared/components/ds/ds-tabs/ds-tabs.component';
+import { DsTabDefinition } from '../../../shared/components/ds/ds-tabs/ds-tabs.types';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SidebarContextService } from '../../../core/layouts/sidebar/sidebar-context.service';
@@ -258,7 +259,7 @@ function isApplicationCodeRepository(repo: ProjectRepositoryResponse): boolean {
   imports: [
     TranslateModule,
     RouterLink,
-    MatTabsModule,
+    DsTabsComponent,
     MatIconModule,
     DsSpinnerComponent,
     BicepFilePanelComponent,
@@ -391,6 +392,16 @@ export class GenerationBoardComponent implements OnInit {
       retry: this.generateProjectBootstrap,
     },
   ];
+
+  protected readonly activeMonoRepoTabId = signal<string | null>(MONO_REPO_TAB_DEFINITIONS[0].id);
+  protected readonly monoRepoDsTabs = computed<readonly DsTabDefinition[]>(() => {
+    this.languageService.currentLanguage();
+    return this.monoRepoTabs.map((tab) => ({
+      id: tab.id,
+      label: this.translate.instant(tab.tabLabelKey),
+      icon: tab.tabIcon,
+    }));
+  });
 
   protected readonly groupedByRepository = computed<RepositoryGroup[]>(() => {
     const configs = this.configs();

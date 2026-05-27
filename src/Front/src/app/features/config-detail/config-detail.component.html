@@ -55,109 +55,78 @@
       <app-config-detail-generation-section [viewModel]="generationViewModel" />
     }
 
-    <mat-tab-group class="config-tabs" animationDuration="200ms" [selectedIndex]="selectedTabIndex()" (selectedTabChange)="onTabChange($event.index)">
-      <!-- Resource Groups -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">dns</mat-icon>
-          <span>{{ 'CONFIG_DETAIL.TABS.RESOURCE_GROUPS' | translate }}</span>
-          <span class="tab-count">{{ resourceGroups().length }}</span>
-        </ng-template>
-        @if (resourcesSectionViewModel(); as resourcesViewModel) {
-          <app-config-detail-resources-section [viewModel]="resourcesViewModel" />
-        }
-      </mat-tab>
+    <app-ds-tabs
+      class="config-tabs"
+      [tabs]="configDetailTabs()"
+      [activeTabId]="activeConfigTabId()"
+      [ariaLabel]="'CONFIG_DETAIL.TABS.ARIA' | translate"
+      (tabChange)="onConfigTabIdChange($event)"
+    />
 
-      <!-- Tags -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">label_important</mat-icon>
-          <span>{{ 'CONFIG_DETAIL.TABS.TAGS' | translate }}</span>
-          <span class="tab-count">{{ tagsSection.configTags().length }}</span>
-        </ng-template>
-        <app-config-detail-tags-section [canWrite]="canWrite()" [section]="tagsSection" />
-      </mat-tab>
-
-      <!-- Naming Templates -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">label</mat-icon>
-          <span>{{ 'CONFIG_DETAIL.TABS.NAMING_TEMPLATES' | translate }}</span>
-          <span class="tab-count">{{ config()!.resourceNamingTemplates.length }}</span>
-        </ng-template>
-        @if (namingSectionViewModel(); as namingViewModel) {
-          <app-config-detail-naming-section [viewModel]="namingViewModel" />
-        }
-      </mat-tab>
-
-      <!-- Cross-Config References -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">link</mat-icon>
-          <span>{{ 'CONFIG_DETAIL.TABS.CROSS_CONFIG_REFS' | translate }}</span>
-          <span class="tab-count">{{ crossConfigReferences().length }}</span>
-        </ng-template>
-        <div class="tab-content">
-          @if (crossConfigErrorKey()) {
-            <p class="rg-error">{{ crossConfigErrorKey() | translate }}</p>
-          }
-
-          @if (crossConfigLoading()) {
-            <div class="empty-state">
-              <app-ds-spinner size="lg" />
-              <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.LOADING' | translate }}</p>
-            </div>
-          } @else if (crossConfigReferences().length > 0) {
-            <div class="resource-list">
-              @for (ref of crossConfigReferences(); track ref.referenceId) {
-                <div class="resource-item resource-item--cross-config">
-                  <mat-icon class="resource-item__icon resource-item__icon--cross-config">{{ resourceTypeIcons[ref.targetResourceType] || 'widgets' }}</mat-icon>
-                  <div class="resource-item__info">
-                    <div class="resource-name-row">
-                      <strong>{{ ref.targetResourceName }}</strong>
-                      <a class="cross-config-badge" [routerLink]="['/config', ref.targetConfigId]"
-                         [matTooltip]="'CONFIG_DETAIL.RESOURCES.NAVIGATE_TO_CONFIG' | translate">
-                        <mat-icon class="cross-config-badge__icon">open_in_new</mat-icon>
-                        {{ ref.targetConfigName }}
-                      </a>
-                    </div>
-                    <span class="resource-item__type">{{ ref.targetResourceType }} · {{ ref.targetResourceGroupName }}</span>
-                  </div>
-                </div>
-              }
-            </div>
-          } @else if (crossConfigLoaded()) {
-            <div class="empty-state">
-              <mat-icon class="empty-state__icon">link_off</mat-icon>
-              <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.EMPTY' | translate }}</p>
-              <p class="empty-state__hint">{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.EMPTY_HINT' | translate }}</p>
-            </div>
-          }
-        </div>
-      </mat-tab>
-
-      <!-- Pipeline Variable Groups -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">library_books</mat-icon>
-          <span>{{ 'CONFIG_DETAIL.TABS.PIPELINE_VARIABLES' | translate }}</span>
-          <span class="tab-count">{{ variableGroupsSection.configVariableGroups().length }}</span>
-        </ng-template>
-        <app-config-detail-variable-groups-section [canWrite]="canWrite()" [section]="variableGroupsSection" />
-      </mat-tab>
-
-      <!-- Git Configuration (project layout = MultiRepo only) -->
-      @if (isProjectMultiRepo()) {
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">code</mat-icon>
-            <span>{{ 'CONFIG_DETAIL.TABS.GIT' | translate }}</span>
-          </ng-template>
-          @if (gitSection.viewModel(); as gitViewModel) {
-            <app-config-detail-git-section [viewModel]="gitViewModel" />
-          }
-        </mat-tab>
+    @if (activeConfigTabId() === 'resource-groups') {
+      @if (resourcesSectionViewModel(); as resourcesViewModel) {
+        <app-config-detail-resources-section [viewModel]="resourcesViewModel" />
       }
-    </mat-tab-group>
+    }
+
+    @if (activeConfigTabId() === 'tags') {
+      <app-config-detail-tags-section [canWrite]="canWrite()" [section]="tagsSection" />
+    }
+
+    @if (activeConfigTabId() === 'naming') {
+      @if (namingSectionViewModel(); as namingViewModel) {
+        <app-config-detail-naming-section [viewModel]="namingViewModel" />
+      }
+    }
+
+    @if (activeConfigTabId() === 'cross-config-refs') {
+      <div class="tab-content">
+        @if (crossConfigErrorKey()) {
+          <p class="rg-error">{{ crossConfigErrorKey() | translate }}</p>
+        }
+
+        @if (crossConfigLoading()) {
+          <div class="empty-state">
+            <app-ds-spinner size="lg" />
+            <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.LOADING' | translate }}</p>
+          </div>
+        } @else if (crossConfigReferences().length > 0) {
+          <div class="resource-list">
+            @for (ref of crossConfigReferences(); track ref.referenceId) {
+              <div class="resource-item resource-item--cross-config">
+                <mat-icon class="resource-item__icon resource-item__icon--cross-config">{{ resourceTypeIcons[ref.targetResourceType] || 'widgets' }}</mat-icon>
+                <div class="resource-item__info">
+                  <div class="resource-name-row">
+                    <strong>{{ ref.targetResourceName }}</strong>
+                    <a class="cross-config-badge" [routerLink]="['/config', ref.targetConfigId]"
+                       [matTooltip]="'CONFIG_DETAIL.RESOURCES.NAVIGATE_TO_CONFIG' | translate">
+                      <mat-icon class="cross-config-badge__icon">open_in_new</mat-icon>
+                      {{ ref.targetConfigName }}
+                    </a>
+                  </div>
+                  <span class="resource-item__type">{{ ref.targetResourceType }} · {{ ref.targetResourceGroupName }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        } @else if (crossConfigLoaded()) {
+          <div class="empty-state">
+            <mat-icon class="empty-state__icon">link_off</mat-icon>
+            <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.EMPTY' | translate }}</p>
+            <p class="empty-state__hint">{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.EMPTY_HINT' | translate }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    @if (activeConfigTabId() === 'variables') {
+      <app-config-detail-variable-groups-section [canWrite]="canWrite()" [section]="variableGroupsSection" />
+    }
+
+    @if (isProjectMultiRepo() && activeConfigTabId() === 'git') {
+      @if (gitSection.viewModel(); as gitViewModel) {
+        <app-config-detail-git-section [viewModel]="gitViewModel" />
+      }
+    }
   }
 </div>

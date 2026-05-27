@@ -366,3 +366,9 @@ When modifying code and discovering the target zone has no tests:
 - **P2** � Validation runtime Karma � ex�cuter pour les 4 nouvelles primitives DS (ds-spinner, ds-progress-bar, ds-tag-input, ds-menu). Specs �crites mais non ex�cut�es (Karma non lanc� dans cette session).
 - **P3** � Specs Karma � ajouter pour DsMenuDirective (overlay open/close, backdrop click, aria-expanded toggle).
 
+## Front/UI Refresh Vague W8 � Finalisation DS (2026-05-27)
+
+- **P3** � N7 `app-ds-accordion` non impl�ment� (autoris� par utilisateur en vague finale). DNS validation panel (`resource-edit-custom-domains-section`) conserve `mat-expansion-panel` natif Material. Co�t cr�ation primitive vs unique usage non rentable. � cr�er si un 2e usage appara�t.
+- **P3** � `settings.component.scss` lignes 279�313 : palette `--bicep-syntax-*` (3 th�mes) dupliqu�e de `bicep-file-panel`. Refactor en partial SCSS partag� (`@use 'shared/bicep-syntax-palette' as bicep;`) report� pour �viter de toucher `bicep-file-panel` (hors scope audit). Trace : audit-design-system-2026-05-27 �3.17.
+- **P3** � `split-generation-switcher.component.scss` lignes 79�89 : `background: rgba(55,78,110,0.94)` et `rgba(43,83,86,0.94)` non tokenis�s (chips infra/code � couleurs sp�cifiques sans �quivalent DS exact). � �valuer cr�ation tokens `--ifs-chip-infra-bg` / `--ifs-chip-code-bg` si pattern se r�pand.
+

@@ -187,14 +187,13 @@
           </div>
 
           @if (!projectGenerationPanelCollapsed()) {
-            <mat-tab-group class="generation-tabs" animationDuration="200ms">
-              @for (tab of monoRepoTabs; track tab.id) {
-                <mat-tab>
-                  <ng-template mat-tab-label>
-                    <mat-icon class="tab-icon">{{ tab.tabIcon }}</mat-icon>
-                    <span>{{ tab.tabLabelKey | translate }}</span>
-                  </ng-template>
-
+            <app-ds-tabs
+              class="generation-tabs"
+              [tabs]="monoRepoDsTabs()"
+              [(activeTabId)]="activeMonoRepoTabId"
+              [ariaLabel]="'PROJECT_DETAIL.GENERATION.TABS_ARIA' | translate" />
+            @for (tab of monoRepoTabs; track tab.id) {
+              @if (activeMonoRepoTabId() === tab.id) {
                   <div class="generation-tab-content">
                     <div class="generation-tab-content__toolbar">
                       @if (tab.result() && !deferMonoRepoBatchReveal()) {
@@ -322,9 +321,8 @@
                       </div>
                     }
                   </div>
-                </mat-tab>
+                }
               }
-            </mat-tab-group>
           }
         }
       </section>

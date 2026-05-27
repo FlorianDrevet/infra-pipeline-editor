@@ -39,12 +39,12 @@
 
     <div class="mr-grid" [class.mr-grid--single]="!isBothMode()">
       @if (showsInfraCard()) {
-        <mat-card
+        <app-ds-card-mat
           class="mr-card mr-card--infra"
           [class.mr-card--ok]="infraResult()?.success === true"
           [class.mr-card--ko]="infraResult() && infraResult()!.success === false">
           @if (isBothMode()) {
-            <div class="mr-card__header">
+            <div ds-card-header class="mr-card__header">
               <div class="mr-card__icon-shell" aria-hidden="true">
                 <mat-icon>dns</mat-icon>
               </div>
@@ -54,10 +54,10 @@
               </div>
             </div>
           } @else {
-            <code class="mr-card__repository mr-card__repository--standalone" [matTooltip]="data.infraRepositoryLabel">{{ data.infraRepositoryLabel }}</code>
+            <code ds-card-header class="mr-card__repository mr-card__repository--standalone" [matTooltip]="data.infraRepositoryLabel">{{ data.infraRepositoryLabel }}</code>
           }
 
-          <div class="mr-card__content">
+          <div ds-card-content class="mr-card__content">
             @if (state() === 'pushing') {
               <div class="mr-card__state mr-card__state--loading">
                 <app-ds-spinner size="lg" />
@@ -135,16 +135,16 @@
               </form>
             }
           </div>
-        </mat-card>
+        </app-ds-card-mat>
       }
 
       @if (showsCodeCard()) {
-        <mat-card
+        <app-ds-card-mat
           class="mr-card mr-card--code"
           [class.mr-card--ok]="codeResult()?.success === true"
           [class.mr-card--ko]="codeResult() && codeResult()!.success === false">
           @if (isBothMode()) {
-            <div class="mr-card__header">
+            <div ds-card-header class="mr-card__header">
               <div class="mr-card__icon-shell" aria-hidden="true">
                 <mat-icon>code</mat-icon>
               </div>
@@ -154,10 +154,10 @@
               </div>
             </div>
           } @else {
-            <code class="mr-card__repository mr-card__repository--standalone" [matTooltip]="data.codeRepositoryLabel">{{ data.codeRepositoryLabel }}</code>
+            <code ds-card-header class="mr-card__repository mr-card__repository--standalone" [matTooltip]="data.codeRepositoryLabel">{{ data.codeRepositoryLabel }}</code>
           }
 
-          <div class="mr-card__content">
+          <div ds-card-content class="mr-card__content">
             @if (state() === 'pushing') {
               <div class="mr-card__state mr-card__state--loading">
                 <app-ds-spinner size="lg" />
@@ -235,7 +235,7 @@
               </form>
             }
           </div>
-        </mat-card>
+        </app-ds-card-mat>
       }
     </div>
   </mat-dialog-content>

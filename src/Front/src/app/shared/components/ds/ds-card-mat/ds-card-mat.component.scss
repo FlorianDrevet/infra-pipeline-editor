@@ -1,0 +1,81 @@
+// ============================================================================
+// app-ds-card-mat — N3 primitive (W7 — Cards Material migration)
+// Spec: audits/audit-design-system-2026-05-27.md §3.3 §4 W7
+// Replaces ad-hoc mat-card chains. Surface 2, subtle border, radius lg,
+// optional top accent stripe for non-neutral tones. Dark-only, tokens only.
+// ============================================================================
+
+:host {
+  display: block;
+}
+
+.ds-card-mat {
+  display: flex;
+  flex-direction: column;
+  background: var(--ifs-surface-2);
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-lg);
+  padding: 16px;
+  gap: 12px;
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard);
+
+  // --- Tones ---
+  &--tone-neutral { /* base style above */ }
+
+  &--tone-brand   { border-top: 2px solid var(--ifs-accent-500); }
+  &--tone-success { border-top: 2px solid var(--ifs-success); }
+  &--tone-warning { border-top: 2px solid var(--ifs-warning); }
+  &--tone-danger  { border-top: 2px solid var(--ifs-danger); }
+
+  &__title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--ifs-font-size-md, 14px);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--ifs-text-primary);
+  }
+
+  &__subtitle {
+    margin: 0;
+    font-size: var(--ifs-font-size-sm, 12px);
+    line-height: 1.4;
+    color: var(--ifs-text-secondary);
+  }
+
+  &__header {
+    &:empty {
+      display: none;
+    }
+  }
+
+  &__content {
+    flex: 1 1 auto;
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid var(--ifs-border-subtle);
+
+    &:empty {
+      display: none;
+      padding: 0;
+      border: none;
+    }
+  }
+}

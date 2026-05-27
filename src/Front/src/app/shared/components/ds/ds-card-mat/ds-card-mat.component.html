@@ -1,0 +1,24 @@
+<div [class]="classes()">
+  @if (hasTitleBlock()) {
+    <div class="ds-card-mat__title-block">
+      @if (title()) {
+        <h3 class="ds-card-mat__title">{{ title() }}</h3>
+      }
+      @if (subtitle()) {
+        <p class="ds-card-mat__subtitle">{{ subtitle() }}</p>
+      }
+    </div>
+  }
+
+  <div class="ds-card-mat__header">
+    <ng-content select="[ds-card-header]"></ng-content>
+  </div>
+
+  <div class="ds-card-mat__content">
+    <ng-content select="[ds-card-content]"></ng-content>
+  </div>
+
+  <div class="ds-card-mat__actions">
+    <ng-content select="[ds-card-actions]"></ng-content>
+  </div>
+</div>

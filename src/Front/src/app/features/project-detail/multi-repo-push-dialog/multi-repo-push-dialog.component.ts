@@ -5,9 +5,9 @@ import {
   DsAutocompleteComponent,
   DsAutocompleteOption,
   DsButtonComponent,
+  DsCardMatComponent,
   DsTextareaComponent,
 } from '../../../shared/components/ds';
-import { MatCardModule } from '@angular/material/card';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
@@ -92,7 +92,7 @@ const MULTI_REPO_PUSH_MODE_CONTENT: Record<MultiRepoPushMode, MultiRepoPushModeC
   selector: 'app-multi-repo-push-dialog',
   standalone: true,
   imports: [
-    MatCardModule,
+    DsCardMatComponent,
     MatDialogModule,
     MatIconModule,
     DsSpinnerComponent,

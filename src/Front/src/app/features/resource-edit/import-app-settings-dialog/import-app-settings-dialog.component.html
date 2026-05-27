@@ -118,12 +118,11 @@
         ></app-ds-text-field>
 
         <div class="board-toolbar__actions">
-          <mat-checkbox
-            [checked]="allSelected()"
-            (change)="toggleAll($event.checked)"
-          >
-            {{ 'RESOURCE_EDIT.IMPORT_APP_SETTINGS.SELECT_ALL' | translate }}
-          </mat-checkbox>
+          <app-ds-checkbox
+            [ngModel]="allSelected()"
+            (ngModelChange)="toggleAll($event)"
+            [ngModelOptions]="{ standalone: true }"
+            [label]="'RESOURCE_EDIT.IMPORT_APP_SETTINGS.SELECT_ALL' | translate" />
         </div>
       </div>
 
@@ -138,12 +137,12 @@
           >
             <!-- Row 1: checkbox + key name + source type -->
             <div class="board-entry__header">
-              <mat-checkbox
-                [checked]="entry.selected"
-                [disabled]="entry.status === 'duplicate'"
-                (change)="toggleEntry(i)"
+              <app-ds-checkbox
                 class="board-entry__check"
-              ></mat-checkbox>
+                [ngModel]="entry.selected"
+                (ngModelChange)="toggleEntry(i)"
+                [disabled]="entry.status === 'duplicate'"
+                [ngModelOptions]="{ standalone: true }" />
 
               <div class="board-entry__key-col">
                 <input
@@ -275,10 +274,10 @@
     <mat-dialog-content class="import-dialog__content">
       <!-- Progress bar -->
       <div class="import-progress">
-        <mat-progress-bar
-          [mode]="importFinished() ? 'determinate' : 'determinate'"
-          [value]="(importProgress() / importTotal()) * 100"
-        ></mat-progress-bar>
+        <app-ds-progress-bar
+          mode="determinate"
+          tone="brand"
+          [value]="(importProgress() / importTotal()) * 100" />
         <span class="import-progress__text">
           {{ importProgress() }} / {{ importTotal() }}
         </span>

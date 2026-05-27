@@ -18,25 +18,14 @@
           </div>
 
           @if (section().switchableIdentities().length > 0) {
-            <button
-              class="ra-add-btn ra-add-btn--switch"
-              [matMenuTriggerFor]="assignUaiMenu"
-              [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_UAI_TOOLTIP' | translate">
-              <mat-icon>swap_horiz</mat-icon>
+            <app-ds-button
+              variant="ghost"
+              icon="swap_horiz"
+              [appDsMenu]="switchUaiMenuItems()"
+              [appDsTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_UAI_TOOLTIP' | translate"
+              (itemSelected)="onAssignUaiSelected($event)">
               {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_UAI' | translate }}
-            </button>
-
-            <mat-menu #assignUaiMenu="matMenu" class="ra-uai-assign-menu">
-              @for (identity of section().switchableIdentities(); track identity.id) {
-                <button mat-menu-item (click)="section().assignUaiToResource(identity.id)">
-                  <mat-icon>person</mat-icon>
-                  <div class="ra-uai-assign-menu__label">
-                    <span class="ra-uai-assign-menu__name">{{ identity.name }}</span>
-                    <span class="ra-uai-assign-menu__type">User Assigned Identity</span>
-                  </div>
-                </button>
-              }
-            </mat-menu>
+            </app-ds-button>
           }
 
           <app-ds-button
@@ -48,22 +37,13 @@
           </app-ds-button>
         </div>
       } @else if (section().availableUserAssignedIdentities().length > 0) {
-        <button class="ra-add-btn ra-add-btn--uai" [matMenuTriggerFor]="assignUaiMenu">
-          <mat-icon>person_add</mat-icon>
+        <app-ds-button
+          variant="ghost"
+          icon="person_add"
+          [appDsMenu]="assignUaiMenuItems()"
+          (itemSelected)="onAssignUaiSelected($event)">
           {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ASSIGN_UAI' | translate }}
-        </button>
-
-        <mat-menu #assignUaiMenu="matMenu" class="ra-uai-assign-menu">
-          @for (identity of section().availableUserAssignedIdentities(); track identity.id) {
-            <button mat-menu-item (click)="section().assignUaiToResource(identity.id)">
-              <mat-icon>person</mat-icon>
-              <div class="ra-uai-assign-menu__label">
-                <span class="ra-uai-assign-menu__name">{{ identity.name }}</span>
-                <span class="ra-uai-assign-menu__type">User Assigned Identity</span>
-              </div>
-            </button>
-          }
-        </mat-menu>
+        </app-ds-button>
       }
     </div>
   }
@@ -145,35 +125,14 @@
                     }
 
                     @if (canWrite()) {
-                      <button
-                        class="ra-card__action-btn ra-card__action-btn--switch"
-                        [matMenuTriggerFor]="childIdentityMenu"
-                        [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_IDENTITY' | translate">
-                        <mat-icon>swap_horiz</mat-icon>
-                      </button>
-
-                      <mat-menu #childIdentityMenu="matMenu" class="ra-identity-menu">
-                        <button
-                          mat-menu-item
-                          [disabled]="section().roleRequiresUserAssignedIdentity(assignment.roleDefinitionId)"
-                          (click)="section().switchToSystemAssigned(assignment)">
-                          <mat-icon>fingerprint</mat-icon>
-                          <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_TO_SYSTEM' | translate }}</span>
-                        </button>
-
-                        @for (identity of section().availableUserAssignedIdentities(); track identity.id) {
-                          <button
-                            mat-menu-item
-                            [disabled]="identity.id === assignment.userAssignedIdentityId"
-                            (click)="section().switchToUserAssignedIdentity(assignment, identity.id)">
-                            <mat-icon>person</mat-icon>
-                            <span>{{ identity.name }}</span>
-                            @if (identity.id === assignment.userAssignedIdentityId) {
-                              <mat-icon class="ra-identity-menu__current">check</mat-icon>
-                            }
-                          </button>
-                        }
-                      </mat-menu>
+                      <app-ds-icon-button
+                        icon="swap_horiz"
+                        variant="neutral"
+                        size="sm"
+                        [ariaLabel]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_IDENTITY' | translate"
+                        [tooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_IDENTITY' | translate"
+                        [appDsMenu]="buildChildIdentityMenuItems(assignment)"
+                        (itemSelected)="onChildIdentitySelected($event, assignment)" />
 
                       <app-ds-icon-button
                         icon="close"
@@ -226,21 +185,14 @@
 
             @if (canWrite()) {
               @if (section().availableUserAssignedIdentities().length > 0) {
-                <button
-                  class="ra-card__action-btn ra-card__action-btn--assign"
-                  [matMenuTriggerFor]="sysAssignIdentityMenu"
-                  [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ASSIGN_USER_IDENTITY' | translate">
-                  <mat-icon>person_add</mat-icon>
-                </button>
-
-                <mat-menu #sysAssignIdentityMenu="matMenu" class="ra-identity-menu">
-                  @for (identity of section().availableUserAssignedIdentities(); track identity.id) {
-                    <button mat-menu-item (click)="section().switchToUserAssignedIdentity(assignment, identity.id)">
-                      <mat-icon>person</mat-icon>
-                      <span>{{ identity.name }}</span>
-                    </button>
-                  }
-                </mat-menu>
+                <app-ds-icon-button
+                  icon="person_add"
+                  variant="neutral"
+                  size="sm"
+                  [ariaLabel]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ASSIGN_USER_IDENTITY' | translate"
+                  [tooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ASSIGN_USER_IDENTITY' | translate"
+                  [appDsMenu]="buildSystemAssignMenuItems()"
+                  (itemSelected)="onSystemAssignIdentitySelected($event, assignment)" />
               }
 
               <app-ds-icon-button

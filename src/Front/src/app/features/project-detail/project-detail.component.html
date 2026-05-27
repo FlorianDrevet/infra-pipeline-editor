@@ -35,26 +35,70 @@
       </div>
     </section>
 
-    <mat-tab-group class="project-tabs" animationDuration="200ms" [selectedIndex]="selectedTabIndex()" (selectedTabChange)="onTabChange($event.index)">
-      <!-- Configurations -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">settings</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.TABS.CONFIGURATIONS' | translate }}</span>
-          <span class="tab-count">{{ configs().length }}</span>
-        </ng-template>
-        <div class="tab-content">
-          <div class="tab-content__toolbar">
-            <!-- Navigate to Generation Board -->
-            @if (canWrite()) {
-              <app-ds-button
-                variant="primary"
-                icon="rocket_launch"
-                (clicked)="navigateToGenerate()">
-                {{ 'PROJECT_DETAIL.GENERATE_ALL.BUTTON' | translate }}
-              </app-ds-button>
-            }
+    <app-ds-tabs
+      class="project-tabs"
+      [tabs]="projectDetailTabs()"
+      [activeTabId]="activeProjectTabId()"
+      [ariaLabel]="'PROJECT_DETAIL.TABS.ARIA' | translate"
+      (tabChange)="onProjectTabIdChange($event)" />
 
+    @if (activeProjectTabId() === 'overview') {
+      <div class="tab-content">
+        <div class="tab-content__toolbar">
+          <!-- Navigate to Generation Board -->
+          @if (canWrite()) {
+            <app-ds-button
+              variant="primary"
+              icon="rocket_launch"
+              (clicked)="navigateToGenerate()">
+              {{ 'PROJECT_DETAIL.GENERATE_ALL.BUTTON' | translate }}
+            </app-ds-button>
+          }
+
+          @if (canWrite()) {
+            <app-ds-button
+              variant="primary"
+              icon="add_circle_outline"
+              (clicked)="openAddConfigDialog()">
+              {{ 'PROJECT_DETAIL.CONFIGS.ADD' | translate }}
+            </app-ds-button>
+          }
+        </div>
+
+        @if (configErrorKey()) {
+          <p class="action-error">{{ configErrorKey() | translate }}</p>
+        }
+
+        @if (configs().length > 0) {
+          <div class="config-list">
+            @for (config of configs(); track config.id) {
+              <a class="config-card" [routerLink]="['/config', config.id]">
+                <div class="config-card__header">
+                  <div class="config-card__title">
+                    <h3>{{ config.name }}</h3>
+                    <mat-icon class="config-card__arrow">chevron_right</mat-icon>
+                  </div>
+                </div>
+                <div class="config-card__meta">
+                  <span>{{ 'PROJECT_DETAIL.CONFIGS.RESOURCE_GROUPS' | translate: { count: config.resourceGroupCount } }}</span>
+                  <span>{{ 'PROJECT_DETAIL.CONFIGS.RESOURCES' | translate: { count: config.resourceCount } }}</span>
+                </div>
+                @if (isOwner()) {
+                  <app-ds-icon-button
+                    class="config-card__delete-btn"
+                    icon="delete_outline"
+                    variant="danger"
+                    [tooltip]="'PROJECT_DETAIL.DELETE_CONFIG.BUTTON' | translate"
+                    [ariaLabel]="'PROJECT_DETAIL.DELETE_CONFIG.BUTTON' | translate"
+                    (clicked)="$event.preventDefault(); $event.stopPropagation(); openDeleteConfigDialog(config)" />
+                }
+              </a>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <mat-icon class="empty-state__icon">settings</mat-icon>
+            <p>{{ 'PROJECT_DETAIL.CONFIGS.EMPTY' | translate }}</p>
             @if (canWrite()) {
               <app-ds-button
                 variant="primary"
@@ -64,117 +108,46 @@
               </app-ds-button>
             }
           </div>
+        }
+      </div>
+    }
 
-          @if (configErrorKey()) {
-            <p class="action-error">{{ configErrorKey() | translate }}</p>
-          }
+    @if (activeProjectTabId() === 'environments') {
+      <div class="tab-content">
+        <app-project-detail-environments-section
+          [environments]="sortedEnvironments()"
+          [canWrite]="canWrite()"
+          [actionId]="envActionId()"
+          [errorKey]="envErrorKey()"
+          (addEnvironment)="openAddEnvironmentDialog()"
+          (editEnvironment)="openAddEnvironmentDialog($event)"
+          (removeEnvironment)="openRemoveEnvironmentDialog($event)" />
+      </div>
+    }
 
-          @if (configs().length > 0) {
-            <div class="config-list">
-              @for (config of configs(); track config.id) {
-                <a class="config-card" [routerLink]="['/config', config.id]">
-                  <div class="config-card__header">
-                    <div class="config-card__title">
-                      <h3>{{ config.name }}</h3>
-                      <mat-icon class="config-card__arrow">chevron_right</mat-icon>
-                    </div>
-                  </div>
-                  <div class="config-card__meta">
-                    <span>{{ 'PROJECT_DETAIL.CONFIGS.RESOURCE_GROUPS' | translate: { count: config.resourceGroupCount } }}</span>
-                    <span>{{ 'PROJECT_DETAIL.CONFIGS.RESOURCES' | translate: { count: config.resourceCount } }}</span>
-                  </div>
-                  @if (isOwner()) {
-                    <app-ds-icon-button
-                      class="config-card__delete-btn"
-                      icon="delete_outline"
-                      variant="danger"
-                      [tooltip]="'PROJECT_DETAIL.DELETE_CONFIG.BUTTON' | translate"
-                      [ariaLabel]="'PROJECT_DETAIL.DELETE_CONFIG.BUTTON' | translate"
-                      (clicked)="$event.preventDefault(); $event.stopPropagation(); openDeleteConfigDialog(config)" />
-                  }
-                </a>
-              }
-            </div>
-          } @else {
-            <div class="empty-state">
-              <mat-icon class="empty-state__icon">settings</mat-icon>
-              <p>{{ 'PROJECT_DETAIL.CONFIGS.EMPTY' | translate }}</p>
-              @if (canWrite()) {
-                <app-ds-button
-                  variant="primary"
-                  icon="add_circle_outline"
-                  (clicked)="openAddConfigDialog()">
-                  {{ 'PROJECT_DETAIL.CONFIGS.ADD' | translate }}
-                </app-ds-button>
-              }
-            </div>
-          }
-        </div>
-      </mat-tab>
+    @if (activeProjectTabId() === 'naming') {
+      <div class="tab-content">
+        <app-project-detail-naming-section
+          [project]="project()"
+          [canWrite]="canWrite()"
+          (projectChange)="onProjectChange($event)" />
+      </div>
+    }
 
-      <!-- Environments -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">cloud_queue</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.TABS.ENVIRONMENTS' | translate }}</span>
-          <span class="tab-count">{{ project()!.environmentDefinitions.length }}</span>
-        </ng-template>
-        <div class="tab-content">
-          <app-project-detail-environments-section
-            [environments]="sortedEnvironments()"
-            [canWrite]="canWrite()"
-            [actionId]="envActionId()"
-            [errorKey]="envErrorKey()"
-            (addEnvironment)="openAddEnvironmentDialog()"
-            (editEnvironment)="openAddEnvironmentDialog($event)"
-            (removeEnvironment)="openRemoveEnvironmentDialog($event)" />
-        </div>
-      </mat-tab>
+    @if (activeProjectTabId() === 'tags') {
+      <div class="tab-content">
+        <app-project-detail-tags-section
+          [project]="project()"
+          [canWrite]="canWrite()" />
+      </div>
+    }
 
-      <!-- Naming Templates -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">label</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.TABS.NAMING_TEMPLATES' | translate }}</span>
-          <span class="tab-count">{{ project()!.resourceNamingTemplates.length }}</span>
-        </ng-template>
-        <div class="tab-content">
-          <app-project-detail-naming-section
-            [project]="project()"
-            [canWrite]="canWrite()"
-            (projectChange)="onProjectChange($event)" />
-        </div>
-      </mat-tab>
-
-      <!-- Members tab removed — now at /projects/:id/members -->
-
-      <!-- Tags -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">label_important</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.TABS.TAGS' | translate }}</span>
-          <span class="tab-count">{{ project()!.tags.length }}</span>
-        </ng-template>
-        <div class="tab-content">
-          <app-project-detail-tags-section
-            [project]="project()"
-            [canWrite]="canWrite()" />
-        </div>
-      </mat-tab>
-
-      <!-- Pipeline Variable Groups -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">library_books</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.TABS.PIPELINE_VARIABLES' | translate }}</span>
-        </ng-template>
-        <div class="tab-content">
-          <app-project-detail-variable-groups-section
-            [project]="project()"
-            [canWrite]="canWrite()" />
-        </div>
-      </mat-tab>
-
-    </mat-tab-group>
+    @if (activeProjectTabId() === 'variables') {
+      <div class="tab-content">
+        <app-project-detail-variable-groups-section
+          [project]="project()"
+          [canWrite]="canWrite()" />
+      </div>
+    }
   }
 </div>

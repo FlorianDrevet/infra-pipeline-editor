@@ -596,11 +596,11 @@
             </div>
 
             <div class="sensitive-confirm-checkbox">
-              <mat-checkbox
+              <app-ds-checkbox
                 [ngModel]="sensitiveDirectConfirmed()"
-                (ngModelChange)="sensitiveDirectConfirmed.set($event)">
-                {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_DIRECT_CONFIRM' | translate }}
-              </mat-checkbox>
+                (ngModelChange)="sensitiveDirectConfirmed.set($event)"
+                [ngModelOptions]="{ standalone: true }"
+                [label]="'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_DIRECT_CONFIRM' | translate" />
             </div>
           </div>
         }

@@ -2,16 +2,20 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DsButtonComponent, DsPanelActionButtonComponent } from '../../../shared/components/ds';
+import { DsTabsComponent } from '../../../shared/components/ds/ds-tabs/ds-tabs.component';
+import type { DsTabDefinition } from '../../../shared/components/ds/ds-tabs/ds-tabs.types';
+import { LanguageService } from '../../../shared/services/language.service';
 import { BootstrapSetupGuideComponent } from '../bootstrap-setup-guide/bootstrap-setup-guide.component';
 import {
   GenerateProjectBicepResponse,
@@ -41,10 +45,10 @@ import { sortHierarchicalEntries } from '../project-detail-tree-ordering.helper'
     MatChipsModule,
     MatIconModule,
     DsSpinnerComponent,
-    MatTabsModule,
     MatTooltipModule,
     DsButtonComponent,
     DsPanelActionButtonComponent,
+    DsTabsComponent,
     BicepFilePanelComponent,
     BootstrapSetupGuideComponent,
   ],
@@ -82,6 +86,65 @@ export class SplitGenerationSwitcherComponent {
 
   readonly isDownloadingInfraZip = input<boolean>(false);
   readonly isDownloadingCodeZip = input<boolean>(false);
+
+  private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
+
+  // ─── DS tabs state ───
+  protected readonly activeOuterTabId = signal<'infra' | 'code'>('infra');
+  protected readonly activeInfraInnerTabId = signal<'bicep' | 'pipeline' | 'bootstrap'>('bicep');
+  protected readonly activeCodeInnerTabId = signal<'pipeline' | 'bootstrap'>('pipeline');
+
+  protected readonly outerTabs = computed<readonly DsTabDefinition[]>(() => {
+    this.languageService.currentLanguage();
+    return [
+      {
+        id: 'infra',
+        label: this.translate.instant('PROJECT_DETAIL.SWITCHER.INFRA_TAB'),
+        icon: 'dns',
+        badge: String(this.visibleInfraFileCount()),
+      },
+      {
+        id: 'code',
+        label: this.translate.instant('PROJECT_DETAIL.SWITCHER.CODE_TAB'),
+        icon: 'code',
+        badge: String(this.visibleCodeFileCount()),
+      },
+    ];
+  });
+
+  protected readonly infraInnerTabs = computed<readonly DsTabDefinition[]>(() => {
+    this.languageService.currentLanguage();
+    return [
+      { id: 'bicep', label: this.translate.instant('PROJECT_DETAIL.GENERATION.TAB_BICEP'), icon: 'terminal' },
+      { id: 'pipeline', label: this.translate.instant('PROJECT_DETAIL.GENERATION.TAB_PIPELINE'), icon: 'account_tree' },
+      { id: 'bootstrap', label: this.translate.instant('PROJECT_DETAIL.GENERATION.TAB_BOOTSTRAP_APP'), icon: 'rocket_launch' },
+    ];
+  });
+
+  protected readonly codeInnerTabs = computed<readonly DsTabDefinition[]>(() => {
+    this.languageService.currentLanguage();
+    return [
+      { id: 'pipeline', label: this.translate.instant('PROJECT_DETAIL.GENERATION.TAB_PIPELINE'), icon: 'account_tree' },
+      { id: 'bootstrap', label: this.translate.instant('PROJECT_DETAIL.GENERATION.TAB_BOOTSTRAP'), icon: 'rocket_launch' },
+    ];
+  });
+
+  protected onOuterTabChange(tabId: string): void {
+    if (tabId === 'infra' || tabId === 'code') this.activeOuterTabId.set(tabId);
+  }
+
+  protected onInfraInnerTabChange(tabId: string): void {
+    if (tabId === 'bicep' || tabId === 'pipeline' || tabId === 'bootstrap') {
+      this.activeInfraInnerTabId.set(tabId);
+    }
+  }
+
+  protected onCodeInnerTabChange(tabId: string): void {
+    if (tabId === 'pipeline' || tabId === 'bootstrap') {
+      this.activeCodeInnerTabId.set(tabId);
+    }
+  }
 
   // ─── File counts (for badges) ───
   protected readonly infraFileCount = computed(() => {

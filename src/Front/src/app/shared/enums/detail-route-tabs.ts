@@ -83,3 +83,48 @@ export function getConfigDetailTabQuery(index: number): ConfigDetailRouteTab | n
       return null;
   }
 }
+
+/**
+ * Tab identifiers used by ds-tabs for config-detail. The first entry is the
+ * default tab when no `?tab=` query parameter is present.
+ */
+export const CONFIG_DETAIL_TAB_IDS = [
+  'resource-groups',
+  'tags',
+  'naming',
+  'cross-config-refs',
+  'variables',
+  'git',
+] as const;
+
+export type ConfigDetailTabId = (typeof CONFIG_DETAIL_TAB_IDS)[number];
+
+export function getConfigDetailTabIdFromQuery(tab: string | null): ConfigDetailTabId {
+  return CONFIG_DETAIL_TAB_IDS[getConfigDetailTabIndex(tab)];
+}
+
+export function getConfigDetailQueryFromTabId(tabId: ConfigDetailTabId): ConfigDetailRouteTab | null {
+  return getConfigDetailTabQuery(CONFIG_DETAIL_TAB_IDS.indexOf(tabId));
+}
+
+/**
+ * Project detail tab identifiers used by ds-tabs. First entry is the default
+ * tab when no `?tab=` query parameter is present.
+ */
+export const PROJECT_DETAIL_TAB_IDS = [
+  'overview',
+  'environments',
+  'naming',
+  'tags',
+  'variables',
+] as const;
+
+export type ProjectDetailTabId = (typeof PROJECT_DETAIL_TAB_IDS)[number];
+
+export function getProjectDetailTabIdFromQuery(tab: string | null): ProjectDetailTabId {
+  return PROJECT_DETAIL_TAB_IDS[getProjectDetailTabIndex(tab)];
+}
+
+export function getProjectDetailQueryFromTabId(tabId: ProjectDetailTabId): ProjectDetailRouteTab | null {
+  return getProjectDetailTabQuery(PROJECT_DETAIL_TAB_IDS.indexOf(tabId));
+}

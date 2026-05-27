@@ -305,93 +305,6 @@
   border: 1px solid var(--project-border-accent);
   box-shadow: var(--ifs-shadow-sm);
   overflow: hidden;
-
-  ::ng-deep .mat-mdc-tab-header {
-    border-bottom: 1px solid var(--project-border-accent);
-    background: color-mix(in srgb, var(--ifs-surface-2) 82%, var(--ifs-brand-700));
-    padding: 0 var(--ifs-space-8);
-  }
-
-  ::ng-deep .mat-mdc-tab {
-    min-width: 0;
-    padding: 0 var(--ifs-space-16);
-    height: 44px;
-    opacity: 1;
-    margin-top: var(--ifs-space-6);
-    border-radius: var(--ifs-radius-md) var(--ifs-radius-md) 0 0;
-    transition: background-color var(--ifs-duration-fast) var(--ifs-ease-standard), box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
-  }
-
-  ::ng-deep .mat-mdc-tab:hover {
-    background: var(--project-surface-hover);
-  }
-
-  ::ng-deep .mdc-tab__text-label {
-    display: flex;
-    align-items: center;
-    gap: var(--ifs-space-6);
-    color: var(--ifs-text-secondary);
-    font-weight: 500;
-    font-size: 13px;
-    transition: color var(--ifs-duration-fast) var(--ifs-ease-standard);
-  }
-
-  ::ng-deep .mat-mdc-tab:hover .mdc-tab__text-label {
-    color: var(--ifs-text-primary);
-  }
-
-  ::ng-deep .mdc-tab--active {
-    background: var(--project-surface-active);
-    box-shadow: inset 0 0 0 1px var(--project-border-accent);
-  }
-
-  ::ng-deep .mdc-tab--active .mdc-tab__text-label {
-    color: var(--ifs-text-primary);
-  }
-
-  ::ng-deep .mdc-tab--active .tab-icon {
-    color: var(--ifs-accent-400);
-  }
-
-  ::ng-deep .mdc-tab--active .tab-count {
-    background: var(--project-pill-active);
-    border-color: var(--project-border-strong);
-    color: var(--ifs-text-primary);
-  }
-
-  ::ng-deep .mdc-tab-indicator__content--underline {
-    border-color: var(--ifs-accent-500);
-    border-width: 2px;
-  }
-}
-
-.tab-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-}
-
-.tab-warning-icon {
-  font-size: 14px;
-  width: 14px;
-  height: 14px;
-  color: var(--ifs-warning);
-  margin-left: 4px;
-}
-
-.tab-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 16px;
-  padding: 0 var(--ifs-space-4);
-  border-radius: var(--ifs-radius-pill);
-  background: var(--project-pill-surface);
-  border: 1px solid var(--project-border-accent);
-  color: var(--ifs-text-secondary);
-  font-size: 11px;
-  font-weight: 600;
 }
 
 .tab-content {
@@ -1700,20 +1613,6 @@
 
 // ─── Storage Services ───────────────────────────────────────────────────────
 
-.storage-sub-tabs {
-  ::ng-deep .mat-mdc-tab-header {
-    background: var(--ifs-surface-2);
-    border-bottom: 1px solid var(--ifs-border-subtle);
-    padding: 0 var(--ifs-space-4);
-  }
-
-  ::ng-deep .mat-mdc-tab {
-    min-width: 0;
-    padding: 0 var(--ifs-space-12);
-    height: 36px;
-  }
-}
-
 .storage-services-panel {
   padding: var(--ifs-space-16) var(--ifs-space-8);
   display: flex;
@@ -2354,34 +2253,8 @@
 }
 
 .password-mode-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ifs-space-8);
+  display: block;
   margin-bottom: var(--ifs-space-16);
-}
-
-.password-mode-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.password-mode-label {
-  font-weight: 500;
-  font-size: 14px;
-  color: var(--ifs-text-primary);
-}
-
-.password-mode-hint {
-  font-size: 12px;
-  color: var(--ifs-text-muted);
-  line-height: 1.5;
-}
-
-.password-mode-option {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--ifs-space-8);
 }
 
 .vg-config-section {

@@ -16,8 +16,8 @@
 
     <!-- Add Form (inline) -->
     @if (showAddForm()) {
-      <mat-card class="networking-tab__add-form">
-        <mat-card-content>
+      <app-ds-card-mat class="networking-tab__add-form">
+        <div ds-card-content>
           <div class="add-form-grid">
             <div class="add-form-field">
               <label class="add-form-label" for="pe-subnet-id">{{ 'RESOURCE_EDIT.NETWORKING.SUBNET' | translate }}</label>
@@ -48,8 +48,8 @@
               {{ 'RESOURCE_EDIT.NETWORKING.ADD_PE' | translate }}
             </button>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </app-ds-card-mat>
     }
 
     <!-- Loading state -->
@@ -71,8 +71,8 @@
       <!-- Endpoint list -->
       <div class="networking-tab__list">
         @for (pe of endpoints(); track pe.id) {
-          <mat-card class="pe-card">
-            <mat-card-content>
+          <app-ds-card-mat class="pe-card">
+            <div ds-card-content>
               <div class="pe-card__row">
                 <span class="pe-card__label">{{ 'RESOURCE_EDIT.NETWORKING.SUBNET' | translate }}</span>
                 <code class="pe-card__value">{{ pe.subnetId }}</code>
@@ -110,8 +110,8 @@
                   }
                 </button>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </app-ds-card-mat>
         }
       </div>
     }

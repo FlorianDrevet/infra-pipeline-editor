@@ -22,13 +22,11 @@
     </div>
 
     @if (!viewModel().isCollapsed) {
-      <mat-tab-group class="generation-tabs" animationDuration="200ms">
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">terminal</mat-icon>
-            <span>{{ 'CONFIG_DETAIL.GENERATION.TAB_BICEP' | translate }}</span>
-          </ng-template>
-
+      <app-ds-tabs
+        class="generation-tabs"
+        [tabs]="generationTabs()"
+        [(activeTabId)]="activeGenerationTabId" />
+      @if (activeGenerationTabId() === TAB_BICEP) {
           <div class="generation-tab-content">
             <div class="generation-tab-content__toolbar">
               @if (viewModel().bicepResult) {
@@ -104,14 +102,8 @@
               </app-bicep-file-panel>
             }
           </div>
-        </mat-tab>
-
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">account_tree</mat-icon>
-            <span>{{ 'CONFIG_DETAIL.GENERATION.TAB_PIPELINE' | translate }}</span>
-          </ng-template>
-
+      }
+      @if (activeGenerationTabId() === TAB_PIPELINE) {
           <div class="generation-tab-content">
             <div class="generation-tab-content__toolbar">
               @if (viewModel().pipelineResult) {
@@ -173,8 +165,7 @@
               <p class="generation-empty">{{ 'CONFIG_DETAIL.PIPELINE.NO_FILES' | translate }}</p>
             }
           </div>
-        </mat-tab>
-      </mat-tab-group>
+      }
     }
   </section>
 }

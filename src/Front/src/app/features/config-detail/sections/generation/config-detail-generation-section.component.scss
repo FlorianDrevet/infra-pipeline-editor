@@ -62,48 +62,6 @@
   border: 1px solid var(--ifs-border-subtle);
   border-radius: var(--ifs-radius-md);
   overflow: hidden;
-
-  ::ng-deep .mat-mdc-tab-header {
-    border-bottom: 1px solid var(--ifs-border-subtle);
-    background: var(--ifs-surface-2);
-    padding: 0 var(--ifs-space-8);
-  }
-
-  ::ng-deep .mat-mdc-tab {
-    min-width: 0;
-    padding: 0 var(--ifs-space-12);
-    height: 40px;
-    opacity: 1;
-  }
-
-  ::ng-deep .mdc-tab__text-label {
-    display: flex;
-    align-items: center;
-    gap: var(--ifs-space-6);
-    color: var(--ifs-text-secondary);
-    font-weight: 500;
-    font-size: 13px;
-  }
-
-  ::ng-deep .mdc-tab--active .mdc-tab__text-label {
-    color: var(--ifs-text-primary);
-  }
-
-  ::ng-deep .mdc-tab-indicator__content--underline {
-    border-color: var(--ifs-accent-500);
-    border-width: 2px;
-  }
-
-  ::ng-deep .mat-mdc-tab-body-content {
-    overflow: visible;
-  }
-}
-
-.tab-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  color: inherit;
 }
 
 .generation-tab-content {

@@ -410,10 +410,14 @@
           </app-ds-button>
         </div>
       }
-      <mat-tab-group (selectedIndexChange)="onTabChange($event)" class="env-tabs">
-        @for (env of environments; track env.name; let i = $index) {
-          <mat-tab [label]="env.name">
-            @switch (selectedType()) {
+      <app-ds-tabs
+        class="env-tabs"
+        [tabs]="envTabs"
+        [(activeTabId)]="activeEnvTabId"
+        (tabChange)="onEnvTabChange($event)" />
+      @for (env of environments; track env.name; let i = $index) {
+        @if (activeEnvTabId() === env.name) {
+          @switch (selectedType()) {
               @case (ResourceTypeEnum.KeyVault) {
                 <div [formGroup]="getEnvFormGroup(i)" class="env-form">
                   <app-ds-select
@@ -731,10 +735,9 @@
                   <app-ds-toggle formControlName="zoneRedundancy" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANCY' | translate"></app-ds-toggle>
                 </div>
               }
-            }
-          </mat-tab>
+          }
         }
-      </mat-tab-group>
+      }
     }
   }
 

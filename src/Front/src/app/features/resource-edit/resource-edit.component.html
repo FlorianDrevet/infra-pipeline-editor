@@ -59,16 +59,14 @@
         <span>{{ 'RESOURCE_EDIT.EXISTING_RESOURCE_INFO' | translate }}</span>
       </div>
     }
-    <mat-tab-group class="resource-tabs" animationDuration="200ms" [selectedIndex]="mainTabIndex()" (selectedIndexChange)="mainTabIndex.set($event)">
+    <app-ds-tabs class="resource-tabs"
+                 [tabs]="mainTabs()"
+                 [activeTabId]="activeMainTabId()"
+                 (tabChange)="onMainTabChange($event)"
+                 [ariaLabel]="'RESOURCE_EDIT.TABS.ARIA' | translate" />
+
       <!-- General Tab -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">settings</mat-icon>
-          <span>{{ 'RESOURCE_EDIT.TABS.GENERAL' | translate }}</span>
-          @if (generalTabHasWarning()) {
-            <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ROLE' | translate">warning</mat-icon>
-          }
-        </ng-template>
+      @if (activeMainTabId() === 'general') {
         <div class="tab-content">
           <form [formGroup]="generalForm" class="general-form">
             <!-- Common fields -->
@@ -343,20 +341,13 @@
                 </div>
                 <p class="form-section__description">{{ 'RESOURCE_EDIT.SECURE_PARAM.DESCRIPTION' | translate }}</p>
 
-                <mat-radio-group [ngModel]="passwordMode()" (ngModelChange)="passwordMode.set($event)" [ngModelOptions]="{standalone: true}" class="password-mode-group">
-                  <mat-radio-button value="random" class="password-mode-option">
-                    <div class="password-mode-content">
-                      <span class="password-mode-label">{{ 'RESOURCE_EDIT.SECURE_PARAM.RANDOM' | translate }}</span>
-                      <span class="password-mode-hint">{{ 'RESOURCE_EDIT.SECURE_PARAM.RANDOM_HINT' | translate }}</span>
-                    </div>
-                  </mat-radio-button>
-                  <mat-radio-button value="variableGroup" class="password-mode-option">
-                    <div class="password-mode-content">
-                      <span class="password-mode-label">{{ 'RESOURCE_EDIT.SECURE_PARAM.FROM_VARIABLE_GROUP' | translate }}</span>
-                      <span class="password-mode-hint">{{ 'RESOURCE_EDIT.SECURE_PARAM.FROM_VARIABLE_GROUP_HINT' | translate }}</span>
-                    </div>
-                  </mat-radio-button>
-                </mat-radio-group>
+                <app-ds-radio-group
+                  class="password-mode-group"
+                  name="sqlPasswordMode"
+                  [options]="passwordModeOptions()"
+                  [ngModel]="passwordMode()"
+                  (ngModelChange)="passwordMode.set($event)"
+                  [ngModelOptions]="{ standalone: true }" />
 
                 @if (passwordMode() === 'variableGroup') {
                   <div class="vg-config-section">
@@ -490,19 +481,10 @@
 
           </form>
         </div>
-      </mat-tab>
+      }
 
       <!-- Environment Configuration Tab (hidden for UserAssignedIdentity and existing resources) -->
-      @if (!isUserAssignedIdentity() && !isExistingResource()) {
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">cloud_queue</mat-icon>
-          <span>{{ 'RESOURCE_EDIT.TABS.ENVIRONMENTS' | translate }}</span>
-          <span class="tab-count">{{ environments().length }}</span>
-          @if (environmentsTabHasWarning()) {
-            <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ENV_CONFIG' | translate">warning</mat-icon>
-          }
-        </ng-template>
+      @if (!isUserAssignedIdentity() && !isExistingResource() && activeMainTabId() === 'environments') {
         <div class="tab-content">
           @if (environments().length === 0) {
             <div class="empty-state">
@@ -1114,67 +1096,42 @@
             }
           }
         </div>
-      </mat-tab>
       }
 
       <!-- Identity & Access Tab (hidden for UserAssignedIdentity) -->
-      @if (!isUserAssignedIdentity()) {
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">security</mat-icon>
-          <span>{{ 'RESOURCE_EDIT.TABS.IDENTITY_ACCESS' | translate }}</span>
-          @if (identityAccessSection.roleAssignments().length > 0) {
-            <span class="tab-count">{{ identityAccessSection.roleAssignments().length }}</span>
-          }
-        </ng-template>
+      @if (!isUserAssignedIdentity() && activeMainTabId() === 'identity-access') {
         <app-resource-edit-role-assignments-section
           [canWrite]="canWrite()"
           [configId]="configId"
           [section]="identityAccessSection">
         </app-resource-edit-role-assignments-section>
-      </mat-tab>
       }
 
       <!-- Networking Tab (PE-supported resources only) -->
-      @if (supportsNetworking()) {
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">lan</mat-icon>
-          <span>{{ 'RESOURCE_EDIT.TABS.NETWORKING' | translate }}</span>
-        </ng-template>
+      @if (supportsNetworking() && activeMainTabId() === 'networking') {
         <div class="tab-content">
           <app-networking-tab
             [resourceId]="resource()!.id"
             [resourceType]="resourceType" />
         </div>
-      </mat-tab>
       }
 
       <!-- Storage Services Tab (StorageAccount only) / App Configuration Tab (others) -->
-      @if (isStorageAccount()) {
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">storage</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.STORAGE_SERVICES' | translate }}</span>
-            <span class="tab-count">{{ storageBlobContainers().length + storageQueues().length + storageTables().length }}</span>
-          </ng-template>
-          <div class="tab-content">
+      @if (isStorageAccount() && activeMainTabId() === 'storage') {
+        <div class="tab-content">
             @if (storageActionError()) {
               <div class="feedback-banner feedback-banner--error" role="alert">
                 <mat-icon>error_outline</mat-icon>
                 {{ storageActionError() | translate }}
               </div>
             }
-            <mat-tab-group class="storage-sub-tabs" animationDuration="150ms"
-              [selectedIndex]="storageSubTabIndex()"
-              (selectedIndexChange)="storageSubTabIndex.set($event)">
+            <app-ds-tabs class="storage-sub-tabs"
+                         [tabs]="storageSubTabs()"
+                         [activeTabId]="activeStorageSubTabId()"
+                         (tabChange)="onStorageSubTabChange($event)"
+                         [ariaLabel]="'RESOURCE_EDIT.STORAGE_SERVICES.SUB_TABS_ARIA' | translate" />
               <!-- Blob Containers sub-tab -->
-              <mat-tab>
-                <ng-template mat-tab-label>
-                  <mat-icon class="tab-icon">folder</mat-icon>
-                  <span>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CONTAINERS' | translate }}</span>
-                  <span class="tab-count">{{ storageBlobContainers().length }}</span>
-                </ng-template>
+              @if (activeStorageSubTabId() === 'blob_containers') {
                 <div class="storage-services-panel">
                   @if (storageBlobContainers().length === 0 && !showBlobAddForm()) {
                     <div class="storage-empty">
@@ -1513,15 +1470,10 @@
                     }
                   </div>
                 </div>
-              </mat-tab>
+              }
 
               <!-- Queues sub-tab -->
-              <mat-tab>
-                <ng-template mat-tab-label>
-                  <mat-icon class="tab-icon">queue</mat-icon>
-                  <span>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.QUEUES' | translate }}</span>
-                  <span class="tab-count">{{ storageQueues().length }}</span>
-                </ng-template>
+              @if (activeStorageSubTabId() === 'queues') {
                 <div class="storage-services-panel">
                   @if (storageQueues().length === 0 && !showQueueAddForm()) {
                     <div class="storage-empty">
@@ -1572,15 +1524,10 @@
                     }
                   }
                 </div>
-              </mat-tab>
+              }
 
               <!-- Tables sub-tab -->
-              <mat-tab>
-                <ng-template mat-tab-label>
-                  <mat-icon class="tab-icon">table_chart</mat-icon>
-                  <span>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLES' | translate }}</span>
-                  <span class="tab-count">{{ storageTables().length }}</span>
-                </ng-template>
+              @if (activeStorageSubTabId() === 'tables') {
                 <div class="storage-services-panel">
                   @if (storageTables().length === 0 && !showTableAddForm()) {
                     <div class="storage-empty">
@@ -1824,89 +1771,43 @@
                     }
                   </div>
                 </div>
-              </mat-tab>
-            </mat-tab-group>
+              }
           </div>
-        </mat-tab>
-      } @else if (supportsAppSettings()) {
+      } @else if (supportsAppSettings() && activeMainTabId() === 'app-settings') {
         <!-- App Settings Tab (WebApp / FunctionApp / ContainerApp) -->
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">data_object</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.APP_SETTINGS' | translate }}</span>
-            @if (appSettingsSection.appSettings().length > 0) {
-              <span class="tab-count">{{ appSettingsSection.appSettings().length }}</span>
-            }
-            @if (appSettingsSection.hasWarning()) {
-              <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ROLE' | translate">warning</mat-icon>
-            }
-          </ng-template>
-          <app-resource-edit-app-settings-section
-            [canWrite]="canWrite()"
-            [environments]="environments()"
-            [section]="appSettingsSection">
-          </app-resource-edit-app-settings-section>
-        </mat-tab>
-      } @else if (supportsConfigKeys()) {
+        <app-resource-edit-app-settings-section
+          [canWrite]="canWrite()"
+          [environments]="environments()"
+          [section]="appSettingsSection">
+        </app-resource-edit-app-settings-section>
+      } @else if (supportsConfigKeys() && activeMainTabId() === 'config-keys') {
         <!-- Configuration Keys Tab (AppConfiguration only) -->
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">settings</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.CONFIG_KEYS' | translate }}</span>
-            @if (configKeysSection.configKeys().length > 0) {
-              <span class="tab-count">{{ configKeysSection.configKeys().length }}</span>
-            }
-            @if (configKeysSection.hasWarning()) {
-              <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ROLE' | translate">warning</mat-icon>
-            }
-          </ng-template>
-          <app-resource-edit-config-keys-section
-            [canWrite]="canWrite()"
-            [environments]="environments()"
-            [section]="configKeysSection">
-          </app-resource-edit-config-keys-section>
-        </mat-tab>
+        <app-resource-edit-config-keys-section
+          [canWrite]="canWrite()"
+          [environments]="environments()"
+          [section]="configKeysSection">
+        </app-resource-edit-config-keys-section>
       } @else if (isUserAssignedIdentity()) {
-        <!-- Granted Rights Tab (UserAssignedIdentity only) -->
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">verified_user</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.GRANTED_RIGHTS' | translate }}</span>
-            @if (identityAccessSection.identityRoleAssignments().length > 0) {
-              <span class="tab-count">{{ identityAccessSection.identityRoleAssignments().length }}</span>
-            }
-          </ng-template>
+        @if (activeMainTabId() === 'granted-rights') {
+          <!-- Granted Rights Tab (UserAssignedIdentity only) -->
           <app-resource-edit-granted-rights-section
             [canWrite]="canWrite()"
             [section]="identityAccessSection">
           </app-resource-edit-granted-rights-section>
-        </mat-tab>
+        }
 
-        <!-- Used By Tab (UserAssignedIdentity only) -->
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">device_hub</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.USED_BY' | translate }}</span>
-            @if (identityAccessSection.usedByResources().length > 0) {
-              <span class="tab-count">{{ identityAccessSection.usedByResources().length }}</span>
-            }
-          </ng-template>
+        @if (activeMainTabId() === 'used-by') {
+          <!-- Used By Tab (UserAssignedIdentity only) -->
           <app-resource-edit-used-by-section
             [canWrite]="canWrite()"
             [section]="identityAccessSection">
           </app-resource-edit-used-by-section>
-        </mat-tab>
+        }
       }
 
       <!-- App Pipeline Tab (WebApp / FunctionApp / ContainerApp only, hidden for existing resources) -->
-      @if (supportsAppPipeline() && !isExistingResource()) {
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">terminal</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.APP_PIPELINE' | translate }}</span>
-          </ng-template>
-
-          <div class="tab-content">
+      @if (supportsAppPipeline() && !isExistingResource() && activeMainTabId() === 'app-pipeline') {
+        <div class="tab-content">
             <!-- Description banner -->
             <div class="env-description">
               <mat-icon class="env-description__icon">terminal</mat-icon>
@@ -1979,9 +1880,7 @@
               (optionsChanged)="onPipelineOptionsChanged($event)"
               (detectOptions)="onDetectPipelineOptions()" />
           </div>
-        </mat-tab>
       }
-    </mat-tab-group>
 
     <!-- ��������� Floating Save Bar ��������� -->
     @if (showSaveBar()) {

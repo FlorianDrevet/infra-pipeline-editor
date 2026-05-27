@@ -227,68 +227,6 @@
   border-radius: var(--ifs-radius-md);
   overflow: hidden;
   box-shadow: var(--ifs-shadow-sm);
-
-  ::ng-deep .mat-mdc-tab-header {
-    border-bottom: 1px solid var(--project-border-accent, var(--ifs-border-subtle));
-    background: color-mix(in srgb, var(--ifs-surface-2) 82%, var(--ifs-brand-700));
-    padding: 0 var(--ifs-space-8);
-  }
-
-  ::ng-deep .mat-mdc-tab {
-    min-width: 0;
-    padding: 0 var(--ifs-space-12);
-    height: 40px;
-    opacity: 1;
-    margin-top: var(--ifs-space-6);
-    border-radius: var(--ifs-radius-md) var(--ifs-radius-md) 0 0;
-    transition:
-      background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
-      box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
-  }
-
-  ::ng-deep .mat-mdc-tab:hover {
-    background: var(--project-surface-hover, var(--ifs-surface-2));
-  }
-
-  ::ng-deep .mdc-tab__text-label {
-    display: flex;
-    align-items: center;
-    gap: var(--ifs-space-6);
-    color: var(--ifs-text-secondary);
-    font-weight: 500;
-    font-size: 13px;
-    transition: color var(--ifs-duration-fast) var(--ifs-ease-standard);
-  }
-
-  ::ng-deep .mat-mdc-tab:hover .mdc-tab__text-label,
-  ::ng-deep .mdc-tab--active .mdc-tab__text-label {
-    color: var(--ifs-text-primary);
-  }
-
-  ::ng-deep .mdc-tab--active {
-    background: var(--project-surface-active, var(--ifs-surface-3));
-    box-shadow: inset 0 0 0 1px var(--project-border-accent, var(--ifs-border-strong));
-  }
-
-  ::ng-deep .mdc-tab--active .tab-icon {
-    color: var(--ifs-accent-400);
-  }
-
-  ::ng-deep .mdc-tab-indicator__content--underline {
-    border-color: var(--ifs-accent-500);
-    border-width: 2px;
-  }
-
-  ::ng-deep .mat-mdc-tab-body-content {
-    overflow: visible;
-  }
-}
-
-.tab-icon {
-  width: 16px;
-  height: 16px;
-  font-size: 16px;
-  color: inherit;
 }
 
 .generation-tab-content {
@@ -533,5 +471,5 @@
 .board__last-gen-error {
   margin-top: 0.75rem;
   font-size: 0.85rem;
-  color: var(--ds-color-warn, #ef5350);
+  color: var(--ifs-danger);
 }

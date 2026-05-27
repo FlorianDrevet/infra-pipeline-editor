@@ -22,7 +22,7 @@
     gap: 0.5rem;
     padding: 3rem 1rem;
     text-align: center;
-    color: var(--text-secondary, #6b7280);
+    color: var(--ifs-text-secondary);
 
     mat-icon {
       font-size: 2rem;
@@ -47,9 +47,9 @@
     align-items: center;
     gap: 0.5rem;
     padding: 1rem;
-    color: var(--error, #ef4444);
-    background: var(--error-bg, rgba(239, 68, 68, 0.08));
-    border-radius: 8px;
+    color: var(--ifs-danger);
+    background: var(--ifs-danger-bg);
+    border-radius: var(--ifs-radius-md);
   }
 
   &__add-form {
@@ -87,26 +87,26 @@
 .add-form-label {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--text-secondary, #6b7280);
+  color: var(--ifs-text-secondary);
 }
 
 .add-form-input {
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--border, #d1d5db);
-  border-radius: 6px;
+  border: 1px solid var(--ifs-border-subtle);
+  border-radius: var(--ifs-radius-md);
   font-size: 0.875rem;
-  background: var(--surface, #fff);
-  color: var(--text-primary, #111827);
+  background: var(--ifs-surface-1);
+  color: var(--ifs-text-primary);
   transition: border-color 0.15s;
 
   &:focus {
     outline: none;
-    border-color: var(--primary, #6366f1);
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+    border-color: var(--ifs-brand-500);
+    box-shadow: 0 0 0 2px var(--ifs-focus-ring, rgba(78, 134, 244, 0.25));
   }
 
   &::placeholder {
-    color: var(--text-tertiary, #9ca3af);
+    color: var(--ifs-text-muted);
   }
 }
 
@@ -139,16 +139,16 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-secondary, #6b7280);
+    color: var(--ifs-text-secondary);
     white-space: nowrap;
   }
 
   &__value {
     font-size: 0.8125rem;
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    background: var(--code-bg, #f3f4f6);
+    background: var(--ifs-surface-2);
     padding: 0.125rem 0.5rem;
-    border-radius: 4px;
+    border-radius: var(--ifs-radius-sm);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -158,13 +158,13 @@
   &__badge {
     font-size: 0.75rem;
     padding: 0.125rem 0.375rem;
-    border-radius: 4px;
-    background: var(--surface-alt, #f3f4f6);
-    color: var(--text-secondary, #6b7280);
+    border-radius: var(--ifs-radius-sm);
+    background: var(--ifs-surface-2);
+    color: var(--ifs-text-secondary);
 
     &--active {
-      background: var(--success-bg, rgba(34, 197, 94, 0.12));
-      color: var(--success, #16a34a);
+      background: var(--ifs-success-bg);
+      color: var(--ifs-success);
     }
   }
 
@@ -172,3 +172,4 @@
     margin-left: auto;
   }
 }
+

@@ -10,10 +10,10 @@ import {
   DsAutocompleteComponent,
   DsAutocompleteOption,
   DsButtonComponent,
+  DsCheckboxComponent,
   DsSelectComponent,
   DsTextFieldComponent,
 } from '../../../../shared/components/ds';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
@@ -54,10 +54,10 @@ type RepositoryVerificationState = 'idle' | 'checking' | 'verified' | 'failed';
   standalone: true,
   imports: [
     MatDialogModule,
-    MatCheckboxModule,
     ReactiveFormsModule,
     TranslateModule,
     DsButtonComponent,
+    DsCheckboxComponent,
     DsAutocompleteComponent,
     DsTextFieldComponent,
     DsSelectComponent,

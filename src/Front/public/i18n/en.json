@@ -325,6 +325,7 @@
       "OVERLINE": "Configuration detail"
     },
     "TABS": {
+      "ARIA": "Configuration sections",
       "RESOURCE_GROUPS": "Resource groups",
       "TAGS": "Tags",
       "MEMBERS": "Members",
@@ -1040,6 +1041,7 @@
       "OVERLINE": "Project detail"
     },
     "TABS": {
+      "ARIA": "Project tabs",
       "CONFIGURATIONS": "Configurations",
       "ENVIRONMENTS": "Environments",
       "NAMING_TEMPLATES": "Naming",
@@ -1105,6 +1107,9 @@
       "PUSH_AMBIGUOUS_DESC": "This push cannot be done at project level because the generated artifacts target multiple repositories."
     },
     "SWITCHER": {
+      "OUTER_TABS_ARIA": "Infra and code tabs",
+      "INFRA_TABS_ARIA": "Infrastructure tabs",
+      "CODE_TABS_ARIA": "Application code tabs",
       "INFRA_TAB": "Infra",
       "CODE_TAB": "Code",
       "FILES_COUNT": "{{count}} file(s)",
@@ -1167,6 +1172,7 @@
     },
     "GENERATION": {
       "TITLE": "Generation Results",
+      "TABS_ARIA": "Generation tabs",
       "TAB_BICEP": "Bicep",
       "TAB_PIPELINE": "Pipeline",
       "TAB_BOOTSTRAP": "Bootstrap ADO",
@@ -1671,6 +1677,7 @@
       "CONFIG_KEYS": "Configuration Keys",
       "APP_PIPELINE": "Application Pipeline",
       "NETWORKING": "Networking",
+      "ARIA": "Resource tabs",
       "WARNING_MISSING_ROLE": "A required role assignment is missing",
       "WARNING_MISSING_ENV_CONFIG": "Some environments have no configuration"
     },
@@ -2511,6 +2518,7 @@
       "BLOB_CONTAINERS": "Blob Containers",
       "QUEUES": "Queues",
       "TABLES": "Tables",
+      "SUB_TABS_ARIA": "Storage services tabs",
         "BLOB_CORS": {
           "TITLE": "Blob service CORS",
           "DESCRIPTION": "Define origins, methods, headers, and cache duration applied to the blob service.",

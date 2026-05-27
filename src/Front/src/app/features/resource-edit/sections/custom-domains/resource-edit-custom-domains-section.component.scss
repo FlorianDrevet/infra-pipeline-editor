@@ -175,15 +175,15 @@
   }
 
   &--pending {
-    background: rgba(255, 152, 0, 0.15);
-    color: #bf360c;
-    border-color: rgba(255, 152, 0, 0.4);
+    background: var(--ifs-warning-bg);
+    color: var(--ifs-warning);
+    border-color: var(--ifs-warning);
   }
 
   &--validated {
-    background: rgba(76, 175, 80, 0.15);
-    color: #1b5e20;
-    border-color: rgba(76, 175, 80, 0.4);
+    background: var(--ifs-success-bg);
+    color: var(--ifs-success);
+    border-color: var(--ifs-success);
   }
 
   &__icon {

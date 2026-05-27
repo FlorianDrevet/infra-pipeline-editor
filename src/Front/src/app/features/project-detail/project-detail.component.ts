@@ -1,11 +1,9 @@
 import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
@@ -31,9 +29,17 @@ import { ProjectDetailVariableGroupsSectionComponent } from './variable-groups-s
 import { ProjectDetailNamingSectionComponent } from './naming-section/project-detail-naming-section.component';
 
 import { ProjectDetailGenerationWorkflowService } from './project-detail-generation-workflow.service';
-import { getProjectDetailTabIndex, getProjectDetailTabQuery, isProjectDetailTab } from '../../shared/enums/detail-route-tabs';
+import {
+  getProjectDetailQueryFromTabId,
+  getProjectDetailTabIdFromQuery,
+  isProjectDetailTab,
+  type ProjectDetailTabId,
+} from '../../shared/enums/detail-route-tabs';
 import { DsButtonComponent } from '../../shared/components/ds/ds-button/ds-button.component';
 import { DsIconButtonComponent } from '../../shared/components/ds/ds-icon-button/ds-icon-button.component';
+import { DsTabsComponent } from '../../shared/components/ds/ds-tabs/ds-tabs.component';
+import type { DsTabDefinition } from '../../shared/components/ds/ds-tabs/ds-tabs.types';
+import { LanguageService } from '../../shared/services/language.service';
 
 
 @Component({
@@ -48,10 +54,9 @@ import { DsIconButtonComponent } from '../../shared/components/ds/ds-icon-button
     ProjectDetailNamingSectionComponent,
     DsButtonComponent,
     DsIconButtonComponent,
-    MatButtonToggleModule,
+    DsTabsComponent,
     MatDialogModule,
     MatIconModule,
-    MatTabsModule,
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',
@@ -70,6 +75,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(MatDialog);
 
   private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
   private readonly pageContextService = inject(PageContextService);
   private readonly sidebarContextService = inject(SidebarContextService);
   private readonly generationWorkflow = inject(ProjectDetailGenerationWorkflowService);
@@ -135,7 +141,42 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       replaceUrl: true,
     });
   });
-  protected readonly selectedTabIndex = computed(() => getProjectDetailTabIndex(this.currentTabQuery()));
+  protected readonly activeProjectTabId = computed<ProjectDetailTabId>(() => getProjectDetailTabIdFromQuery(this.currentTabQuery()));
+  protected readonly projectDetailTabs = computed<readonly DsTabDefinition[]>(() => {
+    this.languageService.currentLanguage();
+    const project = this.project();
+    return [
+      {
+        id: 'overview',
+        label: this.translate.instant('PROJECT_DETAIL.TABS.CONFIGURATIONS'),
+        icon: 'settings',
+        badge: String(this.configs().length),
+      },
+      {
+        id: 'environments',
+        label: this.translate.instant('PROJECT_DETAIL.TABS.ENVIRONMENTS'),
+        icon: 'cloud_queue',
+        badge: String(project?.environmentDefinitions.length ?? 0),
+      },
+      {
+        id: 'naming',
+        label: this.translate.instant('PROJECT_DETAIL.TABS.NAMING_TEMPLATES'),
+        icon: 'label',
+        badge: String(project?.resourceNamingTemplates.length ?? 0),
+      },
+      {
+        id: 'tags',
+        label: this.translate.instant('PROJECT_DETAIL.TABS.TAGS'),
+        icon: 'label_important',
+        badge: String(project?.tags.length ?? 0),
+      },
+      {
+        id: 'variables',
+        label: this.translate.instant('PROJECT_DETAIL.TABS.PIPELINE_VARIABLES'),
+        icon: 'library_books',
+      },
+    ];
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -315,8 +356,8 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     this.router.navigate(['/projects', projectId, 'generate']).catch(() => undefined);
   }
 
-  protected async onTabChange(index: number): Promise<void> {
-    const tab = getProjectDetailTabQuery(index);
+  protected async onProjectTabIdChange(tabId: string): Promise<void> {
+    const tab = getProjectDetailQueryFromTabId(tabId as ProjectDetailTabId);
     if (tab === this.currentTabQuery()) {
       return;
     }

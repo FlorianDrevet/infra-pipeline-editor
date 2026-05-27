@@ -37,16 +37,16 @@
           </header>
 
           @if (viewModel().allInOneRepo; as repo) {
-            <mat-card class="repo-card" [class.repo-card--busy]="viewModel().actionRepoId === repo.id">
-              <mat-card-header>
-                <mat-card-title class="repo-card__title">
-                  <mat-icon class="repo-card__icon">folder_open</mat-icon>
-                  <span>{{ repositoryDisplayName(repo) }}</span>
-                </mat-card-title>
-                <mat-card-subtitle>{{ repo.providerType ?? (repositoryProviderLabel(repo) | translate) }}</mat-card-subtitle>
-              </mat-card-header>
+            <app-ds-card-mat class="repo-card" [class.repo-card--busy]="viewModel().actionRepoId === repo.id">
+              <div ds-card-header class="repo-card__title">
+                <mat-icon class="repo-card__icon">folder_open</mat-icon>
+                <div class="repo-card__title-text">
+                  <strong>{{ repositoryDisplayName(repo) }}</strong>
+                  <small>{{ repo.providerType ?? (repositoryProviderLabel(repo) | translate) }}</small>
+                </div>
+              </div>
 
-              <mat-card-content class="repo-card__content">
+              <div ds-card-content class="repo-card__content">
                 <div class="repo-card__row">
                   <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
                   <a class="repo-card__link" [href]="repo.repositoryUrl ?? undefined" target="_blank" rel="noopener">
@@ -62,9 +62,9 @@
                     <mat-chip disableRipple>{{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}</mat-chip>
                   }
                 </div>
-              </mat-card-content>
+              </div>
 
-              <mat-card-actions align="end">
+              <div ds-card-actions class="repo-card__actions">
                 <app-ds-button
                   variant="ghost"
                   icon="edit"
@@ -79,8 +79,8 @@
                   (clicked)="viewModel().onRemoveRepository(repo)">
                   {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
                 </app-ds-button>
-              </mat-card-actions>
-            </mat-card>
+              </div>
+            </app-ds-card-mat>
           } @else {
             <app-ds-option-card
               icon="add_circle_outline"
@@ -101,16 +101,16 @@
           <div class="repo-grid">
             @for (slot of viewModel().splitSlots; track slot.kind) {
               @if (slot.repo; as repo) {
-                <mat-card class="repo-card" [class.repo-card--busy]="viewModel().actionRepoId === repo.id">
-                  <mat-card-header>
-                    <mat-card-title class="repo-card__title">
-                      <mat-icon class="repo-card__icon">folder_open</mat-icon>
-                      <span>{{ slot.labelKey | translate }}</span>
-                    </mat-card-title>
-                    <mat-card-subtitle>{{ repositoryDisplayName(repo) }} · {{ repo.providerType ?? (repositoryProviderLabel(repo) | translate) }}</mat-card-subtitle>
-                  </mat-card-header>
+                <app-ds-card-mat class="repo-card" [class.repo-card--busy]="viewModel().actionRepoId === repo.id">
+                  <div ds-card-header class="repo-card__title">
+                    <mat-icon class="repo-card__icon">folder_open</mat-icon>
+                    <div class="repo-card__title-text">
+                      <strong>{{ slot.labelKey | translate }}</strong>
+                      <small>{{ repositoryDisplayName(repo) }} · {{ repo.providerType ?? (repositoryProviderLabel(repo) | translate) }}</small>
+                    </div>
+                  </div>
 
-                  <mat-card-content class="repo-card__content">
+                  <div ds-card-content class="repo-card__content">
                     <div class="repo-card__row">
                       <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
                       <a class="repo-card__link" [href]="repo.repositoryUrl ?? undefined" target="_blank" rel="noopener">
@@ -121,9 +121,9 @@
                       <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
                       <strong>{{ repo.defaultBranch ?? ('CONFIG_DETAIL.REPOSITORIES.UNCONFIGURED' | translate) }}</strong>
                     </div>
-                  </mat-card-content>
+                  </div>
 
-                  <mat-card-actions align="end">
+                  <div ds-card-actions class="repo-card__actions">
                     <app-ds-button
                       variant="ghost"
                       icon="edit"
@@ -138,8 +138,8 @@
                       (clicked)="viewModel().onRemoveRepository(repo)">
                       {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
                     </app-ds-button>
-                  </mat-card-actions>
-                </mat-card>
+                  </div>
+                </app-ds-card-mat>
               } @else {
                 <app-ds-option-card
                   icon="add_circle_outline"

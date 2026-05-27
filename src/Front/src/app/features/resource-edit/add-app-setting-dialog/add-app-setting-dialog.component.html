@@ -620,11 +620,11 @@
             </div>
 
             <div class="sensitive-confirm-checkbox">
-              <mat-checkbox
+              <app-ds-checkbox
                 [ngModel]="sensitiveDirectConfirmed()"
-                (ngModelChange)="sensitiveDirectConfirmed.set($event)">
-                {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_CONFIRM_RISK' | translate }}
-              </mat-checkbox>
+                (ngModelChange)="sensitiveDirectConfirmed.set($event)"
+                [ngModelOptions]="{ standalone: true }"
+                [label]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_CONFIRM_RISK' | translate" />
             </div>
           </div>
         }

@@ -23,14 +23,16 @@
       <span class="content-kinds__label">{{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.CONTENT_KINDS' | translate }}</span>
       <div class="content-kinds__list" formArrayName="contentKinds">
         @for (kind of contentKinds; track kind; let i = $index) {
-          <mat-checkbox [formControlName]="i">
-            {{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}
+          <div class="content-kinds__item">
+            <app-ds-checkbox
+              [formControlName]="i"
+              [label]="('PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind) | translate" />
             @if (isContentKindLocked(kind)) {
               <span class="content-kinds__locked">
                 {{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.CONTENT_KIND_LOCKED' | translate }}
               </span>
             }
-          </mat-checkbox>
+          </div>
         }
       </div>
       @if (contentKindsArray.hasError('required') && contentKindsArray.touched) {

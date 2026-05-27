@@ -34,7 +34,7 @@ describe('ResourceEditRoleAssignmentsSectionComponent', () => {
     fixture.componentRef.setInput('section', createSection({ openAddRoleAssignmentDialog }));
     fixture.detectChanges();
 
-    getButton('.ra-add-btn').click();
+    getButton('app-ds-button .ds-btn--primary').click();
 
     expect(openAddRoleAssignmentDialog).toHaveBeenCalledOnceWith();
   });
