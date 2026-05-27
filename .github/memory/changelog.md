@@ -44,4 +44,4 @@
 - [2026-03-30] `copilot` — Added ACR pull roles, variable groups, Unit of Work, and domain quality rules.
 - [2026-03-29] `copilot` — Added Azure DevOps pipeline YAML generation.
 - [2026-03-28] `copilot` — Introduced the unified generation UX, mono-repo pipeline flow, and architect agent.
-- [2026-03-27] `copilot` — Delivered UAI grouping plus Storage Account CORS/lifecycle work.
+

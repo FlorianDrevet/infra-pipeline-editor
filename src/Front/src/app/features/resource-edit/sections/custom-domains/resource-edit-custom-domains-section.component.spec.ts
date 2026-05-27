@@ -42,8 +42,8 @@ describe('ResourceEditCustomDomainsSectionComponent', () => {
     fixture.componentRef.setInput('section', section);
     fixture.detectChanges();
 
-    getButton('.custom-domains-section__add-btn').click();
-    getButton('.cd-domain-row__actions button[color="warn"]').click();
+    getButton('.custom-domains-section__intro app-ds-button button').click();
+    getButton('app-ds-icon-button[icon="delete_outline"] button').click();
 
     expect(openAddDialog).toHaveBeenCalledOnceWith('dev');
     expect(removeDomain).toHaveBeenCalledOnceWith(domain);

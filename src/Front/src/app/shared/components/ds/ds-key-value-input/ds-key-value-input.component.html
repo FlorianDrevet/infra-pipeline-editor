@@ -1,0 +1,58 @@
+<div class="ds-kv-input">
+  @if (label()) {
+    <label class="ds-kv-input__label">
+      {{ label() }}
+      @if (required()) {
+        <span class="ds-kv-input__required" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+
+  <div class="ds-kv-input__row">
+    <app-ds-text-field
+      class="ds-kv-input__key"
+      [label]="keyLabel()"
+      [placeholder]="keyPlaceholder()"
+      [disabled]="disabledState() || !canAddMore()"
+      [formControl]="keyCtrl" />
+    <app-ds-text-field
+      class="ds-kv-input__value"
+      [label]="valueLabel()"
+      [placeholder]="valuePlaceholder()"
+      [disabled]="disabledState() || !canAddMore()"
+      [formControl]="valueCtrl"
+      (keydown)="onValueKeyDown($event)" />
+    <app-ds-button
+      class="ds-kv-input__add-btn"
+      variant="secondary"
+      icon="add"
+      [disabled]="disabledState() || !canAddMore()"
+      (clicked)="tryAdd()">
+      {{ addButtonLabel() }}
+    </app-ds-button>
+  </div>
+
+  @if (items().length > 0) {
+    <div class="ds-kv-input__chips">
+      @for (item of items(); track item.key; let i = $index) {
+        <app-ds-chip
+          variant="neutral"
+          size="sm"
+          [removable]="!disabledState()"
+          (removed)="removeItem(i)">
+          {{ item.key }}: {{ item.value }}
+        </app-ds-chip>
+      }
+    </div>
+  }
+
+  @if (resolvedError()) {
+    <div class="ds-kv-input__error" role="alert">
+      {{ resolvedError() }}
+    </div>
+  } @else if (helperText()) {
+    <div class="ds-kv-input__helper">
+      {{ helperText() }}
+    </div>
+  }
+</div>

@@ -30,7 +30,7 @@ describe('ResourceEditGrantedRightsSectionComponent', () => {
     fixture.componentRef.setInput('section', createSection({ openAddRoleAssignmentDialog }));
     fixture.detectChanges();
 
-    (fixture.nativeElement.querySelector('.ra-add-btn') as HTMLButtonElement).click();
+    (fixture.nativeElement.querySelector('.ra-actions app-ds-button button') as HTMLButtonElement).click();
 
     expect(openAddRoleAssignmentDialog).toHaveBeenCalledOnceWith();
   });

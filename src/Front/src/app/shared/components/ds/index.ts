@@ -42,7 +42,11 @@ export * from './ds-progress-bar/ds-progress-bar.component';
 export * from './ds-progress-bar/ds-progress-bar.types';
 export * from './ds-tag-input/ds-tag-input.component';
 export * from './ds-tag-input/ds-tag-input.types';
+export * from './ds-key-value-input/ds-key-value-input.component';
+export * from './ds-key-value-input/ds-key-value-input.types';
 export * from './ds-menu/ds-menu.component';
 export * from './ds-menu/ds-menu.directive';
 export * from './ds-menu/ds-menu.types';
+export * from './ds-accordion/ds-accordion.component';
+export * from './ds-accordion/ds-accordion.types';
 
