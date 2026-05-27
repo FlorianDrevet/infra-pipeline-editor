@@ -836,20 +836,6 @@
   }
 }
 
-.pulse-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--ifs-accent-500);
-  flex-shrink: 0;
-  animation: re-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes re-pulse {
-  0%, 100% { opacity: 0.4; }
-  50%      { opacity: 1; }
-}
-
 // ─── Role Assignments ───────────────────────────────────────────────────────
 
 .ra-actions {

@@ -302,19 +302,6 @@
   }
 }
 
-.pulse-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--ifs-accent-500);
-  animation: ifs-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes ifs-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
 // ─── Tabs (Material override) ───────────────────────────────────────────────
 
 .project-tabs,

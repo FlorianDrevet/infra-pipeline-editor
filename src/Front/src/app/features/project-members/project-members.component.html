@@ -1,7 +1,7 @@
 <div class="members-page">
   @if (isLoading()) {
     <div class="state-card state-card--loading" aria-live="polite">
-      <div class="pulse-dot"></div>
+      <app-ds-spinner size="lg" />
       <div>
         <strong>{{ 'PROJECT_MEMBERS.STATE.LOADING' | translate }}</strong>
       </div>

@@ -1,7 +1,7 @@
 <div class="detail-page">
   @if (isLoading()) {
     <div class="state-card state-card--loading" aria-live="polite">
-      <div class="pulse-dot"></div>
+      <app-ds-spinner size="lg" />
       <div>
         <strong>{{ 'CONFIG_DETAIL.STATE.LOADING_TITLE' | translate }}</strong>
         <p>{{ 'CONFIG_DETAIL.STATE.LOADING_DESCRIPTION' | translate }}</p>

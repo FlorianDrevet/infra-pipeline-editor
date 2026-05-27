@@ -87,7 +87,7 @@
     <div class="bicep-viewer__body">
       @if (viewerLoading()) {
         <div class="bicep-viewer__loading">
-          <mat-icon class="bicep-viewer__loading-icon">sync</mat-icon>
+          <app-ds-spinner size="md" />
           <span class="bicep-viewer__loading-text">{{ fileLoadingText() }}</span>
         </div>
       } @else if (viewerContent()) {

@@ -14,6 +14,7 @@ import {
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { BicepHighlightPipe } from '../../pipes/bicep-highlight.pipe';
+import { DsSpinnerComponent } from '../ds/ds-spinner/ds-spinner.component';
 import { UserPreferencesService } from '../../services/user-preferences.service';
 
 const FILE_PATH_DATASET_KEY = 'filePath';
@@ -84,7 +85,7 @@ export type BicepTreeNode = BicepFolderNode | BicepFileNode;
 @Component({
   selector: 'app-bicep-file-panel',
   standalone: true,
-  imports: [MatIconModule, TranslateModule, BicepHighlightPipe],
+  imports: [MatIconModule, TranslateModule, BicepHighlightPipe, DsSpinnerComponent],
   templateUrl: './bicep-file-panel.component.html',
   styleUrl: './bicep-file-panel.component.scss',
 })

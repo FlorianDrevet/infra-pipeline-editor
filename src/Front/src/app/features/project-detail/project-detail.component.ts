@@ -37,6 +37,7 @@ import {
 } from '../../shared/enums/detail-route-tabs';
 import { DsButtonComponent } from '../../shared/components/ds/ds-button/ds-button.component';
 import { DsIconButtonComponent } from '../../shared/components/ds/ds-icon-button/ds-icon-button.component';
+import { DsSpinnerComponent } from '../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { DsTabsComponent } from '../../shared/components/ds/ds-tabs/ds-tabs.component';
 import type { DsTabDefinition } from '../../shared/components/ds/ds-tabs/ds-tabs.types';
 import { LanguageService } from '../../shared/services/language.service';
@@ -54,6 +55,7 @@ import { LanguageService } from '../../shared/services/language.service';
     ProjectDetailNamingSectionComponent,
     DsButtonComponent,
     DsIconButtonComponent,
+    DsSpinnerComponent,
     DsTabsComponent,
     MatDialogModule,
     MatIconModule,

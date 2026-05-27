@@ -10,7 +10,7 @@ import { ProjectService } from '../../shared/services/project.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { PageContextService } from '../../shared/services/page-context.service';
 import { SidebarContextService } from '../../core/layouts/sidebar/sidebar-context.service';
-import { DsButtonComponent, DsTextFieldComponent, DsToggleComponent } from '../../shared/components/ds';
+import { DsButtonComponent, DsSpinnerComponent, DsTextFieldComponent, DsToggleComponent } from '../../shared/components/ds';
 import {
   hasProjectDetailAgentPoolChanges,
   resolveProjectDetailAgentPoolDraft,
@@ -27,6 +27,7 @@ import {
     FormsModule,
     MatIconModule,
     DsButtonComponent,
+    DsSpinnerComponent,
     DsTextFieldComponent,
     DsToggleComponent,
   ],
