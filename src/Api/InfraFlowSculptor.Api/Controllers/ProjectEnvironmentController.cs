@@ -41,7 +41,7 @@ public static class ProjectEnvironmentController
                         request.Prefix,
                         request.Suffix,
                         request.Location,
-                        request.SubscriptionId,
+                        request.SubscriptionId ?? Guid.Empty,
                         request.Order,
                         request.RequiresApproval,
                         request.AzureResourceManagerConnection,

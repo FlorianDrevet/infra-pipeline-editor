@@ -269,6 +269,16 @@
   border: 1px solid var(--project-border-accent, var(--ifs-border-subtle));
   border-radius: var(--ifs-radius-lg);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+
+  // When panel only wraps the split-switcher, become transparent and let
+  // the switcher itself be the visual card.
+  &:has(> app-split-generation-switcher) {
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
 }
 
 .generation-panel--collapsed {

@@ -78,6 +78,7 @@ import {
   IncomingCrossConfigReferenceResponse,
 } from '../../shared/interfaces/cross-config-reference.interface';
 import {
+  EnvironmentConfigIssue,
   GenerationDiagnosticsDialogComponent,
   GenerationDiagnosticsDialogData,
   MissingEnvResource,
@@ -1380,10 +1381,18 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     const pendingCustomDomains = await this.customDomainDiagnosticsService.collectPendingIssues(
       Object.values(allResources).flatMap((resources) => resources ?? []),
     );
+    const incompleteEnvironments: EnvironmentConfigIssue[] = (this.project()?.environmentDefinitions ?? [])
+      .filter((env) => !env.subscriptionId || !env.azureResourceManagerConnection)
+      .map((env) => ({
+        environmentName: env.name,
+        missingSubscriptionId: !env.subscriptionId,
+        missingAzureConnection: !env.azureResourceManagerConnection,
+      }));
 
     if (currentDiagnostics.length === 0
       && missingEnvResources.length === 0
-      && pendingCustomDomains.length === 0) {
+      && pendingCustomDomains.length === 0
+      && incompleteEnvironments.length === 0) {
       return true;
     }
 
@@ -1393,6 +1402,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
       currentDiagnostics,
       missingEnvResources,
       pendingCustomDomains,
+      incompleteEnvironments,
     );
     const dialogRef = this.dialog.open(GenerationDiagnosticsDialogComponent, {
       data: dialogData,
@@ -1463,6 +1473,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     diagnostics: ResourceDiagnosticResponse[],
     missingEnvResources: MissingEnvResource[],
     pendingCustomDomains: PendingCustomDomainIssue[],
+    incompleteEnvironments: EnvironmentConfigIssue[],
   ): GenerationDiagnosticsDialogData {
     return {
       configDiagnostics: diagnostics.length > 0
@@ -1486,6 +1497,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
           domains: pendingCustomDomains,
         }]
         : undefined,
+      incompleteEnvironmentConfigs: incompleteEnvironments.length > 0 ? incompleteEnvironments : undefined,
     };
   }
 

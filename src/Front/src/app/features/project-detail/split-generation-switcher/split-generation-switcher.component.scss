@@ -7,40 +7,45 @@
   position: relative;
 }
 
-.split-switcher__header-actions {
+.split-switcher__toggle {
   position: absolute;
-  top: 0.6rem;
-  right: 0.6rem;
+  top: 0.5rem;
+  right: 0.65rem;
   z-index: 3;
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  border-radius: var(--ifs-radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ifs-text-muted);
+  cursor: pointer;
+  opacity: 0.6;
+  transition:
+    color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    opacity var(--ifs-duration-fast) var(--ifs-ease-standard);
 
-  ::ng-deep .ds-panel-action-button {
-    --ds-panel-action-focus-ring: rgba(58, 163, 201, 0.18);
-    --ds-panel-action-accent-bg: rgba(255, 255, 255, 0.04);
-    --ds-panel-action-accent-border: rgba(148, 163, 184, 0.12);
-    --ds-panel-action-accent-color: var(--ifs-text-muted);
-    --ds-panel-action-accent-shadow: none;
-    --ds-panel-action-accent-hover-bg: rgba(255, 255, 255, 0.08);
-    --ds-panel-action-accent-hover-border: rgba(148, 163, 184, 0.2);
-    --ds-panel-action-accent-hover-color: var(--ifs-text-primary);
-    --ds-panel-action-accent-hover-shadow: none;
-    --ds-panel-action-accent-pressed-bg: rgba(255, 255, 255, 0.06);
-    --ds-panel-action-accent-pressed-border: rgba(148, 163, 184, 0.18);
-    --ds-panel-action-accent-pressed-color: var(--ifs-text-primary);
-    --ds-panel-action-accent-pressed-shadow: none;
-    width: 2rem;
-    height: 2rem;
-    border-radius: var(--ifs-radius-md);
-    transform: none;
-
-    &::before {
-      display: none;
-    }
+  &:hover {
+    color: var(--ifs-text-primary);
+    background: rgba(255, 255, 255, 0.08);
+    opacity: 1;
   }
 
-  ::ng-deep .ds-panel-action-button__sheen {
-    display: none;
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ifs-focus-ring);
+    opacity: 1;
   }
+}
+
+.split-switcher__toggle-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  line-height: 16px;
 }
 
 .split-switcher {
@@ -51,9 +56,9 @@
   --split-switcher-infra-accent: var(--ifs-brand-400);
   --split-switcher-code-accent: var(--ifs-accent-400);
   border-radius: var(--ifs-radius-lg);
-  border: 1px solid var(--split-switcher-border);
+  border: 1px solid rgba(148, 163, 184, 0.10);
   background: var(--project-surface-panel, var(--ifs-surface-1));
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 0 1px rgba(148, 163, 184, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(148, 163, 184, 0.04);
   overflow: hidden;
 }
 
@@ -176,6 +181,42 @@
   color: var(--split-switcher-muted);
   font-size: 0.8rem;
   line-height: 1.5;
+}
+
+// ─── Outer tabs: bigger, bolder — primary navigation level ─────────────────
+:host ::ng-deep .split-switcher > app-ds-tabs .ds-tabs {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+
+  .ds-tabs__tab {
+    height: 2.75rem;
+    padding: 0 var(--ifs-space-16);
+    font-size: 0.84rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+}
+
+// ─── Inner tabs: smaller, lighter — secondary navigation level ─────────────
+:host ::ng-deep .split-switcher__inner app-ds-tabs .ds-tabs {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  background: rgba(255, 255, 255, 0.015);
+
+  .ds-tabs__tab {
+    height: 2.25rem;
+    padding: 0 var(--ifs-space-12);
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--ifs-text-muted);
+
+    &.ds-tabs__tab--active {
+      color: var(--ifs-text-primary);
+    }
+  }
+
+  .ds-tabs__tab--active::after {
+    background: var(--ifs-text-secondary);
+    height: 1.5px;
+  }
 }
 
 .split-switcher__inner {
@@ -311,10 +352,16 @@
 // ─── Replicate parent-scoped utility classes used in the template ───
 
 .generation-tab-content {
-  padding: var(--ifs-space-16) var(--ifs-space-20);
+  --split-switcher-tab-padding-inline: var(--ifs-space-20);
+  padding: var(--ifs-space-16) var(--split-switcher-tab-padding-inline);
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.split-switcher__embedded-panel {
+  margin-inline: calc(var(--split-switcher-tab-padding-inline) * -1);
+  align-self: stretch;
 }
 
 

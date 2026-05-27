@@ -63,7 +63,7 @@ public sealed class ProjectMappingConfig : IRegister
         config.NewConfig<ProjectEnvironmentDefinitionResult, EnvironmentDefinitionResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
             .Map(dest => dest.Name, src => src.Name.Value)
-            .Map(dest => dest.SubscriptionId, src => src.SubscriptionId.ToString())
+            .Map(dest => dest.SubscriptionId, src => src.SubscriptionId == Guid.Empty ? string.Empty : src.SubscriptionId.ToString())
             .Map(dest => dest.Tags, src => src.Tags);
 
         // ── Project Resource Naming Templates ───────────────────────────

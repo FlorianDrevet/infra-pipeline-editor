@@ -349,7 +349,7 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     public void Given_AcrMiResource_When_GenerateSpec_Then_HasNineParamsWhenNoValidatedCustomDomains()
     {
         var spec = _sut.GenerateSpec(CreateAcrMiResource());
-        spec.Parameters.Should().HaveCount(9);
+        spec.Parameters.Should().HaveCount(10);
     }
 
     [Fact]

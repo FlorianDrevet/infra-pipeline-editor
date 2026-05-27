@@ -375,7 +375,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 e.Prefix.Value,
                 e.Suffix.Value,
                 e.AzureResourceManagerConnection,
-                e.SubscriptionId.Value.ToString(),
+                e.SubscriptionId.Value == Guid.Empty ? null : e.SubscriptionId.Value.ToString(),
                 e.Tags.ToDictionary(t => t.Name, t => t.Value))).ToList();
     }
 

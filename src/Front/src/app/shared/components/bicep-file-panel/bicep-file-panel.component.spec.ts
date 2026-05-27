@@ -168,6 +168,20 @@ describe('BicepFilePanelComponent', () => {
     expect(getViewerElement()?.dataset['theme']).toBe('sand-dusk');
   });
 
+  it('does not render the workspace bar in embedded mode', async () => {
+    fixture.componentRef.setInput('embedded', true);
+    await flushComponent();
+
+    expect(queryWorkspaceBarElement()).toBeNull();
+  });
+
+  it('marks the embedded workspace body for inset layout', async () => {
+    fixture.componentRef.setInput('embedded', true);
+    await flushComponent();
+
+    expect(getWorkspaceBodyElement()?.classList.contains('bicep-workspace__body--embedded')).toBeTrue();
+  });
+
   it('renders workspace and viewer in embedded mode when the input is enabled', async () => {
     fixture.componentRef.setInput('embedded', true);
     await flushComponent();
@@ -206,8 +220,16 @@ describe('BicepFilePanelComponent', () => {
     return fixture.nativeElement.querySelector('.bicep-workspace') as HTMLElement | null;
   }
 
+  function getWorkspaceBodyElement(): HTMLElement | null {
+    return fixture.nativeElement.querySelector('.bicep-workspace__body') as HTMLElement | null;
+  }
+
   function queryViewerElement(): HTMLElement | null {
     return fixture.nativeElement.querySelector('.bicep-viewer') as HTMLElement | null;
+  }
+
+  function queryWorkspaceBarElement(): HTMLElement | null {
+    return fixture.nativeElement.querySelector('.bicep-workspace__bar') as HTMLElement | null;
   }
 
   function getBackButton(): HTMLButtonElement {

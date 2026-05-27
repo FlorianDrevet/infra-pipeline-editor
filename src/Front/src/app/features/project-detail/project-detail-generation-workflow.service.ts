@@ -26,6 +26,7 @@ import {
   ConfigMissingEnvGroup,
   ConfigPendingCustomDomainGroup,
   ConfigPendingDockerImageGroup,
+  EnvironmentConfigIssue,
   GenerationDiagnosticsDialogComponent,
   GenerationDiagnosticsDialogData,
   MissingEnvResource,
@@ -599,10 +600,19 @@ export class ProjectDetailGenerationWorkflowService {
         resources: result.pendingDockerImages,
       }));
 
+    const incompleteEnvironments: EnvironmentConfigIssue[] = (this.project()?.environmentDefinitions ?? [])
+      .filter((env) => !env.subscriptionId || !env.azureResourceManagerConnection)
+      .map((env) => ({
+        environmentName: env.name,
+        missingSubscriptionId: !env.subscriptionId,
+        missingAzureConnection: !env.azureResourceManagerConnection,
+      }));
+
     if (configsWithIssues.length === 0
       && configsWithMissingEnvs.length === 0
       && configsWithPendingCustomDomains.length === 0
-      && configsWithPendingDockerImages.length === 0) {
+      && configsWithPendingDockerImages.length === 0
+      && incompleteEnvironments.length === 0) {
       return true;
     }
 
@@ -616,6 +626,7 @@ export class ProjectDetailGenerationWorkflowService {
         pendingDockerImageConfigs: configsWithPendingDockerImages.length > 0
           ? configsWithPendingDockerImages
           : undefined,
+        incompleteEnvironmentConfigs: incompleteEnvironments.length > 0 ? incompleteEnvironments : undefined,
       } satisfies GenerationDiagnosticsDialogData,
       width: '640px',
       maxHeight: '80vh',

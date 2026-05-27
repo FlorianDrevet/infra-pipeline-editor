@@ -4,7 +4,6 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import {
   DsButtonComponent,
-  DsPanelActionButtonComponent,
 } from '../../../shared/components/ds';
 import {
   BicepFilePanelComponent,
@@ -28,21 +27,7 @@ class DsButtonStubComponent {
   readonly clicked = output<void>();
 }
 
-@Component({
-  selector: 'app-ds-panel-action-button',
-  standalone: true,
-  template: '<button type="button" (click)="clicked.emit()"></button>',
-})
-class DsPanelActionButtonStubComponent {
-  readonly icon = input('');
-  readonly tone = input('accent');
-  readonly surface = input('dark');
-  readonly pressed = input(false);
-  readonly ariaExpanded = input(false);
-  readonly ariaLabel = input('');
-  readonly tooltip = input('');
-  readonly clicked = output<void>();
-}
+
 
 @Component({
   selector: 'app-bicep-file-panel',
@@ -75,7 +60,6 @@ describe('SplitGenerationSwitcherComponent', () => {
       remove: {
         imports: [
           DsButtonComponent,
-          DsPanelActionButtonComponent,
           BicepFilePanelComponent,
           BootstrapSetupGuideComponent,
         ],
@@ -83,7 +67,6 @@ describe('SplitGenerationSwitcherComponent', () => {
       add: {
         imports: [
           DsButtonStubComponent,
-          DsPanelActionButtonStubComponent,
           BicepFilePanelStubComponent,
           BootstrapSetupGuideStubComponent,
         ],
@@ -121,19 +104,30 @@ describe('SplitGenerationSwitcherComponent', () => {
     expect(getChipText('.split-switcher__chip--infra')).toBe('1');
   });
 
-  it('renders every split file panel in embedded mode', async () => {
+  it('renders every split file panel inside a full-bleed embedded host', async () => {
     fixture.componentRef.setInput('bicepResult', createBicepResult());
     fixture.componentRef.setInput('pipelineResult', createPipelineResult());
     fixture.componentRef.setInput('bootstrapResult', createBootstrapResult());
 
     await detectChanges();
 
-    const panelElements = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll('.bicep-file-panel-stub'),
-    ) as HTMLElement[];
+    assertEmbeddedPanelRenderedInFullBleedHost();
 
-    expect(panelElements.length).toBeGreaterThan(0);
-    expect(panelElements.every(panelElement => panelElement.dataset['embedded'] === 'true')).toBeTrue();
+    setInfraInnerTab('pipeline');
+    await detectChanges();
+    assertEmbeddedPanelRenderedInFullBleedHost();
+
+    setInfraInnerTab('bootstrap');
+    await detectChanges();
+    assertEmbeddedPanelRenderedInFullBleedHost();
+
+    setOuterTab('code');
+    await detectChanges();
+    assertEmbeddedPanelRenderedInFullBleedHost();
+
+    setCodeInnerTab('bootstrap');
+    await detectChanges();
+    assertEmbeddedPanelRenderedInFullBleedHost();
   });
 
   it('keeps split generation errors hidden until the batch reveal settles', async () => {
@@ -169,7 +163,37 @@ describe('SplitGenerationSwitcherComponent', () => {
   function getText(selector: string): string {
     return queryBySelector(selector)?.textContent ?? '';
   }
+
+  function assertEmbeddedPanelRenderedInFullBleedHost(): void {
+    const panelElement = queryBySelector('app-bicep-file-panel');
+
+    expect(panelElement).withContext('Expected a rendered split file panel').not.toBeNull();
+    expect(panelElement?.parentElement?.classList.contains('split-switcher__embedded-panel'))
+      .withContext('Expected the split file panel to sit in a full-bleed host wrapper')
+      .toBeTrue();
+
+    const panelStubElement = panelElement?.querySelector('.bicep-file-panel-stub') as HTMLElement | null;
+    expect(panelStubElement?.dataset['embedded']).toBe('true');
+  }
+
+  function setOuterTab(tabId: 'infra' | 'code'): void {
+    (fixture.componentInstance as SplitGenerationSwitcherComponentTestApi).onOuterTabChange(tabId);
+  }
+
+  function setInfraInnerTab(tabId: 'bicep' | 'pipeline' | 'bootstrap'): void {
+    (fixture.componentInstance as SplitGenerationSwitcherComponentTestApi).onInfraInnerTabChange(tabId);
+  }
+
+  function setCodeInnerTab(tabId: 'pipeline' | 'bootstrap'): void {
+    (fixture.componentInstance as SplitGenerationSwitcherComponentTestApi).onCodeInnerTabChange(tabId);
+  }
 });
+
+type SplitGenerationSwitcherComponentTestApi = SplitGenerationSwitcherComponent & {
+  onOuterTabChange(tabId: 'infra' | 'code'): void;
+  onInfraInnerTabChange(tabId: 'bicep' | 'pipeline' | 'bootstrap'): void;
+  onCodeInnerTabChange(tabId: 'pipeline' | 'bootstrap'): void;
+};
 
 function createBicepResult(): GenerateProjectBicepResponse {
   return {

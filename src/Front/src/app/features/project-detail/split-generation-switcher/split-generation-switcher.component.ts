@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { DsButtonComponent, DsPanelActionButtonComponent } from '../../../shared/components/ds';
+import { DsButtonComponent } from '../../../shared/components/ds';
 import { DsTabsComponent } from '../../../shared/components/ds/ds-tabs/ds-tabs.component';
 import type { DsTabDefinition } from '../../../shared/components/ds/ds-tabs/ds-tabs.types';
 import { LanguageService } from '../../../shared/services/language.service';
@@ -47,7 +47,6 @@ import { sortHierarchicalEntries } from '../project-detail-tree-ordering.helper'
     DsSpinnerComponent,
     MatTooltipModule,
     DsButtonComponent,
-    DsPanelActionButtonComponent,
     DsTabsComponent,
     BicepFilePanelComponent,
     BootstrapSetupGuideComponent,

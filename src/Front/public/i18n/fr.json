@@ -2612,7 +2612,12 @@
     "PENDING_CUSTOM_DOMAINS_ITEM": "Domaine « {{domain}} » sur l'environnement {{environment}}.",
     "PENDING_DOCKER_IMAGES_TITLE": "Images Docker non confirmées",
     "PENDING_DOCKER_IMAGES_SUBTITLE": "Les images suivantes n'ont pas été confirmées par l'utilisateur. Une image par défaut (pause) sera utilisée dans le Bicep généré tant qu'elles ne seront pas validées.",
-    "PENDING_DOCKER_IMAGES_ITEM": "Image « {{image}} » non confirmée"
+    "PENDING_DOCKER_IMAGES_ITEM": "Image « {{image}} » non confirmée",
+    "INCOMPLETE_ENV_TITLE": "Configuration des environnements incomplète",
+    "INCOMPLETE_ENV_SUBTITLE": "Certains environnements n'ont pas toutes les informations nécessaires pour générer les fichiers de déploiement.",
+    "INCOMPLETE_ENV_SUBSCRIPTION": "Le Subscription ID Azure n'est pas renseigné.",
+    "INCOMPLETE_ENV_CONNECTION": "La Connexion Azure (service connection) n'est pas renseignée.",
+    "INCOMPLETE_ENV_BOTH": "Le Subscription ID Azure et la Connexion Azure ne sont pas renseignés."
   },
   "ABBREVIATIONS": {
     "TITLE": "Abréviations des ressources",
