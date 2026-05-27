@@ -252,6 +252,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 > - pas de `object`, `dynamic`, `Dictionary<string, object>`, `JsonDocument`, `any`, ou `Record<string, unknown>` si un contrat typé est possible
 > - si une forme faible est inévitable à une frontière externe, la mapper immédiatement vers un modèle typé et ne pas la propager
 > - ne pas introduire un pattern par réflexe ; comparer les options plausibles et garder la plus lisible, maintenable, et scalable
+> - pour toute UI Angular : réutiliser obligatoirement les `app-ds-*` existants ; ne jamais fabriquer un composant/pattern visuel ad hoc dans une feature si le design system couvre déjà le besoin ; si le besoin manque, créer/étendre d'abord le primitive DS réutilisable dans `src/Front/src/app/shared/components/ds/`
 
 - **Nouvelle feature, demande complexe, ou changement architectural significatif** :
   Déléguer d'abord à `architect` pour obtenir un plan d'implémentation validé. L'architecte challenge la demande, vérifie la cohérence avec l'existant, et produit un plan étape par étape attribuant chaque action à l'agent expert approprié. Une fois le plan reçu, `dev` coordonne l'exécution en suivant le plan à la lettre.
@@ -280,12 +281,13 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 
 - **Code Angular isolé** (composant, service, interface, route) :
   Déléguer directement à `angular-front` — il a toutes les règles Angular 19.
+  Pour toute UI, rappeler explicitement la règle DS-first : pas de composant handcrafted en feature ; primitive DS d'abord, écran ensuite.
   Si la tâche touche l'UI/UX (écran, composant visuel, HTML/SCSS, layout), charger d'abord `ui-ux-front-saas`.
 
 - **Backend + Frontend ensemble** (feature avec contrats API qui changent) :
   1. Générer le backend (dotnet-dev / skill cqrs-feature)
   2. Identifier les contrats modifiés
-  3. Déléguer la partie frontend à `angular-front`
+  3. Déléguer la partie frontend à `angular-front` en rappelant la règle DS-first (réutiliser `app-ds-*`, sinon créer/étendre un primitive DS avant l'écran)
 
 - **Incident runtime Aspire** (ressource KO, startup fail, logs/traces, dépendance indisponible) :
   Déléguer à `aspire-debug` pour le diagnostic MCP et la stratégie de recovery avant modification de code.

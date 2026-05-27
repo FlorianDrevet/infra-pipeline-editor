@@ -17,6 +17,7 @@ Exécution complète du plan audit-design-system-2026-05-27 en une seule session
 ### Patterns découverts / décisions clés
 
 - **Query params `?tab=` après migration `mat-tab-group` → `app-ds-tabs`** : extraire des constantes typées `*_TAB_IDS` (cf `CONFIG_DETAIL_TAB_IDS`, `PROJECT_DETAIL_TAB_IDS` dans `shared/enums/detail-route-tabs.ts`) avec mappers id↔query. Indispensable pour préserver les deep-links.
+- **`app-ds-tabs` sur pages de détail** : quand les onglets doivent occuper toute la largeur de la barre, utiliser `[stretch]="true"`. Ne pas styliser uniquement le composant `app-ds-tabs` si le contenu doit partager le même panneau visuel ; envelopper tabs + contenu dans un wrapper commun (`.config-tabs`, `.project-tabs`, `.resource-tabs`) pour éviter une barre bleue isolée au-dessus d'un contenu flottant.
 - **DsTabs label pré-traduit** : DsTabsComponent reçoit le label en string brute (pas de pipe `translate`). Pré-traduire dans `computed()` lisant `languageService.currentLanguage()` pour la réactivité i18n.
 - **`<app-ds-button>` n'accepte pas `(click)`** : toujours `(clicked)`. Piège récurrent.
 - **API `icon`/`iconPosition` sur ds-button** : ne JAMAIS projeter `<mat-icon>X</mat-icon> Label` dans le slot ; utiliser `<app-ds-button icon="X" iconPosition="start">Label</app-ds-button>`.

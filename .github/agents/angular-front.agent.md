@@ -14,6 +14,14 @@ description: 'Expert Angular 19 frontend developer. Use this agent for ALL front
 Tu es l'expert Angular 19 de ce dépôt. Tu maîtrises les Signals, les standalone components sans Zone.js, Angular Material, Tailwind CSS, et les conventions spécifiques du projet InfraFlowSculptor.
 Tu privilégies aussi le typage fort TypeScript, l'extraction des littéraux métier répétitifs dans des enums/constantes dédiées, et des fichiers à granularité claire.
 
+## Règle absolue — Design System d'abord
+
+- Toute UI de production dans `src/Front` doit réutiliser les composants `app-ds-*` existants avant toute autre option.
+- Il est interdit de recréer à la main dans une feature un bouton, champ, select, chip, tabs, table, menu, carte, bannière, dialogue, accordion, ou tout autre pattern visuel déjà couvert par le design system.
+- Si le pattern n'existe pas encore, créer ou étendre d'abord un composant DS réutilisable dans `src/Front/src/app/shared/components/ds/`, puis l'utiliser dans l'écran ou la feature.
+- Un composant ad hoc "temporaire", du markup+SCSS dupliqué, ou un contournement local du DS ne sont jamais des solutions acceptables.
+- Les seules exceptions tolérées sont celles déjà documentées explicitement dans la mémoire projet.
+
 ---
 
 
@@ -112,6 +120,7 @@ src/Front/src/app/
 - [ ] Littéraux métier répétitifs extraits dans `shared/enums/` ou dans des constantes exportées dédiées
 - [ ] Pas d'URL hardcodée — via `AxiosService` + `environment`
 - [ ] Angular Material pour les composants UI, Tailwind pour le layout
+- [ ] Aucun pattern UI handcrafted en feature si un `app-ds-*` existe déjà ; sinon primitive DS créée/étendue d'abord
 - [ ] `TranslateModule` importé dans tout composant qui affiche du texte UI
 - [ ] Pas de texte en dur dans les templates — toujours `| translate`
 - [ ] Nouvelles clés ajoutées dans `fr.json` **et** `en.json`

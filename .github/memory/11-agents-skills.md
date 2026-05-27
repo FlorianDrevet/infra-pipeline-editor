@@ -51,6 +51,13 @@
 - Guardrails now repeated across `dev`, `architect`, `dotnet-dev`, `angular-front`, `vibe-coding-refractaire`, `dotnet-patterns`, and `angular-patterns`.
 - Mandatory rules: no magic strings, one public top-level type/class per file, strongly typed contracts/models/persistence before `object` / `Dictionary` / `JsonDocument` / weak JSON, and explicit design-pattern choice based on readability, maintainability, and scalability.
 
+## Frontend DS-first hard gate [2026-05-27]
+
+- `.github/copilot-instructions.md` now states the DS rule in hard-gate form for frontend work: if `app-ds-*` covers the need, agents must use it instead of crafting ad hoc feature UI.
+- `.github/agents/angular-front.agent.md` now treats DS-first as an absolute rule: no handcrafted feature-level button/field/select/chip/tabs/table/menu/card/dialog/banner/accordion patterns when the design system already covers them.
+- `.github/agents/dev.agent.md` now requires every frontend delegation to repeat that DS-first rule explicitly; if a needed pattern is missing, the agent must create or extend a reusable primitive in `src/Front/src/app/shared/components/ds/` before touching the screen.
+- Only exceptions explicitly documented in project memory remain allowed.
+
 ## Request Contradiction Pass [2026-05-20]
 
 - `.github/copilot-instructions.md`, `.github/agents/dev.agent.md`, and `.github/prompts/InfraFlowProject.prompt.md` now require an explicit contradiction pass for Bicep generation, Azure DevOps pipelines, bootstrap flows, service connections, repository layouts, and multi-environment configuration requests.

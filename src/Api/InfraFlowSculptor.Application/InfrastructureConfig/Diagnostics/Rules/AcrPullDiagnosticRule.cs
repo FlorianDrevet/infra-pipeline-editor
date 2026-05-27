@@ -20,6 +20,9 @@ public sealed class AcrPullDiagnosticRule : IDiagnosticRule
     /// <summary>The property key in <see cref="AzureResourceReadModel.Properties"/> that holds the ACR authentication mode.</summary>
     private const string AcrAuthModeProperty = "acrAuthMode";
 
+    /// <summary>The property key in <see cref="AzureResourceReadModel.Properties"/> that holds the dedicated ACR pull identity.</summary>
+    private const string AcrPullIdentityIdProperty = "acrPullIdentityId";
+
     /// <summary>ARM resource types considered as container-capable compute resources.</summary>
     private static readonly HashSet<string> ContainerComputeTypes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -64,6 +67,18 @@ public sealed class AcrPullDiagnosticRule : IDiagnosticRule
                 ra.SourceResourceId == resource.Id
                 && ra.TargetResourceId == acrId
                 && ra.RoleDefinitionId.Equals(AzureRoleDefinitionCatalog.AcrPull, StringComparison.OrdinalIgnoreCase));
+
+            // Also check: if the resource specifies an acrPullIdentityId, verify that UAI
+            // has an AcrPull role assignment targeting the ACR from any source resource.
+            if (!hasAcrPull
+                && resource.Properties.TryGetValue(AcrPullIdentityIdProperty, out var acrPullIdentityIdStr)
+                && Guid.TryParse(acrPullIdentityIdStr, out var acrPullIdentityId))
+            {
+                hasAcrPull = config.RoleAssignments.Any(ra =>
+                    ra.UserAssignedIdentityResourceId == acrPullIdentityId
+                    && ra.TargetResourceId == acrId
+                    && ra.RoleDefinitionId.Equals(AzureRoleDefinitionCatalog.AcrPull, StringComparison.OrdinalIgnoreCase));
+            }
 
             if (hasAcrPull)
                 continue;

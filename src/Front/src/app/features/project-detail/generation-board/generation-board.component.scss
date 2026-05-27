@@ -16,12 +16,12 @@
     position: relative;
     overflow: hidden;
     padding: 0 1.5rem 1.5rem;
-    border-radius: calc(var(--ifs-radius-lg) + 4px);
-    border: 1px solid var(--ifs-border-strong);
+    border-radius: var(--ifs-radius-lg);
+    border: 1px solid rgba(56, 85, 117, 0.5);
     background:
-      radial-gradient(circle at top right, rgba(93, 152, 255, 0.22), transparent 34%),
-      linear-gradient(160deg, rgba(13, 29, 67, 0.92), rgba(15, 25, 40, 0.96));
-    box-shadow: var(--ifs-shadow-md);
+      radial-gradient(circle at top right, rgba(93, 152, 255, 0.18), transparent 36%),
+      linear-gradient(160deg, rgba(13, 29, 67, 0.9), rgba(15, 25, 40, 0.95));
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18), 0 1px 4px rgba(28, 83, 177, 0.1);
   }
 
   &__breadcrumbs {
@@ -78,35 +78,51 @@
   flex-direction: column;
   gap: 0.4rem;
   min-height: 7.25rem;
-  padding: 1rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  padding: 1rem 1.1rem;
+  border-radius: var(--ifs-radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color var(--ifs-duration-fast) var(--ifs-ease-standard);
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
 
   &__icon {
-    color: var(--ifs-text-primary);
-    width: 1.15rem;
-    height: 1.15rem;
-    font-size: 1.15rem;
+    color: var(--ifs-text-secondary);
+    width: 1.1rem;
+    height: 1.1rem;
+    font-size: 1.1rem;
+    opacity: 0.8;
   }
 
   &__label {
-    color: var(--ifs-text-secondary);
-    font-size: 0.78rem;
+    color: var(--ifs-text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.07em;
   }
 
   &__value {
     color: var(--ifs-text-primary);
-    font-size: 1.35rem;
+    font-size: 1.4rem;
     line-height: 1.2;
     font-weight: 600;
+    letter-spacing: -0.01em;
   }
 
   &--layout {
-    background: rgba(93, 152, 255, 0.11);
-    border-color: rgba(159, 194, 255, 0.22);
+    background: rgba(93, 152, 255, 0.08);
+    border-color: rgba(159, 194, 255, 0.18);
+
+    &:hover {
+      border-color: rgba(159, 194, 255, 0.28);
+    }
+
+    .summary-card__value {
+      font-size: 1.1rem;
+    }
   }
 }
 
@@ -224,16 +240,16 @@
 .generation-tabs {
   background: var(--project-surface-panel, var(--ifs-surface-1));
   border: 1px solid var(--project-border-accent, var(--ifs-border-subtle));
-  border-radius: var(--ifs-radius-md);
+  border-radius: var(--ifs-radius-lg);
   overflow: hidden;
-  box-shadow: var(--ifs-shadow-sm);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .generation-tab-content {
   display: flex;
   flex-direction: column;
   gap: var(--ifs-space-16);
-  padding: var(--ifs-space-16) var(--ifs-space-20);
+  padding: var(--ifs-space-20) var(--ifs-space-20);
 }
 
 .generation-tab-content__toolbar {
@@ -248,11 +264,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--ifs-space-12);
-  padding: var(--ifs-space-16);
+  padding: var(--ifs-space-20);
   background: var(--project-surface-panel, var(--ifs-surface-1));
   border: 1px solid var(--project-border-accent, var(--ifs-border-subtle));
-  border-radius: var(--ifs-radius-md);
-  box-shadow: var(--ifs-shadow-sm);
+  border-radius: var(--ifs-radius-lg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .generation-panel--collapsed {
@@ -275,7 +291,7 @@
 .bicep-terminal {
   background: color-mix(in srgb, var(--ifs-bg) 88%, var(--ifs-brand-700));
   border: 1px solid var(--project-border-accent, var(--ifs-border-subtle));
-  border-radius: var(--ifs-radius-md);
+  border-radius: var(--ifs-radius-lg);
   overflow: hidden;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12px;
@@ -285,7 +301,7 @@
   display: flex;
   align-items: center;
   gap: var(--ifs-space-6);
-  padding: var(--ifs-space-6) var(--ifs-space-12);
+  padding: var(--ifs-space-8) var(--ifs-space-12);
   background: var(--project-surface-hover, var(--ifs-surface-2));
   border-bottom: 1px solid var(--project-border-accent, var(--ifs-border-subtle));
 }

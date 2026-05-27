@@ -59,11 +59,12 @@
         <span>{{ 'RESOURCE_EDIT.EXISTING_RESOURCE_INFO' | translate }}</span>
       </div>
     }
-    <app-ds-tabs class="resource-tabs"
-                 [tabs]="mainTabs()"
-                 [activeTabId]="activeMainTabId()"
-                 (tabChange)="onMainTabChange($event)"
-                 [ariaLabel]="'RESOURCE_EDIT.TABS.ARIA' | translate" />
+    <div class="resource-tabs">
+      <app-ds-tabs [tabs]="mainTabs()"
+                   [activeTabId]="activeMainTabId()"
+                   [stretch]="true"
+                   (tabChange)="onMainTabChange($event)"
+                   [ariaLabel]="'RESOURCE_EDIT.TABS.ARIA' | translate" />
 
       <!-- General Tab -->
       @if (activeMainTabId() === 'general') {
@@ -1881,6 +1882,7 @@
               (detectOptions)="onDetectPipelineOptions()" />
           </div>
       }
+    </div>
 
     <!-- ��������� Floating Save Bar ��������� -->
     @if (showSaveBar()) {
