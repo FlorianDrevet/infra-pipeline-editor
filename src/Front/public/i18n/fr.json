@@ -2,6 +2,11 @@
   "DS": {
     "SPINNER": {
       "LOADING": "Chargement..."
+    },
+    "KEY_VALUE_INPUT": {
+      "DUPLICATE_KEY": "Cette clé existe déjà",
+      "KEY_REQUIRED": "La clé est requise",
+      "VALUE_REQUIRED": "La valeur est requise"
     }
   },
   "LANGUAGE": {

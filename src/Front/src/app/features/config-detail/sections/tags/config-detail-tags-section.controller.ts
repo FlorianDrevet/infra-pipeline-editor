@@ -2,6 +2,7 @@ import { computed, inject, signal } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
 import { TagRequest } from '../../../../shared/interfaces/infra-config.interface';
+import { DsKeyValueItem } from '../../../../shared/components/ds';
 import { InfraConfigService } from '../../../../shared/services/infra-config.service';
 import { ConfigDetailTagsSection } from './config-detail-tags-section.interface';
 
@@ -86,6 +87,10 @@ export function createConfigDetailTagsSectionController(
     }
   };
 
+  const onItemsChange = (items: DsKeyValueItem[]): void => {
+    editingTags.set(items.map(item => ({ name: item.key, value: item.value })));
+  };
+
   return {
     configTags,
     isEditing,
@@ -100,5 +105,6 @@ export function createConfigDetailTagsSectionController(
     removeTag,
     cancelEdit,
     save,
+    onItemsChange,
   };
 }

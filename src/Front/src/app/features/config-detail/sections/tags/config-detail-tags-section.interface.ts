@@ -2,6 +2,7 @@ import { Signal } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
 import { TagRequest } from '../../../../shared/interfaces/infra-config.interface';
+import { DsKeyValueItem } from '../../../../shared/components/ds';
 
 export interface ConfigDetailTagsSection {
   readonly configTags: Signal<TagRequest[]>;
@@ -18,4 +19,5 @@ export interface ConfigDetailTagsSection {
   removeTag(name: string): void;
   cancelEdit(): void;
   save(): Promise<void>;
+  onItemsChange(items: DsKeyValueItem[]): void;
 }

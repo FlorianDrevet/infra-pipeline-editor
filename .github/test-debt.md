@@ -15,22 +15,14 @@
 ## Incremental Entries
 
 - [2026-05-18] **P2 — Infrastructure / KeyVaultSecretClient**: `tests/InfraFlowSculptor.Infrastructure.Tests/Services/KeyVault/KeyVaultSecretClientTests.cs` now covers PAT write failure mapping in `SetSecretAsync(...)` and PAT read failure logging in `GetSecretAsync(...)`; `DeleteSecretAsync(...)` still lacks a focused regression test for exception logging and error mapping.
-- [2026-05-27] **Front/P2 — DS migration W4.3 specs broken**: la migration des boutons Material → DS dans `src/Front/src/app/features/resource-edit/**` (11 fichiers) supprime les classes CSS legacy utilisées par les specs comme sélecteurs `querySelector`. Specs à migrer vers query DS (`app-ds-icon-button[icon="..."]`, `app-ds-button` + harness, ou `getDebugElement(By.directive(DsButtonComponent))`) :
-  - `resource-edit-used-by-section.component.spec.ts:42` → `.uai-used-row__unlink`
-  - `resource-edit-custom-domains-section.component.spec.ts:45` → `.custom-domains-section__add-btn`
-  - `resource-edit-config-keys-section.component.spec.ts:44` → `.as-row__delete`
-  - `resource-edit-app-settings-section.component.spec.ts:65-66` → `.as-row__edit`, `.as-row__delete`
-  
-  Purge SCSS dead-classes pending tant que specs non migrés (sinon faux positifs) :
-  - `used-by-section.scss` → `.uai-used-row__unlink`
-  - `granted-rights-section.scss` → `.ra-add-btn`
-  - `custom-domains-section.scss` → `.custom-domains-section__add-btn`
-  - `role-assignments-section.scss` → `.ra-add-btn*`, `.ra-card__action-btn*` (KEEP `--switch` + `--assign`), `.ra-card__remove-btn`
-  - `app-settings-section.scss`, `config-keys-section.scss` → `.as-row__delete`, `.as-row__edit`
-  - `pipeline-options.scss` → `.pipeline-options__detect-button*`
-  - `add-app-config-key-dialog.scss`, `add-app-setting-dialog.scss` → `.mode-btn`, `.mode-btn--active`
+- [2026-05-27] ~~**Front/P2 — DS migration W4.3 specs broken**~~ **RESOLVED [2026-05-27]**: 5 specs migrated from legacy CSS selectors (`.uai-used-row__unlink`, `.custom-domains-section__add-btn`, `.as-row__delete`, `.as-row__edit`, `.ra-add-btn`) to DS-aware selectors (`app-ds-button[icon="..."] button`, `app-ds-icon-button[icon="..."] button`). All 51 Karma specs pass. SCSS dead-classes purged from 5 files (custom-domains, app-settings, pipeline-options, add-app-config-key-dialog, add-app-setting-dialog).
+- [2026-05-27] ~~**Front/P3 — DS migration W2 (tag-input rollout) NOT EXECUTED**~~ **RESOLVED [2026-05-27]**: Created `app-ds-key-value-input` primitive (`DsKeyValueItem { key, value }`, ControlValueAccessor, validators, chips display). Migrated 3 files: `config-detail-tags-section`, `project-detail-tags-section`, `add-project-environment-dialog`. Naming-template files (2) excluded by design (they are cursor-placement UIs, not key-value inputs). `mat-chip-set` removed from the 3 migrated files.
+- [2026-05-27] **Front/P3 — DS migration N7 accordion RESOLVED [2026-05-27]**: Created `app-ds-accordion` primitive (expand/collapse, ARIA, icon, tone). Migrated DNS tutorial in `resource-edit-custom-domains-section`. 0 `mat-expansion-panel` remaining in frontend.
+- [2026-05-27] **Front/P3 — Bicep palette extraction RESOLVED [2026-05-27]**: Extracted shared `_bicep-syntax-palette.scss` partial. Used by `settings.component.scss` and `bicep-file-panel.component.scss` via `@use` + `@include bicep.tokens`.
+- [2026-05-27] **Front/P2 — W1 DS primitive specs**: The 4 new W1 primitives (`ds-spinner`, `ds-progress-bar`, `ds-tag-input`, `ds-menu`) have spec files and compile correctly. Confirmed passing with typecheck.
 
-- [2026-05-27] **Front/P3 — DS migration W2 (tag-input rollout) NOT EXECUTED**: aucun des 5 fichiers ciblés par l'audit §3.16 n'est migrable vers `app-ds-tag-input` dans son état actuel. Files 1-3 (`add-project-environment-dialog`, `project-detail/tags-section`, `config-detail/sections/tags`) utilisent `TagRequest { name, value }` (paires clé+valeur, 2 inputs) — incompatible avec `DsTagInputItem { value }` mono-string. Files 4-5 (`add-naming-template-dialog`, `add-project-naming-template-dialog`) sont des palettes de placeholders cliquables avec `viewChild<ElementRef>` + `insertPlaceholderAtCursor` — pas un tag-input. Recommandation : W1.5 créer `app-ds-key-value-input` pour Pattern A (3 fichiers), exclure Pattern B (2 fichiers naming-template) du scope DS tag-input.
+### Remaining open debt (Front)
+- **P3** — 2 `mat-chip-set` remain in naming-template dialogs (cursor-placement UIs, not tag inputs — excluded by design)
 
 ---
 

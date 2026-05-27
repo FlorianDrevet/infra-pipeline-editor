@@ -1,25 +1,22 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { ProjectResponse } from '../../../shared/interfaces/project.interface';
 import { TagRequest } from '../../../shared/interfaces/infra-config.interface';
 import { ProjectService } from '../../../shared/services/project.service';
-import { DsButtonComponent, DsIconButtonComponent, DsTextFieldComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsChipComponent, DsIconButtonComponent, DsKeyValueInputComponent, DsKeyValueItem } from '../../../shared/components/ds';
 
 @Component({
   selector: 'app-project-detail-tags-section',
   standalone: true,
   imports: [
-    ReactiveFormsModule,
-    MatChipsModule,
     MatIconModule,
     TranslateModule,
     DsButtonComponent,
+    DsChipComponent,
     DsIconButtonComponent,
-    DsTextFieldComponent,
+    DsKeyValueInputComponent,
   ],
   templateUrl: './project-detail-tags-section.component.html',
   styleUrl: './project-detail-tags-section.component.scss',
@@ -35,31 +32,21 @@ export class ProjectDetailTagsSectionComponent {
   protected readonly editingTags = signal<TagRequest[]>([]);
   protected readonly tagsErrorKey = signal('');
   protected readonly tagsSaving = signal(false);
-  protected readonly tagNameCtrl = new FormControl('', { nonNullable: true });
-  protected readonly tagValueCtrl = new FormControl('', { nonNullable: true });
 
   protected readonly projectTags = computed(() => this.project()?.tags ?? []);
 
+  protected readonly editingKvItems = computed<DsKeyValueItem[]>(() =>
+    this.editingTags().map(t => ({ key: t.name, value: t.value })),
+  );
+
   protected startEditProjectTags(): void {
     this.editingTags.set(this.projectTags().map(t => ({ name: t.name, value: t.value })));
-    this.tagNameCtrl.reset();
-    this.tagValueCtrl.reset();
     this.tagsErrorKey.set('');
     this.isEditingProjectTags.set(true);
   }
 
-  protected addProjectTag(): void {
-    const name = this.tagNameCtrl.value.trim();
-    const value = this.tagValueCtrl.value.trim();
-    if (!name || !value) return;
-    if (this.editingTags().some(t => t.name === name)) return;
-    this.editingTags.update(tags => [...tags, { name, value }]);
-    this.tagNameCtrl.reset();
-    this.tagValueCtrl.reset();
-  }
-
-  protected removeProjectTag(name: string): void {
-    this.editingTags.update(tags => tags.filter(t => t.name !== name));
+  protected onTagsChange(items: DsKeyValueItem[]): void {
+    this.editingTags.set(items.map(item => ({ name: item.key, value: item.value })));
   }
 
   protected cancelProjectTagsEdit(): void {

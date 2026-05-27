@@ -4,13 +4,15 @@
 
 Exécution complète du plan audit-design-system-2026-05-27 en une seule session (sur demande explicite utilisateur). Toutes les vagues sauf W2 livrées.
 
-### Nouveaux primitives DS (5)
+### Nouveaux primitives DS (7)
 
 - **`app-ds-spinner`** (W1) — SVG circle stroke-dasharray, sizes `sm|md|lg|xl` (14/18/24/40px), `inline` mode, `currentColor`, `prefers-reduced-motion` honored. Tokens `--ifs-*` exclusivement.
 - **`app-ds-progress-bar`** (W1) — modes `determinate|indeterminate`, tones `brand|success|danger`, value 0-100. Indeterminate via keyframes whitelistées (cf shimmer skeleton).
-- **`app-ds-tag-input`** (W1) — Inputs typés `DsTagInputItem[]`, validators, addOnComma/Enter/Blur, Backspace removes last. **Non déployé en W2** : les 5 cibles audit étaient en fait key-value ou action-chips. Garder le primitive pour usages futurs réels.
+- **`app-ds-tag-input`** (W1) — Inputs typés `DsTagInputItem[]`, validators, addOnComma/Enter/Blur, Backspace removes last. Pour usages mono-valeur (pas key-value).
 - **`app-ds-menu`** + **`DsMenuDirective`** (W1) — CDK Overlay, ArrowUp/Down navigation, Esc fermeture, items typés `DsMenuItem { id, label, icon?, iconTrailing?, tone?, disabled?, divider? }`. Utilisé en W8 pour role-assignments (4 menus).
 - **`app-ds-card-mat`** (W7, N3) — 3 slots nommés `[ds-card-header]`, `[ds-card-content]`, `[ds-card-actions]`, inputs `title?/subtitle?/tone`, tone `neutral|brand|success|warning|danger`. Remplace les chains `mat-card-header/title/subtitle/content/actions` (6 usages migrés : multi-repo-push-dialog×2, config-detail-git-section×2, networking-tab×2).
+- **`app-ds-key-value-input`** (dette W2) — ControlValueAccessor `DsKeyValueItem { key, value }[]`. Dual text-fields + add button + chip row. Validators (duplicate key, required). Migré 3 fichiers (config-detail-tags, project-detail-tags, add-project-environment-dialog). Naming-templates exclus (cursor-placement UIs).
+- **`app-ds-accordion`** (dette N7) — expand/collapse, ARIA `aria-expanded`, icon, tone `neutral|brand|info`, model `expanded`. Migré DNS tutorial custom-domains. 0 `mat-expansion-panel` restant.
 
 ### Patterns découverts / décisions clés
 
@@ -138,11 +140,13 @@ Exécution complète du plan audit-design-system-2026-05-27 en une seule session
 - Dialog footers that expose the common two-action pattern `button[mat-stroked-button]` then `app-ds-button` now inherit a shared global `mat-dialog-actions` layout from `src/Front/src/styles.scss`: equal-width secondary/primary actions, `0.875rem` gap on desktop, and stacked full-width actions under `640px`. The selector is intentionally narrow (`:has()` + direct-child pair) so dialogs with extra tertiary actions or wrapper nodes stay untouched. [2026-05-16]
 - Keep raw Material where the DS layer still depends on framework behaviors that are not reimplemented yet.
 
-## Migration Status [2026-04-24]
+## Migration Status [2026-05-27]
 
-- Primary CTAs across `home`, `projects`, `project-detail`, `config-detail`, `resource-edit`, and shared dialogs were largely migrated to `app-ds-button`.
-- About 216 former `<mat-form-field>` usages were migrated to DS form controls across 25+ files, including `add-resource-dialog` and `resource-edit`.
-- `projects` toolbar and card affordances now stay on DS primitives: search uses `app-ds-text-field`, favorites uses `app-ds-button`, sorting uses `app-ds-select`, and project meta/favorite affordances use `app-ds-chip` plus `app-ds-icon-button`. The project card layout keeps members/environment chips in a dedicated bottom footer block even when a project has no description. [2026-05-11]
+- **0** `mat-expansion-panel` remaining — replaced by `app-ds-accordion`.
+- **0** `mat-chip-set` in feature code except 2 naming-template dialogs (cursor-placement UIs, excluded by design).
+- **0** Material buttons/icons-buttons in feature templates (only DS wrappers internally in `ds-autocomplete`).
+- Shared SCSS partial `_bicep-syntax-palette.scss` extracts Bicep syntax tokens used by `settings.component.scss` and `bicep-file-panel.component.scss`.
+- All legacy dead-classes purged from 5 SCSS files (custom-domains, app-settings, pipeline-options, add-app-config-key-dialog, add-app-setting-dialog).
 - `project-detail` top tabs plus the SplitInfraCode generation shell were visually rebalanced toward a thinner enterprise language: less glow, softer header chrome, quieter accent colors, and flatter CTA grouping around generation/push actions. [2026-05-11]
 - Remaining raw Material inputs are intentional for:
   - `matAutocomplete` flows in `push-to-git-dialog` and `add-project-member-dialog`

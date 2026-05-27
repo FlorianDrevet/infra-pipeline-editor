@@ -1,9 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DsButtonComponent, DsIconButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent, DsToggleComponent } from '../../../shared/components/ds';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DsButtonComponent, DsChipComponent, DsIconButtonComponent, DsKeyValueInputComponent, DsKeyValueItem, DsSelectComponent, DsSelectOption, DsTextFieldComponent, DsToggleComponent } from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
 import { TranslateModule } from '@ngx-translate/core';
 import { EnvironmentDefinitionResponse, TagRequest } from '../../../shared/interfaces/infra-config.interface';
 import { ProjectService } from '../../../shared/services/project.service';
@@ -19,13 +18,14 @@ export interface AddProjectEnvironmentDialogData {
   selector: 'app-add-project-environment-dialog',
   standalone: true,
   imports: [
-    MatChipsModule,
     MatDialogModule,
     MatIconModule,
     ReactiveFormsModule,
     TranslateModule,
     DsButtonComponent,
+    DsChipComponent,
     DsIconButtonComponent,
+    DsKeyValueInputComponent,
     DsSelectComponent,
     DsTextFieldComponent,
     DsToggleComponent,
@@ -51,21 +51,9 @@ export class AddProjectEnvironmentDialogComponent {
   protected readonly localTags = signal<TagRequest[]>(
     this.data.existing?.tags?.map(t => ({ name: t.name, value: t.value })) ?? []
   );
-  protected readonly tagNameCtrl = new FormControl('', { nonNullable: true });
-  protected readonly tagValueCtrl = new FormControl('', { nonNullable: true });
 
-  protected addTag(): void {
-    const name = this.tagNameCtrl.value.trim();
-    const value = this.tagValueCtrl.value.trim();
-    if (!name || !value) return;
-    if (this.localTags().some(t => t.name === name)) return;
-    this.localTags.update(tags => [...tags, { name, value }]);
-    this.tagNameCtrl.reset();
-    this.tagValueCtrl.reset();
-  }
-
-  protected removeTag(name: string): void {
-    this.localTags.update(tags => tags.filter(t => t.name !== name));
+  protected onTagsChange(items: DsKeyValueItem[]): void {
+    this.localTags.set(items.map(item => ({ name: item.key, value: item.value })));
   }
 
   private readonly otherEnvironments = this.data.allEnvironments

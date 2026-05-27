@@ -17,25 +17,13 @@
         <span>{{ 'CONFIG_DETAIL.TAGS.EDITING_TITLE' | translate }}</span>
       </div>
 
-      <div class="tags-edit-card__form">
-        <app-ds-text-field
-          class="tags-edit-card__name"
-          [label]="'CONFIG_DETAIL.TAGS.TAG_NAME' | translate"
-          [formControl]="section().tagNameControl"
-          (keydown.enter)="section().addTag(); $event.preventDefault()" />
-        <app-ds-text-field
-          class="tags-edit-card__value"
-          [label]="'CONFIG_DETAIL.TAGS.TAG_VALUE' | translate"
-          [formControl]="section().tagValueControl"
-          (keydown.enter)="section().addTag(); $event.preventDefault()" />
-        <app-ds-button
-          variant="primary"
-          icon="add"
-          (clicked)="section().addTag()"
-          [disabled]="!section().tagNameControl.value.trim()">
-          {{ 'CONFIG_DETAIL.TAGS.ADD' | translate }}
-        </app-ds-button>
-      </div>
+      <app-ds-key-value-input
+        [keyLabel]="'CONFIG_DETAIL.TAGS.TAG_NAME' | translate"
+        [valueLabel]="'CONFIG_DETAIL.TAGS.TAG_VALUE' | translate"
+        [addButtonLabel]="'CONFIG_DETAIL.TAGS.ADD' | translate"
+        [duplicateKeyError]="'DS.KEY_VALUE_INPUT.DUPLICATE_KEY' | translate"
+        [disabled]="section().isSaving()"
+        (itemsChange)="section().onItemsChange($event)" />
 
       @if (section().editingTags().length > 0) {
         <div class="tags-edit-list">

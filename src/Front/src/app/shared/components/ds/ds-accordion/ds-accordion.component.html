@@ -1,0 +1,23 @@
+<div class="ds-accordion"
+     [class.ds-accordion--expanded]="expanded()"
+     [class.ds-accordion--disabled]="disabled()"
+     [class.ds-accordion--brand]="tone() === 'brand'"
+     [class.ds-accordion--info]="tone() === 'info'">
+  <button
+    class="ds-accordion__header"
+    type="button"
+    [attr.aria-expanded]="expanded()"
+    [disabled]="disabled()"
+    (click)="toggle()">
+    @if (icon()) {
+      <mat-icon class="ds-accordion__icon">{{ icon() }}</mat-icon>
+    }
+    <span class="ds-accordion__title">{{ title() }}</span>
+    <mat-icon class="ds-accordion__indicator" [class.ds-accordion__indicator--rotated]="expanded()">expand_more</mat-icon>
+  </button>
+  @if (expanded()) {
+    <div class="ds-accordion__body" role="region">
+      <ng-content />
+    </div>
+  }
+</div>

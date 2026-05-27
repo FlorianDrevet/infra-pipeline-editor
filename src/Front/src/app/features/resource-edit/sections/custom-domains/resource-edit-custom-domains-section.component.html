@@ -82,13 +82,10 @@
       </div>
     }
 
-    <mat-expansion-panel class="cd-dns-tutorial">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <mat-icon>school</mat-icon>
-          {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_TUTORIAL_TITLE' | translate }}
-        </mat-panel-title>
-      </mat-expansion-panel-header>
+    <app-ds-accordion
+      [title]="'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_TUTORIAL_TITLE' | translate"
+      icon="school"
+      tone="info">
       <div class="cd-dns-tutorial__steps">
         <div class="cd-dns-tutorial__step">
           <div class="cd-dns-tutorial__step-number">1</div>
@@ -126,6 +123,6 @@
           </div>
         </div>
       </div>
-    </mat-expansion-panel>
+    </app-ds-accordion>
   }
 </div>

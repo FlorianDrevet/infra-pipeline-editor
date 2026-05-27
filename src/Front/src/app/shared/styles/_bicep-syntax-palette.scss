@@ -1,0 +1,15 @@
+/// Shared Bicep syntax highlighting palette.
+/// Usage: `@use 'shared/styles/bicep-syntax-palette' as bicep;`
+/// Then include `@include bicep.tokens;` inside a selector.
+
+@mixin tokens {
+  --bicep-syntax-plain: rgba(244, 248, 252, 0.9);
+  --bicep-syntax-keyword: #adc8ff;
+  --bicep-syntax-type: #89bcc9;
+  --bicep-syntax-string: #d8c490;
+  --bicep-syntax-comment: #6f7f97;
+  --bicep-syntax-decorator: #86b8a4;
+  --bicep-syntax-constant: #c5addc;
+  --bicep-syntax-number: #c5addc;
+  --bicep-syntax-property: #b5d0e6;
+}
