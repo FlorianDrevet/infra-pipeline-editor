@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Commands.DeleteResourceGroup;
+using InfraFlowSculptor.Application.ResourceGroups.Commands.UpdateResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.GetResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupResources;
 using MediatR;

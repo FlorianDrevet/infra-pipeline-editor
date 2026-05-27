@@ -162,7 +162,8 @@ public sealed class ProjectMappingConfig : IRegister
         config.NewConfig<EnvironmentSetupRequest,
                 InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.EnvironmentSetupItem>()
             .Map(dest => dest.Prefix, src => src.Prefix ?? string.Empty)
-            .Map(dest => dest.Suffix, src => src.Suffix ?? string.Empty);
+            .Map(dest => dest.Suffix, src => src.Suffix ?? string.Empty)
+            .Map(dest => dest.SubscriptionId, src => src.SubscriptionId ?? Guid.Empty);
 
         config.NewConfig<RepositorySetupRequest,
             InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.RepositorySetupItem>();
