@@ -5,6 +5,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import {
   DsButtonComponent,
+  DsCardMatComponent,
   DsSelectComponent,
   DsSpinnerComponent,
   DsTextFieldComponent,
@@ -17,6 +18,7 @@ import { ConfigDetailNetworkingSectionViewModel } from './config-detail-networki
   standalone: true,
   imports: [
     DsButtonComponent,
+    DsCardMatComponent,
     DsSelectComponent,
     DsTextFieldComponent,
     DsToggleComponent,

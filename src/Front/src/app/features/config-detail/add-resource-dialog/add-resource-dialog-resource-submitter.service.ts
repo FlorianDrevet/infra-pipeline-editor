@@ -304,7 +304,7 @@ export class AddResourceDialogResourceSubmitterService {
         });
         return;
       case ResourceTypeEnum.VirtualNetwork:
-        await this.virtualNetworkService.create(resourceGroupId, {
+        await this.virtualNetworkService.create({
           resourceGroupId,
           name: common.name,
           location: common.location,

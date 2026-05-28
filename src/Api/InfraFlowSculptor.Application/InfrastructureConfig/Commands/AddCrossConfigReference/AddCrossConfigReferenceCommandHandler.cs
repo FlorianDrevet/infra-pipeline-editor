@@ -41,12 +41,16 @@ public sealed class AddCrossConfigReferenceCommandHandler(
         if (targetConfig is null || targetConfig.ProjectId != config.ProjectId)
             return Domain.Common.Errors.Errors.InfrastructureConfig.TargetResourceNotInSameProject();
 
+        var configWithReferences = await infraConfigRepository.GetByIdWithMembersAsync(configId, cancellationToken);
+        if (configWithReferences is null)
+            return Domain.Common.Errors.Errors.InfrastructureConfig.NotFoundError(configId);
+
         // Add the cross-config reference (domain validates same-config and duplicate)
-        var result = config.AddCrossConfigReference(targetConfigId, targetResourceId);
+        var result = configWithReferences.AddCrossConfigReference(targetConfigId, targetResourceId);
         if (result.IsError)
             return result.Errors;
 
-        infraConfigRepository.Update(config);
+        infraConfigRepository.Update(configWithReferences);
 
         var reference = result.Value;
         return new CrossConfigReferenceResult(

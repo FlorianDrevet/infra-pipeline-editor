@@ -1,6 +1,8 @@
 import { computed, inject, signal, Signal } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 
 import { NetworkingProfileService } from '../../../../shared/services/networking-profile.service';
+import { LanguageService } from '../../../../shared/services/language.service';
 import {
   NetworkingProfileResponse,
   SetNetworkingProfileRequest,
@@ -32,6 +34,8 @@ export function createConfigDetailNetworkingSectionController(
   dependencies: ConfigDetailNetworkingSectionControllerDependencies,
 ): ConfigDetailNetworkingSectionController {
   const networkingService = inject(NetworkingProfileService);
+  const translate = inject(TranslateService);
+  const languageService = inject(LanguageService);
 
   const isLoading = signal(false);
   const isSaving = signal(false);
@@ -50,6 +54,27 @@ export function createConfigDetailNetworkingSectionController(
 
   const showVnetPanel = computed(() => mode() !== 'Simplified');
   const showDnsPanel = computed(() => mode() !== 'Simplified');
+  const modeOptions = computed(() => {
+    languageService.currentLanguage();
+    return NETWORKING_MODE_OPTIONS.map((option) => ({
+      ...option,
+      label: translate.instant(option.label),
+    }));
+  });
+  const vnetSourceTypeOptions = computed(() => {
+    languageService.currentLanguage();
+    return VNET_SOURCE_TYPE_OPTIONS.map((option) => ({
+      ...option,
+      label: translate.instant(option.label),
+    }));
+  });
+  const dnsModeOptions = computed(() => {
+    languageService.currentLanguage();
+    return DNS_MODE_OPTIONS.map((option) => ({
+      ...option,
+      label: translate.instant(option.label),
+    }));
+  });
 
   const resources = computed<NetworkingResourceItem[]>(() => {
     const allResources = dependencies.getResources();
@@ -153,9 +178,9 @@ export function createConfigDetailNetworkingSectionController(
     resources,
     showVnetPanel,
     showDnsPanel,
-    modeOptions: NETWORKING_MODE_OPTIONS,
-    vnetSourceTypeOptions: VNET_SOURCE_TYPE_OPTIONS,
-    dnsModeOptions: DNS_MODE_OPTIONS,
+    modeOptions,
+    vnetSourceTypeOptions,
+    dnsModeOptions,
     onModeChange: (value) => { if (value !== null) mode.set(String(value)); },
     onVnetSourceTypeChange: (value) => { if (value !== null) vnetSourceType.set(String(value)); },
     onExistingVnetResourceIdChange: (value) => existingVnetResourceId.set(value),

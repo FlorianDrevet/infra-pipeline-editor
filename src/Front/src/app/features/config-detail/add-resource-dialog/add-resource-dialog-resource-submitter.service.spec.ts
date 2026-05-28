@@ -72,7 +72,7 @@ describe('AddResourceDialogResourceSubmitterService', () => {
       isExisting: true,
     }));
 
-    expect(virtualNetworkServiceSpy.create).toHaveBeenCalledOnceWith('resource-group-1', {
+    expect(virtualNetworkServiceSpy.create).toHaveBeenCalledOnceWith({
       resourceGroupId: 'resource-group-1',
       name: 'demo-vnet',
       location: 'westeurope',

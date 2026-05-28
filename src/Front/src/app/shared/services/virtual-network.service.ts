@@ -6,30 +6,25 @@ import {
   VirtualNetworkResponse,
 } from '../interfaces/virtual-network.interface';
 
+const VIRTUAL_NETWORK_ROUTE = '/virtual-network';
+
 @Injectable({
   providedIn: 'root',
 })
 export class VirtualNetworkService {
   private readonly axios = inject(AxiosService);
 
-  getByResourceGroupId(resourceGroupId: string): Promise<VirtualNetworkResponse[]> {
-    return this.axios.request$<VirtualNetworkResponse[]>(
-      MethodEnum.GET,
-      `/resource-groups/${resourceGroupId}/virtual-networks`
-    );
-  }
-
   getById(id: string): Promise<VirtualNetworkResponse> {
     return this.axios.request$<VirtualNetworkResponse>(
       MethodEnum.GET,
-      `/virtual-networks/${id}`
+      `${VIRTUAL_NETWORK_ROUTE}/${id}`
     );
   }
 
-  create(resourceGroupId: string, request: CreateVirtualNetworkRequest): Promise<VirtualNetworkResponse> {
+  create(request: CreateVirtualNetworkRequest): Promise<VirtualNetworkResponse> {
     return this.axios.request$<VirtualNetworkResponse>(
       MethodEnum.POST,
-      `/resource-groups/${resourceGroupId}/virtual-networks`,
+      VIRTUAL_NETWORK_ROUTE,
       request
     );
   }

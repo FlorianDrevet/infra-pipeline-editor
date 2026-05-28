@@ -302,6 +302,7 @@
     "CANCEL": "Cancel",
     "CLOSE": "Close",
     "DELETE": "Delete",
+    "SAVE": "Save",
     "DATE_PICKER": {
       "ARIA": {
         "CLEAR": "Clear date",
