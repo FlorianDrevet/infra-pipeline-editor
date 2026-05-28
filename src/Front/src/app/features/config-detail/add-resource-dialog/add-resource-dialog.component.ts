@@ -433,6 +433,9 @@ export class AddResourceDialogComponent implements OnInit {
     enableNonSslPort: [false],
     disableAccessKeyAuthentication: [false],
     enableAadAuth: [false],
+    enableDdosProtection: [false],
+    vnetAddressSpacesInput: [''],
+    vnetDnsServersInput: [''],
     isExisting: [false],
   });
 

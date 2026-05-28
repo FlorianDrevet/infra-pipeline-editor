@@ -19,6 +19,7 @@ import {
   CorsRuleEntry,
   StorageAccountEnvironmentConfigEntry,
 } from '../../../shared/interfaces/storage-account.interface';
+import { VirtualNetworkEnvironmentConfigEntry } from '../../../shared/interfaces/virtual-network.interface';
 import { WebAppEnvironmentConfigEntry } from '../../../shared/interfaces/web-app.interface';
 
 export interface ResourceEditEnvironmentFormEntry {
@@ -77,6 +78,22 @@ interface RawEnvironmentFormValue {
   zoneRedundancy?: RawEnvironmentScalarValue;
   minimalTlsVersion?: RawEnvironmentScalarValue;
   maxSizeGb?: RawEnvironmentScalarValue;
+  addressSpacesInput?: RawEnvironmentScalarValue;
+  dnsServersInput?: RawEnvironmentScalarValue;
+}
+
+function parseDelimitedValues(input: string | null | undefined): string[] {
+  return (input ?? '')
+    .split(/[\r\n,;]+/)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
+export function formatDelimitedValues(values: ReadonlyArray<string> | null | undefined): string {
+  return (values ?? [])
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0)
+    .join('\n');
 }
 
 export function buildKeyVaultEnvironmentSettings(
@@ -104,6 +121,21 @@ export function buildStorageAccountEnvironmentSettings(
   envForms: ReadonlyArray<ResourceEditEnvironmentFormEntry>,
 ): StorageAccountEnvironmentConfigEntry[] {
   return buildSkuEnvironmentSettings<StorageAccountEnvironmentConfigEntry>(envForms);
+}
+
+export function buildVirtualNetworkEnvironmentSettings(
+  envForms: ReadonlyArray<ResourceEditEnvironmentFormEntry>,
+): VirtualNetworkEnvironmentConfigEntry[] {
+  return envForms.map((envForm) => {
+    const raw = readRawValue(envForm);
+    const dnsServers = parseDelimitedValues(toNullableString(raw.dnsServersInput));
+
+    return {
+      environmentName: envForm.envName,
+      addressSpaces: parseDelimitedValues(toNullableString(raw.addressSpacesInput)),
+      dnsServers: dnsServers.length > 0 ? dnsServers : undefined,
+    };
+  });
 }
 
 export function buildStorageAccountCorsRules(rules: ReadonlyArray<CorsRuleEntry>): CorsRuleEntry[] {

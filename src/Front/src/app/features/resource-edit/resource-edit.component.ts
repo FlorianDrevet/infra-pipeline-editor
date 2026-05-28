@@ -38,6 +38,7 @@ import { AcrAuthMode, ContainerRegistryResponse } from '../../shared/interfaces/
 import { SqlServerResponse } from '../../shared/interfaces/sql-server.interface';
 import { SqlDatabaseResponse } from '../../shared/interfaces/sql-database.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
+import { VirtualNetworkResponse } from '../../shared/interfaces/virtual-network.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
 import { FunctionAppService } from '../../shared/services/function-app.service';
@@ -52,6 +53,7 @@ import { ContainerRegistryService } from '../../shared/services/container-regist
 import { SqlServerService } from '../../shared/services/sql-server.service';
 import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
+import { VirtualNetworkService } from '../../shared/services/virtual-network.service';
 import { NameAvailabilityService } from '../../shared/services/name-availability.service';
 import { PipelineDetectionService } from '../../shared/services/pipeline-detection.service';
 import { DetectedPipelineOptionsResponse } from '../../shared/interfaces/pipeline-detection.interface';
@@ -105,6 +107,7 @@ import {
   buildSqlServerEnvironmentSettings,
   buildStorageAccountCorsRules,
   buildStorageAccountEnvironmentSettings,
+  buildVirtualNetworkEnvironmentSettings,
   buildWebAppEnvironmentSettings,
   toNullableNumber,
 } from './helpers/resource-edit-environment-settings.helpers';
@@ -153,7 +156,7 @@ import {
 } from './resource-edit.constants';
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse | SqlServerResponse | SqlDatabaseResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse | SqlServerResponse | SqlDatabaseResponse | VirtualNetworkResponse;
 
 type CorsServiceKey = 'blob' | 'table';
 type CorsListField = 'allowedOrigins' | 'allowedHeaders' | 'exposedHeaders';
@@ -234,6 +237,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly sqlServerService = inject(SqlServerService);
   private readonly sqlDatabaseService = inject(SqlDatabaseService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
+  private readonly virtualNetworkService = inject(VirtualNetworkService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
   private readonly authService = inject(AuthenticationService);
@@ -936,6 +940,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         return this.sqlServerService.getById(this.resourceId);
       case 'SqlDatabase':
         return this.sqlDatabaseService.getById(this.resourceId);
+      case 'VirtualNetwork':
+        return this.virtualNetworkService.getById(this.resourceId);
       default:
         throw new Error(`Unsupported resource type: ${this.resourceType}`);
     }
@@ -1312,6 +1318,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             sqlServerId: general.sqlServerId,
             collation: general.collation ?? 'SQL_Latin1_General_CP1_CI_AS',
             environmentSettings: buildSqlDatabaseEnvironmentSettings(envForms),
+          });
+          break;
+        case 'VirtualNetwork':
+          updated = await this.virtualNetworkService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            enableDdosProtection: general.enableDdosProtection ?? false,
+            environmentSettings: buildVirtualNetworkEnvironmentSettings(envForms),
           });
           break;
         default:

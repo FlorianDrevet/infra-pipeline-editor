@@ -39,8 +39,10 @@ describe('ConfigDetailNetworkingSectionComponent', () => {
           USE_HUB_SPOKE: 'Hub & Spoke',
           ADDRESS_SPACE: 'Espace',
           ADDRESS_SPACE_PLACEHOLDER: 'address-space-cidr',
+          ADDRESS_SPACE_HINT: 'Use CIDR ranges such as 10.0.0.0/16. You can separate several ranges with commas or new lines.',
           SUBNET_PREFIX: 'Prefixe',
           SUBNET_PREFIX_PLACEHOLDER: 'subnet-prefix-cidr',
+          SUBNET_PREFIX_HINT: 'Use a subnet range contained inside the selected VNet address space, for example 10.0.1.0/24.',
           EXISTING_VNET_ID: 'VNet existant',
           EXISTING_VNET_ID_PLACEHOLDER: '/subscriptions/...',
           PE_SUBNET_NAME: 'Subnet PE',
@@ -103,6 +105,19 @@ describe('ConfigDetailNetworkingSectionComponent', () => {
     expect(stateChips.length).toBeGreaterThanOrEqual(3);
     expect(privatizationList).not.toBeNull();
     expect(privatizationItems.length).toBe(2);
+  });
+
+  it('renders address space and subnet prefix guidance for the create-new VNet path', () => {
+    fixture.componentRef.setInput('viewModel', createViewModel({
+      showVnetPanel: true,
+      vnetSourceType: 'CreateNew',
+    }));
+    fixture.detectChanges();
+
+    const textContent = fixture.nativeElement.textContent as string;
+
+    expect(textContent).toContain('Use CIDR ranges such as 10.0.0.0/16. You can separate several ranges with commas or new lines.');
+    expect(textContent).toContain('Use a subnet range contained inside the selected VNet address space, for example 10.0.1.0/24.');
   });
 });
 

@@ -5,11 +5,38 @@ import {
   ResourceEditEnvironmentFormEntry,
   buildBlobLifecycleRules,
   buildContainerAppEnvironmentSettings,
+  buildVirtualNetworkEnvironmentSettings,
   buildStorageAccountCorsRules,
 } from './resource-edit-environment-settings.helpers';
 
 describe('resource edit environment settings helpers', () => {
   const fb = new FormBuilder();
+
+  it('builds virtual network environment settings from delimited address-space and DNS inputs', () => {
+    const envForms = [
+      createEnvironmentFormEntry('Development', {
+        addressSpacesInput: '10.0.0.0/16, 10.1.0.0/16',
+        dnsServersInput: '10.0.0.4\n10.0.0.5',
+      }),
+      createEnvironmentFormEntry('Production', {
+        addressSpacesInput: '',
+        dnsServersInput: '',
+      }),
+    ];
+
+    expect(buildVirtualNetworkEnvironmentSettings(envForms)).toEqual([
+      {
+        environmentName: 'Development',
+        addressSpaces: ['10.0.0.0/16', '10.1.0.0/16'],
+        dnsServers: ['10.0.0.4', '10.0.0.5'],
+      },
+      {
+        environmentName: 'Production',
+        addressSpaces: [],
+        dnsServers: undefined,
+      },
+    ]);
+  });
 
   it('builds container app environment payloads with ACR service connection names', () => {
     const envForms = [

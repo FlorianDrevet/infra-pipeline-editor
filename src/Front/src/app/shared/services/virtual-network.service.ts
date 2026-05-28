@@ -3,6 +3,7 @@ import { AxiosService } from './axios.service';
 import { MethodEnum } from '../enums/method.enum';
 import {
   CreateVirtualNetworkRequest,
+  UpdateVirtualNetworkRequest,
   VirtualNetworkResponse,
 } from '../interfaces/virtual-network.interface';
 
@@ -25,6 +26,14 @@ export class VirtualNetworkService {
     return this.axios.request$<VirtualNetworkResponse>(
       MethodEnum.POST,
       VIRTUAL_NETWORK_ROUTE,
+      request
+    );
+  }
+
+  update(id: string, request: UpdateVirtualNetworkRequest): Promise<VirtualNetworkResponse> {
+    return this.axios.request$<VirtualNetworkResponse>(
+      MethodEnum.PUT,
+      `${VIRTUAL_NETWORK_ROUTE}/${id}`,
       request
     );
   }

@@ -30,6 +30,16 @@ interface CreateServiceSpy {
   create: (...args: unknown[]) => Promise<unknown>;
 }
 
+const TEST_ADDRESS_SPACES = [
+  `${buildIpv4(10, 0, 0, 0)}/16`,
+  `${buildIpv4(10, 1, 0, 0)}/16`,
+] as const;
+
+const TEST_DNS_SERVERS = [
+  buildIpv4(10, 0, 0, 4),
+  buildIpv4(10, 0, 0, 5),
+] as const;
+
 describe('AddResourceDialogResourceSubmitterService', () => {
   let service: AddResourceDialogResourceSubmitterService;
   let virtualNetworkServiceSpy: jasmine.SpyObj<VirtualNetworkService>;
@@ -66,17 +76,39 @@ describe('AddResourceDialogResourceSubmitterService', () => {
   });
 
   it('calls VirtualNetworkService.create with the expected payload for virtual networks', async () => {
-    await service.submit(createCommand(ResourceTypeEnum.VirtualNetwork, {
-      name: 'demo-vnet',
-      location: 'westeurope',
-      isExisting: true,
-    }));
+    await service.submit(createCommand(
+      ResourceTypeEnum.VirtualNetwork,
+      {
+        name: 'demo-vnet',
+        location: 'westeurope',
+        enableDdosProtection: true,
+        vnetAddressSpacesInput: TEST_ADDRESS_SPACES.join(', '),
+        vnetDnsServersInput: TEST_DNS_SERVERS.join('\n'),
+        isExisting: true,
+      },
+      [
+        { name: 'Development' },
+        { name: 'Production' },
+      ],
+    ));
 
     expect(virtualNetworkServiceSpy.create).toHaveBeenCalledOnceWith({
       resourceGroupId: 'resource-group-1',
       name: 'demo-vnet',
       location: 'westeurope',
-      enableDdosProtection: false,
+      enableDdosProtection: true,
+      environmentSettings: [
+        {
+          environmentName: 'Development',
+          addressSpaces: [...TEST_ADDRESS_SPACES],
+          dnsServers: [...TEST_DNS_SERVERS],
+        },
+        {
+          environmentName: 'Production',
+          addressSpaces: [...TEST_ADDRESS_SPACES],
+          dnsServers: [...TEST_DNS_SERVERS],
+        },
+      ],
       isExisting: true,
     });
   });
@@ -95,11 +127,15 @@ function createServiceSpy(serviceName: string): jasmine.SpyObj<CreateServiceSpy>
   return jasmine.createSpyObj<CreateServiceSpy>(serviceName, ['create']);
 }
 
-function createCommand(type: ResourceTypeEnum, commonOverrides: Partial<SubmitCommon> = {}): SubmitCommand {
+function createCommand(
+  type: ResourceTypeEnum,
+  commonOverrides: Partial<SubmitCommon> = {},
+  environments: SubmitCommand['environments'] = [],
+): SubmitCommand {
   return {
     type,
     resourceGroupId: 'resource-group-1',
-    environments: [],
+    environments,
     envFormArray: new FormArray<FormGroup>([]),
     common: createCommonValue(commonOverrides),
   };
@@ -134,6 +170,9 @@ function createCommonValue(overrides: Partial<SubmitCommon> = {}): SubmitCommon 
     enableNonSslPort: false,
     disableAccessKeyAuthentication: false,
     enableAadAuth: false,
+    enableDdosProtection: false,
+    vnetAddressSpacesInput: '',
+    vnetDnsServersInput: '',
     isExisting: false,
     ...overrides,
   };
@@ -150,4 +189,8 @@ function createVirtualNetworkResponse(): VirtualNetworkResponse {
     subnets: [],
     isExisting: false,
   };
+}
+
+function buildIpv4(octet1: number, octet2: number, octet3: number, octet4: number): string {
+  return [octet1, octet2, octet3, octet4].join('.');
 }

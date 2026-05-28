@@ -17,8 +17,9 @@ import { SqlDatabaseResponse } from '../../../shared/interfaces/sql-database.int
 import { SqlServerResponse } from '../../../shared/interfaces/sql-server.interface';
 import { StorageAccountResponse, BlobLifecycleRuleEntry, CorsRuleEntry } from '../../../shared/interfaces/storage-account.interface';
 import { UserAssignedIdentityResponse } from '../../../shared/interfaces/user-assigned-identity.interface';
+import { VirtualNetworkResponse } from '../../../shared/interfaces/virtual-network.interface';
 import { WebAppResponse } from '../../../shared/interfaces/web-app.interface';
-import { buildBlobLifecycleRules, buildStorageAccountCorsRules, ResourceEditEnvironmentFormEntry } from './resource-edit-environment-settings.helpers';
+import { buildBlobLifecycleRules, buildStorageAccountCorsRules, formatDelimitedValues, ResourceEditEnvironmentFormEntry } from './resource-edit-environment-settings.helpers';
 
 export type ResourceEditData =
   | AppConfigurationResponse
@@ -37,6 +38,7 @@ export type ResourceEditData =
   | SqlServerResponse
   | StorageAccountResponse
   | UserAssignedIdentityResponse
+  | VirtualNetworkResponse
   | WebAppResponse;
 
 export interface ResourceEditGeneralFormBuildRequest {
@@ -164,6 +166,9 @@ export function buildResourceEditGeneralForm(request: ResourceEditGeneralFormBui
     const sqlDatabase = resource as SqlDatabaseResponse;
     base['sqlServerId'] = [sqlDatabase.sqlServerId, [Validators.required]];
     base['collation'] = [sqlDatabase.collation];
+  } else if (resourceType === 'VirtualNetwork') {
+    const virtualNetwork = resource as VirtualNetworkResponse;
+    base['enableDdosProtection'] = [virtualNetwork.enableDdosProtection];
   }
 
   return {
@@ -353,6 +358,14 @@ function buildSingleEnvironmentForm(
         sku: [settings?.sku ?? null],
         maxSizeGb: [settings?.maxSizeGb ?? null],
         zoneRedundant: [settings?.zoneRedundant ?? null],
+      });
+    }
+    case 'VirtualNetwork': {
+      const virtualNetwork = resource as VirtualNetworkResponse;
+      const settings = virtualNetwork.environmentSettings?.find((entry) => entry.environmentName === environmentName);
+      return fb.group({
+        addressSpacesInput: [formatDelimitedValues(settings?.addressSpaces)],
+        dnsServersInput: [formatDelimitedValues(settings?.dnsServers)],
       });
     }
     default:

@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { MethodEnum } from '../enums/method.enum';
 import {
   CreateVirtualNetworkRequest,
+  UpdateVirtualNetworkRequest,
   VirtualNetworkResponse,
 } from '../interfaces/virtual-network.interface';
 import { AxiosService } from './axios.service';
@@ -11,6 +12,8 @@ import { VirtualNetworkService } from './virtual-network.service';
 const VIRTUAL_NETWORK_ID = 'virtual-network-1';
 const VIRTUAL_NETWORK_ROUTE = '/virtual-network';
 const VIRTUAL_NETWORK_BY_ID_ROUTE = `${VIRTUAL_NETWORK_ROUTE}/${VIRTUAL_NETWORK_ID}`;
+const TEST_ADDRESS_SPACE = `${buildIpv4(10, 0, 0, 0)}/16`;
+const TEST_DNS_SERVER = buildIpv4(10, 0, 0, 4);
 
 describe('VirtualNetworkService', () => {
   let service: VirtualNetworkService;
@@ -56,6 +59,21 @@ describe('VirtualNetworkService', () => {
       request,
     );
   });
+
+  it('updates a virtual network through the singular backend member route', async () => {
+    const request = createUpdateVirtualNetworkRequest();
+    const response = createVirtualNetworkResponse();
+    axiosServiceSpy.request$.and.resolveTo(response);
+
+    const result = await service.update(VIRTUAL_NETWORK_ID, request);
+
+    expect(result).toEqual(response);
+    expect(axiosServiceSpy.request$).toHaveBeenCalledOnceWith(
+      MethodEnum.PUT,
+      VIRTUAL_NETWORK_BY_ID_ROUTE,
+      request,
+    );
+  });
 });
 
 function createCreateVirtualNetworkRequest(): CreateVirtualNetworkRequest {
@@ -65,6 +83,21 @@ function createCreateVirtualNetworkRequest(): CreateVirtualNetworkRequest {
     location: 'westeurope',
     enableDdosProtection: false,
     isExisting: true,
+  };
+}
+
+function createUpdateVirtualNetworkRequest(): UpdateVirtualNetworkRequest {
+  return {
+    name: 'demo-vnet',
+    location: 'westeurope',
+    enableDdosProtection: true,
+    environmentSettings: [
+      {
+        environmentName: 'Development',
+        addressSpaces: [TEST_ADDRESS_SPACE],
+        dnsServers: [TEST_DNS_SERVER],
+      },
+    ],
   };
 }
 
@@ -79,4 +112,8 @@ function createVirtualNetworkResponse(): VirtualNetworkResponse {
     subnets: [],
     isExisting: true,
   };
+}
+
+function buildIpv4(octet1: number, octet2: number, octet3: number, octet4: number): string {
+  return [octet1, octet2, octet3, octet4].join('.');
 }

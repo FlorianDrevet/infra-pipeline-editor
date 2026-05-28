@@ -206,6 +206,22 @@
             [options]="locationOptions"
             [searchable]="true" />
 
+          @if (selectedType() === ResourceTypeEnum.VirtualNetwork) {
+            <div class="form-field form-field--toggle">
+              <app-ds-toggle
+                formControlName="enableDdosProtection"
+                [label]="'RESOURCE_EDIT.FIELDS.ENABLE_DDOS_PROTECTION' | translate"></app-ds-toggle>
+            </div>
+            <app-ds-text-field
+              formControlName="vnetAddressSpacesInput"
+              [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_ADDRESS_SPACES' | translate"
+              [hint]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_ADDRESS_SPACES_HINT' | translate" />
+            <app-ds-text-field
+              formControlName="vnetDnsServersInput"
+              [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_DNS_SERVERS' | translate"
+              [hint]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_DNS_SERVERS_HINT' | translate" />
+          }
+
           @if (selectedType() === ResourceTypeEnum.AppServicePlan) {
             <app-ds-select
               formControlName="osType"

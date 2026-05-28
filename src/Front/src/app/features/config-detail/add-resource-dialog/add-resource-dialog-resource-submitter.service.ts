@@ -71,7 +71,34 @@ interface AddResourceDialogCommonFormValue {
   readonly disableAccessKeyAuthentication: boolean;
   readonly enableAadAuth: boolean;
   readonly enableDdosProtection?: boolean;
+  readonly vnetAddressSpacesInput: string;
+  readonly vnetDnsServersInput: string;
   readonly isExisting: boolean;
+}
+
+function parseDelimitedValues(input: string | null | undefined): string[] {
+  return (input ?? '')
+    .split(/[\r\n,;]+/)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
+function buildVirtualNetworkEnvironmentSettings(
+  environments: readonly AddResourceEnvironmentDefinition[],
+  common: AddResourceDialogCommonFormValue,
+) {
+  const addressSpaces = parseDelimitedValues(common.vnetAddressSpacesInput);
+  if (addressSpaces.length === 0 || environments.length === 0) {
+    return undefined;
+  }
+
+  const dnsServers = parseDelimitedValues(common.vnetDnsServersInput);
+
+  return environments.map((environment) => ({
+    environmentName: environment.name,
+    addressSpaces: [...addressSpaces],
+    dnsServers: dnsServers.length > 0 ? [...dnsServers] : undefined,
+  }));
 }
 
 @Injectable()
@@ -309,6 +336,7 @@ export class AddResourceDialogResourceSubmitterService {
           name: common.name,
           location: common.location,
           enableDdosProtection: common.enableDdosProtection ?? false,
+          environmentSettings: buildVirtualNetworkEnvironmentSettings(environments, common),
           isExisting: common.isExisting,
         });
         return;

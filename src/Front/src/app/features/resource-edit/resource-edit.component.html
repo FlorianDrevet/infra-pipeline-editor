@@ -169,6 +169,17 @@
               </div>
             }
 
+            @if (resourceType === 'VirtualNetwork') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+                <div class="form-grid">
+                  <div class="form-field form-field--toggle">
+                    <app-ds-toggle formControlName="enableDdosProtection" [label]="'RESOURCE_EDIT.FIELDS.ENABLE_DDOS_PROTECTION' | translate"></app-ds-toggle>
+                  </div>
+                </div>
+              </div>
+            }
+
             <!-- WebApp-specific fields -->
             @if (resourceType === 'WebApp') {
               <div class="form-section">
@@ -602,6 +613,25 @@
                             type="number"
                             [label]="'RESOURCE_EDIT.FIELDS.CAPACITY' | translate"
                             [hint]="'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate" />
+                        </div>
+                      </div>
+                    }
+                    @case ('VirtualNetwork') {
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">lan</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.VIRTUAL_NETWORK_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.VIRTUAL_NETWORK_SECTION_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <app-ds-text-field
+                            formControlName="addressSpacesInput"
+                            [label]="'RESOURCE_EDIT.FIELDS.VNET_ADDRESS_SPACES' | translate"
+                            [hint]="'RESOURCE_EDIT.FIELDS.VNET_ADDRESS_SPACES_HINT' | translate" />
+                          <app-ds-text-field
+                            formControlName="dnsServersInput"
+                            [label]="'RESOURCE_EDIT.FIELDS.VNET_DNS_SERVERS' | translate"
+                            [hint]="'RESOURCE_EDIT.FIELDS.VNET_DNS_SERVERS_HINT' | translate" />
                         </div>
                       </div>
                     }

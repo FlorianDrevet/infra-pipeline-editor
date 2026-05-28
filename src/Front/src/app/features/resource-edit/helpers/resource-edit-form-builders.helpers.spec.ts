@@ -65,6 +65,33 @@ describe('resource edit form builders helpers', () => {
 
     expect(result.form.get('acrPullIdentityId')?.value).toBe('uai-123');
   });
+
+  it('builds virtual network general and environment forms with VNet-specific values', () => {
+    const resource = createVirtualNetworkResource();
+
+    const generalResult = buildResourceEditGeneralForm({
+      fb: new FormBuilder(),
+      resourceType: 'VirtualNetwork',
+      resource,
+      resolveAcrAuthMode: () => null,
+    });
+
+    const envForms = buildResourceEditEnvironmentForms(
+      new FormBuilder(),
+      'VirtualNetwork',
+      resource,
+      [
+        { id: 'env-dev', name: 'Development', shortName: 'dev', prefix: 'dev', suffix: 'svc', location: 'westeurope', subscriptionId: 'sub-1', order: 1, requiresApproval: false, azureResourceManagerConnection: null, tags: [] },
+        { id: 'env-prod', name: 'Production', shortName: 'prod', prefix: 'prod', suffix: 'svc', location: 'westeurope', subscriptionId: 'sub-1', order: 2, requiresApproval: false, azureResourceManagerConnection: null, tags: [] },
+      ],
+    );
+
+    expect(generalResult.form.get('enableDdosProtection')?.value).toBeTrue();
+    expect(envForms[0].form.get('addressSpacesInput')?.value).toBe('10.0.0.0/16\n10.1.0.0/16');
+    expect(envForms[0].form.get('dnsServersInput')?.value).toBe('10.0.0.4\n10.0.0.5');
+    expect(envForms[1].form.get('addressSpacesInput')?.value).toBe('');
+    expect(envForms[1].form.get('dnsServersInput')?.value).toBe('');
+  });
 });
 
 function createStorageAccountResource() {
@@ -134,5 +161,38 @@ function createContainerAppResource() {
         containerRegistryServiceConnection: 'acr-dev-docker',
       },
     ],
+  } as const;
+}
+
+function createVirtualNetworkResource() {
+  return {
+    id: 'virtual-network-1',
+    name: 'demo-vnet',
+    location: 'westeurope',
+    resourceGroupId: 'rg-1',
+    enableDdosProtection: true,
+    environmentSettings: [
+      {
+        environmentName: 'Development',
+        addressSpaces: ['10.0.0.0/16', '10.1.0.0/16'],
+        dnsServers: ['10.0.0.4', '10.0.0.5'],
+      },
+      {
+        environmentName: 'Production',
+        addressSpaces: [],
+        dnsServers: null,
+      },
+    ],
+    subnets: [
+      {
+        id: 'subnet-1',
+        name: 'snet-app',
+        delegation: null,
+        serviceEndpoints: [],
+        privateEndpointNetworkPolicies: 'Enabled',
+        nsgId: null,
+      },
+    ],
+    isExisting: false,
   } as const;
 }
