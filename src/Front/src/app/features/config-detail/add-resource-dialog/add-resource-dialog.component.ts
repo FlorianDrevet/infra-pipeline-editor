@@ -23,7 +23,7 @@ import { NameAvailabilityService } from '../../../shared/services/name-availabil
 import { EnvironmentNameAvailabilityResponseItem } from '../../../shared/interfaces/name-availability.interface';
 import { ToggleSectionCardComponent } from '../../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DeploymentConfigComponent } from '../../../shared/components/deployment-config/deployment-config.component';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsToggleComponent, DsOptionCardComponent, DsListInputComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsToggleComponent, DsIconButtonComponent, DsOptionCardComponent, DsListInputComponent } from '../../../shared/components/ds';
 import {
   applyAddResourceProbeToggle,
   copyAddResourceEnvironmentSettings,
@@ -249,6 +249,7 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
     ToggleSectionCardComponent,
     DeploymentConfigComponent,
     DsButtonComponent,
+    DsIconButtonComponent,
     DsOptionCardComponent,
     DsListInputComponent,
     DsTextFieldComponent,

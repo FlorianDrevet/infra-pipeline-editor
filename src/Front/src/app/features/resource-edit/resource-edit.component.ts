@@ -82,7 +82,7 @@ import { ResourceEditGrantedRightsSectionComponent } from './sections/identity-a
 import { ResourceEditRoleAssignmentsSectionComponent } from './sections/identity-access/resource-edit-role-assignments-section.component';
 import { ResourceEditUsedBySectionComponent } from './sections/identity-access/resource-edit-used-by-section.component';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent, DsIconButtonComponent, DsSegmentedControlComponent, DsSegmentedOption, DsTooltipDirective, DsRadioGroupComponent, DsRadioOption, DsPanelActionButtonComponent, DsListInputComponent } from '../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent, DsIconButtonComponent, DsSegmentedControlComponent, DsSegmentedOption, DsTooltipDirective, DsRadioGroupComponent, DsRadioOption, DsListInputComponent } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
 import { BuildContextPickerComponent } from '../../shared/components/build-context-picker/build-context-picker.component';
 import { ContainerAppAcrServiceConnectionsComponent } from './components/container-app-acr-service-connections/container-app-acr-service-connections.component';
@@ -204,7 +204,6 @@ type StorageSubTabId = 'blob_containers' | 'queues' | 'tables';
     ToggleSectionCardComponent,
     DsButtonComponent,
     DsIconButtonComponent,
-    DsPanelActionButtonComponent,
     DsSegmentedControlComponent,
     DsListInputComponent,
     DsTooltipDirective,
