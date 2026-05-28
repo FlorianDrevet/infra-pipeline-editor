@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { FormArray, FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 
 import { AppConfigurationService } from '../../../shared/services/app-configuration.service';
 import { AppServicePlanService } from '../../../shared/services/app-service-plan.service';
@@ -76,21 +76,27 @@ describe('AddResourceDialogResourceSubmitterService', () => {
   });
 
   it('calls VirtualNetworkService.create with the expected payload for virtual networks', async () => {
-    await service.submit(createCommand(
-      ResourceTypeEnum.VirtualNetwork,
-      {
-        name: 'demo-vnet',
-        location: 'westeurope',
-        enableDdosProtection: true,
-        vnetAddressSpacesInput: [...TEST_ADDRESS_SPACES],
-        vnetDnsServersInput: [...TEST_DNS_SERVERS],
-        isExisting: true,
-      },
-      [
+    const fb = new FormBuilder();
+    const envFormArray = new FormArray<FormGroup>([
+      fb.group({ addressSpacesInput: [[...TEST_ADDRESS_SPACES]], dnsServersInput: [[...TEST_DNS_SERVERS]] }),
+      fb.group({ addressSpacesInput: [[...TEST_ADDRESS_SPACES]], dnsServersInput: [[...TEST_DNS_SERVERS]] }),
+    ]);
+
+    await service.submit({
+      type: ResourceTypeEnum.VirtualNetwork,
+      resourceGroupId: 'resource-group-1',
+      environments: [
         { name: 'Development' },
         { name: 'Production' },
       ],
-    ));
+      envFormArray,
+      common: createCommonValue({
+        name: 'demo-vnet',
+        location: 'westeurope',
+        enableDdosProtection: true,
+        isExisting: true,
+      }),
+    });
 
     expect(virtualNetworkServiceSpy.create).toHaveBeenCalledOnceWith({
       resourceGroupId: 'resource-group-1',
@@ -171,8 +177,6 @@ function createCommonValue(overrides: Partial<SubmitCommon> = {}): SubmitCommon 
     disableAccessKeyAuthentication: false,
     enableAadAuth: false,
     enableDdosProtection: false,
-    vnetAddressSpacesInput: [],
-    vnetDnsServersInput: [],
     isExisting: false,
     ...overrides,
   };

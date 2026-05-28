@@ -41,6 +41,7 @@ const RESOURCE_TYPES_WITH_ENVIRONMENT_SETTINGS_VALUES = [
   ResourceTypeEnum.SqlDatabase,
   ResourceTypeEnum.ServiceBusNamespace,
   ResourceTypeEnum.ContainerRegistry,
+  ResourceTypeEnum.VirtualNetwork,
   ResourceTypeEnum.DocumentIntelligence,
 ] as const satisfies readonly ResourceTypeEnum[];
 

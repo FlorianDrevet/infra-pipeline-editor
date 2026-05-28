@@ -83,7 +83,7 @@ public static class NetworkingProfileController
                     {
                         var command = new ToggleResourcePrivatizationCommand(
                             new InfrastructureConfigId(infraConfigId),
-                            new AzureResourceId(request.ResourceId),
+                            new AzureResourceId(resourceId),
                             request.IsPrivatized
                         );
 

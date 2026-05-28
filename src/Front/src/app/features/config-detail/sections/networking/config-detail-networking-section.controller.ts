@@ -13,6 +13,7 @@ import {
   NETWORKING_MODE_OPTIONS,
   VNET_SOURCE_TYPE_OPTIONS,
   DNS_MODE_OPTIONS,
+  PRIVATIZABLE_RESOURCE_TYPES,
 } from './networking.constants';
 import {
   ConfigDetailNetworkingSectionViewModel,
@@ -80,14 +81,16 @@ export function createConfigDetailNetworkingSectionController(
     const allResources = dependencies.getResources();
     const state = privatizationState();
     const saving = privatizationSaving();
-    return allResources.map((resource) => ({
-      id: resource.id,
-      name: resource.name,
-      resourceType: resource.resourceType,
-      icon: RESOURCE_TYPE_ICONS[resource.resourceType] || 'widgets',
-      isPrivatized: state[resource.id] ?? false,
-      saving: saving[resource.id] ?? false,
-    }));
+    return allResources
+      .filter((resource) => PRIVATIZABLE_RESOURCE_TYPES.has(resource.resourceType))
+      .map((resource) => ({
+        id: resource.id,
+        name: resource.name,
+        resourceType: resource.resourceType,
+        icon: RESOURCE_TYPE_ICONS[resource.resourceType] || 'widgets',
+        isPrivatized: state[resource.id] ?? false,
+        saving: saving[resource.id] ?? false,
+      }));
   });
 
   const applyProfile = (profile: NetworkingProfileResponse): void => {

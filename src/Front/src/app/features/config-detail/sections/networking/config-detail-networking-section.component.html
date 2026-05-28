@@ -27,7 +27,9 @@
           @if (viewModel().showDnsPanel()) {
             <span class="networking-card__state">{{ 'CONFIG_DETAIL_NETWORKING.DNS.TITLE' | translate }}</span>
           }
-          <span class="networking-card__state">{{ 'CONFIG_DETAIL_NETWORKING.PRIVATIZATION.TITLE' | translate }}</span>
+          @if (viewModel().showVnetPanel() || viewModel().showDnsPanel()) {
+            <span class="networking-card__state">{{ 'CONFIG_DETAIL_NETWORKING.PRIVATIZATION.TITLE' | translate }}</span>
+          }
         </div>
       </div>
 

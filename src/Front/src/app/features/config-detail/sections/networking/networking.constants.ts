@@ -1,4 +1,5 @@
 import { DsSelectOption } from '../../../../shared/components/ds';
+import { ResourceTypeEnum } from '../../enums/resource-type.enum';
 
 export const NETWORKING_MODE_OPTIONS: DsSelectOption[] = [
   { value: 'Simplified', label: 'CONFIG_DETAIL_NETWORKING.MODE.SIMPLIFIED' },
@@ -17,3 +18,24 @@ export const DNS_MODE_OPTIONS: DsSelectOption[] = [
   { value: 'CentralizedHub', label: 'CONFIG_DETAIL_NETWORKING.DNS.CENTRALIZED_HUB' },
   { value: 'Custom', label: 'CONFIG_DETAIL_NETWORKING.DNS.CUSTOM' },
 ];
+
+/**
+ * Resource types that support privatization via Private Endpoint.
+ * Mirrors backend PrivateEndpointGroupIdCatalog.
+ */
+export const PRIVATIZABLE_RESOURCE_TYPES: ReadonlySet<string> = new Set<string>([
+  ResourceTypeEnum.KeyVault,
+  ResourceTypeEnum.StorageAccount,
+  ResourceTypeEnum.AppConfiguration,
+  ResourceTypeEnum.CosmosDb,
+  ResourceTypeEnum.SqlServer,
+  ResourceTypeEnum.RedisCache,
+  ResourceTypeEnum.ServiceBusNamespace,
+  ResourceTypeEnum.EventHubNamespace,
+  ResourceTypeEnum.ContainerRegistry,
+  ResourceTypeEnum.WebApp,
+  ResourceTypeEnum.FunctionApp,
+  ResourceTypeEnum.ApplicationInsights,
+  ResourceTypeEnum.LogAnalyticsWorkspace,
+  ResourceTypeEnum.DocumentIntelligence,
+]);

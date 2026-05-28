@@ -224,22 +224,6 @@
                   [matTooltip]="'COMMON.VNET_HELP_DIALOG.DDOS.GUIDANCE' | translate"
                   matTooltipPosition="above">info_outline</mat-icon>
               </div>
-
-              <app-ds-list-input
-                formControlName="vnetAddressSpacesInput"
-                [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_ADDRESS_SPACES' | translate"
-                [placeholder]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_PLACEHOLDER' | translate"
-                [required]="true"
-                [validator]="vnetAddressSpaceListValidator"
-                [helperText]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.GUIDANCE' | translate"
-                [errorText]="getVnetAddressSpacesErrorText()" />
-
-              <app-ds-list-input
-                formControlName="vnetDnsServersInput"
-                [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_DNS_SERVERS' | translate"
-                [placeholder]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_PLACEHOLDER' | translate"
-                [validator]="vnetDnsServerListValidator"
-                [helperText]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS.GUIDANCE' | translate" />
             </div>
           }
 
@@ -770,6 +754,24 @@
                     [options]="acrPublicNetworkOptions" />
                   <app-ds-toggle formControlName="adminUserEnabled" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ADMIN_USER_ENABLED' | translate"></app-ds-toggle>
                   <app-ds-toggle formControlName="zoneRedundancy" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANCY' | translate"></app-ds-toggle>
+                </div>
+              }
+              @case (ResourceTypeEnum.VirtualNetwork) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <app-ds-list-input
+                    formControlName="addressSpacesInput"
+                    [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_ADDRESS_SPACES' | translate"
+                    [placeholder]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_PLACEHOLDER' | translate"
+                    [required]="true"
+                    [validator]="vnetAddressSpaceListValidator"
+                    [helperText]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.GUIDANCE' | translate" />
+
+                  <app-ds-list-input
+                    formControlName="dnsServersInput"
+                    [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_DNS_SERVERS' | translate"
+                    [placeholder]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_PLACEHOLDER' | translate"
+                    [validator]="vnetDnsServerListValidator"
+                    [helperText]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS.GUIDANCE' | translate" />
                 </div>
               }
           }
