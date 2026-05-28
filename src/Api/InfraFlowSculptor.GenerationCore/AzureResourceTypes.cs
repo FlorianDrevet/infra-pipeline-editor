@@ -33,6 +33,7 @@ public static class AzureResourceTypes
     public const string NetworkSecurityGroup = "NetworkSecurityGroup";
     public const string PrivateDnsZone = "PrivateDnsZone";
     public const string FrontDoor = "FrontDoor";
+    public const string DocumentIntelligence = "DocumentIntelligence";
 
     /// <summary>
     /// Azure ARM resource provider type strings (e.g. "Microsoft.KeyVault/vaults").
@@ -62,6 +63,7 @@ public static class AzureResourceTypes
         public const string PrivateDnsZoneType = "Microsoft.Network/privateDnsZones";
         public const string FrontDoorType = "Microsoft.Cdn/profiles";
         public const string PrivateEndpointType = "Microsoft.Network/privateEndpoints";
+        public const string DocumentIntelligenceType = "Microsoft.CognitiveServices/accounts";
     }
 
     /// <summary>
@@ -93,6 +95,7 @@ public static class AzureResourceTypes
             [ArmTypes.NetworkSecurityGroupType] = NetworkSecurityGroup,
             [ArmTypes.PrivateDnsZoneType] = PrivateDnsZone,
             [ArmTypes.FrontDoorType] = FrontDoor,
+            [ArmTypes.DocumentIntelligenceType] = DocumentIntelligence,
         }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
@@ -111,6 +114,7 @@ public static class AzureResourceTypes
         ContainerAppEnvironment, ContainerApp, LogAnalyticsWorkspace,
         ApplicationInsights, CosmosDb, SqlServer, SqlDatabase,
         ServiceBusNamespace, ContainerRegistry, EventHubNamespace,
+        DocumentIntelligence,
     ];
 
     /// <summary>

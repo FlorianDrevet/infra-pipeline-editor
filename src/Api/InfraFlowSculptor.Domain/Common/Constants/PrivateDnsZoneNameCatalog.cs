@@ -24,5 +24,6 @@ public static class PrivateDnsZoneNameCatalog
             ["registry"] = "privatelink.azurecr.io",
             ["sites"] = "privatelink.azurewebsites.net",
             ["azuremonitor"] = "privatelink.monitor.azure.com",
+            ["account"] = "privatelink.cognitiveservices.azure.com",
         }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 }

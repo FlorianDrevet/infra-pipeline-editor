@@ -198,3 +198,13 @@ export const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
   Java: ['21', '17', '11'],
   PowerShell: ['7.4', '7.2'],
 };
+
+export const DOCUMENT_INTELLIGENCE_SKU_OPTIONS = [
+  { label: 'Free (F0)', value: 'F0' },
+  { label: 'Standard (S0)', value: 'S0' },
+];
+
+export const DOCUMENT_INTELLIGENCE_PUBLIC_NETWORK_OPTIONS = [
+  { label: 'Enabled', value: 'Enabled' },
+  { label: 'Disabled', value: 'Disabled' },
+];

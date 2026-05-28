@@ -29,6 +29,7 @@ public static class ResourceAbbreviationCatalog
         [AzureResourceTypes.ServiceBusNamespace] = "sb",
         [AzureResourceTypes.ContainerRegistry] = "acr",
         [AzureResourceTypes.EventHubNamespace] = "evhns",
+        [AzureResourceTypes.DocumentIntelligence] = "docint",
     };
 
     /// <summary>

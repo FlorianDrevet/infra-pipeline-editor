@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { ToggleSectionCardComponent } from '../../../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DsTextFieldComponent, DsSelectComponent, DsSelectOption } from '../../../../shared/components/ds';
 import { DsButtonComponent } from '../../../../shared/components/ds/ds-button/ds-button.component';
+import { TestFrameworkCatalogService } from '../../../../shared/services/test-framework-catalog.service';
 import {
   PipelineStepOptions,
   PipelineStackProfile,
@@ -20,13 +21,9 @@ import {
   TEST_RESULTS_FORMAT_OPTIONS,
   COVERAGE_TOOL_OPTIONS,
   DEPENDENCY_SCAN_TOOL_OPTIONS,
-  DOTNET_TEST_FRAMEWORK_OPTIONS,
   NODE_PACKAGE_MANAGER_OPTIONS,
-  NODE_TEST_FRAMEWORK_OPTIONS,
   JAVA_BUILD_TOOL_OPTIONS,
-  JAVA_TEST_FRAMEWORK_OPTIONS,
   PYTHON_PACKAGE_MANAGER_OPTIONS,
-  PYTHON_TEST_FRAMEWORK_OPTIONS,
   getDefaultProfileForStack,
 } from '../../models/pipeline-step-options.model';
 
@@ -56,15 +53,15 @@ export class PipelineOptionsComponent {
   // ─── Internal state (cloned from input) ───
   protected readonly options = signal<PipelineStepOptions>({ ...DEFAULT_PIPELINE_STEP_OPTIONS });
 
+  // ─── Catalog-driven test framework options ───
+  private readonly catalog = inject(TestFrameworkCatalogService);
+  protected readonly testFrameworkOptions = computed(() => this.catalog.getOptionsForStack(this.selectedStack()));
+
   // ─── Stack select options ───
   protected readonly applicationStackOptions: DsSelectOption[] = APPLICATION_STACK_OPTIONS;
-  protected readonly dotnetTestFrameworkOptions: DsSelectOption[] = DOTNET_TEST_FRAMEWORK_OPTIONS;
   protected readonly nodePackageManagerOptions: DsSelectOption[] = NODE_PACKAGE_MANAGER_OPTIONS;
-  protected readonly nodeTestFrameworkOptions: DsSelectOption[] = NODE_TEST_FRAMEWORK_OPTIONS;
   protected readonly javaBuildToolOptions: DsSelectOption[] = JAVA_BUILD_TOOL_OPTIONS;
-  protected readonly javaTestFrameworkOptions: DsSelectOption[] = JAVA_TEST_FRAMEWORK_OPTIONS;
   protected readonly pythonPackageManagerOptions: DsSelectOption[] = PYTHON_PACKAGE_MANAGER_OPTIONS;
-  protected readonly pythonTestFrameworkOptions: DsSelectOption[] = PYTHON_TEST_FRAMEWORK_OPTIONS;
 
   // ─── Generic select options ───
   protected readonly testResultsFormatOptions: DsSelectOption[] = TEST_RESULTS_FORMAT_OPTIONS;
@@ -126,6 +123,10 @@ export class PipelineOptionsComponent {
       this.options.set({ ...incoming });
     }
   });
+
+  constructor() {
+    this.catalog.loadCatalog();
+  }
 
   protected patch(partial: Partial<PipelineStepOptions>): void {
     const updated = { ...this.options(), ...partial };

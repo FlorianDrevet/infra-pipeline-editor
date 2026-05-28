@@ -526,6 +526,7 @@
       "CATEGORY_MONITORING": "Monitoring & Configuration",
       "CATEGORY_MESSAGING": "Messagerie",
       "CATEGORY_NETWORKING": "R\u00e9seau",
+      "CATEGORY_AI": "IA & Services Cognitifs",
       "ADD_DIALOG_TITLE": "Choisir le type de ressource",
       "ADD_DIALOG_TITLE_KeyVault": "Nouveau Key Vault",
       "ADD_DIALOG_TITLE_RedisCache": "Nouveau Redis Cache",
@@ -549,6 +550,7 @@
       "ADD_DIALOG_TITLE_NetworkSecurityGroup": "Nouveau groupe de s\u00e9curit\u00e9 r\u00e9seau",
       "ADD_DIALOG_TITLE_PrivateDnsZone": "Nouvelle zone DNS priv\u00e9e",
       "ADD_DIALOG_TITLE_FrontDoor": "Nouveau Front Door",
+      "ADD_DIALOG_TITLE_DocumentIntelligence": "Nouveau Document Intelligence",
       "ADD_ERROR": "Erreur lors de la creation de la ressource.",
       "FORM": {
         "NAME": "Nom",

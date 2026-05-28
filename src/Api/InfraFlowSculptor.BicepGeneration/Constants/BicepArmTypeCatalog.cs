@@ -28,6 +28,7 @@ internal static class BicepArmTypeCatalog
     internal const string ServiceBusNamespaceApiVersion = "2022-10-01-preview";
     internal const string ContainerRegistryApiVersion = "2023-07-01";
     internal const string EventHubNamespaceApiVersion = "2024-01-01";
+    internal const string DocumentIntelligenceApiVersion = "2024-10-01";
     internal const string ResourceGroupApiVersion = "2024-07-01";
     internal const string VirtualNetworkApiVersion = "2023-11-01";
     internal const string NetworkSecurityGroupApiVersion = "2023-11-01";
@@ -78,6 +79,7 @@ internal static class BicepArmTypeCatalog
     internal const string ServiceBusNamespaceArmType = AzureResourceTypes.ArmTypes.ServiceBusNamespaceType + "@" + ServiceBusNamespaceApiVersion;
     internal const string ContainerRegistryArmType = AzureResourceTypes.ArmTypes.ContainerRegistryType + "@" + ContainerRegistryApiVersion;
     internal const string EventHubNamespaceArmType = AzureResourceTypes.ArmTypes.EventHubNamespaceType + "@" + EventHubNamespaceApiVersion;
+    internal const string DocumentIntelligenceArmType = AzureResourceTypes.ArmTypes.DocumentIntelligenceType + "@" + DocumentIntelligenceApiVersion;
     internal const string DiagnosticSettingsArmType = DiagnosticSettingsType + "@" + DiagnosticSettingsApiVersion;
     internal const string RoleAssignmentsArmType = RoleAssignmentsType + "@" + RoleAssignmentsApiVersion;
     internal const string ResourceGroupsArmType = ResourceGroupsType + "@" + ResourceGroupApiVersion;
@@ -110,6 +112,7 @@ internal static class BicepArmTypeCatalog
             AzureResourceTypes.ArmTypes.ServiceBusNamespaceType => ServiceBusNamespaceApiVersion,
             AzureResourceTypes.ArmTypes.ContainerRegistryType => ContainerRegistryApiVersion,
             AzureResourceTypes.ArmTypes.EventHubNamespaceType => EventHubNamespaceApiVersion,
+            AzureResourceTypes.ArmTypes.DocumentIntelligenceType => DocumentIntelligenceApiVersion,
             AzureResourceTypes.ArmTypes.VirtualNetworkType => VirtualNetworkApiVersion,
             AzureResourceTypes.ArmTypes.NetworkSecurityGroupType => NetworkSecurityGroupApiVersion,
             AzureResourceTypes.ArmTypes.PrivateDnsZoneType => PrivateDnsZoneApiVersion,

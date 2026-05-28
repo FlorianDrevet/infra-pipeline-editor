@@ -75,6 +75,9 @@ public static class Routes
     /// <summary>Route group prefix for Event Hub Namespace operations.</summary>
     public const string EventHubs = "/event-hubs";
 
+    /// <summary>Route group prefix for Document Intelligence operations.</summary>
+    public const string DocumentIntelligence = "/document-intelligence";
+
     /// <summary>Route group prefix for Virtual Network operations.</summary>
     public const string VirtualNetwork = "/virtual-network";
 
@@ -134,4 +137,7 @@ public static class Routes
 
     /// <summary>Route group prefix for stateless Git operations.</summary>
     public const string Git = "/git";
+
+    /// <summary>Route group prefix for reference catalog endpoints.</summary>
+    public const string Catalogs = "/catalogs";
 }

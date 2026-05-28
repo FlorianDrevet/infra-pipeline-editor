@@ -118,6 +118,7 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 - Generated YAML must use `powershell` steps, not Bash or `pwsh`, because self-hosted Windows agents may not have `pwsh.exe`.
 - App pipeline shared-template stability is now guarded by `AppPipelineWindowsShellCompatibilityTests`, which must stay green whenever a step template introduces or changes inline script execution.
 - `AppPipelineWindowsShellCompatibilityTests` also guards literal-block indentation for the generated PowerShell shared steps; update it alongside any future multiline script edits in the app templates.
+- App pipeline Docker Buildx builder discovery on Windows PowerShell 5.1 must not use `docker buildx inspect <name>` as an existence probe. A missing builder writes to stderr and Azure DevOps `PowerShell@2` promotes that into `NativeCommandError` under `$ErrorActionPreference = 'Stop'` before recovery logic can run. Use a non-failing lookup such as `docker buildx ls --format "{{.Name}}"` and create the builder only when it is absent.
 - Bootstrap generation now injects a preflight PowerShell job that validates required ARM and ACR service connections before provisioning resources [2026-05-20].
 - Bootstrap auth uses `$(System.AccessToken)`; do not bake PATs into YAML, and do not pass `--detect false` to `az devops configure`.
 - Decode `%20`-style URL segments before feeding org/project/repo names to Azure DevOps CLI defaults.

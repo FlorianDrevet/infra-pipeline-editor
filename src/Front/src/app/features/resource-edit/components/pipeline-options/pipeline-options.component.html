@@ -77,7 +77,7 @@
             @case ('DotNet') {
               <app-ds-select
                 [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.DOTNET.TEST_FRAMEWORK' | translate"
-                [options]="dotnetTestFrameworkOptions"
+                [options]="testFrameworkOptions()"
                 [clearable]="true"
                 [ngModel]="dotnetProfile()?.testFramework ?? null"
                 [ngModelOptions]="{ standalone: true }"
@@ -107,7 +107,7 @@
                 (ngModelChange)="patchProfile({ packageManager: $event || undefined })" />
               <app-ds-select
                 [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.NODEJS.TEST_FRAMEWORK' | translate"
-                [options]="nodeTestFrameworkOptions"
+                [options]="testFrameworkOptions()"
                 [clearable]="true"
                 [ngModel]="nodeJsProfile()?.testFramework ?? null"
                 [ngModelOptions]="{ standalone: true }"
@@ -178,7 +178,7 @@
                 (ngModelChange)="patchProfile({ buildTool: $event || undefined })" />
               <app-ds-select
                 [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.JAVA.TEST_FRAMEWORK' | translate"
-                [options]="javaTestFrameworkOptions"
+                [options]="testFrameworkOptions()"
                 [clearable]="true"
                 [ngModel]="javaProfile()?.testFramework ?? null"
                 [ngModelOptions]="{ standalone: true }"
@@ -201,7 +201,7 @@
                 (ngModelChange)="patchProfile({ packageManager: $event || undefined })" />
               <app-ds-select
                 [label]="'RESOURCE_EDIT.PIPELINE_OPTIONS.STACK.PYTHON.TEST_FRAMEWORK' | translate"
-                [options]="pythonTestFrameworkOptions"
+                [options]="testFrameworkOptions()"
                 [clearable]="true"
                 [ngModel]="pythonProfile()?.testFramework ?? null"
                 [ngModelOptions]="{ standalone: true }"

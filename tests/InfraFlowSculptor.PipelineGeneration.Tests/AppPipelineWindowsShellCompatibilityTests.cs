@@ -79,4 +79,17 @@ public sealed class AppPipelineWindowsShellCompatibilityTests
                 displayName: 'Generate SBOM'
             """);
     }
+
+    [Fact]
+    public void Given_SharedTemplates_When_GenerateAll_Then_DockerBuildxPushStepUsesNonFailingBuilderLookup()
+    {
+        // Act
+        var files = AppPipelineGenerationEngine.GenerateSharedTemplates();
+
+        // Assert
+        files[".azuredevops/steps/app-docker-buildx-push.step.yml"]
+            .Should()
+            .Contain("docker buildx ls --format \"{{.Name}}\"")
+            .And.NotContain("docker buildx inspect ifs-builder");
+    }
 }

@@ -37,6 +37,7 @@ import { ServiceBusNamespaceResponse } from '../../shared/interfaces/service-bus
 import { AcrAuthMode, ContainerRegistryResponse } from '../../shared/interfaces/container-registry.interface';
 import { SqlServerResponse } from '../../shared/interfaces/sql-server.interface';
 import { SqlDatabaseResponse } from '../../shared/interfaces/sql-database.interface';
+import { DocumentIntelligenceResponse } from '../../shared/interfaces/document-intelligence.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
@@ -51,6 +52,7 @@ import { ServiceBusNamespaceService } from '../../shared/services/service-bus-na
 import { ContainerRegistryService } from '../../shared/services/container-registry.service';
 import { SqlServerService } from '../../shared/services/sql-server.service';
 import { SqlDatabaseService } from '../../shared/services/sql-database.service';
+import { DocumentIntelligenceService } from '../../shared/services/document-intelligence.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { NameAvailabilityService } from '../../shared/services/name-availability.service';
 import { PipelineDetectionService } from '../../shared/services/pipeline-detection.service';
@@ -97,6 +99,7 @@ import {
   buildContainerAppEnvironmentSettings,
   buildContainerRegistryEnvironmentSettings,
   buildCosmosDbEnvironmentSettings,
+  buildDocumentIntelligenceEnvironmentSettings,
   buildFunctionAppEnvironmentSettings,
   buildKeyVaultEnvironmentSettings,
   buildLogAnalyticsWorkspaceEnvironmentSettings,
@@ -154,7 +157,7 @@ import {
 } from './resource-edit.constants';
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse | SqlServerResponse | SqlDatabaseResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse | SqlServerResponse | SqlDatabaseResponse | DocumentIntelligenceResponse;
 
 type CorsServiceKey = 'blob' | 'table';
 type CorsListField = 'allowedOrigins' | 'allowedHeaders' | 'exposedHeaders';
@@ -236,6 +239,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly containerRegistryService = inject(ContainerRegistryService);
   private readonly sqlServerService = inject(SqlServerService);
   private readonly sqlDatabaseService = inject(SqlDatabaseService);
+  private readonly documentIntelligenceService = inject(DocumentIntelligenceService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
@@ -291,6 +295,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     'KeyVault', 'StorageAccount', 'AppConfiguration', 'CosmosDb', 'SqlServer',
     'RedisCache', 'ServiceBusNamespace', 'EventHubNamespace', 'ContainerRegistry',
     'WebApp', 'FunctionApp', 'ApplicationInsights', 'LogAnalyticsWorkspace',
+    'DocumentIntelligence',
   ]);
   protected readonly supportsNetworking = computed(() => ResourceEditComponent.PE_SUPPORTED_TYPES.has(this.resourceType));
   protected readonly isExistingResource = computed(() => (this.resource() as { isExisting?: boolean } | null)?.isExisting === true);
@@ -948,6 +953,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         return this.sqlServerService.getById(this.resourceId);
       case 'SqlDatabase':
         return this.sqlDatabaseService.getById(this.resourceId);
+      case 'DocumentIntelligence':
+        return this.documentIntelligenceService.getById(this.resourceId);
       default:
         throw new Error(`Unsupported resource type: ${this.resourceType}`);
     }
@@ -1326,6 +1333,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             environmentSettings: buildSqlDatabaseEnvironmentSettings(envForms),
           });
           break;
+        case 'DocumentIntelligence':
+          updated = await this.documentIntelligenceService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            customSubDomainName: general.customSubDomainName ?? null,
+            environmentSettings: buildDocumentIntelligenceEnvironmentSettings(envForms),
+          });
+          break;
         default:
           throw new Error(`Unsupported resource type: ${this.resourceType}`);
       }
@@ -1685,6 +1700,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           break;
         case 'SqlDatabase':
           await this.sqlDatabaseService.delete(this.resourceId);
+          break;
+        case 'DocumentIntelligence':
+          await this.documentIntelligenceService.delete(this.resourceId);
           break;
       }
       this.router.navigate(['/config', this.configId]);

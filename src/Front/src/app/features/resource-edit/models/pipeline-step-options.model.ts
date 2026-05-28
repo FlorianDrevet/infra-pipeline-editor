@@ -78,22 +78,10 @@ export type PipelineStackProfile =
 
 // ─── Per-stack select option constants ───
 
-export const DOTNET_TEST_FRAMEWORK_OPTIONS: DsSelectOption[] = [
-  { value: 'XUnit', label: 'xUnit' },
-  { value: 'NUnit', label: 'NUnit' },
-  { value: 'MSTest', label: 'MSTest' },
-];
-
 export const NODE_PACKAGE_MANAGER_OPTIONS: DsSelectOption[] = [
   { value: 'Npm', label: 'npm' },
   { value: 'Yarn', label: 'Yarn' },
   { value: 'Pnpm', label: 'pnpm' },
-];
-
-export const NODE_TEST_FRAMEWORK_OPTIONS: DsSelectOption[] = [
-  { value: 'Jest', label: 'Jest' },
-  { value: 'Vitest', label: 'Vitest' },
-  { value: 'Mocha', label: 'Mocha' },
 ];
 
 export const JAVA_BUILD_TOOL_OPTIONS: DsSelectOption[] = [
@@ -101,21 +89,10 @@ export const JAVA_BUILD_TOOL_OPTIONS: DsSelectOption[] = [
   { value: 'Gradle', label: 'Gradle' },
 ];
 
-export const JAVA_TEST_FRAMEWORK_OPTIONS: DsSelectOption[] = [
-  { value: 'JUnit5', label: 'JUnit 5' },
-  { value: 'JUnit4', label: 'JUnit 4' },
-  { value: 'TestNG', label: 'TestNG' },
-];
-
 export const PYTHON_PACKAGE_MANAGER_OPTIONS: DsSelectOption[] = [
   { value: 'Pip', label: 'pip' },
   { value: 'Poetry', label: 'Poetry' },
   { value: 'Uv', label: 'uv' },
-];
-
-export const PYTHON_TEST_FRAMEWORK_OPTIONS: DsSelectOption[] = [
-  { value: 'Pytest', label: 'pytest' },
-  { value: 'Unittest', label: 'unittest' },
 ];
 
 // ─── Main interface ───

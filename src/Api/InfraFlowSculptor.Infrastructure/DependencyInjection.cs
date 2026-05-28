@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Application.Common.Interfaces.Catalogs;
 using InfraFlowSculptor.Infrastructure.Auth;
 using InfraFlowSculptor.Application.Common.Diagnostics;
 using InfraFlowSculptor.Infrastructure.DomainEvents;
@@ -80,6 +81,7 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
 
         services.AddSingleton<IAzureNameAvailabilityChecker, DnsNameAvailabilityChecker>();
+        services.AddSingleton<ITestFrameworkCatalog, Catalogs.TestFrameworkCatalog>();
         services.AddScoped<IPipelineOptionDetectionService, PipelineOptionDetectionService>();
 
         return services;
@@ -113,6 +115,7 @@ public static class DependencyInjection
         services.AddScoped<IServiceBusNamespaceRepository, ServiceBusNamespaceRepository>();
         services.AddScoped<IContainerRegistryRepository, ContainerRegistryRepository>();
         services.AddScoped<IEventHubNamespaceRepository, EventHubNamespaceRepository>();
+        services.AddScoped<IDocumentIntelligenceRepository, DocumentIntelligenceRepository>();
         services.AddScoped<IVirtualNetworkRepository, VirtualNetworkRepository>();
         services.AddScoped<INetworkSecurityGroupRepository, NetworkSecurityGroupRepository>();
         services.AddScoped<IPrivateDnsZoneRepository, PrivateDnsZoneRepository>();

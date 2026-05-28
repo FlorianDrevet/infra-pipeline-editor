@@ -17,6 +17,7 @@ import { SqlServerEnvironmentConfigEntry } from '../../../shared/interfaces/sql-
 import { SqlDatabaseEnvironmentConfigEntry } from '../../../shared/interfaces/sql-database.interface';
 import { ServiceBusNamespaceEnvironmentConfigEntry } from '../../../shared/interfaces/service-bus-namespace.interface';
 import { ContainerRegistryEnvironmentConfigEntry } from '../../../shared/interfaces/container-registry.interface';
+import { DocumentIntelligenceEnvironmentConfigEntry } from '../../../shared/interfaces/document-intelligence.interface';
 
 export type AddResourceProbeType = 'readiness' | 'liveness' | 'startup';
 
@@ -389,6 +390,15 @@ export function buildContainerRegistryEnvironmentSettings(context: AddResourceEn
     adminUserEnabled: asBooleanOrNull(raw.adminUserEnabled),
     publicNetworkAccess: asStringOrNull(raw.publicNetworkAccess),
     zoneRedundancy: asBooleanOrNull(raw.zoneRedundancy),
+  }));
+}
+
+export function buildDocumentIntelligenceEnvironmentSettings(context: AddResourceEnvironmentSettingsContext): DocumentIntelligenceEnvironmentConfigEntry[] {
+  return buildEnvironmentSettings(context, (environmentName, raw) => ({
+    environmentName,
+    sku: asStringOrNull(raw.sku),
+    publicNetworkAccess: asStringOrNull(raw.publicNetworkAccess),
+    disableLocalAuth: asBooleanOrNull(raw.disableLocalAuth),
   }));
 }
 

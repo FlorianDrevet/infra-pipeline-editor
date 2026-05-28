@@ -1,5 +1,5 @@
 Contracts response DTO public shape snapshot
-Count: 108
+Count: 110
 
 Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
 Type: AppConfigurationKeyResponse
@@ -239,6 +239,29 @@ Properties:
   DnsValidationStatus: string
   DomainName: string
   Steps: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.CustomDomains.Responses.DnsInstructionStepResponse>
+
+Namespace: InfraFlowSculptor.Contracts.DocumentIntelligences.Responses
+Type: DocumentIntelligenceEnvironmentConfigResponse
+Constructors:
+  DocumentIntelligenceEnvironmentConfigResponse(string EnvironmentName, string? Sku, string? PublicNetworkAccess, bool DisableLocalAuth)
+Properties:
+  DisableLocalAuth: bool
+  EnvironmentName: string
+  PublicNetworkAccess: string?
+  Sku: string?
+
+Namespace: InfraFlowSculptor.Contracts.DocumentIntelligences.Responses
+Type: DocumentIntelligenceResponse
+Constructors:
+  DocumentIntelligenceResponse(string Id, string ResourceGroupId, string Name, string Location, string? CustomSubDomainName, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.DocumentIntelligences.Responses.DocumentIntelligenceEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  CustomSubDomainName: string?
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.DocumentIntelligences.Responses.DocumentIntelligenceEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
 
 Namespace: InfraFlowSculptor.Contracts.EventHubNamespaces.Responses
 Type: EventHubConsumerGroupResponse

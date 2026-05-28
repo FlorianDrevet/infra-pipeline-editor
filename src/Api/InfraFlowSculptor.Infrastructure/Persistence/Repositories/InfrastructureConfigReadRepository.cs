@@ -44,6 +44,8 @@ using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
 using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
+using InfraFlowSculptor.Domain.DocumentIntelligenceAggregate;
+using InfraFlowSculptor.Domain.DocumentIntelligenceAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 using Microsoft.EntityFrameworkCore;
@@ -216,6 +218,11 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var docIntSettings = await dbContext.DocumentIntelligenceEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.DocumentIntelligenceId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         // â”€â”€ Load custom domains for all resources in this config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var customDomains = await dbContext.CustomDomains
             .Where(cd => allResourceIds.Contains(cd.ResourceId))
@@ -278,7 +285,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             sqlDbSettings,
             sbSettings,
             crSettings,
-            ehSettings);
+            ehSettings,
+            docIntSettings);
 
         var resourceGroups = BuildResourceGroupReadModels(
             config.ResourceGroups,
@@ -436,7 +444,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<SqlDatabaseEnvironmentSettings> SqlDbSettings,
         IReadOnlyList<ServiceBusNamespaceEnvironmentSettings> SbSettings,
         IReadOnlyList<ContainerRegistryEnvironmentSettings> CrSettings,
-        IReadOnlyList<EventHubNamespaceEnvironmentSettings> EhSettings);
+        IReadOnlyList<EventHubNamespaceEnvironmentSettings> EhSettings,
+        IReadOnlyList<DocumentIntelligenceEnvironmentSettings> DocIntSettings);
 
     private static AzureResourceReadModel? MapResource(
         AzureResource resource,
@@ -755,6 +764,19 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 new Dictionary<string, string>(),
                 ehSettings
                     .Where(es => es.EventHubNamespaceId == eh.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
+            DocumentIntelligence di => new AzureResourceReadModel(
+                di.Id.Value,
+                di.Name.Value,
+                MapLocation(di.Location),
+                AzureResourceTypes.ArmTypes.DocumentIntelligenceType,
+                new Dictionary<string, string>
+                {
+                    ["customSubDomainName"] = di.CustomSubDomainName ?? string.Empty,
+                },
+                context.DocIntSettings
+                    .Where(es => es.DocumentIntelligenceId == di.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
             _ => null
@@ -1119,6 +1141,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             ServiceBusNamespace => AzureResourceTypes.ArmTypes.ServiceBusNamespaceType,
             ContainerRegistry => AzureResourceTypes.ArmTypes.ContainerRegistryType,
             EventHubNamespace => AzureResourceTypes.ArmTypes.EventHubNamespaceType,
+            DocumentIntelligence => AzureResourceTypes.ArmTypes.DocumentIntelligenceType,
             _ => resource.GetType().Name
         };
 
@@ -1145,6 +1168,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             SqlDatabase => AzureResourceTypes.SqlDatabase,
             ServiceBusNamespace => AzureResourceTypes.ServiceBusNamespace,
             EventHubNamespace => AzureResourceTypes.EventHubNamespace,
+            DocumentIntelligence => AzureResourceTypes.DocumentIntelligence,
             _ => resource.GetType().Name
         };
 }

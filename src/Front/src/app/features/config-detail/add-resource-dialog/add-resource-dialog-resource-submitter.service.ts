@@ -15,6 +15,7 @@ import { KeyVaultService } from '../../../shared/services/key-vault.service';
 import { LogAnalyticsWorkspaceService } from '../../../shared/services/log-analytics-workspace.service';
 import { RedisCacheService } from '../../../shared/services/redis-cache.service';
 import { ServiceBusNamespaceService } from '../../../shared/services/service-bus-namespace.service';
+import { DocumentIntelligenceService } from '../../../shared/services/document-intelligence.service';
 import { SqlDatabaseService } from '../../../shared/services/sql-database.service';
 import { SqlServerService } from '../../../shared/services/sql-server.service';
 import { StorageAccountService } from '../../../shared/services/storage-account.service';
@@ -36,6 +37,7 @@ import {
   buildLogAnalyticsWorkspaceEnvironmentSettings,
   buildRedisCacheEnvironmentSettings,
   buildServiceBusNamespaceEnvironmentSettings,
+  buildDocumentIntelligenceEnvironmentSettings,
   buildSqlDatabaseEnvironmentSettings,
   buildSqlServerEnvironmentSettings,
   buildStorageAccountEnvironmentSettings,
@@ -88,6 +90,7 @@ export class AddResourceDialogResourceSubmitterService {
   private readonly logAnalyticsWorkspaceService = inject(LogAnalyticsWorkspaceService);
   private readonly redisCacheService = inject(RedisCacheService);
   private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
+  private readonly documentIntelligenceService = inject(DocumentIntelligenceService);
   private readonly sqlDatabaseService = inject(SqlDatabaseService);
   private readonly sqlServerService = inject(SqlServerService);
   private readonly storageAccountService = inject(StorageAccountService);
@@ -309,6 +312,15 @@ export class AddResourceDialogResourceSubmitterService {
           name: common.name,
           location: common.location,
           enableDdosProtection: common.enableDdosProtection ?? false,
+          isExisting: common.isExisting,
+        });
+        return;
+      case ResourceTypeEnum.DocumentIntelligence:
+        await this.documentIntelligenceService.create({
+          resourceGroupId,
+          name: common.name,
+          location: common.location,
+          environmentSettings: buildDocumentIntelligenceEnvironmentSettings(environmentContext),
           isExisting: common.isExisting,
         });
         return;

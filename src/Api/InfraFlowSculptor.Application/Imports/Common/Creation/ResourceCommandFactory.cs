@@ -14,6 +14,8 @@ using InfraFlowSculptor.Application.ContainerRegistries.Commands.CreateContainer
 using InfraFlowSculptor.Application.ContainerRegistries.Common;
 using InfraFlowSculptor.Application.CosmosDbs.Commands.CreateCosmosDb;
 using InfraFlowSculptor.Application.CosmosDbs.Common;
+using InfraFlowSculptor.Application.DocumentIntelligences.Commands.CreateDocumentIntelligence;
+using InfraFlowSculptor.Application.DocumentIntelligences.Common;
 using InfraFlowSculptor.Application.EventHubNamespaces.Commands.CreateEventHubNamespace;
 using InfraFlowSculptor.Application.EventHubNamespaces.Common;
 using InfraFlowSculptor.Application.FrontDoors.Commands.CreateFrontDoor;
@@ -267,6 +269,13 @@ public static class ResourceCommandFactory
                 mediator,
                 new CreateFrontDoorCommand(resourceGroupId, name, location),
                 static (FrontDoorResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.DocumentIntelligence] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                new CreateDocumentIntelligenceCommand(resourceGroupId, name, location, null),
+                static (DocumentIntelligenceResult result) => result.Id.Value,
                 cancellationToken),
     };
 

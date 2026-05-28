@@ -103,6 +103,7 @@ app.UseSqlDatabaseController();
 app.UseServiceBusNamespaceController();
 app.UseContainerRegistryController();
 app.UseEventHubNamespaceController();
+app.UseDocumentIntelligenceController();
 app.UsePersonalAccessTokenController();
 app.UseAppSettingController();
 app.UseSecureParameterMappingController();
@@ -116,6 +117,7 @@ app.UseImportController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();
 app.UsePipelineOptionDetectionController();
+app.UseCatalogController();
 app.UseGitController();
 
 // Health checks

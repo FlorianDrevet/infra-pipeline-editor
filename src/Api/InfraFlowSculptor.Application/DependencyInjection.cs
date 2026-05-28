@@ -99,6 +99,7 @@ public static class DependencyInjection
         services.AddSingleton<IResourceTypeBicepSpecGenerator, ServiceBusNamespaceTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepSpecGenerator, ContainerRegistryTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepSpecGenerator, EventHubNamespaceTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, DocumentIntelligenceTypeBicepGenerator>();
 
         // Bicep generation pipeline (Vague 1 — staged decomposition of the engine).
         // Stages are ordered by IBicepGenerationStage.Order at pipeline construction.

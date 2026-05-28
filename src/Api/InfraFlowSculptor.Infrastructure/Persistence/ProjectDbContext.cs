@@ -42,6 +42,8 @@ using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
 using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
+using InfraFlowSculptor.Domain.DocumentIntelligenceAggregate;
+using InfraFlowSculptor.Domain.DocumentIntelligenceAggregate.Entities;
 using InfraFlowSculptor.Domain.PersonalAccessTokenAggregate;
 using Microsoft.EntityFrameworkCore;
 
@@ -128,6 +130,8 @@ public class ProjectDbContext : DbContext
     public DbSet<EventHubNamespaceEnvironmentSettings> EventHubNamespaceEnvironmentSettings { get; set; } = null!;
     public DbSet<Domain.EventHubNamespaceAggregate.Entities.EventHub> EventHubs { get; set; } = null!;
     public DbSet<EventHubConsumerGroup> EventHubConsumerGroups { get; set; } = null!;
+    public DbSet<DocumentIntelligence> DocumentIntelligences { get; set; } = null!;
+    public DbSet<DocumentIntelligenceEnvironmentSettings> DocumentIntelligenceEnvironmentSettings { get; set; } = null!;
     public DbSet<ProjectRepository> ProjectRepositories { get; set; } = null!;
     public DbSet<Domain.InfrastructureConfigAggregate.Entities.InfraConfigRepository> InfraConfigRepositories { get; set; } = null!;
     public DbSet<CrossConfigResourceReference> CrossConfigResourceReferences { get; set; } = null!;

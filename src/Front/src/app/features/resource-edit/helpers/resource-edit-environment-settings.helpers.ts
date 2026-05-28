@@ -7,6 +7,7 @@ import { ContainerAppEnvironmentEnvironmentConfigEntry } from '../../../shared/i
 import { ContainerAppEnvironmentConfigEntry } from '../../../shared/interfaces/container-app.interface';
 import { ContainerRegistryEnvironmentConfigEntry } from '../../../shared/interfaces/container-registry.interface';
 import { CosmosDbEnvironmentConfigEntry } from '../../../shared/interfaces/cosmos-db.interface';
+import { DocumentIntelligenceEnvironmentConfigEntry } from '../../../shared/interfaces/document-intelligence.interface';
 import { FunctionAppEnvironmentConfigEntry } from '../../../shared/interfaces/function-app.interface';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { LogAnalyticsWorkspaceEnvironmentConfigEntry } from '../../../shared/interfaces/log-analytics-workspace.interface';
@@ -377,4 +378,19 @@ function toNullableBoolean(value: unknown): boolean | null {
   return typeof value === 'boolean'
     ? value
     : null;
+}
+
+export function buildDocumentIntelligenceEnvironmentSettings(
+  envForms: ReadonlyArray<ResourceEditEnvironmentFormEntry>,
+): DocumentIntelligenceEnvironmentConfigEntry[] {
+  return envForms.map((envForm) => {
+    const raw = readRawValue(envForm);
+
+    return {
+      environmentName: envForm.envName,
+      sku: toNullableString(raw.sku),
+      publicNetworkAccess: toNullableString(raw.publicNetworkAccess),
+      disableLocalAuth: toNullableBoolean(raw.disableLocalAuth),
+    };
+  });
 }

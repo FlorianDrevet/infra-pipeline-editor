@@ -14,6 +14,8 @@ using InfraFlowSculptor.Application.ContainerRegistries.Commands.CreateContainer
 using InfraFlowSculptor.Application.ContainerRegistries.Common;
 using InfraFlowSculptor.Application.CosmosDbs.Commands.CreateCosmosDb;
 using InfraFlowSculptor.Application.CosmosDbs.Common;
+using InfraFlowSculptor.Application.DocumentIntelligences.Commands.CreateDocumentIntelligence;
+using InfraFlowSculptor.Application.DocumentIntelligences.Common;
 using InfraFlowSculptor.Application.EventHubNamespaces.Commands.CreateEventHubNamespace;
 using InfraFlowSculptor.Application.EventHubNamespaces.Common;
 using InfraFlowSculptor.Application.FrontDoors.Commands.CreateFrontDoor;
@@ -98,6 +100,7 @@ public sealed class ResourceCommandFactoryDispatchMappingTests
         ConfigureErrorReturn<CreateNetworkSecurityGroupCommand, NetworkSecurityGroupResult>(mediator);
         ConfigureErrorReturn<CreatePrivateDnsZoneCommand, PrivateDnsZoneResult>(mediator);
         ConfigureErrorReturn<CreateFrontDoorCommand, FrontDoorResult>(mediator);
+        ConfigureErrorReturn<CreateDocumentIntelligenceCommand, DocumentIntelligenceResult>(mediator);
         ConfigureErrorReturn<CreateWebAppCommand, WebAppResult>(mediator);
         ConfigureErrorReturn<CreateFunctionAppCommand, FunctionAppResult>(mediator);
         ConfigureErrorReturn<CreateContainerAppCommand, ContainerAppResult>(mediator);
@@ -126,6 +129,7 @@ public sealed class ResourceCommandFactoryDispatchMappingTests
         { AzureResourceTypes.NetworkSecurityGroup, typeof(CreateNetworkSecurityGroupCommand) },
         { AzureResourceTypes.PrivateDnsZone, typeof(CreatePrivateDnsZoneCommand) },
         { AzureResourceTypes.FrontDoor, typeof(CreateFrontDoorCommand) },
+        { AzureResourceTypes.DocumentIntelligence, typeof(CreateDocumentIntelligenceCommand) },
     };
 
     [Theory]
