@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { FormArray, FormGroup } from '@angular/forms';
 
-import { DsTagInputItem } from '../../../shared/components/ds/ds-tag-input/ds-tag-input.types';
 import { AppConfigurationService } from '../../../shared/services/app-configuration.service';
 import { AppServicePlanService } from '../../../shared/services/app-service-plan.service';
 import { ApplicationInsightsService } from '../../../shared/services/application-insights.service';
@@ -83,8 +82,8 @@ describe('AddResourceDialogResourceSubmitterService', () => {
         name: 'demo-vnet',
         location: 'westeurope',
         enableDdosProtection: true,
-        vnetAddressSpacesInput: createTagItems(TEST_ADDRESS_SPACES),
-        vnetDnsServersInput: createTagItems(TEST_DNS_SERVERS),
+        vnetAddressSpacesInput: [...TEST_ADDRESS_SPACES],
+        vnetDnsServersInput: [...TEST_DNS_SERVERS],
         isExisting: true,
       },
       [
@@ -179,9 +178,7 @@ function createCommonValue(overrides: Partial<SubmitCommon> = {}): SubmitCommon 
   };
 }
 
-function createTagItems(values: readonly string[]): DsTagInputItem[] {
-  return values.map((value) => ({ value }));
-}
+
 
 function createVirtualNetworkResponse(): VirtualNetworkResponse {
   return {

@@ -180,7 +180,7 @@ describe('resource edit environment settings helpers', () => {
 
   function createEnvironmentFormEntry(
     envName: string,
-    rawValue: Record<string, string | number | boolean | null | DsTagInputItem[]>,
+    rawValue: Record<string, string | number | boolean | null | string[]>,
   ): ResourceEditEnvironmentFormEntry {
     const form = fb.group({});
 

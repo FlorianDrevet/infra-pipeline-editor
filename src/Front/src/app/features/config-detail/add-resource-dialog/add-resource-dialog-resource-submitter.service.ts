@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { FormArray, FormGroup } from '@angular/forms';
 
-import { DsTagInputItem } from '../../../shared/components/ds/ds-tag-input/ds-tag-input.types';
 import { ResourceTypeEnum } from '../enums/resource-type.enum';
 import { AppConfigurationService } from '../../../shared/services/app-configuration.service';
 import { AppServicePlanService } from '../../../shared/services/app-service-plan.service';
@@ -72,8 +71,8 @@ interface AddResourceDialogCommonFormValue {
   readonly disableAccessKeyAuthentication: boolean;
   readonly enableAadAuth: boolean;
   readonly enableDdosProtection?: boolean;
-  readonly vnetAddressSpacesInput: ReadonlyArray<DsTagInputItem>;
-  readonly vnetDnsServersInput: ReadonlyArray<DsTagInputItem>;
+  readonly vnetAddressSpacesInput: readonly string[];
+  readonly vnetDnsServersInput: readonly string[];
   readonly isExisting: boolean;
 }
 
