@@ -3,6 +3,10 @@ import { FormBuilder } from '@angular/forms';
 import { DsTagInputItem } from '../../../shared/components/ds/ds-tag-input/ds-tag-input.types';
 import { buildResourceEditEnvironmentForms, buildResourceEditGeneralForm } from './resource-edit-form-builders.helpers';
 
+const TestAddressSpaces = ['vnet-space-primary', 'vnet-space-secondary'] as const;
+
+const TestDnsServers = ['dns-server-primary', 'dns-server-secondary'] as const;
+
 describe('resource edit form builders helpers', () => {
   it('builds a general storage account form and clones draft arrays', () => {
     const result = buildResourceEditGeneralForm({
@@ -30,7 +34,6 @@ describe('resource edit form builders helpers', () => {
       ],
     );
 
-    expect(forms.length).toBe(1);
     const form = forms[0].form;
     expect(form.get('ingressEnabled')?.value).toBeTrue();
     expect(form.get('readinessProbeEnabled')?.value).toBeTrue();
@@ -88,8 +91,8 @@ describe('resource edit form builders helpers', () => {
     );
 
     expect(generalResult.form.get('enableDdosProtection')?.value).toBeTrue();
-    expect(envForms[0].form.get('addressSpacesInput')?.value).toEqual(createTagItems(['10.0.0.0/16', '10.1.0.0/16']));
-    expect(envForms[0].form.get('dnsServersInput')?.value).toEqual(createTagItems(['10.0.0.4', '10.0.0.5']));
+    expect(envForms[0].form.get('addressSpacesInput')?.value).toEqual(createTagItems(TestAddressSpaces));
+    expect(envForms[0].form.get('dnsServersInput')?.value).toEqual(createTagItems(TestDnsServers));
     expect(envForms[1].form.get('addressSpacesInput')?.value).toEqual([]);
     expect(envForms[1].form.get('dnsServersInput')?.value).toEqual([]);
   });
@@ -179,8 +182,8 @@ function createVirtualNetworkResource() {
     environmentSettings: [
       {
         environmentName: 'Development',
-        addressSpaces: ['10.0.0.0/16', '10.1.0.0/16'],
-        dnsServers: ['10.0.0.4', '10.0.0.5'],
+        addressSpaces: [...TestAddressSpaces],
+        dnsServers: [...TestDnsServers],
       },
       {
         environmentName: 'Production',

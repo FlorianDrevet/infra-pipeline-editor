@@ -1,7 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatDialog } from '@angular/material/dialog';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { By } from '@angular/platform-browser';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AddResourceDialogComponent, AddResourceDialogData } from './add-resource-dialog.component';
@@ -14,7 +12,6 @@ describe('AddResourceDialogComponent', () => {
   let fixture: ComponentFixture<AddResourceDialogComponent>;
   let component: AddResourceDialogComponent;
   let translateService: TranslateService;
-  let dialogSpy: jasmine.SpyObj<MatDialog>;
 
   const mockData: AddResourceDialogData = {
     resourceGroupId: 'rg-1',
@@ -25,14 +22,9 @@ describe('AddResourceDialogComponent', () => {
   };
 
   beforeEach(async () => {
-    dialogSpy = jasmine.createSpyObj<MatDialog>('MatDialog', ['open']);
-
-    TestBed.overrideProvider(MatDialog, { useValue: dialogSpy });
-
     await TestBed.configureTestingModule({
       imports: [AddResourceDialogComponent, TranslateModule.forRoot()],
       providers: [
-        provideNoopAnimations(),
         { provide: MatDialogRef, useValue: jasmine.createSpyObj('MatDialogRef', ['close']) },
         { provide: MAT_DIALOG_DATA, useValue: mockData },
         {
@@ -109,10 +101,12 @@ describe('AddResourceDialogComponent', () => {
     const componentInstance = component as unknown as {
       applySelectedType(type: ResourceTypeEnum): void;
       step: { set(value: 'type' | 'plan-selection' | 'create-plan' | 'common' | 'environments'): void };
+      dialog: { open: jasmine.Spy };
     };
 
     componentInstance.applySelectedType(ResourceTypeEnum.VirtualNetwork);
     componentInstance.step.set('common');
+    spyOn(componentInstance.dialog, 'open');
     fixture.detectChanges();
 
     const helpButton = fixture.debugElement.query(By.css('app-ds-panel-action-button button'));
@@ -121,7 +115,7 @@ describe('AddResourceDialogComponent', () => {
 
     helpButton.nativeElement.click();
 
-    expect(dialogSpy.open).toHaveBeenCalledOnceWith(jasmine.any(Function), jasmine.objectContaining({
+    expect(componentInstance.dialog.open).toHaveBeenCalledOnceWith(jasmine.any(Function), jasmine.objectContaining({
       data: jasmine.objectContaining({ context: 'resourceCreate' }),
     }));
   });

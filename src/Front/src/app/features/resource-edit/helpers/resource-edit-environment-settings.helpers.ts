@@ -81,8 +81,8 @@ interface RawEnvironmentFormValue {
   zoneRedundancy?: RawEnvironmentScalarValue;
   minimalTlsVersion?: RawEnvironmentScalarValue;
   maxSizeGb?: RawEnvironmentScalarValue;
-  addressSpacesInput?: RawEnvironmentTagValue | RawEnvironmentScalarValue;
-  dnsServersInput?: RawEnvironmentTagValue | RawEnvironmentScalarValue;
+  addressSpacesInput?: RawEnvironmentTagValue | string;
+  dnsServersInput?: RawEnvironmentTagValue | string;
 }
 
 export function buildKeyVaultEnvironmentSettings(
@@ -117,11 +117,11 @@ export function buildVirtualNetworkEnvironmentSettings(
 ): VirtualNetworkEnvironmentConfigEntry[] {
   return envForms.map((envForm) => {
     const raw = readRawValue(envForm);
-    const dnsServers = mapTagInputItemsToStrings(raw.dnsServersInput as ReadonlyArray<DsTagInputItem> | null | undefined);
+    const dnsServers = mapTagInputItemsToStrings(raw.dnsServersInput);
 
     return {
       environmentName: envForm.envName,
-      addressSpaces: mapTagInputItemsToStrings(raw.addressSpacesInput as ReadonlyArray<DsTagInputItem> | null | undefined),
+      addressSpaces: mapTagInputItemsToStrings(raw.addressSpacesInput),
       dnsServers: dnsServers.length > 0 ? dnsServers : undefined,
     };
   });

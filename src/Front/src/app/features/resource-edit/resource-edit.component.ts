@@ -1839,8 +1839,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   protected updateLifecycleRuleTtl(index: number, rawValue: string): void {
-    const parsed = parseInt(rawValue, 10);
-    if (isNaN(parsed)) return;
+    const parsed = Number.parseInt(rawValue, 10);
+    if (Number.isNaN(parsed)) return;
     this.lifecycleRulesDraft.update(rules =>
       rules.map((r, i) => (i === index ? { ...r, timeToLiveInDays: parsed } : r)),
     );

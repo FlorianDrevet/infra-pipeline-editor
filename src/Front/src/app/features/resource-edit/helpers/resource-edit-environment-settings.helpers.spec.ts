@@ -10,14 +10,18 @@ import {
   buildStorageAccountCorsRules,
 } from './resource-edit-environment-settings.helpers';
 
+const TestAddressSpaces = ['vnet-space-primary', 'vnet-space-secondary'] as const;
+
+const TestDnsServers = ['dns-server-primary', 'dns-server-secondary'] as const;
+
 describe('resource edit environment settings helpers', () => {
   const fb = new FormBuilder();
 
   it('builds virtual network environment settings from delimited address-space and DNS inputs', () => {
     const envForms = [
       createEnvironmentFormEntry('Development', {
-        addressSpacesInput: createTagItems(['10.0.0.0/16', '10.1.0.0/16']),
-        dnsServersInput: createTagItems(['10.0.0.4', '10.0.0.5']),
+        addressSpacesInput: createTagItems(TestAddressSpaces),
+        dnsServersInput: createTagItems(TestDnsServers),
       }),
       createEnvironmentFormEntry('Production', {
         addressSpacesInput: [],
@@ -28,8 +32,8 @@ describe('resource edit environment settings helpers', () => {
     expect(buildVirtualNetworkEnvironmentSettings(envForms)).toEqual([
       {
         environmentName: 'Development',
-        addressSpaces: ['10.0.0.0/16', '10.1.0.0/16'],
-        dnsServers: ['10.0.0.4', '10.0.0.5'],
+        addressSpaces: [...TestAddressSpaces],
+        dnsServers: [...TestDnsServers],
       },
       {
         environmentName: 'Production',
@@ -190,8 +194,8 @@ describe('resource edit environment settings helpers', () => {
       form,
     };
   }
-
-  function createTagItems(values: readonly string[]): DsTagInputItem[] {
-    return values.map((value) => ({ value }));
-  }
 });
+
+function createTagItems(values: readonly string[]): DsTagInputItem[] {
+  return values.map((value) => ({ value }));
+}
