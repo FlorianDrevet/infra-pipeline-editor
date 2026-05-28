@@ -13,6 +13,7 @@ export const CONFIG_DETAIL_ROUTE_TABS = {
   crossConfigRefs: 'cross-config-refs',
   variables: 'variables',
   git: 'git',
+  networking: 'networking',
 } as const;
 
 export type ConfigDetailRouteTab = (typeof CONFIG_DETAIL_ROUTE_TABS)[keyof typeof CONFIG_DETAIL_ROUTE_TABS];
@@ -62,6 +63,8 @@ export function getConfigDetailTabIndex(tab: string | null): number {
       return 4;
     case CONFIG_DETAIL_ROUTE_TABS.git:
       return 5;
+    case CONFIG_DETAIL_ROUTE_TABS.networking:
+      return 6;
     default:
       return 0;
   }
@@ -79,6 +82,8 @@ export function getConfigDetailTabQuery(index: number): ConfigDetailRouteTab | n
       return CONFIG_DETAIL_ROUTE_TABS.variables;
     case 5:
       return CONFIG_DETAIL_ROUTE_TABS.git;
+    case 6:
+      return CONFIG_DETAIL_ROUTE_TABS.networking;
     default:
       return null;
   }
@@ -95,6 +100,7 @@ export const CONFIG_DETAIL_TAB_IDS = [
   'cross-config-refs',
   'variables',
   'git',
+  'networking',
 ] as const;
 
 export type ConfigDetailTabId = (typeof CONFIG_DETAIL_TAB_IDS)[number];

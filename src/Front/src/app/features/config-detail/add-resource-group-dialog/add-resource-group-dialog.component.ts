@@ -10,6 +10,7 @@ import { LOCATION_OPTIONS } from '../enums/location.enum';
 
 export interface AddResourceGroupDialogData {
   infraConfigId: string;
+  defaultLocation?: string;
 }
 
 @Component({
@@ -39,7 +40,7 @@ export class AddResourceGroupDialogComponent {
 
   protected readonly form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(80)]],
-    location: ['', [Validators.required]],
+    location: [this.data.defaultLocation ?? '', [Validators.required]],
   });
 
   protected onCancel(): void {

@@ -230,6 +230,7 @@ internal static class GenerationRequestBuilder
                     environmentConfig => environmentConfig.EnvironmentName,
                     environmentConfig => environmentConfig.Properties),
             AssignedUserAssignedIdentityName = resource.AssignedUserAssignedIdentityName,
+            IsPrivatized = resource.IsPrivatized,
         };
 
         if (!includeExtendedResourceMetadata)

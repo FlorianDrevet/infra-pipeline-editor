@@ -16,8 +16,6 @@ using InfraFlowSculptor.Application.CosmosDbs.Commands.CreateCosmosDb;
 using InfraFlowSculptor.Application.CosmosDbs.Common;
 using InfraFlowSculptor.Application.EventHubNamespaces.Commands.CreateEventHubNamespace;
 using InfraFlowSculptor.Application.EventHubNamespaces.Common;
-using InfraFlowSculptor.Application.FrontDoors.Commands.CreateFrontDoor;
-using InfraFlowSculptor.Application.FrontDoors.Common;
 using InfraFlowSculptor.Application.FunctionApps.Commands.CreateFunctionApp;
 using InfraFlowSculptor.Application.FunctionApps.Common;
 using InfraFlowSculptor.Application.Imports.Common.Properties;
@@ -25,10 +23,6 @@ using InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
 using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.CreateLogAnalyticsWorkspace;
 using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Common;
-using InfraFlowSculptor.Application.NetworkSecurityGroups.Commands.CreateNetworkSecurityGroup;
-using InfraFlowSculptor.Application.NetworkSecurityGroups.Common;
-using InfraFlowSculptor.Application.PrivateDnsZones.Commands.CreatePrivateDnsZone;
-using InfraFlowSculptor.Application.PrivateDnsZones.Common;
 using InfraFlowSculptor.Application.RedisCaches.Commands.CreateRedisCache;
 using InfraFlowSculptor.Application.RedisCaches.Common;
 using InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.CreateServiceBusNamespace;
@@ -246,27 +240,6 @@ public static class ResourceCommandFactory
                 mediator,
                 new CreateVirtualNetworkCommand(resourceGroupId, name, location),
                 static (VirtualNetworkResult result) => result.Id.Value,
-                cancellationToken),
-
-        [AzureResourceTypes.NetworkSecurityGroup] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
-            SendAndExtractIdAsync(
-                mediator,
-                new CreateNetworkSecurityGroupCommand(resourceGroupId, name, location),
-                static (NetworkSecurityGroupResult result) => result.Id.Value,
-                cancellationToken),
-
-        [AzureResourceTypes.PrivateDnsZone] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
-            SendAndExtractIdAsync(
-                mediator,
-                new CreatePrivateDnsZoneCommand(resourceGroupId, name, location),
-                static (PrivateDnsZoneResult result) => result.Id.Value,
-                cancellationToken),
-
-        [AzureResourceTypes.FrontDoor] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
-            SendAndExtractIdAsync(
-                mediator,
-                new CreateFrontDoorCommand(resourceGroupId, name, location),
-                static (FrontDoorResult result) => result.Id.Value,
                 cancellationToken),
     };
 

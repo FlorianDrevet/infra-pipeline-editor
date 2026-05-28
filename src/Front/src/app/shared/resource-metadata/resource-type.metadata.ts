@@ -21,9 +21,6 @@ export enum ResourceTypeEnum {
   EventHubNamespace = 'EventHubNamespace',
   ContainerRegistry = 'ContainerRegistry',
   VirtualNetwork = 'VirtualNetwork',
-  NetworkSecurityGroup = 'NetworkSecurityGroup',
-  PrivateDnsZone = 'PrivateDnsZone',
-  FrontDoor = 'FrontDoor',
 }
 
 const RESOURCE_TYPES_WITH_ENVIRONMENT_SETTINGS_VALUES = [
@@ -94,9 +91,6 @@ export const RESOURCE_TYPE_ICONS: Readonly<Record<string, string>> = {
   EventHubNamespace: 'swap_vert',
   ContainerRegistry: 'inventory_2',
   VirtualNetwork: 'lan',
-  NetworkSecurityGroup: 'shield',
-  PrivateDnsZone: 'dns',
-  FrontDoor: 'door_front',
 };
 
 export interface ResourceTypeCategory {
@@ -162,9 +156,6 @@ export const RESOURCE_TYPE_CATEGORIES: ResourceTypeCategory[] = [
     icon: 'lan',
     types: [
       ResourceTypeEnum.VirtualNetwork,
-      ResourceTypeEnum.NetworkSecurityGroup,
-      ResourceTypeEnum.PrivateDnsZone,
-      ResourceTypeEnum.FrontDoor,
     ],
   },
 ];
@@ -193,9 +184,6 @@ export const RESOURCE_TYPE_ABBREVIATIONS: Readonly<Record<string, string>> = {
   EventHubNamespace: 'evhns',
   ContainerRegistry: 'acr',
   VirtualNetwork: 'vnet',
-  NetworkSecurityGroup: 'nsg',
-  PrivateDnsZone: 'pdnsz',
-  FrontDoor: 'afd',
 };
 
 /**

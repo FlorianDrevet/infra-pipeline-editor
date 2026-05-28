@@ -87,7 +87,7 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
 
         if (!isMapped)
         {
-            unsupported.Add(sourceName);
+            unsupported.Add(sourceType);
             gaps.Add(new ImportPreviewGapResult
             {
                 Severity = ImportPreviewGapSeverity.Warning,

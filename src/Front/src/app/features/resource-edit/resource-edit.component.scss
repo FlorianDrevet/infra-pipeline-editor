@@ -65,7 +65,7 @@
 .resource-header__info {
   display: flex;
   flex-direction: column;
-  gap: var(--ifs-space-6);
+  gap: var(--ifs-space-8);
 
   h1 {
     margin: 0;
@@ -73,6 +73,13 @@
     font-weight: 600;
     line-height: 1.2;
   }
+}
+
+.resource-header__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--ifs-space-8);
+  flex-wrap: wrap;
 }
 
 .resource-header__actions {

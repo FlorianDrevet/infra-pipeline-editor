@@ -78,14 +78,13 @@ public static class Routes
     /// <summary>Route group prefix for Virtual Network operations.</summary>
     public const string VirtualNetwork = "/virtual-network";
 
-    /// <summary>Route group prefix for Network Security Group operations.</summary>
-    public const string NetworkSecurityGroup = "/network-security-group";
+    /// <summary>Route group prefix for networking profile operations scoped to an infra config.</summary>
+    public const string NetworkingProfile = "/infra-config/{infraConfigId:guid}/networking-profile";
 
-    /// <summary>Route group prefix for Private DNS Zone operations.</summary>
-    public const string PrivateDnsZone = "/private-dns-zone";
+    /// <summary>Route group prefix for resource privatization operations scoped to an infra config.</summary>
+    public const string ResourcePrivatization = "/infra-config/{infraConfigId:guid}/resources/{resourceId:guid}/privatization";
 
-    /// <summary>Route group prefix for Front Door operations.</summary>
-    public const string FrontDoor = "/front-door";
+
 
     /// <summary>Route group prefix for Personal Access Token operations.</summary>
     public const string PersonalAccessTokens = "/personal-access-tokens";
@@ -114,8 +113,7 @@ public static class Routes
     /// <summary>Route group prefix for custom domain operations scoped to a resource.</summary>
     public const string AzureResourceCustomDomains = "/azure-resources/{resourceId:guid}/custom-domains";
 
-    /// <summary>Route group prefix for private endpoint operations scoped to a resource.</summary>
-    public const string ResourcePrivateEndpoints = "/resources/{resourceId:guid}/private-endpoints";
+
 
     /// <summary>Route group prefix for available outputs scoped to a resource.</summary>
     public const string AzureResourceAvailableOutputs = "/azure-resources/{resourceId:guid}/available-outputs";

@@ -28,6 +28,7 @@
 | `NetworkSecurityGroup` | extends `AzureResource` | `NsgRule` | TPT; abbreviation `nsg`; Rules have priority/direction/access/protocol/CIDR |
 | `PrivateDnsZone` | extends `AzureResource` | `VirtualNetworkLink` | TPT; abbreviation `pdnsz`; VNet links with auto-registration flag |
 | `FrontDoor` | extends `AzureResource` | `FrontDoorOrigin`, `FrontDoorEnvironmentSettings` | TPT; abbreviation `afd`; WAF policy flag; Origins with target resource, private link, weight/priority; per-env SKU (Standard/Premium) |
+| `NetworkingProfile` | `NetworkingProfile` | `NetworkingProfileEnvironmentOverride` | V2 networking aggregate [2026-05-28]. Replaces V1 NSG/PrivateDnsZone/FrontDoor/PrivateEndpointConfig. Owns: `NetworkingMode` (Simplified/Standard/Advanced), `VnetReference` (source+CIDRs), `DnsConfig` (mode+hub IDs). Unique per `InfrastructureConfigId`. Methods: `Create()`, `ChangeMode()`, `UpdateVnetReference()`, `UpdateDnsConfig()`, `SetEnvironmentOverride()`, `RemoveEnvironmentOverride()`. AzureResource.IsPrivatized flag + Privatize()/Deprivatize() methods drive per-resource PE generation. |
 | `PersonalAccessToken` | `PersonalAccessToken` | `TokenHash` (VO), `PersonalAccessTokenId` (VO), `PatScope` (VO) | PAT for MCP auth. `ifs_` prefix + SHA-256 hash stored, plaintext returned once. `UserId` FK. Owns `PatScope` values (`Read` default, `Write`, `Generate`). Methods: `Revoke()`, `RecordUsage()`, `IsValid()`, `HasScope()`. |
 | `User` | `User` | — | Azure AD user info |
 

@@ -85,7 +85,6 @@ import { DockerfilePickerComponent } from '../../shared/components/dockerfile-pi
 import { BuildContextPickerComponent } from '../../shared/components/build-context-picker/build-context-picker.component';
 import { ContainerAppAcrServiceConnectionsComponent } from './components/container-app-acr-service-connections/container-app-acr-service-connections.component';
 import { PipelineOptionsComponent } from './components/pipeline-options/pipeline-options.component';
-import { NetworkingTabComponent } from './components/networking-tab/networking-tab.component';
 import { PipelineStepOptions } from './models/pipeline-step-options.model';
 import {
   ResourceEditEnvironmentFormEntry,
@@ -165,7 +164,6 @@ const RESOURCE_EDIT_MAIN_TAB_IDS = [
   'general',
   'environments',
   'identity-access',
-  'networking',
   'storage',
   'app-settings',
   'config-keys',
@@ -210,7 +208,6 @@ type StorageSubTabId = 'blob_containers' | 'queues' | 'tables';
     DsSelectComponent,
     ContainerAppAcrServiceConnectionsComponent,
     PipelineOptionsComponent,
-    NetworkingTabComponent,
   ],
   templateUrl: './resource-edit.component.html',
   styleUrl: './resource-edit.component.scss',
@@ -287,12 +284,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
   protected readonly isUserAssignedIdentity = computed(() => this.resourceType === 'UserAssignedIdentity');
 
-  private static readonly PE_SUPPORTED_TYPES = new Set<string>([
-    'KeyVault', 'StorageAccount', 'AppConfiguration', 'CosmosDb', 'SqlServer',
-    'RedisCache', 'ServiceBusNamespace', 'EventHubNamespace', 'ContainerRegistry',
-    'WebApp', 'FunctionApp', 'ApplicationInsights', 'LogAnalyticsWorkspace',
-  ]);
-  protected readonly supportsNetworking = computed(() => ResourceEditComponent.PE_SUPPORTED_TYPES.has(this.resourceType));
   protected readonly isExistingResource = computed(() => (this.resource() as { isExisting?: boolean } | null)?.isExisting === true);
 
   // ─── App Pipeline ───
@@ -718,9 +709,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         icon: 'security',
         badge: count > 0 ? String(count) : undefined,
       });
-    }
-    if (this.supportsNetworking()) {
-      tabs.push({ id: 'networking', label: t('RESOURCE_EDIT.TABS.NETWORKING'), icon: 'lan' });
     }
     if (this.isStorageAccount()) {
       tabs.push({

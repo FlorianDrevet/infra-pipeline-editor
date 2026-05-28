@@ -29,7 +29,7 @@ public sealed class ResourceCreationTools
         "Supported types: KeyVault, StorageAccount, SqlServer, SqlDatabase, ContainerRegistry, " +
         "LogAnalyticsWorkspace, ApplicationInsights, ContainerAppEnvironment, ContainerApp, " +
         "UserAssignedIdentity, AppServicePlan, WebApp, FunctionApp, CosmosDb, VirtualNetwork, " +
-        "ServiceBusNamespace, EventHubNamespace, RedisCache, AppConfiguration, NetworkSecurityGroup, PrivateDnsZone. " +
+        "ServiceBusNamespace, EventHubNamespace, RedisCache, AppConfiguration. " +
         "Properties vary by type — examples: " +
         "SqlServer: {\"version\": \"V12\", \"administratorLogin\": \"sqladmin\"}, " +
         "SqlDatabase: {\"sqlServerId\": \"<guid>\", \"collation\": \"SQL_Latin1_General_CP1_CI_AS\"}, " +

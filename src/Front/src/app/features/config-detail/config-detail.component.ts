@@ -104,6 +104,8 @@ import { ConfigDetailTagsSectionComponent } from './sections/tags/config-detail-
 import { createConfigDetailTagsSectionController } from './sections/tags/config-detail-tags-section.controller';
 import { ConfigDetailVariableGroupsSectionComponent } from './sections/variable-groups/config-detail-variable-groups-section.component';
 import { createConfigDetailVariableGroupsSectionController } from './sections/variable-groups/config-detail-variable-groups-section.controller';
+import { ConfigDetailNetworkingSectionComponent } from './sections/networking/config-detail-networking-section.component';
+import { createConfigDetailNetworkingSectionController } from './sections/networking/config-detail-networking-section.controller';
 import {
   CONFIG_DETAIL_ROUTE_TABS,
   CONFIG_DETAIL_TAB_IDS,
@@ -114,6 +116,10 @@ import {
 import { LanguageService } from '../../shared/services/language.service';
 
 type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | undefined };
+
+const ADD_RESOURCE_DIALOG_WIDTH = '1120px';
+const ADD_RESOURCE_DIALOG_MAX_WIDTH = '96vw';
+const ADD_RESOURCE_DIALOG_MAX_HEIGHT = '90vh';
 
 
 @Component({
@@ -135,6 +141,7 @@ type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | un
     ConfigDetailResourcesSectionComponent,
     ConfigDetailTagsSectionComponent,
     ConfigDetailVariableGroupsSectionComponent,
+    ConfigDetailNetworkingSectionComponent,
     DsButtonComponent,
   ],
   templateUrl: './config-detail.component.html',
@@ -250,6 +257,16 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     getConfig: () => this.config(),
     canWrite: () => this.canWrite(),
     updateConfig: (config) => this.config.set(config),
+  });
+
+  private readonly allResources = computed<AzureResourceResponse[]>(() => {
+    const map = this.rgResources();
+    return Object.values(map).flat().filter((r): r is AzureResourceResponse => r !== undefined);
+  });
+
+  protected readonly networkingSection = createConfigDetailNetworkingSectionController({
+    getConfigId: () => this.config()?.id ?? null,
+    getResources: () => this.allResources(),
   });
 
   protected readonly useProjectNamingConventions = computed(() => this.config()?.useProjectNamingConventions ?? false);
@@ -374,6 +391,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     if (this.isProjectMultiRepo()) {
       tabs.push({ id: 'git', label: this.translate.instant('CONFIG_DETAIL.TABS.GIT'), icon: 'code' });
     }
+    tabs.push({ id: 'networking', label: this.translate.instant('CONFIG_DETAIL_NETWORKING.TAB_LABEL'), icon: 'lan' });
     return tabs;
   });
   protected async onConfigTabIdChange(tabId: string): Promise<void> {
@@ -391,6 +409,10 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
 
     if (typedTabId === 'cross-config-refs' && !this.crossConfigLoaded()) {
       await this.loadCrossConfigReferences();
+    }
+
+    if (typedTabId === 'networking') {
+      await this.networkingSection.load();
     }
   }
   protected readonly resourcesSectionViewModel = computed<ConfigDetailResourcesSectionViewModel | null>(() => {
@@ -604,6 +626,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(AddResourceGroupDialogComponent, {
       data: {
         infraConfigId: currentConfig.id,
+        defaultLocation: this.projectSortedEnvironments()[0]?.location,
       } satisfies AddResourceGroupDialogData,
       width: '440px',
     });
@@ -849,8 +872,9 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
         location: rg?.location ?? '',
         environments: envs.map(e => ({ name: e.name })),
       } satisfies AddResourceDialogData,
-      width: '720px',
-      maxHeight: '90vh',
+      width: ADD_RESOURCE_DIALOG_WIDTH,
+      maxWidth: ADD_RESOURCE_DIALOG_MAX_WIDTH,
+      maxHeight: ADD_RESOURCE_DIALOG_MAX_HEIGHT,
     });
 
     dialogRef.afterClosed().subscribe(async (created: boolean) => {
@@ -883,8 +907,9 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
           resourceType: parentResource.resourceType,
         },
       } satisfies AddResourceDialogData,
-      width: '720px',
-      maxHeight: '90vh',
+      width: ADD_RESOURCE_DIALOG_WIDTH,
+      maxWidth: ADD_RESOURCE_DIALOG_MAX_WIDTH,
+      maxHeight: ADD_RESOURCE_DIALOG_MAX_HEIGHT,
     });
 
     dialogRef.afterClosed().subscribe(async (created: boolean) => {

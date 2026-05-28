@@ -546,9 +546,6 @@
       "ADD_DIALOG_TITLE_EventHubNamespace": "Nouveau Event Hub Namespace",
       "ADD_DIALOG_TITLE_ContainerRegistry": "Nouveau Container Registry",
       "ADD_DIALOG_TITLE_VirtualNetwork": "Nouveau r\u00e9seau virtuel",
-      "ADD_DIALOG_TITLE_NetworkSecurityGroup": "Nouveau groupe de s\u00e9curit\u00e9 r\u00e9seau",
-      "ADD_DIALOG_TITLE_PrivateDnsZone": "Nouvelle zone DNS priv\u00e9e",
-      "ADD_DIALOG_TITLE_FrontDoor": "Nouveau Front Door",
       "ADD_ERROR": "Erreur lors de la creation de la ressource.",
       "FORM": {
         "NAME": "Nom",
@@ -1678,7 +1675,6 @@
       "USED_BY": "Utilis\u00e9e par",
       "CONFIG_KEYS": "Clés de configuration",
       "APP_PIPELINE": "Pipeline applicative",
-      "NETWORKING": "R\u00e9seau",
       "ARIA": "Onglets de la ressource",
       "WARNING_MISSING_ROLE": "Un r\u00f4le requis n'est pas attribu\u00e9",
       "WARNING_MISSING_ENV_CONFIG": "Certains environnements ne sont pas configur\u00e9s"
@@ -1709,23 +1705,6 @@
       "LOADING_DIRECTORIES": "Chargement des r\u00e9pertoires...",
       "NO_DIRECTORIES_FOUND": "Aucun r\u00e9pertoire trouv\u00e9",
       "REPO_ROOT": "racine du d\u00e9p\u00f4t"
-    },
-    "NETWORKING": {
-      "TITLE": "R\u00e9seau",
-      "PRIVATE_ENDPOINTS": "Points de terminaison priv\u00e9s",
-      "ADD_PE": "Ajouter un point de terminaison priv\u00e9",
-      "NO_PE": "Aucun point de terminaison priv\u00e9 configur\u00e9",
-      "SUBNET": "Sous-r\u00e9seau",
-      "GROUP_ID": "ID de groupe",
-      "AUTO_APPROVAL": "Approbation automatique",
-      "DNS_ZONE": "Zone DNS priv\u00e9e",
-      "CUSTOM_NIC": "Nom NIC personnalis\u00e9",
-      "REMOVE_PE": "Supprimer",
-      "CONFIRM_REMOVE": "Supprimer ce point de terminaison priv\u00e9 ?",
-      "CANCEL": "Annuler",
-      "NOT_SUPPORTED": "Ce type de ressource ne prend pas en charge les points de terminaison priv\u00e9s.",
-      "LOAD_ERROR": "Impossible de charger les points de terminaison priv\u00e9s. Veuillez r\u00e9essayer.",
-      "REMOVE_ERROR": "Impossible de supprimer le point de terminaison priv\u00e9. Veuillez r\u00e9essayer."
     },
     "PIPELINE_OPTIONS": {
       "DESCRIPTION": "Configurez les étapes optionnelles du pipeline : tests, analyse de code, linting et validation post-déploiement.",
@@ -2730,5 +2709,47 @@
       "COPIED": "Copié !",
       "DONE": "J'ai copié le jeton"
     }
+  },
+  "CONFIG_DETAIL_NETWORKING": {
+    "TAB_LABEL": "Réseau",
+    "MODE": {
+      "LABEL": "Mode réseau",
+      "SIMPLIFIED": "Simplifié",
+      "STANDARD": "Standard",
+      "ADVANCED": "Avancé"
+    },
+    "VNET": {
+      "TITLE": "Configuration VNet",
+      "SOURCE_LABEL": "Source du réseau virtuel",
+      "CREATE_NEW": "Créer un nouveau VNet",
+      "USE_EXISTING": "Utiliser un VNet existant",
+      "USE_HUB_SPOKE": "Hub & Spoke",
+      "ADDRESS_SPACE": "Espace d'adressage",
+      "ADDRESS_SPACE_PLACEHOLDER": "10.0.0.0/16",
+      "SUBNET_PREFIX": "Préfixe de sous-réseau",
+      "SUBNET_PREFIX_PLACEHOLDER": "10.0.1.0/24",
+      "EXISTING_VNET_ID": "ID du VNet existant",
+      "EXISTING_VNET_ID_PLACEHOLDER": "/subscriptions/.../virtualNetworks/...",
+      "PE_SUBNET_NAME": "Nom du sous-réseau Private Endpoints",
+      "PE_SUBNET_NAME_PLACEHOLDER": "snet-pe"
+    },
+    "DNS": {
+      "TITLE": "Configuration DNS",
+      "MODE_LABEL": "Mode DNS",
+      "AUTO_MANAGED": "Automatique",
+      "CENTRALIZED_HUB": "Hub centralisé",
+      "CUSTOM": "Personnalisé",
+      "HUB_RG_ID": "Resource Group du hub DNS",
+      "HUB_RG_ID_PLACEHOLDER": "rg-dns-hub",
+      "HUB_SUBSCRIPTION_ID": "ID de souscription du hub",
+      "HUB_SUBSCRIPTION_ID_PLACEHOLDER": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    },
+    "PRIVATIZATION": {
+      "TITLE": "Privatisation des ressources",
+      "DESCRIPTION": "Activez la privatisation pour chaque ressource à exposer via Private Endpoint.",
+      "EMPTY": "Aucune ressource dans cette configuration."
+    },
+    "SAVE_SUCCESS": "Profil réseau mis à jour",
+    "SAVE_ERROR": "Erreur lors de la mise à jour du profil réseau"
   }
 }

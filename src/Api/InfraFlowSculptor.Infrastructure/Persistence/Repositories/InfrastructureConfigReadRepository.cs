@@ -959,6 +959,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         {
             AssignedUserAssignedIdentityName = assignedUaiName,
             IsExisting = r.IsExisting,
+            IsPrivatized = r.IsPrivatized,
             CustomDomains = resourceCustomDomains
         };
     }

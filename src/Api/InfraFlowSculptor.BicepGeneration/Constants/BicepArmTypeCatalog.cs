@@ -30,9 +30,6 @@ internal static class BicepArmTypeCatalog
     internal const string EventHubNamespaceApiVersion = "2024-01-01";
     internal const string ResourceGroupApiVersion = "2024-07-01";
     internal const string VirtualNetworkApiVersion = "2023-11-01";
-    internal const string NetworkSecurityGroupApiVersion = "2023-11-01";
-    internal const string PrivateDnsZoneApiVersion = "2024-06-01";
-    internal const string FrontDoorApiVersion = "2024-02-01";
     internal const string PrivateEndpointApiVersion = "2023-11-01";
     internal const string DiagnosticSettingsApiVersion = "2021-05-01-preview";
     internal const string RoleAssignmentsApiVersion = "2022-04-01";
@@ -49,7 +46,6 @@ internal static class BicepArmTypeCatalog
     private const string DiagnosticSettingsType = "Microsoft.Insights/diagnosticSettings";
     private const string RoleAssignmentsType = "Microsoft.Authorization/roleAssignments";
     private const string ResourceGroupsType = "Microsoft.Resources/resourceGroups";
-    private const string PrivateDnsZoneVirtualNetworkLinksType = AzureResourceTypes.ArmTypes.PrivateDnsZoneType + "/virtualNetworkLinks";
     private const string PrivateEndpointPrivateDnsZoneGroupsType = AzureResourceTypes.ArmTypes.PrivateEndpointType + "/privateDnsZoneGroups";
 
     internal const string KeyVaultArmType = AzureResourceTypes.ArmTypes.KeyVaultType + "@" + KeyVaultApiVersion;
@@ -82,10 +78,6 @@ internal static class BicepArmTypeCatalog
     internal const string RoleAssignmentsArmType = RoleAssignmentsType + "@" + RoleAssignmentsApiVersion;
     internal const string ResourceGroupsArmType = ResourceGroupsType + "@" + ResourceGroupApiVersion;
     internal const string VirtualNetworkArmType = AzureResourceTypes.ArmTypes.VirtualNetworkType + "@" + VirtualNetworkApiVersion;
-    internal const string NetworkSecurityGroupArmType = AzureResourceTypes.ArmTypes.NetworkSecurityGroupType + "@" + NetworkSecurityGroupApiVersion;
-    internal const string PrivateDnsZoneArmType = AzureResourceTypes.ArmTypes.PrivateDnsZoneType + "@" + PrivateDnsZoneApiVersion;
-    internal const string PrivateDnsZoneVirtualNetworkLinksArmType = PrivateDnsZoneVirtualNetworkLinksType + "@" + PrivateDnsZoneApiVersion;
-    internal const string FrontDoorArmType = AzureResourceTypes.ArmTypes.FrontDoorType + "@" + FrontDoorApiVersion;
     internal const string PrivateEndpointArmType = AzureResourceTypes.ArmTypes.PrivateEndpointType + "@" + PrivateEndpointApiVersion;
     internal const string PrivateEndpointPrivateDnsZoneGroupsArmType = PrivateEndpointPrivateDnsZoneGroupsType + "@" + PrivateEndpointApiVersion;
 
@@ -111,9 +103,6 @@ internal static class BicepArmTypeCatalog
             AzureResourceTypes.ArmTypes.ContainerRegistryType => ContainerRegistryApiVersion,
             AzureResourceTypes.ArmTypes.EventHubNamespaceType => EventHubNamespaceApiVersion,
             AzureResourceTypes.ArmTypes.VirtualNetworkType => VirtualNetworkApiVersion,
-            AzureResourceTypes.ArmTypes.NetworkSecurityGroupType => NetworkSecurityGroupApiVersion,
-            AzureResourceTypes.ArmTypes.PrivateDnsZoneType => PrivateDnsZoneApiVersion,
-            AzureResourceTypes.ArmTypes.FrontDoorType => FrontDoorApiVersion,
             AzureResourceTypes.ArmTypes.PrivateEndpointType => PrivateEndpointApiVersion,
             _ => DefaultExistingResourceApiVersion,
         };

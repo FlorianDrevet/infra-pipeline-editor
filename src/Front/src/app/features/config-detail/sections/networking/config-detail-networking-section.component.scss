@@ -1,0 +1,118 @@
+.networking-loading {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.networking-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem 0;
+
+  &__mode {
+    max-width: 320px;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+  }
+}
+
+.networking-panel {
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      color: var(--text-secondary);
+    }
+  }
+
+  &__description {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin: 0;
+  }
+
+  &__empty {
+    color: var(--text-tertiary);
+    font-style: italic;
+    margin: 0;
+  }
+
+  &__field {
+    max-width: 480px;
+  }
+}
+
+.privatization-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.privatization-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+
+  &__info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: var(--text-secondary);
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+
+    strong {
+      font-size: 0.875rem;
+      color: var(--text-primary);
+    }
+  }
+
+  &__type {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+  }
+}
+
+.networking-error {
+  color: var(--status-error);
+  font-size: 0.875rem;
+  margin: 0;
+}

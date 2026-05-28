@@ -544,9 +544,6 @@
       "ADD_DIALOG_TITLE_EventHubNamespace": "New Event Hub Namespace",
       "ADD_DIALOG_TITLE_ContainerRegistry": "New Container Registry",
       "ADD_DIALOG_TITLE_VirtualNetwork": "New Virtual Network",
-      "ADD_DIALOG_TITLE_NetworkSecurityGroup": "New Network Security Group",
-      "ADD_DIALOG_TITLE_PrivateDnsZone": "New Private DNS Zone",
-      "ADD_DIALOG_TITLE_FrontDoor": "New Front Door",
       "ADD_ERROR": "Failed to create the resource.",
       "FORM": {
         "NAME": "Name",
@@ -1685,7 +1682,6 @@
       "USED_BY": "Used By",
       "CONFIG_KEYS": "Configuration Keys",
       "APP_PIPELINE": "Application Pipeline",
-      "NETWORKING": "Networking",
       "ARIA": "Resource tabs",
       "WARNING_MISSING_ROLE": "A required role assignment is missing",
       "WARNING_MISSING_ENV_CONFIG": "Some environments have no configuration"
@@ -1716,23 +1712,6 @@
       "LOADING_DIRECTORIES": "Loading directories...",
       "NO_DIRECTORIES_FOUND": "No directories found",
       "REPO_ROOT": "repository root"
-    },
-    "NETWORKING": {
-      "TITLE": "Networking",
-      "PRIVATE_ENDPOINTS": "Private Endpoints",
-      "ADD_PE": "Add Private Endpoint",
-      "NO_PE": "No private endpoints configured",
-      "SUBNET": "Subnet",
-      "GROUP_ID": "Group ID",
-      "AUTO_APPROVAL": "Auto-approval",
-      "DNS_ZONE": "Private DNS Zone",
-      "CUSTOM_NIC": "Custom NIC Name",
-      "REMOVE_PE": "Remove",
-      "CONFIRM_REMOVE": "Remove this private endpoint?",
-      "CANCEL": "Cancel",
-      "NOT_SUPPORTED": "This resource type does not support private endpoints.",
-      "LOAD_ERROR": "Unable to load private endpoints. Please try again.",
-      "REMOVE_ERROR": "Unable to remove private endpoint. Please try again."
     },
     "PIPELINE_OPTIONS": {
       "DESCRIPTION": "Configure optional pipeline steps such as tests, code analysis, linting, and post-deploy validation.",
@@ -2737,5 +2716,47 @@
       "COPIED": "Copied!",
       "DONE": "I've Copied the Token"
     }
+  },
+  "CONFIG_DETAIL_NETWORKING": {
+    "TAB_LABEL": "Networking",
+    "MODE": {
+      "LABEL": "Network mode",
+      "SIMPLIFIED": "Simplified",
+      "STANDARD": "Standard",
+      "ADVANCED": "Advanced"
+    },
+    "VNET": {
+      "TITLE": "VNet Configuration",
+      "SOURCE_LABEL": "Virtual network source",
+      "CREATE_NEW": "Create new VNet",
+      "USE_EXISTING": "Use existing VNet",
+      "USE_HUB_SPOKE": "Hub & Spoke",
+      "ADDRESS_SPACE": "Address space",
+      "ADDRESS_SPACE_PLACEHOLDER": "10.0.0.0/16",
+      "SUBNET_PREFIX": "Subnet prefix",
+      "SUBNET_PREFIX_PLACEHOLDER": "10.0.1.0/24",
+      "EXISTING_VNET_ID": "Existing VNet ID",
+      "EXISTING_VNET_ID_PLACEHOLDER": "/subscriptions/.../virtualNetworks/...",
+      "PE_SUBNET_NAME": "Private Endpoints subnet name",
+      "PE_SUBNET_NAME_PLACEHOLDER": "snet-pe"
+    },
+    "DNS": {
+      "TITLE": "DNS Configuration",
+      "MODE_LABEL": "DNS mode",
+      "AUTO_MANAGED": "Automatic",
+      "CENTRALIZED_HUB": "Centralized hub",
+      "CUSTOM": "Custom",
+      "HUB_RG_ID": "DNS hub Resource Group",
+      "HUB_RG_ID_PLACEHOLDER": "rg-dns-hub",
+      "HUB_SUBSCRIPTION_ID": "Hub subscription ID",
+      "HUB_SUBSCRIPTION_ID_PLACEHOLDER": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    },
+    "PRIVATIZATION": {
+      "TITLE": "Resource Privatization",
+      "DESCRIPTION": "Enable privatization for each resource to expose via Private Endpoint.",
+      "EMPTY": "No resources in this configuration."
+    },
+    "SAVE_SUCCESS": "Network profile updated",
+    "SAVE_ERROR": "Error updating network profile"
   }
 }

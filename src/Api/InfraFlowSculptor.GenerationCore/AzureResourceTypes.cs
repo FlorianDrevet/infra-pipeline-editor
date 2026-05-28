@@ -30,9 +30,6 @@ public static class AzureResourceTypes
     public const string EventHubNamespace = "EventHubNamespace";
     public const string ResourceGroup = "ResourceGroup";
     public const string VirtualNetwork = "VirtualNetwork";
-    public const string NetworkSecurityGroup = "NetworkSecurityGroup";
-    public const string PrivateDnsZone = "PrivateDnsZone";
-    public const string FrontDoor = "FrontDoor";
 
     /// <summary>
     /// Azure ARM resource provider type strings (e.g. "Microsoft.KeyVault/vaults").
@@ -58,9 +55,6 @@ public static class AzureResourceTypes
         public const string ContainerRegistryType = "Microsoft.ContainerRegistry/registries";
         public const string EventHubNamespaceType = "Microsoft.EventHub/namespaces";
         public const string VirtualNetworkType = "Microsoft.Network/virtualNetworks";
-        public const string NetworkSecurityGroupType = "Microsoft.Network/networkSecurityGroups";
-        public const string PrivateDnsZoneType = "Microsoft.Network/privateDnsZones";
-        public const string FrontDoorType = "Microsoft.Cdn/profiles";
         public const string PrivateEndpointType = "Microsoft.Network/privateEndpoints";
     }
 
@@ -90,9 +84,6 @@ public static class AzureResourceTypes
             [ArmTypes.ContainerRegistryType] = ContainerRegistry,
             [ArmTypes.EventHubNamespaceType] = EventHubNamespace,
             [ArmTypes.VirtualNetworkType] = VirtualNetwork,
-            [ArmTypes.NetworkSecurityGroupType] = NetworkSecurityGroup,
-            [ArmTypes.PrivateDnsZoneType] = PrivateDnsZone,
-            [ArmTypes.FrontDoorType] = FrontDoor,
         }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>

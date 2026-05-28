@@ -1,0 +1,165 @@
+@if (viewModel().isLoading()) {
+  <div class="networking-loading">
+    <app-ds-spinner size="lg" />
+  </div>
+} @else {
+  <div class="networking-section">
+    <!-- Mode selector -->
+    <div class="networking-section__mode">
+      <app-ds-select
+        [label]="'CONFIG_DETAIL_NETWORKING.MODE.LABEL' | translate"
+        [options]="viewModel().modeOptions"
+        [ngModel]="viewModel().mode()"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="viewModel().onModeChange($event)" />
+    </div>
+
+    <!-- VNet Configuration Panel -->
+    @if (viewModel().showVnetPanel()) {
+      <section class="networking-panel">
+        <h3 class="networking-panel__title">
+          <mat-icon>lan</mat-icon>
+          {{ 'CONFIG_DETAIL_NETWORKING.VNET.TITLE' | translate }}
+        </h3>
+
+        <div class="networking-panel__field">
+          <app-ds-select
+            [label]="'CONFIG_DETAIL_NETWORKING.VNET.SOURCE_LABEL' | translate"
+            [options]="viewModel().vnetSourceTypeOptions"
+            [ngModel]="viewModel().vnetSourceType()"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="viewModel().onVnetSourceTypeChange($event)" />
+        </div>
+
+        @if (viewModel().vnetSourceType() === 'CreateNew') {
+          <div class="networking-panel__field">
+            <app-ds-text-field
+              [label]="'CONFIG_DETAIL_NETWORKING.VNET.ADDRESS_SPACE' | translate"
+              [placeholder]="'CONFIG_DETAIL_NETWORKING.VNET.ADDRESS_SPACE_PLACEHOLDER' | translate"
+              [ngModel]="viewModel().createNewAddressSpace()"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="viewModel().onCreateNewAddressSpaceChange($event)" />
+          </div>
+          <div class="networking-panel__field">
+            <app-ds-text-field
+              [label]="'CONFIG_DETAIL_NETWORKING.VNET.SUBNET_PREFIX' | translate"
+              [placeholder]="'CONFIG_DETAIL_NETWORKING.VNET.SUBNET_PREFIX_PLACEHOLDER' | translate"
+              [ngModel]="viewModel().createNewSubnetAddressPrefix()"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="viewModel().onCreateNewSubnetAddressPrefixChange($event)" />
+          </div>
+        }
+
+        @if (viewModel().vnetSourceType() === 'UseExisting') {
+          <div class="networking-panel__field">
+            <app-ds-text-field
+              [label]="'CONFIG_DETAIL_NETWORKING.VNET.EXISTING_VNET_ID' | translate"
+              [placeholder]="'CONFIG_DETAIL_NETWORKING.VNET.EXISTING_VNET_ID_PLACEHOLDER' | translate"
+              [ngModel]="viewModel().existingVnetResourceId()"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="viewModel().onExistingVnetResourceIdChange($event)" />
+          </div>
+        }
+
+        <div class="networking-panel__field">
+          <app-ds-text-field
+            [label]="'CONFIG_DETAIL_NETWORKING.VNET.PE_SUBNET_NAME' | translate"
+            [placeholder]="'CONFIG_DETAIL_NETWORKING.VNET.PE_SUBNET_NAME_PLACEHOLDER' | translate"
+            [ngModel]="viewModel().privateEndpointsSubnetName()"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="viewModel().onPrivateEndpointsSubnetNameChange($event)" />
+        </div>
+      </section>
+    }
+
+    <!-- DNS Configuration Panel -->
+    @if (viewModel().showDnsPanel()) {
+      <section class="networking-panel">
+        <h3 class="networking-panel__title">
+          <mat-icon>dns</mat-icon>
+          {{ 'CONFIG_DETAIL_NETWORKING.DNS.TITLE' | translate }}
+        </h3>
+
+        <div class="networking-panel__field">
+          <app-ds-select
+            [label]="'CONFIG_DETAIL_NETWORKING.DNS.MODE_LABEL' | translate"
+            [options]="viewModel().dnsModeOptions"
+            [ngModel]="viewModel().dnsMode()"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="viewModel().onDnsModeChange($event)" />
+        </div>
+
+        @if (viewModel().dnsMode() === 'CentralizedHub') {
+          <div class="networking-panel__field">
+            <app-ds-text-field
+              [label]="'CONFIG_DETAIL_NETWORKING.DNS.HUB_RG_ID' | translate"
+              [placeholder]="'CONFIG_DETAIL_NETWORKING.DNS.HUB_RG_ID_PLACEHOLDER' | translate"
+              [ngModel]="viewModel().dnsHubResourceGroupId()"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="viewModel().onDnsHubResourceGroupIdChange($event)" />
+          </div>
+          <div class="networking-panel__field">
+            <app-ds-text-field
+              [label]="'CONFIG_DETAIL_NETWORKING.DNS.HUB_SUBSCRIPTION_ID' | translate"
+              [placeholder]="'CONFIG_DETAIL_NETWORKING.DNS.HUB_SUBSCRIPTION_ID_PLACEHOLDER' | translate"
+              [ngModel]="viewModel().dnsHubSubscriptionId()"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="viewModel().onDnsHubSubscriptionIdChange($event)" />
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Resource Privatization -->
+    <section class="networking-panel">
+      <h3 class="networking-panel__title">
+        <mat-icon>lock</mat-icon>
+        {{ 'CONFIG_DETAIL_NETWORKING.PRIVATIZATION.TITLE' | translate }}
+      </h3>
+      <p class="networking-panel__description">
+        {{ 'CONFIG_DETAIL_NETWORKING.PRIVATIZATION.DESCRIPTION' | translate }}
+      </p>
+
+      @if (viewModel().resources().length === 0) {
+        <p class="networking-panel__empty">
+          {{ 'CONFIG_DETAIL_NETWORKING.PRIVATIZATION.EMPTY' | translate }}
+        </p>
+      } @else {
+        <div class="privatization-list">
+          @for (resource of viewModel().resources(); track resource.id) {
+            <div class="privatization-item">
+              <div class="privatization-item__info">
+                <mat-icon class="privatization-item__icon">{{ resource.icon }}</mat-icon>
+                <div class="privatization-item__meta">
+                  <strong>{{ resource.name }}</strong>
+                  <span class="privatization-item__type">{{ resource.resourceType }}</span>
+                </div>
+              </div>
+              <app-ds-toggle
+                [ngModel]="resource.isPrivatized"
+                [ngModelOptions]="{ standalone: true }"
+                [disabled]="resource.saving"
+                (ngModelChange)="viewModel().onTogglePrivatization(resource.id, $event)" />
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Error + Save -->
+    @if (viewModel().errorKey()) {
+      <p class="networking-error">{{ viewModel().errorKey() | translate }}</p>
+    }
+
+    <div class="networking-section__actions">
+      <app-ds-button
+        variant="primary"
+        icon="save"
+        [loading]="viewModel().isSaving()"
+        [disabled]="viewModel().isSaving()"
+        (clicked)="viewModel().save()">
+        {{ 'COMMON.SAVE' | translate }}
+      </app-ds-button>
+    </div>
+  </div>
+}

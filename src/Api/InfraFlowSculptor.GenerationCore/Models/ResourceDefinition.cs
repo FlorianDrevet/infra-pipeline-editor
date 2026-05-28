@@ -39,4 +39,9 @@ public class ResourceDefinition
     /// Only applicable to compute resources (ContainerApp, WebApp, FunctionApp).
     /// </summary>
     public IReadOnlyList<CustomDomainDefinition> CustomDomains { get; set; } = [];
+
+    /// <summary>
+    /// Whether this resource is marked for private endpoint deployment via the networking profile.
+    /// </summary>
+    public bool IsPrivatized { get; set; }
 }
