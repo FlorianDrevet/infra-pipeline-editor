@@ -20,11 +20,11 @@ describe('ConfigDetailNetworkingSectionComponent', () => {
   beforeEach(async () => {
     dialogSpy = jasmine.createSpyObj<MatDialog>('MatDialog', ['open']);
 
+    TestBed.overrideProvider(MatDialog, { useValue: dialogSpy });
+
     await TestBed.configureTestingModule({
       imports: [ConfigDetailNetworkingSectionComponent, TranslateModule.forRoot()],
-      providers: [
-        { provide: MatDialog, useValue: dialogSpy },
-      ],
+      providers: [],
     }).compileComponents();
 
     translateService = TestBed.inject(TranslateService);

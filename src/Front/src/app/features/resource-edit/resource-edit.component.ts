@@ -71,6 +71,7 @@ import { SecureParameterMappingResponse } from '../../shared/interfaces/secure-p
 import { CreateUaiDialogComponent } from './create-uai-dialog/create-uai-dialog.component';
 import { PageContextService } from '../../shared/services/page-context.service';
 import { DeploymentConfigComponent } from '../../shared/components/deployment-config/deployment-config.component';
+import { VnetHelpDialogComponent } from '../../shared/components/vnet-help-dialog/vnet-help-dialog.component';
 import { ResourceEditAppSettingsSectionComponent } from './sections/app-settings/resource-edit-app-settings-section.component';
 import { createResourceEditAppSettingsSectionController } from './sections/app-settings/resource-edit-app-settings-section.controller';
 import { ResourceEditConfigKeysSectionComponent } from './sections/config-keys/resource-edit-config-keys-section.component';
@@ -82,12 +83,13 @@ import { ResourceEditGrantedRightsSectionComponent } from './sections/identity-a
 import { ResourceEditRoleAssignmentsSectionComponent } from './sections/identity-access/resource-edit-role-assignments-section.component';
 import { ResourceEditUsedBySectionComponent } from './sections/identity-access/resource-edit-used-by-section.component';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent, DsIconButtonComponent, DsSegmentedControlComponent, DsSegmentedOption, DsTooltipDirective, DsRadioGroupComponent, DsRadioOption } from '../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent, DsIconButtonComponent, DsSegmentedControlComponent, DsSegmentedOption, DsTooltipDirective, DsRadioGroupComponent, DsRadioOption, DsPanelActionButtonComponent, DsTagInputComponent } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
 import { BuildContextPickerComponent } from '../../shared/components/build-context-picker/build-context-picker.component';
 import { ContainerAppAcrServiceConnectionsComponent } from './components/container-app-acr-service-connections/container-app-acr-service-connections.component';
 import { PipelineOptionsComponent } from './components/pipeline-options/pipeline-options.component';
 import { PipelineStepOptions } from './models/pipeline-step-options.model';
+import { createVnetCidrTagValidator, createVnetIpv4TagValidator } from '../../shared/networking/vnet-tag-input.helpers';
 import {
   ResourceEditEnvironmentFormEntry,
   buildAppConfigurationEnvironmentSettings,
@@ -203,7 +205,9 @@ type StorageSubTabId = 'blob_containers' | 'queues' | 'tables';
     ToggleSectionCardComponent,
     DsButtonComponent,
     DsIconButtonComponent,
+    DsPanelActionButtonComponent,
     DsSegmentedControlComponent,
+    DsTagInputComponent,
     DsTooltipDirective,
     DsTextFieldComponent,
     DockerfilePickerComponent,
@@ -250,6 +254,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly translate = inject(TranslateService);
   private readonly languageService = inject(LanguageService);
   private readonly pageContextService = inject(PageContextService);
+  private readonly vnetValidationMessage = (key: string): string => this.translate.instant(key);
 
   // ─── Route params ───
   protected configId = '';
@@ -272,6 +277,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly formsDirty = signal(false);
   private formSubscriptions: Subscription[] = [];
   protected readonly saveSuccess = signal(false);
+  protected readonly vnetAddressSpaceValidator = createVnetCidrTagValidator(this.vnetValidationMessage);
+  protected readonly vnetDnsServerValidator = createVnetIpv4TagValidator(this.vnetValidationMessage);
 
   // ─── Storage Services ───
   protected readonly activeStorageSubTabId = signal<StorageSubTabId>('blob_containers');
@@ -996,6 +1003,13 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   /** User confirms the unavailable name is theirs and overrides the save block. */
   protected overrideNameAvailability(): void {
     this.nameAvailabilityOverridden.set(true);
+  }
+
+  protected openVnetHelpDialog(context: 'resourceEdit' | 'networkingProfile'): void {
+    this.dialog.open(VnetHelpDialogComponent, {
+      width: '640px',
+      data: { context },
+    });
   }
 
   protected onPipelineOptionsChanged(options: PipelineStepOptions): void {

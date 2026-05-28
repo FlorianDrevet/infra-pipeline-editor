@@ -302,7 +302,57 @@
     "CANCEL": "Annuler",
     "CLOSE": "Fermer",
     "DELETE": "Supprimer",
+    "HELP": "Aide",
     "SAVE": "Enregistrer",
+    "VNET_HELP_DIALOG": {
+      "RESOURCE_CREATE": {
+        "TITLE": "Valeurs du réseau virtuel",
+        "SUBTITLE": "Ajoutez les plages d'adressage, les résolveurs DNS optionnels et le choix de protection dont Azure a besoin avant de créer ce réseau virtuel."
+      },
+      "RESOURCE_EDIT": {
+        "TITLE": "Valeurs réseau par environnement",
+        "SUBTITLE": "Revoyez les espaces d'adressage et les résolveurs DNS optionnels de chaque environnement sans regrouper plusieurs valeurs dans un seul champ texte."
+      },
+      "NETWORKING_PROFILE": {
+        "TITLE": "Valeurs du profil réseau",
+        "SUBTITLE": "Choisissez l'espace d'adressage et le sous-réseau private endpoint qu'InfraFlowSculptor doit appliquer lorsqu'il provisionne le réseau de la configuration."
+      },
+      "ADDRESS_SPACES_PLACEHOLDER": "Ajoutez un bloc CIDR comme 10.0.0.0/16",
+      "DNS_SERVERS_PLACEHOLDER": "Ajoutez un serveur DNS comme 10.0.0.4",
+      "ADDRESS_SPACES": {
+        "TITLE": "Espaces d'adressage",
+        "BODY": "Un espace d'adressage définit les plages CIDR disponibles dans le réseau virtuel. Azure s'appuie sur ces plages pour allouer les sous-réseaux et les adresses IP privées.",
+        "GUIDANCE": "Utilisez des plages validées par votre landing zone ou votre équipe plateforme afin d'éviter les chevauchements avec d'autres VNets, le réseau on-premise ou les peerings."
+      },
+      "DNS_SERVERS": {
+        "TITLE": "Serveurs DNS",
+        "BODY": "Les serveurs DNS définissent la façon dont les workloads du VNet résolvent les noms. Laissez ce champ vide lorsque le DNS Azure par défaut suffit.",
+        "GUIDANCE": "Utilisez vos forwarders de hub, vos résolveurs on-premise ou les IP de services partagés documentées quand la résolution privée doit suivre un chemin d'entreprise existant."
+      },
+      "DDOS": {
+        "TITLE": "Protection DDoS",
+        "BODY": "Activer la protection DDoS change le plan de protection appliqué à ce réseau virtuel et peut impacter le coût, l'exploitation et la posture de sécurité des workloads exposés.",
+        "GUIDANCE": "Activez-la uniquement lorsque vos standards plateforme ou votre modèle de menace imposent un plan DDoS dédié pour les ressources connectées à ce VNet."
+      },
+      "SUBNET_PREFIX": {
+        "TITLE": "Préfixe du sous-réseau private endpoint",
+        "BODY": "Le préfixe de sous-réseau réserve un bloc CIDR plus petit à l'intérieur de l'espace d'adressage du VNet pour les private endpoints et leurs interfaces réseau.",
+        "GUIDANCE": "Choisissez un sous-réseau sans chevauchement, inclus dans la plage du VNet et suffisamment dimensionné pour les private endpoints que vous prévoyez d'ajouter."
+      },
+      "WHY": {
+        "TITLE": "Pourquoi l'application demande ces valeurs",
+        "BODY": "InfraFlowSculptor a besoin de valeurs réseau explicites pour générer des artefacts Azure valides au lieu de deviner des plages qui pourraient contredire votre design plateforme."
+      },
+      "IMPACT": {
+        "TITLE": "Ce que cela impacte",
+        "BODY": "Ces valeurs influencent l'allocation IP, la connectivité privée, la résolution DNS et toutes les ressources qui s'attachent ensuite au réseau virtuel ou au sous-réseau private endpoint."
+      },
+      "VALIDATION": {
+        "ADDRESS_SPACE_REQUIRED": "Ajoutez au moins un espace d'adressage CIDR avant de continuer.",
+        "INVALID_CIDR": "Saisissez un bloc CIDR IPv4 valide comme 10.0.0.0/16.",
+        "INVALID_IPV4": "Saisissez une adresse IPv4 valide comme 10.0.0.4."
+      }
+    },
     "DATE_PICKER": {
       "ARIA": {
         "CLEAR": "Effacer la date",

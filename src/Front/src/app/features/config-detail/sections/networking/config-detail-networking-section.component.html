@@ -83,6 +83,14 @@
                   <span class="networking-card__state">{{ option.label }}</span>
                 }
               }
+
+              <app-ds-panel-action-button
+                icon="help_outline"
+                tone="accent"
+                surface="dark"
+                [ariaLabel]="'COMMON.HELP' | translate"
+                [tooltip]="'COMMON.HELP' | translate"
+                (clicked)="openNetworkingHelpDialog()" />
             </div>
           </div>
 
@@ -103,7 +111,6 @@
                     <app-ds-text-field
                       [label]="'CONFIG_DETAIL_NETWORKING.VNET.ADDRESS_SPACE' | translate"
                       [placeholder]="'CONFIG_DETAIL_NETWORKING.VNET.ADDRESS_SPACE_PLACEHOLDER' | translate"
-                      [hint]="'CONFIG_DETAIL_NETWORKING.VNET.ADDRESS_SPACE_HINT' | translate"
                       [ngModel]="viewModel().createNewAddressSpace()"
                       [ngModelOptions]="{ standalone: true }"
                       (ngModelChange)="viewModel().onCreateNewAddressSpaceChange($event)" />
@@ -112,7 +119,6 @@
                     <app-ds-text-field
                       [label]="'CONFIG_DETAIL_NETWORKING.VNET.SUBNET_PREFIX' | translate"
                       [placeholder]="'CONFIG_DETAIL_NETWORKING.VNET.SUBNET_PREFIX_PLACEHOLDER' | translate"
-                      [hint]="'CONFIG_DETAIL_NETWORKING.VNET.SUBNET_PREFIX_HINT' | translate"
                       [ngModel]="viewModel().createNewSubnetAddressPrefix()"
                       [ngModelOptions]="{ standalone: true }"
                       (ngModelChange)="viewModel().onCreateNewSubnetAddressPrefixChange($event)" />

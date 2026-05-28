@@ -2343,8 +2343,16 @@
   &__header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--ifs-space-6);
     margin-bottom: var(--ifs-space-4);
+  }
+
+  &__header-main {
+    display: flex;
+    align-items: center;
+    gap: var(--ifs-space-6);
+    min-width: 0;
   }
 
   &__icon {

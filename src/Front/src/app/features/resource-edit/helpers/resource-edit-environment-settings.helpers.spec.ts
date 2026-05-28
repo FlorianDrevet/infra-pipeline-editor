@@ -179,9 +179,15 @@ describe('resource edit environment settings helpers', () => {
     envName: string,
     rawValue: Record<string, string | number | boolean | null | DsTagInputItem[]>,
   ): ResourceEditEnvironmentFormEntry {
+    const form = fb.group({});
+
+    for (const [key, value] of Object.entries(rawValue)) {
+      form.addControl(key, fb.control(value));
+    }
+
     return {
       envName,
-      form: fb.group(rawValue),
+      form,
     };
   }
 

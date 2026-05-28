@@ -129,6 +129,43 @@
   border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
+.resource-form__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  border: 1px solid var(--ifs-border-subtle);
+  background: var(--ifs-surface-1);
+}
+
+.resource-form__section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.resource-form__section-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.resource-form__section-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ifs-text-primary);
+}
+
+.resource-form__section-description {
+  margin: 0;
+  color: var(--ifs-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 .dialog-error {
   margin: 0.5rem 0 0;
   padding: 0.6rem 0.8rem;

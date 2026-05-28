@@ -27,12 +27,13 @@ describe('AddResourceDialogComponent', () => {
   beforeEach(async () => {
     dialogSpy = jasmine.createSpyObj<MatDialog>('MatDialog', ['open']);
 
+    TestBed.overrideProvider(MatDialog, { useValue: dialogSpy });
+
     await TestBed.configureTestingModule({
       imports: [AddResourceDialogComponent, TranslateModule.forRoot()],
       providers: [
         provideNoopAnimations(),
         { provide: MatDialogRef, useValue: jasmine.createSpyObj('MatDialogRef', ['close']) },
-        { provide: MatDialog, useValue: dialogSpy },
         { provide: MAT_DIALOG_DATA, useValue: mockData },
         {
           provide: NameAvailabilityService,

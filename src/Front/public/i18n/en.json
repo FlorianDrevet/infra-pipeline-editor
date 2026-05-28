@@ -302,7 +302,57 @@
     "CANCEL": "Cancel",
     "CLOSE": "Close",
     "DELETE": "Delete",
+    "HELP": "Help",
     "SAVE": "Save",
+    "VNET_HELP_DIALOG": {
+      "RESOURCE_CREATE": {
+        "TITLE": "Virtual network values",
+        "SUBTITLE": "Add the address ranges, optional DNS resolvers, and protection choice Azure needs before this virtual network can be created."
+      },
+      "RESOURCE_EDIT": {
+        "TITLE": "Virtual network environment values",
+        "SUBTITLE": "Review each environment's address spaces and optional DNS resolvers without packing multiple values into one text field."
+      },
+      "NETWORKING_PROFILE": {
+        "TITLE": "Networking profile values",
+        "SUBTITLE": "Choose the address space and private-endpoint subnet values InfraFlowSculptor should apply when it provisions networking for the configuration."
+      },
+      "ADDRESS_SPACES_PLACEHOLDER": "Add a CIDR block such as 10.0.0.0/16",
+      "DNS_SERVERS_PLACEHOLDER": "Add a DNS server such as 10.0.0.4",
+      "ADDRESS_SPACES": {
+        "TITLE": "Address spaces",
+        "BODY": "An address space defines the CIDR ranges available inside the virtual network. Azure uses these ranges to allocate subnets and private IP addresses.",
+        "GUIDANCE": "Use ranges approved by your landing zone or platform networking plan so they do not overlap with other VNets, on-prem networks, or peering targets."
+      },
+      "DNS_SERVERS": {
+        "TITLE": "DNS servers",
+        "BODY": "DNS servers decide how workloads in the VNet resolve host names. Leave this empty when Azure-provided DNS is sufficient.",
+        "GUIDANCE": "Use your hub forwarders, on-prem resolvers, or documented shared-services IPs when private DNS resolution must follow an existing enterprise path."
+      },
+      "DDOS": {
+        "TITLE": "DDoS protection",
+        "BODY": "Enabling DDoS changes the protection plan applied to this virtual network and can affect cost, ownership, and the security posture of internet-facing workloads.",
+        "GUIDANCE": "Turn it on only when your platform standards or threat model require a dedicated DDoS plan for resources attached to this VNet."
+      },
+      "SUBNET_PREFIX": {
+        "TITLE": "Private-endpoint subnet prefix",
+        "BODY": "The subnet prefix reserves a smaller CIDR block inside the selected VNet address space for private endpoints and related network interfaces.",
+        "GUIDANCE": "Choose a non-overlapping subnet that fits entirely inside the VNet range and still leaves enough capacity for the private endpoints you expect to add."
+      },
+      "WHY": {
+        "TITLE": "Why the app asks for this",
+        "BODY": "InfraFlowSculptor needs explicit networking values to generate valid Azure artifacts instead of guessing ranges that may clash with your platform design."
+      },
+      "IMPACT": {
+        "TITLE": "What this impacts",
+        "BODY": "These values affect IP allocation, private connectivity, DNS resolution, and any downstream resources that attach to the virtual network or private-endpoint subnet."
+      },
+      "VALIDATION": {
+        "ADDRESS_SPACE_REQUIRED": "Add at least one CIDR address space before continuing.",
+        "INVALID_CIDR": "Enter a valid IPv4 CIDR block such as 10.0.0.0/16.",
+        "INVALID_IPV4": "Enter a valid IPv4 address such as 10.0.0.4."
+      }
+    },
     "DATE_PICKER": {
       "ARIA": {
         "CLEAR": "Clear date",

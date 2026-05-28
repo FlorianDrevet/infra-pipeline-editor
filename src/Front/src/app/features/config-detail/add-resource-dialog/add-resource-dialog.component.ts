@@ -2,12 +2,12 @@ import { Component, DestroyRef, inject, OnInit, signal, computed } from '@angula
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, Observable, switchMap, tap } from 'rxjs';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { DsTabsComponent } from '../../../shared/components/ds/ds-tabs/ds-tabs.component';
 import { DsTabDefinition } from '../../../shared/components/ds/ds-tabs/ds-tabs.types';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LOCATION_OPTIONS } from '../enums/location.enum';
 import { RESOURCE_TYPE_OPTIONS, ResourceTypeEnum, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_CATEGORIES } from '../enums/resource-type.enum';
 import { hasResourceTypeEnvironmentSettings } from '../../../shared/resource-metadata/resource-type.metadata';
@@ -15,6 +15,7 @@ import { OS_TYPE_OPTIONS } from '../enums/os-type.enum';
 import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../enums/app-service-plan-sku.enum';
 import { RUNTIME_STACK_OPTIONS } from '../enums/runtime-stack.enum';
 import { FUNCTION_APP_RUNTIME_STACK_OPTIONS } from '../enums/function-app-runtime-stack.enum';
+import { DsTagInputItem } from '../../../shared/components/ds/ds-tag-input/ds-tag-input.types';
 import { AcrAuthMode } from '../../../shared/interfaces/container-registry.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { ProjectResourceResponse } from '../../../shared/interfaces/cross-config-reference.interface';
@@ -22,7 +23,7 @@ import { NameAvailabilityService } from '../../../shared/services/name-availabil
 import { EnvironmentNameAvailabilityResponseItem } from '../../../shared/interfaces/name-availability.interface';
 import { ToggleSectionCardComponent } from '../../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DeploymentConfigComponent } from '../../../shared/components/deployment-config/deployment-config.component';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsToggleComponent, DsIconButtonComponent, DsOptionCardComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsToggleComponent, DsIconButtonComponent, DsOptionCardComponent, DsPanelActionButtonComponent, DsTagInputComponent } from '../../../shared/components/ds';
 import {
   applyAddResourceProbeToggle,
   copyAddResourceEnvironmentSettings,
@@ -35,6 +36,8 @@ import {
 } from './add-resource-dialog-parent-resource.helper';
 import { AddResourceDialogPlanWorkflowService } from './add-resource-dialog-plan-workflow.service';
 import { AddResourceDialogResourceSubmitterService } from './add-resource-dialog-resource-submitter.service';
+import { VnetHelpDialogComponent } from '../../../shared/components/vnet-help-dialog/vnet-help-dialog.component';
+import { createVnetCidrTagValidator, createVnetIpv4TagValidator } from '../../../shared/networking/vnet-tag-input.helpers';
 
 export interface AddResourceDialogData {
   resourceGroupId: string;
@@ -248,6 +251,8 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
     DsButtonComponent,
     DsIconButtonComponent,
     DsOptionCardComponent,
+    DsPanelActionButtonComponent,
+    DsTagInputComponent,
     DsTextFieldComponent,
     DsSelectComponent,
   ],
@@ -257,18 +262,23 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
 })
 export class AddResourceDialogComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<AddResourceDialogComponent>);
+  private readonly dialog = inject(MatDialog);
   private readonly data: AddResourceDialogData = inject(MAT_DIALOG_DATA);
   private readonly nameAvailabilityService = inject(NameAvailabilityService);
   private readonly planWorkflow = inject(AddResourceDialogPlanWorkflowService);
   private readonly resourceSubmitter = inject(AddResourceDialogResourceSubmitterService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
+  private readonly vnetValidationMessage = (key: string): string => this.translate.instant(key);
 
   protected readonly step = signal<DialogStep>('type');
   protected readonly selectedType = signal<ResourceTypeEnum | null>(null);
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
   protected readonly envFormsValid = signal(true);
+  protected readonly vnetAddressSpaceValidator = createVnetCidrTagValidator(this.vnetValidationMessage);
+  protected readonly vnetDnsServerValidator = createVnetIpv4TagValidator(this.vnetValidationMessage);
 
   // ── Name Availability (live DNS check) ──
   protected readonly nameAvailabilityChecking = signal(false);
@@ -434,8 +444,8 @@ export class AddResourceDialogComponent implements OnInit {
     disableAccessKeyAuthentication: [false],
     enableAadAuth: [false],
     enableDdosProtection: [false],
-    vnetAddressSpacesInput: [''],
-    vnetDnsServersInput: [''],
+    vnetAddressSpacesInput: this.fb.nonNullable.control<DsTagInputItem[]>([]),
+    vnetDnsServersInput: this.fb.nonNullable.control<DsTagInputItem[]>([]),
     isExisting: [false],
   });
 
@@ -558,6 +568,22 @@ export class AddResourceDialogComponent implements OnInit {
 
   protected overrideNameAvailability(): void {
     this.nameAvailabilityOverridden.set(true);
+  }
+
+  protected openVnetHelpDialog(): void {
+    this.dialog.open(VnetHelpDialogComponent, {
+      width: '640px',
+      data: { context: 'resourceCreate' as const },
+    });
+  }
+
+  protected getVnetAddressSpacesErrorText(): string | undefined {
+    const control = this.commonForm.controls.vnetAddressSpacesInput;
+    if (control.hasError('required') && control.touched) {
+      return this.translate.instant('COMMON.VNET_HELP_DIALOG.VALIDATION.ADDRESS_SPACE_REQUIRED');
+    }
+
+    return undefined;
   }
 
   private patchParentPlanSelection(type: ResourceTypeEnum | null, planId: string | null): void {
@@ -819,7 +845,10 @@ export class AddResourceDialogComponent implements OnInit {
   }
 
   protected onNextToEnvironments(): void {
-    if (this.commonForm.invalid || this.isSubmitBlockedByNameAvailability()) return;
+    if (this.commonForm.invalid || this.isSubmitBlockedByNameAvailability()) {
+      this.commonForm.markAllAsTouched();
+      return;
+    }
     if (!this.needsEnvironmentSettings() || this.isExistingResource()) {
       this.onSubmit();
       return;
@@ -882,7 +911,11 @@ export class AddResourceDialogComponent implements OnInit {
   // ── Submit ──
   protected async onSubmit(): Promise<void> {
     const type = this.selectedType();
-    if (!type || this.commonForm.invalid || !this.envFormsValid() || this.isSubmitBlockedByNameAvailability()) return;
+    if (!type || !this.envFormsValid() || this.isSubmitBlockedByNameAvailability()) return;
+    if (this.commonForm.invalid) {
+      this.commonForm.markAllAsTouched();
+      return;
+    }
 
     this.isSubmitting.set(true);
     this.errorKey.set('');
@@ -933,6 +966,8 @@ export class AddResourceDialogComponent implements OnInit {
       this.commonForm.controls.kind.setValidators([Validators.required]);
       this.commonForm.controls.accessTier.setValidators([Validators.required]);
       this.commonForm.controls.minimumTlsVersion.setValidators([Validators.required]);
+    } else if (type === ResourceTypeEnum.VirtualNetwork) {
+      this.commonForm.controls.vnetAddressSpacesInput.setValidators([Validators.required]);
     }
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
@@ -946,6 +981,7 @@ export class AddResourceDialogComponent implements OnInit {
     this.commonForm.controls.kind.updateValueAndValidity();
     this.commonForm.controls.accessTier.updateValueAndValidity();
     this.commonForm.controls.minimumTlsVersion.updateValueAndValidity();
+    this.commonForm.controls.vnetAddressSpacesInput.updateValueAndValidity();
   }
 
   private clearExtraValidators(): void {
@@ -961,6 +997,7 @@ export class AddResourceDialogComponent implements OnInit {
     this.commonForm.controls.kind.clearValidators();
     this.commonForm.controls.accessTier.clearValidators();
     this.commonForm.controls.minimumTlsVersion.clearValidators();
+    this.commonForm.controls.vnetAddressSpacesInput.clearValidators();
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
@@ -973,5 +1010,6 @@ export class AddResourceDialogComponent implements OnInit {
     this.commonForm.controls.kind.updateValueAndValidity();
     this.commonForm.controls.accessTier.updateValueAndValidity();
     this.commonForm.controls.minimumTlsVersion.updateValueAndValidity();
+    this.commonForm.controls.vnetAddressSpacesInput.updateValueAndValidity();
   }
 }

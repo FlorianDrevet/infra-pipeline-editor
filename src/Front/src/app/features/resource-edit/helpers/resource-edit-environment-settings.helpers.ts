@@ -1,5 +1,6 @@
 import { FormGroup } from '@angular/forms';
 
+import { DsTagInputItem } from '../../../shared/components/ds/ds-tag-input/ds-tag-input.types';
 import { AppConfigurationEnvironmentConfigEntry } from '../../../shared/interfaces/app-configuration.interface';
 import { AppServicePlanEnvironmentConfigEntry } from '../../../shared/interfaces/app-service-plan.interface';
 import { ApplicationInsightsEnvironmentConfigEntry } from '../../../shared/interfaces/application-insights.interface';
@@ -21,6 +22,7 @@ import {
 } from '../../../shared/interfaces/storage-account.interface';
 import { VirtualNetworkEnvironmentConfigEntry } from '../../../shared/interfaces/virtual-network.interface';
 import { WebAppEnvironmentConfigEntry } from '../../../shared/interfaces/web-app.interface';
+import { mapTagInputItemsToStrings } from '../../../shared/networking/vnet-tag-input.helpers';
 
 export interface ResourceEditEnvironmentFormEntry {
   envName: string;
@@ -28,6 +30,7 @@ export interface ResourceEditEnvironmentFormEntry {
 }
 
 type RawEnvironmentScalarValue = string | number | boolean | null;
+type RawEnvironmentTagValue = ReadonlyArray<DsTagInputItem> | null;
 
 interface RawEnvironmentFormValue {
   sku?: RawEnvironmentScalarValue;
@@ -78,22 +81,8 @@ interface RawEnvironmentFormValue {
   zoneRedundancy?: RawEnvironmentScalarValue;
   minimalTlsVersion?: RawEnvironmentScalarValue;
   maxSizeGb?: RawEnvironmentScalarValue;
-  addressSpacesInput?: RawEnvironmentScalarValue;
-  dnsServersInput?: RawEnvironmentScalarValue;
-}
-
-function parseDelimitedValues(input: string | null | undefined): string[] {
-  return (input ?? '')
-    .split(/[\r\n,;]+/)
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
-}
-
-export function formatDelimitedValues(values: ReadonlyArray<string> | null | undefined): string {
-  return (values ?? [])
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0)
-    .join('\n');
+  addressSpacesInput?: RawEnvironmentTagValue | RawEnvironmentScalarValue;
+  dnsServersInput?: RawEnvironmentTagValue | RawEnvironmentScalarValue;
 }
 
 export function buildKeyVaultEnvironmentSettings(
@@ -128,11 +117,11 @@ export function buildVirtualNetworkEnvironmentSettings(
 ): VirtualNetworkEnvironmentConfigEntry[] {
   return envForms.map((envForm) => {
     const raw = readRawValue(envForm);
-    const dnsServers = parseDelimitedValues(toNullableString(raw.dnsServersInput));
+    const dnsServers = mapTagInputItemsToStrings(raw.dnsServersInput as ReadonlyArray<DsTagInputItem> | null | undefined);
 
     return {
       environmentName: envForm.envName,
-      addressSpaces: parseDelimitedValues(toNullableString(raw.addressSpacesInput)),
+      addressSpaces: mapTagInputItemsToStrings(raw.addressSpacesInput as ReadonlyArray<DsTagInputItem> | null | undefined),
       dnsServers: dnsServers.length > 0 ? dnsServers : undefined,
     };
   });

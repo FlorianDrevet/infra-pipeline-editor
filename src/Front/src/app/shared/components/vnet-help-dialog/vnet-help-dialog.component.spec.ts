@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { VnetHelpDialogComponent, VnetHelpDialogData } from './vnet-help-dialog.component';
@@ -7,15 +7,19 @@ import { VnetHelpDialogComponent, VnetHelpDialogData } from './vnet-help-dialog.
 describe('VnetHelpDialogComponent', () => {
   let fixture: ComponentFixture<VnetHelpDialogComponent>;
   let translateService: TranslateService;
+  let dialogData: { context: VnetHelpDialogData['context'] };
 
   beforeEach(async () => {
+    dialogData = { context: 'resourceCreate' };
+
     await TestBed.configureTestingModule({
       imports: [VnetHelpDialogComponent, TranslateModule.forRoot()],
       providers: [
         {
           provide: MAT_DIALOG_DATA,
-          useValue: { context: 'resourceCreate' } satisfies VnetHelpDialogData,
+          useValue: dialogData,
         },
+        { provide: MatDialogRef, useValue: jasmine.createSpyObj('MatDialogRef', ['close']) },
       ],
     }).compileComponents();
 
@@ -80,9 +84,7 @@ describe('VnetHelpDialogComponent', () => {
   });
 
   it('renders subnet-prefix guidance for the networking profile context', () => {
-    TestBed.overrideProvider(MAT_DIALOG_DATA, {
-      useValue: { context: 'networkingProfile' } satisfies VnetHelpDialogData,
-    });
+    dialogData.context = 'networkingProfile';
 
     fixture = TestBed.createComponent(VnetHelpDialogComponent);
     fixture.detectChanges();

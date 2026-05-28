@@ -619,19 +619,33 @@
                     @case ('VirtualNetwork') {
                       <div class="env-extra-section env-extra-section--first">
                         <div class="env-extra-section__header">
-                          <mat-icon class="env-extra-section__icon">lan</mat-icon>
-                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.VIRTUAL_NETWORK_SECTION' | translate }}</span>
+                          <div class="env-extra-section__header-main">
+                            <mat-icon class="env-extra-section__icon">lan</mat-icon>
+                            <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.VIRTUAL_NETWORK_SECTION' | translate }}</span>
+                          </div>
+
+                          <app-ds-panel-action-button
+                            icon="help_outline"
+                            tone="accent"
+                            surface="dark"
+                            [ariaLabel]="'COMMON.HELP' | translate"
+                            [tooltip]="'COMMON.HELP' | translate"
+                            (clicked)="openVnetHelpDialog('resourceEdit')" />
                         </div>
                         <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.VIRTUAL_NETWORK_SECTION_DESC' | translate }}</p>
                         <div class="form-grid env-category-grid">
-                          <app-ds-text-field
+                          <app-ds-tag-input
                             formControlName="addressSpacesInput"
                             [label]="'RESOURCE_EDIT.FIELDS.VNET_ADDRESS_SPACES' | translate"
-                            [hint]="'RESOURCE_EDIT.FIELDS.VNET_ADDRESS_SPACES_HINT' | translate" />
-                          <app-ds-text-field
+                            [placeholder]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_PLACEHOLDER' | translate"
+                            [addOnBlur]="true"
+                            [validator]="vnetAddressSpaceValidator" />
+                          <app-ds-tag-input
                             formControlName="dnsServersInput"
                             [label]="'RESOURCE_EDIT.FIELDS.VNET_DNS_SERVERS' | translate"
-                            [hint]="'RESOURCE_EDIT.FIELDS.VNET_DNS_SERVERS_HINT' | translate" />
+                            [placeholder]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_PLACEHOLDER' | translate"
+                            [addOnBlur]="true"
+                            [validator]="vnetDnsServerValidator" />
                         </div>
                       </div>
                     }
