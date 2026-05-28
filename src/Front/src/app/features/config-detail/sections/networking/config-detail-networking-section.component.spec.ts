@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { By } from '@angular/platform-browser';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
+import { DsPanelActionButtonComponent } from '../../../../shared/components/ds/ds-panel-action-button/ds-panel-action-button.component';
 import { DsSelectComponent } from '../../../../shared/components/ds/ds-select/ds-select.component';
 import { ConfigDetailNetworkingSectionComponent } from './config-detail-networking-section.component';
 import {
@@ -13,10 +15,16 @@ import {
 describe('ConfigDetailNetworkingSectionComponent', () => {
   let fixture: ComponentFixture<ConfigDetailNetworkingSectionComponent>;
   let translateService: TranslateService;
+  let dialogSpy: jasmine.SpyObj<MatDialog>;
 
   beforeEach(async () => {
+    dialogSpy = jasmine.createSpyObj<MatDialog>('MatDialog', ['open']);
+
     await TestBed.configureTestingModule({
       imports: [ConfigDetailNetworkingSectionComponent, TranslateModule.forRoot()],
+      providers: [
+        { provide: MatDialog, useValue: dialogSpy },
+      ],
     }).compileComponents();
 
     translateService = TestBed.inject(TranslateService);
@@ -39,10 +47,8 @@ describe('ConfigDetailNetworkingSectionComponent', () => {
           USE_HUB_SPOKE: 'Hub & Spoke',
           ADDRESS_SPACE: 'Espace',
           ADDRESS_SPACE_PLACEHOLDER: 'address-space-cidr',
-          ADDRESS_SPACE_HINT: 'Use CIDR ranges such as 10.0.0.0/16. You can separate several ranges with commas or new lines.',
           SUBNET_PREFIX: 'Prefixe',
           SUBNET_PREFIX_PLACEHOLDER: 'subnet-prefix-cidr',
-          SUBNET_PREFIX_HINT: 'Use a subnet range contained inside the selected VNet address space, for example 10.0.1.0/24.',
           EXISTING_VNET_ID: 'VNet existant',
           EXISTING_VNET_ID_PLACEHOLDER: '/subscriptions/...',
           PE_SUBNET_NAME: 'Subnet PE',
@@ -107,17 +113,37 @@ describe('ConfigDetailNetworkingSectionComponent', () => {
     expect(privatizationItems.length).toBe(2);
   });
 
-  it('renders address space and subnet prefix guidance for the create-new VNet path', () => {
+  it('replaces inline VNet hints with an explicit help action for the create-new VNet path', () => {
     fixture.componentRef.setInput('viewModel', createViewModel({
       showVnetPanel: true,
       vnetSourceType: 'CreateNew',
     }));
     fixture.detectChanges();
 
+    const helpActions = fixture.debugElement.queryAll(By.directive(DsPanelActionButtonComponent));
     const textContent = fixture.nativeElement.textContent as string;
 
-    expect(textContent).toContain('Use CIDR ranges such as 10.0.0.0/16. You can separate several ranges with commas or new lines.');
-    expect(textContent).toContain('Use a subnet range contained inside the selected VNet address space, for example 10.0.1.0/24.');
+    expect(helpActions.length).toBe(1);
+    expect(textContent).not.toContain('Use CIDR ranges such as 10.0.0.0/16. You can separate several ranges with commas or new lines.');
+    expect(textContent).not.toContain('Use a subnet range contained inside the selected VNet address space, for example 10.0.1.0/24.');
+  });
+
+  it('opens the shared networking help dialog from the VNet card header', () => {
+    fixture.componentRef.setInput('viewModel', createViewModel({
+      showVnetPanel: true,
+      vnetSourceType: 'CreateNew',
+    }));
+    fixture.detectChanges();
+
+    const helpAction = fixture.debugElement.query(By.css('app-ds-panel-action-button button'));
+
+    expect(helpAction).not.toBeNull();
+
+    helpAction.nativeElement.click();
+
+    expect(dialogSpy.open).toHaveBeenCalledOnceWith(jasmine.any(Function), jasmine.objectContaining({
+      data: jasmine.objectContaining({ context: 'networkingProfile' }),
+    }));
   });
 });
 

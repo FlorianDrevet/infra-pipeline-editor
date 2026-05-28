@@ -1,5 +1,6 @@
 import { FormBuilder } from '@angular/forms';
 
+import { DsTagInputItem } from '../../../shared/components/ds/ds-tag-input/ds-tag-input.types';
 import { BlobLifecycleRuleEntry, CorsRuleEntry } from '../../../shared/interfaces/storage-account.interface';
 import {
   ResourceEditEnvironmentFormEntry,
@@ -15,12 +16,12 @@ describe('resource edit environment settings helpers', () => {
   it('builds virtual network environment settings from delimited address-space and DNS inputs', () => {
     const envForms = [
       createEnvironmentFormEntry('Development', {
-        addressSpacesInput: '10.0.0.0/16, 10.1.0.0/16',
-        dnsServersInput: '10.0.0.4\n10.0.0.5',
+        addressSpacesInput: createTagItems(['10.0.0.0/16', '10.1.0.0/16']),
+        dnsServersInput: createTagItems(['10.0.0.4', '10.0.0.5']),
       }),
       createEnvironmentFormEntry('Production', {
-        addressSpacesInput: '',
-        dnsServersInput: '',
+        addressSpacesInput: [],
+        dnsServersInput: [],
       }),
     ];
 
@@ -176,11 +177,15 @@ describe('resource edit environment settings helpers', () => {
 
   function createEnvironmentFormEntry(
     envName: string,
-    rawValue: Record<string, string | number | boolean | null>,
+    rawValue: Record<string, string | number | boolean | null | DsTagInputItem[]>,
   ): ResourceEditEnvironmentFormEntry {
     return {
       envName,
       form: fb.group(rawValue),
     };
+  }
+
+  function createTagItems(values: readonly string[]): DsTagInputItem[] {
+    return values.map((value) => ({ value }));
   }
 });

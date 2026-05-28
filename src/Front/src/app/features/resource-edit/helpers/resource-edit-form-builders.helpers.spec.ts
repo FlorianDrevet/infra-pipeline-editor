@@ -1,5 +1,6 @@
 import { FormBuilder } from '@angular/forms';
 
+import { DsTagInputItem } from '../../../shared/components/ds/ds-tag-input/ds-tag-input.types';
 import { buildResourceEditEnvironmentForms, buildResourceEditGeneralForm } from './resource-edit-form-builders.helpers';
 
 describe('resource edit form builders helpers', () => {
@@ -87,12 +88,16 @@ describe('resource edit form builders helpers', () => {
     );
 
     expect(generalResult.form.get('enableDdosProtection')?.value).toBeTrue();
-    expect(envForms[0].form.get('addressSpacesInput')?.value).toBe('10.0.0.0/16\n10.1.0.0/16');
-    expect(envForms[0].form.get('dnsServersInput')?.value).toBe('10.0.0.4\n10.0.0.5');
-    expect(envForms[1].form.get('addressSpacesInput')?.value).toBe('');
-    expect(envForms[1].form.get('dnsServersInput')?.value).toBe('');
+    expect(envForms[0].form.get('addressSpacesInput')?.value).toEqual(createTagItems(['10.0.0.0/16', '10.1.0.0/16']));
+    expect(envForms[0].form.get('dnsServersInput')?.value).toEqual(createTagItems(['10.0.0.4', '10.0.0.5']));
+    expect(envForms[1].form.get('addressSpacesInput')?.value).toEqual([]);
+    expect(envForms[1].form.get('dnsServersInput')?.value).toEqual([]);
   });
 });
+
+function createTagItems(values: readonly string[]): DsTagInputItem[] {
+  return values.map((value) => ({ value }));
+}
 
 function createStorageAccountResource() {
   return {
