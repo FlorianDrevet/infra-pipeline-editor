@@ -108,6 +108,9 @@ public static class DependencyInjection
         services.AddSingleton<IBicepGenerationStage, ModuleBuildStage>();
         services.AddSingleton<IBicepGenerationStage, IdentityInjectionStage>();
         services.AddSingleton<IBicepGenerationStage, OutputInjectionStage>();
+        services.AddSingleton<IBicepGenerationStage, NetworkingResolutionStage>();
+        services.AddSingleton<IBicepGenerationStage, PrivateEndpointCompanionStage>();
+        services.AddSingleton<IBicepGenerationStage, PublicNetworkAccessStage>();
         services.AddSingleton<IBicepGenerationStage, AppSettingsInjectionStage>();
         services.AddSingleton<IBicepGenerationStage, TagsInjectionStage>();
         services.AddSingleton<IBicepGenerationStage, ParentReferenceResolutionStage>();

@@ -39,6 +39,7 @@ import { SqlServerResponse } from '../../shared/interfaces/sql-server.interface'
 import { SqlDatabaseResponse } from '../../shared/interfaces/sql-database.interface';
 import { DocumentIntelligenceResponse } from '../../shared/interfaces/document-intelligence.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
+import { VirtualNetworkResponse } from '../../shared/interfaces/virtual-network.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
 import { FunctionAppService } from '../../shared/services/function-app.service';
@@ -54,6 +55,7 @@ import { SqlServerService } from '../../shared/services/sql-server.service';
 import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { DocumentIntelligenceService } from '../../shared/services/document-intelligence.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
+import { VirtualNetworkService } from '../../shared/services/virtual-network.service';
 import { NameAvailabilityService } from '../../shared/services/name-availability.service';
 import { PipelineDetectionService } from '../../shared/services/pipeline-detection.service';
 import { DetectedPipelineOptionsResponse } from '../../shared/interfaces/pipeline-detection.interface';
@@ -82,13 +84,13 @@ import { ResourceEditGrantedRightsSectionComponent } from './sections/identity-a
 import { ResourceEditRoleAssignmentsSectionComponent } from './sections/identity-access/resource-edit-role-assignments-section.component';
 import { ResourceEditUsedBySectionComponent } from './sections/identity-access/resource-edit-used-by-section.component';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent, DsIconButtonComponent, DsSegmentedControlComponent, DsSegmentedOption, DsTooltipDirective, DsRadioGroupComponent, DsRadioOption } from '../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent, DsIconButtonComponent, DsSegmentedControlComponent, DsSegmentedOption, DsTooltipDirective, DsRadioGroupComponent, DsRadioOption, DsListInputComponent } from '../../shared/components/ds';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
 import { BuildContextPickerComponent } from '../../shared/components/build-context-picker/build-context-picker.component';
 import { ContainerAppAcrServiceConnectionsComponent } from './components/container-app-acr-service-connections/container-app-acr-service-connections.component';
 import { PipelineOptionsComponent } from './components/pipeline-options/pipeline-options.component';
-import { NetworkingTabComponent } from './components/networking-tab/networking-tab.component';
 import { PipelineStepOptions } from './models/pipeline-step-options.model';
+import { createVnetCidrListValidator, createVnetIpv4ListValidator } from '../../shared/networking/vnet-tag-input.helpers';
 import {
   ResourceEditEnvironmentFormEntry,
   buildAppConfigurationEnvironmentSettings,
@@ -109,6 +111,7 @@ import {
   buildSqlServerEnvironmentSettings,
   buildStorageAccountCorsRules,
   buildStorageAccountEnvironmentSettings,
+  buildVirtualNetworkEnvironmentSettings,
   buildWebAppEnvironmentSettings,
   toNullableNumber,
 } from './helpers/resource-edit-environment-settings.helpers';
@@ -157,7 +160,7 @@ import {
 } from './resource-edit.constants';
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse | SqlServerResponse | SqlDatabaseResponse | DocumentIntelligenceResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse | SqlServerResponse | SqlDatabaseResponse | DocumentIntelligenceResponse | VirtualNetworkResponse;
 
 type CorsServiceKey = 'blob' | 'table';
 type CorsListField = 'allowedOrigins' | 'allowedHeaders' | 'exposedHeaders';
@@ -168,7 +171,6 @@ const RESOURCE_EDIT_MAIN_TAB_IDS = [
   'general',
   'environments',
   'identity-access',
-  'networking',
   'storage',
   'app-settings',
   'config-keys',
@@ -206,6 +208,7 @@ type StorageSubTabId = 'blob_containers' | 'queues' | 'tables';
     DsButtonComponent,
     DsIconButtonComponent,
     DsSegmentedControlComponent,
+    DsListInputComponent,
     DsTooltipDirective,
     DsTextFieldComponent,
     DockerfilePickerComponent,
@@ -213,7 +216,6 @@ type StorageSubTabId = 'blob_containers' | 'queues' | 'tables';
     DsSelectComponent,
     ContainerAppAcrServiceConnectionsComponent,
     PipelineOptionsComponent,
-    NetworkingTabComponent,
   ],
   templateUrl: './resource-edit.component.html',
   styleUrl: './resource-edit.component.scss',
@@ -241,6 +243,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly sqlDatabaseService = inject(SqlDatabaseService);
   private readonly documentIntelligenceService = inject(DocumentIntelligenceService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
+  private readonly virtualNetworkService = inject(VirtualNetworkService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
   private readonly authService = inject(AuthenticationService);
@@ -253,6 +256,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly translate = inject(TranslateService);
   private readonly languageService = inject(LanguageService);
   private readonly pageContextService = inject(PageContextService);
+  private readonly vnetValidationMessage = (key: string): string => this.translate.instant(key);
 
   // ─── Route params ───
   protected configId = '';
@@ -275,6 +279,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly formsDirty = signal(false);
   private formSubscriptions: Subscription[] = [];
   protected readonly saveSuccess = signal(false);
+  protected readonly vnetAddressSpaceListValidator = createVnetCidrListValidator(this.vnetValidationMessage);
+  protected readonly vnetDnsServerListValidator = createVnetIpv4ListValidator(this.vnetValidationMessage);
 
   // ─── Storage Services ───
   protected readonly activeStorageSubTabId = signal<StorageSubTabId>('blob_containers');
@@ -290,14 +296,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
   protected readonly isUserAssignedIdentity = computed(() => this.resourceType === 'UserAssignedIdentity');
-
-  private static readonly PE_SUPPORTED_TYPES = new Set<string>([
-    'KeyVault', 'StorageAccount', 'AppConfiguration', 'CosmosDb', 'SqlServer',
-    'RedisCache', 'ServiceBusNamespace', 'EventHubNamespace', 'ContainerRegistry',
-    'WebApp', 'FunctionApp', 'ApplicationInsights', 'LogAnalyticsWorkspace',
-    'DocumentIntelligence',
-  ]);
-  protected readonly supportsNetworking = computed(() => ResourceEditComponent.PE_SUPPORTED_TYPES.has(this.resourceType));
   protected readonly isExistingResource = computed(() => (this.resource() as { isExisting?: boolean } | null)?.isExisting === true);
 
   // ─── App Pipeline ───
@@ -364,7 +362,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     isUserAssignedIdentity: () => this.isUserAssignedIdentity(),
     isAcrEnabled: () => this.isAcrEnabled(),
     checkAcrPullAccess: () => this.checkAcrPullAccess(),
-    getAcrPullIdentityId: () => this.getCurrentAcrPullIdentityId(),
     supportsAppSettings: () => this.supportsAppSettings(),
     reloadAppSettings: () => this.appSettingsSection.load(),
     supportsConfigKeys: () => this.supportsConfigKeys(),
@@ -724,9 +721,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         badge: count > 0 ? String(count) : undefined,
       });
     }
-    if (this.supportsNetworking()) {
-      tabs.push({ id: 'networking', label: t('RESOURCE_EDIT.TABS.NETWORKING'), icon: 'lan' });
-    }
     if (this.isStorageAccount()) {
       tabs.push({
         id: 'storage',
@@ -955,6 +949,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         return this.sqlDatabaseService.getById(this.resourceId);
       case 'DocumentIntelligence':
         return this.documentIntelligenceService.getById(this.resourceId);
+      case 'VirtualNetwork':
+        return this.virtualNetworkService.getById(this.resourceId);
       default:
         throw new Error(`Unsupported resource type: ${this.resourceType}`);
     }
@@ -1339,6 +1335,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             location: general.location,
             customSubDomainName: general.customSubDomainName ?? null,
             environmentSettings: buildDocumentIntelligenceEnvironmentSettings(envForms),
+          });
+          break;
+        case 'VirtualNetwork':
+          updated = await this.virtualNetworkService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            enableDdosProtection: general.enableDdosProtection ?? false,
+            environmentSettings: buildVirtualNetworkEnvironmentSettings(envForms),
           });
           break;
         default:
@@ -1841,8 +1845,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   protected updateLifecycleRuleTtl(index: number, rawValue: string): void {
-    const parsed = parseInt(rawValue, 10);
-    if (isNaN(parsed)) return;
+    const parsed = Number.parseInt(rawValue, 10);
+    if (Number.isNaN(parsed)) return;
     this.lifecycleRulesDraft.update(rules =>
       rules.map((r, i) => (i === index ? { ...r, timeToLiveInDays: parsed } : r)),
     );

@@ -123,13 +123,5 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
             .HasField("_customDomains")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.HasMany(r => r.PrivateEndpointConfigs)
-            .WithOne()
-            .HasForeignKey(pe => pe.ResourceId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.Navigation(r => r.PrivateEndpointConfigs)
-            .HasField("_privateEndpointConfigs")
-            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

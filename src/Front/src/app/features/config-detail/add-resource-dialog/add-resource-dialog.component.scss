@@ -2,18 +2,13 @@
 
 :host {
   display: block;
-  overflow: hidden;
 }
 
 .type-picker-categories {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  padding: 0.5rem 1rem 0.5rem 0;
-  max-height: 60vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-gutter: stable;
+  padding: 0.5rem 0;
 }
 
 .type-category {
@@ -46,9 +41,40 @@
 
 .type-picker {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.85rem;
   padding: 0.75rem 0;
+
+  app-ds-option-card {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 64rem) {
+  .type-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .type-picker {
+    grid-template-columns: 1fr;
+  }
+}
+
+:host ::ng-deep .type-picker app-ds-option-card .ds-option-card {
+  min-height: 5rem;
+  height: 100%;
+}
+
+:host ::ng-deep .type-picker app-ds-option-card .ds-option-card__body {
+  justify-content: center;
+  min-width: 0;
+}
+
+:host ::ng-deep .type-picker app-ds-option-card .ds-option-card__title {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .form-field {
@@ -101,6 +127,43 @@
 .form-separator {
   margin: 0.75rem 0;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.resource-form__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  border: 1px solid var(--ifs-border-subtle);
+  background: var(--ifs-surface-1);
+}
+
+.resource-form__section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.resource-form__section-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.resource-form__section-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ifs-text-primary);
+}
+
+.resource-form__section-description {
+  margin: 0;
+  color: var(--ifs-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
 .dialog-error {
@@ -424,5 +487,26 @@
   .health-probes-cards,
   .probe-fields {
     grid-template-columns: 1fr;
+  }
+}
+
+// ── Info icon for inline tooltip on toggles ──
+.form-field--with-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.field-info-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--ifs-text-muted);
+  cursor: help;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 1;
   }
 }

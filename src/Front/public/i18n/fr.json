@@ -7,6 +7,9 @@
       "DUPLICATE_KEY": "Cette clé existe déjà",
       "KEY_REQUIRED": "La clé est requise",
       "VALUE_REQUIRED": "La valeur est requise"
+    },
+    "LIST_INPUT": {
+      "DUPLICATE": "Cette valeur existe déjà"
     }
   },
   "LANGUAGE": {
@@ -302,6 +305,60 @@
     "CANCEL": "Annuler",
     "CLOSE": "Fermer",
     "DELETE": "Supprimer",
+    "HELP": "Aide",
+    "SAVE": "Enregistrer",
+    "VNET_HELP_DIALOG": {
+      "RESOURCE_CREATE": {
+        "TITLE": "Valeurs du réseau virtuel",
+        "SUBTITLE": "Ajoutez les plages d'adressage, les résolveurs DNS optionnels et le choix de protection dont Azure a besoin avant de créer ce réseau virtuel."
+      },
+      "RESOURCE_EDIT": {
+        "TITLE": "Valeurs réseau par environnement",
+        "SUBTITLE": "Revoyez les espaces d'adressage et les résolveurs DNS optionnels de chaque environnement sans regrouper plusieurs valeurs dans un seul champ texte."
+      },
+      "NETWORKING_PROFILE": {
+        "TITLE": "Valeurs du profil réseau",
+        "SUBTITLE": "Choisissez l'espace d'adressage et le sous-réseau private endpoint qu'InfraFlowSculptor doit appliquer lorsqu'il provisionne le réseau de la configuration."
+      },
+      "ADDRESS_SPACES_PLACEHOLDER": "Ajoutez un bloc CIDR comme 10.0.0.0/16",
+      "ADDRESS_SPACES_HELPER": "Utilisez des plages de votre landing zone qui ne chevauchent pas d'autres VNets ou réseaux on-prem.",
+      "DNS_SERVERS_PLACEHOLDER": "Ajoutez un serveur DNS comme 10.0.0.4",
+      "DNS_SERVERS_HELPER": "Laissez vide pour utiliser le DNS Azure. Ajoutez des forwarders hub ou des résolveurs on-prem si nécessaire.",
+      "DDOS_TOOLTIP": "Active un plan de protection DDoS dédié. À activer uniquement si vos standards de plateforme ou votre modèle de menaces l'exigent.",
+      "ADDRESS_SPACES": {
+        "TITLE": "Espaces d'adressage",
+        "BODY": "Un espace d'adressage définit les plages CIDR disponibles dans le réseau virtuel. Azure s'appuie sur ces plages pour allouer les sous-réseaux et les adresses IP privées.",
+        "GUIDANCE": "Utilisez des plages validées par votre landing zone ou votre équipe plateforme afin d'éviter les chevauchements avec d'autres VNets, le réseau on-premise ou les peerings."
+      },
+      "DNS_SERVERS": {
+        "TITLE": "Serveurs DNS",
+        "BODY": "Les serveurs DNS définissent la façon dont les workloads du VNet résolvent les noms. Laissez ce champ vide lorsque le DNS Azure par défaut suffit.",
+        "GUIDANCE": "Utilisez vos forwarders de hub, vos résolveurs on-premise ou les IP de services partagés documentées quand la résolution privée doit suivre un chemin d'entreprise existant."
+      },
+      "DDOS": {
+        "TITLE": "Protection DDoS",
+        "BODY": "Activer la protection DDoS change le plan de protection appliqué à ce réseau virtuel et peut impacter le coût, l'exploitation et la posture de sécurité des workloads exposés.",
+        "GUIDANCE": "Activez-la uniquement lorsque vos standards plateforme ou votre modèle de menace imposent un plan DDoS dédié pour les ressources connectées à ce VNet."
+      },
+      "SUBNET_PREFIX": {
+        "TITLE": "Préfixe du sous-réseau private endpoint",
+        "BODY": "Le préfixe de sous-réseau réserve un bloc CIDR plus petit à l'intérieur de l'espace d'adressage du VNet pour les private endpoints et leurs interfaces réseau.",
+        "GUIDANCE": "Choisissez un sous-réseau sans chevauchement, inclus dans la plage du VNet et suffisamment dimensionné pour les private endpoints que vous prévoyez d'ajouter."
+      },
+      "WHY": {
+        "TITLE": "Pourquoi l'application demande ces valeurs",
+        "BODY": "InfraFlowSculptor a besoin de valeurs réseau explicites pour générer des artefacts Azure valides au lieu de deviner des plages qui pourraient contredire votre design plateforme."
+      },
+      "IMPACT": {
+        "TITLE": "Ce que cela impacte",
+        "BODY": "Ces valeurs influencent l'allocation IP, la connectivité privée, la résolution DNS et toutes les ressources qui s'attachent ensuite au réseau virtuel ou au sous-réseau private endpoint."
+      },
+      "VALIDATION": {
+        "ADDRESS_SPACE_REQUIRED": "Ajoutez au moins un espace d'adressage CIDR avant de continuer.",
+        "INVALID_CIDR": "Saisissez un bloc CIDR IPv4 valide comme 10.0.0.0/16.",
+        "INVALID_IPV4": "Saisissez une adresse IPv4 valide comme 10.0.0.4."
+      }
+    },
     "DATE_PICKER": {
       "ARIA": {
         "CLEAR": "Effacer la date",
@@ -547,9 +604,6 @@
       "ADD_DIALOG_TITLE_EventHubNamespace": "Nouveau Event Hub Namespace",
       "ADD_DIALOG_TITLE_ContainerRegistry": "Nouveau Container Registry",
       "ADD_DIALOG_TITLE_VirtualNetwork": "Nouveau r\u00e9seau virtuel",
-      "ADD_DIALOG_TITLE_NetworkSecurityGroup": "Nouveau groupe de s\u00e9curit\u00e9 r\u00e9seau",
-      "ADD_DIALOG_TITLE_PrivateDnsZone": "Nouvelle zone DNS priv\u00e9e",
-      "ADD_DIALOG_TITLE_FrontDoor": "Nouveau Front Door",
       "ADD_DIALOG_TITLE_DocumentIntelligence": "Nouveau Document Intelligence",
       "ADD_ERROR": "Erreur lors de la creation de la ressource.",
       "FORM": {
@@ -564,6 +618,7 @@
         "ENABLE_NON_SSL": "Activer le port non-SSL",
         "DISABLE_ACCESS_KEY_AUTH": "Désactiver l'authentification par clé d'accès",
         "ENABLE_AAD_AUTH": "Activer l'authentification Entra ID (AAD)",
+        "ENABLE_DDOS_PROTECTION": "Activer la protection DDoS",
         "REDIS_AAD_WARNING": "Lorsque l'authentification par clé d'accès est désactivée, l'authentification Entra ID (AAD) doit être activée.",
         "KIND": "Type de compte",
         "ACCESS_TIER": "Niveau d'acces",
@@ -636,6 +691,10 @@
         "ZONE_REDUNDANCY": "Redondance de zone",
         "ADMIN_USER_ENABLED": "Activer l'utilisateur administrateur",
         "LOG_ANALYTICS_WORKSPACE_ID": "ID workspace Log Analytics",
+        "VNET_ADDRESS_SPACES": "Espaces d'adressage",
+        "VNET_ADDRESS_SPACES_HINT": "Utilisez des plages CIDR comme 10.0.0.0/16. Séparez plusieurs plages par des virgules ou des retours à la ligne.",
+        "VNET_DNS_SERVERS": "Serveurs DNS",
+        "VNET_DNS_SERVERS_HINT": "Optionnel. Saisissez des adresses IPv4 séparées par des virgules ou des retours à la ligne.",
         "CONTAINER_IMAGE": "Image du conteneur",
         "CONTAINER_IMAGE_PLACEHOLDER": "ex : mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
         "CPU_CORES": "C\u0153urs CPU",
@@ -1680,7 +1739,6 @@
       "USED_BY": "Utilis\u00e9e par",
       "CONFIG_KEYS": "Clés de configuration",
       "APP_PIPELINE": "Pipeline applicative",
-      "NETWORKING": "R\u00e9seau",
       "ARIA": "Onglets de la ressource",
       "WARNING_MISSING_ROLE": "Un r\u00f4le requis n'est pas attribu\u00e9",
       "WARNING_MISSING_ENV_CONFIG": "Certains environnements ne sont pas configur\u00e9s"
@@ -1711,23 +1769,6 @@
       "LOADING_DIRECTORIES": "Chargement des r\u00e9pertoires...",
       "NO_DIRECTORIES_FOUND": "Aucun r\u00e9pertoire trouv\u00e9",
       "REPO_ROOT": "racine du d\u00e9p\u00f4t"
-    },
-    "NETWORKING": {
-      "TITLE": "R\u00e9seau",
-      "PRIVATE_ENDPOINTS": "Points de terminaison priv\u00e9s",
-      "ADD_PE": "Ajouter un point de terminaison priv\u00e9",
-      "NO_PE": "Aucun point de terminaison priv\u00e9 configur\u00e9",
-      "SUBNET": "Sous-r\u00e9seau",
-      "GROUP_ID": "ID de groupe",
-      "AUTO_APPROVAL": "Approbation automatique",
-      "DNS_ZONE": "Zone DNS priv\u00e9e",
-      "CUSTOM_NIC": "Nom NIC personnalis\u00e9",
-      "REMOVE_PE": "Supprimer",
-      "CONFIRM_REMOVE": "Supprimer ce point de terminaison priv\u00e9 ?",
-      "CANCEL": "Annuler",
-      "NOT_SUPPORTED": "Ce type de ressource ne prend pas en charge les points de terminaison priv\u00e9s.",
-      "LOAD_ERROR": "Impossible de charger les points de terminaison priv\u00e9s. Veuillez r\u00e9essayer.",
-      "REMOVE_ERROR": "Impossible de supprimer le point de terminaison priv\u00e9. Veuillez r\u00e9essayer."
     },
     "PIPELINE_OPTIONS": {
       "DESCRIPTION": "Configurez les étapes optionnelles du pipeline : tests, analyse de code, linting et validation post-déploiement.",
@@ -1860,6 +1901,7 @@
       "ACCESS_TIER": "Niveau d'acc\u00e8s",
       "ALLOW_BLOB_PUBLIC": "Autoriser l'acc\u00e8s public aux blobs",
       "HTTPS_ONLY": "Trafic HTTPS uniquement",
+      "ENABLE_DDOS_PROTECTION": "Activer la protection DDoS",
       "OS_TYPE": "Type d'OS",
       "RUNTIME_STACK": "Pile d'ex\u00e9cution",
       "RUNTIME_VERSION": "Version du runtime",
@@ -1951,6 +1993,12 @@
       "SQL_SERVER_SECTION_DESC": "D\u00e9finissez la version TLS minimale accept\u00e9e pour les connexions.",
       "SQL_DATABASE_SECTION": "Configuration de la base de donn\u00e9es",
       "SQL_DATABASE_SECTION_DESC": "D\u00e9finissez le SKU, la taille maximale et la redondance de zone par environnement.",
+      "VIRTUAL_NETWORK_SECTION": "Adressage et DNS",
+      "VIRTUAL_NETWORK_SECTION_DESC": "Configurez les espaces d'adressage par environnement et les serveurs DNS personnalisés optionnels pour ce réseau virtuel.",
+      "VNET_ADDRESS_SPACES": "Espaces d'adressage",
+      "VNET_ADDRESS_SPACES_HINT": "Utilisez des plages CIDR comme 10.0.0.0/16. Séparez plusieurs plages par des virgules ou des retours à la ligne.",
+      "VNET_DNS_SERVERS": "Serveurs DNS",
+      "VNET_DNS_SERVERS_HINT": "Optionnel. Saisissez des adresses IPv4 séparées par des virgules ou des retours à la ligne.",
       "DEPLOYMENT_MODE": "Mode de d\u00e9ploiement",
       "DEPLOYMENT_MODE_CODE": "Code",
       "DEPLOYMENT_MODE_CONTAINER": "Conteneur",
@@ -2732,5 +2780,49 @@
       "COPIED": "Copié !",
       "DONE": "J'ai copié le jeton"
     }
+  },
+  "CONFIG_DETAIL_NETWORKING": {
+    "TAB_LABEL": "Réseau",
+    "MODE": {
+      "LABEL": "Mode réseau",
+      "SIMPLIFIED": "Simplifié",
+      "STANDARD": "Standard",
+      "ADVANCED": "Avancé"
+    },
+    "VNET": {
+      "TITLE": "Configuration VNet",
+      "SOURCE_LABEL": "Source du réseau virtuel",
+      "CREATE_NEW": "Créer un nouveau VNet",
+      "USE_EXISTING": "Utiliser un VNet existant",
+      "USE_HUB_SPOKE": "Hub & Spoke",
+      "ADDRESS_SPACE": "Espace d'adressage",
+      "ADDRESS_SPACE_PLACEHOLDER": "10.0.0.0/16",
+      "ADDRESS_SPACE_HINT": "Utilisez des plages CIDR comme 10.0.0.0/16. Vous pouvez séparer plusieurs plages par des virgules ou des retours à la ligne.",
+      "SUBNET_PREFIX": "Préfixe de sous-réseau",
+      "SUBNET_PREFIX_PLACEHOLDER": "10.0.1.0/24",
+      "SUBNET_PREFIX_HINT": "Utilisez une plage de sous-réseau incluse dans l'espace d'adressage du VNet, par exemple 10.0.1.0/24.",
+      "EXISTING_VNET_ID": "ID du VNet existant",
+      "EXISTING_VNET_ID_PLACEHOLDER": "/subscriptions/.../virtualNetworks/...",
+      "PE_SUBNET_NAME": "Nom du sous-réseau Private Endpoints",
+      "PE_SUBNET_NAME_PLACEHOLDER": "snet-pe"
+    },
+    "DNS": {
+      "TITLE": "Configuration DNS",
+      "MODE_LABEL": "Mode DNS",
+      "AUTO_MANAGED": "Automatique",
+      "CENTRALIZED_HUB": "Hub centralisé",
+      "CUSTOM": "Personnalisé",
+      "HUB_RG_ID": "Resource Group du hub DNS",
+      "HUB_RG_ID_PLACEHOLDER": "rg-dns-hub",
+      "HUB_SUBSCRIPTION_ID": "ID de souscription du hub",
+      "HUB_SUBSCRIPTION_ID_PLACEHOLDER": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    },
+    "PRIVATIZATION": {
+      "TITLE": "Privatisation des ressources",
+      "DESCRIPTION": "Activez la privatisation pour chaque ressource à exposer via Private Endpoint.",
+      "EMPTY": "Aucune ressource dans cette configuration."
+    },
+    "SAVE_SUCCESS": "Profil réseau mis à jour",
+    "SAVE_ERROR": "Erreur lors de la mise à jour du profil réseau"
   }
 }

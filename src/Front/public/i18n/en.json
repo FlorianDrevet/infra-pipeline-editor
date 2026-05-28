@@ -7,6 +7,9 @@
       "DUPLICATE_KEY": "This key already exists",
       "KEY_REQUIRED": "Key is required",
       "VALUE_REQUIRED": "Value is required"
+    },
+    "LIST_INPUT": {
+      "DUPLICATE": "This value already exists"
     }
   },
   "LANGUAGE": {
@@ -302,6 +305,60 @@
     "CANCEL": "Cancel",
     "CLOSE": "Close",
     "DELETE": "Delete",
+    "HELP": "Help",
+    "SAVE": "Save",
+    "VNET_HELP_DIALOG": {
+      "RESOURCE_CREATE": {
+        "TITLE": "Virtual network values",
+        "SUBTITLE": "Add the address ranges, optional DNS resolvers, and protection choice Azure needs before this virtual network can be created."
+      },
+      "RESOURCE_EDIT": {
+        "TITLE": "Virtual network environment values",
+        "SUBTITLE": "Review each environment's address spaces and optional DNS resolvers without packing multiple values into one text field."
+      },
+      "NETWORKING_PROFILE": {
+        "TITLE": "Networking profile values",
+        "SUBTITLE": "Choose the address space and private-endpoint subnet values InfraFlowSculptor should apply when it provisions networking for the configuration."
+      },
+      "ADDRESS_SPACES_PLACEHOLDER": "Add a CIDR block such as 10.0.0.0/16",
+      "ADDRESS_SPACES_HELPER": "Use ranges from your landing zone that do not overlap with other VNets or on-prem networks.",
+      "DNS_SERVERS_PLACEHOLDER": "Add a DNS server such as 10.0.0.4",
+      "DNS_SERVERS_HELPER": "Leave empty to use Azure-provided DNS. Add hub forwarders or on-prem resolvers when required.",
+      "DDOS_TOOLTIP": "Enables a dedicated DDoS protection plan. Turn on only when your platform standards or threat model require it.",
+      "ADDRESS_SPACES": {
+        "TITLE": "Address spaces",
+        "BODY": "An address space defines the CIDR ranges available inside the virtual network. Azure uses these ranges to allocate subnets and private IP addresses.",
+        "GUIDANCE": "Use ranges approved by your landing zone or platform networking plan so they do not overlap with other VNets, on-prem networks, or peering targets."
+      },
+      "DNS_SERVERS": {
+        "TITLE": "DNS servers",
+        "BODY": "DNS servers decide how workloads in the VNet resolve host names. Leave this empty when Azure-provided DNS is sufficient.",
+        "GUIDANCE": "Use your hub forwarders, on-prem resolvers, or documented shared-services IPs when private DNS resolution must follow an existing enterprise path."
+      },
+      "DDOS": {
+        "TITLE": "DDoS protection",
+        "BODY": "Enabling DDoS changes the protection plan applied to this virtual network and can affect cost, ownership, and the security posture of internet-facing workloads.",
+        "GUIDANCE": "Turn it on only when your platform standards or threat model require a dedicated DDoS plan for resources attached to this VNet."
+      },
+      "SUBNET_PREFIX": {
+        "TITLE": "Private-endpoint subnet prefix",
+        "BODY": "The subnet prefix reserves a smaller CIDR block inside the selected VNet address space for private endpoints and related network interfaces.",
+        "GUIDANCE": "Choose a non-overlapping subnet that fits entirely inside the VNet range and still leaves enough capacity for the private endpoints you expect to add."
+      },
+      "WHY": {
+        "TITLE": "Why the app asks for this",
+        "BODY": "InfraFlowSculptor needs explicit networking values to generate valid Azure artifacts instead of guessing ranges that may clash with your platform design."
+      },
+      "IMPACT": {
+        "TITLE": "What this impacts",
+        "BODY": "These values affect IP allocation, private connectivity, DNS resolution, and any downstream resources that attach to the virtual network or private-endpoint subnet."
+      },
+      "VALIDATION": {
+        "ADDRESS_SPACE_REQUIRED": "Add at least one CIDR address space before continuing.",
+        "INVALID_CIDR": "Enter a valid IPv4 CIDR block such as 10.0.0.0/16.",
+        "INVALID_IPV4": "Enter a valid IPv4 address such as 10.0.0.4."
+      }
+    },
     "DATE_PICKER": {
       "ARIA": {
         "CLEAR": "Clear date",
@@ -545,9 +602,6 @@
       "ADD_DIALOG_TITLE_EventHubNamespace": "New Event Hub Namespace",
       "ADD_DIALOG_TITLE_ContainerRegistry": "New Container Registry",
       "ADD_DIALOG_TITLE_VirtualNetwork": "New Virtual Network",
-      "ADD_DIALOG_TITLE_NetworkSecurityGroup": "New Network Security Group",
-      "ADD_DIALOG_TITLE_PrivateDnsZone": "New Private DNS Zone",
-      "ADD_DIALOG_TITLE_FrontDoor": "New Front Door",
       "ADD_DIALOG_TITLE_DocumentIntelligence": "New Document Intelligence",
       "ADD_ERROR": "Failed to create the resource.",
       "FORM": {
@@ -562,6 +616,7 @@
         "ENABLE_NON_SSL": "Enable non-SSL port",
         "DISABLE_ACCESS_KEY_AUTH": "Disable access key authentication",
         "ENABLE_AAD_AUTH": "Enable Entra ID (AAD) authentication",
+        "ENABLE_DDOS_PROTECTION": "Enable DDoS protection",
         "REDIS_AAD_WARNING": "When access key authentication is disabled, Entra ID (AAD) authentication must be enabled.",
         "KIND": "Account kind",
         "ACCESS_TIER": "Access tier",
@@ -636,6 +691,10 @@
         "ZONE_REDUNDANCY": "Zone redundancy",
         "ADMIN_USER_ENABLED": "Enable admin user",
         "LOG_ANALYTICS_WORKSPACE_ID": "Log Analytics workspace ID",
+        "VNET_ADDRESS_SPACES": "Address spaces",
+        "VNET_ADDRESS_SPACES_HINT": "Use CIDR ranges such as 10.0.0.0/16. Separate multiple ranges with commas or new lines.",
+        "VNET_DNS_SERVERS": "DNS servers",
+        "VNET_DNS_SERVERS_HINT": "Optional. Enter IPv4 addresses separated by commas or new lines.",
         "CONTAINER_IMAGE": "Container image",
         "CONTAINER_IMAGE_PLACEHOLDER": "e.g. mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
         "CPU_CORES": "CPU cores",
@@ -1687,7 +1746,6 @@
       "USED_BY": "Used By",
       "CONFIG_KEYS": "Configuration Keys",
       "APP_PIPELINE": "Application Pipeline",
-      "NETWORKING": "Networking",
       "ARIA": "Resource tabs",
       "WARNING_MISSING_ROLE": "A required role assignment is missing",
       "WARNING_MISSING_ENV_CONFIG": "Some environments have no configuration"
@@ -1718,23 +1776,6 @@
       "LOADING_DIRECTORIES": "Loading directories...",
       "NO_DIRECTORIES_FOUND": "No directories found",
       "REPO_ROOT": "repository root"
-    },
-    "NETWORKING": {
-      "TITLE": "Networking",
-      "PRIVATE_ENDPOINTS": "Private Endpoints",
-      "ADD_PE": "Add Private Endpoint",
-      "NO_PE": "No private endpoints configured",
-      "SUBNET": "Subnet",
-      "GROUP_ID": "Group ID",
-      "AUTO_APPROVAL": "Auto-approval",
-      "DNS_ZONE": "Private DNS Zone",
-      "CUSTOM_NIC": "Custom NIC Name",
-      "REMOVE_PE": "Remove",
-      "CONFIRM_REMOVE": "Remove this private endpoint?",
-      "CANCEL": "Cancel",
-      "NOT_SUPPORTED": "This resource type does not support private endpoints.",
-      "LOAD_ERROR": "Unable to load private endpoints. Please try again.",
-      "REMOVE_ERROR": "Unable to remove private endpoint. Please try again."
     },
     "PIPELINE_OPTIONS": {
       "DESCRIPTION": "Configure optional pipeline steps such as tests, code analysis, linting, and post-deploy validation.",
@@ -1867,6 +1908,7 @@
       "ACCESS_TIER": "Access tier",
       "ALLOW_BLOB_PUBLIC": "Allow public blob access",
       "HTTPS_ONLY": "HTTPS traffic only",
+      "ENABLE_DDOS_PROTECTION": "Enable DDoS protection",
       "OS_TYPE": "OS type",
       "RUNTIME_STACK": "Runtime stack",
       "RUNTIME_VERSION": "Runtime version",
@@ -1958,6 +2000,12 @@
       "SQL_SERVER_SECTION_DESC": "Define the minimum TLS version accepted for connections.",
       "SQL_DATABASE_SECTION": "Database configuration",
       "SQL_DATABASE_SECTION_DESC": "Set the SKU, maximum size, and zone redundancy per environment.",
+      "VIRTUAL_NETWORK_SECTION": "Addressing and DNS",
+      "VIRTUAL_NETWORK_SECTION_DESC": "Configure the per-environment address spaces and optional custom DNS servers for this virtual network.",
+      "VNET_ADDRESS_SPACES": "Address spaces",
+      "VNET_ADDRESS_SPACES_HINT": "Use CIDR ranges such as 10.0.0.0/16. Separate multiple ranges with commas or new lines.",
+      "VNET_DNS_SERVERS": "DNS servers",
+      "VNET_DNS_SERVERS_HINT": "Optional. Enter IPv4 addresses separated by commas or new lines.",
       "DEPLOYMENT_MODE": "Deployment mode",
       "DEPLOYMENT_MODE_CODE": "Code",
       "DEPLOYMENT_MODE_CONTAINER": "Container",
@@ -2739,5 +2787,49 @@
       "COPIED": "Copied!",
       "DONE": "I've Copied the Token"
     }
+  },
+  "CONFIG_DETAIL_NETWORKING": {
+    "TAB_LABEL": "Networking",
+    "MODE": {
+      "LABEL": "Network mode",
+      "SIMPLIFIED": "Simplified",
+      "STANDARD": "Standard",
+      "ADVANCED": "Advanced"
+    },
+    "VNET": {
+      "TITLE": "VNet Configuration",
+      "SOURCE_LABEL": "Virtual network source",
+      "CREATE_NEW": "Create new VNet",
+      "USE_EXISTING": "Use existing VNet",
+      "USE_HUB_SPOKE": "Hub & Spoke",
+      "ADDRESS_SPACE": "Address space",
+      "ADDRESS_SPACE_PLACEHOLDER": "10.0.0.0/16",
+      "ADDRESS_SPACE_HINT": "Use CIDR ranges such as 10.0.0.0/16. You can separate several ranges with commas or new lines.",
+      "SUBNET_PREFIX": "Subnet prefix",
+      "SUBNET_PREFIX_PLACEHOLDER": "10.0.1.0/24",
+      "SUBNET_PREFIX_HINT": "Use a subnet range contained inside the selected VNet address space, for example 10.0.1.0/24.",
+      "EXISTING_VNET_ID": "Existing VNet ID",
+      "EXISTING_VNET_ID_PLACEHOLDER": "/subscriptions/.../virtualNetworks/...",
+      "PE_SUBNET_NAME": "Private Endpoints subnet name",
+      "PE_SUBNET_NAME_PLACEHOLDER": "snet-pe"
+    },
+    "DNS": {
+      "TITLE": "DNS Configuration",
+      "MODE_LABEL": "DNS mode",
+      "AUTO_MANAGED": "Automatic",
+      "CENTRALIZED_HUB": "Centralized hub",
+      "CUSTOM": "Custom",
+      "HUB_RG_ID": "DNS hub Resource Group",
+      "HUB_RG_ID_PLACEHOLDER": "rg-dns-hub",
+      "HUB_SUBSCRIPTION_ID": "Hub subscription ID",
+      "HUB_SUBSCRIPTION_ID_PLACEHOLDER": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    },
+    "PRIVATIZATION": {
+      "TITLE": "Resource Privatization",
+      "DESCRIPTION": "Enable privatization for each resource to expose via Private Endpoint.",
+      "EMPTY": "No resources in this configuration."
+    },
+    "SAVE_SUCCESS": "Network profile updated",
+    "SAVE_ERROR": "Error updating network profile"
   }
 }

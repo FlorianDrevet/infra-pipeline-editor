@@ -28,26 +28,13 @@
   } @else {
     <div class="tags-editor">
       <app-ds-key-value-input
+        [ngModel]="editingKvItems()"
         [keyLabel]="'PROJECT_DETAIL.TAGS.TAG_NAME' | translate"
         [valueLabel]="'PROJECT_DETAIL.TAGS.TAG_VALUE' | translate"
         [addButtonLabel]="'PROJECT_DETAIL.TAGS.ADD_TAG' | translate"
         [duplicateKeyError]="'DS.KEY_VALUE_INPUT.DUPLICATE_KEY' | translate"
         [disabled]="tagsSaving()"
         (itemsChange)="onTagsChange($event)" />
-
-      @if (editingTags().length > 0) {
-        <div class="tags-display">
-          @for (tag of editingTags(); track tag.name) {
-            <app-ds-chip
-              variant="neutral"
-              size="sm"
-              [removable]="!tagsSaving()"
-              (removed)="onTagsChange(editingKvItems().filter((_, i) => i !== $index))">
-              {{ tag.name }}: {{ tag.value }}
-            </app-ds-chip>
-          }
-        </div>
-      }
 
       @if (tagsErrorKey()) {
         <p class="action-error">{{ tagsErrorKey() | translate }}</p>

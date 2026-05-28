@@ -290,8 +290,9 @@ public sealed class GoldenArmTemplateTests
     {
         var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
 
-        // VNet and NSG are now supported by IFS
-        preview.UnsupportedResources.Should().BeEmpty();
+        // NSG is no longer supported by IFS (V1 demolished)
+        preview.UnsupportedResources.Should().ContainSingle()
+            .Which.Should().Be("Microsoft.Network/networkSecurityGroups");
     }
 
     [Fact]
@@ -304,13 +305,12 @@ public sealed class GoldenArmTemplateTests
               .Select(r => r.MappedResourceType!)
               .ToList();
 
-        mapped.Should().HaveCount(6);
+        mapped.Should().HaveCount(5);
         mapped.Should().Contain(AzureResourceTypes.KeyVault);
         mapped.Should().Contain(AzureResourceTypes.SqlServer);
         mapped.Should().Contain(AzureResourceTypes.SqlDatabase);
         mapped.Should().Contain(AzureResourceTypes.ServiceBusNamespace);
         mapped.Should().Contain(AzureResourceTypes.VirtualNetwork);
-        mapped.Should().Contain(AzureResourceTypes.NetworkSecurityGroup);
     }
 
     [Fact]
@@ -318,12 +318,13 @@ public sealed class GoldenArmTemplateTests
     {
         var preview = _sut.AnalyzeArmTemplate(MixedTemplate);
 
-        // VNet and NSG are now supported — no unsupported resource gaps expected
+        // VNet is still supported
         preview.Gaps.Should().NotContain(g =>
             g.Category == "unsupported_resource"
             && g.Message.Contains("Microsoft.Network/virtualNetworks"));
 
-        preview.Gaps.Should().NotContain(g =>
+        // NSG is no longer supported — should generate a gap
+        preview.Gaps.Should().Contain(g =>
             g.Category == "unsupported_resource"
             && g.Message.Contains("Microsoft.Network/networkSecurityGroups"));
     }

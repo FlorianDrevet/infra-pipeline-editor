@@ -18,6 +18,7 @@
       </div>
 
       <app-ds-key-value-input
+        [ngModel]="section().editingKvItems()"
         [keyLabel]="'CONFIG_DETAIL.TAGS.TAG_NAME' | translate"
         [valueLabel]="'CONFIG_DETAIL.TAGS.TAG_VALUE' | translate"
         [addButtonLabel]="'CONFIG_DETAIL.TAGS.ADD' | translate"
@@ -25,24 +26,7 @@
         [disabled]="section().isSaving()"
         (itemsChange)="section().onItemsChange($event)" />
 
-      @if (section().editingTags().length > 0) {
-        <div class="tags-edit-list">
-          @for (tag of section().editingTags(); track tag.name) {
-            <article class="tag-row">
-              <div class="tag-row__meta">
-                <strong>{{ tag.name }}</strong>
-                <span class="tag-row__value">{{ tag.value || '—' }}</span>
-              </div>
-              <app-ds-icon-button
-                icon="delete_outline"
-                variant="danger"
-                [tooltip]="'CONFIG_DETAIL.TAGS.REMOVE_TOOLTIP' | translate"
-                [ariaLabel]="'CONFIG_DETAIL.TAGS.REMOVE_TOOLTIP' | translate"
-                (clicked)="section().removeTag(tag.name)" />
-            </article>
-          }
-        </div>
-      } @else {
+      @if (section().editingTags().length === 0) {
         <p class="tags-edit-card__hint">{{ 'CONFIG_DETAIL.TAGS.EDIT_HINT' | translate }}</p>
       }
 

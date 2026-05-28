@@ -865,8 +865,6 @@ public sealed class ProjectDraftService : IProjectDraftService
         aliases.TryAdd("webapp", AzureResourceTypes.WebApp);
         aliases.TryAdd("app service plan", AzureResourceTypes.AppServicePlan);
         aliases.TryAdd("plan", AzureResourceTypes.AppServicePlan);
-        aliases.TryAdd("front door", AzureResourceTypes.FrontDoor);
-        aliases.TryAdd("cdn", AzureResourceTypes.FrontDoor);
 
         return aliases;
     }

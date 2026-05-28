@@ -109,10 +109,8 @@ app.UseAppSettingController();
 app.UseSecureParameterMappingController();
 app.UseCustomDomainController();
 app.UseVirtualNetworkController();
-app.UseNetworkSecurityGroupController();
-app.UsePrivateDnsZoneController();
-app.UseFrontDoorController();
-app.UsePrivateEndpointController();
+app.UseNetworkingProfileController();
+
 app.UseImportController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();

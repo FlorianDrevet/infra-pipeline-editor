@@ -206,6 +206,43 @@
             [options]="locationOptions"
             [searchable]="true" />
 
+          @if (selectedType() === ResourceTypeEnum.VirtualNetwork) {
+            <div class="resource-form__section resource-form__section--vnet">
+              <div class="resource-form__section-header">
+                <div class="resource-form__section-copy">
+                  <span class="resource-form__section-title">{{ 'COMMON.VNET_HELP_DIALOG.RESOURCE_CREATE.TITLE' | translate }}</span>
+                  <p class="resource-form__section-description">{{ 'COMMON.VNET_HELP_DIALOG.RESOURCE_CREATE.SUBTITLE' | translate }}</p>
+                </div>
+              </div>
+
+              <div class="form-field form-field--toggle form-field--with-info">
+                <app-ds-toggle
+                  formControlName="enableDdosProtection"
+                  [label]="'RESOURCE_EDIT.FIELDS.ENABLE_DDOS_PROTECTION' | translate"></app-ds-toggle>
+                <mat-icon
+                  class="field-info-icon"
+                  [matTooltip]="'COMMON.VNET_HELP_DIALOG.DDOS.GUIDANCE' | translate"
+                  matTooltipPosition="above">info_outline</mat-icon>
+              </div>
+
+              <app-ds-list-input
+                formControlName="vnetAddressSpacesInput"
+                [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_ADDRESS_SPACES' | translate"
+                [placeholder]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_PLACEHOLDER' | translate"
+                [required]="true"
+                [validator]="vnetAddressSpaceListValidator"
+                [helperText]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.GUIDANCE' | translate"
+                [errorText]="getVnetAddressSpacesErrorText()" />
+
+              <app-ds-list-input
+                formControlName="vnetDnsServersInput"
+                [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_DNS_SERVERS' | translate"
+                [placeholder]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_PLACEHOLDER' | translate"
+                [validator]="vnetDnsServerListValidator"
+                [helperText]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS.GUIDANCE' | translate" />
+            </div>
+          }
+
           @if (selectedType() === ResourceTypeEnum.AppServicePlan) {
             <app-ds-select
               formControlName="osType"

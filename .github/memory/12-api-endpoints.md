@@ -125,6 +125,14 @@ Note [2026-04-26]: the create-project wizard submit path depends on an explicit 
 | `/imports` | POST | `/preview` | `PreviewIacImportQuery` (read-only ARM import analysis; returns mapped resources, gaps, dependencies, metadata, summary; currently supports `arm-json` only) |
 | `/imports` | POST | `/apply` | `ApplyImportPreviewCommand` (stateless import apply for a new project; request body carries project setup + nested preview payload; creates project, infra config, resource group, and auto-creatable mapped resources) |
 
+## Networking Profile [2026-05-28]
+
+| Group | Method | Route | Command/Query |
+|---|---|---|---|
+| `/infra-config/{infraConfigId}/networking-profile` | GET | `` | `GetNetworkingProfileQuery` |
+| `/infra-config/{infraConfigId}/networking-profile` | PUT | `` | `SetNetworkingProfileCommand` (upsert: create if absent, update if existing) |
+| `/infra-config/{infraConfigId}/resources/{resourceId}/privatization` | PUT | `` | `ToggleResourcePrivatizationCommand` → 204 NoContent |
+
 ## Generation Controllers
 
 | Group | Method | Route | Command/Query |

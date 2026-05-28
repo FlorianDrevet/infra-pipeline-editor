@@ -30,11 +30,13 @@
         </div>
       </div>
       <div class="resource-header__info">
-        <span class="eyebrow">
-          <mat-icon class="eyebrow__icon">{{ resourceTypeIcons[resourceType] || 'widgets' }}</mat-icon>
-          {{ resourceType }}
-        </span>
         <h1>{{ resource()!.name }}</h1>
+        <div class="resource-header__meta">
+          <span class="eyebrow">
+            <mat-icon class="eyebrow__icon">{{ resourceTypeIcons[resourceType] || 'widgets' }}</mat-icon>
+            {{ resourceType }}
+          </span>
+        </div>
       </div>
     </section>
 
@@ -163,6 +165,18 @@
                     formControlName="osType"
                     [label]="'RESOURCE_EDIT.FIELDS.OS_TYPE' | translate"
                     [options]="osTypeOptions" />
+                </div>
+              </div>
+            }
+
+            @if (resourceType === 'VirtualNetwork') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+                <div class="form-grid">
+                  <div class="form-field form-field--toggle form-field--with-info">
+                    <app-ds-toggle formControlName="enableDdosProtection" [label]="'RESOURCE_EDIT.FIELDS.ENABLE_DDOS_PROTECTION' | translate"></app-ds-toggle>
+                    <mat-icon class="field-info-icon" [matTooltip]="'COMMON.VNET_HELP_DIALOG.DDOS_TOOLTIP' | translate">info_outline</mat-icon>
+                  </div>
                 </div>
               </div>
             }
@@ -600,6 +614,31 @@
                             type="number"
                             [label]="'RESOURCE_EDIT.FIELDS.CAPACITY' | translate"
                             [hint]="'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate" />
+                        </div>
+                      </div>
+                    }
+                    @case ('VirtualNetwork') {
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <div class="env-extra-section__header-main">
+                            <mat-icon class="env-extra-section__icon">lan</mat-icon>
+                            <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.VIRTUAL_NETWORK_SECTION' | translate }}</span>
+                          </div>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.VIRTUAL_NETWORK_SECTION_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <app-ds-list-input
+                            formControlName="addressSpacesInput"
+                            [label]="'RESOURCE_EDIT.FIELDS.VNET_ADDRESS_SPACES' | translate"
+                            [placeholder]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_PLACEHOLDER' | translate"
+                            [helperText]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_HELPER' | translate"
+                            [validator]="vnetAddressSpaceListValidator" />
+                          <app-ds-list-input
+                            formControlName="dnsServersInput"
+                            [label]="'RESOURCE_EDIT.FIELDS.VNET_DNS_SERVERS' | translate"
+                            [placeholder]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_PLACEHOLDER' | translate"
+                            [helperText]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_HELPER' | translate"
+                            [validator]="vnetDnsServerListValidator" />
                         </div>
                       </div>
                     }
@@ -1106,15 +1145,6 @@
           [configId]="configId"
           [section]="identityAccessSection">
         </app-resource-edit-role-assignments-section>
-      }
-
-      <!-- Networking Tab (PE-supported resources only) -->
-      @if (supportsNetworking() && activeMainTabId() === 'networking') {
-        <div class="tab-content">
-          <app-networking-tab
-            [resourceId]="resource()!.id"
-            [resourceType]="resourceType" />
-        </div>
       }
 
       <!-- Storage Services Tab (StorageAccount only) / App Configuration Tab (others) -->

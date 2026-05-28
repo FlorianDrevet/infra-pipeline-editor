@@ -113,6 +113,24 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// </summary>
     public bool IsExisting { get; protected set; }
 
+    /// <summary>
+    /// Gets whether this resource is privatized (accessible only via Private Endpoint).
+    /// When <c>true</c>, the Bicep pipeline generates a companion PE resource and disables public access.
+    /// </summary>
+    public bool IsPrivatized { get; private set; }
+
+    /// <summary>Marks this resource as privatized (private endpoint access only).</summary>
+    public void Privatize()
+    {
+        IsPrivatized = true;
+    }
+
+    /// <summary>Removes privatization from this resource (re-enables public access).</summary>
+    public void Deprivatize()
+    {
+        IsPrivatized = false;
+    }
+
     private readonly List<AzureResource> _dependsOn = [];
 
     /// <summary>Gets the resources this resource depends on.</summary>
@@ -153,45 +171,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// <summary>Gets the custom domain bindings configured on this resource.</summary>
     public IReadOnlyCollection<CustomDomain> CustomDomains => _customDomains.AsReadOnly();
 
-    private readonly List<PrivateEndpointConfig> _privateEndpointConfigs = [];
 
-    /// <summary>Gets the private endpoint configurations attached to this resource.</summary>
-    public IReadOnlyCollection<PrivateEndpointConfig> PrivateEndpointConfigs => _privateEndpointConfigs.AsReadOnly();
-
-    /// <summary>Adds a private endpoint configuration to this resource.</summary>
-    public PrivateEndpointConfig AddPrivateEndpoint(
-        AzureResourceId subnetId,
-        string groupId,
-        bool autoApproval,
-        AzureResourceId? privateDnsZoneId,
-        string? customNetworkInterfaceName)
-    {
-        var config = PrivateEndpointConfig.Create(Id, subnetId, groupId, autoApproval, privateDnsZoneId, customNetworkInterfaceName);
-        _privateEndpointConfigs.Add(config);
-        return config;
-    }
-
-    /// <summary>Removes a private endpoint configuration.</summary>
-    public void RemovePrivateEndpoint(PrivateEndpointConfigId configId)
-    {
-        var config = _privateEndpointConfigs.FirstOrDefault(c => c.Id == configId)
-            ?? throw new InvalidOperationException($"Private endpoint config '{configId.Value}' not found.");
-        _privateEndpointConfigs.Remove(config);
-    }
-
-    /// <summary>Updates an existing private endpoint configuration.</summary>
-    public void UpdatePrivateEndpoint(
-        PrivateEndpointConfigId configId,
-        AzureResourceId subnetId,
-        string groupId,
-        bool autoApproval,
-        AzureResourceId? privateDnsZoneId,
-        string? customNetworkInterfaceName)
-    {
-        var config = _privateEndpointConfigs.FirstOrDefault(c => c.Id == configId)
-            ?? throw new InvalidOperationException($"Private endpoint config '{configId.Value}' not found.");
-        config.Update(subnetId, groupId, autoApproval, privateDnsZoneId, customNetworkInterfaceName);
-    }
 
     /// <summary>Gets the optional User-Assigned Identity explicitly attached to this resource.</summary>
     public AzureResourceId? AssignedUserAssignedIdentityId { get; private set; }

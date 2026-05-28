@@ -1,0 +1,56 @@
+// ============================================================================
+// app-ds-list-input
+// ============================================================================
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.ds-list-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-8);
+}
+
+.ds-list-input__label {
+  font: var(--ifs-text-body-sm);
+  color: var(--ifs-text-secondary);
+  font-weight: 500;
+}
+
+.ds-list-input__required {
+  color: var(--ifs-danger);
+  margin-left: var(--ifs-space-2);
+}
+
+.ds-list-input__row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--ifs-space-8);
+}
+
+.ds-list-input__field {
+  flex: 1;
+  min-width: 140px;
+}
+
+.ds-list-input__add-btn {
+  flex-shrink: 0;
+}
+
+.ds-list-input__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ifs-space-4);
+}
+
+.ds-list-input__error {
+  font: var(--ifs-text-body-sm);
+  color: var(--ifs-danger);
+}
+
+.ds-list-input__helper {
+  font: var(--ifs-text-body-sm);
+  color: var(--ifs-text-tertiary);
+}

@@ -238,6 +238,9 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
+                    b.Property<bool>("IsPrivatized")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("text");
@@ -429,39 +432,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ResourceLinks", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.PrivateEndpointConfig", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("AutoApproval")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("CustomNetworkInterfaceName")
-                        .HasMaxLength(260)
-                        .HasColumnType("character varying(260)");
-
-                    b.Property<string>("GroupId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<Guid?>("PrivateDnsZoneId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ResourceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("SubnetId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ResourceId");
-
-                    b.ToTable("PrivateEndpointConfigs", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.RoleAssignment", b =>
@@ -841,62 +811,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("EventHubNamespaceEnvironmentSettings", (string)null);
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.Entities.FrontDoorEnvironmentSettings", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("EnvironmentName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<Guid>("FrontDoorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Sku")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FrontDoorId", "EnvironmentName")
-                        .IsUnique();
-
-                    b.ToTable("FrontDoorEnvironmentSettings", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.Entities.FrontDoorOrigin", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("FrontDoorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("HostName")
-                        .HasMaxLength(260)
-                        .HasColumnType("character varying(260)");
-
-                    b.Property<int>("Priority")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("PrivateLinkEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("TargetResourceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Weight")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FrontDoorId");
-
-                    b.ToTable("FrontDoorOrigins", (string)null);
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.Entities.FunctionAppEnvironmentSettings", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1180,60 +1094,52 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("LogAnalyticsWorkspaceEnvironmentSettings", (string)null);
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.Entities.NsgRule", b =>
+            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkingProfileAggregate.Entities.NetworkingProfileEnvironmentOverride", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Access")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("DestinationAddressPrefix")
+                    b.Property<string>("EnvironmentName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("DestinationPortRange")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("Direction")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(260)
-                        .HasColumnType("character varying(260)");
-
-                    b.Property<Guid>("NetworkSecurityGroupId")
+                    b.Property<Guid>("NetworkingProfileId")
                         .HasColumnType("uuid");
-
-                    b.Property<int>("Priority")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Protocol")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("SourceAddressPrefix")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("SourcePortRange")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NetworkSecurityGroupId", "Priority", "Direction")
+                    b.HasIndex("NetworkingProfileId", "EnvironmentName")
                         .IsUnique();
 
-                    b.ToTable("NsgRules", (string)null);
+                    b.ToTable("NetworkingProfileEnvironmentOverrides", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkingProfileAggregate.NetworkingProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InfraConfigId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InfraConfigId")
+                        .IsUnique();
+
+                    b.ToTable("NetworkingProfiles", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.PersonalAccessTokenAggregate.PersonalAccessToken", b =>
@@ -1279,27 +1185,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PersonalAccessTokens", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.Entities.VirtualNetworkLink", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("EnableAutoRegistration")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("PrivateDnsZoneId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("VirtualNetworkId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PrivateDnsZoneId");
-
-                    b.ToTable("VirtualNetworkLinks", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectMember", b =>
@@ -2047,16 +1932,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("EventHubNamespaces", (string)null);
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.FrontDoor", b =>
-                {
-                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
-
-                    b.Property<bool>("WafPolicyEnabled")
-                        .HasColumnType("boolean");
-
-                    b.ToTable("FrontDoors", (string)null);
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", b =>
                 {
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
@@ -2147,20 +2022,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
 
                     b.ToTable("LogAnalyticsWorkspaces", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.NetworkSecurityGroup", b =>
-                {
-                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
-
-                    b.ToTable("NetworkSecurityGroups", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.PrivateDnsZone", b =>
-                {
-                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
-
-                    b.ToTable("PrivateDnsZones", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.RedisCacheAggregate.RedisCache", b =>
@@ -2486,15 +2347,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("TargetResource");
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.PrivateEndpointConfig", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
-                        .WithMany("PrivateEndpointConfigs")
-                        .HasForeignKey("ResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.RoleAssignment", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
@@ -2611,24 +2463,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.Entities.FrontDoorEnvironmentSettings", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.FrontDoorAggregate.FrontDoor", null)
-                        .WithMany("EnvironmentSettings")
-                        .HasForeignKey("FrontDoorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.Entities.FrontDoorOrigin", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.FrontDoorAggregate.FrontDoor", null)
-                        .WithMany("Origins")
-                        .HasForeignKey("FrontDoorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.Entities.FunctionAppEnvironmentSettings", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", null)
@@ -2738,12 +2572,169 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.Entities.NsgRule", b =>
+            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkingProfileAggregate.Entities.NetworkingProfileEnvironmentOverride", b =>
                 {
-                    b.HasOne("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.NetworkSecurityGroup", null)
-                        .WithMany("SecurityRules")
-                        .HasForeignKey("NetworkSecurityGroupId")
+                    b.HasOne("InfraFlowSculptor.Domain.NetworkingProfileAggregate.NetworkingProfile", null)
+                        .WithMany("EnvironmentOverrides")
+                        .HasForeignKey("NetworkingProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("InfraFlowSculptor.Domain.NetworkingProfileAggregate.ValueObjects.DnsConfig", "DnsConfigOverride", b1 =>
+                        {
+                            b1.Property<Guid>("NetworkingProfileEnvironmentOverrideId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("HubResourceGroupId")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)")
+                                .HasColumnName("DnsHubResourceGroupIdOverride");
+
+                            b1.Property<string>("HubSubscriptionId")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("DnsHubSubscriptionIdOverride");
+
+                            b1.Property<string>("Mode")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("DnsModeOverride");
+
+                            b1.HasKey("NetworkingProfileEnvironmentOverrideId");
+
+                            b1.ToTable("NetworkingProfileEnvironmentOverrides");
+
+                            b1.WithOwner()
+                                .HasForeignKey("NetworkingProfileEnvironmentOverrideId");
+                        });
+
+                    b.OwnsOne("InfraFlowSculptor.Domain.NetworkingProfileAggregate.ValueObjects.VnetReference", "VnetReferenceOverride", b1 =>
+                        {
+                            b1.Property<Guid>("NetworkingProfileEnvironmentOverrideId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("CreateNewAddressSpace")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)")
+                                .HasColumnName("VnetCreateNewAddressSpaceOverride");
+
+                            b1.Property<string>("ExistingVnetResourceId")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)")
+                                .HasColumnName("VnetExistingResourceIdOverride");
+
+                            b1.Property<string>("PrivateEndpointsSubnetAddressPrefix")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)")
+                                .HasColumnName("VnetPeSubnetAddressPrefixOverride");
+
+                            b1.Property<string>("PrivateEndpointsSubnetName")
+                                .IsRequired()
+                                .HasMaxLength(260)
+                                .HasColumnType("character varying(260)")
+                                .HasColumnName("VnetPeSubnetNameOverride");
+
+                            b1.Property<string>("Source")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("VnetSourceOverride");
+
+                            b1.HasKey("NetworkingProfileEnvironmentOverrideId");
+
+                            b1.ToTable("NetworkingProfileEnvironmentOverrides");
+
+                            b1.WithOwner()
+                                .HasForeignKey("NetworkingProfileEnvironmentOverrideId");
+                        });
+
+                    b.Navigation("DnsConfigOverride");
+
+                    b.Navigation("VnetReferenceOverride");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkingProfileAggregate.NetworkingProfile", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", null)
+                        .WithMany()
+                        .HasForeignKey("InfraConfigId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("InfraFlowSculptor.Domain.NetworkingProfileAggregate.ValueObjects.DnsConfig", "DnsConfig", b1 =>
+                        {
+                            b1.Property<Guid>("NetworkingProfileId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("HubResourceGroupId")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)")
+                                .HasColumnName("DnsHubResourceGroupId");
+
+                            b1.Property<string>("HubSubscriptionId")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("DnsHubSubscriptionId");
+
+                            b1.Property<string>("Mode")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("DnsMode");
+
+                            b1.HasKey("NetworkingProfileId");
+
+                            b1.ToTable("NetworkingProfiles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("NetworkingProfileId");
+                        });
+
+                    b.OwnsOne("InfraFlowSculptor.Domain.NetworkingProfileAggregate.ValueObjects.VnetReference", "VnetReference", b1 =>
+                        {
+                            b1.Property<Guid>("NetworkingProfileId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("CreateNewAddressSpace")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)")
+                                .HasColumnName("VnetCreateNewAddressSpace");
+
+                            b1.Property<string>("ExistingVnetResourceId")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)")
+                                .HasColumnName("VnetExistingResourceId");
+
+                            b1.Property<string>("PrivateEndpointsSubnetAddressPrefix")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)")
+                                .HasColumnName("VnetPeSubnetAddressPrefix");
+
+                            b1.Property<string>("PrivateEndpointsSubnetName")
+                                .IsRequired()
+                                .HasMaxLength(260)
+                                .HasColumnType("character varying(260)")
+                                .HasColumnName("VnetPeSubnetName");
+
+                            b1.Property<string>("Source")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("VnetSource");
+
+                            b1.HasKey("NetworkingProfileId");
+
+                            b1.ToTable("NetworkingProfiles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("NetworkingProfileId");
+                        });
+
+                    b.Navigation("DnsConfig")
+                        .IsRequired();
+
+                    b.Navigation("VnetReference")
                         .IsRequired();
                 });
 
@@ -2768,15 +2759,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         });
 
                     b.Navigation("Scopes");
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.Entities.VirtualNetworkLink", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.PrivateDnsZone", null)
-                        .WithMany("VirtualNetworkLinks")
-                        .HasForeignKey("PrivateDnsZoneId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectMember", b =>
@@ -3375,15 +3357,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.FrontDoor", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
-                        .WithOne()
-                        .HasForeignKey("InfraFlowSculptor.Domain.FrontDoorAggregate.FrontDoor", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
@@ -3616,24 +3589,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithOne()
                         .HasForeignKey("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.NetworkSecurityGroup", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
-                        .WithOne()
-                        .HasForeignKey("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.NetworkSecurityGroup", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.PrivateDnsZone", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
-                        .WithOne()
-                        .HasForeignKey("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.PrivateDnsZone", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -3936,8 +3891,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Navigation("ParameterUsages");
 
-                    b.Navigation("PrivateEndpointConfigs");
-
                     b.Navigation("RoleAssignments");
 
                     b.Navigation("SecureParameterMappings");
@@ -3961,6 +3914,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("ResourceGroups");
 
                     b.Navigation("ResourceNamingTemplates");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkingProfileAggregate.NetworkingProfile", b =>
+                {
+                    b.Navigation("EnvironmentOverrides");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Project", b =>
@@ -4027,13 +3985,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("EventHubs");
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.FrontDoorAggregate.FrontDoor", b =>
-                {
-                    b.Navigation("EnvironmentSettings");
-
-                    b.Navigation("Origins");
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", b =>
                 {
                     b.Navigation("EnvironmentSettings");
@@ -4047,16 +3998,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
             modelBuilder.Entity("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", b =>
                 {
                     b.Navigation("EnvironmentSettings");
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.NetworkSecurityGroupAggregate.NetworkSecurityGroup", b =>
-                {
-                    b.Navigation("SecurityRules");
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.PrivateDnsZoneAggregate.PrivateDnsZone", b =>
-                {
-                    b.Navigation("VirtualNetworkLinks");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.RedisCacheAggregate.RedisCache", b =>

@@ -123,13 +123,10 @@ public sealed class RepositoryIncludeHelperConventionTests
                 "AzureResourceBaseRepository.cs",
                 [
                     "private static IQueryable<AzureResource> WithAppSettings",
-                    "private static IQueryable<AzureResource> WithPrivateEndpoints",
                 ],
                 [
                     ".Include(r => r.AppSettings)",
                     ".ThenInclude(s => s.EnvironmentValues)",
-                    ".Include(r => r.ResourceGroup)",
-                    ".Include(r => r.PrivateEndpointConfigs)",
                 ]),
         ];
     }

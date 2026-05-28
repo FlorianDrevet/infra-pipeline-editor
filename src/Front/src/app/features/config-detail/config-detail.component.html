@@ -46,8 +46,10 @@
         </div>
       </div>
       <div class="detail-header__info">
-        <span class="eyebrow">{{ 'CONFIG_DETAIL.HEADER.OVERLINE' | translate }}</span>
         <h1>{{ config()!.name }}</h1>
+        <div class="detail-header__meta">
+          <span class="eyebrow">{{ 'CONFIG_DETAIL.HEADER.OVERLINE' | translate }}</span>
+        </div>
       </div>
     </section>
 
@@ -127,6 +129,10 @@
           @if (gitSection.viewModel(); as gitViewModel) {
             <app-config-detail-git-section [viewModel]="gitViewModel" />
           }
+        }
+
+        @if (activeConfigTabId() === 'networking') {
+          <app-config-detail-networking-section [viewModel]="networkingSection.viewModel()" />
         }
       </div>
     </div>

@@ -44,6 +44,8 @@ using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
 using InfraFlowSculptor.Domain.DocumentIntelligenceAggregate;
 using InfraFlowSculptor.Domain.DocumentIntelligenceAggregate.Entities;
+using InfraFlowSculptor.Domain.NetworkingProfileAggregate;
+using InfraFlowSculptor.Domain.NetworkingProfileAggregate.Entities;
 using InfraFlowSculptor.Domain.PersonalAccessTokenAggregate;
 using Microsoft.EntityFrameworkCore;
 
@@ -138,6 +140,8 @@ public class ProjectDbContext : DbContext
     public DbSet<ProjectPipelineVariableGroup> ProjectPipelineVariableGroups { get; set; } = null!;
 
     public DbSet<PersonalAccessToken> PersonalAccessTokens { get; set; } = null!;
+    public DbSet<NetworkingProfile> NetworkingProfiles { get; set; } = null!;
+    public DbSet<NetworkingProfileEnvironmentOverride> NetworkingProfileEnvironmentOverrides { get; set; } = null!;
 
 
     /// <inheritdoc />

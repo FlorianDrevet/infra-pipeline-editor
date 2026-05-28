@@ -18,8 +18,6 @@ using InfraFlowSculptor.Application.DocumentIntelligences.Commands.CreateDocumen
 using InfraFlowSculptor.Application.DocumentIntelligences.Common;
 using InfraFlowSculptor.Application.EventHubNamespaces.Commands.CreateEventHubNamespace;
 using InfraFlowSculptor.Application.EventHubNamespaces.Common;
-using InfraFlowSculptor.Application.FrontDoors.Commands.CreateFrontDoor;
-using InfraFlowSculptor.Application.FrontDoors.Common;
 using InfraFlowSculptor.Application.FunctionApps.Commands.CreateFunctionApp;
 using InfraFlowSculptor.Application.FunctionApps.Common;
 using InfraFlowSculptor.Application.Imports.Common.Creation;
@@ -28,10 +26,6 @@ using InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
 using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.CreateLogAnalyticsWorkspace;
 using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Common;
-using InfraFlowSculptor.Application.NetworkSecurityGroups.Commands.CreateNetworkSecurityGroup;
-using InfraFlowSculptor.Application.NetworkSecurityGroups.Common;
-using InfraFlowSculptor.Application.PrivateDnsZones.Commands.CreatePrivateDnsZone;
-using InfraFlowSculptor.Application.PrivateDnsZones.Common;
 using InfraFlowSculptor.Application.RedisCaches.Commands.CreateRedisCache;
 using InfraFlowSculptor.Application.RedisCaches.Common;
 using InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.CreateServiceBusNamespace;
@@ -97,9 +91,6 @@ public sealed class ResourceCommandFactoryDispatchMappingTests
         ConfigureErrorReturn<CreateEventHubNamespaceCommand, EventHubNamespaceResult>(mediator);
         ConfigureErrorReturn<CreateContainerAppEnvironmentCommand, ContainerAppEnvironmentResult>(mediator);
         ConfigureErrorReturn<CreateVirtualNetworkCommand, VirtualNetworkResult>(mediator);
-        ConfigureErrorReturn<CreateNetworkSecurityGroupCommand, NetworkSecurityGroupResult>(mediator);
-        ConfigureErrorReturn<CreatePrivateDnsZoneCommand, PrivateDnsZoneResult>(mediator);
-        ConfigureErrorReturn<CreateFrontDoorCommand, FrontDoorResult>(mediator);
         ConfigureErrorReturn<CreateDocumentIntelligenceCommand, DocumentIntelligenceResult>(mediator);
         ConfigureErrorReturn<CreateWebAppCommand, WebAppResult>(mediator);
         ConfigureErrorReturn<CreateFunctionAppCommand, FunctionAppResult>(mediator);
@@ -126,9 +117,6 @@ public sealed class ResourceCommandFactoryDispatchMappingTests
         { AzureResourceTypes.EventHubNamespace, typeof(CreateEventHubNamespaceCommand) },
         { AzureResourceTypes.ContainerAppEnvironment, typeof(CreateContainerAppEnvironmentCommand) },
         { AzureResourceTypes.VirtualNetwork, typeof(CreateVirtualNetworkCommand) },
-        { AzureResourceTypes.NetworkSecurityGroup, typeof(CreateNetworkSecurityGroupCommand) },
-        { AzureResourceTypes.PrivateDnsZone, typeof(CreatePrivateDnsZoneCommand) },
-        { AzureResourceTypes.FrontDoor, typeof(CreateFrontDoorCommand) },
         { AzureResourceTypes.DocumentIntelligence, typeof(CreateDocumentIntelligenceCommand) },
     };
 

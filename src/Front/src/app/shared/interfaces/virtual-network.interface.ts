@@ -44,3 +44,10 @@ export interface CreateVirtualNetworkRequest {
   environmentSettings?: VirtualNetworkEnvironmentConfigEntry[];
   isExisting?: boolean;
 }
+
+export interface UpdateVirtualNetworkRequest {
+  name: string;
+  location: string;
+  enableDdosProtection: boolean;
+  environmentSettings?: VirtualNetworkEnvironmentConfigEntry[];
+}

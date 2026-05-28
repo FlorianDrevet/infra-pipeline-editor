@@ -8,6 +8,7 @@ export interface ConfigDetailTagsSection {
   readonly configTags: Signal<TagRequest[]>;
   readonly isEditing: Signal<boolean>;
   readonly editingTags: Signal<TagRequest[]>;
+  readonly editingKvItems: Signal<DsKeyValueItem[]>;
   readonly errorKey: Signal<string>;
   readonly isSaving: Signal<boolean>;
   readonly tagNameControl: FormControl<string>;

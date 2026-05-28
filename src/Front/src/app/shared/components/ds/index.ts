@@ -44,6 +44,8 @@ export * from './ds-tag-input/ds-tag-input.component';
 export * from './ds-tag-input/ds-tag-input.types';
 export * from './ds-key-value-input/ds-key-value-input.component';
 export * from './ds-key-value-input/ds-key-value-input.types';
+export * from './ds-list-input/ds-list-input.component';
+export * from './ds-list-input/ds-list-input.types';
 export * from './ds-menu/ds-menu.component';
 export * from './ds-menu/ds-menu.directive';
 export * from './ds-menu/ds-menu.types';

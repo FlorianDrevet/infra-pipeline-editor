@@ -75,4 +75,11 @@ public class GenerationRequest
     /// Used by generated release pipelines to resolve exact source paths.
     /// </summary>
     public string? BicepBasePath { get; set; }
+
+    /// <summary>
+    /// Networking profile configuration for the infrastructure configuration.
+    /// When present, enables networking-related pipeline stages (VNet resolution,
+    /// private endpoint companions, public network access disablement).
+    /// </summary>
+    public NetworkingProfileDefinition? NetworkingProfile { get; set; }
 }

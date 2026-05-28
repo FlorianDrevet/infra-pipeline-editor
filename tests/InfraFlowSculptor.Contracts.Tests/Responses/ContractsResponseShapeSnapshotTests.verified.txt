@@ -1,5 +1,5 @@
 Contracts response DTO public shape snapshot
-Count: 110
+Count: 102
 
 Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
 Type: AppConfigurationKeyResponse
@@ -293,40 +293,6 @@ Constructors:
 Properties:
   Id: string
   Name: string
-
-Namespace: InfraFlowSculptor.Contracts.FrontDoors.Responses
-Type: FrontDoorEnvironmentConfigResponse
-Constructors:
-  FrontDoorEnvironmentConfigResponse(string EnvironmentName, string Sku)
-Properties:
-  EnvironmentName: string
-  Sku: string
-
-Namespace: InfraFlowSculptor.Contracts.FrontDoors.Responses
-Type: FrontDoorOriginResponse
-Constructors:
-  FrontDoorOriginResponse(string Id, string TargetResourceId, string? HostName, bool PrivateLinkEnabled, int Weight, int Priority)
-Properties:
-  HostName: string?
-  Id: string
-  Priority: int
-  PrivateLinkEnabled: bool
-  TargetResourceId: string
-  Weight: int
-
-Namespace: InfraFlowSculptor.Contracts.FrontDoors.Responses
-Type: FrontDoorResponse
-Constructors:
-  FrontDoorResponse(string Id, string ResourceGroupId, string Name, string Location, bool WafPolicyEnabled, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorOriginResponse> Origins, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
-Properties:
-  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorEnvironmentConfigResponse>
-  Id: string
-  IsExisting: bool
-  Location: string
-  Name: string
-  Origins: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorOriginResponse>
-  ResourceGroupId: string
-  WafPolicyEnabled: bool
 
 Namespace: InfraFlowSculptor.Contracts.FunctionApps.Responses
 Type: FunctionAppResponse
@@ -676,33 +642,22 @@ Properties:
   Name: string
   ResourceGroupId: string
 
-Namespace: InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses
-Type: NetworkSecurityGroupResponse
+Namespace: InfraFlowSculptor.Contracts.NetworkingProfiles.Responses
+Type: NetworkingProfileResponse
 Constructors:
-  NetworkSecurityGroupResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses.NsgRuleResponse> SecurityRules, bool IsExisting)
+  NetworkingProfileResponse()
 Properties:
+  CreateNewAddressSpace: string?
+  CreateNewSubnetAddressPrefix: string?
+  DnsHubResourceGroupId: string?
+  DnsHubSubscriptionId: string?
+  DnsMode: string
+  ExistingVnetResourceId: string?
   Id: string
-  IsExisting: bool
-  Location: string
-  Name: string
-  ResourceGroupId: string
-  SecurityRules: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses.NsgRuleResponse>
-
-Namespace: InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses
-Type: NsgRuleResponse
-Constructors:
-  NsgRuleResponse(string Id, string Name, int Priority, string Direction, string Access, string Protocol, string SourceAddressPrefix, string DestinationAddressPrefix, string SourcePortRange, string DestinationPortRange)
-Properties:
-  Access: string
-  DestinationAddressPrefix: string
-  DestinationPortRange: string
-  Direction: string
-  Id: string
-  Name: string
-  Priority: int
-  Protocol: string
-  SourceAddressPrefix: string
-  SourcePortRange: string
+  InfraConfigId: string
+  Mode: string
+  PrivateEndpointsSubnetName: string
+  VnetSourceType: string
 
 Namespace: InfraFlowSculptor.Contracts.PersonalAccessTokens.Responses
 Type: CreatedPersonalAccessTokenResponse
@@ -725,48 +680,6 @@ Properties:
   Name: string
   Scopes: System.Collections.Generic.List<string>
   TokenPrefix: string
-
-Namespace: InfraFlowSculptor.Contracts.PrivateDnsZones.Responses
-Type: PrivateDnsZoneResponse
-Constructors:
-  PrivateDnsZoneResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.PrivateDnsZones.Responses.VirtualNetworkLinkResponse> VirtualNetworkLinks, bool IsExisting)
-Properties:
-  Id: string
-  IsExisting: bool
-  Location: string
-  Name: string
-  ResourceGroupId: string
-  VirtualNetworkLinks: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.PrivateDnsZones.Responses.VirtualNetworkLinkResponse>
-
-Namespace: InfraFlowSculptor.Contracts.PrivateDnsZones.Responses
-Type: VirtualNetworkLinkResponse
-Constructors:
-  VirtualNetworkLinkResponse(string Id, string VirtualNetworkId, bool EnableAutoRegistration)
-Properties:
-  EnableAutoRegistration: bool
-  Id: string
-  VirtualNetworkId: string
-
-Namespace: InfraFlowSculptor.Contracts.PrivateEndpoints.Responses
-Type: AvailableGroupIdsResponse
-Constructors:
-  AvailableGroupIdsResponse(string ResourceType, System.Collections.Generic.IReadOnlyList<string> GroupIds)
-Properties:
-  GroupIds: System.Collections.Generic.IReadOnlyList<string>
-  ResourceType: string
-
-Namespace: InfraFlowSculptor.Contracts.PrivateEndpoints.Responses
-Type: PrivateEndpointConfigResponse
-Constructors:
-  PrivateEndpointConfigResponse(string Id, string ResourceId, string SubnetId, string GroupId, bool AutoApproval, string? PrivateDnsZoneId, string? CustomNetworkInterfaceName)
-Properties:
-  AutoApproval: bool
-  CustomNetworkInterfaceName: string?
-  GroupId: string
-  Id: string
-  PrivateDnsZoneId: string?
-  ResourceId: string
-  SubnetId: string
 
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
 Type: GenerateProjectBicepResponse

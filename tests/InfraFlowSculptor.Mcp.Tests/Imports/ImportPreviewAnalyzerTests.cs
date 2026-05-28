@@ -103,7 +103,7 @@ public sealed class ImportPreviewAnalyzerTests
         // Assert
         result.Resources.Should().HaveCount(1);
         result.Resources[0].MappedResourceType.Should().BeNull();
-        result.UnsupportedResources.Should().Contain("fakeResource");
+        result.UnsupportedResources.Should().Contain("Microsoft.FakeProvider/fakeResources");
         result.Gaps.Should().Contain(gap =>
             gap.Category == ImportPreviewGapCategory.UnsupportedResource &&
             gap.Severity == ImportPreviewGapSeverity.Warning &&

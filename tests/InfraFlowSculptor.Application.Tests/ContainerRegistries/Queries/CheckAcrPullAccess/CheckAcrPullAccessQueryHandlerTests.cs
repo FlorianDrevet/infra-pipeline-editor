@@ -174,8 +174,6 @@ public sealed class CheckAcrPullAccessQueryHandlerTests
 
         _azureResourceRepository.GetByIdWithRoleAssignmentsReadOnlyAsync(_sourceResource.Id, Arg.Any<CancellationToken>())
             .Returns(_sourceResource);
-        _azureResourceRepository.GetRoleAssignmentsByIdentityIdAsync(selectedUai.Id, Arg.Any<CancellationToken>())
-            .Returns([]);
         _azureResourceRepository.GetByIdReadOnlyAsync(selectedUai.Id, Arg.Any<CancellationToken>())
             .Returns(selectedUai);
 
