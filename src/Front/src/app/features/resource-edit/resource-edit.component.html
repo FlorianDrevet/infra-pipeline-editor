@@ -173,8 +173,9 @@
               <div class="form-section">
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
                 <div class="form-grid">
-                  <div class="form-field form-field--toggle">
+                  <div class="form-field form-field--toggle form-field--with-info">
                     <app-ds-toggle formControlName="enableDdosProtection" [label]="'RESOURCE_EDIT.FIELDS.ENABLE_DDOS_PROTECTION' | translate"></app-ds-toggle>
+                    <mat-icon class="field-info-icon" [matTooltip]="'COMMON.VNET_HELP_DIALOG.DDOS_TOOLTIP' | translate">info_outline</mat-icon>
                   </div>
                 </div>
               </div>
@@ -623,29 +624,21 @@
                             <mat-icon class="env-extra-section__icon">lan</mat-icon>
                             <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.VIRTUAL_NETWORK_SECTION' | translate }}</span>
                           </div>
-
-                          <app-ds-panel-action-button
-                            icon="help_outline"
-                            tone="accent"
-                            surface="dark"
-                            [ariaLabel]="'COMMON.HELP' | translate"
-                            [tooltip]="'COMMON.HELP' | translate"
-                            (clicked)="openVnetHelpDialog('resourceEdit')" />
                         </div>
                         <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.VIRTUAL_NETWORK_SECTION_DESC' | translate }}</p>
                         <div class="form-grid env-category-grid">
-                          <app-ds-tag-input
+                          <app-ds-list-input
                             formControlName="addressSpacesInput"
                             [label]="'RESOURCE_EDIT.FIELDS.VNET_ADDRESS_SPACES' | translate"
                             [placeholder]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_PLACEHOLDER' | translate"
-                            [addOnBlur]="true"
-                            [validator]="vnetAddressSpaceValidator" />
-                          <app-ds-tag-input
+                            [helperText]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_HELPER' | translate"
+                            [validator]="vnetAddressSpaceListValidator" />
+                          <app-ds-list-input
                             formControlName="dnsServersInput"
                             [label]="'RESOURCE_EDIT.FIELDS.VNET_DNS_SERVERS' | translate"
                             [placeholder]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_PLACEHOLDER' | translate"
-                            [addOnBlur]="true"
-                            [validator]="vnetDnsServerValidator" />
+                            [helperText]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_HELPER' | translate"
+                            [validator]="vnetDnsServerListValidator" />
                         </div>
                       </div>
                     }

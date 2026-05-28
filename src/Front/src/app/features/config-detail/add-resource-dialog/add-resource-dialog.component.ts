@@ -4,6 +4,7 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } fr
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, Observable, switchMap, tap } from 'rxjs';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DsSpinnerComponent } from '../../../shared/components/ds/ds-spinner/ds-spinner.component';
 import { DsTabsComponent } from '../../../shared/components/ds/ds-tabs/ds-tabs.component';
 import { DsTabDefinition } from '../../../shared/components/ds/ds-tabs/ds-tabs.types';
@@ -15,7 +16,6 @@ import { OS_TYPE_OPTIONS } from '../enums/os-type.enum';
 import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../enums/app-service-plan-sku.enum';
 import { RUNTIME_STACK_OPTIONS } from '../enums/runtime-stack.enum';
 import { FUNCTION_APP_RUNTIME_STACK_OPTIONS } from '../enums/function-app-runtime-stack.enum';
-import { DsTagInputItem } from '../../../shared/components/ds/ds-tag-input/ds-tag-input.types';
 import { AcrAuthMode } from '../../../shared/interfaces/container-registry.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { ProjectResourceResponse } from '../../../shared/interfaces/cross-config-reference.interface';
@@ -23,7 +23,7 @@ import { NameAvailabilityService } from '../../../shared/services/name-availabil
 import { EnvironmentNameAvailabilityResponseItem } from '../../../shared/interfaces/name-availability.interface';
 import { ToggleSectionCardComponent } from '../../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DeploymentConfigComponent } from '../../../shared/components/deployment-config/deployment-config.component';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsToggleComponent, DsIconButtonComponent, DsOptionCardComponent, DsPanelActionButtonComponent, DsTagInputComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsToggleComponent, DsIconButtonComponent, DsOptionCardComponent, DsPanelActionButtonComponent, DsListInputComponent } from '../../../shared/components/ds';
 import {
   applyAddResourceProbeToggle,
   copyAddResourceEnvironmentSettings,
@@ -36,8 +36,7 @@ import {
 } from './add-resource-dialog-parent-resource.helper';
 import { AddResourceDialogPlanWorkflowService } from './add-resource-dialog-plan-workflow.service';
 import { AddResourceDialogResourceSubmitterService } from './add-resource-dialog-resource-submitter.service';
-import { VnetHelpDialogComponent } from '../../../shared/components/vnet-help-dialog/vnet-help-dialog.component';
-import { createVnetCidrTagValidator, createVnetIpv4TagValidator } from '../../../shared/networking/vnet-tag-input.helpers';
+import { createVnetCidrListValidator, createVnetIpv4ListValidator } from '../../../shared/networking/vnet-tag-input.helpers';
 
 export interface AddResourceDialogData {
   resourceGroupId: string;
@@ -241,6 +240,7 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
   imports: [
     MatDialogModule,
     MatIconModule,
+    MatTooltipModule,
     DsSpinnerComponent,
     DsToggleComponent,
     DsTabsComponent,
@@ -252,7 +252,7 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
     DsIconButtonComponent,
     DsOptionCardComponent,
     DsPanelActionButtonComponent,
-    DsTagInputComponent,
+    DsListInputComponent,
     DsTextFieldComponent,
     DsSelectComponent,
   ],
@@ -277,8 +277,8 @@ export class AddResourceDialogComponent implements OnInit {
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
   protected readonly envFormsValid = signal(true);
-  protected readonly vnetAddressSpaceValidator = createVnetCidrTagValidator(this.vnetValidationMessage);
-  protected readonly vnetDnsServerValidator = createVnetIpv4TagValidator(this.vnetValidationMessage);
+  protected readonly vnetAddressSpaceListValidator = createVnetCidrListValidator(this.vnetValidationMessage);
+  protected readonly vnetDnsServerListValidator = createVnetIpv4ListValidator(this.vnetValidationMessage);
 
   // ── Name Availability (live DNS check) ──
   protected readonly nameAvailabilityChecking = signal(false);
@@ -444,8 +444,8 @@ export class AddResourceDialogComponent implements OnInit {
     disableAccessKeyAuthentication: [false],
     enableAadAuth: [false],
     enableDdosProtection: [false],
-    vnetAddressSpacesInput: this.fb.nonNullable.control<DsTagInputItem[]>([]),
-    vnetDnsServersInput: this.fb.nonNullable.control<DsTagInputItem[]>([]),
+    vnetAddressSpacesInput: this.fb.nonNullable.control<string[]>([]),
+    vnetDnsServersInput: this.fb.nonNullable.control<string[]>([]),
     isExisting: [false],
   });
 
@@ -568,13 +568,6 @@ export class AddResourceDialogComponent implements OnInit {
 
   protected overrideNameAvailability(): void {
     this.nameAvailabilityOverridden.set(true);
-  }
-
-  protected openVnetHelpDialog(): void {
-    this.dialog.open(VnetHelpDialogComponent, {
-      width: '640px',
-      data: { context: 'resourceCreate' as const },
-    });
   }
 
   protected getVnetAddressSpacesErrorText(): string | undefined {

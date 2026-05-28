@@ -7,6 +7,9 @@
       "DUPLICATE_KEY": "Cette clé existe déjà",
       "KEY_REQUIRED": "La clé est requise",
       "VALUE_REQUIRED": "La valeur est requise"
+    },
+    "LIST_INPUT": {
+      "DUPLICATE": "Cette valeur existe déjà"
     }
   },
   "LANGUAGE": {
@@ -318,7 +321,10 @@
         "SUBTITLE": "Choisissez l'espace d'adressage et le sous-réseau private endpoint qu'InfraFlowSculptor doit appliquer lorsqu'il provisionne le réseau de la configuration."
       },
       "ADDRESS_SPACES_PLACEHOLDER": "Ajoutez un bloc CIDR comme 10.0.0.0/16",
+      "ADDRESS_SPACES_HELPER": "Utilisez des plages de votre landing zone qui ne chevauchent pas d'autres VNets ou réseaux on-prem.",
       "DNS_SERVERS_PLACEHOLDER": "Ajoutez un serveur DNS comme 10.0.0.4",
+      "DNS_SERVERS_HELPER": "Laissez vide pour utiliser le DNS Azure. Ajoutez des forwarders hub ou des résolveurs on-prem si nécessaire.",
+      "DDOS_TOOLTIP": "Active un plan de protection DDoS dédié. À activer uniquement si vos standards de plateforme ou votre modèle de menaces l'exigent.",
       "ADDRESS_SPACES": {
         "TITLE": "Espaces d'adressage",
         "BODY": "Un espace d'adressage définit les plages CIDR disponibles dans le réseau virtuel. Azure s'appuie sur ces plages pour allouer les sous-réseaux et les adresses IP privées.",

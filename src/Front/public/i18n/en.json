@@ -7,6 +7,9 @@
       "DUPLICATE_KEY": "This key already exists",
       "KEY_REQUIRED": "Key is required",
       "VALUE_REQUIRED": "Value is required"
+    },
+    "LIST_INPUT": {
+      "DUPLICATE": "This value already exists"
     }
   },
   "LANGUAGE": {
@@ -318,7 +321,10 @@
         "SUBTITLE": "Choose the address space and private-endpoint subnet values InfraFlowSculptor should apply when it provisions networking for the configuration."
       },
       "ADDRESS_SPACES_PLACEHOLDER": "Add a CIDR block such as 10.0.0.0/16",
+      "ADDRESS_SPACES_HELPER": "Use ranges from your landing zone that do not overlap with other VNets or on-prem networks.",
       "DNS_SERVERS_PLACEHOLDER": "Add a DNS server such as 10.0.0.4",
+      "DNS_SERVERS_HELPER": "Leave empty to use Azure-provided DNS. Add hub forwarders or on-prem resolvers when required.",
+      "DDOS_TOOLTIP": "Enables a dedicated DDoS protection plan. Turn on only when your platform standards or threat model require it.",
       "ADDRESS_SPACES": {
         "TITLE": "Address spaces",
         "BODY": "An address space defines the CIDR ranges available inside the virtual network. Azure uses these ranges to allocate subnets and private IP addresses.",

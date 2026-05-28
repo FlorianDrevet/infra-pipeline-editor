@@ -42,7 +42,6 @@ import {
   buildStorageAccountEnvironmentSettings,
   buildWebAppEnvironmentSettings,
 } from './add-resource-dialog-environment-settings.helper';
-import { mapTagInputItemsToStrings } from '../../../shared/networking/vnet-tag-input.helpers';
 
 interface AddResourceDialogCommonFormValue {
   readonly name: string;
@@ -82,12 +81,12 @@ function buildVirtualNetworkEnvironmentSettings(
   environments: readonly AddResourceEnvironmentDefinition[],
   common: AddResourceDialogCommonFormValue,
 ) {
-  const addressSpaces = mapTagInputItemsToStrings(common.vnetAddressSpacesInput);
+  const addressSpaces = common.vnetAddressSpacesInput ?? [];
   if (addressSpaces.length === 0 || environments.length === 0) {
     return undefined;
   }
 
-  const dnsServers = mapTagInputItemsToStrings(common.vnetDnsServersInput);
+  const dnsServers = common.vnetDnsServersInput ?? [];
 
   return environments.map((environment) => ({
     environmentName: environment.name,

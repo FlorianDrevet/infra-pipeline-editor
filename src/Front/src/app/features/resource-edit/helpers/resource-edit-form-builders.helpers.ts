@@ -19,7 +19,6 @@ import { StorageAccountResponse, BlobLifecycleRuleEntry, CorsRuleEntry } from '.
 import { UserAssignedIdentityResponse } from '../../../shared/interfaces/user-assigned-identity.interface';
 import { VirtualNetworkResponse } from '../../../shared/interfaces/virtual-network.interface';
 import { WebAppResponse } from '../../../shared/interfaces/web-app.interface';
-import { mapStringsToTagInputItems } from '../../../shared/networking/vnet-tag-input.helpers';
 import { buildBlobLifecycleRules, buildStorageAccountCorsRules, ResourceEditEnvironmentFormEntry } from './resource-edit-environment-settings.helpers';
 
 export type ResourceEditData =
@@ -365,8 +364,8 @@ function buildSingleEnvironmentForm(
       const virtualNetwork = resource as VirtualNetworkResponse;
       const settings = virtualNetwork.environmentSettings?.find((entry) => entry.environmentName === environmentName);
       return fb.group({
-        addressSpacesInput: [mapStringsToTagInputItems(settings?.addressSpaces)],
-        dnsServersInput: [mapStringsToTagInputItems(settings?.dnsServers)],
+        addressSpacesInput: [settings?.addressSpaces ?? []],
+        dnsServersInput: [settings?.dnsServers ?? []],
       });
     }
     default:

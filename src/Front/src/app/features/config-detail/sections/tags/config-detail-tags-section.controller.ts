@@ -91,10 +91,15 @@ export function createConfigDetailTagsSectionController(
     editingTags.set(items.map(item => ({ name: item.key, value: item.value })));
   };
 
+  const editingKvItems = computed<DsKeyValueItem[]>(() =>
+    editingTags().map(t => ({ key: t.name, value: t.value })),
+  );
+
   return {
     configTags,
     isEditing,
     editingTags,
+    editingKvItems,
     errorKey,
     isSaving,
     tagNameControl,

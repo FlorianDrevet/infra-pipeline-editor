@@ -1,6 +1,5 @@
 import { FormGroup } from '@angular/forms';
 
-import { DsTagInputItem } from '../../../shared/components/ds/ds-tag-input/ds-tag-input.types';
 import { AppConfigurationEnvironmentConfigEntry } from '../../../shared/interfaces/app-configuration.interface';
 import { AppServicePlanEnvironmentConfigEntry } from '../../../shared/interfaces/app-service-plan.interface';
 import { ApplicationInsightsEnvironmentConfigEntry } from '../../../shared/interfaces/application-insights.interface';
@@ -22,7 +21,6 @@ import {
 } from '../../../shared/interfaces/storage-account.interface';
 import { VirtualNetworkEnvironmentConfigEntry } from '../../../shared/interfaces/virtual-network.interface';
 import { WebAppEnvironmentConfigEntry } from '../../../shared/interfaces/web-app.interface';
-import { mapTagInputItemsToStrings } from '../../../shared/networking/vnet-tag-input.helpers';
 
 export interface ResourceEditEnvironmentFormEntry {
   envName: string;
@@ -30,7 +28,6 @@ export interface ResourceEditEnvironmentFormEntry {
 }
 
 type RawEnvironmentScalarValue = string | number | boolean | null;
-type RawEnvironmentTagValue = ReadonlyArray<DsTagInputItem> | null;
 
 interface RawEnvironmentFormValue {
   sku?: RawEnvironmentScalarValue;
@@ -81,8 +78,8 @@ interface RawEnvironmentFormValue {
   zoneRedundancy?: RawEnvironmentScalarValue;
   minimalTlsVersion?: RawEnvironmentScalarValue;
   maxSizeGb?: RawEnvironmentScalarValue;
-  addressSpacesInput?: RawEnvironmentTagValue | string;
-  dnsServersInput?: RawEnvironmentTagValue | string;
+  addressSpacesInput?: readonly string[] | null;
+  dnsServersInput?: readonly string[] | null;
 }
 
 export function buildKeyVaultEnvironmentSettings(
@@ -117,12 +114,12 @@ export function buildVirtualNetworkEnvironmentSettings(
 ): VirtualNetworkEnvironmentConfigEntry[] {
   return envForms.map((envForm) => {
     const raw = readRawValue(envForm);
-    const dnsServers = mapTagInputItemsToStrings(raw.dnsServersInput);
+    const dnsServers = raw.dnsServersInput ?? [];
 
     return {
       environmentName: envForm.envName,
-      addressSpaces: mapTagInputItemsToStrings(raw.addressSpacesInput),
-      dnsServers: dnsServers.length > 0 ? dnsServers : undefined,
+      addressSpaces: [...(raw.addressSpacesInput ?? [])],
+      dnsServers: dnsServers.length > 0 ? [...dnsServers] : undefined,
     };
   });
 }

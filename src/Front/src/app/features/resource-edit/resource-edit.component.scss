@@ -384,6 +384,10 @@
     border: 1px solid var(--ifs-border-subtle);
   }
 
+  &--with-info {
+    gap: var(--ifs-space-8);
+  }
+
   &--with-action {
     display: flex;
     align-items: flex-start;
@@ -393,6 +397,20 @@
     app-ds-text-field { flex: 1; }
     app-dockerfile-picker,
     app-build-context-picker { margin-top: 22px; }
+  }
+}
+
+.field-info-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--ifs-text-muted);
+  cursor: help;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 1;
   }
 }
 

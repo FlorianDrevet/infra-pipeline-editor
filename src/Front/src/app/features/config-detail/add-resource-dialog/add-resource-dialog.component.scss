@@ -489,3 +489,24 @@
     grid-template-columns: 1fr;
   }
 }
+
+// ── Info icon for inline tooltip on toggles ──
+.form-field--with-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.field-info-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--ifs-text-muted);
+  cursor: help;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 1;
+  }
+}

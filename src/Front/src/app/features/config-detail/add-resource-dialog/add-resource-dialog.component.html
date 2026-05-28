@@ -213,37 +213,33 @@
                   <span class="resource-form__section-title">{{ 'COMMON.VNET_HELP_DIALOG.RESOURCE_CREATE.TITLE' | translate }}</span>
                   <p class="resource-form__section-description">{{ 'COMMON.VNET_HELP_DIALOG.RESOURCE_CREATE.SUBTITLE' | translate }}</p>
                 </div>
-
-                <app-ds-panel-action-button
-                  icon="help_outline"
-                  tone="accent"
-                  surface="light"
-                  [ariaLabel]="'COMMON.HELP' | translate"
-                  [tooltip]="'COMMON.HELP' | translate"
-                  (clicked)="openVnetHelpDialog()" />
               </div>
 
-              <div class="form-field form-field--toggle">
+              <div class="form-field form-field--toggle form-field--with-info">
                 <app-ds-toggle
                   formControlName="enableDdosProtection"
                   [label]="'RESOURCE_EDIT.FIELDS.ENABLE_DDOS_PROTECTION' | translate"></app-ds-toggle>
+                <mat-icon
+                  class="field-info-icon"
+                  [matTooltip]="'COMMON.VNET_HELP_DIALOG.DDOS.GUIDANCE' | translate"
+                  matTooltipPosition="above">info_outline</mat-icon>
               </div>
 
-              <app-ds-tag-input
+              <app-ds-list-input
                 formControlName="vnetAddressSpacesInput"
                 [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_ADDRESS_SPACES' | translate"
                 [placeholder]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_PLACEHOLDER' | translate"
                 [required]="true"
-                [addOnBlur]="true"
-                [validator]="vnetAddressSpaceValidator"
+                [validator]="vnetAddressSpaceListValidator"
+                [helperText]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.GUIDANCE' | translate"
                 [errorText]="getVnetAddressSpacesErrorText()" />
 
-              <app-ds-tag-input
+              <app-ds-list-input
                 formControlName="vnetDnsServersInput"
                 [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_DNS_SERVERS' | translate"
                 [placeholder]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_PLACEHOLDER' | translate"
-                [addOnBlur]="true"
-                [validator]="vnetDnsServerValidator" />
+                [validator]="vnetDnsServerListValidator"
+                [helperText]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS.GUIDANCE' | translate" />
             </div>
           }
 

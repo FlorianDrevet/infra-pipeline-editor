@@ -1,6 +1,5 @@
 import { FormBuilder } from '@angular/forms';
 
-import { DsTagInputItem } from '../../../shared/components/ds/ds-tag-input/ds-tag-input.types';
 import { BlobLifecycleRuleEntry, CorsRuleEntry } from '../../../shared/interfaces/storage-account.interface';
 import {
   ResourceEditEnvironmentFormEntry,
@@ -20,8 +19,8 @@ describe('resource edit environment settings helpers', () => {
   it('builds virtual network environment settings from delimited address-space and DNS inputs', () => {
     const envForms = [
       createEnvironmentFormEntry('Development', {
-        addressSpacesInput: createTagItems(TestAddressSpaces),
-        dnsServersInput: createTagItems(TestDnsServers),
+        addressSpacesInput: [...TestAddressSpaces],
+        dnsServersInput: [...TestDnsServers],
       }),
       createEnvironmentFormEntry('Production', {
         addressSpacesInput: [],
@@ -196,6 +195,4 @@ describe('resource edit environment settings helpers', () => {
   }
 });
 
-function createTagItems(values: readonly string[]): DsTagInputItem[] {
-  return values.map((value) => ({ value }));
-}
+

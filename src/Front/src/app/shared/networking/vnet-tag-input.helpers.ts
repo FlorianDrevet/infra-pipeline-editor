@@ -1,4 +1,5 @@
 import { DsTagInputItem, DsTagInputValidator } from '../components/ds/ds-tag-input/ds-tag-input.types';
+import { DsListInputValidator } from '../components/ds/ds-list-input/ds-list-input.types';
 
 const InvalidCidrTranslationKey = 'COMMON.VNET_HELP_DIALOG.VALIDATION.INVALID_CIDR';
 const InvalidIpv4TranslationKey = 'COMMON.VNET_HELP_DIALOG.VALIDATION.INVALID_IPV4';
@@ -73,4 +74,14 @@ function isTagInputItem(value: unknown): value is DsTagInputItem {
     && !Array.isArray(value)
     && 'value' in value
     && typeof value.value === 'string';
+}
+
+export function createVnetCidrListValidator(resolveTranslation: TranslationResolver): DsListInputValidator {
+  return (value: string, _existing: readonly string[]) =>
+    isValidCidrBlock(value) ? true : resolveTranslation(InvalidCidrTranslationKey);
+}
+
+export function createVnetIpv4ListValidator(resolveTranslation: TranslationResolver): DsListInputValidator {
+  return (value: string, _existing: readonly string[]) =>
+    isValidIpv4Address(value) ? true : resolveTranslation(InvalidIpv4TranslationKey);
 }

@@ -1,6 +1,5 @@
 import { FormBuilder } from '@angular/forms';
 
-import { DsTagInputItem } from '../../../shared/components/ds/ds-tag-input/ds-tag-input.types';
 import { buildResourceEditEnvironmentForms, buildResourceEditGeneralForm } from './resource-edit-form-builders.helpers';
 
 const TestAddressSpaces = ['vnet-space-primary', 'vnet-space-secondary'] as const;
@@ -91,16 +90,12 @@ describe('resource edit form builders helpers', () => {
     );
 
     expect(generalResult.form.get('enableDdosProtection')?.value).toBeTrue();
-    expect(envForms[0].form.get('addressSpacesInput')?.value).toEqual(createTagItems(TestAddressSpaces));
-    expect(envForms[0].form.get('dnsServersInput')?.value).toEqual(createTagItems(TestDnsServers));
+    expect(envForms[0].form.get('addressSpacesInput')?.value).toEqual([...TestAddressSpaces]);
+    expect(envForms[0].form.get('dnsServersInput')?.value).toEqual([...TestDnsServers]);
     expect(envForms[1].form.get('addressSpacesInput')?.value).toEqual([]);
     expect(envForms[1].form.get('dnsServersInput')?.value).toEqual([]);
   });
 });
-
-function createTagItems(values: readonly string[]): DsTagInputItem[] {
-  return values.map((value) => ({ value }));
-}
 
 function createStorageAccountResource() {
   return {
