@@ -132,6 +132,7 @@ public sealed class VirtualNetworkRepositoryTests : IDisposable
         var entity = NewEntity(ResourceGroupId.CreateUnique());
         var subnet = entity.AddSubnet(
             new Name("subnet1"),
+            "10.0.1.0/24",
             delegation: null,
             serviceEndpoints: null,
             new PrivateEndpointNetworkPolicy(PrivateEndpointNetworkPolicy.Policy.Disabled),

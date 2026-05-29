@@ -35,7 +35,7 @@ public sealed class UpdateSubnetCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        var name = Name.Create(request.Name);
+        var name = new Name(request.Name);
         var delegation = request.Delegation is not null
             ? new SubnetDelegation(Enum.Parse<SubnetDelegation.Delegation>(request.Delegation, ignoreCase: true))
             : (SubnetDelegation?)null;

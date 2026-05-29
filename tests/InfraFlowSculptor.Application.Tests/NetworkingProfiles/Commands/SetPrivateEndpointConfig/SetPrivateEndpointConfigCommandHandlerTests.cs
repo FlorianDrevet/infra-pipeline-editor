@@ -52,7 +52,7 @@ public sealed class SetPrivateEndpointConfigCommandHandlerTests
 
         _resource = KeyVault.Create(_resourceGroup.Id, new Name("kv-test"), new Location(Location.LocationEnum.FranceCentral));
         _vnet = VirtualNetwork.Create(_vnetResourceGroup.Id, new Name("vnet-main"), new Location(Location.LocationEnum.FranceCentral));
-        _vnet.AddSubnet(new Name("snet-pe"), null, [], new PrivateEndpointNetworkPolicy(PrivateEndpointNetworkPolicy.Policy.Disabled), null);
+        _vnet.AddSubnet(new Name("snet-pe"), "10.0.1.0/24", null, [], new PrivateEndpointNetworkPolicy(PrivateEndpointNetworkPolicy.Policy.Disabled), null);
 
         _sut = new SetPrivateEndpointConfigCommandHandler(
             _azureResourceRepository,
