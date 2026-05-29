@@ -1,3 +1,5 @@
+using InfraFlowSculptor.BicepGeneration.Ir.Transformations;
+
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 
 /// <summary>
@@ -18,20 +20,9 @@ public sealed class PublicNetworkAccessStage : IBicepGenerationStage
     /// <inheritdoc />
     public void Execute(BicepGenerationContext context)
     {
-        var profile = context.Request.NetworkingProfile;
-        if (profile is null)
-            return;
-
-        var privatizedItems = context.WorkItems
-            .Where(item => item.Resource.IsPrivatized)
-            .ToList();
-
-        if (privatizedItems.Count == 0)
-            return;
-
-        // TODO: For each privatized module spec, inject:
-        // 1. publicNetworkAccess: 'Disabled' in the resource properties
-        // 2. networkAcls: { defaultAction: 'Deny' } for resources that support it (Storage, KV)
-        // This is done via IR transformation on the BicepModuleSpec (similar to TagsInjectionStage).
+        foreach (var item in context.WorkItems.Where(i => i.Resource.IsPrivatized))
+        {
+            item.Spec = item.Spec.WithPublicNetworkAccessDisabled(item.Spec.ResourceTypeName);
+        }
     }
 }

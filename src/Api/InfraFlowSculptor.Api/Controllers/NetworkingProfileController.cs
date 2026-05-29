@@ -1,80 +1,28 @@
 using InfraFlowSculptor.Api.Controllers.Constants;
 using InfraFlowSculptor.Api.Errors;
-using InfraFlowSculptor.Application.NetworkingProfiles.Commands.SetNetworkingProfile;
+using InfraFlowSculptor.Application.NetworkingProfiles.Commands.RemovePrivateEndpointConfig;
+using InfraFlowSculptor.Application.NetworkingProfiles.Commands.SetPrivateEndpointConfig;
 using InfraFlowSculptor.Application.NetworkingProfiles.Commands.ToggleResourcePrivatization;
-using InfraFlowSculptor.Application.NetworkingProfiles.Queries.GetNetworkingProfile;
 using InfraFlowSculptor.Contracts.NetworkingProfiles.Requests;
-using InfraFlowSculptor.Contracts.NetworkingProfiles.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.NetworkingProfileAggregate.ValueObjects;
-using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InfraFlowSculptor.Api.Controllers;
 
+/// <summary>
+/// Private endpoint configuration endpoints (V3 per-resource PE).
+/// </summary>
 public static class NetworkingProfileController
 {
     public static IApplicationBuilder UseNetworkingProfileController(this IApplicationBuilder builder)
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var group = endpoints.MapGroup(Routes.NetworkingProfile)
-                .WithTags("Networking Profile");
-
-            group.MapGet("",
-                    async ([FromRoute] Guid infraConfigId, IMediator mediator, IMapper mapper) =>
-                    {
-                        var query = new GetNetworkingProfileQuery(new InfrastructureConfigId(infraConfigId));
-                        var result = await mediator.Send(query);
-
-                        return result.Match(
-                            profile => TypedResults.Ok(mapper.Map<NetworkingProfileResponse>(profile)),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName(NetworkingProfileRouteNames.GetNetworkingProfile)
-                .WithSummary("Get networking profile")
-                .WithDescription("Returns the networking profile for the specified infrastructure configuration.")
-                .Produces<NetworkingProfileResponse>(StatusCodes.Status200OK)
-                .ProducesProblem(StatusCodes.Status401Unauthorized)
-                .ProducesProblem(StatusCodes.Status404NotFound);
-
-            group.MapPut("",
-                    async ([FromRoute] Guid infraConfigId, [FromBody] SetNetworkingProfileRequest request,
-                        IMediator mediator, IMapper mapper) =>
-                    {
-                        var command = new SetNetworkingProfileCommand(
-                            new InfrastructureConfigId(infraConfigId),
-                            Enum.Parse<NetworkingMode.Mode>(request.Mode, ignoreCase: true),
-                            Enum.Parse<VnetSource.SourceType>(request.VnetSourceType, ignoreCase: true),
-                            request.ExistingVnetResourceId,
-                            request.CreateNewAddressSpace,
-                            request.CreateNewSubnetAddressPrefix,
-                            request.PrivateEndpointsSubnetName,
-                            Enum.Parse<DnsMode.Mode>(request.DnsMode, ignoreCase: true),
-                            request.DnsHubResourceGroupId,
-                            request.DnsHubSubscriptionId
-                        );
-
-                        var result = await mediator.Send(command);
-
-                        return result.Match(
-                            profile => TypedResults.Ok(mapper.Map<NetworkingProfileResponse>(profile)),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName(NetworkingProfileRouteNames.SetNetworkingProfile)
-                .WithSummary("Create or update networking profile")
-                .WithDescription("Creates or updates the networking profile (VNet, DNS, mode) for the specified infrastructure configuration.")
-                .Produces<NetworkingProfileResponse>(StatusCodes.Status200OK)
-                .ProducesProblem(StatusCodes.Status401Unauthorized)
-                .ProducesProblem(StatusCodes.Status400BadRequest);
-
-            // Resource privatization endpoint
+            // Resource privatization toggle
             var privatization = endpoints.MapGroup(Routes.ResourcePrivatization)
-                .WithTags("Networking Profile");
+                .WithTags("Private Endpoint");
 
             privatization.MapPut("",
                     async ([FromRoute] Guid infraConfigId, [FromRoute] Guid resourceId,
@@ -96,7 +44,64 @@ public static class NetworkingProfileController
                     })
                 .WithName(NetworkingProfileRouteNames.ToggleResourcePrivatization)
                 .WithSummary("Toggle resource privatization")
-                .WithDescription("Marks a resource as privatized or deprivatized within the networking profile scope.")
+                .WithDescription("Marks a resource as privatized or deprivatized.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound);
+
+            // Resource private endpoint configuration (V3)
+            var privateEndpoint = endpoints.MapGroup(Routes.ResourcePrivateEndpoint)
+                .WithTags("Private Endpoint");
+
+            privateEndpoint.MapPut("",
+                    async ([FromRoute] Guid infraConfigId, [FromRoute] Guid resourceId,
+                        [FromBody] SetPrivateEndpointConfigRequest request,
+                        IMediator mediator) =>
+                    {
+                        var command = new SetPrivateEndpointConfigCommand(
+                            new InfrastructureConfigId(infraConfigId),
+                            new AzureResourceId(resourceId),
+                            new AzureResourceId(Guid.Parse(request.VirtualNetworkId)),
+                            request.SubnetName,
+                            request.DnsMode,
+                            request.DnsHubResourceGroupId,
+                            request.DnsHubSubscriptionId
+                        );
+
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => TypedResults.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName(NetworkingProfileRouteNames.SetPrivateEndpointConfig)
+                .WithSummary("Configure resource private endpoint")
+                .WithDescription("Sets the private endpoint configuration (VNet, subnet, DNS mode) on an Azure resource.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound);
+
+            privateEndpoint.MapDelete("",
+                    async ([FromRoute] Guid infraConfigId, [FromRoute] Guid resourceId,
+                        IMediator mediator) =>
+                    {
+                        var command = new RemovePrivateEndpointConfigCommand(
+                            new InfrastructureConfigId(infraConfigId),
+                            new AzureResourceId(resourceId)
+                        );
+
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => TypedResults.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName(NetworkingProfileRouteNames.RemovePrivateEndpointConfig)
+                .WithSummary("Remove resource private endpoint")
+                .WithDescription("Removes the private endpoint configuration from an Azure resource, reverting to public access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);

@@ -14,6 +14,7 @@ public sealed class GenerationCoreBoundaryTests
         nameof(BicepIdentifierNormalizer),
         nameof(KeyVaultSecretNameRules),
         nameof(PathSanitizer),
+        nameof(PrivateEndpointGroupIdCatalog),
     };
     private static readonly string[] ForbiddenImplementationTypeSuffixes =
     [

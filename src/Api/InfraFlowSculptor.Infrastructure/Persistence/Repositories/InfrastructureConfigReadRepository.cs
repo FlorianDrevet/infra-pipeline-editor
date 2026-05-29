@@ -982,7 +982,15 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             AssignedUserAssignedIdentityName = assignedUaiName,
             IsExisting = r.IsExisting,
             IsPrivatized = r.IsPrivatized,
-            CustomDomains = resourceCustomDomains
+            CustomDomains = resourceCustomDomains,
+            PrivateEndpointConfig = r.PrivateEndpointConfiguration is not null
+                ? new PrivateEndpointConfigReadModel(
+                    r.PrivateEndpointConfiguration.VirtualNetworkId.Value,
+                    r.PrivateEndpointConfiguration.SubnetName.Value,
+                    r.PrivateEndpointConfiguration.DnsMode.Value.ToString(),
+                    r.PrivateEndpointConfiguration.DnsHubResourceGroupId,
+                    r.PrivateEndpointConfiguration.DnsHubSubscriptionId)
+                : null
         };
     }
 

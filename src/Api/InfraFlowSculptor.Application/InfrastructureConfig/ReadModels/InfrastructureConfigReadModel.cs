@@ -31,7 +31,18 @@ public record AzureResourceReadModel(
     string? AssignedUserAssignedIdentityName = null,
     bool IsExisting = false,
     IReadOnlyList<CustomDomainReadModel>? CustomDomains = null,
-    bool IsPrivatized = false);
+    bool IsPrivatized = false,
+    PrivateEndpointConfigReadModel? PrivateEndpointConfig = null);
+
+/// <summary>
+/// Read model for per-resource private endpoint configuration (V3).
+/// </summary>
+public record PrivateEndpointConfigReadModel(
+    Guid VirtualNetworkId,
+    string SubnetName,
+    string DnsMode,
+    string? DnsHubResourceGroupId,
+    string? DnsHubSubscriptionId);
 
 /// <summary>
 /// Read model for a custom domain binding on an Azure resource.

@@ -81,11 +81,11 @@ public static class Routes
     /// <summary>Route group prefix for Virtual Network operations.</summary>
     public const string VirtualNetwork = "/virtual-network";
 
-    /// <summary>Route group prefix for networking profile operations scoped to an infra config.</summary>
-    public const string NetworkingProfile = "/infra-config/{infraConfigId:guid}/networking-profile";
-
     /// <summary>Route group prefix for resource privatization operations scoped to an infra config.</summary>
     public const string ResourcePrivatization = "/infra-config/{infraConfigId:guid}/resources/{resourceId:guid}/privatization";
+
+    /// <summary>Route group prefix for resource private endpoint configuration.</summary>
+    public const string ResourcePrivateEndpoint = "/infra-config/{infraConfigId:guid}/resources/{resourceId:guid}/private-endpoint-config";
 
 
 

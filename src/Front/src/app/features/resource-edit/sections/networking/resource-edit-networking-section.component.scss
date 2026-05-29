@@ -1,0 +1,65 @@
+.networking-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem 0;
+
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: var(--ds-color-danger-surface, #fef2f2);
+    color: var(--ds-color-danger-text, #dc2626);
+    font-size: 0.875rem;
+
+    mat-icon {
+      font-size: 1.25rem;
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+
+  &__toggle-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  &__toggle-description {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--ds-color-text-secondary, #64748b);
+    padding-left: 3rem;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--ds-color-border, #e2e8f0);
+  }
+
+  &__field {
+    max-width: 480px;
+
+    &--dns {
+      flex: 1;
+    }
+  }
+
+  &__dns-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    max-width: 520px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+  }
+}

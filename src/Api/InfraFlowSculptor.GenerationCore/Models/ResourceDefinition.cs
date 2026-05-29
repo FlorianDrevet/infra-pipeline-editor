@@ -44,4 +44,10 @@ public class ResourceDefinition
     /// Whether this resource is marked for private endpoint deployment via the networking profile.
     /// </summary>
     public bool IsPrivatized { get; set; }
+
+    /// <summary>
+    /// Per-resource private endpoint configuration (V3 resource-level PE).
+    /// Populated only when <see cref="IsPrivatized"/> is <c>true</c>.
+    /// </summary>
+    public PrivateEndpointDefinition? PrivateEndpointConfig { get; set; }
 }

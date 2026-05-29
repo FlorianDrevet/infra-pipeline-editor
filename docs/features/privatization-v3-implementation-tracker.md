@@ -19,13 +19,13 @@ Décisions validées le 2026-05-29 :
 | Lot 0 — cadrage et tracker | Done | dev | 2026-05-29 | Aucun |
 | Lot 1 — domaine ressource | Done | dotnet-dev | 2026-05-29 | Aucun pour la fondation PE ressource ; le rename éventuel de `IsPrivatized` reste hors scope |
 | Lot 2 — persistance EF Core | Done | dotnet-dev | 2026-05-29 | Aucun pour la migration additive ; la suppression V2 reste au Lot 8 |
-| Lot 3 — CQRS/API | Not started | dotnet-dev | 2026-05-29 | Créer commandes/endpoints `SetPrivateEndpointConfig` et `RemovePrivateEndpointConfig` |
-| Lot 4 — cross-config VNet | Not started | dotnet-dev | 2026-05-29 | Valider VNet projet, subnet, et référence cross-configuration explicite |
-| Lot 5 — génération Bicep | Not started | dotnet-dev | 2026-05-29 | Remplacer les stages skeleton par la génération Private Endpoint réelle |
-| Lot 6 — frontend ressource | Not started | angular-front | 2026-05-29 | Déplacer l'édition dans `resource-edit`, sélectionner VNet/subnet, retirer modes |
-| Lot 7 — aide DNS et i18n | Not started | angular-front | 2026-05-29 | Ajouter dialogue d'aide DNS FR/EN avec composants DS |
-| Lot 8 — suppression V2 UI/API | Not started | dev | 2026-05-29 | Supprimer `NetworkingProfile` obsolète après remplacement fonctionnel |
-| Lot 9 — validation finale | Not started | dev | 2026-05-29 | Build/tests .NET, typecheck/build frontend, GitNexus detect_changes, mémoire projet |
+| Lot 3 — CQRS/API | Done | dotnet-dev | 2026-05-30 | Aucun |
+| Lot 4 — cross-config VNet | Done | dotnet-dev | 2026-05-30 | Aucun |
+| Lot 5 — génération Bicep | Done | dotnet-dev | 2026-05-30 | Aucun |
+| Lot 6 — frontend ressource | Done | angular-front | 2026-05-30 | Aucun |
+| Lot 7 — aide DNS et i18n | Done | angular-front | 2026-05-30 | Aucun |
+| Lot 8 — suppression V2 UI/API | Done | dev | 2026-05-30 | Dead code backend conservé volontairement |
+| Lot 9 — validation finale | Done | dev | 2026-05-30 | Aucun |
 
 ## Journal d'implémentation
 
@@ -43,13 +43,19 @@ Décisions validées le 2026-05-29 :
 - Validation large : `dotnet build .\InfraFlowSculptor.slnx` vert. `dotnet test .\InfraFlowSculptor.slnx` relancé ; résultat 4110 passés / 9 ignorés / 5 échecs préexistants hors scope (`UpdateProjectEnvironmentRequestTests.Given_EmptySubscriptionId_When_Validate_Then_ReturnsError` et 4 `SecurityMiddlewareIntegrationTests` bloqués par connection string health check nulle).
 - GitNexus `detect_changes(scope: all)` exécuté : risque bas, 0 flux affecté remonté. Limite observée : l'outil n'a pas listé les nouveaux fichiers non indexés de cette slice ; utiliser `git status` comme source de vérité jusqu'à une prochaine analyse incluant les nouveaux symboles.
 
+### 2026-05-30
+
+- Lot 3 livré : commandes CQRS `ToggleResourcePrivatizationCommand`, `SetPrivateEndpointConfigCommand`, `RemovePrivateEndpointConfigCommand` avec handlers, validators (FluentValidation), et endpoints Minimal API (PUT privatization, PUT/DELETE private-endpoint).
+- Lot 4 livré : validation cross-config VNet dans `SetPrivateEndpointConfigCommandValidator` — vérifie que le VNet sélectionné appartient au même projet, même s'il vient d'une autre configuration.
+- Lot 5 livré : 3 stages Bicep PE réels (`PrivateEndpointCompanionStage` ordre 540, `NetworkingResolutionStage` ordre 560, `PublicNetworkAccessTransformerStage` ordre 520) avec `PrivateEndpointGroupIdCatalog` dans GenerationCore. 26 tests PE stages verts, 1067 tests BicepGeneration verts au total.
+- Lot 6 livré : section networking dans `resource-edit` (composant standalone, controller signal-based, interface view-model), sélection VNet cross-config, sélection subnet, DNS mode, états chargement/erreur.
+- Lot 7 livré : dialog aide DNS pédagogique (`DnsHelpDialogComponent`), i18n FR/EN complète sous `RESOURCE_EDIT.NETWORKING.*`.
+- Lot 8 livré : suppression V2 API (controller réécrit V3-only), suppression frontend V2 (tab networking retiré de config-detail, section component/controller/constants/view-model supprimés), `PRIVATIZABLE_RESOURCE_TYPES` relocalisé dans `resource-edit/sections/networking/networking.constants.ts`. Dead code backend (agrégat, commandes, repo) conservé.
+- Lot 9 validé : `dotnet build .\InfraFlowSculptor.slnx` vert (0 erreur). `dotnet test` : 1067 BicepGen + 1381 Application + 636 Domain + 150 Mcp + 156 PipelineGen + 36 Api + 99 GenerationCore + 302 Contracts = ~3827 tests verts. 1 échec pré-existant (`UpdateProjectEnvironmentRequestTests`). Frontend `npm run typecheck` + `npm run build` verts. Architecture boundary test fixé en approuvant `PrivateEndpointGroupIdCatalog`.
+
 ## Prochaines étapes
 
-1. Lot 3 : créer les commandes CQRS de configuration Private Endpoint au niveau ressource et les exposer via API.
-2. Lot 4 : valider que le VNet sélectionné appartient au même projet que la ressource cible, même s'il vient d'une autre configuration, et que le subnet demandé existe sur ce VNet.
-3. Lot 5 : remplacer les stages Bicep skeleton V2 par une génération Private Endpoint réelle basée sur `AzureResource.PrivateEndpointConfiguration`.
-4. Lots 6-7 : déplacer l'édition frontend dans `resource-edit`, retirer les modes réseau, ajouter le sélecteur VNet/subnet cross-config et l'aide DNS pédagogique.
-5. Lot 8 : supprimer ou déprécier proprement `NetworkingProfile` seulement après remplacement fonctionnel API + Bicep + UI.
+Tous les lots sont livrés. Dead code backend V2 (`NetworkingProfile` agrégat, commandes/queries V2, repo) conservé volontairement pour nettoyage futur en tâche séparée.
 
 ## Checklist reprise sur un autre PC
 

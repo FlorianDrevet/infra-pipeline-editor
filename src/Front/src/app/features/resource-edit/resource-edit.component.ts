@@ -83,6 +83,9 @@ import { createResourceEditIdentityAccessSectionController } from './sections/id
 import { ResourceEditGrantedRightsSectionComponent } from './sections/identity-access/resource-edit-granted-rights-section.component';
 import { ResourceEditRoleAssignmentsSectionComponent } from './sections/identity-access/resource-edit-role-assignments-section.component';
 import { ResourceEditUsedBySectionComponent } from './sections/identity-access/resource-edit-used-by-section.component';
+import { ResourceEditNetworkingSectionComponent } from './sections/networking/resource-edit-networking-section.component';
+import { createResourceEditNetworkingSectionController } from './sections/networking/resource-edit-networking-section.controller';
+import { PRIVATIZABLE_RESOURCE_TYPES } from './sections/networking/networking.constants';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent, DsIconButtonComponent, DsSegmentedControlComponent, DsSegmentedOption, DsTooltipDirective, DsRadioGroupComponent, DsRadioOption, DsListInputComponent, DsPropertyHelpButtonComponent } from '../../shared/components/ds';
 import type { DsPropertyHelpSection } from '../../shared/components/ds/ds-property-help-button/ds-property-help-button.types';
@@ -177,6 +180,7 @@ const RESOURCE_EDIT_MAIN_TAB_IDS = [
   'config-keys',
   'granted-rights',
   'used-by',
+  'networking',
   'app-pipeline',
 ] as const;
 type MainTabId = typeof RESOURCE_EDIT_MAIN_TAB_IDS[number];
@@ -205,6 +209,7 @@ type StorageSubTabId = 'blob_containers' | 'queues' | 'tables';
     ResourceEditGrantedRightsSectionComponent,
     ResourceEditRoleAssignmentsSectionComponent,
     ResourceEditUsedBySectionComponent,
+    ResourceEditNetworkingSectionComponent,
     ToggleSectionCardComponent,
     DsButtonComponent,
     DsIconButtonComponent,
@@ -556,6 +561,17 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     reloadAllResources: () => this.identityAccessSection.loadAllResources(),
   });
 
+  // ─── Networking (Private Endpoint) ───
+  protected readonly supportsNetworking = computed(() =>
+    PRIVATIZABLE_RESOURCE_TYPES.has(this.resourceType) && !this.isExistingResource()
+  );
+  protected readonly networkingSection = createResourceEditNetworkingSectionController({
+    getInfraConfigId: () => this.config()?.id ?? '',
+    getResourceId: () => this.resourceId,
+    getIsPrivatized: () => (this.resource() as unknown as { isPrivatized?: boolean })?.isPrivatized ?? false,
+    getAllResources: () => this.identityAccessSection.allResources(),
+  });
+
   // ─── Options ───
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
   protected readonly locationOptions = LOCATION_OPTIONS;
@@ -785,6 +801,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     if (this.supportsAppPipeline() && !this.isExistingResource()) {
       tabs.push({ id: 'app-pipeline', label: t('RESOURCE_EDIT.TABS.APP_PIPELINE'), icon: 'terminal' });
     }
+    if (this.supportsNetworking()) {
+      tabs.push({ id: 'networking', label: t('RESOURCE_EDIT.TABS.NETWORKING'), icon: 'lan' });
+    }
     return tabs;
   });
 
@@ -892,6 +911,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       }
       if (this.isUserAssignedIdentity()) {
         void this.identityAccessSection.loadIdentityRoleAssignments();
+      }
+      if (this.supportsNetworking()) {
+        this.networkingSection.load();
       }
       if (this.resourceType === 'SqlServer') {
         this.loadSecureParamMappings();

@@ -1848,6 +1848,19 @@
         }
       }
 
+      <!-- Networking Tab (Private Endpoint configuration) -->
+      @if (supportsNetworking() && activeMainTabId() === 'networking') {
+        <div class="tab-content">
+          <div class="env-description">
+            <mat-icon class="env-description__icon">lan</mat-icon>
+            <p>{{ 'RESOURCE_EDIT.NETWORKING.DESCRIPTION' | translate }}</p>
+          </div>
+          <app-resource-edit-networking-section
+            [canWrite]="canWrite()"
+            [section]="networkingSection" />
+        </div>
+      }
+
       <!-- App Pipeline Tab (WebApp / FunctionApp / ContainerApp only, hidden for existing resources) -->
       @if (supportsAppPipeline() && !isExistingResource() && activeMainTabId() === 'app-pipeline') {
         <div class="tab-content">

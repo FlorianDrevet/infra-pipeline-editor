@@ -231,6 +231,16 @@ internal static class GenerationRequestBuilder
                     environmentConfig => environmentConfig.Properties),
             AssignedUserAssignedIdentityName = resource.AssignedUserAssignedIdentityName,
             IsPrivatized = resource.IsPrivatized,
+            PrivateEndpointConfig = resource.PrivateEndpointConfig is not null
+                ? new PrivateEndpointDefinition
+                {
+                    VirtualNetworkId = resource.PrivateEndpointConfig.VirtualNetworkId,
+                    SubnetName = resource.PrivateEndpointConfig.SubnetName,
+                    DnsMode = resource.PrivateEndpointConfig.DnsMode,
+                    DnsHubResourceGroupId = resource.PrivateEndpointConfig.DnsHubResourceGroupId,
+                    DnsHubSubscriptionId = resource.PrivateEndpointConfig.DnsHubSubscriptionId,
+                }
+                : null,
         };
 
         if (!includeExtendedResourceMetadata)
