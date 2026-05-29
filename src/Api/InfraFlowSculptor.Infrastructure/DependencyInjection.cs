@@ -117,7 +117,6 @@ public static class DependencyInjection
         services.AddScoped<IEventHubNamespaceRepository, EventHubNamespaceRepository>();
         services.AddScoped<IDocumentIntelligenceRepository, DocumentIntelligenceRepository>();
         services.AddScoped<IVirtualNetworkRepository, VirtualNetworkRepository>();
-        services.AddScoped<INetworkingProfileRepository, NetworkingProfileRepository>();
 
         services.AddScoped<IInfrastructureConfigReadRepository, InfrastructureConfigReadRepository>();
         services.AddScoped<IPersonalAccessTokenRepository, PersonalAccessTokenRepository>();

@@ -60,8 +60,8 @@ export class ResourceEditNetworkingSectionComponent {
     return this.section().privateEndpointConfig() !== null;
   }
 
-  protected onToggleChange(value: boolean): void {
-    void this.section().togglePrivatization(value);
+  protected async onToggleChange(value: boolean): Promise<void> {
+    await this.section().togglePrivatization(value);
   }
 
   protected initFormFromConfig(): void {
@@ -81,14 +81,14 @@ export class ResourceEditNetworkingSectionComponent {
     }
   }
 
-  protected onSave(): void {
+  protected async onSave(): Promise<void> {
     const vnetId = this.selectedVnetId();
     const subnet = this.subnetName();
     if (!vnetId || !subnet) {
       return;
     }
 
-    void this.section().saveConfig({
+    await this.section().saveConfig({
       virtualNetworkId: vnetId,
       subnetName: subnet,
       dnsMode: this.selectedDnsMode(),
@@ -97,8 +97,8 @@ export class ResourceEditNetworkingSectionComponent {
     });
   }
 
-  protected onRemove(): void {
-    void this.section().removeConfig();
+  protected async onRemove(): Promise<void> {
+    await this.section().removeConfig();
   }
 
   protected openDnsHelp(): void {
