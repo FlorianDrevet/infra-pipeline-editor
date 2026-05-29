@@ -48,7 +48,6 @@ public sealed class GetServiceBusNamespaceQueryHandlerTests
         _query = new GetServiceBusNamespaceQuery(_serviceBusNamespace.Id);
         _sut = new GetServiceBusNamespaceQueryHandler(
             _serviceBusNamespaceRepository,
-            _resourceGroupRepository,
             _accessService,
             _mapper);
     }

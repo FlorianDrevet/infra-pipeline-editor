@@ -54,7 +54,7 @@ public sealed class AddTableCommandHandlerTests
             new StorageAccountTlsVersion(StorageAccountTlsVersion.Version.Tls12));
         _command = new AddTableCommand(_storageAccount.Id, TableName);
         _sut = new AddTableCommandHandler(
-            _storageAccountRepository, _resourceGroupRepository, _accessService, _mapper);
+            _storageAccountRepository, _accessService, _mapper);
     }
 
     [Fact]

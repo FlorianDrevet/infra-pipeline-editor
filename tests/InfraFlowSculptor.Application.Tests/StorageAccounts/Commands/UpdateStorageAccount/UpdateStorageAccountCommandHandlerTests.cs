@@ -62,7 +62,7 @@ public sealed class UpdateStorageAccountCommandHandlerTests
         _storageAccountRepository.Update(Arg.Any<StorageAccount>())
             .Returns(callInfo => (StorageAccount)callInfo.Args()[0]);
         _sut = new UpdateStorageAccountCommandHandler(
-            _storageAccountRepository, _resourceGroupRepository, _accessService, _mapper);
+            _storageAccountRepository, _accessService, _mapper);
     }
 
     [Fact]

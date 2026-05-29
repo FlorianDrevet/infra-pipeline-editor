@@ -51,7 +51,7 @@ public sealed class GetStorageAccountQueryHandlerTests
             new StorageAccountTlsVersion(StorageAccountTlsVersion.Version.Tls12));
         _query = new GetStorageAccountQuery(_storageAccount.Id);
         _sut = new GetStorageAccountQueryHandler(
-            _storageAccountRepository, _resourceGroupRepository, _accessService, _mapper);
+            _storageAccountRepository, _accessService, _mapper);
     }
 
     [Fact]

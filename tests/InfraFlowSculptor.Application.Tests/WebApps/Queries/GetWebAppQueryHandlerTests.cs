@@ -56,7 +56,7 @@ public sealed class GetWebAppQueryHandlerTests
             dockerImageName: null);
         _query = new GetWebAppQuery(_webApp.Id);
         _sut = new GetWebAppQueryHandler(
-            _webAppRepository, _resourceGroupRepository, _accessService, _mapper);
+            _webAppRepository, _accessService, _mapper);
     }
 
     [Fact]

@@ -54,7 +54,7 @@ public sealed class AddQueueCommandHandlerTests
             new StorageAccountTlsVersion(StorageAccountTlsVersion.Version.Tls12));
         _command = new AddQueueCommand(_storageAccount.Id, QueueName);
         _sut = new AddQueueCommandHandler(
-            _storageAccountRepository, _resourceGroupRepository, _accessService, _mapper);
+            _storageAccountRepository, _accessService, _mapper);
     }
 
     [Fact]

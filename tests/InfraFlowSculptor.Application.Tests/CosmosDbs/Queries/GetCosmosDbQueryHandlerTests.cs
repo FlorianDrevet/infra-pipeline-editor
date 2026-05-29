@@ -45,7 +45,7 @@ public sealed class GetCosmosDbQueryHandlerTests
             new Location(Location.LocationEnum.FranceCentral));
         _query = new GetCosmosDbQuery(_cosmosDb.Id);
         _sut = new GetCosmosDbQueryHandler(
-            _cosmosDbRepository, _resourceGroupRepository, _accessService, _mapper);
+            _cosmosDbRepository, _accessService, _mapper);
     }
 
     [Fact]

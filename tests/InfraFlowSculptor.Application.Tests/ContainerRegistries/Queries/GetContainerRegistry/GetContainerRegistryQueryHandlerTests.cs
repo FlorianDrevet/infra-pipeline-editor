@@ -45,7 +45,7 @@ public sealed class GetContainerRegistryQueryHandlerTests
             new Location(Location.LocationEnum.FranceCentral));
         _query = new GetContainerRegistryQuery(_registry.Id);
         _sut = new GetContainerRegistryQueryHandler(
-            _registryRepository, _resourceGroupRepository, _accessService, _mapper);
+            _registryRepository, _accessService, _mapper);
     }
 
     [Fact]

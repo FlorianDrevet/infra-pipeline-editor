@@ -48,7 +48,7 @@ public sealed class GetSqlDatabaseQueryHandlerTests
             "SQL_Latin1_General_CP1_CI_AS");
         _query = new GetSqlDatabaseQuery(_sqlDatabase.Id);
         _sut = new GetSqlDatabaseQueryHandler(
-            _sqlDatabaseRepository, _resourceGroupRepository, _accessService, _mapper);
+            _sqlDatabaseRepository, _accessService, _mapper);
     }
 
     [Fact]

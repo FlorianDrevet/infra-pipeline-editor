@@ -48,7 +48,6 @@ public sealed class GetLogAnalyticsWorkspaceQueryHandlerTests
         _query = new GetLogAnalyticsWorkspaceQuery(_workspace.Id);
         _sut = new GetLogAnalyticsWorkspaceQueryHandler(
             _workspaceRepository,
-            _resourceGroupRepository,
             _accessService,
             _mapper);
     }

@@ -55,7 +55,7 @@ public sealed class GetFunctionAppQueryHandlerTests
             dockerImageName: null);
         _query = new GetFunctionAppQuery(_functionApp.Id);
         _sut = new GetFunctionAppQueryHandler(
-            _functionAppRepository, _resourceGroupRepository, _accessService, _mapper);
+            _functionAppRepository, _accessService, _mapper);
     }
 
     [Fact]

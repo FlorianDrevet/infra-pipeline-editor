@@ -48,7 +48,6 @@ public sealed class GetUserAssignedIdentityQueryHandlerTests
         _query = new GetUserAssignedIdentityQuery(_identity.Id);
         _sut = new GetUserAssignedIdentityQueryHandler(
             _identityRepository,
-            _resourceGroupRepository,
             _accessService,
             _mapper);
     }

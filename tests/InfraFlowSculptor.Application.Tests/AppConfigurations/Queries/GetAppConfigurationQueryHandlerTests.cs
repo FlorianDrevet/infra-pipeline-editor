@@ -48,7 +48,6 @@ public sealed class GetAppConfigurationQueryHandlerTests
         _query = new GetAppConfigurationQuery(_appConfiguration.Id);
         _sut = new GetAppConfigurationQueryHandler(
             _appConfigurationRepository,
-            _resourceGroupRepository,
             _accessService,
             _mapper);
     }

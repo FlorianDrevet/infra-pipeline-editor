@@ -57,7 +57,7 @@ public sealed class AddBlobContainerCommandHandlerTests
             ContainerName,
             new BlobContainerPublicAccess(BlobContainerPublicAccess.AccessLevel.None));
         _sut = new AddBlobContainerCommandHandler(
-            _storageAccountRepository, _resourceGroupRepository, _accessService, _mapper);
+            _storageAccountRepository, _accessService, _mapper);
     }
 
     [Fact]

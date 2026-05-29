@@ -50,7 +50,7 @@ public sealed class RemoveQueueCommandHandlerTests
             _storageAccount.Id,
             StorageQueueId.CreateUnique());
         _sut = new RemoveQueueCommandHandler(
-            _storageAccountRepository, _resourceGroupRepository, _accessService);
+            _storageAccountRepository, _accessService);
     }
 
     [Fact]
