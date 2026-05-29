@@ -5,6 +5,7 @@
 - PostgreSQL target with `ApplyConfigurationsFromAssembly()`.
 - `ProjectDbContext.SaveChangesAsync(...)` is now the minimal in-process domain-event dispatch boundary: collect `IHasDomainEvents` aggregates from the change tracker, save first, clear their events, then dispatch them through the optional `IDomainEventDispatcher`. Keep this seam in-process only; outbox/audit/event-sourcing remain separate concerns.
 - `docs/architecture/transactional-strategy.md` [2026-05-17] is the reference note for transaction scope: one `SaveChangesAsync()` per command via `UnitOfWorkBehavior`, implicit EF Core transaction by default, and explicit `BeginTransactionAsync()` only when a command genuinely needs multiple saves.
+- Tenant-isolation status [2026-05-29]: `ProjectDbContext` currently applies no EF Core `HasQueryFilter`-style tenant boundary. Data isolation is still enforced higher up by project-membership authorization services and repository/query predicates, so a future real multi-tenant rollout must add an execution-scoped tenant context instead of relying on `ProjectId` lookups alone.
 
 ## Configuration Pattern
 - One sealed `IEntityTypeConfiguration<T>` per aggregate/entity: table/key mapping, typed converters, indexes, and navigation configuration.
@@ -30,6 +31,12 @@
 - `PrivateEndpointConfig` is indexed by `ResourceId` for the per-resource private-endpoint read path.
 - `NsgRule` now enforces unique `(NetworkSecurityGroupId, Priority, Direction)` so conflicting rule priorities are blocked by both domain validation and persistence.
 
+## Resource-Level Private Endpoint Persistence [2026-05-29]
+- V3 privatization adds an owned `PrivateEndpointConfiguration` directly on `AzureResource`; mapping lives in `AzureResourceConfiguration` as nullable columns on `AzureResource`.
+- Columns added by migration `20260529090353_AddResourcePrivateEndpointConfiguration`: `PrivateEndpointVirtualNetworkId`, `PrivateEndpointSubnetName`, `PrivateEndpointDnsMode`, `PrivateEndpointDnsHubResourceGroupId`, `PrivateEndpointDnsHubSubscriptionId`; `IsPrivatized` keeps default `false` for incremental compatibility.
+- Use `IdValueConverter<AzureResourceId>` for the VNet id, `SingleValueConverter<Name, string>` for subnet name, and `EnumValueConverter<PrivateEndpointDnsMode, PrivateEndpointDnsMode.Mode>` for DNS mode.
+- EF generated an unused `using System;` in the root migration file; remove it before validation because IDE0005 is treated as an error.
+
 ## Model Conventions
 - For index coverage verification, use a relational provider (`Npgsql`) rather than the InMemory provider; `IndexCoverageConfigurationTests` is the reference test.
 - Verified DB-002-obsolete coverage: explicit indexes on `InfrastructureConfig.ProjectId` and `AzureResource.ResourceType`, convention/FK indexes on the main resource hierarchy FKs, and the unique composite index on `RoleAssignment(SourceResourceId, TargetResourceId, UserAssignedIdentityId, RoleDefinitionId)`.
@@ -48,6 +55,7 @@
 - Repository interfaces live in Application; implementations live in Infrastructure.
 - `BaseRepository<T, TContext>` owns the common tracked and read-only key lookups, plus `AddAsync`, `UpdateAsync`, and `DeleteAsync`.
 - `IRepository<T>.GetAllAsync(...)` now keeps the original includes-only signature and also exposes an additive token-aware overload `GetAllAsync(CancellationToken, params includes)`. `BaseRepository` routes the legacy overload to the token-aware path, applies `AsNoTracking()` before includes, and passes the token to `ToListAsync(cancellationToken)` so default list reads stay detached. Keep `IUserRepository` as the deliberate specialized exception with its own explicit token-aware signature [2026-05-13].
+- Tenant-isolation caveat [2026-05-29]: the generic repository surface (`BaseRepository.GetByIdAsync(...)`, `GetByIdReadOnlyAsync(...)`, `GetAllAsync(...)`) is not tenant-aware today. Any future tenant discriminator must flow through the DbContext/query layer so generic lookups cannot bypass isolation by accident.
 - APP-012 closure decision: keep eager-loading contracts explicit (`GetByIdWithXAsync(...)`, `GetByContainedXIdAsync(...)`, read-only variants) and do not widen `IRepository<>` with a generic includes callback API. The explicit repository surface is the documented convention for this codebase [2026-05-13].
 - `UserProvisioningService` is the current reference when an HTTP/auth boundary needs an atomic persistence-side existence check: it lives in Infrastructure, implements an Application interface, and uses PostgreSQL `INSERT ... ON CONFLICT ("EntraId") DO NOTHING` against the `User` table before reusing the persisted `Id` [2026-05-13].
 - `UserProvisioningService` raw SQL pitfall [2026-05-15]: when `ProvisionUserSql` is expressed as a C# raw string literal, PostgreSQL identifiers must stay as plain `"User"` text in the resulting SQL, not backslash-escaped inside the C# source. Writing `\"User\"` inside the raw string sends literal backslashes to PostgreSQL and crashes authenticated API requests with `42601` near `\` during user provisioning.

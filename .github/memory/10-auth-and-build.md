@@ -5,6 +5,7 @@
 - **Fallback policy:** authenticated users only (`RequireAuthenticatedUser`).
 - **Admin policy:** `IsAdmin`.
 - **Current user:** `ICurrentUser` → `CurrentUser`.
+- Tenant-isolation status [2026-05-29]: `ICurrentUser` / `CurrentUser` currently resolve only the provisioned `UserId` plus PAT scopes. There is no execution-scoped application `TenantId` yet, so the backend is authorization-by-membership (`Project` / `InfrastructureConfig`) rather than true tenant-isolated data access.
 
 ## PAT Authentication (MCP) [2026-04-28]
 
@@ -18,6 +19,7 @@
 - **Usage persistence throttling [2026-05-13]:** `PersonalAccessTokenAuthenticationHandler` no longer persists `LastUsedAt` on every authenticated request. It writes only when the elapsed interval exceeds `PersonalAccessTokenAuthenticationDefaults.UsagePersistenceInterval`, which is the current write-amplification guard for PAT auth.
 - **Scopes model [2026-05-17]:** `PersonalAccessToken` now owns a `Scopes` collection persisted in `PersonalAccessTokenScopes`, with `Read`, `Write`, and `Generate` values; token creation defaults to `Read` when the caller omits scopes.
 - **Enforcement [2026-05-20]:** `PersonalAccessTokenAuthenticationHandler` now emits one `ifs_pat_scope` claim per granted scope, `CurrentUser.HasPersonalAccessTokenScopeAsync(...)` resolves those claims, and `PersonalAccessTokenScopeBehavior` enforces scopes centrally across MediatR requests: `IQuery<T>` requires `Read` (with `Write` also satisfying read), `ICommand<T>` requires `Write`, and `IGenerateCommand<T>` requires `Generate`.
+- Multi-tenant follow-up [2026-05-29]: PAT/MCP flows will need an explicit tenant-resolution strategy before the repo can claim real multi-tenancy; a user-scoped PAT alone is not enough to prevent cross-tenant reads if the execution context stays tenant-agnostic.
 ## API User Provisioning [2026-05-13]
 
 - `UserProvisioningMiddleware` no longer depends directly on `ProjectDbContext`; it now calls `IUserProvisioningService` from Application and still stores the resolved `UserId` in `HttpContext.Items["ProvisionedUserId"]` for `ICurrentUser`.

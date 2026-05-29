@@ -2,6 +2,7 @@ using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
+using InfraFlowSculptor.Domain.Common.OwnedEntities;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -119,6 +120,32 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// </summary>
     public bool IsPrivatized { get; private set; }
 
+    /// <summary>
+    /// Gets the private endpoint configuration attached to this resource.
+    /// </summary>
+    public PrivateEndpointConfiguration? PrivateEndpointConfiguration { get; private set; }
+
+    /// <summary>
+    /// Configures this resource for private endpoint deployment.
+    /// </summary>
+    /// <param name="configuration">The resource-level private endpoint configuration.</param>
+    public void ConfigurePrivateEndpoint(PrivateEndpointConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        PrivateEndpointConfiguration = configuration;
+        IsPrivatized = true;
+    }
+
+    /// <summary>
+    /// Disables private endpoint deployment for this resource and clears its networking configuration.
+    /// </summary>
+    public void DisablePrivateEndpoint()
+    {
+        PrivateEndpointConfiguration = null;
+        IsPrivatized = false;
+    }
+
     /// <summary>Marks this resource as privatized (private endpoint access only).</summary>
     public void Privatize()
     {
@@ -128,7 +155,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// <summary>Removes privatization from this resource (re-enables public access).</summary>
     public void Deprivatize()
     {
-        IsPrivatized = false;
+        DisablePrivateEndpoint();
     }
 
     private readonly List<AzureResource> _dependsOn = [];

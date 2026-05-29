@@ -26,7 +26,7 @@
 | `ContainerRegistry` | extends `AzureResource` | `ContainerRegistryEnvironmentSettings` | TPT; abbreviation `acr` |
 | `DocumentIntelligence` | extends `AzureResource` | `DocumentIntelligenceEnvironmentSettings` | TPT; abbreviation `docint`; custom subdomain at resource level; per-env SKU, public network access, and local-auth toggle |
 | `VirtualNetwork` | extends `AzureResource` | `Subnet`, `VirtualNetworkEnvironmentSettings` | TPT; abbreviation `vnet`; DDoS protection flag; Subnets own delegation, service endpoints, PE network policies, optional NSG FK; V2 [2026-05-28]: removed legacy PrivateEndpoint FK |
-| `NetworkingProfile` | `NetworkingProfile` | `NetworkingProfileEnvironmentOverride` | V2 networking aggregate [2026-05-28]. Replaces V1 NSG/PrivateDnsZone/FrontDoor/PrivateEndpointConfig. Owns: `NetworkingMode` (Simplified/Standard/Advanced), `VnetReference` (source+CIDRs), `DnsConfig` (mode+hub IDs). Unique per `InfrastructureConfigId`. Methods: `Create()`, `ChangeMode()`, `UpdateVnetReference()`, `UpdateDnsConfig()`, `SetEnvironmentOverride()`, `RemoveEnvironmentOverride()`. AzureResource.IsPrivatized flag + Privatize()/Deprivatize() methods drive per-resource PE generation. V2 pipeline: 3 new stages (NetworkingResolution@520, PrivateEndpointCompanion@540, PublicNetworkAccess@560). |
+| `NetworkingProfile` | `NetworkingProfile` | `NetworkingProfileEnvironmentOverride` | V2 networking aggregate [2026-05-28]. Replaces V1 NSG/PrivateDnsZone/FrontDoor/PrivateEndpointConfig. Owns: `NetworkingMode` (Simplified/Standard/Advanced), `VnetReference` (source+CIDRs), `DnsConfig` (mode+hub IDs). Unique per `InfrastructureConfigId`. Methods: `Create()`, `ChangeMode()`, `UpdateVnetReference()`, `UpdateDnsConfig()`, `SetEnvironmentOverride()`, `RemoveEnvironmentOverride()`. V2 pipeline: 3 new stages (NetworkingResolution@520, PrivateEndpointCompanion@540, PublicNetworkAccess@560). V3 [2026-05-29] starts moving Private Endpoint intent back to resource-level configuration and will remove/deprecate this config-scoped surface after API/Bicep/UI replacement. |
 | `PersonalAccessToken` | `PersonalAccessToken` | `TokenHash` (VO), `PersonalAccessTokenId` (VO), `PatScope` (VO) | PAT for MCP auth. `ifs_` prefix + SHA-256 hash stored, plaintext returned once. `UserId` FK. Owns `PatScope` values (`Read` default, `Write`, `Generate`). Methods: `Revoke()`, `RecordUsage()`, `IsValid()`, `HasScope()`. |
 | `User` | `User` | — | Azure AD user info |
 
@@ -42,7 +42,14 @@ These reusable entity types are owned by multiple aggregates:
 | `RoleAssignment` | RBAC role assignment on any AzureResource |
 | `CustomDomain` | Per-environment custom domain binding for ContainerApp, WebApp, FunctionApp |
 | `SecureParameterMapping` | Maps secure Bicep params to project pipeline variable groups |
-| `PrivateEndpointConfig` | PE configuration on any AzureResource: subnet, group ID, auto-approval, DNS zone, custom NIC name |
+| `PrivateEndpointConfiguration` | V3 PE configuration owned by `AzureResource`: selected `VirtualNetworkId`, `SubnetName`, typed `DnsMode`, and optional DNS hub resource group/subscription for existing hub DNS. The older `PrivateEndpointConfig` entity was removed with V1 networking. |
+
+## AzureResource.PrivateEndpointConfiguration [2026-05-29]
+
+- `AzureResource` now owns nullable `PrivateEndpointConfiguration` for V3 resource-level privatization while retaining `IsPrivatized` as the compatibility flag during the migration away from config-scoped `NetworkingProfile`.
+- Public methods: `ConfigurePrivateEndpoint(PrivateEndpointConfiguration configuration)` sets `IsPrivatized = true`; `DisablePrivateEndpoint()` clears the owned configuration and sets `IsPrivatized = false`; `Deprivatize()` delegates to the same cleanup path.
+- `PrivateEndpointDnsMode` is a sealed enum value object with `AutoManaged`, `ExistingHub`, and `Disabled`. `ExistingHub` requires both DNS hub resource group id and DNS hub subscription id.
+- V3 scope is Private Endpoint only. Container App Environment VNet integration is a separate Azure concept and must not be folded into this private endpoint configuration.
 
 ## AzureResource.AssignedUserAssignedIdentityId [2026-04-02]
 

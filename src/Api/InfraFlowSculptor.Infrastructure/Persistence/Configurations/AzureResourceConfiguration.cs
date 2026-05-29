@@ -11,6 +11,9 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource>
 {
     private const int AzureResourceNameMaxLength = 260;
+    private const int PrivateEndpointDnsModeMaxLength = 50;
+    private const int PrivateEndpointDnsHubResourceGroupIdMaxLength = 500;
+    private const int PrivateEndpointDnsHubSubscriptionIdMaxLength = 100;
 
     public void Configure(EntityTypeBuilder<AzureResource> builder)
     {
@@ -44,6 +47,35 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
         builder.Property(x => x.IsExisting)
             .IsRequired()
             .HasDefaultValue(false);
+
+        builder.Property(x => x.IsPrivatized)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.OwnsOne(x => x.PrivateEndpointConfiguration, privateEndpoint =>
+        {
+            privateEndpoint.Property(x => x.VirtualNetworkId)
+                .HasColumnName("PrivateEndpointVirtualNetworkId")
+                .HasConversion(new IdValueConverter<AzureResourceId>());
+
+            privateEndpoint.Property(x => x.SubnetName)
+                .HasColumnName("PrivateEndpointSubnetName")
+                .HasConversion(new SingleValueConverter<Name, string>())
+                .HasMaxLength(AzureResourceNameMaxLength);
+
+            privateEndpoint.Property(x => x.DnsMode)
+                .HasColumnName("PrivateEndpointDnsMode")
+                .HasConversion(new EnumValueConverter<PrivateEndpointDnsMode, PrivateEndpointDnsMode.Mode>())
+                .HasMaxLength(PrivateEndpointDnsModeMaxLength);
+
+            privateEndpoint.Property(x => x.DnsHubResourceGroupId)
+                .HasColumnName("PrivateEndpointDnsHubResourceGroupId")
+                .HasMaxLength(PrivateEndpointDnsHubResourceGroupIdMaxLength);
+
+            privateEndpoint.Property(x => x.DnsHubSubscriptionId)
+                .HasColumnName("PrivateEndpointDnsHubSubscriptionId")
+                .HasMaxLength(PrivateEndpointDnsHubSubscriptionIdMaxLength);
+        });
 
         builder.Property(x => x.ResourceType)
             .IsRequired()
