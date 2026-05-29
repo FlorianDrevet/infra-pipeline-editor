@@ -38,6 +38,7 @@ public sealed class VirtualNetworkMappingConfig : IRegister
                 src => src.Subnets.Select(s => new SubnetData(
                     s.Id.Value.ToString(),
                     s.Name.Value,
+                    s.AddressPrefix,
                     s.Delegation != null ? s.Delegation.Value.ToString() : null,
                     s.ServiceEndpoints.Count > 0 ? s.ServiceEndpoints : null,
                     s.PrivateEndpointNetworkPolicies.Value.ToString(),
@@ -50,7 +51,7 @@ public sealed class VirtualNetworkMappingConfig : IRegister
 
         config.NewConfig<SubnetData, SubnetResponse>()
             .MapWith(src => new SubnetResponse(
-                src.Id, src.Name, src.Delegation, src.ServiceEndpoints, src.PrivateEndpointNetworkPolicies, src.NsgId));
+                src.Id, src.Name, src.AddressPrefix, src.Delegation, src.ServiceEndpoints, src.PrivateEndpointNetworkPolicies, src.NsgId));
 
         config.NewConfig<VirtualNetworkEnvironmentConfigData, VirtualNetworkEnvironmentConfigResponse>()
             .MapWith(src => new VirtualNetworkEnvironmentConfigResponse(

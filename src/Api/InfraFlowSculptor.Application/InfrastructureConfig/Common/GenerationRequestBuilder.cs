@@ -241,6 +241,17 @@ internal static class GenerationRequestBuilder
                     DnsHubSubscriptionId = resource.PrivateEndpointConfig.DnsHubSubscriptionId,
                 }
                 : null,
+            Subnets = resource.Subnets
+                .Select(s => new SubnetDefinition
+                {
+                    Name = s.Name,
+                    AddressPrefix = s.AddressPrefix,
+                    Delegation = s.Delegation,
+                    ServiceEndpoints = s.ServiceEndpoints,
+                    PrivateEndpointNetworkPolicies = s.PrivateEndpointNetworkPolicies,
+                    NsgId = s.NsgId,
+                })
+                .ToList(),
         };
 
         if (!includeExtendedResourceMetadata)

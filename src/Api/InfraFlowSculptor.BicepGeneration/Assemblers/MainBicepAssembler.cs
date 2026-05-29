@@ -158,7 +158,13 @@ internal static class MainBicepAssembler
                     .Where(parameterTypeOverride =>
                         module.Parameters.ContainsKey(parameterTypeOverride.Key)
                         && !IsDerivedParameter(module, parameterTypeOverride.Key))
-                    .Select(parameterTypeOverride => (module.ModuleFolderName, TypeName: parameterTypeOverride.Value)))
+                    .Select(parameterTypeOverride =>
+                    {
+                        var baseTypeName = parameterTypeOverride.Value.EndsWith("[]", StringComparison.Ordinal)
+                            ? parameterTypeOverride.Value[..^2]
+                            : parameterTypeOverride.Value;
+                        return (module.ModuleFolderName, TypeName: baseTypeName);
+                    }))
                 .Distinct()
                 .ToList();
         }
@@ -217,9 +223,12 @@ internal static class MainBicepAssembler
         string moduleFolderName,
         string typeName)
     {
-        return importedTypeNames.TryGetValue($"{moduleFolderName}|{typeName}", out var importedTypeName)
+        var arraySuffix = typeName.EndsWith("[]", StringComparison.Ordinal) ? "[]" : string.Empty;
+        var baseTypeName = arraySuffix.Length > 0 ? typeName[..^2] : typeName;
+        var resolved = importedTypeNames.TryGetValue($"{moduleFolderName}|{baseTypeName}", out var importedTypeName)
             ? importedTypeName
-            : typeName;
+            : baseTypeName;
+        return resolved + arraySuffix;
     }
 
     private static void AppendResourceParameterDeclarations(

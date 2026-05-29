@@ -13,7 +13,6 @@ namespace InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Queries.GetLogAna
 /// </summary>
 public sealed class GetLogAnalyticsWorkspaceQueryHandler(
     ILogAnalyticsWorkspaceRepository logAnalyticsWorkspaceRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetLogAnalyticsWorkspaceQuery, LogAnalyticsWorkspaceResult>
@@ -27,11 +26,7 @@ public sealed class GetLogAnalyticsWorkspaceQueryHandler(
         if (logAnalyticsWorkspace is null)
             return Errors.LogAnalyticsWorkspace.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(logAnalyticsWorkspace.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.LogAnalyticsWorkspace.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(logAnalyticsWorkspace.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return Errors.LogAnalyticsWorkspace.NotFoundError(query.Id);
 

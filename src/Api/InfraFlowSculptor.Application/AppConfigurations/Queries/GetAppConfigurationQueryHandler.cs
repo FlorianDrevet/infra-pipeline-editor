@@ -13,7 +13,6 @@ namespace InfraFlowSculptor.Application.AppConfigurations.Queries;
 /// </summary>
 public class GetAppConfigurationQueryHandler(
     IAppConfigurationRepository appConfigurationRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetAppConfigurationQuery, AppConfigurationResult>
@@ -27,11 +26,7 @@ public class GetAppConfigurationQueryHandler(
         if (appConfiguration is null)
             return Errors.AppConfiguration.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(appConfiguration.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.AppConfiguration.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(appConfiguration.ResourceGroup!.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return Errors.AppConfiguration.NotFoundError(query.Id);

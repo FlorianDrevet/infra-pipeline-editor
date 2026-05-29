@@ -13,7 +13,6 @@ namespace InfraFlowSculptor.Application.ApplicationInsights.Queries.GetApplicati
 /// </summary>
 public sealed class GetApplicationInsightsQueryHandler(
     IApplicationInsightsRepository applicationInsightsRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetApplicationInsightsQuery, ApplicationInsightsResult>
@@ -27,11 +26,7 @@ public sealed class GetApplicationInsightsQueryHandler(
         if (applicationInsights is null)
             return Errors.ApplicationInsights.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(applicationInsights.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.ApplicationInsights.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(applicationInsights.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return Errors.ApplicationInsights.NotFoundError(query.Id);
 

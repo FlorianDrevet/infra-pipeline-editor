@@ -21,6 +21,7 @@ public class AzureResourceRepository<TEntity> : BaseRepository<TEntity, ProjectD
     {
         return await Context.Set<TEntity>()
             .AsNoTracking()
+            .Include(r => r.ResourceGroup)
             .Include(r => r.DependsOn)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }

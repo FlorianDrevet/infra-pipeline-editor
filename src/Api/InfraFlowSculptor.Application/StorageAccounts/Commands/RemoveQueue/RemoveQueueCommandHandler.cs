@@ -8,13 +8,12 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Commands.RemoveQueue;
 
 public class RemoveQueueCommandHandler(
     IStorageAccountRepository storageAccountRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
     : ICommandHandler<RemoveQueueCommand, Deleted>
 {
     public Task<ErrorOr<Deleted>> Handle(RemoveQueueCommand request, CancellationToken cancellationToken)
     {
-        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, accessService);
+        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, accessService);
         return StorageAccountAccessHelper.RemoveSubResourceAsync(
             ctx,
             () => storageAccountRepository.RemoveQueueAsync(request.StorageAccountId, request.QueueId),

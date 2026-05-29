@@ -10,7 +10,6 @@ namespace InfraFlowSculptor.Application.SqlServers.Queries;
 /// <summary>Handles the <see cref="GetSqlServerQuery"/> request.</summary>
 public class GetSqlServerQueryHandler(
     ISqlServerRepository sqlServerRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetSqlServerQuery, SqlServerResult>
@@ -24,11 +23,7 @@ public class GetSqlServerQueryHandler(
         if (server is null)
             return Errors.SqlServer.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(server.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.SqlServer.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(server.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return Errors.SqlServer.NotFoundError(query.Id);
 

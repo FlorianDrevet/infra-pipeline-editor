@@ -37,6 +37,7 @@ public sealed class VirtualNetwork : AzureResource
     /// <summary>Adds a subnet to this virtual network.</summary>
     public Subnet AddSubnet(
         Name name,
+        string addressPrefix,
         SubnetDelegation? delegation,
         IReadOnlyList<string>? serviceEndpoints,
         PrivateEndpointNetworkPolicy privateEndpointNetworkPolicies,
@@ -45,7 +46,7 @@ public sealed class VirtualNetwork : AzureResource
         if (_subnets.Any(s => s.Name.Value == name.Value))
             throw new InvalidOperationException($"A subnet named '{name.Value}' already exists in this virtual network.");
 
-        var subnet = Subnet.Create(Id, name, delegation, serviceEndpoints, privateEndpointNetworkPolicies, nsgId);
+        var subnet = Subnet.Create(Id, name, addressPrefix, delegation, serviceEndpoints, privateEndpointNetworkPolicies, nsgId);
         _subnets.Add(subnet);
         return subnet;
     }
@@ -62,6 +63,7 @@ public sealed class VirtualNetwork : AzureResource
     public void UpdateSubnet(
         SubnetId subnetId,
         Name name,
+        string addressPrefix,
         SubnetDelegation? delegation,
         IReadOnlyList<string>? serviceEndpoints,
         PrivateEndpointNetworkPolicy privateEndpointNetworkPolicies,
@@ -69,7 +71,7 @@ public sealed class VirtualNetwork : AzureResource
     {
         var subnet = _subnets.FirstOrDefault(s => s.Id == subnetId)
             ?? throw new InvalidOperationException($"Subnet '{subnetId.Value}' not found.");
-        subnet.Update(name, delegation, serviceEndpoints, privateEndpointNetworkPolicies, nsgId);
+        subnet.Update(name, addressPrefix, delegation, serviceEndpoints, privateEndpointNetworkPolicies, nsgId);
     }
 
     /// <summary>Sets per-environment settings.</summary>

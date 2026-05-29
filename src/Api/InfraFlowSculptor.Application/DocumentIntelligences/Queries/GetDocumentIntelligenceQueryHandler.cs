@@ -9,7 +9,6 @@ namespace InfraFlowSculptor.Application.DocumentIntelligences.Queries;
 
 public class GetDocumentIntelligenceQueryHandler(
     IDocumentIntelligenceRepository documentIntelligenceRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetDocumentIntelligenceQuery, DocumentIntelligenceResult>
@@ -20,11 +19,7 @@ public class GetDocumentIntelligenceQueryHandler(
         if (documentIntelligence is null)
             return Errors.DocumentIntelligence.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(documentIntelligence.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.DocumentIntelligence.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(documentIntelligence.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return Errors.DocumentIntelligence.NotFoundError(query.Id);
 

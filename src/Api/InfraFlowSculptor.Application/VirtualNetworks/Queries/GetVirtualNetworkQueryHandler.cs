@@ -10,7 +10,6 @@ namespace InfraFlowSculptor.Application.VirtualNetworks.Queries;
 /// <summary>Handles retrieval of a single Virtual Network.</summary>
 public sealed class GetVirtualNetworkQueryHandler(
     IVirtualNetworkRepository virtualNetworkRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetVirtualNetworkQuery, VirtualNetworkResult>
@@ -21,11 +20,7 @@ public sealed class GetVirtualNetworkQueryHandler(
         if (vnet is null)
             return Errors.VirtualNetwork.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(vnet.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.VirtualNetwork.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(vnet.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return Errors.VirtualNetwork.NotFoundError(query.Id);
 

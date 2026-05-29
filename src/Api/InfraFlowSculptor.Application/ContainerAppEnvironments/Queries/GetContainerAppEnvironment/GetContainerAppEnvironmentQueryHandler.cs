@@ -13,7 +13,6 @@ namespace InfraFlowSculptor.Application.ContainerAppEnvironments.Queries.GetCont
 /// </summary>
 public sealed class GetContainerAppEnvironmentQueryHandler(
     IContainerAppEnvironmentRepository containerAppEnvironmentRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetContainerAppEnvironmentQuery, ContainerAppEnvironmentResult>
@@ -27,11 +26,7 @@ public sealed class GetContainerAppEnvironmentQueryHandler(
         if (containerAppEnvironment is null)
             return Errors.ContainerAppEnvironment.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(containerAppEnvironment.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.ContainerAppEnvironment.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(containerAppEnvironment.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return Errors.ContainerAppEnvironment.NotFoundError(query.Id);
 

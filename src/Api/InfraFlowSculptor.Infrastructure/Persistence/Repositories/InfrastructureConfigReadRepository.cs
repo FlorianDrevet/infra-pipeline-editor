@@ -223,6 +223,16 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var vnetSettings = await dbContext.Set<Domain.VirtualNetworkAggregate.Entities.VirtualNetworkEnvironmentSettings>()
+            .Where(es => allResourceIds.Contains(es.VirtualNetworkId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var vnetSubnets = await dbContext.Set<Domain.VirtualNetworkAggregate.Entities.Subnet>()
+            .Where(s => allResourceIds.Contains(s.VirtualNetworkId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         // â”€â”€ Load custom domains for all resources in this config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var customDomains = await dbContext.CustomDomains
             .Where(cd => allResourceIds.Contains(cd.ResourceId))
@@ -286,7 +296,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             sbSettings,
             crSettings,
             ehSettings,
-            docIntSettings);
+            docIntSettings,
+            vnetSettings,
+            vnetSubnets);
 
         var resourceGroups = BuildResourceGroupReadModels(
             config.ResourceGroups,
@@ -445,7 +457,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<ServiceBusNamespaceEnvironmentSettings> SbSettings,
         IReadOnlyList<ContainerRegistryEnvironmentSettings> CrSettings,
         IReadOnlyList<EventHubNamespaceEnvironmentSettings> EhSettings,
-        IReadOnlyList<DocumentIntelligenceEnvironmentSettings> DocIntSettings);
+        IReadOnlyList<DocumentIntelligenceEnvironmentSettings> DocIntSettings,
+        IReadOnlyList<Domain.VirtualNetworkAggregate.Entities.VirtualNetworkEnvironmentSettings> VnetSettings,
+        IReadOnlyList<Domain.VirtualNetworkAggregate.Entities.Subnet> VnetSubnets);
 
     private static AzureResourceReadModel? MapResource(
         AzureResource resource,
@@ -779,6 +793,36 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     .Where(es => es.DocumentIntelligenceId == di.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
+            Domain.VirtualNetworkAggregate.VirtualNetwork vnet => new AzureResourceReadModel(
+                vnet.Id.Value,
+                vnet.Name.Value,
+                MapLocation(vnet.Location),
+                AzureResourceTypes.ArmTypes.VirtualNetworkType,
+                new Dictionary<string, string>
+                {
+                    ["enableDdosProtection"] = vnet.EnableDdosProtection.ToString().ToLower(),
+                },
+                context.VnetSettings
+                    .Where(es => es.VirtualNetworkId == vnet.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(
+                        es.EnvironmentName,
+                        new Dictionary<string, string>
+                        {
+                            ["addressPrefixes"] = System.Text.Json.JsonSerializer.Serialize(es.AddressSpaces),
+                        }))
+                    .ToList())
+            {
+                Subnets = context.VnetSubnets
+                    .Where(s => s.VirtualNetworkId == vnet.Id)
+                    .Select(s => new SubnetReadModel(
+                        s.Name.Value,
+                        s.AddressPrefix,
+                        s.Delegation?.ToArmServiceName(),
+                        s.ServiceEndpoints.Count > 0 ? s.ServiceEndpoints : null,
+                        s.PrivateEndpointNetworkPolicies.Value.ToString(),
+                        s.NsgId?.Value.ToString()))
+                    .ToList(),
+            },
             _ => null
         };
     }

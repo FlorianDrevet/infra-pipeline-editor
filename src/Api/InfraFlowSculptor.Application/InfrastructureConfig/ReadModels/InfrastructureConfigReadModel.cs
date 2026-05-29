@@ -32,7 +32,11 @@ public record AzureResourceReadModel(
     bool IsExisting = false,
     IReadOnlyList<CustomDomainReadModel>? CustomDomains = null,
     bool IsPrivatized = false,
-    PrivateEndpointConfigReadModel? PrivateEndpointConfig = null);
+    PrivateEndpointConfigReadModel? PrivateEndpointConfig = null)
+{
+    /// <summary>Subnet configurations for VirtualNetwork resources.</summary>
+    public IReadOnlyList<SubnetReadModel> Subnets { get; init; } = [];
+}
 
 /// <summary>
 /// Read model for per-resource private endpoint configuration (V3).
@@ -43,6 +47,17 @@ public record PrivateEndpointConfigReadModel(
     string DnsMode,
     string? DnsHubResourceGroupId,
     string? DnsHubSubscriptionId);
+
+/// <summary>
+/// Read model for a subnet within a Virtual Network for Bicep generation.
+/// </summary>
+public record SubnetReadModel(
+    string Name,
+    string AddressPrefix,
+    string? Delegation,
+    IReadOnlyList<string>? ServiceEndpoints,
+    string PrivateEndpointNetworkPolicies,
+    string? NsgId);
 
 /// <summary>
 /// Read model for a custom domain binding on an Azure resource.

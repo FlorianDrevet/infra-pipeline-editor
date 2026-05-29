@@ -50,6 +50,7 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
     private static IQueryable<StorageAccount> WithSubResources(IQueryable<StorageAccount> query)
     {
         return query
+            .Include(s => s.ResourceGroup)
             .Include(s => s.DependsOn)
             .Include(s => s.EnvironmentSettings)
             .Include(s => s.BlobContainers)

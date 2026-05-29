@@ -8,14 +8,13 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Commands.AddQueue;
 
 public class AddQueueCommandHandler(
     IStorageAccountRepository storageAccountRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : ICommandHandler<AddQueueCommand, StorageAccountResult>
 {
     public Task<ErrorOr<StorageAccountResult>> Handle(AddQueueCommand request, CancellationToken cancellationToken)
     {
-        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, accessService);
+        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, accessService);
         return StorageAccountAccessHelper.AddSubResourceAndReloadAsync(
             ctx,
             sa => sa.AddQueue(request.Name),

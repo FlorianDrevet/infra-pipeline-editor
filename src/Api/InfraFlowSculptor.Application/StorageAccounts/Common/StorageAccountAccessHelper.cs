@@ -75,15 +75,12 @@ internal static class StorageAccountAccessHelper
         if (storageAccount is null)
             return Errors.StorageAccount.NotFoundError(ctx.StorageAccountId);
 
-        var resourceGroup = isWriteOperation
-            ? await ctx.ResourceGroupRepository.GetByIdAsync(storageAccount.ResourceGroupId, cancellationToken)
-            : await ctx.ResourceGroupRepository.GetByIdReadOnlyAsync(storageAccount.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
+        if (storageAccount.ResourceGroup is null)
             return Errors.ResourceGroup.NotFound(storageAccount.ResourceGroupId);
 
         var authResult = isWriteOperation
-            ? await ctx.AccessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken)
-            : await ctx.AccessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+            ? await ctx.AccessService.VerifyWriteAccessAsync(storageAccount.ResourceGroup.InfraConfigId, cancellationToken)
+            : await ctx.AccessService.VerifyReadAccessAsync(storageAccount.ResourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return authResult.Errors;

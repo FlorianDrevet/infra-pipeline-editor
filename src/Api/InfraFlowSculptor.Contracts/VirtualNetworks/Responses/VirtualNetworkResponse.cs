@@ -24,6 +24,7 @@ public record VirtualNetworkResponse(
 public record SubnetResponse(
     string Id,
     string Name,
+    string AddressPrefix,
     string? Delegation,
     IReadOnlyList<string>? ServiceEndpoints,
     string PrivateEndpointNetworkPolicies,

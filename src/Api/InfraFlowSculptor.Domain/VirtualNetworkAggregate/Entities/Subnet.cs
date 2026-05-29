@@ -22,6 +22,9 @@ public sealed class Subnet : Entity<SubnetId>
     /// <summary>Gets the subnet name.</summary>
     public Name Name { get; private set; } = null!;
 
+    /// <summary>Gets the subnet address prefix in CIDR notation (e.g. 10.0.1.0/24).</summary>
+    public string AddressPrefix { get; private set; } = string.Empty;
+
     /// <summary>Gets the subnet delegation (e.g. Microsoft.Web/serverFarms).</summary>
     public SubnetDelegation? Delegation { get; private set; }
 
@@ -39,6 +42,7 @@ public sealed class Subnet : Entity<SubnetId>
     /// <summary>Updates subnet properties.</summary>
     public void Update(
         Name name,
+        string addressPrefix,
         SubnetDelegation? delegation,
         IReadOnlyList<string>? serviceEndpoints,
         PrivateEndpointNetworkPolicy privateEndpointNetworkPolicies,
@@ -46,6 +50,7 @@ public sealed class Subnet : Entity<SubnetId>
     {
         ValidateServiceEndpoints(serviceEndpoints);
         Name = name;
+        AddressPrefix = addressPrefix;
         Delegation = delegation;
         ServiceEndpoints = serviceEndpoints ?? [];
         PrivateEndpointNetworkPolicies = privateEndpointNetworkPolicies;
@@ -56,6 +61,7 @@ public sealed class Subnet : Entity<SubnetId>
     internal static Subnet Create(
         AzureResourceId virtualNetworkId,
         Name name,
+        string addressPrefix,
         SubnetDelegation? delegation,
         IReadOnlyList<string>? serviceEndpoints,
         PrivateEndpointNetworkPolicy privateEndpointNetworkPolicies,
@@ -67,6 +73,7 @@ public sealed class Subnet : Entity<SubnetId>
             Id = SubnetId.CreateUnique(),
             VirtualNetworkId = virtualNetworkId,
             Name = name,
+            AddressPrefix = addressPrefix,
             Delegation = delegation,
             ServiceEndpoints = serviceEndpoints ?? [],
             PrivateEndpointNetworkPolicies = privateEndpointNetworkPolicies,

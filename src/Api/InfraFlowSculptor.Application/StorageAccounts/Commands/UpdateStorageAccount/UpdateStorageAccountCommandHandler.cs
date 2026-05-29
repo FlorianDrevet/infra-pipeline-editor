@@ -9,7 +9,6 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Commands.UpdateStorageAc
 
 public class UpdateStorageAccountCommandHandler(
     IStorageAccountRepository storageAccountRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : ICommandHandler<UpdateStorageAccountCommand, StorageAccountResult>
@@ -19,7 +18,7 @@ public class UpdateStorageAccountCommandHandler(
         var corsRules = CorsRuleSanitizer.Sanitize(request.CorsRules);
         var tableCorsRules = CorsRuleSanitizer.Sanitize(request.TableCorsRules);
 
-        var ctx = new StorageAccountAccessContext(request.Id, storageAccountRepository, resourceGroupRepository, accessService);
+        var ctx = new StorageAccountAccessContext(request.Id, storageAccountRepository, accessService);
         var saResult = await StorageAccountAccessHelper.GetWithWriteAccessAsync(ctx, cancellationToken);
 
         if (saResult.IsError)

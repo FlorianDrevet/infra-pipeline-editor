@@ -50,4 +50,9 @@ public class ResourceDefinition
     /// Populated only when <see cref="IsPrivatized"/> is <c>true</c>.
     /// </summary>
     public PrivateEndpointDefinition? PrivateEndpointConfig { get; set; }
+
+    /// <summary>
+    /// Subnet configurations for VirtualNetwork resources.
+    /// </summary>
+    public IReadOnlyList<SubnetDefinition> Subnets { get; set; } = [];
 }
