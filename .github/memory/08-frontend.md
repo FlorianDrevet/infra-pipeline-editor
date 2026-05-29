@@ -61,6 +61,7 @@
 - API services are `providedIn: 'root'` wrappers over `AxiosService.request$<T>()`
 - `VirtualNetworkService` must stay aligned with the backend controller route group `/virtual-network` (singular), not ad-hoc plural or nested `/resource-groups/{id}/virtual-networks` paths. The current reference contract is: `create(request)` posts to `/virtual-network` with `resourceGroupId` in the body, and `getById(id)` reads `/virtual-network/{id}`. The old nested list route had no backend contract and was removed when fixing the 2026-05-28 add-VNet 404 regression.
 - Virtual Network UX [2026-05-28]: `VirtualNetwork` still skips the dedicated environment step in `add-resource-dialog`, but the common step now captures `enableDdosProtection`, required address spaces, and optional DNS servers through `app-ds-tag-input` chips instead of delimiter-based text fields. `add-resource-dialog` fans those chip values out across all configuration environments into `environmentSettings`, while `resource-edit` hydrates per-environment `addressSpacesInput` / `dnsServersInput` as `DsTagInputItem[]` and serializes them back to the backend string-array contract via `shared/networking/vnet-tag-input.helpers.ts`. User guidance moved out of inline hints into the shared `shared/components/vnet-help-dialog/`, reused by add-resource, resource-edit, and the config-detail networking profile. Do not surface editable subnet prefixes in resource-edit: subnet-prefix guidance remains only in the config-detail networking profile UI because `SubnetResponse` has no persisted prefix field.
+- Networking Profile V2 UX [2026-05-28]: config-detail networking tab now uses `NetworkingProfile` backend contract with mode selection (Simplified/Standard/Advanced), VNet reference configuration, and DNS mode. Per-resource privatization toggles are in a dedicated operations card. Visual hierarchy: top-level mode orchestration card, separate DS cards for VNet and DNS, semantic operations list for privatization.
 
 ## Visual & Design System Baseline [2026-04-24]
 - Signature look: app background `linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%)`, glassy cards (`rgba(255,255,255,0.08)` + blur), and cyan CTA gradients
@@ -147,9 +148,10 @@
 - Angular warning `NG8102` means a `??` fallback is redundant on a non-nullable expression; `TS-998113` means a standalone import remains after the template stopped using it
 
 ## Sonar Quick Wins [2026-04-28]
-- `project-generated-artifact-paths.ts` is the shared gate for combined ZIP recomposition. It now rejects absolute paths, drive-prefixed paths, `..` traversal segments, trailing-dot/space segments, backslash-based paths, and control characters before preview/download reuse the path.
-- `BicepHighlightPipe` no longer bypasses Angular sanitization. The pipe still escapes the raw Bicep content, injects only the highlight `<span>` wrappers, and returns a plain HTML string for normal `[innerHTML]` sanitization.
-- Local alias normalization and Storage CORS validation helpers were rewritten as bounded character-by-character parsing instead of regex-heavy transforms flagged by Sonar.
-- `project-detail.component.ts` now protects combined artifact downloads with explicit compressed-source, entry-count, per-entry, and total-extracted-size limits. `JSZip.loadAsync` runs with `checkCRC32`, unsafe paths fail the download, and the UI shows `PROJECT_DETAIL.SWITCHER.DOWNLOAD_ARCHIVE_ERROR` instead of surfacing a raw exception.
-- Escape-heavy parser helpers should use `String.raw` for search literals like `\n`, `\t`, `\\`, `\:` and `\=` instead of doubly escaped string literals; Sonar raises `typescript:S7780` on the latter even when behavior is identical.
-- When two adjacent SCSS blocks share the same selector list (for example a shared card shell plus nested elements), keep them in a single selector block rather than repeating the selector list, otherwise Sonar raises duplicate-selector `css:S4666` findings.
+- `project-generated-artifact-paths.ts` rejects absolute paths, drive prefixes, `..` traversal, trailing dot/space, backslashes, and control characters.
+- `BicepHighlightPipe` escapes content + injects `<span>` wrappers, relies on Angular's `[innerHTML]` sanitization.
+- Local alias normalization and Storage CORS validation use bounded character parsing, not regex.
+- `project-detail.component.ts` protects combined artifact downloads with size/entry/CRC32 limits.
+- Use `String.raw` for search literals like `\n`, `\t` (not doubly escaped strings — Sonar raises `typescript:S7780`).
+- Merge adjacent SCSS blocks with identical selectors into one block to avoid `css:S4666` duplicate-selector findings.
+

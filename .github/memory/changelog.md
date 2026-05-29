@@ -61,5 +61,5 @@
 - [2026-04-01] `copilot` — Applied Windows-first conventions and general-config cleanup.
 - [2026-03-31] `copilot` — Delivered Event Hub namespace support and configuration-keys UX.
 - [2026-03-30] `copilot` — Added ACR pull roles, variable groups, Unit of Work, and domain quality rules.
-- [2026-03-29] `copilot` — Added Azure DevOps pipeline YAML generation.
+
 

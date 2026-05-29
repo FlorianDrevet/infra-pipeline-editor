@@ -11,6 +11,8 @@ import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModu
 
 import { DsButtonComponent } from '../ds-button/ds-button.component';
 import { DsChipComponent } from '../ds-chip/ds-chip.component';
+import { DsCidrInputComponent } from '../ds-cidr-input/ds-cidr-input.component';
+import { DsIpv4InputComponent } from '../ds-ipv4-input/ds-ipv4-input.component';
 import { DsTextFieldComponent } from '../ds-text-field/ds-text-field.component';
 import { DsListInputValidator } from './ds-list-input.types';
 
@@ -21,7 +23,7 @@ import { DsListInputValidator } from './ds-list-input.types';
 @Component({
   selector: 'app-ds-list-input',
   standalone: true,
-  imports: [DsButtonComponent, DsChipComponent, DsTextFieldComponent, ReactiveFormsModule],
+  imports: [DsButtonComponent, DsChipComponent, DsCidrInputComponent, DsIpv4InputComponent, DsTextFieldComponent, ReactiveFormsModule],
   templateUrl: './ds-list-input.component.html',
   styleUrl: './ds-list-input.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,6 +45,7 @@ export class DsListInputComponent implements ControlValueAccessor {
   public readonly maxItems = input<number | undefined>(undefined);
   public readonly addButtonLabel = input<string>('Add');
   public readonly validator = input<DsListInputValidator | undefined>(undefined);
+  public readonly inputType = input<'text' | 'cidr' | 'ipv4'>('text');
 
   public readonly itemAdded = output<string>();
   public readonly itemRemoved = output<string>();

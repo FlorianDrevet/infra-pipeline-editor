@@ -1,0 +1,106 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.ds-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.ds-field__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ifs-text-secondary);
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.ds-field__required {
+  color: var(--ifs-danger);
+  font-weight: 500;
+}
+
+.ds-field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  height: 32px;
+  background: var(--ifs-surface-1);
+  border: 1px solid var(--ifs-border-strong);
+  border-radius: var(--ifs-radius-sm);
+  transition:
+    background-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    border-color var(--ifs-duration-fast) var(--ifs-ease-standard),
+    box-shadow var(--ifs-duration-fast) var(--ifs-ease-standard);
+}
+
+.ds-field__control:hover:not(:focus-within) {
+  border-color: var(--ifs-text-muted);
+}
+
+.ds-field--focused .ds-field__control {
+  border-color: var(--ifs-accent-500);
+  box-shadow: 0 0 0 3px rgba(58, 163, 201, 0.18);
+}
+
+.ds-field--invalid .ds-field__control {
+  border-color: var(--ifs-danger);
+}
+
+.ds-field--invalid.ds-field--focused .ds-field__control {
+  box-shadow: 0 0 0 3px rgba(210, 74, 74, 0.18);
+}
+
+.ds-field--disabled .ds-field__control {
+  background: var(--ifs-surface-2);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ds-field__icon {
+  font-size: var(--ifs-icon-sm);
+  width: var(--ifs-icon-sm);
+  height: var(--ifs-icon-sm);
+  color: var(--ifs-text-muted);
+  flex-shrink: 0;
+}
+
+.ds-field__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  letter-spacing: 0.5px;
+  color: var(--ifs-text-primary);
+
+  &::placeholder {
+    color: var(--ifs-text-muted);
+    font-family: inherit;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.ds-field__message {
+  font-size: 12px;
+  line-height: 1.4;
+
+  &--error {
+    color: var(--ifs-danger);
+  }
+
+  &--hint {
+    color: var(--ifs-text-tertiary);
+  }
+}

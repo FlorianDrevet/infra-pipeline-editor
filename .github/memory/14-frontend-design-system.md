@@ -16,23 +16,19 @@ Exécution complète du plan audit-design-system-2026-05-27 en une seule session
 
 ### Patterns découverts / décisions clés
 
-- **Query params `?tab=` après migration `mat-tab-group` → `app-ds-tabs`** : extraire des constantes typées `*_TAB_IDS` (cf `CONFIG_DETAIL_TAB_IDS`, `PROJECT_DETAIL_TAB_IDS` dans `shared/enums/detail-route-tabs.ts`) avec mappers id↔query. Indispensable pour préserver les deep-links.
-- **`app-ds-tabs` sur pages de détail** : quand les onglets doivent occuper toute la largeur de la barre, utiliser `[stretch]="true"`. Ne pas styliser uniquement le composant `app-ds-tabs` si le contenu doit partager le même panneau visuel ; envelopper tabs + contenu dans un wrapper commun (`.config-tabs`, `.project-tabs`, `.resource-tabs`) pour éviter une barre bleue isolée au-dessus d'un contenu flottant.
-- **DsTabs label pré-traduit** : DsTabsComponent reçoit le label en string brute (pas de pipe `translate`). Pré-traduire dans `computed()` lisant `languageService.currentLanguage()` pour la réactivité i18n.
-- **`<app-ds-button>` n'accepte pas `(click)`** : toujours `(clicked)`. Piège récurrent.
-- **API `icon`/`iconPosition` sur ds-button** : ne JAMAIS projeter `<mat-icon>X</mat-icon> Label` dans le slot ; utiliser `<app-ds-button icon="X" iconPosition="start">Label</app-ds-button>`.
-- **DsIconButton variant `danger`** : déjà existant (W1 extension annulée). Tone alias `'neutral' | 'primary' | 'accent' | 'danger'`.
-- **Segmented control à la place de mat-button-toggle-group** : utilisé 5 fois en migration (password scope, sensitive mode, deployment mode, ACR auth mode, app-config-key mode). Pattern à réutiliser.
-- **N2 `ds-dialog-shell` SKIP** : ROI faible, l'override global de `mat-dialog-content/actions` dans `styles.scss` suffit en pratique.
-- **N7 `ds-accordion` SKIP** : single-usage (DNS tutorial), `mat-expansion-panel` conservé.
-- **W2 deferred** : `tag-input` créé mais 5 cibles audit étaient en réalité des inputs key-value (env vars, naming tokens) ou des action-chips. Créer primitive `ds-key-value-input` séparé avant re-rollout.
+- **Query params `?tab=`** : constantes typées `*_TAB_IDS` (cf `CONFIG_DETAIL_TAB_IDS`, `PROJECT_DETAIL_TAB_IDS`) avec mappers id↔query pour deep-links.
+- **`app-ds-tabs` stretch** : `[stretch]="true"` pour largeur pleine. Envelopper tabs + contenu dans wrapper commun pour partager le panneau visuel.
+- **DsTabs label** : pré-traduire dans `computed()` lisant `languageService.currentLanguage()`.
+- **`<app-ds-button>` n'accepte pas `(click)`** : toujours `(clicked)`.
+- **API `icon`/`iconPosition`** : ne pas projeter `<mat-icon>`, utiliser `icon="X" iconPosition="start"`.
+- **Segmented control** : 5 usages (password scope, sensitive mode, deployment mode, ACR auth, app-config-key mode).
 
 ### SCSS hardening
 
-- **Tokens fantômes purgés** : `var(--text-primary|--text-secondary|--text-tertiary|--border|--surface|--surface-alt|--code-bg|--primary|--error|--success|--ds-color-primary|--ds-color-warn)` tous remplacés par `var(--ifs-*)`. Notamment `networking-tab.scss` refonte intégrale (174 lignes) qui rendait silencieusement le composant en light hardcodé sur shell dark.
-- **Hex hardcodés purgés** : 10 fichiers (settings, home, project-members, custom-domains, pipeline-options, generation-board, layout-repositories, split-generation-switcher, create-pat-dialog, networking-tab). Tokens utilisés : `--ifs-text-on-brand`, `--ifs-warning`/`-bg`, `--ifs-success`/`-bg`, `--ifs-brand-400/500`, `--ifs-accent-400/500`, `--ifs-danger`.
-- **Résidu intentionnel** : palette `--bicep-syntax-*` dans `settings.component.scss` (duplicate de `bicep-file-panel`). Dette P3 : extraire en partial `@use 'shared/bicep-syntax-palette'`.
-- **Overrides `::ng-deep .mat-mdc-tab-*` / `--mat-tab-*`** : tous supprimés (grep final 0 hit dans `features/**/*.scss`).
+- Tokens fantômes purgés : `--text-primary|secondary|tertiary`, `--border`, `--surface`, `--code-bg`, `--primary|error|success`, tous → `--ifs-*`.
+- Hex hardcodés purgés : 10 fichiers (settings, home, project-members, custom-domains, pipeline-options, generation-board, layout-repositories, split-generation-switcher, create-pat-dialog, networking-tab).
+- Overrides `::ng-deep .mat-mdc-tab-*` / `--mat-tab-*` : supprimés (0 hit `features/**/*.scss`).
+
 
 ### Métriques finales
 
@@ -116,6 +112,10 @@ Exécution complète du plan audit-design-system-2026-05-27 en une seule session
 - `styles.scss` restyles remaining Material surfaces globally (form fields, tabs, dialogs, menus, snack bars, buttons, checkbox/toggle, tooltips, selection, MDC shells).
 - Dialog footers: shared `mat-dialog-actions` layout (equal-width actions, stacked under 640px). Narrow `:has()` selector so extra-action dialogs stay untouched [2026-05-16].
 - Keep raw Material only where DS layer depends on unreimplemented framework behaviors.
+
+## Migration Status [2026-05-27] — COMPLETED
+
+Vagues W1→W8 exécutées dans la même session. Tous les gaps identifiés (spinner, tag-input, progress-bar, menu, card-mat, key-value-input, accordion) livrés. Seuls 2 résidus `mat-chip-set` dans naming-templates (exclus par design — cursor-placement UIs). 0 `mat-*` primitive in feature/shared HTML (hors zones intentionnelles: login, bicep-file-panel, bootstrap-guide). Tokens fantômes purgés (networking-tab refonte). Tracker: `docs/features/ds-migration-2026-05-tracker.md`. Dette résiduelle tracée dans `.github/test-debt.md` (P2 tests Karma + P3 SCSS dead-classes).
 
 ## Migration Status [2026-05-27]
 

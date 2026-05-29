@@ -9,12 +9,32 @@
   }
 
   <div class="ds-list-input__row">
-    <app-ds-text-field
-      class="ds-list-input__field"
-      [placeholder]="placeholder()"
-      [disabled]="disabledState() || !canAddMore()"
-      [formControl]="inputCtrl"
-      (keydown)="onKeyDown($event)" />
+    @switch (inputType()) {
+      @case ('cidr') {
+        <app-ds-cidr-input
+          class="ds-list-input__field"
+          [placeholder]="placeholder()"
+          [disabled]="disabledState() || !canAddMore()"
+          [formControl]="inputCtrl"
+          (keydown)="onKeyDown($event)" />
+      }
+      @case ('ipv4') {
+        <app-ds-ipv4-input
+          class="ds-list-input__field"
+          [placeholder]="placeholder()"
+          [disabled]="disabledState() || !canAddMore()"
+          [formControl]="inputCtrl"
+          (keydown)="onKeyDown($event)" />
+      }
+      @default {
+        <app-ds-text-field
+          class="ds-list-input__field"
+          [placeholder]="placeholder()"
+          [disabled]="disabledState() || !canAddMore()"
+          [formControl]="inputCtrl"
+          (keydown)="onKeyDown($event)" />
+      }
+    }
     <app-ds-button
       class="ds-list-input__add-btn"
       variant="secondary"

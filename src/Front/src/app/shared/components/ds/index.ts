@@ -51,4 +51,8 @@ export * from './ds-menu/ds-menu.directive';
 export * from './ds-menu/ds-menu.types';
 export * from './ds-accordion/ds-accordion.component';
 export * from './ds-accordion/ds-accordion.types';
-
+export * from './ds-property-help-button/ds-property-help-button.component';
+export * from './ds-property-help-button/ds-property-help-dialog.component';
+export * from './ds-property-help-button/ds-property-help-button.types';
+export * from './ds-cidr-input/ds-cidr-input.component';
+export * from './ds-ipv4-input/ds-ipv4-input.component';

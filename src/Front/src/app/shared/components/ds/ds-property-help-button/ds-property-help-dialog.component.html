@@ -1,0 +1,34 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+
+<mat-dialog-content class="ds-property-help-dialog">
+  <div class="ds-property-help-dialog__sections">
+    @for (section of data.sections; track section.title) {
+      <section class="ds-property-help-dialog__section">
+        <div class="ds-property-help-dialog__section-header">
+          <span class="ds-property-help-dialog__icon-shell">
+            <mat-icon>{{ section.icon }}</mat-icon>
+          </span>
+          <h3>{{ section.title }}</h3>
+        </div>
+
+        <p>{{ section.body }}</p>
+
+        @if (section.guidance) {
+          <p class="ds-property-help-dialog__guidance">{{ section.guidance }}</p>
+        }
+
+        @if (section.examples && section.examples.length > 0) {
+          <div class="ds-property-help-dialog__examples">
+            @for (example of section.examples; track example) {
+              <app-ds-chip variant="neutral" size="sm">{{ example }}</app-ds-chip>
+            }
+          </div>
+        }
+      </section>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <app-ds-button variant="subtle" (clicked)="close()">Close</app-ds-button>
+</mat-dialog-actions>

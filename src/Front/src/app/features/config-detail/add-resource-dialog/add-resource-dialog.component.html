@@ -758,20 +758,32 @@
               }
               @case (ResourceTypeEnum.VirtualNetwork) {
                 <div [formGroup]="getEnvFormGroup(i)" class="env-form">
-                  <app-ds-list-input
-                    formControlName="addressSpacesInput"
-                    [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_ADDRESS_SPACES' | translate"
-                    [placeholder]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_PLACEHOLDER' | translate"
-                    [required]="true"
-                    [validator]="vnetAddressSpaceListValidator"
-                    [helperText]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.GUIDANCE' | translate" />
+                  <div class="ds-list-input-with-help">
+                    <app-ds-list-input
+                      formControlName="addressSpacesInput"
+                      [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_ADDRESS_SPACES' | translate"
+                      [placeholder]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_PLACEHOLDER' | translate"
+                      [required]="true"
+                      [validator]="vnetAddressSpaceListValidator"
+                      [helperText]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.GUIDANCE' | translate"
+                      inputType="cidr" />
+                    <app-ds-property-help-button
+                      [title]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.TITLE' | translate"
+                      [sections]="addressSpacesHelpSections" />
+                  </div>
 
-                  <app-ds-list-input
-                    formControlName="dnsServersInput"
-                    [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_DNS_SERVERS' | translate"
-                    [placeholder]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_PLACEHOLDER' | translate"
-                    [validator]="vnetDnsServerListValidator"
-                    [helperText]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS.GUIDANCE' | translate" />
+                  <div class="ds-list-input-with-help">
+                    <app-ds-list-input
+                      formControlName="dnsServersInput"
+                      [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_DNS_SERVERS' | translate"
+                      [placeholder]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_PLACEHOLDER' | translate"
+                      [validator]="vnetDnsServerListValidator"
+                      [helperText]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS.GUIDANCE' | translate"
+                      inputType="ipv4" />
+                    <app-ds-property-help-button
+                      [title]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS.TITLE' | translate"
+                      [sections]="dnsServersHelpSections" />
+                  </div>
                 </div>
               }
           }

@@ -23,7 +23,8 @@ import { NameAvailabilityService } from '../../../shared/services/name-availabil
 import { EnvironmentNameAvailabilityResponseItem } from '../../../shared/interfaces/name-availability.interface';
 import { ToggleSectionCardComponent } from '../../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DeploymentConfigComponent } from '../../../shared/components/deployment-config/deployment-config.component';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsToggleComponent, DsIconButtonComponent, DsOptionCardComponent, DsListInputComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsToggleComponent, DsIconButtonComponent, DsOptionCardComponent, DsListInputComponent, DsPropertyHelpButtonComponent } from '../../../shared/components/ds';
+import type { DsPropertyHelpSection } from '../../../shared/components/ds/ds-property-help-button/ds-property-help-button.types';
 import {
   applyAddResourceProbeToggle,
   copyAddResourceEnvironmentSettings,
@@ -254,6 +255,7 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
     DsListInputComponent,
     DsTextFieldComponent,
     DsSelectComponent,
+    DsPropertyHelpButtonComponent,
   ],
   templateUrl: './add-resource-dialog.component.html',
   styleUrl: './add-resource-dialog.component.scss',
@@ -278,6 +280,26 @@ export class AddResourceDialogComponent implements OnInit {
   protected readonly envFormsValid = signal(true);
   protected readonly vnetAddressSpaceListValidator = createVnetCidrListValidator(this.vnetValidationMessage);
   protected readonly vnetDnsServerListValidator = createVnetIpv4ListValidator(this.vnetValidationMessage);
+
+  protected readonly addressSpacesHelpSections: DsPropertyHelpSection[] = [
+    {
+      icon: 'lan',
+      title: this.translate.instant('COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.TITLE'),
+      body: this.translate.instant('COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.BODY'),
+      guidance: this.translate.instant('COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.GUIDANCE'),
+      examples: ['10.0.0.0/16', '172.16.0.0/12', '192.168.0.0/24'],
+    },
+  ];
+
+  protected readonly dnsServersHelpSections: DsPropertyHelpSection[] = [
+    {
+      icon: 'dns',
+      title: this.translate.instant('COMMON.VNET_HELP_DIALOG.DNS_SERVERS.TITLE'),
+      body: this.translate.instant('COMMON.VNET_HELP_DIALOG.DNS_SERVERS.BODY'),
+      guidance: this.translate.instant('COMMON.VNET_HELP_DIALOG.DNS_SERVERS.GUIDANCE'),
+      examples: ['10.0.0.4', '168.63.129.16'],
+    },
+  ];
 
   // ── Name Availability (live DNS check) ──
   protected readonly nameAvailabilityChecking = signal(false);

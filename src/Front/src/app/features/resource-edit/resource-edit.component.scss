@@ -803,6 +803,15 @@
 
 .env-category-grid { gap: var(--ifs-space-12); }
 
+.ds-list-input-with-help {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ifs-space-4);
+
+  app-ds-list-input { flex: 1; }
+  app-ds-property-help-button { margin-top: 28px; }
+}
+
 // ─── States ─────────────────────────────────────────────────────────────────
 
 .empty-state {

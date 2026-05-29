@@ -210,6 +210,15 @@
   padding-top: 0.75rem;
 }
 
+.ds-list-input-with-help {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ifs-space-4);
+
+  app-ds-list-input { flex: 1; }
+  app-ds-property-help-button { margin-top: 28px; }
+}
+
 // ── Plan Picker (WebApp flow) ──
 .plan-loading {
   display: flex;

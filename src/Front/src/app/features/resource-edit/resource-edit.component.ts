@@ -84,7 +84,8 @@ import { ResourceEditGrantedRightsSectionComponent } from './sections/identity-a
 import { ResourceEditRoleAssignmentsSectionComponent } from './sections/identity-access/resource-edit-role-assignments-section.component';
 import { ResourceEditUsedBySectionComponent } from './sections/identity-access/resource-edit-used-by-section.component';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
-import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent, DsIconButtonComponent, DsSegmentedControlComponent, DsSegmentedOption, DsTooltipDirective, DsRadioGroupComponent, DsRadioOption, DsListInputComponent } from '../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent, DsIconButtonComponent, DsSegmentedControlComponent, DsSegmentedOption, DsTooltipDirective, DsRadioGroupComponent, DsRadioOption, DsListInputComponent, DsPropertyHelpButtonComponent } from '../../shared/components/ds';
+import type { DsPropertyHelpSection } from '../../shared/components/ds/ds-property-help-button/ds-property-help-button.types';
 import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
 import { BuildContextPickerComponent } from '../../shared/components/build-context-picker/build-context-picker.component';
 import { ContainerAppAcrServiceConnectionsComponent } from './components/container-app-acr-service-connections/container-app-acr-service-connections.component';
@@ -211,6 +212,7 @@ type StorageSubTabId = 'blob_containers' | 'queues' | 'tables';
     DsListInputComponent,
     DsTooltipDirective,
     DsTextFieldComponent,
+    DsPropertyHelpButtonComponent,
     DockerfilePickerComponent,
     BuildContextPickerComponent,
     DsSelectComponent,
@@ -281,6 +283,26 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly saveSuccess = signal(false);
   protected readonly vnetAddressSpaceListValidator = createVnetCidrListValidator(this.vnetValidationMessage);
   protected readonly vnetDnsServerListValidator = createVnetIpv4ListValidator(this.vnetValidationMessage);
+
+  protected readonly addressSpacesHelpSections: DsPropertyHelpSection[] = [
+    {
+      icon: 'lan',
+      title: this.translate.instant('COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.TITLE'),
+      body: this.translate.instant('COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.BODY'),
+      guidance: this.translate.instant('COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.GUIDANCE'),
+      examples: ['10.0.0.0/16', '172.16.0.0/12', '192.168.0.0/24'],
+    },
+  ];
+
+  protected readonly dnsServersHelpSections: DsPropertyHelpSection[] = [
+    {
+      icon: 'dns',
+      title: this.translate.instant('COMMON.VNET_HELP_DIALOG.DNS_SERVERS.TITLE'),
+      body: this.translate.instant('COMMON.VNET_HELP_DIALOG.DNS_SERVERS.BODY'),
+      guidance: this.translate.instant('COMMON.VNET_HELP_DIALOG.DNS_SERVERS.GUIDANCE'),
+      examples: ['10.0.0.4', '168.63.129.16'],
+    },
+  ];
 
   // ─── Storage Services ───
   protected readonly activeStorageSubTabId = signal<StorageSubTabId>('blob_containers');
