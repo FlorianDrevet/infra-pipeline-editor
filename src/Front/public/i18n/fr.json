@@ -1750,6 +1750,8 @@
       "PRIVATIZATION_TOGGLE_DESCRIPTION": "Lorsqu'activ\u00e9, cette ressource n'est accessible qu'\u00e0 travers un private endpoint dans votre r\u00e9seau virtuel.",
       "VNET_LABEL": "R\u00e9seau virtuel",
       "SUBNET_LABEL": "Nom du sous-r\u00e9seau",
+      "SUBNET_PLACEHOLDER": "S\u00e9lectionnez un sous-r\u00e9seau",
+      "SUBNET_HINT": "Sous-r\u00e9seau d\u00e9di\u00e9 aux private endpoints dans le r\u00e9seau virtuel s\u00e9lectionn\u00e9.",
       "DNS_MODE_LABEL": "Mode de r\u00e9solution DNS",
       "DNS_MODE_AUTO_MANAGED": "Auto-g\u00e9r\u00e9",
       "DNS_MODE_EXISTING_HUB": "Hub existant",

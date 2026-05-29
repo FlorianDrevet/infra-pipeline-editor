@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
+import { DsBannerComponent } from '../../../../shared/components/ds/ds-banner/ds-banner.component';
 import { DsButtonComponent } from '../../../../shared/components/ds/ds-button/ds-button.component';
 import { DsIconButtonComponent } from '../../../../shared/components/ds/ds-icon-button/ds-icon-button.component';
 import { DsSelectComponent, DsSelectOption } from '../../../../shared/components/ds/ds-select/ds-select.component';
@@ -13,17 +14,12 @@ import { DsSpinnerComponent } from '../../../../shared/components/ds/ds-spinner/
 import { ResourceEditNetworkingSection } from './resource-edit-networking-section.interface';
 import { DnsHelpDialogComponent } from './dns-help-dialog/dns-help-dialog.component';
 
-const DNS_MODE_OPTIONS: DsSelectOption[] = [
-  { value: 'AutoManaged', label: 'RESOURCE_EDIT.NETWORKING.DNS_MODE_AUTO_MANAGED' },
-  { value: 'ExistingHub', label: 'RESOURCE_EDIT.NETWORKING.DNS_MODE_EXISTING_HUB' },
-  { value: 'Disabled', label: 'RESOURCE_EDIT.NETWORKING.DNS_MODE_DISABLED' },
-];
-
 @Component({
   selector: 'app-resource-edit-networking-section',
   standalone: true,
   imports: [
     FormsModule,
+    DsBannerComponent,
     DsButtonComponent,
     DsIconButtonComponent,
     DsSelectComponent,
@@ -39,11 +35,16 @@ const DNS_MODE_OPTIONS: DsSelectOption[] = [
 })
 export class ResourceEditNetworkingSectionComponent {
   private readonly dialog = inject(MatDialog);
+  private readonly translate = inject(TranslateService);
 
   readonly canWrite = input.required<boolean>();
   readonly section = input.required<ResourceEditNetworkingSection>();
 
-  protected readonly dnsModeOptions = DNS_MODE_OPTIONS;
+  protected readonly dnsModeOptions = computed<DsSelectOption[]>(() => [
+    { value: 'AutoManaged', label: this.translate.instant('RESOURCE_EDIT.NETWORKING.DNS_MODE_AUTO_MANAGED') },
+    { value: 'ExistingHub', label: this.translate.instant('RESOURCE_EDIT.NETWORKING.DNS_MODE_EXISTING_HUB') },
+    { value: 'Disabled', label: this.translate.instant('RESOURCE_EDIT.NETWORKING.DNS_MODE_DISABLED') },
+  ]);
 
   // ─── Local form state ───
   protected readonly selectedVnetId = signal<string | null>(null);
@@ -51,6 +52,16 @@ export class ResourceEditNetworkingSectionComponent {
   protected readonly selectedDnsMode = signal<string>('AutoManaged');
   protected readonly dnsHubResourceGroupId = signal('');
   protected readonly dnsHubSubscriptionId = signal('');
+
+  constructor() {
+    // Load subnets whenever selected VNet changes
+    effect(() => {
+      const vnetId = this.selectedVnetId();
+      if (vnetId) {
+        void this.section().loadSubnetsForVnet(vnetId);
+      }
+    });
+  }
 
   protected get showHubFields(): boolean {
     return this.selectedDnsMode() === 'ExistingHub';
@@ -79,6 +90,11 @@ export class ResourceEditNetworkingSectionComponent {
       this.dnsHubResourceGroupId.set('');
       this.dnsHubSubscriptionId.set('');
     }
+  }
+
+  protected onVnetChange(vnetId: string): void {
+    this.selectedVnetId.set(vnetId);
+    this.subnetName.set('');
   }
 
   protected async onSave(): Promise<void> {

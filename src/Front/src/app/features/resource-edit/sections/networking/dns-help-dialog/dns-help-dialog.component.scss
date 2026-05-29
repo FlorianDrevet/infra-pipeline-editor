@@ -5,13 +5,13 @@
     margin: 0 0 0.25rem;
     font-size: 0.9375rem;
     font-weight: 600;
-    color: var(--ds-color-text-primary, #1e293b);
+    color: var(--mat-dialog-subhead-color, var(--ds-color-text-primary));
   }
 
   p {
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.5;
-    color: var(--ds-color-text-secondary, #64748b);
+    color: var(--mat-dialog-supporting-text-color, var(--ds-color-text-secondary));
   }
 }

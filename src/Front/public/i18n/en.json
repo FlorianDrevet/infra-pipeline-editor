@@ -1757,6 +1757,8 @@
       "PRIVATIZATION_TOGGLE_DESCRIPTION": "When enabled, this resource is only accessible through a private endpoint in your virtual network.",
       "VNET_LABEL": "Virtual Network",
       "SUBNET_LABEL": "Subnet name",
+      "SUBNET_PLACEHOLDER": "Select a subnet",
+      "SUBNET_HINT": "Dedicated subnet for private endpoints in the selected virtual network.",
       "DNS_MODE_LABEL": "DNS resolution mode",
       "DNS_MODE_AUTO_MANAGED": "Auto-managed",
       "DNS_MODE_EXISTING_HUB": "Existing hub",

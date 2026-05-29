@@ -4,6 +4,7 @@ import { DsSelectOption } from '../../../../shared/components/ds';
 import { PrivateEndpointConfigResponse } from '../../../../shared/interfaces/private-endpoint-config.interface';
 import { AzureResourceResponse } from '../../../../shared/interfaces/resource-group.interface';
 import { PrivateEndpointService } from '../../../../shared/services/private-endpoint.service';
+import { VirtualNetworkService } from '../../../../shared/services/virtual-network.service';
 import { ResourceEditNetworkingSection } from './resource-edit-networking-section.interface';
 
 interface ResourceEditNetworkingSectionControllerDependencies {
@@ -17,12 +18,15 @@ export function createResourceEditNetworkingSectionController(
   dependencies: ResourceEditNetworkingSectionControllerDependencies,
 ): ResourceEditNetworkingSection {
   const peService = inject(PrivateEndpointService);
+  const vnetService = inject(VirtualNetworkService);
 
   const isPrivatized = signal(false);
   const privateEndpointConfig = signal<PrivateEndpointConfigResponse | null>(null);
   const isLoading = signal(false);
   const isSaving = signal(false);
+  const isLoadingSubnets = signal(false);
   const errorKey = signal('');
+  const subnetOptions = signal<DsSelectOption[]>([]);
 
   const vnetOptions = computed<DsSelectOption[]>(() => {
     const resources = dependencies.getAllResources();
@@ -120,14 +124,36 @@ export function createResourceEditNetworkingSectionController(
     }
   };
 
+  const loadSubnetsForVnet = async (vnetId: string): Promise<void> => {
+    if (!vnetId) {
+      subnetOptions.set([]);
+      return;
+    }
+
+    isLoadingSubnets.set(true);
+    try {
+      const vnet = await vnetService.getById(vnetId);
+      subnetOptions.set(
+        vnet.subnets.map((s) => ({ value: s.name, label: s.name }))
+      );
+    } catch {
+      subnetOptions.set([]);
+    } finally {
+      isLoadingSubnets.set(false);
+    }
+  };
+
   return {
     isPrivatized,
     privateEndpointConfig,
     vnetOptions,
+    subnetOptions,
+    isLoadingSubnets,
     isLoading,
     isSaving,
     errorKey,
     load,
+    loadSubnetsForVnet,
     togglePrivatization,
     saveConfig,
     removeConfig,
