@@ -1,0 +1,148 @@
+# API Endpoints Reference
+
+> 36 controllers — 22 Azure resource types + InfrastructureConfig + Project + ResourceGroup + BicepGeneration + PipelineGeneration + NamingTemplate + AppConfigurationKey + AppSetting + RoleAssignment + SecureParameterMapping + CustomDomain + PersonalAccessToken + Import + PrivateEndpoint
+
+## Core Aggregates
+
+| Group | Method | Route | Command/Query |
+|---|---|---|---|
+| `/infra-config` | GET | `` | `ListMyInfrastructureConfigsQuery` |
+| `/infra-config` | GET | `/{id:guid}` | `GetInfrastructureConfigQuery` |
+| `/infra-config` | POST | `` | `CreateInfrastructureConfigCommand` |
+| `/infra-config` | DELETE | `/{id:guid}` | `DeleteInfrastructureConfigCommand` |
+| `/infra-config` | POST/PUT/DELETE | `/{id:guid}/members/{...}` | Member CRUD |
+| `/projects` | GET | `` | `ListMyProjectsQuery` |
+| `/projects` | GET | `/{id:guid}` | `GetProjectQuery` |
+| `/projects` | POST | `` | `CreateProjectCommand` |
+| `/projects` | POST | `/with-setup` | `CreateProjectWithSetupCommand` (atomic project + layout + envs + repo slots; nullable connection details) [2026-04-25] |
+| `/projects` | DELETE | `/{id:guid}` | `DeleteProjectCommand` |
+| `/projects` | PUT | `/{id:guid}/agent-pool` | `SetAgentPoolCommand` (moved from /infra-configs) [2026-04-04] |
+| `/projects` | POST/PUT/DELETE | `/{id:guid}/repositories/{repoId?}` | Project repository CRUD; active payloads are alias-free, create/update carry transient `PersonalAccessToken` and re-verify configured repository branches server-side [2026-05-19] |
+| `/projects` | POST | `/{id:guid}/repositories/verify` | `VerifyProjectRepositoryConnectionCommand` create-mode pre-save verification: provider + URL + PAT in, branch list/default candidate out, no persistence [2026-05-19] |
+| `/projects` | POST | `/{id:guid}/repositories/{repoId:guid}/verify` | `VerifyProjectRepositoryConnectionCommand` edit-mode pre-save verification: can reuse stored repo PAT when request PAT is blank, returns verified branches/default candidate, no persistence [2026-05-19] |
+| `/projects` | POST | `/{id:guid}/repositories/{repoId:guid}/test-connection` | `TestProjectRepositoryConnectionCommand` (tests a selected project repository with its own repository-scoped PAT; frontend unwraps business errors but masks technical Key Vault retrieval errors with a generic localized message) [2026-05-18] |
+| `/projects` | PUT | `/{id:guid}/layout-preset` | `SetProjectLayoutPresetCommand` |
+| `/projects` | PUT/POST/PUT/DELETE | `/{id:guid}/configs/{configId:guid}/{layout-mode|repositories/...}` | Config layout mode + config repository CRUD |
+| `/projects` | POST | `/validate-recent` | `ValidateRecentItemsQuery` |
+| `/projects` | PUT | `/{id:guid}/repositories/{repoId:guid}/git-pat` | `SetProjectGitPatCommand` legacy/direct PAT write endpoint. The primary UI path since 2026-05-19 is create/edit repository modal PAT entry plus verification before save; repository tiles should not expose a standalone PAT action. |
+| `/projects` | POST | `/{id:guid}/git-config/test` | `TestGitConnectionCommand` (resolver-backed, V3) |
+| `/projects` | GET | `/{id:guid}/git-config/branches` | `ListGitBranchesQuery` (resolver-backed, V3) |
+| `/projects` | GET | `/{id:guid}/git-config/code-branches` | `ListCodeRepoBranchesQuery` (code-repo, optional `?configId=`) [2026-04-26] |
+| `/projects` | GET | `/{id:guid}/git-config/code-files` | `SearchCodeRepoFilesQuery` (`?branch=&pattern=&configId=`) [2026-04-26] |
+| `/projects` | POST | `/{id:guid}/generate-bicep` | `GenerateProjectBicepCommand` |
+| `/projects` | GET | `/{id:guid}/generate-bicep/download` | `DownloadProjectBicepCommand` |
+| `/projects` | GET | `/{id:guid}/generate-bicep/files/{*filePath}` | `GetProjectBicepFileContentQuery` |
+| `/projects` | POST | `/{id:guid}/push-to-git` | `PushProjectBicepToGitCommand` |
+| `/projects` | POST | `/{id:guid}/generate-pipeline` | `GenerateProjectPipelineCommand` |
+| `/projects` | GET | `/{id:guid}/generate-pipeline/download` | `DownloadProjectPipelineCommand` |
+| `/projects` | GET | `/{id:guid}/generate-pipeline/files/{*filePath}` | `GetProjectPipelineFileContentQuery` |
+| `/projects` | POST | `/{id:guid}/push-pipeline-to-git` | `PushProjectPipelineToGitCommand` |
+| `/projects` | POST | `/{id:guid}/generate-bootstrap-pipeline` | `GenerateProjectBootstrapPipelineCommand` |
+| `/projects` | GET | `/{id:guid}/generate-bootstrap-pipeline/download` | `DownloadProjectBootstrapPipelineCommand` |
+| `/projects` | GET | `/{id:guid}/generate-bootstrap-pipeline/files/{*filePath}` | `GetProjectBootstrapPipelineFileContentQuery` |
+| `/projects` | POST | `/{id:guid}/push-bootstrap-pipeline-to-git` | `PushProjectBootstrapPipelineToGitCommand` |
+| `/projects` | POST | `/{id:guid}/push-generated-artifacts-to-git` | `PushProjectGeneratedArtifactsToGitCommand` (root-level generated folders such as `Common/`, config folders, `.azuredevops/`, `infra/`, `app/` are re-sliced into independent push scopes so stale legacy generated files can be deleted without claiming the whole repo root) [2026-04-25] |
+| `/projects` | POST | `/{id:guid}/push-multi-repo-artifacts-to-git` | `PushProjectArtifactsToMultiRepoCommand` (SplitInfraCode infra-only, code-only, or dual push; validator requires at least one target; targets are repository ids, not aliases; always 200 with per-repo `RepoPushResult`; root-level generated folders are re-sliced into cleanup scopes so old generated files under config folders / `.azuredevops/` are removed on subsequent pushes) [2026-04-25/2026-05-19] |
+| `/resource-group` | GET/POST/PUT/DELETE | `/{id:guid}` | ResourceGroup CRUD (DELETE added [2026-04-04]) |
+
+Note [2026-04-26]: the create-project wizard submit path depends on an explicit `group.MapPost("/with-setup", ...)` registration inside `ProjectController.UseProjectController()`. The handler, contract, and Mapster mapping do not expose this route automatically.
+
+## Azure Resource CRUD (22 types — standard GET/POST/PUT/DELETE pattern)
+
+| Group | Extra endpoints |
+|---|---|
+| `/keyvault` | Standard CRUD |
+| `/redis-cache` | Standard CRUD |
+| `/storage-accounts` | + blob-containers (POST/DELETE/PUT), queues (POST/DELETE), tables (POST/DELETE) |
+| `/app-service-plan` | Standard CRUD |
+| `/web-app` | Standard CRUD |
+| `/function-app` | Standard CRUD |
+| `/user-assigned-identity` | + `/{id}/granted-role-assignments` (GET), `/{id}/unlink-resource` (POST) |
+| `/app-configuration` | Standard CRUD |
+| `/container-app-environment` | Standard CRUD |
+| `/container-app` | Standard CRUD |
+| `/log-analytics-workspace` | + `/{id}/dependents` (GET) |
+| `/application-insights` | Standard CRUD |
+| `/cosmos-db` | Standard CRUD |
+| `/sql-server` | Standard CRUD |
+| `/sql-database` | Standard CRUD |
+| `/service-bus-namespace` | + queues (POST/DELETE), topic-subscriptions (POST/DELETE) |
+| `/container-registry` | + `/check-acr-pull-access` (GET) |
+| `/event-hubs` | + event-hubs (POST/DELETE), consumer-groups (POST/DELETE) |
+| `/virtual-network` | Standard CRUD |
+| `/network-security-group` | Standard CRUD |
+| `/private-dns-zone` | Standard CRUD |
+| `/front-door` | Standard CRUD |
+
+## Sub-resource / Cross-cutting Controllers
+
+| Group | Method | Route | Command/Query |
+|---|---|---|---|
+| `/azure-resources/{resourceId}/role-assignments` | GET | `` | `ListRoleAssignmentsQuery` |
+| `/azure-resources/{resourceId}/role-assignments` | GET | `/available-role-definitions` | `ListAvailableRoleDefinitionsQuery` |
+| `/azure-resources/{resourceId}/role-assignments` | POST | `` | `AddRoleAssignmentCommand` |
+| `/azure-resources/{resourceId}/role-assignments` | DELETE | `/{roleAssignmentId}` | `RemoveRoleAssignmentCommand` |
+| `/azure-resources/{resourceId}/role-assignments` | GET | `/{roleAssignmentId}/impact-analysis` | `AnalyzeRoleAssignmentImpactQuery` |
+| `/azure-resources/{resourceId}/role-assignments` | PUT | `/{roleAssignmentId}/identity` | `UpdateRoleAssignmentIdentityCommand` |
+| `/azure-resources/{resourceId}/secure-parameter-mappings` | GET | `` | `GetSecureParameterMappingsQuery` |
+| `/azure-resources/{resourceId}/secure-parameter-mappings` | PUT | `` | `SetSecureParameterMappingCommand` |
+| `/azure-resources/{resourceId}/custom-domains` | GET | `` | `ListCustomDomainsQuery` |
+| `/azure-resources/{resourceId}/custom-domains` | POST | `` | `AddCustomDomainCommand` |
+| `/azure-resources/{resourceId}/custom-domains` | POST | `/{customDomainId}/validate-dns` | `ValidateCustomDomainDnsCommand` |
+| `/azure-resources/{resourceId}/custom-domains` | GET | `/{customDomainId}/dns-instructions` | `GetDnsInstructionsQuery` |
+| `/azure-resources/{resourceId}/custom-domains` | DELETE | `/{customDomainId}` | `RemoveCustomDomainCommand` |
+| `/azure-resources/{resourceId}/detect-pipeline-options` | GET | `` | `DetectPipelineOptionsQuery` (repo-aware compute pipeline option auto-detection) [2026-05-21] |
+| `/azure-resources/{resourceId}/app-settings` | GET/POST/PUT/DELETE | various | AppSetting CRUD |
+| `/azure-resources/{resourceId}/available-outputs` | GET | `` | `GetAvailableOutputsQuery` |
+| `/azure-resources/{resourceId}/check-keyvault-access` | GET | `/{keyVaultId}` | `CheckKeyVaultAccessQuery` |
+| `/azure-resources/{resourceId}/configuration-keys` | GET/POST/DELETE | various | AppConfigurationKey CRUD |
+| `/azure-resources/{id}/assigned-identity` | PUT | `` | `AssignIdentityToResourceCommand` |
+| `/azure-resources/{id}/assigned-identity` | DELETE | `` | `UnassignIdentityFromResourceCommand` |
+| `/resources/{resourceId}/private-endpoints` | GET/POST/PUT/DELETE | various | PrivateEndpoint CRUD (`GetPrivateEndpointConfigsQuery`, `AddPrivateEndpointCommand`, `UpdatePrivateEndpointCommand`, `RemovePrivateEndpointCommand`) |
+| `/infra-config/{id}/naming` | PUT | `/default` | `SetDefaultNamingTemplateCommand` |
+| `/infra-config/{id}/naming` | PUT | `/resources/{resourceType}` | `SetResourceNamingTemplateCommand` |
+| `/infra-config/{id}/naming` | DELETE | `/resources/{resourceType}` | `RemoveResourceNamingTemplateCommand` |
+| `/infra-config/{id}/naming` | PUT | `/abbreviations/{resourceType}` | `SetResourceAbbreviationOverrideCommand` |
+| `/infra-config/{id}/naming` | DELETE | `/abbreviations/{resourceType}` | `RemoveResourceAbbreviationOverrideCommand` |
+| `/projects/{id}/naming` | PUT | `/templates/default` | `SetProjectDefaultNamingTemplateCommand` |
+| `/projects/{id}/naming` | PUT | `/templates/{resourceType}` | `SetProjectResourceNamingTemplateCommand` |
+| `/projects/{id}/naming` | DELETE | `/templates/{resourceType}` | `RemoveProjectResourceNamingTemplateCommand` |
+| `/projects/{id}/naming` | PUT | `/abbreviations/{resourceType}` | `SetProjectResourceAbbreviationCommand` |
+| `/projects/{id}/naming` | DELETE | `/abbreviations/{resourceType}` | `RemoveProjectResourceAbbreviationCommand` |
+
+## Personal Access Tokens [2026-04-28]
+
+| Group | Method | Route | Command/Query |
+|---|---|---|---|
+| `/personal-access-tokens` | GET | `` | `ListPersonalAccessTokensQuery` |
+| `/personal-access-tokens` | POST | `` | `CreatePersonalAccessTokenCommand` → returns one-time plaintext token |
+| `/personal-access-tokens` | DELETE | `/{id:guid}` | `RevokePersonalAccessTokenCommand` |
+
+## Import Workflows [2026-04-28]
+
+| Group | Method | Route | Command/Query |
+|---|---|---|---|
+| `/imports` | POST | `/preview` | `PreviewIacImportQuery` (read-only ARM import analysis; returns mapped resources, gaps, dependencies, metadata, summary; currently supports `arm-json` only) |
+| `/imports` | POST | `/apply` | `ApplyImportPreviewCommand` (stateless import apply for a new project; request body carries project setup + nested preview payload; creates project, infra config, resource group, and auto-creatable mapped resources) |
+
+## Networking Profile [2026-05-28]
+
+| Group | Method | Route | Command/Query |
+|---|---|---|---|
+| `/infra-config/{infraConfigId}/networking-profile` | GET | `` | `GetNetworkingProfileQuery` |
+| `/infra-config/{infraConfigId}/networking-profile` | PUT | `` | `SetNetworkingProfileCommand` (upsert: create if absent, update if existing) |
+| `/infra-config/{infraConfigId}/resources/{resourceId}/privatization` | PUT | `` | `ToggleResourcePrivatizationCommand` → 204 NoContent |
+
+## Generation Controllers
+
+| Group | Method | Route | Command/Query |
+|---|---|---|---|
+| `/naming` | POST | `/check-availability/{resourceType}` | `CheckResourceNameAvailabilityQuery` |
+| `/generate-bicep` | POST | `` | `GenerateBicepCommand` |
+| `/generate-bicep` | GET | `/{configId}/download` | `DownloadBicepCommand` |
+| `/generate-bicep` | GET | `/{configId}/files/{*filePath}` | `GetBicepFileContentQuery` |
+| `/generate-bicep` | POST | `/{configId}/push-to-git` | `PushBicepToGitCommand` |
+| `/generate-pipeline` | POST | `` | `GeneratePipelineCommand` |
+| `/generate-pipeline` | GET | `/{configId}/download` | `DownloadPipelineCommand` |
+| `/generate-pipeline` | GET | `/{configId}/files/{*filePath}` | `GetPipelineFileContentQuery` |
+| `/generate-pipeline` | POST | `/{configId}/push-to-git` | `PushPipelineToGitCommand` |

@@ -421,5 +421,7 @@ FodyWeavers.xsd
 
 graphify-out/*
 .playwright-mcp/*
-.claude/*
 .graphifyignore
+# Claude Code — local-only
+.claude/settings.local.json
+.claude/memory/session/

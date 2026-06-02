@@ -1,0 +1,26 @@
+# Solution Overview
+
+**Product goal:** A single unified API for managing Azure infrastructure configuration and generating Azure Bicep files and Azure DevOps pipelines from it. All code lives in the standard layered projects (Domain, Application, Infrastructure, Contracts, Api) plus a dedicated `InfraFlowSculptor.BicepGeneration` project for the pure Bicep generation engine.
+
+**Technology stack:**
+- .NET 10 (global.json SDK 10.0.100)
+- ASP.NET Core Minimal APIs
+- MediatR (CQRS)
+- FluentValidation
+- Mapster (object mapping)
+- EF Core + PostgreSQL
+- Azure AD / Entra ID (JWT Bearer auth)
+- ErrorOr (result pattern)
+- .NET Aspire (local orchestration)
+- Central Package Management (`Directory.Packages.props`)
+
+**Solution file:** `InfraFlowSculptor.slnx`
+
+## Repository Positioning
+
+- The root `README.md` was upgraded on 2026-04-16 into a repository landing page focused on product value, architecture credibility, engineering quality, and onboarding links for GitHub visitors.
+- On 2026-04-30, the root `README.md` was fully rewritten into a stronger GitHub landing page with a sharper hero section, repository identity table, architecture-first narrative, verified quick start, MCP onboarding, repository map, guided documentation path, and clearer license positioning.
+- On 2026-04-30, the root `README.md` gained a dedicated MCP onboarding section covering purpose, local startup, PAT generation, VS Code workspace configuration, Copilot/agent usage, and a direct link to the detailed MCP integration guide.
+- Since 2026-04-27, the repository is distributed under PolyForm Noncommercial 1.0.0 instead of MIT: the source stays public for evaluation and noncommercial use, while commercial use requires a separate agreement with the author.
+- Commercial assessment snapshot [2026-05-16]: the strongest current positioning is not a generic multi-cloud IaC platform, but an Azure-first infrastructure modeling product for platform teams that want one source of truth for Bicep, Azure DevOps delivery assets, and MCP-driven project workflows.
+- Billing/Stripe status [2026-05-29]: the repository has no billing, subscription, invoice, webhook, or entitlement module yet. If monetization gating is introduced later, keep Stripe webhook ingestion in API/Application/Infrastructure and represent only the local typed export-entitlement state in the domain model.

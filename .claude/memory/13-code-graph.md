@@ -1,0 +1,86 @@
+# Code Graph — GitNexus Knowledge Cache
+
+> Maintenu par `@dream`. Pré-cache les informations structurelles stables pour éviter aux agents de requêter GitNexus pour les infos connues.
+> Source de vérité : le knowledge graph GitNexus (repo `infra-pipeline-editor`). Si un doute, re-vérifier via `gitnexus_context()` ou `gitnexus_impact()`.
+
+---
+
+## Dual-graph architecture [2026-04-29]
+
+Ce dépôt utilise **deux graphes complémentaires** :
+
+| Graphe | Outil | Périmètre | Force | Skill |
+|--------|-------|-----------|-------|-------|
+| Code graph | **GitNexus** | Symboles, appels, héritages, flows | Impact analysis, blast radius, rename, detect_changes | `gitnexus-workflow` |
+| Corpus graph | **Graphify** | Code AST + docs + audits + diagrammes + images | God nodes, communautés, connexions surprenantes, traçabilité doc↔code | `graphify-corpus` |
+
+**Règle absolue :** GitNexus pour le code, Graphify pour le corpus. Ne jamais les intervertir.
+
+---
+
+## Index status
+
+- **Repo indexé :** `infra-pipeline-editor`
+- **Workspace instruction snapshot [2026-05-27] :** ~26 398 symbols, ~145 783 relationships, 300 execution flows. Includes 5 new DS primitives (ds-spinner, ds-progress-bar, ds-tag-input, ds-menu, ds-card-mat) and PipelineOptionDetectionService infrastructure tests added 2026-05-22→27.
+- **Règle pratique :** pour les noms partagés entre entités métier et classes d'erreur, fournir `file_path` à `gitnexus_context()` pour obtenir le bon symbole du premier coup.
+
+## Symboles à haut risque (beaucoup de dépendants upstream)
+
+| Symbole | Type | Raison du risque |
+|---------|------|-----------------|
+| `AzureResource` | Base class (TPT) | 22 agrégats enfants héritent — tout changement cascade sur toutes les ressources |
+| `IInfraConfigAccessService` | Interface | Utilisé par tous les handlers Resource pour la vérification d'accès |
+| `BlobDownloadHelper` | Class | Helper transversal des artefacts latest-prefix ; GitNexus impact [2026-05-13] : 429 symboles impactés, 33 dépendants directs, risque **CRITICAL** |
+| `BicepGenerationEngine` | Class (~88 lignes) | Façade mince mais point d'entrée central de la génération Bicep ; GitNexus impact [2026-05-13] : 397 symboles impactés, 4 dépendants directs, risque **CRITICAL** |
+| `BicepAssembler` | Class (~180 lines) | Thin orchestrator — delegates to 14 specialized classes under `Assemblers/`, `Helpers/`, `StorageAccount/`, `Models/` |
+| `InfrastructureConfigReadRepository` | Class | Point central de lecture — switch cases sur tous les types de ressources ; GitNexus impact [2026-05-13] : 37 symboles impactés, 14 dépendants directs, risque **MEDIUM** |
+| `AppPipelineGenerationEngine` | Class | Orchestrateur app pipeline — 5 generators (Container/Code × resource type), appelé par les handlers génération pipeline; spot-check GitNexus [2026-04-25]: risque upstream **MEDIUM**, 6 dépendants directs |
+| `MonoRepoPipelineAssembler` | Class | Assembleur pipeline YAML infra — mono-repo structure, couplé aux handlers génération pipeline |
+| `ResourceCommandFactory` | Class | Pivot partagé entre `ApplyImportPreview`, `ProjectSetupOrchestrator`, `ProjectCreationTools`, `IacImportTools` et leurs suites de tests ; GitNexus impact [2026-04-30] : 11 dépendants directs, risque **MEDIUM** |
+| `ProjectCreationTools` | Class | Surface MCP mutante `create_project_from_draft` ; GitNexus impact [2026-04-30] : 8 dépendants directs, risque **MEDIUM** |
+
+## Flows critiques
+
+| Flow | Chemin simplifié |
+|------|-----------------|
+| Génération Bicep (config) | `BicepGenerationController` → `GenerateBicepCommandHandler` → `BicepGenerationEngine` → `BicepAssembler` (→ sub-assemblers) |
+| Génération Bicep (projet) | `BicepGenerationController` → `GenerateProjectBicepCommandHandler` → `BicepGenerationEngine` → `MonoRepoBicepAssembler` |
+| Génération Pipeline (infra+app) | `PipelineGenerationController` → `GeneratePipelineCommandHandler` → `MonoRepoPipelineAssembler` + `AppPipelineGenerationEngine` |
+| Génération Bootstrap ADO (projet) | `ProjectController` → `GenerateProjectBootstrapPipelineCommandHandler` → `BootstrapPipelineGenerationEngine` (split-aware: `FullOwner` for infra, `ApplicationOnly` for code) |
+| Détection d'options pipeline | `PipelineOptionDetectionController` → `DetectPipelineOptionsQueryHandler` → résolution dépôt/PAT + `PipelineOptionDetectionService` → heuristiques stack-aware sur le code repo |
+| Création projet (wizard) | `ProjectController` → `CreateProjectWithSetupCommandHandler` → atomic Project + Layout + Envs + Repos |
+| Création projet MCP | `ProjectCreationTools.CreateProjectFromDraft` → `ProjectSetupOrchestrator` → `ResourceCommandFactory` / `ResourceCreationCoordinator` → handlers de création de ressources |
+| Import ARM (preview/apply) | `ImportController` ou `IacImportTools` → `PreviewIacImportQuery` / `ApplyImportPreviewCommand` → `IImportPreviewAnalyzer` / `ResourceCommandFactory` |
+| Privatization / networking | `VirtualNetworkController` / `NetworkSecurityGroupController` / `PrivateDnsZoneController` / `FrontDoorController` / `PrivateEndpointController` → handlers CQRS → repositories EF Core + générateurs Bicep networking |
+| CRUD Resource (pattern) | `{Resource}Controller` → MediatR → `{Action}{Resource}CommandHandler` → `I{Resource}Repository` → EF Core |
+
+## Counts — Verified snapshots [2026-05-15]
+
+| Métrique | Valeur | Requête |
+|----------|--------|---------|
+| AzureResource children | 22 | `Select-String 'sealed class .* : AzureResource'` (verified in repo on 2026-05-15) |
+| AggregateRoot classes | 6 (`Project`, `InfrastructureConfig`, `ResourceGroup`, `AzureResource`, `User`, `PersonalAccessToken`) | `Select-String ': AggregateRoot<'` (verified in repo on 2026-05-15) |
+| Total Entity/AggregateRoot | 59 concrete types (+ abstract `AggregateRoot<>` base) | `Select-String ': Entity<|: AggregateRoot<'` (verified in repo on 2026-05-15) |
+| Controllers | 36 | `Get-ChildItem .\src -Recurse -Filter *Controller.cs` (verified in repo on 2026-05-15) |
+| TypeBicepGenerators | 23 | `Get-ChildItem .\src\Api\InfraFlowSculptor.BicepGeneration\Generators -Filter *TypeBicepGenerator.cs` (verified in repo on 2026-05-15) |
+| AzureResourceTypes.All | 18 entries | Current `GenerationCore/AzureResourceTypes.cs` catalog snapshot on this branch [2026-05-15] |
+| Commands | ~110 | Files ending `Command.cs` in Application layer |
+| Queries | ~51 | Files ending `Query.cs` in Application layer |
+| Bicep generation tests | Active xUnit project | `tests/InfraFlowSculptor.BicepGeneration.Tests/` |
+| Pipeline generation tests | Active xUnit project | `tests/InfraFlowSculptor.PipelineGeneration.Tests/` |
+| MCP tests | Active xUnit project | `tests/InfraFlowSculptor.Mcp.Tests/` |
+| Checked-in test projects | 9 | `tests/**/*.csproj` (verified in repo on 2026-05-12) |
+
+- **Current branch caveat [2026-05-15] :** la hiérarchie Domain/API/BicepGeneration expose déjà `VirtualNetwork`, `NetworkSecurityGroup`, `PrivateDnsZone`, `FrontDoor` et le générateur `PrivateEndpointTypeBicepGenerator`, tandis que `GenerationCore.AzureResourceTypes.All` reste à 18 entrées. Pour les questions de surface ressource sur cette branche, préférer les counts Domain/API ci-dessus au simple catalogue `All`.
+
+## Clusters fonctionnels principaux
+
+- **Génération Bicep** — `BicepGenerationController` / handlers projet+config -> `BicepGenerationEngine` -> `BicepAssembler` / `MonoRepoBicepAssembler`
+- **Génération Pipeline** — `PipelineGenerationController` / `ProjectController` -> handlers projet+config -> `MonoRepoPipelineAssembler`, `AppPipelineGenerationEngine`, `BootstrapPipelineGenerationEngine`
+- **Topology & Git routing** — `Project`, `InfrastructureConfig`, `IRepositoryTargetResolver`, repositories projet/config, handlers de push mono-repo et multi-repo
+- **MCP project creation & imports** — `ProjectDraftTools`, `ProjectCreationTools`, `ProjectSetupOrchestrator`, `IacImportTools`, `ResourceCommandFactory`, `ResourceCreationCoordinator`, `IImportPreviewAnalyzer`
+- **CRUD ressources** — contrôleurs par ressource -> handlers CQRS -> repositories EF Core / read repositories
+
+---
+
+*Dernière mise à jour : 2026-05-27 — Dream consolidation*
