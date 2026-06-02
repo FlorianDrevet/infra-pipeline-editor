@@ -149,7 +149,7 @@ public sealed class StorageAccountRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task Given_BlobContainer_When_AddBlobContainerAsync_Then_TracksContainer_Async()
+    public async Task Given_BlobContainer_When_AddBlobContainer_Then_TracksContainer_Async()
     {
         // Arrange
         var account = NewAccount(ResourceGroupId.CreateUnique());
@@ -158,7 +158,7 @@ public sealed class StorageAccountRepositoryTests : IDisposable
         var container = BlobContainer.Create(account.Id, ContainerName, new BlobContainerPublicAccess(BlobContainerPublicAccess.AccessLevel.None));
 
         // Act
-        await _sut.AddBlobContainerAsync(container);
+        _sut.AddBlobContainer(container);
         await _context.SaveChangesAsync();
 
         // Assert

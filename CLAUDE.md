@@ -9,7 +9,7 @@
 
 **Avant toute tâche non triviale**, lire l'index mémoire `.claude/memory/MEMORY.md`, puis charger uniquement les fichiers thématiques pertinents (`01-*` … `14-*`). Ne jamais charger toute la mémoire d'un coup.
 
-**Orchestration :** par défaut, orchestre directement (lis la mémoire, délègue aux sous-agents, charge les skills) — tu es le thread principal. La commande **`/dev`** est **optionnelle** : c'est le protocole « artillerie lourde » pour les tâches complexes / cross-cutting / planifiées (passe de contradiction Bicep, phase Research GitNexus, scratchpad multi-agents, tracker multi-PC). Pour une tâche simple et ciblée, pas besoin de `/dev`.
+**Orchestration :** par défaut, orchestre directement (lis la mémoire, délègue aux sous-agents, charge les skills) — tu es le thread principal. La commande **`/dev`** est **optionnelle** : c'est le protocole « artillerie lourde » pour les tâches complexes / cross-cutting / planifiées (passe de contradiction Bicep, phase Research Codegraph, scratchpad multi-agents, tracker multi-PC). Pour une tâche simple et ciblée, pas besoin de `/dev`.
 
 En fin de toute tâche non triviale : mettre à jour le fichier thématique `.claude/memory/` concerné + ajouter une ligne dans `.claude/memory/changelog.md`. La **consolidation** plus profonde de la mémoire est manuelle : commande **`/dream`** quand tu le décides.
 
@@ -86,7 +86,7 @@ En fin de toute tâche non triviale : mettre à jour le fichier thématique `.cl
 | `ui-ux-front-saas` | Toute UI/UX frontend (écran, composant, layout, styles) |
 | `bicep-v2-migration` | Migration d'un générateur Bicep legacy → Builder + IR |
 | `dotnet-upgrade` / `angular-upgrade` | Montées de version .NET / Angular |
-| `gitnexus-workflow` | Exploration structurelle, analyse d'impact, validation post-change |
+| `codegraph-workflow` | Exploration structurelle, analyse d'impact, validation post-change |
 | `graphify-corpus` | Vue transversale code+docs, onboarding, god nodes, audit |
 | `audit-workflow` | Audit technique + sync issues/labels GitHub |
 | `draw-io-diagram-generator` | Diagrammes `.drawio` (archi, flow, séquence, ER, UML) |
@@ -109,8 +109,8 @@ Slash-commands disponibles : `/dev` (orchestrateur — optionnel, protocole lour
 7. **FK cascade on delete :** FKs cross-ressource en SetNull ou Cascade, jamais Restrict.
 8. **Response DTO IDs :** toujours `string` (pas `Guid`) — Mapster mappe `Id.Value.ToString()`.
 9. **OpenAPI 401 :** tout endpoint protégé inclut `.ProducesProblem(401)`.
-10. **GitNexus :** avant de modifier un symbole partagé, lancer `gitnexus_impact()` pour le blast radius.
-11. **Graphes :** GitNexus pour structure/impact code, Graphify pour corpus (docs+diagrammes+audits). Jamais l'inverse.
+10. **Codegraph :** avant de modifier un symbole partagé, lancer `codegraph_impact()` pour le blast radius.
+11. **Graphes :** Codegraph pour structure/impact code, Graphify pour corpus (docs+diagrammes+audits). Jamais l'inverse.
 12. **TDD obligatoire :** jamais de code de prod sans tests d'abord — skill `tdd-workflow`, dette tracée dans `.claude/test-debt.md`.
 13. **DS obligatoire (Frontend) :** toute UI de prod part des `app-ds-*` existants. Interdit de fabriquer à la main un composant visuel si le design system couvre le besoin ; sinon créer/étendre d'abord un primitive DS dans `src/Front/src/app/shared/components/ds/`.
 14. **Une classe par fichier :** pas de fichier poubelle `Dtos.cs`, `Models.cs`, `Responses.cs`, `Helpers.cs`.
@@ -130,4 +130,4 @@ Déléguer au sous-agent `pr-manager`. Titre : `type(scope): description`. Descr
 
 ## 12. MCP disponibles
 
-`gitnexus` (intelligence de code : query/context/impact/detect_changes) et `sonarqube` (qualité). Activés dans `.claude/settings.local.json`. Si un outil GitNexus signale un index obsolète : `npx gitnexus analyze`.
+`codegraph` (intelligence de code : explore/impact/callers/callees — built-in Claude Code, SQLite local dans `.codegraph/`) et `sonarqube` (qualité). Activés via `.claude/settings.json`. Pas de ré-indexation manuelle : l'index se met à jour automatiquement via le file watcher.

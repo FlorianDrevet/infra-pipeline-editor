@@ -38,13 +38,14 @@ Avant de proposer quoi que ce soit :
 
 ### 3. Explorer le code existant
 
-**Utiliser GitNexus en premier** pour la compréhension structurelle, puis `read`/`search` pour le détail :
+**Utiliser Codegraph en premier** pour la compréhension structurelle, puis `Read`/`Grep` pour le détail :
 
-1. **Charger le skill `gitnexus-workflow`** (`.claude/skills/gitnexus-workflow/SKILL.md`) si non déjà en contexte
-2. **`gitnexus_query("concept lié à la demande")`** → identifier les flux d'exécution concernés
-3. **`gitnexus_context("SymboleCible")`** → vue 360° des dépendances (incoming/outgoing)
-4. **`gitnexus_impact(target, "upstream")`** → blast radius des symboles que la demande impacte
-5. Compléter avec `read`/`search` pour le contenu exact des fichiers identifiés
+1. **`codegraph_explore("concept lié à la demande")`** → retourne le source verbatim des symboles pertinents ; c'est l'outil PRIMAIRE qui couvre la majorité des besoins en un appel
+2. **`codegraph_callers("SymboleCible")`** → qui appelle ce symbole (dépendants directs)
+3. **`codegraph_impact("SymboleCible")`** → blast radius des symboles que la demande impacte
+4. Compléter avec `Read`/`Grep` pour le contenu exact des fichiers identifiés
+
+Référence : charger le skill `codegraph-workflow` (`.claude/skills/codegraph-workflow/SKILL.md`) si non déjà en contexte.
 
 Ces résultats alimentent directement l'étape 4 (Challenge).
 
@@ -57,8 +58,8 @@ Ces résultats alimentent directement l'étape 4 (Challenge).
 | **Pertinence** | Est-ce que cette feature/modification a sa place dans l'architecture actuelle ? Est-ce le bon projet/couche/agrégat pour la porter ? |
 | **Cohérence** | Est-ce que la proposition est cohérente avec les patterns existants (DDD, CQRS, ErrorOr, TPT, etc.) ? Sinon, quel pattern devrait-on suivre ? |
 | **Pattern de conception** | Quels patterns plausibles existent (`aucun pattern additionnel`, Strategy, Factory, Builder, Specification, Policy, etc.) ? Comparer au moins 2 options et retenir la plus simple qui améliore réellement lisibilité, maintenabilité, et scalabilité. |
-| **Duplication** | Utiliser `gitnexus_query("concept")` pour détecter les mécanismes existants. Est-ce qu'un mécanisme existant couvre déjà ce besoin, en tout ou en partie ? Faut-il étendre plutôt que créer ? |
-| **Impact** | Exécuter `gitnexus_impact(target, "upstream")` sur chaque symbole modifié. Reporter le blast radius (d=1 WILL BREAK, d=2 LIKELY, d=3 MAY NEED TESTING). Quelles couches sont impactées ? Y a-t-il un risque de régression ? |
+| **Duplication** | Utiliser `codegraph_explore("concept")` pour détecter les mécanismes existants. Est-ce qu'un mécanisme existant couvre déjà ce besoin, en tout ou en partie ? Faut-il étendre plutôt que créer ? |
+| **Impact** | Exécuter `codegraph_impact("Symbol")` sur chaque symbole modifié. Reporter le blast radius (dépendants directs = WILL BREAK, indirects = LIKELY, transitifs = MAY NEED TESTING). Quelles couches sont impactées ? Y a-t-il un risque de régression ? |
 | **Typage / shape des données** | Peut-on modéliser explicitement les données plutôt que manipuler `object`, `Dictionary`, `JsonDocument`, ou des blobs JSON ? Si oui, imposer les types applicatifs et de persistance adaptés. |
 | **Granularité des fichiers** | La solution garde-t-elle un type public top-level par fichier ou introduit-elle des fichiers poubelles (`Dtos.cs`, `Models.cs`, etc.) ? |
 | **Dette technique** | La zone de code visée a-t-elle de la dette technique qu'il faudrait traiter en même temps ? Est-ce qu'ajouter sans refactorer va empirer la situation ? |
@@ -86,7 +87,7 @@ Si la tâche introduit un mécanisme structurel ou un nouveau modèle de donnée
 **Pertinent :** Oui / Non / Partiellement — [justification]
 **Faisable avec l'existant :** Oui / Avec adaptations / Non, refonte requise — [justification]
 **Risques identifiés :** [liste]
-**GitNexus blast radius :** [résultats de `impact()` — d=1/d=2/d=3 par symbole modifié]
+**Codegraph blast radius :** [résultats de `codegraph_impact()` — dépendants directs/indirects/transitifs par symbole modifié]
 
 ## Décisions d'architecture
 
@@ -194,8 +195,8 @@ L'architecte doit maîtriser l'intégralité de `.claude/memory/MEMORY.md` et co
 - La séparation API / Application / Domain / Infrastructure / Contracts
 - Le BicepGeneration engine (self-contained, strategy pattern)
 - Le frontend Angular 19 (signals, standalone, zoneless)
-- Les skills disponibles (`cqrs-feature`, `new-azure-resource`, `ui-ux-front-saas`, `gitnexus-workflow`)
-- Le knowledge graph GitNexus pour l'analyse d'impact et l'exploration structurelle
+- Les skills disponibles (`cqrs-feature`, `new-azure-resource`, `ui-ux-front-saas`, `codegraph-workflow`)
+- Le knowledge graph Codegraph pour l'analyse d'impact et l'exploration structurelle
 
 ---
 

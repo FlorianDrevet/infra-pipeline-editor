@@ -41,9 +41,9 @@ Toujours commencer par lire :
 
 Pour chaque audit, utiliser d'abord l'exploration structurelle puis la lecture ciblee :
 
-1. Charger `gitnexus-workflow` si necessaire
-2. Utiliser `gitnexus_query()` pour identifier les flux critiques
-3. Utiliser `gitnexus_context()` sur les symboles a risque
+1. Utiliser `codegraph_explore("concept ou zone auditée")` — outil primaire, retourne le source verbatim des symboles pertinents
+2. Utiliser `codegraph_impact("Symbol")` sur les symboles a risque pour évaluer le blast radius
+3. Utiliser `codegraph_callers("Symbol")` pour identifier les dépendants directs d'un symbole critique
 4. Completer avec `Grep`, `Read`, `Glob` si besoin
 
 Tu ne dois pas produire un audit base sur des suppositions ou une simple lecture superficielle.

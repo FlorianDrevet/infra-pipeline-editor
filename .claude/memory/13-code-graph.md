@@ -1,28 +1,28 @@
-# Code Graph — GitNexus Knowledge Cache
+# Code Graph — Codegraph Knowledge Cache
 
-> Maintenu par `@dream`. Pré-cache les informations structurelles stables pour éviter aux agents de requêter GitNexus pour les infos connues.
-> Source de vérité : le knowledge graph GitNexus (repo `infra-pipeline-editor`). Si un doute, re-vérifier via `gitnexus_context()` ou `gitnexus_impact()`.
+> Maintenu par `@dream`. Pré-cache les informations structurelles stables pour éviter aux agents de requêter Codegraph pour les infos connues.
+> Source de vérité : le knowledge graph Codegraph (SQLite local dans `.codegraph/`). Si un doute, re-vérifier via `codegraph_explore()` ou `codegraph_impact()`.
 
 ---
 
-## Dual-graph architecture [2026-04-29]
+## Dual-graph architecture [2026-06-03]
 
 Ce dépôt utilise **deux graphes complémentaires** :
 
 | Graphe | Outil | Périmètre | Force | Skill |
 |--------|-------|-----------|-------|-------|
-| Code graph | **GitNexus** | Symboles, appels, héritages, flows | Impact analysis, blast radius, rename, detect_changes | `gitnexus-workflow` |
+| Code graph | **Codegraph** | Symboles, appels, héritages, flows | Impact analysis, blast radius, callers/callees, explore | `codegraph-workflow` |
 | Corpus graph | **Graphify** | Code AST + docs + audits + diagrammes + images | God nodes, communautés, connexions surprenantes, traçabilité doc↔code | `graphify-corpus` |
 
-**Règle absolue :** GitNexus pour le code, Graphify pour le corpus. Ne jamais les intervertir.
+**Règle absolue :** Codegraph pour le code, Graphify pour le corpus. Ne jamais les intervertir.
 
 ---
 
 ## Index status
 
-- **Repo indexé :** `infra-pipeline-editor`
-- **Workspace instruction snapshot [2026-05-27] :** ~26 398 symbols, ~145 783 relationships, 300 execution flows. Includes 5 new DS primitives (ds-spinner, ds-progress-bar, ds-tag-input, ds-menu, ds-card-mat) and PipelineOptionDetectionService infrastructure tests added 2026-05-22→27.
-- **Règle pratique :** pour les noms partagés entre entités métier et classes d'erreur, fournir `file_path` à `gitnexus_context()` pour obtenir le bon symbole du premier coup.
+- **Tool :** Codegraph (built-in Claude Code, SQLite local dans `.codegraph/`, file watcher automatique)
+- **Workspace snapshot [2026-05-27] :** ~26 398 symbols, ~145 783 relationships. Includes 5 DS primitives (ds-spinner, ds-progress-bar, ds-tag-input, ds-menu, ds-card-mat) and PipelineOptionDetectionService infrastructure tests added 2026-05-22→27.
+- **Règle pratique :** utiliser `codegraph_explore("Symbol")` pour la localisation ; `codegraph_node("Symbol")` si le corps est tronqué ou si le nom est surchargé.
 
 ## Symboles à haut risque (beaucoup de dépendants upstream)
 
@@ -30,14 +30,14 @@ Ce dépôt utilise **deux graphes complémentaires** :
 |---------|------|-----------------|
 | `AzureResource` | Base class (TPT) | 22 agrégats enfants héritent — tout changement cascade sur toutes les ressources |
 | `IInfraConfigAccessService` | Interface | Utilisé par tous les handlers Resource pour la vérification d'accès |
-| `BlobDownloadHelper` | Class | Helper transversal des artefacts latest-prefix ; GitNexus impact [2026-05-13] : 429 symboles impactés, 33 dépendants directs, risque **CRITICAL** |
-| `BicepGenerationEngine` | Class (~88 lignes) | Façade mince mais point d'entrée central de la génération Bicep ; GitNexus impact [2026-05-13] : 397 symboles impactés, 4 dépendants directs, risque **CRITICAL** |
+| `BlobDownloadHelper` | Class | Helper transversal des artefacts latest-prefix ; Codegraph impact [2026-05-13] : 429 symboles impactés, 33 dépendants directs, risque **CRITICAL** |
+| `BicepGenerationEngine` | Class (~88 lignes) | Façade mince mais point d'entrée central de la génération Bicep ; Codegraph impact [2026-05-13] : 397 symboles impactés, 4 dépendants directs, risque **CRITICAL** |
 | `BicepAssembler` | Class (~180 lines) | Thin orchestrator — delegates to 14 specialized classes under `Assemblers/`, `Helpers/`, `StorageAccount/`, `Models/` |
-| `InfrastructureConfigReadRepository` | Class | Point central de lecture — switch cases sur tous les types de ressources ; GitNexus impact [2026-05-13] : 37 symboles impactés, 14 dépendants directs, risque **MEDIUM** |
-| `AppPipelineGenerationEngine` | Class | Orchestrateur app pipeline — 5 generators (Container/Code × resource type), appelé par les handlers génération pipeline; spot-check GitNexus [2026-04-25]: risque upstream **MEDIUM**, 6 dépendants directs |
+| `InfrastructureConfigReadRepository` | Class | Point central de lecture — switch cases sur tous les types de ressources ; Codegraph impact [2026-05-13] : 37 symboles impactés, 14 dépendants directs, risque **MEDIUM** |
+| `AppPipelineGenerationEngine` | Class | Orchestrateur app pipeline — 5 generators (Container/Code × resource type), appelé par les handlers génération pipeline; spot-check Codegraph [2026-04-25]: risque upstream **MEDIUM**, 6 dépendants directs |
 | `MonoRepoPipelineAssembler` | Class | Assembleur pipeline YAML infra — mono-repo structure, couplé aux handlers génération pipeline |
-| `ResourceCommandFactory` | Class | Pivot partagé entre `ApplyImportPreview`, `ProjectSetupOrchestrator`, `ProjectCreationTools`, `IacImportTools` et leurs suites de tests ; GitNexus impact [2026-04-30] : 11 dépendants directs, risque **MEDIUM** |
-| `ProjectCreationTools` | Class | Surface MCP mutante `create_project_from_draft` ; GitNexus impact [2026-04-30] : 8 dépendants directs, risque **MEDIUM** |
+| `ResourceCommandFactory` | Class | Pivot partagé entre `ApplyImportPreview`, `ProjectSetupOrchestrator`, `ProjectCreationTools`, `IacImportTools` et leurs suites de tests ; Codegraph impact [2026-04-30] : 11 dépendants directs, risque **MEDIUM** |
+| `ProjectCreationTools` | Class | Surface MCP mutante `create_project_from_draft` ; Codegraph impact [2026-04-30] : 8 dépendants directs, risque **MEDIUM** |
 
 ## Flows critiques
 

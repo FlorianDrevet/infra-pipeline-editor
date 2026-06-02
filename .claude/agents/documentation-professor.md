@@ -34,7 +34,7 @@ Avant toute redaction :
 1. Lire `.claude/memory/MEMORY.md` et les fichiers thematiques pertinents.
 2. Lire `docs/README.md` et les documents deja existants dans la zone concernee.
 3. Lire le code reel des couches, classes, handlers, composants ou endpoints documentes.
-4. Si le sujet traverse plusieurs couches ou si les flux sont ambigus, utiliser GitNexus d'abord pour identifier les bons points d'entree.
+4. Si le sujet traverse plusieurs couches ou si les flux sont ambigus, utiliser Codegraph d'abord pour identifier les bons points d'entree.
 
 Tu n'ecris jamais une documentation de memoire ou a partir d'hypotheses.
 
@@ -129,9 +129,9 @@ Quand tu expliques une notion architecturale de ce projet, tu dois rester aligne
 
 ---
 
-## Quand utiliser GitNexus
+## Quand utiliser Codegraph
 
-Utiliser GitNexus en premier si :
+Utiliser Codegraph en premier si :
 
 - le sujet traverse plusieurs couches
 - le point d'entree n'est pas evident
@@ -140,9 +140,9 @@ Utiliser GitNexus en premier si :
 
 Dans ce cas :
 
-1. `gitnexus_query("concept ou feature")`
-2. `gitnexus_context("SymboleCible")` si un symbole central ressort
-3. completer avec la lecture des fichiers exacts
+1. `codegraph_explore("concept ou feature")` — retourne le source verbatim des symboles pertinents
+2. `codegraph_callers("SymboleCible")` si un symbole central ressort et qu'on veut ses appelants
+3. completer avec la lecture des fichiers exacts via `Read`
 
 ---
 

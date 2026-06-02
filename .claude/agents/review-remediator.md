@@ -65,9 +65,9 @@ Lire :
 
 ### 3. Analyser l'impact avant modification
 
-- Charger le skill `gitnexus-workflow`.
-- Avant toute modification d'un symbole partage, executer `gitnexus_impact(target, "upstream")`.
-- Si le risque est `HIGH` ou `CRITICAL`, alerter l'utilisateur avant de poursuivre.
+- Avant toute modification d'un symbole partage, executer `codegraph_impact("Symbol")`.
+- Si le risque est élevé (nombreux dépendants directs), alerter l'utilisateur avant de poursuivre.
+- Pour la référence complète : charger le skill `codegraph-workflow` (`.claude/skills/codegraph-workflow/SKILL.md`).
 
 ### 4. Charger les expertises techniques necessaires
 

@@ -11,20 +11,20 @@ description: "Use when: corpus-level questions, documentation graph, architectur
 
 ---
 
-## Règle cardinale : GitNexus pour le code, Graphify pour le corpus
+## Règle cardinale : Codegraph pour le code, Graphify pour le corpus
 
 Ce dépôt utilise **deux graphes de connaissance complémentaires** :
 
-| Dimension | GitNexus | Graphify |
-|-----------|----------|----------|
+| Dimension | Codegraph | Graphify |
+|-----------|-----------|----------|
 | **Périmètre** | Code source uniquement (symboles, appels, héritages, flows) | Corpus complet (code AST + docs Markdown + audits + diagrammes + images) |
-| **Force principale** | Impact analysis, blast radius, rename-safe, execution flows | Communautés conceptuelles, god nodes, connexions surprenantes, compression de contexte |
-| **Transport MCP** | `gitnexus mcp` (stdio) | `python -m graphify.serve graphify-out/graph.json` (stdio) |
-| **Mutations** | `rename()`, `detect_changes()` | Aucune — lecture seule |
-| **Précision code** | Symbolique (callers/callees exacts, Cypher) | AST + inférence sémantique (moins précis sur les appels, plus riche sur les concepts) |
+| **Force principale** | Impact analysis, blast radius, callers/callees, execution flows | Communautés conceptuelles, god nodes, connexions surprenantes, compression de contexte |
+| **Transport MCP** | Built-in Claude Code (SQLite local dans `.codegraph/`) | `python -m graphify.serve graphify-out/graph.json` (stdio) |
+| **Mutations** | Aucune — lecture seule | Aucune — lecture seule |
+| **Précision code** | Symbolique (callers/callees exacts, explore) | AST + inférence sémantique (moins précis sur les appels, plus riche sur les concepts) |
 | **Docs / images / audits** | Non couvert | Couvert nativement |
 
-**Aucun des deux ne remplace l'autre.** Un agent qui a besoin de comprendre "qui appelle quoi et que casse un changement" utilise GitNexus. Un agent qui a besoin de comprendre "comment la documentation, les audits, les diagrammes et le code se relient" utilise Graphify.
+**Aucun des deux ne remplace l'autre.** Un agent qui a besoin de comprendre "qui appelle quoi et que casse un changement" utilise Codegraph. Un agent qui a besoin de comprendre "comment la documentation, les audits, les diagrammes et le code se relient" utilise Graphify.
 
 ---
 
@@ -56,7 +56,7 @@ Pour **ce dépôt**, ne pas lancer `graphify vscode install` de manière automat
 Pourquoi :
 
 - `graphify vscode install` ajoute une section `## graphify` à `.github/copilot-instructions.md`
-- ce dépôt possède déjà une orchestration repo-specific plus riche (`dev`, mémoire projet, GitNexus, skill `graphify-corpus`)
+- ce dépôt possède déjà une orchestration repo-specific plus riche (`dev`, mémoire projet, Codegraph, skill `graphify-corpus`)
 - ajouter la section Graphify officielle en mode aveugle crée une deuxième couche always-on moins précise que les instructions du dépôt
 
 Mode contrôlé recommandé :
@@ -69,20 +69,19 @@ Mode contrôlé recommandé :
 Conséquence pratique :
 
 - le slash command `/graphify` est disponible côté Copilot utilisateur
-- le dépôt conserve ses règles de priorité : mémoire -> GitNexus -> Graphify -> Explore
+- le dépôt conserve ses règles de priorité : mémoire -> Codegraph -> Graphify -> Explore
 
 ---
 
-## Quand utiliser Graphify vs GitNexus
+## Quand utiliser Graphify vs Codegraph
 
-### Utiliser GitNexus quand :
+### Utiliser Codegraph quand :
 
 - Tu dois savoir **qui appelle** un handler, un service, ou une interface
 - Tu dois évaluer le **blast radius** d'un changement avant de modifier du code
 - Tu dois tracer un **flux d'exécution** complet (ex: HTTP request → handler → repository → DB)
-- Tu dois **renommer** un symbole en toute sécurité
-- Tu dois **valider** que tes changements n'impactent que les fichiers/flux attendus (`detect_changes`)
-- Tu dois écrire une **requête Cypher** précise sur les relations de code
+- Tu dois **explorer** un concept ou un symbole (`codegraph_explore`)
+- Tu dois **valider** l'impact d'un changement sur les symboles partagés (`codegraph_impact`)
 
 ### Utiliser Graphify quand :
 
@@ -97,10 +96,10 @@ Conséquence pratique :
 
 ### Utiliser les deux quand :
 
-- **Architecture review complète** : Graphify pour la vue d'ensemble corpus + GitNexus pour les détails structurels de code
-- **Audit technique** : Graphify pour relier les audits précédents aux zones de code, GitNexus pour vérifier les impacts
-- **Onboarding approfondi** : Graphify pour la carte mentale globale, GitNexus pour les flux d'exécution précis
-- **Planification de refactoring** : Graphify pour identifier les communautés et god nodes concernés, GitNexus pour le blast radius exact
+- **Architecture review complète** : Graphify pour la vue d'ensemble corpus + Codegraph pour les détails structurels de code
+- **Audit technique** : Graphify pour relier les audits précédents aux zones de code, Codegraph pour vérifier les impacts
+- **Onboarding approfondi** : Graphify pour la carte mentale globale, Codegraph pour les flux d'exécution précis
+- **Planification de refactoring** : Graphify pour identifier les communautés et god nodes concernés, Codegraph pour le blast radius exact
 
 ---
 
@@ -123,7 +122,7 @@ Utilisation :
 
 - `/graphify docs/architecture`
 - lire `graphify-out/GRAPH_REPORT.md`
-- compléter avec GitNexus sur les handlers et flows critiques repérés
+- compléter avec Codegraph sur les handlers et flows critiques repérés
 
 ### 2. Audit / review transverse
 
@@ -139,7 +138,7 @@ Utilisation :
 
 - `/graphify audits`
 - `python -m graphify query "what connects PAT auth to MCP tools?" --graph .\graphify-out\graph.json`
-- compléter avec GitNexus pour confirmer impact et blast radius
+- compléter avec Codegraph pour confirmer impact et blast radius
 
 ### 3. MCP / IA tooling
 
@@ -154,7 +153,7 @@ Corpus conseillé :
 Utilisation :
 
 - Graphify pour doc ↔ tool ↔ concept métier
-- GitNexus pour le flux précis `Tool -> Handler -> Service -> Repository`
+- Codegraph pour le flux précis `Tool -> Handler -> Service -> Repository`
 
 ### 4. Génération Bicep / pipeline
 
@@ -170,7 +169,7 @@ Corpus conseillé :
 Utilisation :
 
 - Graphify pour les communautés, god nodes, liens entre docs et moteurs
-- GitNexus pour `BicepGenerationEngine`, `BicepAssembler`, `AppPipelineGenerationEngine`, `MonoRepoPipelineAssembler`
+- Codegraph pour `BicepGenerationEngine`, `BicepAssembler`, `AppPipelineGenerationEngine`, `MonoRepoPipelineAssembler`
 
 ### 5. Frontend / UX / design system
 
@@ -185,7 +184,7 @@ Corpus conseillé :
 Utilisation :
 
 - Graphify pour les patterns transverses, la cohérence de vocabulaire, les connexions entre écrans et composants
-- GitNexus uniquement si une question structurelle code TS devient nécessaire
+- Codegraph uniquement si une question structurelle code TS devient nécessaire
 
 ---
 
@@ -245,7 +244,7 @@ Les tools MCP exposés par Graphify :
 - Lors de la **phase Research (step 2bis)**, si la tâche touche à la documentation, l'architecture, l'onboarding, ou un audit :
   1. Lire `graphify-out/GRAPH_REPORT.md` pour identifier les god nodes et communautés pertinentes
   2. Utiliser `graphify query` ou le MCP Graphify pour des questions ciblées
-  3. Compléter avec GitNexus pour la structure de code exacte
+  3. Compléter avec Codegraph pour la structure de code exacte
 
 ### `@architect`
 
@@ -266,7 +265,7 @@ Les tools MCP exposés par Graphify :
 - Utiliser Graphify pour :
   - Relier les findings d'audits précédents (`audits/`) aux zones de code concernées
   - Identifier les communautés à risque via les god nodes (haute centralité = haut risque)
-  - Compléter avec GitNexus pour l'impact analysis avant de produire des recommandations
+  - Compléter avec Codegraph pour l'impact analysis avant de produire des recommandations
 
 ### `@review-expert` et `@vibe-coding-refractaire`
 
@@ -302,8 +301,7 @@ Committer `graphify-out/graph.json`, `graphify-out/GRAPH_REPORT.md`, et `graphif
 
 ## Anti-patterns
 
-- **Ne pas** utiliser Graphify pour l'analyse d'impact avant modification de code → utiliser GitNexus `impact()`
-- **Ne pas** utiliser Graphify pour le rename de symboles → utiliser GitNexus `rename()`
-- **Ne pas** utiliser Graphify pour valider que tes changements sont propres → utiliser GitNexus `detect_changes()`
+- **Ne pas** utiliser Graphify pour l'analyse d'impact avant modification de code → utiliser `codegraph_impact()`
+- **Ne pas** utiliser Graphify pour valider que tes changements sont propres → utiliser `git diff` + `codegraph_impact()`
 - **Ne pas** forcer tous les agents à lire `GRAPH_REPORT.md` systématiquement → seulement quand le skill s'applique
 - **Ne pas** remplacer la mémoire projet par le rapport Graphify → la mémoire est normative et curée, le rapport est descriptif et auto-généré

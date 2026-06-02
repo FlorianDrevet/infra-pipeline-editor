@@ -39,7 +39,7 @@ Trouver les informations nouvelles à persister. Sources par priorité :
 
 1. **Changelog récent** — Lire `.claude/memory/changelog.md`, identifier les entrées depuis le dernier dream
 2. **Fichiers modifiés récemment** — `git log --since="7 days ago" --name-only --pretty=format:"" | Sort-Object -Unique` pour repérer les zones du projet qui ont évolué
-3. **GitNexus detect_changes** — Exécuter `gitnexus_detect_changes({scope: "compare", base_ref: "main"})` pour identifier les symboles et flux impactés depuis main (plus fiable que git log pour les impacts transitifs)
+3. **Git diff + Codegraph** — Exécuter `git log --since="7 days ago" --name-only` et `codegraph_status()` pour identifier les fichiers et symboles modifiés récemment
 4. **Conversations récentes** — Si des informations en `/memories/session/` existent, les intégrer
 
 ### Phase 3 — Consolidate
@@ -51,7 +51,7 @@ Pour chaque signal trouvé :
 3. **Supprimer les faits contredits** — si une nouvelle info contredit une ancienne, supprimer l'ancienne
 4. **Fusionner les doublons** — ne pas laisser la même info dans deux fichiers
 5. **Mettre à jour `.claude/memory/MEMORY.md`** (l'index) si un nouveau fichier thématique a été créé
-6. **Mettre à jour `.claude/memory/13-code-graph.md`** — Si GitNexus a révélé de nouveaux clusters importants, flows critiques, ou symboles à haut risque (beaucoup de dépendants upstream), les ajouter dans ce fichier. Supprimer les entrées qui ne correspondent plus au graphe.
+6. **Mettre à jour `.claude/memory/13-code-graph.md`** — Si Codegraph a révélé de nouveaux flows critiques, ou symboles à haut risque (beaucoup de dépendants), les ajouter dans ce fichier. Supprimer les entrées obsolètes.
 
 ### Phase 4 — Prune and Index
 

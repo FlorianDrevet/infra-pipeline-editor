@@ -28,13 +28,13 @@ Tu es l'expert C#/.NET 10 de ce dépôt. Tu maîtrises :
 2. Lire les fichiers proches du code à modifier pour comprendre le contexte exact.
 3. Vérifier que le build passe avant de commencer (`dotnet build .\InfraFlowSculptor.slnx`).
 4. Pour toute tâche frontend (`src/Front`), déléguer à l'agent `angular-front`.
-5. **Analyse d'impact GitNexus** — Avant de modifier un symbole partagé (interface, service, base class, handler
-   utilisé par plusieurs endpoints), exécuter `gitnexus_impact(target, "upstream")` :
-   - **d=1 (WILL BREAK)** → MUST mettre à jour ces fichiers dans la même tâche
-   - **d=2 (LIKELY AFFECTED)** → SHOULD tester ces chemins
-   - **Risque HIGH/CRITICAL** → alerter l'utilisateur avant de modifier
-   - Si besoin de comprendre un flux complet : `gitnexus_query("concept")` puis `gitnexus_context("Symbol")`
-   - Référence complète : charger le skill `gitnexus-workflow` (`.claude/skills/gitnexus-workflow/SKILL.md`)
+5. **Analyse d'impact Codegraph** — Avant de modifier un symbole partagé (interface, service, base class, handler
+   utilisé par plusieurs endpoints), exécuter `codegraph_impact("Symbol")` :
+   - **Dépendants directs (WILL BREAK)** → MUST mettre à jour ces fichiers dans la même tâche
+   - **Dépendants indirects (LIKELY AFFECTED)** → SHOULD tester ces chemins
+   - **Risque élevé (nombreux dépendants)** → alerter l'utilisateur avant de modifier
+   - Si besoin de comprendre un flux complet : `codegraph_explore("concept")` — outil primaire, un seul appel
+   - Référence complète : charger le skill `codegraph-workflow` (`.claude/skills/codegraph-workflow/SKILL.md`)
 6. **TDD obligatoire** — Charger `.claude/skills/tdd-workflow/SKILL.md` AVANT toute modification de code.
    Le cycle Red → Green → Refactor → Verify est imposé :
    - **AVANT de modifier du code** : écrire ou compléter les tests unitaires (RED).
@@ -191,7 +191,7 @@ public sealed class CreateKeyVaultCommandValidator : AbstractValidator<CreateKey
 1. Exécuter `dotnet test .\tests\<Assembly>.Tests\<Assembly>.Tests.csproj` — tous les tests du projet touchés passent.
 2. Exécuter `dotnet test .\InfraFlowSculptor.slnx` — aucune régression sur la solution.
 3. Exécuter `dotnet build .\InfraFlowSculptor.slnx` — corriger toutes les erreurs.
-4. Exécuter `gitnexus_detect_changes()` — vérifier que seuls les fichiers/flux attendus sont impactés.
+4. Vérifier `git diff` — confirmer que seuls les fichiers attendus sont modifiés. Si doute, `codegraph_impact("Symbol")` sur les symboles modifiés.
 5. Si un changement de modèle EF Core : `dotnet ef migrations add <DescriptiveName>`.
 6. Enregistrer toute dette de tests détectée dans `.claude/test-debt.md`.
 7. Mettre à jour `.claude/memory/MEMORY.md` avec les nouvelles conventions ou pièges découverts.

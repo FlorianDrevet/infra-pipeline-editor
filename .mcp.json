@@ -17,12 +17,6 @@
         "SONARQUBE_ORG": "${SONARQUBE_ORG}"
       }
     },
-    "gitnexus": {
-      "command": "gitnexus",
-      "args": [
-        "mcp"
-      ]
-    },
     "agentmemory": {
       "command": "npx",
       "args": ["-y", "@agentmemory/mcp"],

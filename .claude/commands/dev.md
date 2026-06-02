@@ -19,11 +19,11 @@ Première action, sans exception. Lire l'index `.claude/memory/MEMORY.md`, puis 
 
 > **Consolidation mémoire :** plus de gate automatique ni de compteur de sessions. La consolidation se lance **manuellement** via la commande `/dream` quand tu sens que la mémoire a grossi ou divergé. Le protocole `/dev` ne déclenche plus le dream tout seul.
 
-## 1ter. GitNexus Freshness Check
+## 1ter. Codegraph Status Check
 
-1. `gitnexus_list_repos()` → lire `lastAnalyzed` du repo `infra-pipeline-editor`.
-2. Si > 7 jours : `npx gitnexus analyze` pour réindexer.
-3. Si le MCP est indisponible : continuer sans bloquer, mais avertir que l'index peut être obsolète.
+1. `codegraph_status()` → vérifier que l'index est prêt.
+2. Codegraph se met à jour automatiquement via file watcher — pas de ré-indexation manuelle nécessaire.
+3. Si le MCP est indisponible : continuer sans bloquer, mais utiliser `Read`/`Grep` pour la compréhension structurelle.
 
 ## 2. Analyser et décider
 
@@ -41,11 +41,11 @@ Avant de planifier/coder, si la demande touche la **génération Bicep**, les **
 ### 2bis. Phase Research
 
 Pour les tâches complexes ou cross-cutting, explorer AVANT de déléguer :
-1. **GitNexus (structurel) :** `gitnexus_query("concept")`, `gitnexus_context("Symbole")`, `gitnexus_impact(target, "upstream")`. Référence : skill `gitnexus-workflow`.
+1. **Codegraph (structurel) :** `codegraph_explore("concept")` en premier (outil primaire), puis `codegraph_callers("Symbol")` et `codegraph_impact("Symbol")` si besoin. Référence : skill `codegraph-workflow`.
 2. **Graphify (corpus)** si doc/architecture transversale/audit/onboarding : `graphify-out/GRAPH_REPORT.md` + skill `graphify-corpus`.
 3. **Sous-agent `Explore`** pour la lecture brute des fichiers identifiés.
 
-Priorité : GitNexus pour le code, Graphify pour le corpus. Ce que tu récupères (chemins exacts, extraits de référence, conventions détectées) DOIT être transmis aux sous-agents experts.
+Priorité : Codegraph pour le code, Graphify pour le corpus. Ce que tu récupères (chemins exacts, extraits de référence, conventions détectées) DOIT être transmis aux sous-agents experts.
 
 Ne pas déclencher Research si la tâche est triviale ou les fichiers cibles déjà connus.
 
@@ -70,7 +70,7 @@ Lancer les sous-agents experts via le tool *Agent* avec des prompts précis. Coo
 > 2. Les **conventions projet** pertinentes (issues de la mémoire).
 > 3. Un **extrait de code existant** comme référence de style si applicable.
 > 4. Le **résultat attendu** non ambigu.
-> 5. Le **résultat de `gitnexus_impact()`** si un symbole partagé est modifié.
+> 5. Le **résultat de `codegraph_impact()`** si un symbole partagé est modifié.
 > 6. Le rappel **TDD** : skill `tdd-workflow` obligatoire, tests AVANT le code.
 > 7. Le **résultat de la passe de contradiction** (confirmé / douteux / invalide), surtout Bicep/pipelines.
 
@@ -107,7 +107,7 @@ En fin de toute tâche non triviale :
 [ ] dotnet test .\InfraFlowSculptor.slnx (si C# touché)
 [ ] dotnet build .\InfraFlowSculptor.slnx (si C# touché)
 [ ] npm run typecheck + npm run build dans src/Front (si Angular touché)
-[ ] gitnexus_detect_changes() — seuls les fichiers/flux attendus impactés
+[ ] git diff vérifié — seuls les fichiers/flux attendus modifiés (codegraph_impact si doute)
 [ ] Dette de tests enregistrée dans .claude/test-debt.md (si dette)
 [ ] Fichier thématique .claude/memory/ mis à jour
 [ ] Ligne ajoutée dans .claude/memory/changelog.md
