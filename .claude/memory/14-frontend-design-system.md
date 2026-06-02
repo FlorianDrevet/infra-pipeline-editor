@@ -30,6 +30,15 @@ Exécution complète du plan audit-design-system-2026-05-27 en une seule session
 - Overrides `::ng-deep .mat-mdc-tab-*` / `--mat-tab-*` : supprimés (0 hit `features/**/*.scss`).
 
 
+## `app-ds-ip-input` — saisie IP/CIDR segmentée (style date) [2026-06-02]
+
+Primitive DS unique pour IPv4 + CIDR, `mode: 'ipv4' | 'cidr'`. **Remplace** les anciens `app-ds-cidr-input` + `app-ds-ipv4-input` (supprimés). Champs segmentés type « saisie de date » : un input par octet (+ champ préfixe en `cidr`), séparateurs `.`/`/` rendus comme masque permanent (`aria-hidden`), frappe chiffres seulement, focus qui **avance tout seul** (octet plein à 3 chiffres OU `valeur*10 > max`), Backspace/Flèches reviennent au segment précédent, collage qui distribue, CVA qui émet le contrat inchangé `a.b.c.d` / `a.b.c.d/p`.
+
+- Logique pure isolée et testée dans `ds-ip-input.util.ts` : `getIpSegmentDefs / sanitizeSegment / shouldAdvanceSegment / joinSegments / splitToSegments` (+ `ds-ip-input.types.ts`). Ne jamais réimplémenter le découpage octet à la main.
+- **Branchement** : passe par `app-ds-list-input` `inputType="cidr|ipv4"` (son `@switch` rend `app-ds-ip-input mode=...`). Donc add-resource modal ET resource-edit en héritent **sans changer le template des écrans**. Couche données (`addressSpacesInput`/`dnsServersInput` string[]) et validateurs `vnet-tag-input.helpers.ts` intacts.
+- i18n aria : `DS.IP_INPUT.OCTET_ARIA` (`{{index}}`) + `DS.IP_INPUT.PREFIX_ARIA` (en/fr).
+- Tests : util spec + component spec, 31/31 Karma vert.
+
 ### Métriques finales
 
 - **0 occurrence** `<mat-button|mat-stroked|mat-flat|mat-raised|mat-icon-button|mat-tab-group|mat-card|mat-card-*|mat-checkbox|mat-radio-group|mat-button-toggle|mat-progress-bar|mat-menu>` dans `src/Front/src/app/features/**/*.html` et `src/Front/src/app/shared/components/**/*.html` (hors zones intentionnelles).
