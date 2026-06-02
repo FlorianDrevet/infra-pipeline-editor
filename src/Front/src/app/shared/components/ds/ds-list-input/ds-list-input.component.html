@@ -11,17 +11,17 @@
   <div class="ds-list-input__row">
     @switch (inputType()) {
       @case ('cidr') {
-        <app-ds-cidr-input
+        <app-ds-ip-input
           class="ds-list-input__field"
-          [placeholder]="placeholder()"
+          mode="cidr"
           [disabled]="disabledState() || !canAddMore()"
           [formControl]="inputCtrl"
           (keydown)="onKeyDown($event)" />
       }
       @case ('ipv4') {
-        <app-ds-ipv4-input
+        <app-ds-ip-input
           class="ds-list-input__field"
-          [placeholder]="placeholder()"
+          mode="ipv4"
           [disabled]="disabledState() || !canAddMore()"
           [formControl]="inputCtrl"
           (keydown)="onKeyDown($event)" />

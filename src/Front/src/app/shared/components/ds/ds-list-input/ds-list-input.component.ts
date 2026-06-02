@@ -11,8 +11,7 @@ import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModu
 
 import { DsButtonComponent } from '../ds-button/ds-button.component';
 import { DsChipComponent } from '../ds-chip/ds-chip.component';
-import { DsCidrInputComponent } from '../ds-cidr-input/ds-cidr-input.component';
-import { DsIpv4InputComponent } from '../ds-ipv4-input/ds-ipv4-input.component';
+import { DsIpInputComponent } from '../ds-ip-input/ds-ip-input.component';
 import { DsTextFieldComponent } from '../ds-text-field/ds-text-field.component';
 import { DsListInputValidator } from './ds-list-input.types';
 
@@ -23,7 +22,7 @@ import { DsListInputValidator } from './ds-list-input.types';
 @Component({
   selector: 'app-ds-list-input',
   standalone: true,
-  imports: [DsButtonComponent, DsChipComponent, DsCidrInputComponent, DsIpv4InputComponent, DsTextFieldComponent, ReactiveFormsModule],
+  imports: [DsButtonComponent, DsChipComponent, DsIpInputComponent, DsTextFieldComponent, ReactiveFormsModule],
   templateUrl: './ds-list-input.component.html',
   styleUrl: './ds-list-input.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

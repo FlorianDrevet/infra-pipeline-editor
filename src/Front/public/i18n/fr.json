@@ -10,6 +10,10 @@
     },
     "LIST_INPUT": {
       "DUPLICATE": "Cette valeur existe déjà"
+    },
+    "IP_INPUT": {
+      "OCTET_ARIA": "Octet {{index}}",
+      "PREFIX_ARIA": "Préfixe réseau"
     }
   },
   "LANGUAGE": {
