@@ -812,6 +812,25 @@
   app-ds-property-help-button { margin-top: 28px; }
 }
 
+// ─── VNet environment fields ─────────────────────────────────────────────────
+
+.vnet-env-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ifs-space-12);
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vnet-ddos-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ifs-space-8);
+  grid-column: 1 / -1;
+}
+
 // ─── States ─────────────────────────────────────────────────────────────────
 
 .empty-state {

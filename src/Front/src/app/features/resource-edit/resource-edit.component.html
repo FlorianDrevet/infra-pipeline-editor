@@ -615,13 +615,12 @@
                           </div>
                         </div>
                         <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.VIRTUAL_NETWORK_SECTION_DESC' | translate }}</p>
-                        <div class="form-grid env-category-grid">
+                        <div class="vnet-env-grid">
                           <div class="ds-list-input-with-help">
                             <app-ds-list-input
                               formControlName="addressSpacesInput"
                               [label]="'RESOURCE_EDIT.FIELDS.VNET_ADDRESS_SPACES' | translate"
                               [placeholder]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_PLACEHOLDER' | translate"
-                              [helperText]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_HELPER' | translate"
                               [validator]="vnetAddressSpaceListValidator"
                               inputType="cidr" />
                             <app-ds-property-help-button
@@ -633,14 +632,13 @@
                               formControlName="dnsServersInput"
                               [label]="'RESOURCE_EDIT.FIELDS.VNET_DNS_SERVERS' | translate"
                               [placeholder]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_PLACEHOLDER' | translate"
-                              [helperText]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_HELPER' | translate"
                               [validator]="vnetDnsServerListValidator"
                               inputType="ipv4" />
                             <app-ds-property-help-button
                               [title]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS.TITLE' | translate"
                               [sections]="dnsServersHelpSections" />
                           </div>
-                          <div class="form-field form-field--toggle form-field--with-info">
+                          <div class="vnet-ddos-row">
                             <app-ds-toggle formControlName="enableDdosProtection" [label]="'RESOURCE_EDIT.FIELDS.ENABLE_DDOS_PROTECTION' | translate"></app-ds-toggle>
                             <mat-icon class="field-info-icon" [matTooltip]="'COMMON.VNET_HELP_DIALOG.DDOS_TOOLTIP' | translate">info_outline</mat-icon>
                           </div>
