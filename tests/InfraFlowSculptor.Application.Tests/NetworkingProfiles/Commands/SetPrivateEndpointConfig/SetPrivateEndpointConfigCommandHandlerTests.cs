@@ -9,6 +9,7 @@ using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.VirtualNetworkAggregate;
 using InfraFlowSculptor.Domain.VirtualNetworkAggregate.ValueObjects;
 using NSubstitute;
@@ -73,12 +74,13 @@ public sealed class SetPrivateEndpointConfigCommandHandlerTests
             .Returns(_config);
         _azureResourceRepository.GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
             .Returns(_resource);
-        _resourceGroupRepository.GetByContainedResourceIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
+        // Single VNet load — no second call via GetByContainedResourceIdAsync
+        _virtualNetworkRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_vnet);
+        _resourceGroupRepository.GetByIdReadOnlyAsync(Arg.Any<ResourceGroupId>(), Arg.Any<CancellationToken>())
             .Returns(_vnetResourceGroup);
         _infraConfigRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(_otherConfig);
-        _virtualNetworkRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
-            .Returns(_vnet);
 
         // Act
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -90,6 +92,11 @@ public sealed class SetPrivateEndpointConfigCommandHandlerTests
         _resource.PrivateEndpointConfiguration!.VirtualNetworkId.Should().Be(_vnet.Id);
         _resource.PrivateEndpointConfiguration.SubnetName.Value.Should().Be("snet-pe");
         _azureResourceRepository.Received(1).Update(_resource);
+        // Exactly one VNet load — no N+1
+        await _virtualNetworkRepository.Received(1).GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
+        // ResourceGroup loaded by PK from VNet.ResourceGroupId — not by contained resource join
+        await _resourceGroupRepository.Received(1).GetByIdReadOnlyAsync(Arg.Any<ResourceGroupId>(), Arg.Any<CancellationToken>());
+        await _resourceGroupRepository.DidNotReceive().GetByContainedResourceIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -131,9 +138,35 @@ public sealed class SetPrivateEndpointConfigCommandHandlerTests
     }
 
     [Fact]
-    public async Task Given_VNetNotInSameProject_When_Handle_Then_ReturnsValidationErrorAsync()
+    public async Task Given_VNetNotFound_When_Handle_Then_ReturnsNotFoundAsync()
     {
         // Arrange
+        var command = new SetPrivateEndpointConfigCommand(
+            _config.Id, _resource.Id, _vnet.Id, "snet-pe", "AutoManaged", null, null);
+
+        _accessService.VerifyWriteAccessAsync(_config.Id, Arg.Any<CancellationToken>())
+            .Returns(_config);
+        _azureResourceRepository.GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
+            .Returns(_resource);
+        _virtualNetworkRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns((VirtualNetwork?)null);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.NotFound);
+        result.FirstError.Code.Should().Be("VirtualNetwork.NotFound");
+        // Single VNet load — ResourceGroupRepository never called when VNet is not found
+        await _virtualNetworkRepository.Received(1).GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>());
+        await _resourceGroupRepository.DidNotReceive().GetByContainedResourceIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Given_VNetNotInSameProject_When_Handle_Then_ReturnsValidationErrorAsync()
+    {
+        // Arrange — VNet's ResourceGroup belongs to a foreign project
         var foreignProject = ProjectId.CreateUnique();
         var foreignConfig = DomainInfrastructureConfig.Create(new Name("foreign"), foreignProject);
         var command = new SetPrivateEndpointConfigCommand(
@@ -143,8 +176,12 @@ public sealed class SetPrivateEndpointConfigCommandHandlerTests
             .Returns(_config);
         _azureResourceRepository.GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
             .Returns(_resource);
-        _resourceGroupRepository.GetByContainedResourceIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
+        _virtualNetworkRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_vnet);
+        // ResourceGroup loaded by PK (vnet.ResourceGroupId) — _vnetResourceGroup.InfraConfigId = _otherConfig.Id
+        _resourceGroupRepository.GetByIdReadOnlyAsync(Arg.Any<ResourceGroupId>(), Arg.Any<CancellationToken>())
             .Returns(_vnetResourceGroup);
+        // foreignConfig belongs to a different project
         _infraConfigRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(foreignConfig);
 
@@ -168,12 +205,12 @@ public sealed class SetPrivateEndpointConfigCommandHandlerTests
             .Returns(_config);
         _azureResourceRepository.GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
             .Returns(_resource);
-        _resourceGroupRepository.GetByContainedResourceIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
+        _virtualNetworkRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_vnet);
+        _resourceGroupRepository.GetByIdReadOnlyAsync(Arg.Any<ResourceGroupId>(), Arg.Any<CancellationToken>())
             .Returns(_vnetResourceGroup);
         _infraConfigRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(_otherConfig);
-        _virtualNetworkRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
-            .Returns(_vnet);
 
         // Act
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -196,12 +233,12 @@ public sealed class SetPrivateEndpointConfigCommandHandlerTests
             .Returns(_config);
         _azureResourceRepository.GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
             .Returns(_resource);
-        _resourceGroupRepository.GetByContainedResourceIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
+        _virtualNetworkRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_vnet);
+        _resourceGroupRepository.GetByIdReadOnlyAsync(Arg.Any<ResourceGroupId>(), Arg.Any<CancellationToken>())
             .Returns(_vnetResourceGroup);
         _infraConfigRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(_otherConfig);
-        _virtualNetworkRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
-            .Returns(_vnet);
 
         // Act
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -211,5 +248,33 @@ public sealed class SetPrivateEndpointConfigCommandHandlerTests
         _resource.PrivateEndpointConfiguration!.DnsMode.Value.Should().Be(PrivateEndpointDnsMode.Mode.ExistingHub);
         _resource.PrivateEndpointConfiguration.DnsHubResourceGroupId.Should().Be("rg-dns-hub");
         _resource.PrivateEndpointConfiguration.DnsHubSubscriptionId.Should().Be("sub-dns-hub");
+    }
+
+    [Fact]
+    public async Task Handle_WhenDnsModeIsInvalid_ShouldReturnValidationError()
+    {
+        // Arrange — bypass the validator by constructing the command directly with an invalid DnsMode
+        var command = new SetPrivateEndpointConfigCommand(
+            _config.Id, _resource.Id, _vnet.Id, "snet-pe",
+            "INVALID_DNS_MODE_VALUE", null, null);
+
+        _accessService.VerifyWriteAccessAsync(_config.Id, Arg.Any<CancellationToken>())
+            .Returns(_config);
+        _azureResourceRepository.GetByIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
+            .Returns(_resource);
+        _virtualNetworkRepository.GetByIdReadOnlyAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_vnet);
+        _resourceGroupRepository.GetByIdReadOnlyAsync(Arg.Any<ResourceGroupId>(), Arg.Any<CancellationToken>())
+            .Returns(_vnetResourceGroup);
+        _infraConfigRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_otherConfig);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert — must return a controlled validation error, not throw an exception
+        result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.Validation);
+        result.FirstError.Code.Should().Contain("PrivateEndpointDnsMode");
     }
 }

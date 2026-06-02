@@ -37,8 +37,8 @@ public sealed class VirtualNetworkEnvironmentSettings : Entity<VirtualNetworkEnv
             Id = VirtualNetworkEnvironmentSettingsId.CreateUnique(),
             VirtualNetworkId = virtualNetworkId,
             EnvironmentName = environmentName,
-            AddressSpaces = addressSpaces,
-            DnsServers = dnsServers,
+            AddressSpaces = [..addressSpaces],
+            DnsServers = dnsServers is not null ? [..dnsServers] : null,
             EnableDdosProtection = enableDdosProtection
         };
     }
@@ -46,8 +46,8 @@ public sealed class VirtualNetworkEnvironmentSettings : Entity<VirtualNetworkEnv
     /// <summary>Updates the environment settings.</summary>
     public void Update(IReadOnlyList<string> addressSpaces, IReadOnlyList<string>? dnsServers, bool enableDdosProtection)
     {
-        AddressSpaces = addressSpaces;
-        DnsServers = dnsServers;
+        AddressSpaces = [..addressSpaces];
+        DnsServers = dnsServers is not null ? [..dnsServers] : null;
         EnableDdosProtection = enableDdosProtection;
     }
 }

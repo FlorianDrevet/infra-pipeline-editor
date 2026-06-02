@@ -18,7 +18,7 @@ public class AddTableCommandHandler(
         return StorageAccountAccessHelper.AddSubResourceAndReloadAsync(
             ctx,
             sa => sa.AddTable(request.Name),
-            storageAccountRepository.AddTableAsync,
+            storageAccountRepository.AddTable,
             mapper, cancellationToken);
     }
 }

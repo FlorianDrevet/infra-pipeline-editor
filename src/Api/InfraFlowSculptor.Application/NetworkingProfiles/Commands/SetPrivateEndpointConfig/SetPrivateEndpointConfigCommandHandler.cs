@@ -20,6 +20,7 @@ public sealed class SetPrivateEndpointConfigCommandHandler(
     IInfraConfigAccessService accessService)
     : ICommandHandler<SetPrivateEndpointConfigCommand, Success>
 {
+    /// <inheritdoc/>
     public async Task<ErrorOr<Success>> Handle(
         SetPrivateEndpointConfigCommand request,
         CancellationToken cancellationToken)
@@ -30,16 +31,22 @@ public sealed class SetPrivateEndpointConfigCommandHandler(
 
         var infraConfig = authResult.Value;
 
-        // Load the target resource
+        // Load the target resource.
         var resource = await azureResourceRepository.GetByIdAsync(request.ResourceId, cancellationToken);
         if (resource is null)
             return Error.NotFound("AzureResource.NotFound",
                 $"Resource '{request.ResourceId}' not found.");
 
-        // Validate the VNet belongs to the same project (cross-config is allowed)
-        var vnetRg = await resourceGroupRepository.GetByContainedResourceIdAsync(
-            request.VirtualNetworkId, cancellationToken);
+        // Load the VNet once — GetByIdReadOnlyAsync includes Subnets (via WithSubResources).
+        var vnet = await virtualNetworkRepository.GetByIdReadOnlyAsync(request.VirtualNetworkId, cancellationToken);
+        if (vnet is null)
+            return Error.NotFound("VirtualNetwork.NotFound",
+                $"Virtual network '{request.VirtualNetworkId}' not found.");
 
+        // Validate the VNet belongs to the same project (cross-config is allowed).
+        // Use vnet.ResourceGroupId (FK always available) to load the resource group by PK —
+        // more efficient than GetByContainedResourceIdAsync which does a full-table join.
+        var vnetRg = await resourceGroupRepository.GetByIdReadOnlyAsync(vnet.ResourceGroupId, cancellationToken);
         if (vnetRg is null)
             return Error.NotFound("VirtualNetwork.NotFound",
                 $"Virtual network '{request.VirtualNetworkId}' not found.");
@@ -49,19 +56,17 @@ public sealed class SetPrivateEndpointConfigCommandHandler(
             return Error.Validation("VirtualNetwork.NotInSameProject",
                 "The selected virtual network does not belong to the same project.");
 
-        // Validate the subnet exists on the VNet
-        var vnet = await virtualNetworkRepository.GetByIdReadOnlyAsync(request.VirtualNetworkId, cancellationToken);
-        if (vnet is null)
-            return Error.NotFound("VirtualNetwork.NotFound",
-                $"Virtual network '{request.VirtualNetworkId}' not found.");
-
+        // Validate the subnet exists on the VNet (Subnets already loaded via WithSubResources).
         var subnetExists = vnet.Subnets.Any(s => s.Name.Value == request.SubnetName);
         if (!subnetExists)
             return Error.Validation("Subnet.NotFound",
                 $"Subnet '{request.SubnetName}' does not exist on the selected virtual network.");
 
-        // Build the domain configuration
-        var dnsMode = Enum.Parse<PrivateEndpointDnsMode.Mode>(request.DnsMode, ignoreCase: true);
+        // Build the domain configuration.
+        if (!Enum.TryParse<PrivateEndpointDnsMode.Mode>(request.DnsMode, ignoreCase: true, out var dnsMode))
+            return Error.Validation("PrivateEndpointDnsMode.Invalid",
+                $"'{request.DnsMode}' is not a valid DNS mode.");
+
         var configuration = dnsMode switch
         {
             PrivateEndpointDnsMode.Mode.AutoManaged =>

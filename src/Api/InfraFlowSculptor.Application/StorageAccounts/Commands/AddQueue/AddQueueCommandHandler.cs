@@ -18,7 +18,7 @@ public class AddQueueCommandHandler(
         return StorageAccountAccessHelper.AddSubResourceAndReloadAsync(
             ctx,
             sa => sa.AddQueue(request.Name),
-            storageAccountRepository.AddQueueAsync,
+            storageAccountRepository.AddQueue,
             mapper, cancellationToken);
     }
 }

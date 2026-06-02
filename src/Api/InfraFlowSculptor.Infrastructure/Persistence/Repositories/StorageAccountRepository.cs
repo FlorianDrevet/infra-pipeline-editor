@@ -60,10 +60,10 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
             .Include(s => s.Tables);
     }
 
-    public Task<BlobContainer> AddBlobContainerAsync(BlobContainer container)
+    public BlobContainer AddBlobContainer(BlobContainer container)
     {
         Context.Set<BlobContainer>().Add(container);
-        return Task.FromResult(container);
+        return container;
     }
 
     public async Task<bool> RemoveBlobContainerAsync(AzureResourceId storageAccountId, BlobContainerId id)
@@ -77,10 +77,10 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
         return true;
     }
 
-    public Task<StorageQueue> AddQueueAsync(StorageQueue queue)
+    public StorageQueue AddQueue(StorageQueue queue)
     {
         Context.Set<StorageQueue>().Add(queue);
-        return Task.FromResult(queue);
+        return queue;
     }
 
     public async Task<bool> RemoveQueueAsync(AzureResourceId storageAccountId, StorageQueueId id)
@@ -94,10 +94,10 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
         return true;
     }
 
-    public Task<StorageTable> AddTableAsync(StorageTable table)
+    public StorageTable AddTable(StorageTable table)
     {
         Context.Set<StorageTable>().Add(table);
-        return Task.FromResult(table);
+        return table;
     }
 
     public async Task<bool> RemoveTableAsync(AzureResourceId storageAccountId, StorageTableId id)

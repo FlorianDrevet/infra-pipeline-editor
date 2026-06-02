@@ -12,12 +12,12 @@ public interface IStorageAccountRepository : IRepository<StorageAccount>
     Task<StorageAccount?> GetByIdWithSubResourcesReadOnlyAsync(AzureResourceId id, CancellationToken cancellationToken = default);
     Task<List<StorageAccount>> GetByResourceGroupIdAsync(ResourceGroupId resourceGroupId, CancellationToken cancellationToken = default);
 
-    Task<BlobContainer> AddBlobContainerAsync(BlobContainer container);
+    BlobContainer AddBlobContainer(BlobContainer container);
     Task<bool> RemoveBlobContainerAsync(AzureResourceId storageAccountId, BlobContainerId id);
 
-    Task<StorageQueue> AddQueueAsync(StorageQueue queue);
+    StorageQueue AddQueue(StorageQueue queue);
     Task<bool> RemoveQueueAsync(AzureResourceId storageAccountId, StorageQueueId id);
 
-    Task<StorageTable> AddTableAsync(StorageTable table);
+    StorageTable AddTable(StorageTable table);
     Task<bool> RemoveTableAsync(AzureResourceId storageAccountId, StorageTableId id);
 }

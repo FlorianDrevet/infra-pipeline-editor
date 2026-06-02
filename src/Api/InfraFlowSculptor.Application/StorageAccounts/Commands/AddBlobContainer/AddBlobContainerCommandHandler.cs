@@ -18,7 +18,7 @@ public class AddBlobContainerCommandHandler(
         return StorageAccountAccessHelper.AddSubResourceAndReloadAsync(
             ctx,
             sa => sa.AddBlobContainer(request.Name, request.PublicAccess),
-            storageAccountRepository.AddBlobContainerAsync,
+            storageAccountRepository.AddBlobContainer,
             mapper, cancellationToken);
     }
 }

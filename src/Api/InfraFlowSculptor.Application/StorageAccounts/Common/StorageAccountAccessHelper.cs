@@ -24,7 +24,7 @@ internal static class StorageAccountAccessHelper
     public static async Task<ErrorOr<StorageAccountResult>> AddSubResourceAndReloadAsync<TSubResource>(
         StorageAccountAccessContext ctx,
         Func<StorageAccount, ErrorOr<TSubResource>> addSubResource,
-        Func<TSubResource, Task<TSubResource>> persistSubResource,
+        Func<TSubResource, TSubResource> persistSubResource,
         IMapper mapper,
         CancellationToken cancellationToken)
     {
@@ -38,7 +38,7 @@ internal static class StorageAccountAccessHelper
         if (addResult.IsError)
             return addResult.Errors;
 
-        await persistSubResource(addResult.Value);
+        persistSubResource(addResult.Value);
 
         var reloaded = await ctx.StorageAccountRepository.GetByIdWithSubResourcesAsync(ctx.StorageAccountId, cancellationToken);
         if (reloaded is null)
