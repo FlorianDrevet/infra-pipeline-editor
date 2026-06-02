@@ -14,7 +14,8 @@
 }
 
 .ds-list-input__label {
-  font: var(--ifs-text-body-sm);
+  font-size: 12px;
+  line-height: 16px;
   color: var(--ifs-text-secondary);
   font-weight: 500;
 }
@@ -37,6 +38,13 @@
 
 .ds-list-input__add-btn {
   flex-shrink: 0;
+}
+
+.ds-list-input__row--ip {
+  app-ds-ip-input.ds-list-input__field {
+    flex: none;
+    width: fit-content;
+  }
 }
 
 .ds-list-input__chips {

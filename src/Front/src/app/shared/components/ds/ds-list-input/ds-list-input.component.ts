@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { DsButtonComponent } from '../ds-button/ds-button.component';
 import { DsChipComponent } from '../ds-chip/ds-chip.component';
@@ -22,7 +23,7 @@ import { DsListInputValidator } from './ds-list-input.types';
 @Component({
   selector: 'app-ds-list-input',
   standalone: true,
-  imports: [DsButtonComponent, DsChipComponent, DsIpInputComponent, DsTextFieldComponent, ReactiveFormsModule],
+  imports: [DsButtonComponent, DsChipComponent, DsIpInputComponent, DsTextFieldComponent, ReactiveFormsModule, TranslatePipe],
   templateUrl: './ds-list-input.component.html',
   styleUrl: './ds-list-input.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,7 +43,7 @@ export class DsListInputComponent implements ControlValueAccessor {
   public readonly disabled = input<boolean>(false);
   public readonly required = input<boolean>(false);
   public readonly maxItems = input<number | undefined>(undefined);
-  public readonly addButtonLabel = input<string>('Add');
+  public readonly addButtonLabel = input<string>('DS.LIST_INPUT.ADD');
   public readonly validator = input<DsListInputValidator | undefined>(undefined);
   public readonly inputType = input<'text' | 'cidr' | 'ipv4'>('text');
 

@@ -8,7 +8,7 @@
     </label>
   }
 
-  <div class="ds-list-input__row">
+  <div class="ds-list-input__row" [class.ds-list-input__row--ip]="inputType() === 'cidr' || inputType() === 'ipv4'">
     @switch (inputType()) {
       @case ('cidr') {
         <app-ds-ip-input
@@ -41,7 +41,7 @@
       icon="add"
       [disabled]="disabledState() || !canAddMore()"
       (clicked)="tryAdd()">
-      {{ addButtonLabel() }}
+      {{ addButtonLabel() | translate }}
     </app-ds-button>
   </div>
 

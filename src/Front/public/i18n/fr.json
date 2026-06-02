@@ -9,7 +9,8 @@
       "VALUE_REQUIRED": "La valeur est requise"
     },
     "LIST_INPUT": {
-      "DUPLICATE": "Cette valeur existe déjà"
+      "DUPLICATE": "Cette valeur existe déjà",
+      "ADD": "Ajouter"
     },
     "IP_INPUT": {
       "OCTET_ARIA": "Octet {{index}}",
