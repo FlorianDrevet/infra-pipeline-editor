@@ -166,9 +166,6 @@ export function buildResourceEditGeneralForm(request: ResourceEditGeneralFormBui
     const sqlDatabase = resource as SqlDatabaseResponse;
     base['sqlServerId'] = [sqlDatabase.sqlServerId, [Validators.required]];
     base['collation'] = [sqlDatabase.collation];
-  } else if (resourceType === 'VirtualNetwork') {
-    const virtualNetwork = resource as VirtualNetworkResponse;
-    base['enableDdosProtection'] = [virtualNetwork.enableDdosProtection];
   }
 
   return {
@@ -366,6 +363,7 @@ function buildSingleEnvironmentForm(
       return fb.group({
         addressSpacesInput: [settings?.addressSpaces ?? []],
         dnsServersInput: [settings?.dnsServers ?? []],
+        enableDdosProtection: [settings?.enableDdosProtection ?? false],
       });
     }
     default:

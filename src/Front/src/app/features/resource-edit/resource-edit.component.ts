@@ -1385,7 +1385,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           updated = await this.virtualNetworkService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            enableDdosProtection: general.enableDdosProtection ?? false,
             environmentSettings: buildVirtualNetworkEnvironmentSettings(envForms),
           });
           break;

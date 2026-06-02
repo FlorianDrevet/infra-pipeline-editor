@@ -798,10 +798,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 vnet.Name.Value,
                 MapLocation(vnet.Location),
                 AzureResourceTypes.ArmTypes.VirtualNetworkType,
-                new Dictionary<string, string>
-                {
-                    ["enableDdosProtection"] = vnet.EnableDdosProtection.ToString().ToLower(),
-                },
+                new Dictionary<string, string>(),
                 context.VnetSettings
                     .Where(es => es.VirtualNetworkId == vnet.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(
@@ -809,6 +806,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                         new Dictionary<string, string>
                         {
                             ["addressPrefixes"] = System.Text.Json.JsonSerializer.Serialize(es.AddressSpaces),
+                            ["enableDdosProtection"] = es.EnableDdosProtection.ToString().ToLower(),
                         }))
                     .ToList())
             {

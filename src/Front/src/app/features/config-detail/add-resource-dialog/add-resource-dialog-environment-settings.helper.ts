@@ -87,6 +87,7 @@ interface AddResourceEnvironmentFormValue {
   readonly zoneRedundancy?: AddResourceEnvironmentBooleanValue;
   readonly addressSpacesInput?: string[];
   readonly dnsServersInput?: string[];
+  readonly enableDdosProtection?: AddResourceEnvironmentBooleanValue;
 }
 
 const CONTAINER_APP_PROBE_DEFAULTS: Readonly<Record<AddResourceProbeType, { path: string; port: number }>> = {
@@ -217,6 +218,7 @@ export function createAddResourceEnvironmentFormGroup(fb: FormBuilder, type: Res
       return fb.group({
         addressSpacesInput: fb.nonNullable.control<string[]>([]),
         dnsServersInput: fb.nonNullable.control<string[]>([]),
+        enableDdosProtection: [false],
       });
     default:
       return fb.group({});
@@ -419,6 +421,7 @@ export function buildVirtualNetworkEnvironmentSettings(context: AddResourceEnvir
       environmentName: environment.name,
       addressSpaces: [...addressSpaces],
       dnsServers: dnsServers.length > 0 ? [...dnsServers] : undefined,
+      enableDdosProtection: raw.enableDdosProtection === true,
     };
   });
 }

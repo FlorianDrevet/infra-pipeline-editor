@@ -1,7 +1,9 @@
 using FluentAssertions;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
+using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
@@ -91,10 +93,19 @@ public sealed class KeyVaultRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task Given_StoredEntity_When_GetByIdReadOnlyAsync_Then_ReturnsEntity_Async()
+    public async Task Given_StoredEntityWithResourceGroup_When_GetByIdReadOnlyAsync_Then_LoadsResourceGroupNavigation_Async()
     {
-        // Arrange
-        var entity = NewEntity(ResourceGroupId.CreateUnique());
+        // Arrange — a persisted ResourceGroup so the navigation can be eager-loaded.
+        // GetByIdReadOnlyAsync must include ResourceGroup; the query handler reads
+        // keyVault.ResourceGroup.InfraConfigId for access verification.
+        var infraConfigId = InfrastructureConfigId.CreateUnique();
+        var resourceGroup = ResourceGroup.Create(
+            new Name("rg-kv-detail"),
+            infraConfigId,
+            new Location(Location.LocationEnum.WestEurope));
+        _context.ResourceGroups.Add(resourceGroup);
+
+        var entity = NewEntity(resourceGroup.Id);
         _context.KeyVaults.Add(entity);
         await _context.SaveChangesAsync();
 
@@ -103,7 +114,8 @@ public sealed class KeyVaultRepositoryTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(entity.Id);
+        result!.ResourceGroup.Should().NotBeNull();
+        result.ResourceGroup!.InfraConfigId.Should().Be(infraConfigId);
     }
 
     [Fact]

@@ -21,10 +21,12 @@ describe('resource edit environment settings helpers', () => {
       createEnvironmentFormEntry('Development', {
         addressSpacesInput: [...TestAddressSpaces],
         dnsServersInput: [...TestDnsServers],
+        enableDdosProtection: true,
       }),
       createEnvironmentFormEntry('Production', {
         addressSpacesInput: [],
         dnsServersInput: [],
+        enableDdosProtection: false,
       }),
     ];
 
@@ -33,11 +35,13 @@ describe('resource edit environment settings helpers', () => {
         environmentName: 'Development',
         addressSpaces: [...TestAddressSpaces],
         dnsServers: [...TestDnsServers],
+        enableDdosProtection: true,
       },
       {
         environmentName: 'Production',
         addressSpaces: [],
         dnsServers: undefined,
+        enableDdosProtection: false,
       },
     ]);
   });

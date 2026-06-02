@@ -21,6 +21,7 @@ public class KeyVaultRepository : AzureResourceRepository<KeyVault>, IKeyVaultRe
     public override async Task<KeyVault?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await WithSubResources(Context.Set<KeyVault>().AsNoTracking())
+            .Include(kv => kv.ResourceGroup)
             .FirstOrDefaultAsync(kv => kv.Id == id, cancellationToken);
     }
 

@@ -76,47 +76,37 @@ describe('AddResourceDialogComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('renders VNet-specific chip inputs without inline delimiter guidance in the add-resource flow', () => {
+  it('renders VNet per-environment address/DNS list inputs and a DDoS toggle in the environments step', () => {
     const componentInstance = component as unknown as {
       applySelectedType(type: ResourceTypeEnum): void;
       step: { set(value: 'type' | 'plan-selection' | 'create-plan' | 'common' | 'environments'): void };
     };
 
     componentInstance.applySelectedType(ResourceTypeEnum.VirtualNetwork);
-    componentInstance.step.set('common');
+    componentInstance.step.set('environments');
     fixture.detectChanges();
 
-    const tagInputs = fixture.debugElement.queryAll(By.css('app-ds-tag-input'));
+    const listInputs = fixture.debugElement.queryAll(By.css('app-ds-list-input'));
     const textContent = fixture.nativeElement.textContent as string;
 
-    expect(tagInputs.length).toBe(2);
+    expect(listInputs.length).toBe(2);
     expect(textContent).toContain('Enable DDoS protection');
     expect(textContent).toContain('Address spaces');
     expect(textContent).toContain('DNS servers');
-    expect(textContent).not.toContain('Separate multiple ranges with commas or new lines.');
-    expect(textContent).not.toContain('Enter IPv4 addresses separated by commas or new lines.');
   });
 
-  it('opens the shared VNet help dialog from the add-resource VNet section', () => {
+  it('exposes the shared VNet property-help buttons in the environments step', () => {
     const componentInstance = component as unknown as {
       applySelectedType(type: ResourceTypeEnum): void;
       step: { set(value: 'type' | 'plan-selection' | 'create-plan' | 'common' | 'environments'): void };
-      dialog: { open: jasmine.Spy };
     };
 
     componentInstance.applySelectedType(ResourceTypeEnum.VirtualNetwork);
-    componentInstance.step.set('common');
-    spyOn(componentInstance.dialog, 'open');
+    componentInstance.step.set('environments');
     fixture.detectChanges();
 
-    const helpButton = fixture.debugElement.query(By.css('app-ds-panel-action-button button'));
+    const helpButtons = fixture.debugElement.queryAll(By.css('app-ds-property-help-button'));
 
-    expect(helpButton).not.toBeNull();
-
-    helpButton.nativeElement.click();
-
-    expect(componentInstance.dialog.open).toHaveBeenCalledOnceWith(jasmine.any(Function), jasmine.objectContaining({
-      data: jasmine.objectContaining({ context: 'resourceCreate' }),
-    }));
+    expect(helpButtons.length).toBe(2);
   });
 });

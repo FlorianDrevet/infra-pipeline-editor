@@ -111,6 +111,12 @@ Thin orchestrator (~180 LOC) + 14 specialized classes: 7 assemblers (`Types`, `F
 ## ContainerApp Bicep Params [2026-04-03]
 All typed per-env parameters **must** be in the generator's `Parameters` dictionary — missing entries cause silent `.bicepparam` omissions.
 
+## Per-env override plumbing — three required links [2026-06-02]
+A per-environment value only reaches `main.{env}.bicepparam` if ALL of these hold (VNet `addressPrefixes` + per-env `enableDdosProtection` failed on all three before this fix):
+1. **Module match** — `ResourceTypeMetadata.GetBaseModuleName(armType)` must return the generator's `ModuleName` (it returned `"unknown"` for `VirtualNetworkType`, so `ParameterFileAssembler.FindMatchingResource` never matched and ALL VNet overrides were dropped). Every generated resource type needs a case here. **`DocumentIntelligenceType` is still missing — likely the same latent gap.**
+2. **Base key exists** — the override key must already be in the generator's `Generate()` `Parameters` dict (see rule above); `ApplyParameterOverrides` only merges keys present in `module.Parameters`.
+3. **Type coercion** — `ParameterFileAssembler.CoerceToOriginalType` coerces the string override to the base value's type. Arrays are handled by `CoerceToBicepArray` (JSON string like `["10.0.0.0/16"]` → `List<object>` → real Bicep array). Booleans coerce only if the base value is a real `bool` (not the string `"false"`). The read repo serializes per-env arrays as JSON into `EnvironmentConfigs`.
+
 ## Generator-Specific Patterns
 
 - **Typed legacy parameter models [2026-05-11]:** `Generators/ParameterModels/` + `BicepParameterModelConverter` (System.Text.Json, `JsonPropertyName`, null omission) for fixed-schema payloads. `BicepFormattingHelper` + `ParameterFileAssembler` honor `JsonPropertyName`.

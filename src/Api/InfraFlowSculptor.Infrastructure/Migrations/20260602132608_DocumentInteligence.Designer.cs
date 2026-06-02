@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InfraFlowSculptor.Infrastructure.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    partial class ProjectDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260602132608_DocumentInteligence")]
+    partial class DocumentInteligence
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1825,9 +1828,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.PrimitiveCollection<string>("DnsServers")
                         .HasColumnType("jsonb");
 
-                    b.Property<bool>("EnableDdosProtection")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("EnvironmentName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -2177,6 +2177,9 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
             modelBuilder.Entity("InfraFlowSculptor.Domain.VirtualNetworkAggregate.VirtualNetwork", b =>
                 {
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.Property<bool>("EnableDdosProtection")
+                        .HasColumnType("boolean");
 
                     b.ToTable("VirtualNetworks", (string)null);
                 });

@@ -81,7 +81,6 @@ function createCreateVirtualNetworkRequest(): CreateVirtualNetworkRequest {
     resourceGroupId: 'resource-group-1',
     name: 'demo-vnet',
     location: 'westeurope',
-    enableDdosProtection: false,
     isExisting: true,
   };
 }
@@ -90,12 +89,12 @@ function createUpdateVirtualNetworkRequest(): UpdateVirtualNetworkRequest {
   return {
     name: 'demo-vnet',
     location: 'westeurope',
-    enableDdosProtection: true,
     environmentSettings: [
       {
         environmentName: 'Development',
         addressSpaces: [TEST_ADDRESS_SPACE],
         dnsServers: [TEST_DNS_SERVER],
+        enableDdosProtection: true,
       },
     ],
   };
@@ -107,7 +106,6 @@ function createVirtualNetworkResponse(): VirtualNetworkResponse {
     resourceGroupId: 'resource-group-1',
     name: 'demo-vnet',
     location: 'westeurope',
-    enableDdosProtection: false,
     environmentSettings: [],
     subnets: [],
     isExisting: true,

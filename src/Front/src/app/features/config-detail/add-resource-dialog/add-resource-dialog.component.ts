@@ -464,9 +464,6 @@ export class AddResourceDialogComponent implements OnInit {
     enableNonSslPort: [false],
     disableAccessKeyAuthentication: [false],
     enableAadAuth: [false],
-    enableDdosProtection: [false],
-    vnetAddressSpacesInput: this.fb.nonNullable.control<string[]>([]),
-    vnetDnsServersInput: this.fb.nonNullable.control<string[]>([]),
     isExisting: [false],
   });
 
@@ -589,15 +586,6 @@ export class AddResourceDialogComponent implements OnInit {
 
   protected overrideNameAvailability(): void {
     this.nameAvailabilityOverridden.set(true);
-  }
-
-  protected getVnetAddressSpacesErrorText(): string | undefined {
-    const control = this.commonForm.controls.vnetAddressSpacesInput;
-    if (control.hasError('required') && control.touched) {
-      return this.translate.instant('COMMON.VNET_HELP_DIALOG.VALIDATION.ADDRESS_SPACE_REQUIRED');
-    }
-
-    return undefined;
   }
 
   private patchParentPlanSelection(type: ResourceTypeEnum | null, planId: string | null): void {
@@ -980,8 +968,6 @@ export class AddResourceDialogComponent implements OnInit {
       this.commonForm.controls.kind.setValidators([Validators.required]);
       this.commonForm.controls.accessTier.setValidators([Validators.required]);
       this.commonForm.controls.minimumTlsVersion.setValidators([Validators.required]);
-    } else if (type === ResourceTypeEnum.VirtualNetwork) {
-      this.commonForm.controls.vnetAddressSpacesInput.setValidators([Validators.required]);
     }
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
@@ -995,7 +981,6 @@ export class AddResourceDialogComponent implements OnInit {
     this.commonForm.controls.kind.updateValueAndValidity();
     this.commonForm.controls.accessTier.updateValueAndValidity();
     this.commonForm.controls.minimumTlsVersion.updateValueAndValidity();
-    this.commonForm.controls.vnetAddressSpacesInput.updateValueAndValidity();
   }
 
   private clearExtraValidators(): void {
@@ -1011,7 +996,6 @@ export class AddResourceDialogComponent implements OnInit {
     this.commonForm.controls.kind.clearValidators();
     this.commonForm.controls.accessTier.clearValidators();
     this.commonForm.controls.minimumTlsVersion.clearValidators();
-    this.commonForm.controls.vnetAddressSpacesInput.clearValidators();
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
@@ -1024,6 +1008,5 @@ export class AddResourceDialogComponent implements OnInit {
     this.commonForm.controls.kind.updateValueAndValidity();
     this.commonForm.controls.accessTier.updateValueAndValidity();
     this.commonForm.controls.minimumTlsVersion.updateValueAndValidity();
-    this.commonForm.controls.vnetAddressSpacesInput.updateValueAndValidity();
   }
 }

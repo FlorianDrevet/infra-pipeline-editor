@@ -29,12 +29,12 @@ public sealed class UpdateVirtualNetworkCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        vnet.Update(request.Name, request.Location, request.EnableDdosProtection);
+        vnet.Update(request.Name, request.Location);
 
         if (request.EnvironmentSettings is not null)
             vnet.SetAllEnvironmentSettings(
                 request.EnvironmentSettings
-                    .Select(ec => (ec.EnvironmentName, ec.AddressSpaces, ec.DnsServers))
+                    .Select(ec => (ec.EnvironmentName, ec.AddressSpaces, ec.DnsServers, ec.EnableDdosProtection))
                     .ToList());
 
         var updated = virtualNetworkRepository.Update(vnet);

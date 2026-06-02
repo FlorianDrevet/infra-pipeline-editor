@@ -21,6 +21,7 @@ public class DocumentIntelligenceRepository : AzureResourceRepository<DocumentIn
     public override async Task<DocumentIntelligence?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await WithSubResources(Context.Set<DocumentIntelligence>().AsNoTracking())
+            .Include(di => di.ResourceGroup)
             .FirstOrDefaultAsync(di => di.Id == id, cancellationToken);
     }
 

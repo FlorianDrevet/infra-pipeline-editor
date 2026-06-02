@@ -15,7 +15,7 @@ describe('add resource dialog environment settings helper', () => {
     expect(hasResourceTypeEnvironmentSettings(ResourceTypeEnum.ContainerApp)).toBeTrue();
     expect(hasResourceTypeEnvironmentSettings(ResourceTypeEnum.UserAssignedIdentity)).toBeFalse();
     expect(hasResourceTypeEnvironmentSettings(ResourceTypeEnum.EventHubNamespace)).toBeFalse();
-    expect(hasResourceTypeEnvironmentSettings(ResourceTypeEnum.VirtualNetwork)).toBeFalse();
+    expect(hasResourceTypeEnvironmentSettings(ResourceTypeEnum.VirtualNetwork)).toBeTrue();
   });
 
   it('creates redis cache environment forms with the expected defaults', () => {

@@ -89,11 +89,13 @@ describe('resource edit form builders helpers', () => {
       ],
     );
 
-    expect(generalResult.form.get('enableDdosProtection')?.value).toBeTrue();
+    expect(generalResult.form.get('name')?.value).toBe('demo-vnet');
     expect(envForms[0].form.get('addressSpacesInput')?.value).toEqual([...TestAddressSpaces]);
     expect(envForms[0].form.get('dnsServersInput')?.value).toEqual([...TestDnsServers]);
+    expect(envForms[0].form.get('enableDdosProtection')?.value).toBeTrue();
     expect(envForms[1].form.get('addressSpacesInput')?.value).toEqual([]);
     expect(envForms[1].form.get('dnsServersInput')?.value).toEqual([]);
+    expect(envForms[1].form.get('enableDdosProtection')?.value).toBeFalse();
   });
 });
 
@@ -173,17 +175,18 @@ function createVirtualNetworkResource() {
     name: 'demo-vnet',
     location: 'westeurope',
     resourceGroupId: 'rg-1',
-    enableDdosProtection: true,
     environmentSettings: [
       {
         environmentName: 'Development',
         addressSpaces: [...TestAddressSpaces],
         dnsServers: [...TestDnsServers],
+        enableDdosProtection: true,
       },
       {
         environmentName: 'Production',
         addressSpaces: [],
         dnsServers: null,
+        enableDdosProtection: false,
       },
     ],
     subnets: [

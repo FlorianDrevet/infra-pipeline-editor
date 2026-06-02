@@ -27,6 +27,7 @@ public sealed class ContainerAppEnvironmentRepository(ProjectDbContext context)
         CancellationToken cancellationToken = default)
     {
         return await WithSubResources(Context.Set<ContainerAppEnvironment>().AsNoTracking())
+            .Include(x => x.ResourceGroup)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 

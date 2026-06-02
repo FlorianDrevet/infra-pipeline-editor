@@ -1,6 +1,8 @@
 using FluentAssertions;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
@@ -40,11 +42,25 @@ public sealed class StorageAccountRepositoryTests : IDisposable
             enableHttpsTrafficOnly: true,
             new StorageAccountTlsVersion(StorageAccountTlsVersion.Version.Tls12));
 
+    // Persists a real ResourceGroup and returns its id. The StorageAccount -> ResourceGroup
+    // FK is required, so the WithSubResources include is an INNER JOIN: an orphan
+    // ResourceGroupId filters the account row out. StorageAccountAccessHelper also reads
+    // ResourceGroup.InfraConfigId on both the tracked and read-only paths.
+    private ResourceGroupId NewResourceGroup()
+    {
+        var resourceGroup = ResourceGroup.Create(
+            new Name("rg-storage"),
+            InfrastructureConfigId.CreateUnique(),
+            new Location(Location.LocationEnum.WestEurope));
+        _context.ResourceGroups.Add(resourceGroup);
+        return resourceGroup.Id;
+    }
+
     [Fact]
     public async Task Given_StoredAccount_When_GetByIdAsync_Then_ReturnsAccount_Async()
     {
         // Arrange
-        var account = NewAccount(ResourceGroupId.CreateUnique());
+        var account = NewAccount(NewResourceGroup());
         _context.StorageAccounts.Add(account);
         await _context.SaveChangesAsync();
 
@@ -70,7 +86,7 @@ public sealed class StorageAccountRepositoryTests : IDisposable
     public async Task Given_AddedAccount_When_AddAsync_Then_PersistsAccount_Async()
     {
         // Arrange
-        var account = NewAccount(ResourceGroupId.CreateUnique());
+        var account = NewAccount(NewResourceGroup());
 
         // Act
         _sut.Add(account);
@@ -102,7 +118,7 @@ public sealed class StorageAccountRepositoryTests : IDisposable
     public async Task Given_StoredAccount_When_GetByIdWithSubResourcesAsync_Then_ReturnsAccount_Async()
     {
         // Arrange
-        var account = NewAccount(ResourceGroupId.CreateUnique());
+        var account = NewAccount(NewResourceGroup());
         _context.StorageAccounts.Add(account);
         await _context.SaveChangesAsync();
 
@@ -118,9 +134,9 @@ public sealed class StorageAccountRepositoryTests : IDisposable
     public async Task Given_StoredAccounts_When_GetByResourceGroupIdAsync_Then_ReturnsOnlyMatching_Async()
     {
         // Arrange
-        var rgId = ResourceGroupId.CreateUnique();
+        var rgId = NewResourceGroup();
         var owned = NewAccount(rgId);
-        var unrelated = NewAccount(ResourceGroupId.CreateUnique(), OtherAccountName);
+        var unrelated = NewAccount(NewResourceGroup(), OtherAccountName);
         await _context.StorageAccounts.AddRangeAsync(owned, unrelated);
         await _context.SaveChangesAsync();
 

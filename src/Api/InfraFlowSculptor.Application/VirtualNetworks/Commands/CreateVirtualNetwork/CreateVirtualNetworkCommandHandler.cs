@@ -30,9 +30,8 @@ public sealed class CreateVirtualNetworkCommandHandler(
             request.ResourceGroupId,
             request.Name,
             request.Location,
-            request.EnableDdosProtection,
             request.EnvironmentSettings?
-                .Select(ec => (ec.EnvironmentName, ec.AddressSpaces, ec.DnsServers))
+                .Select(ec => (ec.EnvironmentName, ec.AddressSpaces, ec.DnsServers, ec.EnableDdosProtection))
                 .ToList(),
             isExisting: request.IsExisting);
 

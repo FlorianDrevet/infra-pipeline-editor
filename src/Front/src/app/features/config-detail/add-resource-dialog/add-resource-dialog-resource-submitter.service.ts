@@ -73,7 +73,6 @@ interface AddResourceDialogCommonFormValue {
   readonly enableNonSslPort: boolean;
   readonly disableAccessKeyAuthentication: boolean;
   readonly enableAadAuth: boolean;
-  readonly enableDdosProtection?: boolean;
   readonly isExisting: boolean;
 }
 
@@ -312,7 +311,6 @@ export class AddResourceDialogResourceSubmitterService {
           resourceGroupId,
           name: common.name,
           location: common.location,
-          enableDdosProtection: common.enableDdosProtection ?? false,
           environmentSettings: buildVirtualNetworkEnvironmentSettings(environmentContext),
           isExisting: common.isExisting,
         });

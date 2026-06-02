@@ -169,17 +169,6 @@
               </div>
             }
 
-            @if (resourceType === 'VirtualNetwork') {
-              <div class="form-section">
-                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
-                <div class="form-grid">
-                  <div class="form-field form-field--toggle form-field--with-info">
-                    <app-ds-toggle formControlName="enableDdosProtection" [label]="'RESOURCE_EDIT.FIELDS.ENABLE_DDOS_PROTECTION' | translate"></app-ds-toggle>
-                    <mat-icon class="field-info-icon" [matTooltip]="'COMMON.VNET_HELP_DIALOG.DDOS_TOOLTIP' | translate">info_outline</mat-icon>
-                  </div>
-                </div>
-              </div>
-            }
 
             <!-- WebApp-specific fields -->
             @if (resourceType === 'WebApp') {
@@ -650,6 +639,10 @@
                             <app-ds-property-help-button
                               [title]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS.TITLE' | translate"
                               [sections]="dnsServersHelpSections" />
+                          </div>
+                          <div class="form-field form-field--toggle form-field--with-info">
+                            <app-ds-toggle formControlName="enableDdosProtection" [label]="'RESOURCE_EDIT.FIELDS.ENABLE_DDOS_PROTECTION' | translate"></app-ds-toggle>
+                            <mat-icon class="field-info-icon" [matTooltip]="'COMMON.VNET_HELP_DIALOG.DDOS_TOOLTIP' | translate">info_outline</mat-icon>
                           </div>
                         </div>
                       </div>

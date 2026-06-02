@@ -10,7 +10,6 @@ public record VirtualNetworkResult(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    bool EnableDdosProtection,
     IReadOnlyList<SubnetData> Subnets,
     IReadOnlyList<VirtualNetworkEnvironmentConfigData> EnvironmentSettings,
     bool IsExisting = false

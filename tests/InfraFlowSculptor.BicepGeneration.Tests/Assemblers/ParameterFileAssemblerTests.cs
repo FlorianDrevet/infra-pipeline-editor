@@ -235,6 +235,69 @@ public sealed class ParameterFileAssemblerTests
         parameterFile.Should().Contain(expectedSnippet);
     }
 
+    [Fact]
+    public void Given_VirtualNetworkPerEnvironmentOverrides_When_GeneratingParameterFiles_Then_EmitsArrayAddressPrefixesAndDdosBoolPerEnvironment()
+    {
+        // Arrange
+        var modules = new[]
+        {
+            new GeneratedTypeModule
+            {
+                ModuleName = "virtualNetworkMyVnet",
+                Parameters = new Dictionary<string, object>
+                {
+                    ["addressPrefixes"] = new List<object> { "10.0.0.0/16" },
+                    ["enableDdosProtection"] = false,
+                },
+            },
+        };
+
+        var environments = new[]
+        {
+            new EnvironmentDefinition { Name = "dev", ShortName = "dev" },
+            new EnvironmentDefinition { Name = "prod", ShortName = "prod" },
+        };
+
+        var resources = new[]
+        {
+            new ResourceDefinition
+            {
+                Name = "my-vnet",
+                Type = AzureResourceTypes.ArmTypes.VirtualNetworkType,
+                EnvironmentConfigs = new Dictionary<string, IReadOnlyDictionary<string, string>>
+                {
+                    ["dev"] = new Dictionary<string, string>
+                    {
+                        ["addressPrefixes"] = "[\"10.1.0.0/16\"]",
+                        ["enableDdosProtection"] = "false",
+                    },
+                    ["prod"] = new Dictionary<string, string>
+                    {
+                        ["addressPrefixes"] = "[\"10.2.0.0/16\",\"10.3.0.0/16\"]",
+                        ["enableDdosProtection"] = "true",
+                    },
+                },
+            },
+        };
+
+        // Act
+        var result = ParameterFileAssembler.GenerateEnvironmentParameterFiles(modules, environments, resources, []);
+        var dev = result["main.dev.bicepparam"].ReplaceLineEndings("\n");
+        var prod = result["main.prod.bicepparam"].ReplaceLineEndings("\n");
+
+        // Assert — address spaces emitted as a real Bicep array (opener right after '='),
+        // not a quoted JSON string, and DDoS as a bool, distinct per environment.
+        dev.Should().Contain("param virtualNetworkMyVnetAddressPrefixes = [");
+        dev.Should().Contain("'10.1.0.0/16'");
+        dev.Should().NotContain("'[\"10.1.0.0/16\"]'");
+        dev.Should().Contain("param virtualNetworkMyVnetEnableDdosProtection = false");
+
+        prod.Should().Contain("param virtualNetworkMyVnetAddressPrefixes = [");
+        prod.Should().Contain("'10.2.0.0/16'");
+        prod.Should().Contain("'10.3.0.0/16'");
+        prod.Should().Contain("param virtualNetworkMyVnetEnableDdosProtection = true");
+    }
+
     private sealed class TestContainerRuntimeParameters
     {
         [JsonPropertyName("image")]

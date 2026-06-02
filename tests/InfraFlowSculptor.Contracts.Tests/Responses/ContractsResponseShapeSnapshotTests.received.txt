@@ -1,5 +1,5 @@
 Contracts response DTO public shape snapshot
-Count: 102
+Count: 101
 
 Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
 Type: AppConfigurationKeyResponse
@@ -642,23 +642,6 @@ Properties:
   Name: string
   ResourceGroupId: string
 
-Namespace: InfraFlowSculptor.Contracts.NetworkingProfiles.Responses
-Type: NetworkingProfileResponse
-Constructors:
-  NetworkingProfileResponse()
-Properties:
-  CreateNewAddressSpace: string?
-  CreateNewSubnetAddressPrefix: string?
-  DnsHubResourceGroupId: string?
-  DnsHubSubscriptionId: string?
-  DnsMode: string
-  ExistingVnetResourceId: string?
-  Id: string
-  InfraConfigId: string
-  Mode: string
-  PrivateEndpointsSubnetName: string
-  VnetSourceType: string
-
 Namespace: InfraFlowSculptor.Contracts.PersonalAccessTokens.Responses
 Type: CreatedPersonalAccessTokenResponse
 Constructors:
@@ -1177,8 +1160,9 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.VirtualNetworks.Responses
 Type: SubnetResponse
 Constructors:
-  SubnetResponse(string Id, string Name, string? Delegation, System.Collections.Generic.IReadOnlyList<string>? ServiceEndpoints, string PrivateEndpointNetworkPolicies, string? NsgId)
+  SubnetResponse(string Id, string Name, string AddressPrefix, string? Delegation, System.Collections.Generic.IReadOnlyList<string>? ServiceEndpoints, string PrivateEndpointNetworkPolicies, string? NsgId)
 Properties:
+  AddressPrefix: string
   Delegation: string?
   Id: string
   Name: string

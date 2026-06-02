@@ -81,6 +81,7 @@ interface RawEnvironmentFormValue {
   maxSizeGb?: RawEnvironmentScalarValue;
   addressSpacesInput?: readonly string[] | null;
   dnsServersInput?: readonly string[] | null;
+  enableDdosProtection?: RawEnvironmentScalarValue;
 }
 
 export function buildKeyVaultEnvironmentSettings(
@@ -121,6 +122,7 @@ export function buildVirtualNetworkEnvironmentSettings(
       environmentName: envForm.envName,
       addressSpaces: [...(raw.addressSpacesInput ?? [])],
       dnsServers: dnsServers.length > 0 ? [...dnsServers] : undefined,
+      enableDdosProtection: raw.enableDdosProtection === true,
     };
   });
 }

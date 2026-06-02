@@ -78,8 +78,8 @@ describe('AddResourceDialogResourceSubmitterService', () => {
   it('calls VirtualNetworkService.create with the expected payload for virtual networks', async () => {
     const fb = new FormBuilder();
     const envFormArray = new FormArray<FormGroup>([
-      fb.group({ addressSpacesInput: [[...TEST_ADDRESS_SPACES]], dnsServersInput: [[...TEST_DNS_SERVERS]] }),
-      fb.group({ addressSpacesInput: [[...TEST_ADDRESS_SPACES]], dnsServersInput: [[...TEST_DNS_SERVERS]] }),
+      fb.group({ addressSpacesInput: [[...TEST_ADDRESS_SPACES]], dnsServersInput: [[...TEST_DNS_SERVERS]], enableDdosProtection: [true] }),
+      fb.group({ addressSpacesInput: [[...TEST_ADDRESS_SPACES]], dnsServersInput: [[...TEST_DNS_SERVERS]], enableDdosProtection: [false] }),
     ]);
 
     await service.submit({
@@ -93,7 +93,6 @@ describe('AddResourceDialogResourceSubmitterService', () => {
       common: createCommonValue({
         name: 'demo-vnet',
         location: 'westeurope',
-        enableDdosProtection: true,
         isExisting: true,
       }),
     });
@@ -102,17 +101,18 @@ describe('AddResourceDialogResourceSubmitterService', () => {
       resourceGroupId: 'resource-group-1',
       name: 'demo-vnet',
       location: 'westeurope',
-      enableDdosProtection: true,
       environmentSettings: [
         {
           environmentName: 'Development',
           addressSpaces: [...TEST_ADDRESS_SPACES],
           dnsServers: [...TEST_DNS_SERVERS],
+          enableDdosProtection: true,
         },
         {
           environmentName: 'Production',
           addressSpaces: [...TEST_ADDRESS_SPACES],
           dnsServers: [...TEST_DNS_SERVERS],
+          enableDdosProtection: false,
         },
       ],
       isExisting: true,
@@ -176,7 +176,6 @@ function createCommonValue(overrides: Partial<SubmitCommon> = {}): SubmitCommon 
     enableNonSslPort: false,
     disableAccessKeyAuthentication: false,
     enableAadAuth: false,
-    enableDdosProtection: false,
     isExisting: false,
     ...overrides,
   };
@@ -190,7 +189,6 @@ function createVirtualNetworkResponse(): VirtualNetworkResponse {
     resourceGroupId: 'resource-group-1',
     name: 'demo-vnet',
     location: 'westeurope',
-    enableDdosProtection: false,
     environmentSettings: [],
     subnets: [],
     isExisting: false,

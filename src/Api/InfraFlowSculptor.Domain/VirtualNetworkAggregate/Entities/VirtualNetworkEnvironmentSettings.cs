@@ -19,6 +19,9 @@ public sealed class VirtualNetworkEnvironmentSettings : Entity<VirtualNetworkEnv
     /// <summary>Gets the custom DNS servers for this environment.</summary>
     public IReadOnlyList<string>? DnsServers { get; private set; }
 
+    /// <summary>Gets whether Azure DDoS Protection Standard is enabled for this environment.</summary>
+    public bool EnableDdosProtection { get; private set; }
+
     private VirtualNetworkEnvironmentSettings() { }
 
     /// <summary>Creates new environment settings.</summary>
@@ -26,7 +29,8 @@ public sealed class VirtualNetworkEnvironmentSettings : Entity<VirtualNetworkEnv
         AzureResourceId virtualNetworkId,
         string environmentName,
         IReadOnlyList<string> addressSpaces,
-        IReadOnlyList<string>? dnsServers)
+        IReadOnlyList<string>? dnsServers,
+        bool enableDdosProtection)
     {
         return new VirtualNetworkEnvironmentSettings
         {
@@ -34,14 +38,16 @@ public sealed class VirtualNetworkEnvironmentSettings : Entity<VirtualNetworkEnv
             VirtualNetworkId = virtualNetworkId,
             EnvironmentName = environmentName,
             AddressSpaces = addressSpaces,
-            DnsServers = dnsServers
+            DnsServers = dnsServers,
+            EnableDdosProtection = enableDdosProtection
         };
     }
 
     /// <summary>Updates the environment settings.</summary>
-    public void Update(IReadOnlyList<string> addressSpaces, IReadOnlyList<string>? dnsServers)
+    public void Update(IReadOnlyList<string> addressSpaces, IReadOnlyList<string>? dnsServers, bool enableDdosProtection)
     {
         AddressSpaces = addressSpaces;
         DnsServers = dnsServers;
+        EnableDdosProtection = enableDdosProtection;
     }
 }

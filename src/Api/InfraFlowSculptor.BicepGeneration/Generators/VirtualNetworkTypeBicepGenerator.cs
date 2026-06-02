@@ -84,7 +84,11 @@ public sealed class VirtualNetworkTypeBicepGenerator
     {
         var parameters = new Dictionary<string, object>
         {
-            [EnableDdosProtectionParameterName] = resource.Properties.GetValueOrDefault("enableDdosProtection", "false"),
+            // Base defaults; the real per-environment values are injected by
+            // ParameterFileAssembler from EnvironmentConfigs (addressPrefixes JSON array,
+            // enableDdosProtection bool). Keys MUST exist here or the override is dropped.
+            [AddressPrefixesParameterName] = new List<object> { "10.0.0.0/16" },
+            [EnableDdosProtectionParameterName] = false,
             [SubnetsParameterName] = resource.Subnets.Select(s => new Dictionary<string, object?>
             {
                 ["name"] = s.Name,

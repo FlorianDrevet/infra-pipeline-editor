@@ -25,6 +25,7 @@ public class AppServicePlanRepository(ProjectDbContext context)
         CancellationToken cancellationToken = default)
     {
         return await WithSubResources(Context.Set<AppServicePlan>().AsNoTracking())
+            .Include(x => x.ResourceGroup)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
