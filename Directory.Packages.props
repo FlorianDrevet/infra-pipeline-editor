@@ -9,7 +9,7 @@
     <PackageVersion Include="Aspire.Npgsql" Version="13.2.0" />
     <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.2.0" />
     <PackageVersion Include="AzureKeyVaultEmulator.Aspire.Hosting" Version="3.1.0" />
-    <PackageVersion Include="AzureKeyVaultEmulator.Client" Version="3.1.0" />
+    <PackageVersion Include="AzureKeyVaultEmulator.Client" Version="2.9.0" />
     <PackageVersion Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions" Version="13.3.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.1" />
     <PackageVersion Include="CommunityToolkit.Aspire.Hosting.DbGate" Version="13.0.0" />
