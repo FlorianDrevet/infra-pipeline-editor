@@ -13,6 +13,8 @@
 
 En fin de toute tâche non triviale : mettre à jour le fichier thématique `.claude/memory/` concerné + ajouter une ligne dans `.claude/memory/changelog.md`. La **consolidation** plus profonde de la mémoire est manuelle : commande **`/dream`** quand tu le décides.
 
+**Stabilisation en cours — à lire AVANT la mémoire :** `docs/stabilization/NEXT.md` dit où on en est et quelle est la prochaine action. En fin de session : le réécrire, mettre à jour la ou les lignes concernées de `docs/stabilization/feature-map.md`, et commiter les deux avec le travail. Distinction à tenir : `.claude/memory/` décrit **comment le code marche**, `docs/stabilization/` dit **où on en est** — ne jamais mélanger les deux. Attention : la mémoire contient des affirmations périmées, listées dans la section « Mémoire projet à corriger » de `feature-map.md` ; en cas de conflit, **le code fait foi**.
+
 ---
 
 ## 1. Environnement de développement
@@ -131,3 +133,13 @@ Déléguer au sous-agent `pr-manager`. Titre : `type(scope): description`. Descr
 ## 12. MCP disponibles
 
 `codegraph` (intelligence de code : explore/impact/callers/callees — built-in Claude Code, SQLite local dans `.codegraph/`) et `sonarqube` (qualité). Activés via `.claude/settings.json`. Pas de ré-indexation manuelle : l'index se met à jour automatiquement via le file watcher.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- ALWAYS read graphify-out/GRAPH_REPORT.md before reading any source files, running grep/glob searches, or answering codebase questions. The graph is your primary map of the codebase.
+- IF graphify-out/wiki/index.md EXISTS, navigate it instead of reading raw files
+- For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
