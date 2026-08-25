@@ -73,6 +73,15 @@ Legacy 920-line `BicepGenerationEngine` → thin facade (~85 LOC) + `BicepGenera
 - Engines are **repo-agnostic** (produce `IReadOnlyDictionary<string,string>`). Routing is in Application handlers via `IRepositoryTargetResolver`.
 - `ArtifactKind` enum selects path fields. `AppPipelineFileClassifier` routes `apps/` + frozen shared-template set to `ApplicationCode`.
 - `GenerateProjectPipelineCommandHandler` returns 6 result fields (legacy union + split infra/app).
+- **Trou structurel connu (D01, 2026-08-25) — MultiRepo ne peut pas pousser.** Un dépôt déclaré au
+  niveau `InfrastructureConfig` ne peut porter aucun PAT : `AddInfraConfigRepositoryRequest` n'a pas de
+  champ PAT, `ProjectGitSecretNames.GetRepositoryPatSecretName(...)` exige un `ProjectRepositoryId` typé,
+  et `RepositoryTargetResolver.cs:73` pose `PatSecretName: null` pour ces dépôts. Les 10 sites d'appel
+  replient sur `$"git-pat-{project.Id.Value}"`, un préfixe que **rien n'écrit jamais** — les 4 chemins
+  d'écriture de secret passent tous par le helper et produisent `git-pat-repo-*`. Conséquence : test de
+  connexion, listing de branches et push (Bicep / pipeline / bootstrap) échouent tous en Key Vault sur ce
+  layout. Seul `MultiRepoProjectArtifactsPushService.cs:235` gère le cas explicitement. Détail complet
+  dans `docs/stabilization/feature-map.md`, D01.
 
 ## Architecture
 - Pure engine in `InfraFlowSculptor.BicepGeneration` (no domain dependency)

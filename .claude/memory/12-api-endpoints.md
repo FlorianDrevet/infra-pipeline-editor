@@ -98,7 +98,6 @@ Note [2026-04-26]: the create-project wizard submit path depends on an explicit 
 | `/azure-resources/{resourceId}/configuration-keys` | GET/POST/DELETE | various | AppConfigurationKey CRUD |
 | `/azure-resources/{id}/assigned-identity` | PUT | `` | `AssignIdentityToResourceCommand` |
 | `/azure-resources/{id}/assigned-identity` | DELETE | `` | `UnassignIdentityFromResourceCommand` |
-| `/resources/{resourceId}/private-endpoints` | GET/POST/PUT/DELETE | various | PrivateEndpoint CRUD (`GetPrivateEndpointConfigsQuery`, `AddPrivateEndpointCommand`, `UpdatePrivateEndpointCommand`, `RemovePrivateEndpointCommand`) |
 | `/infra-config/{id}/naming` | PUT | `/default` | `SetDefaultNamingTemplateCommand` |
 | `/infra-config/{id}/naming` | PUT | `/resources/{resourceType}` | `SetResourceNamingTemplateCommand` |
 | `/infra-config/{id}/naming` | DELETE | `/resources/{resourceType}` | `RemoveResourceNamingTemplateCommand` |
@@ -125,12 +124,18 @@ Note [2026-04-26]: the create-project wizard submit path depends on an explicit 
 | `/imports` | POST | `/preview` | `PreviewIacImportQuery` (read-only ARM import analysis; returns mapped resources, gaps, dependencies, metadata, summary; currently supports `arm-json` only) |
 | `/imports` | POST | `/apply` | `ApplyImportPreviewCommand` (stateless import apply for a new project; request body carries project setup + nested preview payload; creates project, infra config, resource group, and auto-creatable mapped resources) |
 
-## Networking Profile [2026-05-28]
+## Private Endpoint (V3) [corrigé 2026-08-25]
+
+> Il n'existe **aucune** route `/infra-config/{id}/networking-profile` ni de CRUD
+> `/resources/{resourceId}/private-endpoints`. L'agrégat `NetworkingProfile` (V2) est
+> orphelin (cf. `docs/stabilization/feature-map.md`, D04). Seules les 3 routes ci-dessous
+> existent, déclarées dans `src/Api/InfraFlowSculptor.Api/Routes.cs:85,88` et mappées dans
+> `src/Api/InfraFlowSculptor.Api/Controllers/NetworkingProfileController.cs`.
 
 | Group | Method | Route | Command/Query |
 |---|---|---|---|
-| `/infra-config/{infraConfigId}/networking-profile` | GET | `` | `GetNetworkingProfileQuery` |
-| `/infra-config/{infraConfigId}/networking-profile` | PUT | `` | `SetNetworkingProfileCommand` (upsert: create if absent, update if existing) |
+| `/infra-config/{infraConfigId}/resources/{resourceId}/private-endpoint-config` | PUT | `` | `SetPrivateEndpointConfigCommand` → 204 NoContent |
+| `/infra-config/{infraConfigId}/resources/{resourceId}/private-endpoint-config` | DELETE | `` | `RemovePrivateEndpointConfigCommand` → 204 NoContent |
 | `/infra-config/{infraConfigId}/resources/{resourceId}/privatization` | PUT | `` | `ToggleResourcePrivatizationCommand` → 204 NoContent |
 
 ## Generation Controllers
