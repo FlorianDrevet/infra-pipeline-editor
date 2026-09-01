@@ -37,13 +37,13 @@
 
 | # | Feature | Prétend faire | Statut | Décision | Note |
 |---|---|---|---|---|---|
-| F01 | Créer un projet (assistant) | Créer projet + topologie + environnements + dépôts en une fois | 🟡 | ? | L'assistant stocke le PAT **sans vérifier la connexion git**, alors que l'ajout de dépôt classique vérifie les branches avant sauvegarde. Un projet peut naître avec une URL ou un PAT invalides, sans erreur. |
-| F02 | Membres et rôles projet | Ajouter/retirer un utilisateur, changer son rôle | ? | ? | Chaîne complète, tests présents. |
-| F03 | Environnements de projet | Déclarer dev/preprod/prod avec localisation, abonnement, approbation | ? | ? | |
-| F04 | Topologie des dépôts (`LayoutPreset`) | Choisir la répartition du code entre les dépôts git du client | ? | ? | Règles réellement validées dans le domaine pour les 3 presets. Changer de preset vide les dépôts déclarés. |
+| F01 | Créer un projet (assistant) | Créer projet + topologie + environnements + dépôts en une fois | 🟡 | fix | L'assistant stocke le PAT **sans vérifier la connexion git**, alors que l'ajout de dépôt classique vérifie les branches avant sauvegarde. Un projet peut naître avec une URL ou un PAT invalides, sans erreur. Même motif que D05/D08/D11 — à traiter, priorité après MultiRepo et les 3 mensonges. |
+| F02 | Membres et rôles projet | Ajouter/retirer un utilisateur, changer son rôle | ? | keep | Chaîne complète, tests présents. |
+| F03 | Environnements de projet | Déclarer dev/preprod/prod avec localisation, abonnement, approbation | ? | keep | Vérifié en tri (2026-08-28) : `ProjectEnvironmentController` (3 routes CRUD complètes, tous les champs promis — localisation, abonnement, approbation), handlers + validators + tests domaine/contracts, exposé aussi côté MCP (`ProjectQueryTools`/`ProjectResources`). Front : écran dédié + modale d'ajout, deux points d'entrée cohérents (wizard de création + détail projet). Note vide en cartographie initiale par omission, pas par risque réel. |
+| F04 | Topologie des dépôts (`LayoutPreset`) | Choisir la répartition du code entre les dépôts git du client | ? | keep | Règles réellement validées dans le domaine pour les 3 presets. Changer de preset vide les dépôts déclarés. |
 | F05 | Dépôts par config (MultiRepo) | Déclarer les dépôts au niveau `InfrastructureConfig` | 🔴 | fix | **Aucun PAT possible.** Voir D01. |
 | F06 | Connexion git & navigation dépôt | Tester la connexion, lister les branches, chercher fichiers/dossiers du dépôt applicatif | 🟡 | fix | Fonctionne au niveau projet. Échoue systématiquement en MultiRepo (D01). |
-| F07 | Config d'infra & resource groups | CRUD des configurations Bicep d'un projet, de leurs resource groups, et des tags de config qui étendent les tags projet | ? | ? | Chaîne complète, front câblé, tests présents. Rien à signaler. |
+| F07 | Config d'infra & resource groups | CRUD des configurations Bicep d'un projet, de leurs resource groups, et des tags de config qui étendent les tags projet | ? | keep | Chaîne complète, front câblé, tests présents. Rien à signaler. |
 | F07b | Héritage des conventions de nommage par config | Choisir si une config hérite du nommage projet ou définit le sien (`PUT /infra-config/{id}/inheritance`) | 🔴 | fix | La bascule ne veut pas dire la même chose selon qui la lit. Voir D05. |
 | F08 | Modéliser les ressources + settings par env | CRUD des ~20 types Azure catalogués dans un resource group, avec réglages par environnement et sous-ressources (subnets, blob containers, event hubs, bases SQL) | 🟡 | keep | Motif CRUD homogène sur tous les types, front et tests présents. Catalogue back/front identique (`AzureResourceTypes.cs:101` ↔ `resource-type.metadata.ts:4`). Écart isolé : `EventHubNamespace` persiste des settings par env que le front n'expose jamais (absent de `RESOURCE_TYPES_WITH_ENVIRONMENT_SETTINGS`). |
 | F09 | Naming (cascade projet → config) | Gabarits de nommage et abréviations par type de ressource, aux deux niveaux, + vérification de disponibilité du nom | 🔴 | fix | **Deux implémentations concurrentes de la cascade** — celle qui répond à l'utilisateur n'est pas celle qui génère le Bicep. Voir D05. La « vérification Azure » est en fait une résolution DNS publique (`DnsNameAvailabilityChecker.cs:36`), pas l'API ARM `checkNameAvailability`. |
@@ -52,18 +52,18 @@
 | F10c | Domaines personnalisés | Rattacher un domaine à une Web App / Function App / Container App, avec instructions DNS et validation | 🔴 | fix | La « validation DNS » ne vérifie rien. Voir D08. |
 | F10d | Mappings de paramètres sécurisés | Dire quel variable group Azure DevOps fournit la valeur d'un paramètre Bicep sensible | ? | keep | Chaîne confirmée jusqu'à la génération **pipeline** uniquement (`GenerationRequestBuilder.BuildForPipeline`), pas dans la génération Bicep — cohérent avec l'objet de la feature. |
 | F11 | Générer le Bicep (niveau projet, mono-repo) | Génère en une passe le Bicep de toutes les configs du projet : dossier `Common/` partagé + un dossier par config, stocké pour download | 🟡 | keep | Gère `AllInOne` et `SplitInfraCode`. **Refuse explicitement `MultiRepo`** (`GenerateProjectBicepCommandHandler.cs:45`, `Project.cs:477`) — le front est cohérent avec ce refus. Overrides par env perdus pour 2 types : voir D06. |
-| F11b | Générer le Bicep (niveau config) | Génère le Bicep d'une seule config | 🟡 | ? | Endpoints exposés sans restriction serveur, mais le front ne les ouvre **que si le projet est MultiRepo** (`config-detail.component.html:20`). En `AllInOne`/`SplitInfraCode` : joignables en API directe, sans point d'entrée UI. |
+| F11b | Générer le Bicep (niveau config) | Génère le Bicep d'une seule config | 🟡 | fix | Endpoints exposés sans restriction serveur, mais le front ne les ouvre **que si le projet est MultiRepo** (`config-detail.component.html:20`). En `AllInOne`/`SplitInfraCode` : joignables en API directe, sans point d'entrée UI. Lié au chantier MultiRepo (D01/D09/D10) : c'est l'endpoint dont dépend son push. |
 | F12 | Générer les pipelines (infra + applicatifs) | Produit les YAML CI/PR/Release infra et les wrappers applicatifs par ressource compute, au niveau config comme au niveau projet | 🟡 | keep | **Niveau config : les 3 layouts sont réellement gérés.** Niveau projet : `AllInOne` + `SplitInfraCode`, MultiRepo refusé explicitement (`Project.cs:477`), front cohérent. `AppPipelineMode.Combined` ne combine rien (voir défauts secondaires). |
 | F13 | Générer le bootstrap | Produit `bootstrap.pipeline.yml`, pipeline idempotent qui provisionne pipelines, environnements, variable groups et service connections via `az devops` | 🔴 | fix | `AllInOne` : un bootstrap `FullOwner`. `SplitInfraCode` : double génération (`FullOwner` infra + `ApplicationOnly` code). **`MultiRepo` : inatteignable**, ni back ni front. Voir D09. |
 | F14 | Pousser dans git × 3 layouts | Pousser Bicep, pipelines et bootstrap dans les dépôts du client | 🔴 | fix | Push **par config** : les 3 layouts sont routés. Push **par projet** : `AllInOne` (mono-commit) et `SplitInfraCode` (deux commits, un par dépôt). Pour le vrai `MultiRepo` : aucun push combiné au niveau projet (D10), et le push par config échoue de toute façon faute de PAT (D01). |
-| F15 | Références cross-config | Une ressource d'une config référence une ressource d'une autre config du même projet (déclaration Bicep `existing`) | 🟡 | ? | Chaîne complète jusqu'à la génération, mais seules 6 propriétés FK connues sont câblées à une expression Bicep (`ParentReferenceResolutionStage.cs:53-63`). Une référence sur tout autre type est stockée puis **silencieusement ignorée** — le fichier le documente lui-même ligne 15. |
+| F15 | Références cross-config | Une ressource d'une config référence une ressource d'une autre config du même projet (déclaration Bicep `existing`) | 🟡 | fix | Chaîne complète jusqu'à la génération, mais seules 6 propriétés FK connues sont câblées à une expression Bicep (`ParentReferenceResolutionStage.cs:53-63`). Une référence sur tout autre type est stockée puis **silencieusement ignorée** — le fichier le documente lui-même ligne 15. Même motif que D07 (donnée saisie qui ne part nulle part) ; priorité plus basse que MultiRepo/D05/D08/D11. |
 
 ## ADJACENT
 
 | # | Feature | Prétend faire | Statut | Décision | Note |
 |---|---|---|---|---|---|
-| F20 | Gestion du PAT git (endpoint dédié) | Stocker/renouveler le jeton d'un dépôt | 🟡 | cut ? | `PUT /projects/{id}/repositories/{repoId}/git-pat` est fonctionnel et testé, mais **le composant Angular qui l'appelle n'est ouvert par aucun bouton**. Chemin mort côté UI. Le vrai chemin est la modale de création/édition de dépôt. |
-| F22 | Diagnostics de configuration | Exécute des règles de diagnostic (ex. RBAC manquant) sur une config et retourne les constats | ? | ? | Chaîne complète, tests présents. Consommation front à confirmer. |
+| F20 | Gestion du PAT git (endpoint dédié) | Stocker/renouveler le jeton d'un dépôt | 🟡 | cut | `PUT /projects/{id}/repositories/{repoId}/git-pat` est fonctionnel et testé, mais **le composant Angular qui l'appelle n'est ouvert par aucun bouton**. Chemin mort côté UI. Le vrai chemin est la modale de création/édition de dépôt — la gestion du PAT est déjà couverte ailleurs. |
+| F22 | Diagnostics de configuration | Exécute des règles de diagnostic (ex. RBAC manquant) sur une config et retourne les constats | ? | keep | Chaîne complète, tests présents. Consommation front à confirmer. |
 | F23 | Artefacts de la dernière génération | Retrouver les chemins des fichiers produits par la dernière génération sans regénérer (`GET /projects/{id}/latest-generation`) | ? | keep | Front câblé. Aucun test dédié trouvé pour `GetProjectLatestGenerationQueryHandler`. |
 | F21 | Personal Access Tokens (API/MCP) | Créer, lister, révoquer des jetons avec scopes Read/Write/Generate | ? | keep | Seule chaîne trouvée **complète et cohérente** de bout en bout : handler d'authentification, behavior MediatR de vérification de scope, écran Angular, tests. |
 
@@ -71,8 +71,8 @@
 
 | # | Feature | Prétend faire | Statut | Décision | Note |
 |---|---|---|---|---|---|
-| F30 | Import ARM — preview | Analyser un template ARM JSON, montrer ressources mappées / gaps / dépendances | 🟡 | ? | **Aucun écran front.** Seul consommateur : le serveur MCP. |
-| F31 | Import ARM — apply | Créer un projet complet depuis un preview | 🟡 | ? | Aucun front. Crée **toujours un nouveau projet** — impossible d'importer dans un projet existant. Seuls 20 types ARM mappés, le reste tombe en gap. Format `arm-json` uniquement, confirmé en code. |
+| F30 | Import ARM — preview | Analyser un template ARM JSON, montrer ressources mappées / gaps / dépendances | 🟡 | keep | **Aucun écran front.** Seul consommateur : le serveur MCP (déjà `fix` via F32). Pas sur le golden path, priorité basse. |
+| F31 | Import ARM — apply | Créer un projet complet depuis un preview | 🟡 | keep | Aucun front. Crée **toujours un nouveau projet** — impossible d'importer dans un projet existant. Seuls 20 types ARM mappés, le reste tombe en gap. Format `arm-json` uniquement, confirmé en code. Limite assumée pour l'instant, pas un bug à corriger — à revisiter si le besoin d'import dans un projet existant émerge. |
 | F32 | Serveur MCP | Piloter le produit depuis un agent IA | 🟡 | fix | **4 classes d'outils sur 17 ne sont pas enregistrées** — voir D03. Aucun outil MCP ne couvre le networking. |
 | F33 | Privatisation d'une ressource (V3) | Marquer une ressource comme accessible via Private Endpoint uniquement | 🔴 | fix | Chaîne V3 complète et cohérente (domaine → EF → read model → 3 étages Bicep), mais la bascule est indépendante de la config PE : une ressource peut être générée sans accès public **et** sans Private Endpoint. Voir D11. Toujours aucun test sur `ToggleResourcePrivatizationCommandHandler`. |
 | F34 | Configuration Private Endpoint | Attacher VNet / subnet / mode DNS à une ressource privatisée | 🔴 | fix | Voir D02. |
@@ -96,6 +96,8 @@ Un dépôt déclaré au niveau `InfrastructureConfig` ne peut structurellement p
 
 Conséquence : en MultiRepo, test de connexion, listing de branches, push Bicep, push pipeline et push bootstrap échouent tous sur une erreur Key Vault.
 Seul `MultiRepoProjectArtifactsPushService.cs:235` teste explicitement le cas et sort proprement.
+
+**Statut [2026-08-28, dotnet-dev + angular-front] : PAT résolu, D01 fermé, back et front.** `AddInfraConfigRepositoryCommand`/`UpdateInfraConfigRepositoryCommand` portent désormais `PersonalAccessToken` (requis + vérifié via `ProjectRepositoryConnectionVerifier`, exactement comme au niveau projet) et écrivent le secret sous `ProjectGitSecretNames.GetInfraConfigRepositoryPatSecretName(...)` (même préfixe `git-pat-repo-`, pas de collision — les deux types d'id sont des GUID globalement uniques). `RepositoryTargetResolver.BuildFromConfigRepository` (`RepositoryTargetResolver.cs:73`) ne pose plus `PatSecretName: null` — il retourne le vrai nom de secret, donc les 10 sites d'appel qui repliaient sur le secret fantôme `git-pat-{projectId}` retrouvent un vrai secret. Contracts + `ProjectController` mis à jour. Côté front, `infra-config-repository-dialog` affiche maintenant le champ PAT (déjà présent dans le form model partagé mais jamais rendu ni lu) et le transmet — toujours à la création, seulement si renseigné à l'édition (ne pas écraser le secret existant). Build 0 erreur, tests ajoutés (TDD), aucune régression sur la baseline connue. **Statut reste `🔴`/`🟡` (pas `🟢`) tant que le flux n'a pas été validé par exécution réelle contre un vrai fournisseur git** — le fix est vérifié par tests unitaires + relecture, pas encore par un push MultiRepo réel. Reste hors périmètre : D09 (bootstrap), D10 (push projet MultiRepo).
 
 ### D02 — L'onglet réseau échoue à chaque ouverture
 
@@ -149,9 +151,15 @@ Ce n'est pas cosmétique : `ParameterFileAssembler.cs:66-95` n'injecte les vraie
 
 Incohérence de pattern au passage : `GenerateProjectPipelineCommandHandler.cs:41` garde MultiRepo explicitement par le domaine (`Project.CanGenerateAllFromProjectLevel()`), le bootstrap laisse le résolveur échouer en aval.
 
+**Statut [2026-08-31, architect (plan) + dotnet-dev + angular-front] : D09 fermé, back et front.** Diagnostic racine (agent `architect`) : contrairement à Bicep (F11b) et Pipeline (F12), le bootstrap n'avait qu'un seul niveau (projet) — pas de niveau config, alors que c'est justement le niveau config qui fonctionne nativement en MultiRepo (chaque `InfrastructureConfig` porte ses propres `InfraConfigRepository`, avec PAT désormais fonctionnel depuis D01). Correction : nouveau slice `InfrastructureConfig/Commands/GenerateBootstrap` + `PushBootstrapToGit` (+ Download/GetFileContent), symétrique à `GenerateBicep`/`GeneratePipeline`, réutilisant `IProjectBootstrapDefinitionBuilder.BuildAsync` tel quel (aucune modification) avec `configs: [configReadModel]` et `Mode = BootstrapMode.FullOwner`. Le bootstrap projet (`GenerateProjectBootstrapPipelineCommandHandler`/`PushProjectBootstrapPipelineToGitCommandHandler`) est maintenant gardé explicitement contre MultiRepo via `Project.CanGenerateAllFromProjectLevel()` (`Errors.GitRouting.AmbiguousProjectLevelGeneration`), au lieu de laisser le résolveur échouer silencieusement — même pattern que Bicep/Pipeline, incohérence corrigée. Front : 3ᵉ onglet « Bootstrap » dans l'écran de génération config, visible seulement en MultiRepo (même garde que F11b), bouton Push to Git dédié posant `isBootstrap: true`. `dotnet build` + `npm run build` : 0 erreur. `dotnet test` : 51 échecs = baseline exacte du 2026-08-28, aucune régression. **Statut reste `🔴`/`🟡` (pas `🟢`) tant que le flux n'a pas été validé par exécution réelle contre un vrai fournisseur git** — comme D01, le fix est vérifié par tests unitaires + relecture, pas encore par un push MultiRepo réel. Revalidation en conditions réelles différée jusqu'à D10 (push combiné, même campagne de validation). Détail complet : `docs/features/multirepo-bootstrap-d09-implementation-tracker.md`. **Défaut adjacent découvert pendant l'implémentation, hors périmètre D09 : voir D12.**
+
 ### D10 — Le push « MultiRepo » est en réalité réservé à SplitInfraCode
 
 `PushProjectArtifactsToMultiRepoCommandHandler.cs:33` rejette tout layout autre que `SplitInfraCode`, alors que la commande, l'endpoint et sa documentation (`ProjectGenerationController.cs:437`) portent le nom « MultiRepo ». Il n'existe donc **aucun push combiné au niveau projet pour le vrai layout `MultiRepo`** : seul le push par configuration existe — et il bute sur D01.
+
+### D12 — Le bouton « Push to Git » unique de l'en-tête config ne pousse jamais le Pipeline
+
+Découvert pendant l'implémentation de D09 (agent `angular-front`, 2026-08-31). Le bouton unique de `config-detail.component.html:29-36` construit un `PushToGitDialogData` qui n'active jamais `isPipeline: true` — il ne pousse donc que le Bicep, jamais le Pipeline, quel que soit l'onglet actif dans l'écran de génération. Non corrigé (hors périmètre D09) ; le nouvel onglet Bootstrap (D09) évite délibérément ce piège avec un bouton dédié posant `isBootstrap: true` explicitement, plutôt que de réutiliser le bouton d'en-tête ambigu. À trier : `fix` (le bouton devrait suivre l'onglet actif) ou retrait au profit de boutons dédiés par onglet, cohérent avec ce que fait déjà Bootstrap.
 
 La collision de vocabulaire est un piège en soi : lire le code laisse croire que MultiRepo est couvert.
 
@@ -175,8 +183,55 @@ La collision de vocabulaire est un piège en soi : lire le code laisse croire qu
 - `EventHubNamespace` persiste des `EnvironmentSettings` que le front n'expose jamais (absent de `RESOURCE_TYPES_WITH_ENVIRONMENT_SETTINGS`, `resource-type.metadata.ts:27-46`).
 - `AddEventHubRequest` / `AddEventHubConsumerGroupRequest` sont déclarées dans `EventHubNamespaceController.cs:206-220` au lieu du projet `Contracts`.
 - `check-availability` présente une résolution DNS publique (`DnsNameAvailabilityChecker.cs:36-77`) là où l'utilisateur peut comprendre « API Azure `checkNameAvailability` ». Résultat divergent possible selon firewall ou zone privée.
-- Types morts confirmés : `NetworkSecurityGroup` ne survit que comme `Subnet.NsgId` + une interface Angular inutilisée ; `PrivateDnsZone` n'existe plus que dans d'anciennes migrations et une constante d'erreur jamais appelée ; `FrontDoor` n'apparaît nulle part dans le code, seulement dans la mémoire et `docs/features/`.
+- Types morts confirmés, arbitrés en session de tri (voir « Décisions de tri » ci-dessous) : `NetworkSecurityGroup` ne survit que comme `Subnet.NsgId` + une interface Angular inutilisée — **conservé**, roadmap future ; `PrivateDnsZone` n'existe plus que dans d'anciennes migrations et une constante d'erreur jamais appelée — **à purger**, couvert par le V3 (`PrivateEndpointDnsMode`) ; `FrontDoor` n'apparaît nulle part dans le code, seulement dans la mémoire et `docs/features/` — **rien à purger**, roadmap future.
 - Aucun test dédié pour `GetProjectLatestGenerationQueryHandler`.
+
+## Décisions de tri — session 2026-08-28
+
+Premiers arbitrages posés avec le porteur du projet (phase 2, ordre 1 à 3 de `NEXT.md`).
+
+1. **Layout `MultiRepo` → `fix`, priorité produit forte.** Réparer D01 (PAT) + D09 (bootstrap) +
+   D10 (push projet) plutôt que retirer le layout. Confirmé indispensable au produit.
+2. **D05, D08, D11 → `fix`, confirmé.** Les trois mensonges à l'utilisateur (nom généré, DNS,
+   privatisation) sont traités en priorité, quel que soit l'arbitrage MultiRepo.
+3. **Code mort vs. roadmap future — arbitré ressource par ressource :**
+   - **D04 / F35 — `NetworkingProfile` (V2) → `cut`.** Géré ailleurs : le V3
+     (`AzureResource.IsPrivatized` + `PrivateEndpointConfiguration`) couvre déjà ce même concept,
+     câblé jusqu'à la génération. L'agrégat V2 est un reste de migration jamais nettoyé.
+   - **F20 — dialogue PAT git autonome → `cut`.** Géré ailleurs : la modale de création/édition
+     de dépôt fait déjà tout le travail.
+   - **`PrivateDnsZone` → `cut` (purge des résidus).** Géré ailleurs : sa fonction (résolution DNS
+     pour un Private Endpoint) est reprise par `PrivateEndpointDnsMode` (V3, `AutoManaged` /
+     `ExistingHub`). Résidus à purger au moment du repair : constante d'erreur jamais appelée,
+     mentions dans d'anciennes migrations (ne pas réécrire l'historique de migration EF Core,
+     seulement nettoyer ce qui est vivant).
+   - **`NetworkSecurityGroup` → conservé, roadmap future.** Rien aujourd'hui ne permet d'éditer
+     des règles NSG — ce n'est pas couvert ailleurs. Le porteur du projet confirme vouloir
+     supporter cette ressource plus tard. Ne pas purger `Subnet.NsgId` ni y toucher avant que la
+     feature soit reprise.
+   - **`FrontDoor` → conservé, roadmap future.** N'existe plus du tout dans le code (seulement
+     mentionné en mémoire/docs) — rien à purger. Confirmé comme ressource à supporter plus tard.
+
+4. **Reste de la carte, arbitré en un seul passage (2026-08-28) :**
+   - **`keep`** : F02 (membres/rôles), F03 (environnements de projet — vérifié en tri, chaîne
+     CRUD complète back/front/MCP, tests présents), F04 (topologie des dépôts), F07 (config
+     d'infra & resource groups), F22 (diagnostics), F30 et F31 (import ARM preview/apply —
+     consommés uniquement par le MCP, hors golden path, priorité basse).
+   - **`fix`** : F01 (assistant de création — ne vérifie pas la connexion git avant de stocker
+     le PAT, même motif que D05/D08/D11), F11b (génération Bicep niveau config — lié au
+     chantier MultiRepo), F15 (références cross-config — seules 6 propriétés FK câblées, le
+     reste silencieusement ignoré, même motif que D07).
+
+**Phase 2 (Tri) terminée.** Toutes les lignes de la carte portent une décision. Place à la
+phase 3 (réparation), golden path d'abord.
+
+**Note historique (trouvée en creusant le contexte de la question 3) :** ces trois ressources
+(`NetworkSecurityGroup`, `PrivateDnsZone`, `FrontDoor`) ont existé en V1, complètes, puis ont été
+**démolies volontairement** le 2026-05-28 (18 dossiers, ~37 fichiers) au profit du modèle V2/V3 de
+privatisation, plus simple. Ce ne sont donc pas des features « oubliées en cours de route » : ce
+sont des retraits délibérés — dont deux (NSG, FrontDoor) le porteur du projet souhaite réintroduire
+plus tard sous une forme à concevoir. Voir `.claude/memory/03-domain-model.md`, section
+« V1 Privatization Demolition ».
 
 ## Mémoire projet à corriger
 

@@ -428,6 +428,10 @@
         "REPO_URL": "Repository URL",
         "REPO_URL_PLACEHOLDER": "https://github.com/org/repo",
         "DEFAULT_BRANCH": "Default branch",
+        "PAT": "Personal access token",
+        "PAT_PLACEHOLDER": "Paste the repository PAT",
+        "PAT_CREATE_HINT": "Required to save this repository.",
+        "PAT_EDIT_HINT": "Leave empty to reuse the stored token, or paste a new token to replace it on save.",
         "CONTENT_KINDS": "Content kinds",
         "CONTENT_KIND_LOCKED": "Required by the selected slot",
         "CONTENT_KINDS_REQUIRED": "At least one content kind is required.",
@@ -882,6 +886,7 @@
       "TITLE": "Generation Results",
       "TAB_BICEP": "Bicep",
       "TAB_PIPELINE": "Pipeline",
+      "TAB_BOOTSTRAP": "Bootstrap",
       "COLLAPSE": "Collapse generation results",
       "EXPAND": "Expand generation results",
       "CLOSE": "Close generation results",
@@ -907,6 +912,19 @@
       "TERMINAL_DONE": "Generation complete \u2014 pipeline artifacts ready",
       "GENERATE_ERROR": "Unable to generate pipeline files. Please check your configuration has at least one resource group with resources.",
       "GENERATE_AUTH_ERROR": "Authentication failed for the pipeline generation API. Please sign out and sign in again, then retry."
+    },
+    "BOOTSTRAP": {
+      "GENERATING": "Generating...",
+      "DOWNLOAD": "Download all files",
+      "DOWNLOADING": "Downloading...",
+      "RETRY": "Try again",
+      "ARTIFACTS": "output",
+      "TERMINAL_DONE": "Generation complete — bootstrap artifacts ready",
+      "FILE_LOADING": "Loading file content...",
+      "FILE_ERROR": "Unable to load file content.",
+      "NO_FILES": "No generated bootstrap files",
+      "GENERATE_ERROR": "Unable to generate the bootstrap pipeline. Please check your configuration has a Git repository configured.",
+      "GENERATE_AUTH_ERROR": "Authentication failed for the bootstrap generation API. Please sign out and sign in again, then retry."
     },
     "PUSH_TO_GIT": {
       "BUTTON": "Push to Git",

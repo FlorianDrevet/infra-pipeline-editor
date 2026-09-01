@@ -204,6 +204,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     getConfig: () => this.config(),
     isProjectMultiRepo: () => this.isProjectMultiRepo(),
     showDiagnosticsDialog: () => this.showDiagnosticsDialog(),
+    openBootstrapPushToGitDialog: () => this.openBootstrapPushToGitDialog(),
   });
 
   // ─── Inheritance ───
@@ -1370,6 +1371,21 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     if (!configId || !projectId) return;
 
     const data: PushToGitDialogData = { configId, projectId };
+    this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
+  }
+
+  /**
+   * Dedicated bootstrap push, invoked from the Bootstrap tab of the generation
+   * section. Kept separate from `openPushToGitDialog()` (header button) which
+   * never sets `isPipeline`/`isBootstrap` and therefore only ever pushes Bicep —
+   * see the D12 defect tracked in `docs/features/multirepo-bootstrap-d09-implementation-tracker.md`.
+   */
+  private openBootstrapPushToGitDialog(): void {
+    const configId = this.config()?.id;
+    const projectId = this.config()?.projectId;
+    if (!configId || !projectId) return;
+
+    const data: PushToGitDialogData = { configId, projectId, isBootstrap: true };
     this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }
 

@@ -1,5 +1,6 @@
 import { GenerateBicepResponse } from '../../../../shared/interfaces/bicep-generator.interface';
 import { GeneratePipelineResponse } from '../../../../shared/interfaces/pipeline-generator.interface';
+import { GenerateBootstrapResponse } from '../../../../shared/interfaces/bootstrap-generator.interface';
 import { BicepTreeNode } from '../../../../shared/components/bicep-file-panel/bicep-file-panel.component';
 
 export interface ConfigDetailGenerationSectionViewModel {
@@ -17,10 +18,19 @@ export interface ConfigDetailGenerationSectionViewModel {
   pipelineErrorKey: string;
   configPipelineNodes: BicepTreeNode[];
   loadConfigPipelineFile: (filePath: string) => Promise<string>;
+  bootstrapLoading: boolean;
+  bootstrapDownloading: boolean;
+  bootstrapResult: GenerateBootstrapResponse | null;
+  bootstrapErrorKey: string;
+  configBootstrapNodes: BicepTreeNode[];
+  loadConfigBootstrapFile: (filePath: string) => Promise<string>;
   onClosePanel: () => void;
   onTogglePanelCollapsed: () => void;
   onDownloadBicepFiles: () => void;
   onGenerateBicep: () => void;
   onDownloadPipelineFiles: () => void;
   onGeneratePipeline: () => void;
+  onDownloadBootstrapFiles: () => void;
+  onGenerateBootstrap: () => void;
+  onPushBootstrapToGit: () => void;
 }

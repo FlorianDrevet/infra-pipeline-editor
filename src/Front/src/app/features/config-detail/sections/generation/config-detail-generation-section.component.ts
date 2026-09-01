@@ -7,16 +7,19 @@ import { DsButtonComponent, DsPanelActionButtonComponent } from '../../../../sha
 import { DsTabsComponent } from '../../../../shared/components/ds/ds-tabs/ds-tabs.component';
 import { DsTabDefinition } from '../../../../shared/components/ds/ds-tabs/ds-tabs.types';
 import { LanguageService } from '../../../../shared/services/language.service';
+import { BootstrapSetupGuideComponent } from '../../../project-detail/bootstrap-setup-guide/bootstrap-setup-guide.component';
 import { ConfigDetailGenerationSectionViewModel } from './config-detail-generation-section.view-model';
 
 const GENERATION_TAB_BICEP = 'bicep' as const;
 const GENERATION_TAB_PIPELINE = 'pipeline' as const;
+const GENERATION_TAB_BOOTSTRAP = 'bootstrap' as const;
 
 @Component({
   selector: 'app-config-detail-generation-section',
   standalone: true,
   imports: [
     BicepFilePanelComponent,
+    BootstrapSetupGuideComponent,
     DsButtonComponent,
     DsPanelActionButtonComponent,
     DsTabsComponent,
@@ -35,6 +38,7 @@ export class ConfigDetailGenerationSectionComponent {
 
   protected readonly TAB_BICEP = GENERATION_TAB_BICEP;
   protected readonly TAB_PIPELINE = GENERATION_TAB_PIPELINE;
+  protected readonly TAB_BOOTSTRAP = GENERATION_TAB_BOOTSTRAP;
 
   protected readonly activeGenerationTabId = signal<string | null>(GENERATION_TAB_BICEP);
   protected readonly generationTabs = computed<readonly DsTabDefinition[]>(() => {
@@ -42,6 +46,7 @@ export class ConfigDetailGenerationSectionComponent {
     return [
       { id: GENERATION_TAB_BICEP, label: this.translate.instant('CONFIG_DETAIL.GENERATION.TAB_BICEP'), icon: 'terminal' },
       { id: GENERATION_TAB_PIPELINE, label: this.translate.instant('CONFIG_DETAIL.GENERATION.TAB_PIPELINE'), icon: 'account_tree' },
+      { id: GENERATION_TAB_BOOTSTRAP, label: this.translate.instant('CONFIG_DETAIL.GENERATION.TAB_BOOTSTRAP'), icon: 'rocket_launch' },
     ];
   });
 }

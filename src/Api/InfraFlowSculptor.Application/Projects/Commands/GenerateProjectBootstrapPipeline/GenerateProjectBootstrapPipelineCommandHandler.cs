@@ -31,6 +31,10 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
+        // Reject project-level generate-all for heterogeneous multi-repo topologies.
+        if (!authResult.Value.CanGenerateAllFromProjectLevel())
+            return Errors.GitRouting.AmbiguousProjectLevelGeneration;
+
         var project = await projectRepository.GetByIdWithAllAndPipelineVariableGroupsAsync(
             command.ProjectId,
             cancellationToken);
@@ -135,7 +139,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         }
         else
         {
-            // AllInOne / MultiRepo: single bootstrap owns everything (infra + app pipelines).
+            // AllInOne: single bootstrap owns everything (infra + app pipelines).
             var allPipelines = infraPipelines.Concat(appPipelines)
                 .DistinctBy(pipeline => new { pipeline.Name, pipeline.YamlPath, pipeline.Folder })
                 .ToList();

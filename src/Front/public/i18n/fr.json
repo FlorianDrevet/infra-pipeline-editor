@@ -428,6 +428,10 @@
         "REPO_URL": "URL du dépôt",
         "REPO_URL_PLACEHOLDER": "https://github.com/org/repo",
         "DEFAULT_BRANCH": "Branche par défaut",
+        "PAT": "Jeton d'accès personnel",
+        "PAT_PLACEHOLDER": "Collez le PAT du dépôt",
+        "PAT_CREATE_HINT": "Requis pour enregistrer ce dépôt.",
+        "PAT_EDIT_HINT": "Laissez vide pour conserver le jeton stocké, ou collez un nouveau jeton pour le remplacer à l'enregistrement.",
         "CONTENT_KINDS": "Types de contenu",
         "CONTENT_KIND_LOCKED": "Imposé par le slot sélectionné",
         "CONTENT_KINDS_REQUIRED": "Au moins un type de contenu est requis.",
@@ -882,6 +886,7 @@
       "TITLE": "Résultats de génération",
       "TAB_BICEP": "Bicep",
       "TAB_PIPELINE": "Pipeline",
+      "TAB_BOOTSTRAP": "Bootstrap",
       "COLLAPSE": "Replier les résultats de génération",
       "EXPAND": "Déplier les résultats de génération",
       "CLOSE": "Fermer les résultats de génération",
@@ -907,6 +912,19 @@
       "TERMINAL_DONE": "Generation terminee \u2014 artefacts pipeline prets",
       "GENERATE_ERROR": "Impossible de generer les fichiers pipeline. Verifiez que votre configuration contient au moins un groupe de ressources avec des ressources.",
       "GENERATE_AUTH_ERROR": "Echec de l'authentification aupres de l'API de generation pipeline. Veuillez vous deconnecter puis vous reconnecter, et reessayez."
+    },
+    "BOOTSTRAP": {
+      "GENERATING": "Generation en cours...",
+      "DOWNLOAD": "Telecharger tous les fichiers",
+      "DOWNLOADING": "Telechargement...",
+      "RETRY": "Reessayer",
+      "ARTIFACTS": "sortie",
+      "TERMINAL_DONE": "Generation terminee — artefacts bootstrap prets",
+      "FILE_LOADING": "Chargement du contenu du fichier...",
+      "FILE_ERROR": "Impossible de charger le contenu du fichier.",
+      "NO_FILES": "Aucun fichier bootstrap genere",
+      "GENERATE_ERROR": "Impossible de generer le pipeline bootstrap. Verifiez que votre configuration a un depot Git configure.",
+      "GENERATE_AUTH_ERROR": "Echec de l'authentification aupres de l'API de generation bootstrap. Veuillez vous deconnecter puis vous reconnecter, et reessayez."
     },
     "PUSH_TO_GIT": {
       "BUTTON": "Pousser vers Git",

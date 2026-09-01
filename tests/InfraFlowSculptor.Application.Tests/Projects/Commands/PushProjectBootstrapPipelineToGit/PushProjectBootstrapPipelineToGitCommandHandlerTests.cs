@@ -41,6 +41,7 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandlerTests
         _gitProvider = Substitute.For<IGitProviderService>();
 
         _project = Project.Create(new Name("test-project"), "Test project", UserId.CreateUnique());
+        _project.SetLayoutPreset(new LayoutPreset(LayoutPresetEnum.AllInOne));
         _target = new ResolvedRepositoryTarget(
             RepositoryId: ProjectRepositoryId.CreateUnique().Value.ToString(),
             ProviderType: new GitProviderType(GitProviderTypeEnum.GitHub),
@@ -89,6 +90,26 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandlerTests
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.BranchName.Should().Be("feature/bootstrap");
+    }
+
+    [Fact]
+    public async Task Given_MultiRepoLayout_When_Handle_Then_ReturnsAmbiguousProjectLevelGenerationAsync()
+    {
+        // Arrange
+        var project = Project.Create(new Name("test-project"), "Test project", UserId.CreateUnique());
+        project.SetLayoutPreset(new LayoutPreset(LayoutPresetEnum.MultiRepo));
+        var command = new PushProjectBootstrapPipelineToGitCommand(project.Id, "feature/bootstrap", "push bootstrap");
+
+        _accessService.VerifyWriteAccessAsync(project.Id, Arg.Any<CancellationToken>())
+            .Returns(project);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be(Errors.GitRouting.AmbiguousProjectLevelGeneration.Code);
+        await _projectRepo.DidNotReceive().GetByIdWithAllAsync(Arg.Any<ProjectId>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

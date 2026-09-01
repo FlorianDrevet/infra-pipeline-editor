@@ -98,6 +98,9 @@ public static class Routes
     /// <summary>Route group prefix for pipeline generation operations.</summary>
     public const string GeneratePipeline = "/generate-pipeline";
 
+    /// <summary>Route group prefix for bootstrap generation operations.</summary>
+    public const string GenerateBootstrap = "/generate-bootstrap";
+
     /// <summary>Route group prefix for import operations.</summary>
     public const string Imports = "/imports";
 

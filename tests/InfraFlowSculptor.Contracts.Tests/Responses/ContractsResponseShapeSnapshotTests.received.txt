@@ -1,5 +1,5 @@
 Contracts response DTO public shape snapshot
-Count: 101
+Count: 103
 
 Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
 Type: AppConfigurationKeyResponse
@@ -491,6 +491,13 @@ Properties:
   Warnings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceDiagnosticResponse>
 
 Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: GenerateBootstrapResponse
+Constructors:
+  GenerateBootstrapResponse(System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> FileUris)
+Properties:
+  FileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
 Type: GeneratePipelineResponse
 Constructors:
   GeneratePipelineResponse(System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> FileUris)
@@ -549,6 +556,16 @@ Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
 Type: PushBicepToGitResponse
 Constructors:
   PushBicepToGitResponse(string BranchName, string BranchUrl, string CommitSha, int FileCount)
+Properties:
+  BranchName: string
+  BranchUrl: string
+  CommitSha: string
+  FileCount: int
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: PushBootstrapToGitResponse
+Constructors:
+  PushBootstrapToGitResponse(string BranchName, string BranchUrl, string CommitSha, int FileCount)
 Properties:
   BranchName: string
   BranchUrl: string

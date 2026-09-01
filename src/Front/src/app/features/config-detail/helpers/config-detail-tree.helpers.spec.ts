@@ -1,7 +1,8 @@
 import { BicepFileNode, BicepFolderNode } from '../../../shared/components/bicep-file-panel/bicep-file-panel.component';
 import { GenerateBicepResponse } from '../../../shared/interfaces/bicep-generator.interface';
 import { GeneratePipelineResponse } from '../../../shared/interfaces/pipeline-generator.interface';
-import { buildConfigBicepNodes, buildConfigPipelineNodes } from './config-detail-tree.helpers';
+import { GenerateBootstrapResponse } from '../../../shared/interfaces/bootstrap-generator.interface';
+import { buildConfigBicepNodes, buildConfigBootstrapNodes, buildConfigPipelineNodes } from './config-detail-tree.helpers';
 
 describe('config detail tree helpers', () => {
   it('builds config bicep nodes with grouped parameter and module folders', () => {
@@ -40,6 +41,17 @@ describe('config detail tree helpers', () => {
     expect(deployFile.parentFolderKey).toBe('.azuredevops/pipelines');
     expect(deployFile.depth).toBe(1);
   });
+
+  it('builds config bootstrap nodes as a flat file list with no folder grouping', () => {
+    const nodes = buildConfigBootstrapNodes(createBootstrapResponse());
+
+    expect(nodes.every((node) => node.kind === 'file')).toBeTrue();
+
+    const bootstrapFile = expectFile(nodes, 'bootstrap.pipeline.yml');
+    expect(bootstrapFile.depth).toBe(0);
+    expect(bootstrapFile.parentFolderKey).toBe('');
+    expect(bootstrapFile.displayName).toBe('bootstrap.pipeline.yml');
+  });
 });
 
 function createBicepResponse(): GenerateBicepResponse {
@@ -62,6 +74,14 @@ function createPipelineResponse(): GeneratePipelineResponse {
     fileUris: {
       'azure-pipelines.yml': 'azure-pipelines.yml',
       '.azuredevops/pipelines/deploy.yml': '.azuredevops/pipelines/deploy.yml',
+    },
+  };
+}
+
+function createBootstrapResponse(): GenerateBootstrapResponse {
+  return {
+    fileUris: {
+      'bootstrap.pipeline.yml': 'bootstrap.pipeline.yml',
     },
   };
 }

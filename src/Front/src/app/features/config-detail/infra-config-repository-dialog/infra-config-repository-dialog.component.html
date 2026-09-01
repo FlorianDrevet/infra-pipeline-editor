@@ -19,6 +19,14 @@
       [label]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.DEFAULT_BRANCH' | translate"
       placeholder="main" />
 
+    <app-ds-text-field
+      formControlName="personalAccessToken"
+      type="password"
+      autocomplete="off"
+      [label]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.PAT' | translate"
+      [placeholder]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.PAT_PLACEHOLDER' | translate"
+      [hint]="(isEditMode ? 'CONFIG_DETAIL.REPOSITORIES.DIALOG.PAT_EDIT_HINT' : 'CONFIG_DETAIL.REPOSITORIES.DIALOG.PAT_CREATE_HINT') | translate" />
+
     <div class="content-kinds">
       <span class="content-kinds__label">{{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.CONTENT_KINDS' | translate }}</span>
       <div class="content-kinds__list" formArrayName="contentKinds">

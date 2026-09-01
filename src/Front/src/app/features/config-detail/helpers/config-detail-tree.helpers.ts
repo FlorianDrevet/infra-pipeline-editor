@@ -1,5 +1,6 @@
 import { GenerateBicepResponse } from '../../../shared/interfaces/bicep-generator.interface';
 import { GeneratePipelineResponse } from '../../../shared/interfaces/pipeline-generator.interface';
+import { GenerateBootstrapResponse } from '../../../shared/interfaces/bootstrap-generator.interface';
 import {
   BicepFileNode,
   BicepFolderNode,
@@ -79,6 +80,22 @@ export function buildConfigPipelineNodes(result: GeneratePipelineResponse): Bice
   }
 
   return nodes;
+}
+
+/**
+ * Bootstrap generates a single flat file (`bootstrap.pipeline.yml`) per config —
+ * unlike Bicep/Pipeline there is no per-resource folder structure to reconstruct.
+ */
+export function buildConfigBootstrapNodes(result: GenerateBootstrapResponse): BicepTreeNode[] {
+  return Object.entries(result.fileUris).map(([filePath, uri]) => ({
+    kind: 'file',
+    path: filePath,
+    displayName: filePath.split('/').at(-1) ?? filePath,
+    type: 'generic',
+    uri,
+    depth: 0,
+    parentFolderKey: '',
+  } satisfies BicepFileNode));
 }
 
 function buildRootBicepNodes(result: GenerateBicepResponse): BicepTreeNode[] {

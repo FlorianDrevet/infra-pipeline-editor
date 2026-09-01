@@ -5,7 +5,8 @@ import { BicepTreeNode } from '../../../../shared/components/bicep-file-panel/bi
 import { InfrastructureConfigResponse } from '../../../../shared/interfaces/infra-config.interface';
 import { BicepGeneratorService } from '../../../../shared/services/bicep-generator.service';
 import { PipelineGeneratorService } from '../../../../shared/services/pipeline-generator.service';
-import { buildConfigBicepNodes, buildConfigPipelineNodes } from '../../helpers/config-detail-tree.helpers';
+import { BootstrapGeneratorService } from '../../../../shared/services/bootstrap-generator.service';
+import { buildConfigBicepNodes, buildConfigBootstrapNodes, buildConfigPipelineNodes } from '../../helpers/config-detail-tree.helpers';
 import { ConfigDetailGenerationSectionViewModel } from './config-detail-generation-section.view-model';
 
 export interface ConfigDetailGenerationSectionController {
@@ -21,6 +22,7 @@ interface ConfigDetailGenerationSectionControllerDependencies {
   getConfig(): InfrastructureConfigResponse | null;
   isProjectMultiRepo(): boolean;
   showDiagnosticsDialog(): Promise<boolean>;
+  openBootstrapPushToGitDialog(): void;
 }
 
 export function createConfigDetailGenerationSectionController(
@@ -28,6 +30,7 @@ export function createConfigDetailGenerationSectionController(
 ): ConfigDetailGenerationSectionController {
   const bicepService = inject(BicepGeneratorService);
   const pipelineService = inject(PipelineGeneratorService);
+  const bootstrapService = inject(BootstrapGeneratorService);
 
   const validatingDiagnostics = signal(false);
   const bicepLoading = signal(false);
@@ -41,6 +44,12 @@ export function createConfigDetailGenerationSectionController(
   const pipelineErrorKey = signal('');
   const pipelinePanelOpen = signal(false);
   const pipelineDownloading = signal(false);
+
+  const bootstrapLoading = signal(false);
+  const bootstrapResult = signal<Awaited<ReturnType<BootstrapGeneratorService['generate']>> | null>(null);
+  const bootstrapErrorKey = signal('');
+  const bootstrapPanelOpen = signal(false);
+  const bootstrapDownloading = signal(false);
 
   const generationPanelCollapsed = signal(false);
 
@@ -64,12 +73,23 @@ export function createConfigDetailGenerationSectionController(
     return pipelineService.getFileContent(configId, filePath);
   };
 
+  const configBootstrapNodes = computed<BicepTreeNode[]>(() => {
+    const result = bootstrapResult();
+    return result ? buildConfigBootstrapNodes(result) : [];
+  });
+
+  const loadConfigBootstrapFile = (filePath: string): Promise<string> => {
+    const configId = dependencies.getConfig()?.id ?? '';
+    return bootstrapService.getFileContent(configId, filePath);
+  };
+
   const generateAllLoading = computed(
-    () => validatingDiagnostics() || bicepLoading() || pipelineLoading(),
+    () => validatingDiagnostics() || bicepLoading() || pipelineLoading() || bootstrapLoading(),
   );
 
   const generationPanelOpen = computed(
-    () => bicepPanelOpen() || pipelinePanelOpen() || bicepLoading() || pipelineLoading(),
+    () => bicepPanelOpen() || pipelinePanelOpen() || bootstrapPanelOpen()
+      || bicepLoading() || pipelineLoading() || bootstrapLoading(),
   );
 
   const closeBicepPanel = (): void => {
@@ -84,9 +104,16 @@ export function createConfigDetailGenerationSectionController(
     pipelineErrorKey.set('');
   };
 
+  const closeBootstrapPanel = (): void => {
+    bootstrapPanelOpen.set(false);
+    bootstrapResult.set(null);
+    bootstrapErrorKey.set('');
+  };
+
   const closeGenerationPanel = (): void => {
     closeBicepPanel();
     closePipelinePanel();
+    closeBootstrapPanel();
     generationPanelCollapsed.set(false);
   };
 
@@ -236,6 +263,76 @@ export function createConfigDetailGenerationSectionController(
     }
   };
 
+  const doGenerateBootstrap = async (): Promise<void> => {
+    const configId = dependencies.getConfig()?.id;
+    if (!configId || bootstrapLoading()) {
+      return;
+    }
+
+    bootstrapLoading.set(true);
+    bootstrapErrorKey.set('');
+    bootstrapResult.set(null);
+    generationPanelCollapsed.set(false);
+    bootstrapPanelOpen.set(true);
+
+    try {
+      bootstrapResult.set(await bootstrapService.generate({ infrastructureConfigId: configId }));
+    } catch (error: unknown) {
+      const axios = await import('axios');
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        if (status === 401 || status === 403) {
+          bootstrapErrorKey.set('CONFIG_DETAIL.BOOTSTRAP.GENERATE_AUTH_ERROR');
+        } else {
+          bootstrapErrorKey.set('CONFIG_DETAIL.BOOTSTRAP.GENERATE_ERROR');
+        }
+      } else {
+        bootstrapErrorKey.set('CONFIG_DETAIL.BOOTSTRAP.GENERATE_ERROR');
+      }
+    } finally {
+      bootstrapLoading.set(false);
+    }
+  };
+
+  const generateBootstrap = async (): Promise<void> => {
+    const configId = dependencies.getConfig()?.id;
+    if (!configId || bootstrapLoading()) {
+      return;
+    }
+
+    validatingDiagnostics.set(true);
+    try {
+      const shouldContinue = await dependencies.showDiagnosticsDialog();
+      if (!shouldContinue) {
+        return;
+      }
+    } finally {
+      validatingDiagnostics.set(false);
+    }
+
+    await doGenerateBootstrap();
+  };
+
+  const downloadBootstrapFiles = async (): Promise<void> => {
+    const result = bootstrapResult();
+    if (!result || bootstrapDownloading()) {
+      return;
+    }
+
+    bootstrapDownloading.set(true);
+    try {
+      const config = dependencies.getConfig();
+      if (!config) {
+        return;
+      }
+
+      const blob = await bootstrapService.downloadZip(config.id);
+      saveAs(blob, `${config.name ?? 'bootstrap'}-bootstrap.zip`);
+    } finally {
+      bootstrapDownloading.set(false);
+    }
+  };
+
   const generateAll = async (): Promise<void> => {
     const configId = dependencies.getConfig()?.id;
     if (!configId || generateAllLoading()) {
@@ -252,7 +349,7 @@ export function createConfigDetailGenerationSectionController(
       validatingDiagnostics.set(false);
     }
 
-    await Promise.all([doGenerateBicep(), doGeneratePipeline()]);
+    await Promise.all([doGenerateBicep(), doGeneratePipeline(), doGenerateBootstrap()]);
   };
 
   const viewModel = computed<ConfigDetailGenerationSectionViewModel | null>(() => {
@@ -275,12 +372,21 @@ export function createConfigDetailGenerationSectionController(
       pipelineErrorKey: pipelineErrorKey(),
       configPipelineNodes: configPipelineNodes(),
       loadConfigPipelineFile,
+      bootstrapLoading: bootstrapLoading(),
+      bootstrapDownloading: bootstrapDownloading(),
+      bootstrapResult: bootstrapResult(),
+      bootstrapErrorKey: bootstrapErrorKey(),
+      configBootstrapNodes: configBootstrapNodes(),
+      loadConfigBootstrapFile,
       onClosePanel: closeGenerationPanel,
       onTogglePanelCollapsed: toggleGenerationPanelCollapsed,
       onDownloadBicepFiles: () => void downloadBicepFiles(),
       onGenerateBicep: () => void generateBicep(),
       onDownloadPipelineFiles: () => void downloadPipelineFiles(),
       onGeneratePipeline: () => void generatePipeline(),
+      onDownloadBootstrapFiles: () => void downloadBootstrapFiles(),
+      onGenerateBootstrap: () => void generateBootstrap(),
+      onPushBootstrapToGit: () => dependencies.openBootstrapPushToGitDialog(),
     };
   });
 
@@ -296,6 +402,11 @@ export function createConfigDetailGenerationSectionController(
     pipelineErrorKey.set('');
     pipelinePanelOpen.set(false);
     pipelineDownloading.set(false);
+    bootstrapLoading.set(false);
+    bootstrapResult.set(null);
+    bootstrapErrorKey.set('');
+    bootstrapPanelOpen.set(false);
+    bootstrapDownloading.set(false);
     generationPanelCollapsed.set(false);
   };
 

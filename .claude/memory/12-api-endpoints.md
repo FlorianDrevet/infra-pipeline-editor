@@ -151,3 +151,7 @@ Note [2026-04-26]: the create-project wizard submit path depends on an explicit 
 | `/generate-pipeline` | GET | `/{configId}/download` | `DownloadPipelineCommand` |
 | `/generate-pipeline` | GET | `/{configId}/files/{*filePath}` | `GetPipelineFileContentQuery` |
 | `/generate-pipeline` | POST | `/{configId}/push-to-git` | `PushPipelineToGitCommand` |
+| `/generate-bootstrap` | POST | `` | `GenerateBootstrapCommand` |
+| `/generate-bootstrap` | GET | `/{configId}/download` | `DownloadBootstrapCommand` |
+| `/generate-bootstrap` | GET | `/{configId}/files/{*filePath}` | `GetBootstrapFileContentQuery` |
+| `/generate-bootstrap` | POST | `/{configId}/push-to-git` | `PushBootstrapToGitCommand` |

@@ -114,6 +114,7 @@ app.UseNetworkingProfileController();
 app.UseImportController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();
+app.UseBootstrapGenerationController();
 app.UsePipelineOptionDetectionController();
 app.UseCatalogController();
 app.UseGitController();
