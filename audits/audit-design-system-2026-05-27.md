@@ -379,7 +379,7 @@ Rappels obligatoires (issus de [.github/memory/](file:.github/memory/)) :
 2. **Pitfall #14** (une classe par fichier) : pas de fichiers fourre-tout (`components.ts`, `dialogs.ts`).
 3. **Pitfall #4** (i18n) : clés sous `RESOURCE_EDIT.DIALOG_NAME.*`, jamais à plat. Préserver les clés existantes lors d'un wrapper change.
 4. **TDD** : skill `tdd-workflow` chargé avant toute création (W1). Tests Karma pour les nouveaux primitives.
-5. **GitNexus** : lancer `gitnexus_impact(target, "upstream")` avant de modifier un primitive partagé (`app-ds-button`, `app-ds-icon-button`).
+5. **Graphify** : lancer une requête `query` ciblée avant de modifier un primitive partagé (`app-ds-button`, `app-ds-icon-button`), puis confirmer le périmètre avec le typecheck, les tests et `git diff`.
 6. **Pattern DsButton icon** : utiliser l'API `icon` / `iconPosition` plutôt que projeter `<mat-icon>` dans le slot label.
 7. **Pas de `<click>` sur `<app-ds-button>`** : utiliser l'output `clicked` (rappel Sonar PR 327).
 8. **Branche par vague** (W1, W2, …) avec PR titrée `feat(ds-migration): W<n> — <topic>`.

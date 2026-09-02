@@ -14,6 +14,7 @@ public static partial class Errors
         private const string RepositoryRoleMismatchCode = "GitRouting.RepositoryRoleMismatch";
         private const string AmbiguousProjectLevelGenerationCode = "GitRouting.AmbiguousProjectLevelGeneration";
         private const string LayoutNotSupportedForMultiRepoPushCode = "GitRouting.LayoutNotSupportedForMultiRepoPush";
+        private const string LayoutNotSupportedForProjectMultiRepoPushCode = "GitRouting.LayoutNotSupportedForProjectMultiRepoPush";
 
         /// <summary>
         /// Returned when no repository can be resolved for a project: neither a project-level
@@ -65,5 +66,14 @@ public static partial class Errors
             Error.Validation(
                 code: LayoutNotSupportedForMultiRepoPushCode,
                 description: "Multi-repo dual push is only supported for projects with the SplitInfraCode layout preset.");
+
+        /// <summary>
+        /// Returned when a project-level MultiRepo artifact push is requested for a project whose
+        /// layout is not <c>MultiRepo</c>.
+        /// </summary>
+        public static Error LayoutNotSupportedForProjectMultiRepoPush =>
+            Error.Validation(
+                code: LayoutNotSupportedForProjectMultiRepoPushCode,
+                description: "Project-level artifact push is only supported for projects with the MultiRepo layout preset.");
     }
 }

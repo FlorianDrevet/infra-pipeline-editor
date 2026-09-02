@@ -4,6 +4,8 @@ export interface GenerateBootstrapRequest {
 
 export interface GenerateBootstrapResponse {
   fileUris: Record<string, string>;
+  infraFileUris: Record<string, string>;
+  appFileUris: Record<string, string>;
 }
 
 // ─── Push to Git ─────────────────────────────────────────────────────────────

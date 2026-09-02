@@ -33,7 +33,7 @@ Avant toute redaction :
 1. Lire `MEMORY.md` et les fichiers thematiques pertinents.
 2. Lire `docs/README.md` et les documents deja existants dans la zone concernee.
 3. Lire le code reel des couches, classes, handlers, composants ou endpoints documentes.
-4. Si le sujet traverse plusieurs couches ou si les flux sont ambigus, utiliser GitNexus d'abord pour identifier les bons points d'entree.
+4. Si le sujet traverse plusieurs couches ou si les flux sont ambigus, utiliser Graphify d'abord pour identifier les bons points d'entree et les liens entre documentation et code.
 
 Tu n'ecris jamais une documentation de memoire ou a partir d'hypotheses.
 
@@ -128,9 +128,9 @@ Quand tu expliques une notion architecturale de ce projet, tu dois rester aligne
 
 ---
 
-## Quand utiliser GitNexus
+## Quand utiliser Graphify
 
-Utiliser GitNexus en premier si :
+Utiliser Graphify en premier si :
 
 - le sujet traverse plusieurs couches
 - le point d'entree n'est pas evident
@@ -139,9 +139,10 @@ Utiliser GitNexus en premier si :
 
 Dans ce cas :
 
-1. `gitnexus_query("concept ou feature")`
-2. `gitnexus_context("SymboleCible")` si un symbole central ressort
-3. completer avec la lecture des fichiers exacts
+1. `python -m graphify query "concept ou feature" --graph .\graphify-out\graph.json`
+2. `python -m graphify explain "SymboleCible" --graph .\graphify-out\graph.json` si un symbole central ressort
+3. `python -m graphify path "Source" "Cible" --graph .\graphify-out\graph.json` si le sujet traverse plusieurs couches
+4. completer avec la lecture des fichiers exacts
 
 ---
 

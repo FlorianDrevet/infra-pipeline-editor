@@ -73,6 +73,14 @@ Legacy 920-line `BicepGenerationEngine` → thin facade (~85 LOC) + `BicepGenera
 - Engines are **repo-agnostic** (produce `IReadOnlyDictionary<string,string>`). Routing is in Application handlers via `IRepositoryTargetResolver`.
 - `ArtifactKind` enum selects path fields. `AppPipelineFileClassifier` routes `apps/` + frozen shared-template set to `ApplicationCode`.
 - `GenerateProjectPipelineCommandHandler` returns 6 result fields (legacy union + split infra/app).
+- Project-level MultiRepo artifact pushes use a dedicated bulk command with `InfrastructureConfigId` + `InfraConfigRepositoryId` targets; they never resolve `config: null` or use project repositories.
+- The bulk push prepares every configuration plan before executing Git. `AllInOne` sends Bicep, infra/app pipelines, and bootstrap to one config repository; `SplitInfraCode` sends infrastructure artifacts to the Infrastructure repository and app pipelines plus `ApplicationOnly` bootstrap to the ApplicationCode repository.
+- `MultiScopeGitPushRequestBuilder` remains the collision detector and scope merger. Git execution is independent per repository, so results report partial failures rather than claiming cross-repository atomicity.
+- Config-level bootstrap generation stores `infra/` and `app/` buckets for `SplitInfraCode`; project-level `SplitInfraCode` push remains a separate explicit route from the MultiRepo bulk push.
+- Config-level Bicep, Pipeline, and Bootstrap pushes require the resolved repository PAT and do not
+	recreate a project-secret fallback. Direct SplitInfraCode bootstrap push selects only `infra/`.
+	Cancellation propagates through Blob, Key Vault, and Git provider calls; bulk cancellation stops
+	before the next repository.
 
 ## Architecture
 - Pure engine in `InfraFlowSculptor.BicepGeneration` (no domain dependency)

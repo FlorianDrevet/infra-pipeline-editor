@@ -73,6 +73,7 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
     {
         return await Context.InfrastructureConfigs
             .AsNoTracking()
+            .Include(c => c.Repositories)
             .Where(c => c.ProjectId == projectId)
             .ToListAsync(cancellationToken);
     }

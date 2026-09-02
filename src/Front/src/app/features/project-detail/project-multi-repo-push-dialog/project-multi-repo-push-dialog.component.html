@@ -1,0 +1,130 @@
+<div class="pmr-dialog">
+  <header class="pmr-dialog__header" mat-dialog-title>
+    <div class="pmr-dialog__icon-shell" aria-hidden="true">
+      <mat-icon>cloud_upload</mat-icon>
+    </div>
+    <div>
+      <h2 class="pmr-dialog__title">{{ 'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.TITLE' | translate }}</h2>
+      <p class="pmr-dialog__subtitle">{{ 'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.SUBTITLE' | translate }}</p>
+    </div>
+  </header>
+
+  <mat-dialog-content class="pmr-dialog__content">
+    @if (state() === 'success') {
+      <app-ds-banner
+        variant="success"
+        icon="check_circle"
+        [title]="'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.SUCCESS_TITLE' | translate"
+        [description]="'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.SUCCESS_DESC' | translate" />
+    } @else if (state() === 'partial') {
+      <app-ds-banner
+        variant="warning"
+        icon="warning_amber"
+        [title]="'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.PARTIAL_TITLE' | translate"
+        [description]="'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.PARTIAL_DESC' | translate" />
+    } @else if (state() === 'error') {
+      <app-ds-banner
+        variant="danger"
+        icon="error_outline"
+        [title]="'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.ERROR_TITLE' | translate"
+        [description]="(errorKey() || 'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.ERROR_DESC') | translate" />
+    }
+
+    @if (targets.length === 0) {
+      <app-ds-banner
+        variant="warning"
+        icon="folder_off"
+        [title]="'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.NO_REPOSITORIES_TITLE' | translate"
+        [description]="'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.NO_REPOSITORIES_DESC' | translate" />
+    } @else {
+      <div class="pmr-grid">
+        @for (target of targets; track target.key) {
+          <app-ds-card-mat class="pmr-card">
+            <div ds-card-header class="pmr-card__header">
+              <div class="pmr-card__header-copy">
+                <span class="pmr-card__config">{{ target.configurationName }}</span>
+                <h3 class="pmr-card__repository">{{ target.repositoryLabel }}</h3>
+                <div class="pmr-card__kinds">
+                  @for (contentKind of target.contentKinds; track contentKind) {
+                    <span>{{ contentKindLabelKey(contentKind) | translate }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div ds-card-content class="pmr-card__content">
+              @if (state() === 'pushing') {
+                <div class="pmr-card__loading" aria-live="polite">
+                  <app-ds-spinner size="lg" />
+                  <span>{{ 'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.PUSHING' | translate }}</span>
+                </div>
+              } @else if (resultFor(target.key); as result) {
+                <div class="pmr-card__result" [class.pmr-card__result--success]="result.success" [class.pmr-card__result--error]="!result.success">
+                  <strong>
+                    <mat-icon>{{ result.success ? 'check_circle' : 'error_outline' }}</mat-icon>
+                    {{ (result.success
+                      ? 'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.REPOSITORY_SUCCESS'
+                      : 'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.REPOSITORY_FAILED') | translate }}
+                  </strong>
+                  @if (result.success && result.commitSha) {
+                    <code>{{ result.commitSha }}</code>
+                  }
+                  @if (!result.success && result.errorDescription) {
+                    <p>{{ result.errorDescription }}</p>
+                  }
+                  <span>{{ 'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.FILE_COUNT' | translate: { count: result.fileCount } }}</span>
+                </div>
+              } @else {
+                <form [formGroup]="formFor(target.key)" class="pmr-form">
+                  <app-ds-autocomplete
+                    formControlName="branch"
+                    [label]="'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.BRANCH_LABEL' | translate"
+                    [placeholder]="'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.BRANCH_PLACEHOLDER' | translate"
+                    [options]="branchOptions(target)"
+                    prefixIcon="account_tree"
+                    [clearable]="true" />
+                  <app-ds-textarea
+                    formControlName="commit"
+                    [label]="'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.COMMIT_LABEL' | translate"
+                    [required]="true"
+                    [hint]="'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.COMMIT_HINT' | translate"
+                    [error]="formFor(target.key).controls.commit.touched && formFor(target.key).controls.commit.hasError('required') ? ('PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.COMMIT_REQUIRED_ERROR' | translate) : undefined"
+                    [placeholder]="'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.COMMIT_PLACEHOLDER' | translate"
+                    [rows]="2" />
+                </form>
+              }
+            </div>
+          </app-ds-card-mat>
+        }
+      </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="pmr-dialog__actions">
+    @switch (state()) {
+      @case ('form') {
+        <app-ds-button variant="secondary" (clicked)="onClose()">
+          {{ 'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.CANCEL' | translate }}
+        </app-ds-button>
+        <app-ds-button variant="primary" icon="cloud_upload" [disabled]="!canPush()" (clicked)="onPush()">
+          {{ 'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.PUSH' | translate }}
+        </app-ds-button>
+      }
+      @case ('pushing') {
+        <app-ds-button variant="secondary" [disabled]="true">
+          {{ 'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.PUSHING' | translate }}
+        </app-ds-button>
+      }
+      @default {
+        <app-ds-button variant="secondary" (clicked)="onClose()">
+          {{ 'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.CLOSE' | translate }}
+        </app-ds-button>
+        @if (state() === 'partial' || state() === 'error') {
+          <app-ds-button variant="primary" icon="refresh" (clicked)="onRetry()">
+            {{ 'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.RETRY' | translate }}
+          </app-ds-button>
+        }
+      }
+    }
+  </mat-dialog-actions>
+</div>

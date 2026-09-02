@@ -23,6 +23,10 @@
       "env": {
         "AGENTMEMORY_URL": "http://localhost:3111"
       }
+    },
+    "graphify": {
+      "command": "python",
+      "args": ["-m", "graphify.serve", "graphify-out/graph.json"]
     }
   }
 }

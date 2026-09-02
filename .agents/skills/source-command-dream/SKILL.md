@@ -17,7 +17,7 @@ Lance le sous-agent **`dream`** (via le tool *Agent*) pour consolider la mémoir
 
 Le sous-agent `dream` exécute ses 4 phases (Orient → Gather → Consolidate → Prune) sur `.Codex/memory/` uniquement :
 1. **Orient** — lit `MEMORY.md` + survole les fichiers thématiques.
-2. **Gather** — récupère le signal récent (`changelog.md`, `git log --since`, `codegraph_status`).
+2. **Gather** — récupère le signal récent (`changelog.md`, `git log --since`, `graphify-out/GRAPH_REPORT.md` et les requêtes Graphify utiles).
 3. **Consolidate** — met à jour les fichiers thématiques, convertit les dates relatives en absolues, supprime les faits contredits, fusionne les doublons.
 4. **Prune & Index** — garde chaque fichier thématique < 150 lignes, l'index < 80 lignes, élague le changelog > 60 jours, vérifie la cohérence de l'index.
 

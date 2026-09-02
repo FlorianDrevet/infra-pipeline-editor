@@ -77,7 +77,17 @@
   } @else if (!project()?.id) {
     <!-- no project loaded -->
   } @else {
-    @if (hasProjectLevelRepositories() && !isSplitInfraCodeLayout()) {
+    @if (isMultiRepoLayout()) {
+      <div class="board__generation-toolbar">
+        <app-ds-button
+          variant="secondary"
+          icon="cloud_upload"
+          [disabled]="!canPushMultiRepoArtifacts()"
+          (clicked)="openProjectMultiRepoArtifactsPushDialog()">
+          {{ 'PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.PUSH' | translate }}
+        </app-ds-button>
+      </div>
+    } @else if (hasProjectLevelRepositories() && !isSplitInfraCodeLayout()) {
       <div class="board__generation-toolbar">
         <app-ds-button
           variant="secondary"
@@ -333,9 +343,11 @@
           [title]="'PROJECT_DETAIL.BOARD.READY_TITLE' | translate"
           [description]="'PROJECT_DETAIL.BOARD.READY_DESC' | translate">
           <div actions class="board__ready-actions">
-            <app-ds-button variant="primary" icon="rocket_launch" [loading]="projectGenerateAllLoading()" (clicked)="onGenerateAll()">
-              {{ 'PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS' | translate }}
-            </app-ds-button>
+            @if (canGenerateProject()) {
+              <app-ds-button variant="primary" icon="rocket_launch" [loading]="projectGenerateAllLoading()" (clicked)="onGenerateAll()">
+                {{ 'PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS' | translate }}
+              </app-ds-button>
+            }
 
             @if (lastGenerationAvailable()) {
               <app-ds-button

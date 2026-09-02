@@ -73,15 +73,20 @@ Legacy 920-line `BicepGenerationEngine` → thin facade (~85 LOC) + `BicepGenera
 - Engines are **repo-agnostic** (produce `IReadOnlyDictionary<string,string>`). Routing is in Application handlers via `IRepositoryTargetResolver`.
 - `ArtifactKind` enum selects path fields. `AppPipelineFileClassifier` routes `apps/` + frozen shared-template set to `ApplicationCode`.
 - `GenerateProjectPipelineCommandHandler` returns 6 result fields (legacy union + split infra/app).
-- **Trou structurel connu (D01, 2026-08-25) — MultiRepo ne peut pas pousser.** Un dépôt déclaré au
-  niveau `InfrastructureConfig` ne peut porter aucun PAT : `AddInfraConfigRepositoryRequest` n'a pas de
-  champ PAT, `ProjectGitSecretNames.GetRepositoryPatSecretName(...)` exige un `ProjectRepositoryId` typé,
-  et `RepositoryTargetResolver.cs:73` pose `PatSecretName: null` pour ces dépôts. Les 10 sites d'appel
-  replient sur `$"git-pat-{project.Id.Value}"`, un préfixe que **rien n'écrit jamais** — les 4 chemins
-  d'écriture de secret passent tous par le helper et produisent `git-pat-repo-*`. Conséquence : test de
-  connexion, listing de branches et push (Bicep / pipeline / bootstrap) échouent tous en Key Vault sur ce
-  layout. Seul `MultiRepoProjectArtifactsPushService.cs:235` gère le cas explicitement. Détail complet
-  dans `docs/stabilization/feature-map.md`, D01.
+- **D01 corrigé (2026-08-28).** Les dépôts `InfrastructureConfig` portent désormais leur PAT,
+  nommé par `ProjectGitSecretNames.GetInfraConfigRepositoryPatSecretName(...)`; le resolver retourne
+  ce secret au lieu de `null`. La validation réelle Git reste à faire avec D09/D10.
+- **D10 corrigé (2026-09-01).** `PushProjectMultiRepoArtifactsCommand` orchestre des pushes
+  indépendants par configuration et dépôt config-level. `AllInOne` pousse Bicep, pipelines et bootstrap
+  dans un commit par dépôt; `SplitInfraCode` sépare les scopes Infrastructure/ApplicationCode et les
+  bootstraps `FullOwner`/`ApplicationOnly`. Les plans sont prévalidés avant le premier push et les
+  résultats signalent les échecs partiels sans prétendre à une atomicité inter-dépôts.
+- **Durcissement D09/D10 (2026-09-01).** Les handlers config-level exigent désormais le nom du
+  secret du dépôt résolu et ne recréent plus de fallback `git-pat-{projectId}`. Le push bootstrap
+  direct sélectionne le bucket `infra/` en `SplitInfraCode`; le service bulk utilise les buckets
+  infra/app selon le rôle. Les `CancellationToken` sont propagés par `BlobDownloadHelper`,
+  `GeneratedArtifactService`, Key Vault et les providers Git; une annulation n'est pas
+  transformée en erreur Git et n'autorise pas la cible suivante dans les orchestrateurs.
 
 ## Architecture
 - Pure engine in `InfraFlowSculptor.BicepGeneration` (no domain dependency)

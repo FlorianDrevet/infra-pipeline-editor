@@ -35,6 +35,10 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 ```
 
 - Frontend from `src/Front`: `npm install; npm run start; npm run build; npm run typecheck`.
+- Validation MultiRepo D09/D10 [2026-09-01]: solution build passed; targeted Application and
+	Infrastructure cancellation/routing tests passed; `npm run typecheck`, production build, and
+	70 focused Angular specs passed. Full .NET and Karma runs remain environment-limited by
+	unavailable Docker/PostgreSQL and a ChromeHeadless disconnect, respectively.
 - On Windows, stop running `InfraFlowSculptor.Api`, `InfraFlowSculptor.Mcp`, `InfraFlowSculptor.AppHost`, and stale PowerShell reflection/debug shells before rebuilding, or MSBuild can fail on locked `bin\Debug\net10.0` assemblies such as `InfraFlowSculptor.GenerationCore.dll`.
 - `src/Api/InfraFlowSculptor.Api/Dockerfile` must build from a repo-root context (`WORKDIR /repo`) and copy `.editorconfig`; otherwise central props outside `src/Api` and local warning-severity overrides are missing inside containerized API/PR builds [2026-05-21].
 - `*.csproj.lscache` files are local language-service artifacts and must stay ignored at the repo level; they should never be committed in PRs because they massively inflate diffs without affecting runtime or tests.

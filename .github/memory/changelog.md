@@ -1,4 +1,7 @@
 ﻿# Changelog
+- [2026-09-01] main-thread — Hardened D09/D10: config-level pushes require the resolved repository PAT, direct SplitInfraCode bootstrap push filters to `infra/`, cancellation propagates through storage and Git adapters, and bulk cancellation does not attempt the next repository. Targeted backend/frontend validation passed; real Git validation remains.
+- [2026-09-01] `dev` — Implemented D10 project-level MultiRepo bulk push: added typed configuration/repository targets, prevalidated independent pushes with role-aware artifact routing, split-aware config bootstrap storage, explicit SplitInfraCode/MultiRepo API routes, and a dedicated Angular bulk push dialog. Automated backend/API/frontend validation passed; real Git provider validation remains the next gate. Tracker: `docs/features/multirepo-push-d10-implementation-tracker.md`.
+- [2026-09-01] main-thread — Retired the repository's legacy code-graph tooling and unified agents, skills, MCP configuration, and memory around Graphify. Removed old graph skills and local caches; kept Graphify queries, reports, and executable validation as the repository workflow.
 - [2026-05-30] `dev` — Privatization V3 feature complete (Lots 3-9): CQRS commands/API endpoints for PE config, 3 Bicep generation stages (`PrivateEndpointCompanionStage`, `NetworkingResolutionStage`, `PublicNetworkAccessTransformerStage`), `PrivateEndpointGroupIdCatalog` in GenerationCore, frontend networking section in resource-edit with DNS help dialog, V2 config-detail networking tab removed. Tracker: `docs/features/privatization-v3-implementation-tracker.md`. Validation: full build green, ~3827 tests green (1 pre-existing failure), frontend typecheck+build green.
 - [2026-05-29] `dev`, `architect` — Assessed Stripe-based monetization gating against the current generation architecture: confirmed there is no billing/entitlement module in the repo yet, and recorded the layering guardrail that future Stripe webhook ingestion belongs in API/Application/Infrastructure while the domain should only carry local typed export-entitlement state.
 - [2026-05-29] `dev`, `architect` — Analyzed the current authorization model versus real multi-tenancy: confirmed that the repo is still project-membership scoped (`ProjectAccessService` / `InfraConfigAccessService`) with no execution-scoped tenant context and no EF global tenant query filters. Recorded the constraint in auth/persistence memory to guide the future tenant-isolation design.
@@ -60,7 +63,7 @@
 - [2026-04-14] `copilot` — Made audit scripts compatible with Windows PowerShell 5.1.
 - [2026-04-13] `copilot` — Added draw.io tooling.
 - [2026-04-04] `copilot` — Stabilized generation/pipelines, refactored `BicepAssembler`, and fixed FK cascade behavior.
-- [2026-04-03] `copilot` — Added app pipeline generation and GitNexus integration.
+- [2026-04-03] `copilot` — Added app pipeline generation and knowledge-graph integration.
 - [2026-04-02] `copilot` — Completed the user-assigned identity refactor across layers.
 - [2026-04-01] `copilot` — Applied Windows-first conventions and general-config cleanup.
 - [2026-03-31] `copilot` — Delivered Event Hub namespace support and configuration-keys UX.

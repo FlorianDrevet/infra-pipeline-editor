@@ -69,7 +69,9 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
             prefixSegmentCount: 4,
             notFoundErrorFactory: Errors.Project.BootstrapFilesNotFoundError,
             entityId: command.ProjectId.Value,
-            subPrefix: isSplit ? "infra/" : null);
+            options: new BlobDownloadHelper.LatestBlobFilesOptions(
+                SubPrefix: isSplit ? "infra/" : null,
+                CancellationToken: cancellationToken));
         if (filesResult.IsError)
             return filesResult.Errors;
 

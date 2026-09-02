@@ -1,5 +1,5 @@
 Contracts response DTO public shape snapshot
-Count: 102
+Count: 105
 
 Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
 Type: AppConfigurationKeyResponse
@@ -491,6 +491,15 @@ Properties:
   Warnings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceDiagnosticResponse>
 
 Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: GenerateBootstrapResponse
+Constructors:
+  GenerateBootstrapResponse(System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> FileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> InfraFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> AppFileUris)
+Properties:
+  AppFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+  FileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+  InfraFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
 Type: GeneratePipelineResponse
 Constructors:
   GeneratePipelineResponse(System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> FileUris)
@@ -549,6 +558,16 @@ Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
 Type: PushBicepToGitResponse
 Constructors:
   PushBicepToGitResponse(string BranchName, string BranchUrl, string CommitSha, int FileCount)
+Properties:
+  BranchName: string
+  BranchUrl: string
+  CommitSha: string
+  FileCount: int
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: PushBootstrapToGitResponse
+Constructors:
+  PushBootstrapToGitResponse(string BranchName, string BranchUrl, string CommitSha, int FileCount)
 Properties:
   BranchName: string
   BranchUrl: string
@@ -641,23 +660,6 @@ Properties:
   Location: string
   Name: string
   ResourceGroupId: string
-
-Namespace: InfraFlowSculptor.Contracts.NetworkingProfiles.Responses
-Type: NetworkingProfileResponse
-Constructors:
-  NetworkingProfileResponse()
-Properties:
-  CreateNewAddressSpace: string?
-  CreateNewSubnetAddressPrefix: string?
-  DnsHubResourceGroupId: string?
-  DnsHubSubscriptionId: string?
-  DnsMode: string
-  ExistingVnetResourceId: string?
-  Id: string
-  InfraConfigId: string
-  Mode: string
-  PrivateEndpointsSubnetName: string
-  VnetSourceType: string
 
 Namespace: InfraFlowSculptor.Contracts.PersonalAccessTokens.Responses
 Type: CreatedPersonalAccessTokenResponse
@@ -858,6 +860,27 @@ Constructors:
   PushMultiRepoArtifactsResponse(System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.RepoPushResultResponse> Results)
 Properties:
   Results: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.RepoPushResultResponse>
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: PushProjectMultiRepoArtifactResultResponse
+Constructors:
+  PushProjectMultiRepoArtifactResultResponse(string InfrastructureConfigId, string RepositoryId, bool Success, string? BranchUrl, string? CommitSha, int FileCount, string? ErrorCode, string? ErrorDescription)
+Properties:
+  BranchUrl: string?
+  CommitSha: string?
+  ErrorCode: string?
+  ErrorDescription: string?
+  FileCount: int
+  InfrastructureConfigId: string
+  RepositoryId: string
+  Success: bool
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: PushProjectMultiRepoArtifactsResponse
+Constructors:
+  PushProjectMultiRepoArtifactsResponse(System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.PushProjectMultiRepoArtifactResultResponse> Results)
+Properties:
+  Results: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.PushProjectMultiRepoArtifactResultResponse>
 
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
 Type: RecentItemResponse
@@ -1177,8 +1200,9 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.VirtualNetworks.Responses
 Type: SubnetResponse
 Constructors:
-  SubnetResponse(string Id, string Name, string? Delegation, System.Collections.Generic.IReadOnlyList<string>? ServiceEndpoints, string PrivateEndpointNetworkPolicies, string? NsgId)
+  SubnetResponse(string Id, string Name, string AddressPrefix, string? Delegation, System.Collections.Generic.IReadOnlyList<string>? ServiceEndpoints, string PrivateEndpointNetworkPolicies, string? NsgId)
 Properties:
+  AddressPrefix: string
   Delegation: string?
   Id: string
   Name: string

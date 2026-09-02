@@ -12,6 +12,10 @@ public record GenerateBootstrapCommand(
 ) : IGenerateCommand<GenerateBootstrapResult>;
 
 /// <summary>Result of bootstrap generation, containing URIs to the generated artifact files.</summary>
-/// <param name="FileUris">Map of relative file paths to their blob URIs.</param>
+/// <param name="FileUris">Union of all generated files keyed by their storage-relative path.</param>
+/// <param name="InfraFileUris">Bootstrap files targeting the infrastructure repository.</param>
+/// <param name="AppFileUris">Bootstrap files targeting the application repository.</param>
 public record GenerateBootstrapResult(
-    IReadOnlyDictionary<string, Uri> FileUris);
+    IReadOnlyDictionary<string, Uri> FileUris,
+    IReadOnlyDictionary<string, Uri> InfraFileUris,
+    IReadOnlyDictionary<string, Uri> AppFileUris);

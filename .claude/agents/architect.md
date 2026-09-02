@@ -38,14 +38,15 @@ Avant de proposer quoi que ce soit :
 
 ### 3. Explorer le code existant
 
-**Utiliser Codegraph en premier** pour la compréhension structurelle, puis `Read`/`Grep` pour le détail :
+**Utiliser Graphify en premier** pour la compréhension structurelle et transversale, puis `Read`/`Grep` pour le détail :
 
-1. **`codegraph_explore("concept lié à la demande")`** → retourne le source verbatim des symboles pertinents ; c'est l'outil PRIMAIRE qui couvre la majorité des besoins en un appel
-2. **`codegraph_callers("SymboleCible")`** → qui appelle ce symbole (dépendants directs)
-3. **`codegraph_impact("SymboleCible")`** → blast radius des symboles que la demande impacte
-4. Compléter avec `Read`/`Grep` pour le contenu exact des fichiers identifiés
+1. Lire `graphify-out/GRAPH_REPORT.md` s'il existe
+2. **`python -m graphify query "concept lié à la demande" --graph .\graphify-out\graph.json`** → identifier les fichiers, concepts et relations pertinents
+3. **`python -m graphify explain "SymboleCible" --graph .\graphify-out\graph.json`** → contextualiser les nœuds centraux
+4. **`python -m graphify path "Source" "Cible" --graph .\graphify-out\graph.json`** → suivre les relations entre couches
+5. Compléter avec `Read`/`Grep`, `git diff`, le build et les tests pour confirmer l'impact réel
 
-Référence : charger le skill `codegraph-workflow` (`.claude/skills/codegraph-workflow/SKILL.md`) si non déjà en contexte.
+Référence : charger le skill `graphify-corpus` (`.claude/skills/graphify-corpus/SKILL.md`) si non déjà en contexte.
 
 Ces résultats alimentent directement l'étape 4 (Challenge).
 
@@ -58,8 +59,8 @@ Ces résultats alimentent directement l'étape 4 (Challenge).
 | **Pertinence** | Est-ce que cette feature/modification a sa place dans l'architecture actuelle ? Est-ce le bon projet/couche/agrégat pour la porter ? |
 | **Cohérence** | Est-ce que la proposition est cohérente avec les patterns existants (DDD, CQRS, ErrorOr, TPT, etc.) ? Sinon, quel pattern devrait-on suivre ? |
 | **Pattern de conception** | Quels patterns plausibles existent (`aucun pattern additionnel`, Strategy, Factory, Builder, Specification, Policy, etc.) ? Comparer au moins 2 options et retenir la plus simple qui améliore réellement lisibilité, maintenabilité, et scalabilité. |
-| **Duplication** | Utiliser `codegraph_explore("concept")` pour détecter les mécanismes existants. Est-ce qu'un mécanisme existant couvre déjà ce besoin, en tout ou en partie ? Faut-il étendre plutôt que créer ? |
-| **Impact** | Exécuter `codegraph_impact("Symbol")` sur chaque symbole modifié. Reporter le blast radius (dépendants directs = WILL BREAK, indirects = LIKELY, transitifs = MAY NEED TESTING). Quelles couches sont impactées ? Y a-t-il un risque de régression ? |
+| **Duplication** | Utiliser `python -m graphify query "concept" --graph .\graphify-out\graph.json` pour détecter les mécanismes existants. Est-ce qu'un mécanisme existant couvre déjà ce besoin, en tout ou en partie ? Faut-il étendre plutôt que créer ? |
+| **Impact** | Utiliser Graphify pour repérer les relations et fichiers concernés, puis confirmer l'impact avec `git diff`, le build et les tests. Quelles couches sont impactées ? Y a-t-il un risque de régression ? |
 | **Typage / shape des données** | Peut-on modéliser explicitement les données plutôt que manipuler `object`, `Dictionary`, `JsonDocument`, ou des blobs JSON ? Si oui, imposer les types applicatifs et de persistance adaptés. |
 | **Granularité des fichiers** | La solution garde-t-elle un type public top-level par fichier ou introduit-elle des fichiers poubelles (`Dtos.cs`, `Models.cs`, etc.) ? |
 | **Dette technique** | La zone de code visée a-t-elle de la dette technique qu'il faudrait traiter en même temps ? Est-ce qu'ajouter sans refactorer va empirer la situation ? |
@@ -87,7 +88,7 @@ Si la tâche introduit un mécanisme structurel ou un nouveau modèle de donnée
 **Pertinent :** Oui / Non / Partiellement — [justification]
 **Faisable avec l'existant :** Oui / Avec adaptations / Non, refonte requise — [justification]
 **Risques identifiés :** [liste]
-**Codegraph blast radius :** [résultats de `codegraph_impact()` — dépendants directs/indirects/transitifs par symbole modifié]
+**Graphify context :** [résultats de `query`, `explain` et `path`, avec les dépendances confirmées par lecture et validation]
 
 ## Décisions d'architecture
 
@@ -195,8 +196,8 @@ L'architecte doit maîtriser l'intégralité de `.claude/memory/MEMORY.md` et co
 - La séparation API / Application / Domain / Infrastructure / Contracts
 - Le BicepGeneration engine (self-contained, strategy pattern)
 - Le frontend Angular 19 (signals, standalone, zoneless)
-- Les skills disponibles (`cqrs-feature`, `new-azure-resource`, `ui-ux-front-saas`, `codegraph-workflow`)
-- Le knowledge graph Codegraph pour l'analyse d'impact et l'exploration structurelle
+- Les skills disponibles (`cqrs-feature`, `new-azure-resource`, `ui-ux-front-saas`, `graphify-corpus`)
+- Le knowledge graph Graphify pour l'exploration structurelle et les liens code-documentation
 
 ---
 

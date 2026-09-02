@@ -59,7 +59,9 @@ public sealed class PushProjectBicepToGitCommandHandler(
             blobPrefix: $"bicep/project/{command.ProjectId.Value}/",
             prefixSegmentCount: 4,
             notFoundErrorFactory: Errors.Project.BicepFilesNotFoundError,
-            entityId: command.ProjectId.Value);
+            entityId: command.ProjectId.Value,
+            options: new BlobDownloadHelper.LatestBlobFilesOptions(
+                CancellationToken: cancellationToken));
         if (filesResult.IsError)
             return filesResult.Errors;
 

@@ -41,12 +41,12 @@ Après lecture de `MEMORY.md`, lire `.github/memory/dream-state.md` et :
    - **Toujours** libérer le verrou après le retour de `@dream`, même en cas d'échec.
 4. **Si non :** continuer normalement.
 
-### 1ter. GitNexus Freshness Check
+### 1ter. Graphify Readiness Check
 
-Vérifier que l'index GitNexus est à jour :
-1. Exécuter `gitnexus_list_repos()` et lire la date `lastAnalyzed` du repo `infra-pipeline-editor`.
-2. Si `lastAnalyzed` > 7 jours : exécuter `npx gitnexus analyze` pour réindexer.
-3. Si la commande échoue ou le MCP n'est pas disponible : continuer sans bloquer, mais avertir l'utilisateur que l'index est potentiellement obsolète.
+Vérifier que le graphe Graphify est disponible :
+1. Lire `graphify-out/GRAPH_REPORT.md` s'il existe.
+2. Si `graphify-out/graph.json` manque ou est vide, exécuter `python -m graphify update .`.
+3. Si Graphify ou son MCP n'est pas disponible, continuer sans bloquer avec une lecture ciblée et les validations du projet.
 
 ### 2. Analyser la demande et décider
 
@@ -72,24 +72,19 @@ Pour cette passe :
 
 ### 2bis. Phase Research — Explorer le codebase avant de déléguer
 
-**Pour les tâches complexes ou cross-cutting**, commencer par GitNexus puis compléter avec `@Explore`.
+**Pour les tâches complexes ou cross-cutting**, commencer par Graphify puis compléter avec `@Explore`.
 
-**Étape 1 — GitNexus (structurel, rapide) :**
-- `gitnexus_query("concept lié à la tâche")` → identifier les flux d'exécution et symboles concernés
-- `gitnexus_context("SymboleCible")` → vue 360° (appelants, appelés, process)
-- `gitnexus_impact(target, "upstream")` → blast radius si modification prévue
-- Référence complète : charger le skill `gitnexus-workflow` (`.github/skills/gitnexus-workflow/SKILL.md`)
-
-**Étape 1bis — Graphify (corpus, transversal) :**
-Si la tâche touche à la documentation, l'architecture transversale, un audit, ou l'onboarding :
-- Lire `graphify-out/GRAPH_REPORT.md` pour identifier god nodes et communautés pertinentes
-- Utiliser `graphify query "concept"` ou le MCP Graphify pour des liens code ↔ docs
+**Étape 1 — Graphify (structurel et transversal) :**
+- Lire `graphify-out/GRAPH_REPORT.md` pour identifier les god nodes et communautés pertinentes
+- `python -m graphify query "concept lié à la tâche" --graph .\graphify-out\graph.json` → identifier les fichiers, concepts et relations concernés
+- `python -m graphify explain "SymboleCible" --graph .\graphify-out\graph.json` → contextualiser un nœud central
+- `python -m graphify path "Source" "Cible" --graph .\graphify-out\graph.json` → suivre une relation entre couches
 - Référence complète : charger le skill `graphify-corpus` (`.github/skills/graphify-corpus/SKILL.md`)
 
-**Règle de priorité :** GitNexus pour le code, Graphify pour le corpus. Ne jamais utiliser Graphify pour l'impact analysis ou le rename. Ne jamais utiliser GitNexus pour la traçabilité doc-to-code.
+Graphify fournit du contexte et des relations sémantiques. Pour confirmer un impact exact, utiliser la lecture ciblée, `git diff`, le build et les tests concernés.
 
 **Étape 2 — @Explore (contenu, détail) :**
-`@Explore` reste utile pour la lecture brute de fichiers identifiés par GitNexus.
+`@Explore` reste utile pour la lecture brute de fichiers identifiés par Graphify.
 `@Explore` est un sous-agent rapide, read-only, spécialisé dans l'exploration et le Q&A codebase.
 
 **Quand déclencher la phase Research :**
@@ -205,8 +200,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 | Tâche | Agent à utiliser | Fichier |
 |-------|------------------|---------|
 | Explorer le codebase (fichiers, patterns, conventions) avant délégation | **`Explore`** | sous-agent built-in, aucun fichier agent |
-| Analyse d'impact / exploration structurelle avant modification | Charger le skill **`gitnexus-workflow`** | `.github/skills/gitnexus-workflow/SKILL.md` |
-| Exploration corpus (docs+code+audits+diagrammes), onboarding, architecture transversale | Charger le skill **`graphify-corpus`** | `.github/skills/graphify-corpus/SKILL.md` |
+| Exploration code et corpus (docs+code+audits+diagrammes), onboarding, architecture transversale | Charger le skill **`graphify-corpus`** | `.github/skills/graphify-corpus/SKILL.md` |
 | Audit technique complet du dépôt avec synchronisation GitHub | **`audit-expert`** + charger le skill `audit-workflow` | `.github/agents/audit-expert.agent.md` |
 | Rediger ou refondre de la documentation technique, un cours d'onboarding, un guide de lecture du code, ou une explication de patterns du projet | **`documentation-professor`** | `.github/agents/documentation-professor.agent.md` |
 | Revue de code pré-merge, review de diff contre `main`, gate qualité avant merge | **`review-expert`** | `.github/agents/review-expert.agent.md` |
@@ -233,7 +227,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 > 2. Les **conventions du projet** pertinentes à la tâche (issues de MEMORY.md / fichiers thématiques)
 > 3. Un **extrait de code existant** comme référence de style quand applicable
 > 4. Le **résultat attendu** décrit de façon non ambiguë
-> 5. Le **résultat de `gitnexus_impact()`** si la tâche modifie un symbole partagé (pour que le sous-agent connaisse le blast radius)
+> 5. Le **résultat des requêtes Graphify** et la liste des dépendances confirmées si la tâche modifie un symbole partagé
 > 6. **L'instruction TDD** : rappeler que le skill `tdd-workflow` est obligatoire et que les tests doivent être écrits AVANT le code de production
 > 7. **Le résultat de la passe de contradiction** : ce qui, dans la demande utilisateur, est confirmé, douteux, ou invalide, surtout sur Bicep/pipelines/bootstrap/service connections
 >
@@ -342,15 +336,10 @@ Un skill est **différent d'un agent** :
 - **Fichier :** `.github/skills/ui-ux-front-saas/SKILL.md`
 - **Contenu :** règles UI/UX SaaS B2B cloud, design system, accessibilité WCAG, responsive, outputs design/handoff, alignement visuel avec la page login existante
 
-#### `gitnexus-workflow`
-- **Quand le charger :** dès qu'une tâche nécessite de l'exploration structurelle (flux d'exécution, dépendances), de l'analyse d'impact avant modification, ou de la validation post-changement
-- **Fichier :** `.github/skills/gitnexus-workflow/SKILL.md`
-- **Contenu :** les commandes GitNexus par phase (exploration, impact, validation, refactoring), les conventions de nommage pour formuler des requêtes précises, l'intégration avec la mémoire projet
-
 #### `graphify-corpus`
 - **Quand le charger :** dès qu'une tâche nécessite une vue transversale code+docs, une orientation architecture à partir du corpus complet, une analyse de communautés/god nodes, ou une exploration de liens conceptuels entre documentation et code
 - **Fichier :** `.github/skills/graphify-corpus/SKILL.md`
-- **Contenu :** les commandes Graphify (build, update, query, path, explain), le serveur MCP, les sorties (GRAPH_REPORT.md, graph.json), les règles de priorité vs GitNexus, l'intégration avec chaque agent
+- **Contenu :** les commandes Graphify (build, update, query, path, explain), le serveur MCP, les sorties (GRAPH_REPORT.md, graph.json), les règles d'exploration et de validation, l'intégration avec chaque agent
 
 #### `audit-workflow`
 - **Quand le charger :** dès qu'une tâche consiste à produire un audit technique du dépôt, écrire le rapport dans `audits/`, ou réconcilier les issues GitHub d'audit avec les findings
@@ -418,7 +407,7 @@ Son rôle est de **lire la mémoire, analyser, charger les bons outils de connai
 [ ] Tests passés : dotnet test .\InfraFlowSculptor.slnx (si code C# touché)
 [ ] Build vérifié : dotnet build .\InfraFlowSculptor.slnx (si code C# touché)
 [ ] Frontend vérifié : npm run typecheck + npm run build dans src/Front (si code Angular touché)
-[ ] GitNexus detect_changes vérifié (si code modifié) — seuls les fichiers/flux attendus sont impactés
+[ ] Graphify rafraîchi et `git diff` vérifié (si code modifié) — seuls les fichiers attendus sont impactés
 [ ] Dette de tests enregistrée dans .github/test-debt.md (si dette détectée)
 [ ] Fichier thématique mis à jour dans .github/memory/ (nouveaux agrégats, conventions, pièges)
 [ ] Changelog : ligne ajoutée dans .github/memory/changelog.md

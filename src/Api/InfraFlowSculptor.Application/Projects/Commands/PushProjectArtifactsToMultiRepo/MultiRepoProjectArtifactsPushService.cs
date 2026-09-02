@@ -41,18 +41,22 @@ public sealed class MultiRepoProjectArtifactsPushService(
 
         var (infraTarget, appTarget) = targetsResult.Value;
 
-        var pipelineSplitResult = await LoadLatestPipelineFilesSplitAsync(command.ProjectId.Value)
+        var pipelineSplitResult = await LoadLatestPipelineFilesSplitAsync(
+            command.ProjectId.Value,
+            cancellationToken)
             .ConfigureAwait(false);
         if (pipelineSplitResult.IsError)
             return pipelineSplitResult.Errors;
 
         var (infraPipelineFiles, appPipelineFiles) = pipelineSplitResult.Value;
 
-        var infraArtifactsResult = await LoadInfraArtifactsAsync(command).ConfigureAwait(false);
+        var infraArtifactsResult = await LoadInfraArtifactsAsync(command, cancellationToken)
+            .ConfigureAwait(false);
         if (infraArtifactsResult.IsError)
             return infraArtifactsResult.Errors;
 
-        var appArtifactsResult = await LoadAppArtifactsAsync(command).ConfigureAwait(false);
+        var appArtifactsResult = await LoadAppArtifactsAsync(command, cancellationToken)
+            .ConfigureAwait(false);
         if (appArtifactsResult.IsError)
             return appArtifactsResult.Errors;
 
@@ -117,7 +121,8 @@ public sealed class MultiRepoProjectArtifactsPushService(
     }
 
     private async Task<ErrorOr<InfraArtifacts>> LoadInfraArtifactsAsync(
-        PushProjectArtifactsToMultiRepoCommand command)
+        PushProjectArtifactsToMultiRepoCommand command,
+        CancellationToken cancellationToken)
     {
         if (command.Infra is null)
             return new InfraArtifacts(null, null);
@@ -125,14 +130,16 @@ public sealed class MultiRepoProjectArtifactsPushService(
         var bicepFilesResult = await LoadLatestArtifactFilesAsync(
                 BicepArtifactType,
                 command.ProjectId.Value,
-                Errors.Project.BicepFilesNotFoundError)
+                Errors.Project.BicepFilesNotFoundError,
+                cancellationToken)
             .ConfigureAwait(false);
         if (bicepFilesResult.IsError)
             return bicepFilesResult.Errors;
 
         var bootstrapFilesResult = await LoadLatestBootstrapFilesAsync(
                 command.ProjectId.Value,
-                InfraBootstrapBucketPrefix)
+            InfraBootstrapBucketPrefix,
+            cancellationToken)
             .ConfigureAwait(false);
         if (bootstrapFilesResult.IsError)
             return bootstrapFilesResult.Errors;
@@ -141,7 +148,8 @@ public sealed class MultiRepoProjectArtifactsPushService(
     }
 
     private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadAppArtifactsAsync(
-        PushProjectArtifactsToMultiRepoCommand command)
+        PushProjectArtifactsToMultiRepoCommand command,
+        CancellationToken cancellationToken)
     {
         if (command.Code is null)
         {
@@ -150,7 +158,8 @@ public sealed class MultiRepoProjectArtifactsPushService(
 
         var appBootstrapFilesResult = await LoadLatestBootstrapFilesAsync(
                 command.ProjectId.Value,
-                AppBootstrapBucketPrefix)
+            AppBootstrapBucketPrefix,
+            cancellationToken)
             .ConfigureAwait(false);
         if (appBootstrapFilesResult.IsError)
             return appBootstrapFilesResult.Errors;
@@ -274,6 +283,10 @@ public sealed class MultiRepoProjectArtifactsPushService(
                 ErrorCode: null,
                 ErrorDescription: null);
         }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
         catch (Exception ex)
         {
             return new RepoPushResult(
@@ -300,7 +313,7 @@ public sealed class MultiRepoProjectArtifactsPushService(
     }
 
     private async Task<ErrorOr<(IReadOnlyDictionary<string, string> Infra, IReadOnlyDictionary<string, string> App)>>
-        LoadLatestPipelineFilesSplitAsync(Guid projectId)
+        LoadLatestPipelineFilesSplitAsync(Guid projectId, CancellationToken cancellationToken)
     {
         return await BlobDownloadHelper.GetLatestDualBucketBlobFilesAsync(
                 blobService,
@@ -313,27 +326,32 @@ public sealed class MultiRepoProjectArtifactsPushService(
                     SecondBucketName: AppBucket,
                     LegacyDefaultBucketName: InfraBucket,
                     FirstPostProcess: GeneratedPipelinePathNormalizer.Normalize,
-                    SecondPostProcess: GeneratedPipelinePathNormalizer.Normalize))
+                    SecondPostProcess: GeneratedPipelinePathNormalizer.Normalize),
+                cancellationToken: cancellationToken)
             .ConfigureAwait(false);
     }
 
     private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadLatestArtifactFilesAsync(
         string artifactType,
         Guid projectId,
-        Func<Guid, Error> notFoundErrorFactory)
+        Func<Guid, Error> notFoundErrorFactory,
+        CancellationToken cancellationToken)
     {
         return await BlobDownloadHelper.GetLatestBlobFilesAsync(
                 blobService,
                 blobPrefix: $"{artifactType}/project/{projectId}/",
                 prefixSegmentCount: 4,
                 notFoundErrorFactory,
-                entityId: projectId)
+                entityId: projectId,
+                options: new BlobDownloadHelper.LatestBlobFilesOptions(
+                    CancellationToken: cancellationToken))
             .ConfigureAwait(false);
     }
 
     private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadLatestBootstrapFilesAsync(
         Guid projectId,
-        string? bucketPrefix)
+        string? bucketPrefix,
+        CancellationToken cancellationToken)
     {
         return await BlobDownloadHelper.GetLatestBlobFilesAsync(
                 blobService,
@@ -341,8 +359,10 @@ public sealed class MultiRepoProjectArtifactsPushService(
                 prefixSegmentCount: 4,
                 notFoundErrorFactory: Errors.Project.BootstrapFilesNotFoundError,
                 entityId: projectId,
-                subPrefix: bucketPrefix,
-                postProcess: PrefixBootstrapPaths)
+                options: new BlobDownloadHelper.LatestBlobFilesOptions(
+                    SubPrefix: bucketPrefix,
+                    PostProcess: PrefixBootstrapPaths,
+                    CancellationToken: cancellationToken))
             .ConfigureAwait(false);
     }
 

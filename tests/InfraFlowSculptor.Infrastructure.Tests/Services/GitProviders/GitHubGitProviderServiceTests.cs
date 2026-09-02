@@ -243,6 +243,33 @@ public sealed class GitHubGitProviderServiceTests
         result.FirstError.Description.Should().Contain("No generated files were provided");
     }
 
+    [Fact]
+    public async Task Given_CanceledToken_When_PushFilesAsync_Then_PropagatesCancellationAsync()
+    {
+        // Arrange
+        var cancellationToken = new CancellationToken(canceled: true);
+        var request = new GitPushRequest
+        {
+            Token = "fake-token",
+            Owner = "test-owner",
+            RepositoryName = "test-repo",
+            BaseBranch = "main",
+            TargetBranchName = "feature/gen",
+            CommitMessage = "Generated",
+            BasePath = "infra",
+            Files = new Dictionary<string, string>
+            {
+                ["main.bicep"] = "resource a {}",
+            },
+        };
+
+        // Act
+        Func<Task> act = async () => await _sut.PushFilesAsync(request, cancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
     // ──────────────────────────────────────────────────
     //  TestConnectionAsync — error path
     // ──────────────────────────────────────────────────

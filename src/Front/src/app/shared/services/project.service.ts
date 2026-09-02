@@ -59,6 +59,10 @@ import {
   MultiRepoPushRequest,
   MultiRepoPushResponse,
 } from '../interfaces/multi-repo-push.interface';
+import {
+  ProjectMultiRepoPushRequest,
+  ProjectMultiRepoPushResponse,
+} from '../interfaces/project-multi-repo-push.interface';
 
 const HTTP_STATUS_NOT_FOUND = 404;
 
@@ -477,11 +481,22 @@ export class ProjectService {
     );
   }
 
-  pushProjectArtifactsToMultiRepo(
+  pushProjectSplitInfraCodeArtifacts(
     projectId: string,
     request: MultiRepoPushRequest
   ): Promise<MultiRepoPushResponse> {
     return this.axios.request$<MultiRepoPushResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/push-split-infra-code-artifacts-to-git`,
+      request
+    );
+  }
+
+  pushProjectMultiRepoArtifacts(
+    projectId: string,
+    request: ProjectMultiRepoPushRequest
+  ): Promise<ProjectMultiRepoPushResponse> {
+    return this.axios.request$<ProjectMultiRepoPushResponse>(
       MethodEnum.POST,
       `/projects/${projectId}/push-multi-repo-artifacts-to-git`,
       request

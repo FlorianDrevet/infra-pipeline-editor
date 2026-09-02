@@ -166,6 +166,34 @@ public sealed class InfrastructureConfigRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task Given_ConfigRepositoryStoredForProject_When_GetByProjectIdAsync_Then_LoadsConfigurationRepository_Async()
+    {
+        // Arrange
+        var projectId = ProjectId.CreateUnique();
+        var config = InfrastructureConfig.Create(new Name(ConfigName), projectId);
+        config.SetLayoutMode(new ConfigLayoutMode(ConfigLayoutModeEnum.AllInOne));
+        var contentKinds = RepositoryContentKinds.Create(
+            RepositoryContentKindsEnum.Infrastructure | RepositoryContentKindsEnum.ApplicationCode);
+        var repositoryResult = config.AddRepository(
+            new GitProviderType(GitProviderTypeEnum.GitHub),
+            "https://github.com/example/infra",
+            "main",
+            contentKinds.Value);
+        repositoryResult.IsError.Should().BeFalse();
+        _context.InfrastructureConfigs.Add(config);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Act
+        var result = await _sut.GetByProjectIdAsync(projectId);
+
+        // Assert
+        result.Should().ContainSingle();
+        result.Single().Repositories.Should().ContainSingle();
+        result.Single().Repositories.Single().Id.Should().Be(repositoryResult.Value.Id);
+    }
+
+    [Fact]
     public async Task Given_StoredConfig_When_GetByIdWithNamingTemplatesAsync_Then_ReturnsConfig_Async()
     {
         // Arrange

@@ -55,20 +55,28 @@ public sealed class BlobService : IBlobService
         throw new NotImplementedException();
     }
 
-    public async Task<string?> DownloadContentAsync(string blobName)
+    public async Task<string?> DownloadContentAsync(
+        string blobName,
+        CancellationToken cancellationToken = default)
     {
         var blobClient = _blobContainerClient.GetBlobClient(blobName);
-        if (!await blobClient.ExistsAsync())
+        if (!await blobClient.ExistsAsync(cancellationToken))
             return null;
 
-        var response = await blobClient.DownloadContentAsync();
+        var response = await blobClient.DownloadContentAsync(cancellationToken);
         return response.Value.Content.ToString();
     }
 
-    public async Task<IReadOnlyList<string>> ListBlobsAsync(string prefix)
+    public async Task<IReadOnlyList<string>> ListBlobsAsync(
+        string prefix,
+        CancellationToken cancellationToken = default)
     {
         var blobs = new List<string>();
-        await foreach (var blob in _blobContainerClient.GetBlobsAsync(BlobTraits.None, BlobStates.None, prefix, CancellationToken.None))
+        await foreach (var blob in _blobContainerClient.GetBlobsAsync(
+                           BlobTraits.None,
+                           BlobStates.None,
+                           prefix,
+                           cancellationToken))
         {
             blobs.Add(blob.Name);
         }

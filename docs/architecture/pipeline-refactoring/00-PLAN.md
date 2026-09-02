@@ -5,7 +5,7 @@
 > **Décisions utilisateur :**
 > 1. Parité strictement byte-for-byte (miroir Bicep).
 > 2. Vague 2 (IR YAML) **différée** — décision à réévaluer après Vague 1 mergée.
-> 3. `AppPipelineYamlHelper` : suppression sèche après vérification `gitnexus_context` en Vague 1.3.1.
+> 3. `AppPipelineYamlHelper` : suppression sèche après vérification de ses relations via Graphify en Vague 1.3.1.
 > 4. Suppression dépendance Domain : appliquée dès Vague 1.0.
 > 5. Fixtures golden files : **synthétiques minimales** (déterministes, pas basées sur snapshot projet).
 > 6. `MonoRepoPipelineAssembler` : **hors refactor staged** (orchestrateur cross-config conservé tel quel).
@@ -70,7 +70,7 @@
 
 #### Étape 1.0.1 — Audit Domain dependency
 
-Action : `gitnexus_query("DeploymentMode AcrAuthMode usage")` + grep_search dans `src/Api/InfraFlowSculptor.Application/**/*.cs`.
+Action : `python -m graphify query "DeploymentMode AcrAuthMode usage" --graph .\graphify-out\graph.json` + grep_search dans `src/Api/InfraFlowSculptor.Application/**/*.cs`.
 
 #### Étape 1.0.2 — Constantes neutres + suppression Domain ref
 
@@ -167,7 +167,7 @@ Garder signature publique inchangée, déléguer à `SharedTemplatesAssembler` i
 
 #### Étape 1.3.1 — Audit duplication
 
-`gitnexus_context("AppPipelineYamlHelper")` pour confirmer dead code → suppression sèche.
+Requête Graphify `explain "AppPipelineYamlHelper"` puis lecture ciblée pour confirmer dead code → suppression sèche.
 
 #### Étape 1.3.2 — Extraction `AppPipelineSteps/`
 

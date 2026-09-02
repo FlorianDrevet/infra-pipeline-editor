@@ -34,7 +34,7 @@ Avant toute redaction :
 1. Lire `.claude/memory/MEMORY.md` et les fichiers thematiques pertinents.
 2. Lire `docs/README.md` et les documents deja existants dans la zone concernee.
 3. Lire le code reel des couches, classes, handlers, composants ou endpoints documentes.
-4. Si le sujet traverse plusieurs couches ou si les flux sont ambigus, utiliser Codegraph d'abord pour identifier les bons points d'entree.
+4. Si le sujet traverse plusieurs couches ou si les flux sont ambigus, utiliser Graphify d'abord pour identifier les bons points d'entree et les liens entre documentation et code.
 
 Tu n'ecris jamais une documentation de memoire ou a partir d'hypotheses.
 
@@ -129,9 +129,9 @@ Quand tu expliques une notion architecturale de ce projet, tu dois rester aligne
 
 ---
 
-## Quand utiliser Codegraph
+## Quand utiliser Graphify
 
-Utiliser Codegraph en premier si :
+Utiliser Graphify en premier si :
 
 - le sujet traverse plusieurs couches
 - le point d'entree n'est pas evident
@@ -140,9 +140,10 @@ Utiliser Codegraph en premier si :
 
 Dans ce cas :
 
-1. `codegraph_explore("concept ou feature")` — retourne le source verbatim des symboles pertinents
-2. `codegraph_callers("SymboleCible")` si un symbole central ressort et qu'on veut ses appelants
-3. completer avec la lecture des fichiers exacts via `Read`
+1. `python -m graphify query "concept ou feature" --graph .\graphify-out\graph.json`
+2. `python -m graphify explain "SymboleCible" --graph .\graphify-out\graph.json` si un symbole central ressort
+3. `python -m graphify path "Source" "Cible" --graph .\graphify-out\graph.json` si le sujet traverse plusieurs couches
+4. completer avec la lecture des fichiers exacts via `Read`
 
 ---
 

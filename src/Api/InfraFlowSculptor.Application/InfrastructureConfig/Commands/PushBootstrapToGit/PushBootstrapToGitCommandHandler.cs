@@ -28,6 +28,9 @@ public sealed class PushBootstrapToGitCommandHandler(
     IRepositoryTargetResolver targetResolver)
     : ICommandHandler<PushBootstrapToGitCommand, PushBicepToGitResult>
 {
+    private const string InfraBootstrapPrefix = "infra/";
+    private const string AppBootstrapPrefix = "app/";
+
     public async Task<ErrorOr<PushBicepToGitResult>> Handle(
         PushBootstrapToGitCommand command, CancellationToken cancellationToken)
     {
@@ -50,8 +53,11 @@ public sealed class PushBootstrapToGitCommandHandler(
 
         var target = targetResult.Value;
 
+        if (string.IsNullOrWhiteSpace(target.PatSecretName))
+            return Errors.GitRepository.SecretRetrievalFailed();
+
         var secretResult = await keyVaultClient.GetSecretAsync(
-            target.PatSecretName ?? $"git-pat-{project.Id.Value}", cancellationToken);
+            target.PatSecretName, cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;
 
@@ -60,6 +66,13 @@ public sealed class PushBootstrapToGitCommandHandler(
 
         if (files is null || files.Count == 0)
             return Errors.InfrastructureConfig.BootstrapFilesNotFoundError(command.InfrastructureConfigId);
+
+        var selectedFilesResult = SelectBootstrapFiles(
+            files,
+            config.LayoutMode?.Value,
+            command.InfrastructureConfigId);
+        if (selectedFilesResult.IsError)
+            return selectedFilesResult.Errors;
 
         var gitProvider = gitProviderFactory.Create(target.ProviderType);
         return await gitProvider.PushFilesAsync(new GitPushRequest
@@ -71,7 +84,35 @@ public sealed class PushBootstrapToGitCommandHandler(
             TargetBranchName = command.BranchName,
             CommitMessage = command.CommitMessage,
             BasePath = target.PipelineBasePath,
-            Files = files,
+            Files = selectedFilesResult.Value,
         }, cancellationToken);
+    }
+
+    private static ErrorOr<IReadOnlyDictionary<string, string>> SelectBootstrapFiles(
+        IReadOnlyDictionary<string, string> files,
+        ConfigLayoutModeEnum? layoutMode,
+        Guid configId)
+    {
+        if (layoutMode != ConfigLayoutModeEnum.SplitInfraCode)
+            return new Dictionary<string, string>(files, StringComparer.Ordinal);
+
+        var infrastructureFiles = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (path, content) in files)
+        {
+            if (path.StartsWith(InfraBootstrapPrefix, StringComparison.Ordinal))
+            {
+                infrastructureFiles[path[InfraBootstrapPrefix.Length..]] = content;
+                continue;
+            }
+
+            if (path.StartsWith(AppBootstrapPrefix, StringComparison.Ordinal))
+                continue;
+
+            return Errors.InfrastructureConfig.BootstrapFilesNotFoundError(configId);
+        }
+
+        return infrastructureFiles.Count == 0
+            ? Errors.InfrastructureConfig.BootstrapFilesNotFoundError(configId)
+            : infrastructureFiles;
     }
 }

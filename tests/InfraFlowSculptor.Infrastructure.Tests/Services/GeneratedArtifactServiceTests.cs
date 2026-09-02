@@ -226,4 +226,42 @@ public sealed class GeneratedArtifactServiceTests
         await _blobService.DidNotReceive().DownloadContentAsync(blobs[0]);
         await _blobService.DidNotReceive().DownloadContentAsync(blobs[1]);
     }
+
+    [Fact]
+    public async Task Given_ListIsCanceled_When_GetLatestFilesAsync_Then_PropagatesCancellationAsync()
+    {
+        // Arrange
+        var configId = Guid.NewGuid();
+        var cancellationToken = new CancellationToken(canceled: true);
+        var prefix = $"bicep/{configId}/";
+        _blobService.ListBlobsAsync(prefix, cancellationToken)
+            .Returns(Task.FromCanceled<IReadOnlyList<string>>(cancellationToken));
+
+        // Act
+        Func<Task> act = async () => await _sut.GetLatestFilesAsync(
+            "bicep", configId, cancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task Given_DownloadIsCanceled_When_GetLatestFilesAsync_Then_PropagatesCancellationAsync()
+    {
+        // Arrange
+        var configId = Guid.NewGuid();
+        var cancellationToken = new CancellationToken(canceled: true);
+        var prefix = $"bicep/{configId}/";
+        var blobName = $"bicep/{configId}/20260517-140000/main.bicep";
+        _blobService.ListBlobsAsync(prefix, cancellationToken).Returns([blobName]);
+        _blobService.DownloadContentAsync(blobName, cancellationToken)
+            .Returns(Task.FromCanceled<string?>(cancellationToken));
+
+        // Act
+        Func<Task> act = async () => await _sut.GetLatestFilesAsync(
+            "bicep", configId, cancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
 }

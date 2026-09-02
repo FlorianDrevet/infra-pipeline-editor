@@ -35,7 +35,8 @@ public sealed class GetProjectPipelineFileContentQueryHandler(
                     query.FilePath,
                     $"infra/{query.FilePath}",
                     $"app/{query.FilePath}",
-                ]));
+                ]),
+            cancellationToken);
         if (contentResult.IsError)
             return contentResult.Errors;
 

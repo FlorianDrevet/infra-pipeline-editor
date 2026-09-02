@@ -40,6 +40,10 @@ import {
   MultiRepoPushDialogComponent,
   MultiRepoPushDialogData,
 } from './multi-repo-push-dialog/multi-repo-push-dialog.component';
+import {
+  ProjectMultiRepoPushDialogComponent,
+  ProjectMultiRepoPushDialogData,
+} from './project-multi-repo-push-dialog/project-multi-repo-push-dialog.component';
 import { MultiRepoPushMode } from '../../shared/interfaces/multi-repo-push.interface';
 import {
   GeneratedArtifactArchiveSourceSpec,
@@ -123,6 +127,14 @@ export class ProjectDetailGenerationWorkflowService {
   );
 
   readonly isSplitInfraCodeLayout = computed(() => this.project()?.layoutPreset === 'SplitInfraCode');
+  readonly isMultiRepoLayout = computed(() => this.project()?.layoutPreset === 'MultiRepo');
+  readonly canPushMultiRepoArtifacts = computed(() => {
+    const project = this.project();
+    const configurations = this.configs();
+    return project?.layoutPreset === 'MultiRepo'
+      && configurations.length > 0
+      && configurations.every(configuration => (configuration.repositories?.length ?? 0) > 0);
+  });
 
   readonly projectBicepNodes = computed<BicepTreeNode[]>(() => {
     const result = this.projectBicepResult();
@@ -395,6 +407,11 @@ export class ProjectDetailGenerationWorkflowService {
 
   readonly openProjectMultiRepoPushDialog = (mode: MultiRepoPushMode): void => {
     const project = this.project();
+    if (project?.layoutPreset !== 'SplitInfraCode') {
+      this.showProjectActionError('PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_LAYOUT');
+      return;
+    }
+
     const targets = project ? resolveProjectDetailSplitRepoTargets(project) : null;
     if (!project || !targets) {
       this.showProjectActionError('PROJECT_DETAIL.MULTI_REPO_PUSH.MISSING_SLOTS');
@@ -414,6 +431,33 @@ export class ProjectDetailGenerationWorkflowService {
       width: mode === 'both' ? '68rem' : '38rem',
       maxWidth: '96vw',
       panelClass: 'ifs-multi-repo-push-dialog',
+      autoFocus: false,
+      data,
+    });
+  };
+
+  readonly openProjectMultiRepoArtifactsPushDialog = (): void => {
+    const project = this.project();
+    const configurations = this.configs();
+    if (project?.layoutPreset !== 'MultiRepo') {
+      this.showProjectActionError('PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_LAYOUT');
+      return;
+    }
+
+    if (configurations.length === 0 || configurations.some(configuration => !configuration.repositories?.length)) {
+      this.showProjectActionError('PROJECT_DETAIL.MULTI_REPO_BULK_PUSH.MISSING_REPOSITORIES');
+      return;
+    }
+
+    const data: ProjectMultiRepoPushDialogData = {
+      projectId: project.id,
+      configurations,
+    };
+
+    this.dialog.open(ProjectMultiRepoPushDialogComponent, {
+      width: '60rem',
+      maxWidth: '96vw',
+      panelClass: 'ifs-project-multi-repo-push-dialog',
       autoFocus: false,
       data,
     });

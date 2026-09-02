@@ -12,6 +12,7 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
 using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics.Rules;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBootstrapPipeline;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectArtifactsToMultiRepo;
+using InfraFlowSculptor.Application.Projects.Commands.PushProjectMultiRepoArtifacts;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Application.Projects.Common.Generation;
 using InfraFlowSculptor.Application.Projects.Common.Storage;
@@ -66,6 +67,7 @@ public static class DependencyInjection
         services.AddScoped<IApplicationFolderNameResolver, ApplicationFolderNameResolver>();
         services.AddScoped<IMultiScopeGitPushExecutor, MultiScopeGitPushExecutor>();
         services.AddScoped<IMultiRepoProjectArtifactsPushService, MultiRepoProjectArtifactsPushService>();
+        services.AddScoped<IProjectMultiRepoArtifactsPushService, ProjectMultiRepoArtifactsPushService>();
         services.AddScoped<IProjectBootstrapDefinitionBuilder, ProjectBootstrapDefinitionBuilder>();
         services.AddScoped<IProjectPipelineAggregator, ProjectPipelineAggregator>();
         services.AddScoped<IMonoRepoBlobUploadOrchestrator, MonoRepoBlobUploadOrchestrator>();

@@ -54,8 +54,11 @@ public sealed class PushBicepToGitCommandHandler(
         var target = targetResult.Value;
 
         // 4. Retrieve the PAT from the centralized Key Vault.
+        if (string.IsNullOrWhiteSpace(target.PatSecretName))
+            return Errors.GitRepository.SecretRetrievalFailed();
+
         var secretResult = await keyVaultClient.GetSecretAsync(
-            target.PatSecretName ?? $"git-pat-{project.Id.Value}", cancellationToken);
+            target.PatSecretName, cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;
 
@@ -65,7 +68,9 @@ public sealed class PushBicepToGitCommandHandler(
             blobPrefix: $"bicep/{command.InfrastructureConfigId}/",
             prefixSegmentCount: 3,
             notFoundErrorFactory: Errors.InfrastructureConfig.BicepFilesNotFoundError,
-            entityId: command.InfrastructureConfigId);
+            entityId: command.InfrastructureConfigId,
+            options: new BlobDownloadHelper.LatestBlobFilesOptions(
+                CancellationToken: cancellationToken));
         if (filesResult.IsError)
             return filesResult.Errors;
 

@@ -22,7 +22,7 @@
 | `.github/memory/10-auth-and-build.md` | Auth config, build commands, Sonar rules |
 | `.github/memory/11-agents-skills.md` | All agents and skills registry |
 | `.github/memory/12-api-endpoints.md` | Full API endpoint reference table |
-| `.github/memory/13-code-graph.md` | GitNexus knowledge cache: high-risk symbols, critical flows, clusters |
+| `.github/memory/13-code-graph.md` | Graphify knowledge cache: central nodes, critical flows, communities |
 | `.github/memory/14-frontend-design-system.md` | DS tokens, component suite, migration status, UI caveats |
 | `.github/memory/changelog.md` | Recent changes (pruned > 60 days by dream) |
 | `.github/memory/dream-state.md` | Dream trigger state and concurrency rules (lastDreamDate, sessionsSinceLastDream, exclusive lock) |

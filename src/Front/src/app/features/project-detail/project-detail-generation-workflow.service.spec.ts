@@ -78,6 +78,23 @@ describe('ProjectDetailGenerationWorkflowService', () => {
     expect(service.projectBootstrapResult()).toEqual(createBootstrapResponse());
   });
 
+  it('opens the configuration-owned bulk push dialog for MultiRepo projects', () => {
+    service.setProject({ ...createProject(), layoutPreset: 'MultiRepo' });
+    service.setConfigs([{ ...createConfig(), layoutMode: 'AllInOne', repositories: [createConfigRepository()] }]);
+
+    service.openProjectMultiRepoArtifactsPushDialog();
+
+    expect(dialogSpy.open).toHaveBeenCalled();
+    const dialogConfig = dialogSpy.open.calls.mostRecent().args[1] as {
+      data: {
+        projectId: string;
+        configurations: InfrastructureConfigResponse[];
+      };
+    };
+    expect(dialogConfig.data.projectId).toBe('project-1');
+    expect(dialogConfig.data.configurations[0].repositories?.[0].id).toBe('config-repository-1');
+  });
+
   it('stops generation when diagnostics dialog is rejected', async () => {
     service.setConfigs([createConfig()]);
     infraConfigServiceSpy.getDiagnostics.and.resolveTo({ diagnostics: [createDiagnostic()] });
@@ -316,4 +333,16 @@ function createClosedDialogRef(result: boolean): MatDialogRef<unknown, boolean> 
   return {
     afterClosed: () => of(result),
   } as unknown as MatDialogRef<unknown, boolean>;
+}
+
+function createConfigRepository(): NonNullable<InfrastructureConfigResponse['repositories']>[number] {
+  return {
+    id: 'config-repository-1',
+    providerType: 'GitHub',
+    repositoryUrl: 'https://github.com/example/infra',
+    owner: 'example',
+    repositoryName: 'infra',
+    defaultBranch: 'main',
+    contentKinds: ['Infrastructure', 'ApplicationCode'],
+  };
 }

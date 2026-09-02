@@ -65,9 +65,9 @@ Lire :
 
 ### 3. Analyser l'impact avant modification
 
-- Avant toute modification d'un symbole partage, executer `codegraph_impact("Symbol")`.
-- Si le risque est élevé (nombreux dépendants directs), alerter l'utilisateur avant de poursuivre.
-- Pour la référence complète : charger le skill `codegraph-workflow` (`.claude/skills/codegraph-workflow/SKILL.md`).
+- Avant toute modification d'un symbole partage, utiliser Graphify `query`, `explain` et `path` pour repérer les dépendances, puis confirmer le périmètre par lecture, build et tests.
+- Si le périmètre reste ambigu, alerter l'utilisateur avant de poursuivre.
+- Pour la référence complète : charger le skill `graphify-corpus` (`.claude/skills/graphify-corpus/SKILL.md`).
 
 ### 4. Charger les expertises techniques necessaires
 

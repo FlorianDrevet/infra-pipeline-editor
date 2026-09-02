@@ -18,6 +18,8 @@
 - **Layout** : `Project.LayoutPreset` (AllInOne / SplitInfraCode / MultiRepo) est un **axe
   transverse**, pas une étape. Il change la génération Bicep, les pipelines, le bootstrap
   et le push. Une feature validée sur un layout ne dit rien des deux autres.
+- **Cartographie** : Graphify fournit le contexte transversal code, documentation, audits et
+  diagrammes. Les statuts restent fondés sur la lecture du code et la validation par exécution.
 
 ## Avancement de la cartographie
 
@@ -41,8 +43,8 @@
 | F02 | Membres et rôles projet | Ajouter/retirer un utilisateur, changer son rôle | ? | keep | Chaîne complète, tests présents. |
 | F03 | Environnements de projet | Déclarer dev/preprod/prod avec localisation, abonnement, approbation | ? | keep | Vérifié en tri (2026-08-28) : `ProjectEnvironmentController` (3 routes CRUD complètes, tous les champs promis — localisation, abonnement, approbation), handlers + validators + tests domaine/contracts, exposé aussi côté MCP (`ProjectQueryTools`/`ProjectResources`). Front : écran dédié + modale d'ajout, deux points d'entrée cohérents (wizard de création + détail projet). Note vide en cartographie initiale par omission, pas par risque réel. |
 | F04 | Topologie des dépôts (`LayoutPreset`) | Choisir la répartition du code entre les dépôts git du client | ? | keep | Règles réellement validées dans le domaine pour les 3 presets. Changer de preset vide les dépôts déclarés. |
-| F05 | Dépôts par config (MultiRepo) | Déclarer les dépôts au niveau `InfrastructureConfig` | 🔴 | fix | **Aucun PAT possible.** Voir D01. |
-| F06 | Connexion git & navigation dépôt | Tester la connexion, lister les branches, chercher fichiers/dossiers du dépôt applicatif | 🟡 | fix | Fonctionne au niveau projet. Échoue systématiquement en MultiRepo (D01). |
+| F05 | Dépôts par config (MultiRepo) | Déclarer les dépôts au niveau `InfrastructureConfig` | 🟡 | fix | PAT config-level, vérification de connexion et routage du secret sont implémentés (D01). Validation contre un vrai fournisseur Git encore attendue. |
+| F06 | Connexion git & navigation dépôt | Tester la connexion, lister les branches, chercher fichiers/dossiers du dépôt applicatif | 🟡 | fix | Fonctionne au niveau projet. Les flux de navigation config-level restent à compléter pour le vrai MultiRepo; le push bulk D10 utilise le routage config-level directement. |
 | F07 | Config d'infra & resource groups | CRUD des configurations Bicep d'un projet, de leurs resource groups, et des tags de config qui étendent les tags projet | ? | keep | Chaîne complète, front câblé, tests présents. Rien à signaler. |
 | F07b | Héritage des conventions de nommage par config | Choisir si une config hérite du nommage projet ou définit le sien (`PUT /infra-config/{id}/inheritance`) | 🔴 | fix | La bascule ne veut pas dire la même chose selon qui la lit. Voir D05. |
 | F08 | Modéliser les ressources + settings par env | CRUD des ~20 types Azure catalogués dans un resource group, avec réglages par environnement et sous-ressources (subnets, blob containers, event hubs, bases SQL) | 🟡 | keep | Motif CRUD homogène sur tous les types, front et tests présents. Catalogue back/front identique (`AzureResourceTypes.cs:101` ↔ `resource-type.metadata.ts:4`). Écart isolé : `EventHubNamespace` persiste des settings par env que le front n'expose jamais (absent de `RESOURCE_TYPES_WITH_ENVIRONMENT_SETTINGS`). |
@@ -54,8 +56,8 @@
 | F11 | Générer le Bicep (niveau projet, mono-repo) | Génère en une passe le Bicep de toutes les configs du projet : dossier `Common/` partagé + un dossier par config, stocké pour download | 🟡 | keep | Gère `AllInOne` et `SplitInfraCode`. **Refuse explicitement `MultiRepo`** (`GenerateProjectBicepCommandHandler.cs:45`, `Project.cs:477`) — le front est cohérent avec ce refus. Overrides par env perdus pour 2 types : voir D06. |
 | F11b | Générer le Bicep (niveau config) | Génère le Bicep d'une seule config | 🟡 | fix | Endpoints exposés sans restriction serveur, mais le front ne les ouvre **que si le projet est MultiRepo** (`config-detail.component.html:20`). En `AllInOne`/`SplitInfraCode` : joignables en API directe, sans point d'entrée UI. Lié au chantier MultiRepo (D01/D09/D10) : c'est l'endpoint dont dépend son push. |
 | F12 | Générer les pipelines (infra + applicatifs) | Produit les YAML CI/PR/Release infra et les wrappers applicatifs par ressource compute, au niveau config comme au niveau projet | 🟡 | keep | **Niveau config : les 3 layouts sont réellement gérés.** Niveau projet : `AllInOne` + `SplitInfraCode`, MultiRepo refusé explicitement (`Project.cs:477`), front cohérent. `AppPipelineMode.Combined` ne combine rien (voir défauts secondaires). |
-| F13 | Générer le bootstrap | Produit `bootstrap.pipeline.yml`, pipeline idempotent qui provisionne pipelines, environnements, variable groups et service connections via `az devops` | 🔴 | fix | `AllInOne` : un bootstrap `FullOwner`. `SplitInfraCode` : double génération (`FullOwner` infra + `ApplicationOnly` code). **`MultiRepo` : inatteignable**, ni back ni front. Voir D09. |
-| F14 | Pousser dans git × 3 layouts | Pousser Bicep, pipelines et bootstrap dans les dépôts du client | 🔴 | fix | Push **par config** : les 3 layouts sont routés. Push **par projet** : `AllInOne` (mono-commit) et `SplitInfraCode` (deux commits, un par dépôt). Pour le vrai `MultiRepo` : aucun push combiné au niveau projet (D10), et le push par config échoue de toute façon faute de PAT (D01). |
+| F13 | Générer le bootstrap | Produit `bootstrap.pipeline.yml`, pipeline idempotent qui provisionne pipelines, environnements, variable groups et service connections via `az devops` | 🟡 | fix | `AllInOne` : bootstrap `FullOwner`. `SplitInfraCode` : bootstrap `FullOwner` infra + `ApplicationOnly` code. `MultiRepo` : génération config-level accessible; validation réelle encore attendue. Voir D09. |
+| F14 | Pousser dans git × 3 layouts | Pousser Bicep, pipelines et bootstrap dans les dépôts du client | 🟡 | fix | Push par config : les 3 layouts sont routés. Push projet : `AllInOne` et `SplitInfraCode` conservent leurs flux existants; `MultiRepo` dispose maintenant d'un bulk push par configuration, avec un commit indépendant par dépôt et résultats partiels explicites. Validation contre un vrai fournisseur Git encore attendue. |
 | F15 | Références cross-config | Une ressource d'une config référence une ressource d'une autre config du même projet (déclaration Bicep `existing`) | 🟡 | fix | Chaîne complète jusqu'à la génération, mais seules 6 propriétés FK connues sont câblées à une expression Bicep (`ParentReferenceResolutionStage.cs:53-63`). Une référence sur tout autre type est stockée puis **silencieusement ignorée** — le fichier le documente lui-même ligne 15. Même motif que D07 (donnée saisie qui ne part nulle part) ; priorité plus basse que MultiRepo/D05/D08/D11. |
 
 ## ADJACENT
@@ -153,9 +155,30 @@ Incohérence de pattern au passage : `GenerateProjectPipelineCommandHandler.cs:4
 
 **Statut [2026-08-31, architect (plan) + dotnet-dev + angular-front] : D09 fermé, back et front.** Diagnostic racine (agent `architect`) : contrairement à Bicep (F11b) et Pipeline (F12), le bootstrap n'avait qu'un seul niveau (projet) — pas de niveau config, alors que c'est justement le niveau config qui fonctionne nativement en MultiRepo (chaque `InfrastructureConfig` porte ses propres `InfraConfigRepository`, avec PAT désormais fonctionnel depuis D01). Correction : nouveau slice `InfrastructureConfig/Commands/GenerateBootstrap` + `PushBootstrapToGit` (+ Download/GetFileContent), symétrique à `GenerateBicep`/`GeneratePipeline`, réutilisant `IProjectBootstrapDefinitionBuilder.BuildAsync` tel quel (aucune modification) avec `configs: [configReadModel]` et `Mode = BootstrapMode.FullOwner`. Le bootstrap projet (`GenerateProjectBootstrapPipelineCommandHandler`/`PushProjectBootstrapPipelineToGitCommandHandler`) est maintenant gardé explicitement contre MultiRepo via `Project.CanGenerateAllFromProjectLevel()` (`Errors.GitRouting.AmbiguousProjectLevelGeneration`), au lieu de laisser le résolveur échouer silencieusement — même pattern que Bicep/Pipeline, incohérence corrigée. Front : 3ᵉ onglet « Bootstrap » dans l'écran de génération config, visible seulement en MultiRepo (même garde que F11b), bouton Push to Git dédié posant `isBootstrap: true`. `dotnet build` + `npm run build` : 0 erreur. `dotnet test` : 51 échecs = baseline exacte du 2026-08-28, aucune régression. **Statut reste `🔴`/`🟡` (pas `🟢`) tant que le flux n'a pas été validé par exécution réelle contre un vrai fournisseur git** — comme D01, le fix est vérifié par tests unitaires + relecture, pas encore par un push MultiRepo réel. Revalidation en conditions réelles différée jusqu'à D10 (push combiné, même campagne de validation). Détail complet : `docs/features/multirepo-bootstrap-d09-implementation-tracker.md`. **Défaut adjacent découvert pendant l'implémentation, hors périmètre D09 : voir D12.**
 
-### D10 — Le push « MultiRepo » est en réalité réservé à SplitInfraCode
+Le push config-level direct sélectionne uniquement le bucket `infra/` en `SplitInfraCode`, refuse
+une cible sans secret au lieu d'utiliser un secret projet et propage l'annulation par Key Vault,
+Blob et les providers Git.
 
-`PushProjectArtifactsToMultiRepoCommandHandler.cs:33` rejette tout layout autre que `SplitInfraCode`, alors que la commande, l'endpoint et sa documentation (`ProjectGenerationController.cs:437`) portent le nom « MultiRepo ». Il n'existe donc **aucun push combiné au niveau projet pour le vrai layout `MultiRepo`** : seul le push par configuration existe — et il bute sur D01.
+### D10 — Le push projet MultiRepo était absent
+
+Avant la réparation, `PushProjectArtifactsToMultiRepoCommandHandler.cs:33` rejetait tout layout
+autre que `SplitInfraCode`, malgré le nom de la commande et de la route. Le vrai `MultiRepo`
+n'avait donc aucun push bulk au niveau projet.
+
+**Statut [2026-09-01] : implémenté côté backend, API et frontend, validation réelle restante.**
+Un nouveau contrat `PushProjectMultiRepoArtifactsCommand` reçoit les cibles par
+`InfrastructureConfig` et `InfraConfigRepository`. Le service charge les artefacts config-level,
+déduit le rôle depuis `ConfigLayoutMode` et `ContentKinds`, prévalide toutes les cibles avant le
+premier effet Git, puis pousse chaque dépôt avec son PAT config-level. `AllInOne` regroupe Bicep,
+pipelines et bootstrap dans un commit par dépôt; `SplitInfraCode` sépare les artefacts infra et
+applicatifs, y compris les bootstraps `FullOwner`/`ApplicationOnly`. Les erreurs Git sont renvoyées
+par cible sans prétendre à une atomicité entre dépôts.
+
+L'ancien flux est exposé sous `push-split-infra-code-artifacts-to-git`; le nouveau flux utilise
+`push-multi-repo-artifacts-to-git`. Un dialogue frontend dédié alimente les dépôts de chaque
+configuration. Les plans sont prévalidés avant le premier push, l'annulation arrête la séquence
+sans tenter la cible suivante, et les tests automatisés et builds passent. Il reste à exécuter la
+campagne sur un vrai fournisseur Git.
 
 ### D12 — Le bouton « Push to Git » unique de l'en-tête config ne pousse jamais le Pipeline
 

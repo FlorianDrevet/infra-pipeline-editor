@@ -224,4 +224,73 @@ public sealed class GenerateBootstrapCommandHandlerTests
         await _artifactService.Received(1).UploadArtifactAsync(
             "bootstrap", configId, Arg.Any<string>(), "bootstrap.pipeline.yml", Arg.Any<string>());
     }
+
+    [Fact]
+    public async Task Given_SplitInfraCodeConfiguration_When_Handle_Then_UploadsSeparateInfraAndApplicationBootstrapFilesAsync()
+    {
+        // Arrange
+        var configId = Guid.NewGuid();
+        var project = Project.Create(new Name("Retail Platform"), "Provision retail assets.", UserId.CreateUnique());
+        project.SetLayoutPreset(new LayoutPreset(LayoutPresetEnum.MultiRepo));
+        var domainConfig = DomainInfrastructureConfig.Create(new Name("split"), project.Id);
+        domainConfig.SetLayoutMode(new ConfigLayoutMode(ConfigLayoutModeEnum.SplitInfraCode));
+        var config = BuildConfigReadModel(configId, project.Id.Value);
+        var command = new GenerateBootstrapCommand(configId);
+        var infraTarget = CreateTarget("infra-repository", "infra-repo");
+        var appTarget = CreateTarget("app-repository", "app-repo");
+        var definitions = new ProjectBootstrapDefinitions(
+            InfraPipelines: [new BootstrapPipelineDefinition("infra-ci", "/.azuredevops/infra/ci.yml", "\\infra")],
+            AppPipelines: [new BootstrapPipelineDefinition("app-ci", "/.azuredevops/app/ci.yml", "\\app")],
+            VariableGroups: [],
+            Environments: [new BootstrapEnvironmentDefinition("dev", "Development", false)],
+            ServiceConnections: []);
+
+        _accessService.VerifyWriteAccessAsync(Arg.Any<InfrastructureConfigId>(), Arg.Any<CancellationToken>())
+            .Returns(domainConfig);
+        _configRepository.GetByIdWithResourcesAsync(configId, Arg.Any<CancellationToken>())
+            .Returns(config);
+        _projectRepository.GetByIdWithAllAndPipelineVariableGroupsAsync(project.Id, Arg.Any<CancellationToken>())
+            .Returns(project);
+        _targetResolver.Resolve(project, domainConfig, ArtifactKind.Bootstrap).Returns(infraTarget);
+        _targetResolver.Resolve(project, domainConfig, ArtifactKind.BootstrapApplication).Returns(appTarget);
+        _definitionBuilder.BuildAsync(
+                project,
+                Arg.Is<IReadOnlyList<InfrastructureConfigReadModel>>(configs => configs.Count == 1 && configs[0] == config),
+                infraTarget.PipelineBasePath,
+                appTarget.PipelineBasePath,
+                Arg.Any<CancellationToken>())
+            .Returns(definitions);
+        _artifactService.UploadArtifactAsync(
+                "bootstrap", configId, Arg.Any<string>(), "infra/bootstrap.pipeline.yml", Arg.Any<string>())
+            .Returns(new Uri("https://blob.example.com/bootstrap/infra.yml"));
+        _artifactService.UploadArtifactAsync(
+                "bootstrap", configId, Arg.Any<string>(), "app/bootstrap.pipeline.yml", Arg.Any<string>())
+            .Returns(new Uri("https://blob.example.com/bootstrap/app.yml"));
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.FileUris.Keys.Should().BeEquivalentTo(
+            ["infra/bootstrap.pipeline.yml", "app/bootstrap.pipeline.yml"]);
+        _targetResolver.Received(1).Resolve(project, domainConfig, ArtifactKind.Bootstrap);
+        _targetResolver.Received(1).Resolve(project, domainConfig, ArtifactKind.BootstrapApplication);
+        await _artifactService.Received(1).UploadArtifactAsync(
+            "bootstrap", configId, Arg.Any<string>(), "infra/bootstrap.pipeline.yml", Arg.Any<string>());
+        await _artifactService.Received(1).UploadArtifactAsync(
+            "bootstrap", configId, Arg.Any<string>(), "app/bootstrap.pipeline.yml", Arg.Any<string>());
+    }
+
+    private static ResolvedRepositoryTarget CreateTarget(string repositoryId, string repositoryName) =>
+        new(
+            RepositoryId: repositoryId,
+            ProviderType: new GitProviderType(GitProviderTypeEnum.AzureDevOps),
+            RepositoryUrl: $"https://dev.azure.com/owner/project/_git/{repositoryName}",
+            Owner: "owner/project",
+            RepositoryName: repositoryName,
+            Branch: "main",
+            BasePath: null,
+            PipelineBasePath: null,
+            PatSecretName: "git-pat-repository");
 }

@@ -213,4 +213,28 @@ public sealed class BlobDownloadHelperTests
         result.IsError.Should().BeFalse();
         result.Value.Should().Be("infra-pipeline");
     }
+
+    [Fact]
+    public async Task Given_ListIsCanceled_When_GetLatestBlobFilesAsync_Then_PropagatesCancellationAsync()
+    {
+        // Arrange
+        var entityId = Guid.NewGuid();
+        var cancellationToken = new CancellationToken(canceled: true);
+        var prefix = $"bicep/project/{entityId}/";
+        _blobService.ListBlobsAsync(prefix, cancellationToken)
+            .Returns(Task.FromCanceled<IReadOnlyList<string>>(cancellationToken));
+
+        // Act
+        Func<Task> act = async () => await BlobDownloadHelper.GetLatestBlobFilesAsync(
+            _blobService,
+            blobPrefix: prefix,
+            prefixSegmentCount: 4,
+            notFoundErrorFactory: Errors.Project.BicepFilesNotFoundError,
+            entityId,
+            options: new BlobDownloadHelper.LatestBlobFilesOptions(
+                CancellationToken: cancellationToken));
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
 }

@@ -31,6 +31,7 @@ public sealed class AzureDevOpsGitProviderService(
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using var client = CreateClient(token);
             var (org, project) = ParseOwner(owner);
 
@@ -42,6 +43,10 @@ public sealed class AzureDevOpsGitProviderService(
             var defaultBranch = repo?.DefaultBranch?.Replace("refs/heads/", "", StringComparison.Ordinal);
 
             return new TestGitConnectionResult(true, $"{org}/{project}/{repositoryName}", defaultBranch, null);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -80,6 +85,7 @@ public sealed class AzureDevOpsGitProviderService(
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var preparedPush = PrepareScopedPush(request);
             if (preparedPush.IsError)
                 return preparedPush.Errors;
@@ -120,6 +126,10 @@ public sealed class AzureDevOpsGitProviderService(
                 changes);
 
             return await ExecutePushAsync(client, execution, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -356,6 +366,7 @@ public sealed class AzureDevOpsGitProviderService(
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using var client = CreateClient(token);
             var (org, project) = ParseOwner(owner);
 
@@ -373,6 +384,10 @@ public sealed class AzureDevOpsGitProviderService(
 
             return results;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             return Errors.GitRepository.ListBranchesFailed(ex.Message);
@@ -387,6 +402,7 @@ public sealed class AzureDevOpsGitProviderService(
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using var client = CreateClient(token);
             var (org, project) = ParseOwner(owner);
 
@@ -409,6 +425,10 @@ public sealed class AzureDevOpsGitProviderService(
 
             return results;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             return Errors.GitRepository.SearchFilesFailed(ex.Message);
@@ -423,6 +443,7 @@ public sealed class AzureDevOpsGitProviderService(
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using var client = CreateClient(token);
             var (org, project) = ParseOwner(owner);
 
@@ -452,6 +473,10 @@ public sealed class AzureDevOpsGitProviderService(
 
             return results;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             return Errors.GitRepository.SearchFilesFailed(ex.Message);
@@ -466,6 +491,7 @@ public sealed class AzureDevOpsGitProviderService(
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using var client = CreateClient(token);
             var (org, project) = ParseOwner(owner);
 
@@ -478,6 +504,10 @@ public sealed class AzureDevOpsGitProviderService(
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
             return content;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {

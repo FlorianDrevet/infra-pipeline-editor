@@ -759,7 +759,7 @@ Tagged-union strict → exhaustive matching dans le template via `@switch` Angul
 3. Lire `docs/features/pipeline-detection-v2-implementation-tracker.md` pour le statut.
 4. Identifier le prochain lot non démarré.
 5. Charger les skills : `tdd-workflow`, et selon le lot, `dotnet-patterns`/`xunit-unit-testing` ou `angular-patterns`/`ui-ux-front-saas`.
-6. Pour chaque symbole modifié : `gitnexus_impact()` obligatoire.
+6. Pour chaque symbole modifié : requête Graphify `query`/`explain`/`path`, puis validation par `git diff`, build et tests.
 
 ---
 

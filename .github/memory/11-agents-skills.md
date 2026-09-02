@@ -33,8 +33,7 @@
 | `mcp-dotnet-server` | Design, planning, and implementation guidance for a C#/.NET MCP server integrated with InfraFlowSculptor, including VS Code exposure, transport selection, IaC import/migration workflows, and long-term evolution strategy | `.github/skills/mcp-dotnet-server/SKILL.md` |
 | `ui-ux-front-saas` | Any frontend UI/UX work | `.github/skills/ui-ux-front-saas/SKILL.md` |
 | `new-azure-resource` | New Azure resource type end-to-end | `.github/skills/new-azure-resource/SKILL.md` |
-| `gitnexus-workflow` | Code exploration via knowledge graph, impact analysis before modifications, post-change validation, safe refactoring | `.github/skills/gitnexus-workflow/SKILL.md` |
-| `graphify-corpus` | Corpus-level knowledge graph (docs+code+diagrams+audits), god nodes, community detection, surprising connections, onboarding orientation, architecture overview spanning docs and code | `.github/skills/graphify-corpus/SKILL.md` |
+| `graphify-corpus` | Knowledge graph for code, documentation, diagrams, audits, god nodes, community detection, and cross-file architecture | `.github/skills/graphify-corpus/SKILL.md` |
 | `draw-io-diagram-generator` | Create or update draw.io diagrams (`.drawio`, `.drawio.svg`, `.drawio.png`) for architecture and technical documentation | `.github/skills/draw-io-diagram-generator/SKILL.md` |
 | `audit-workflow` | Produce expert code audits and reconcile audit findings with GitHub issues and labels | `.github/skills/audit-workflow/SKILL.md` |
 | `dotnet-patterns` | Any C#/.NET code generation: naming, XML docs, SOLID, async/await, EF Core, pattern matching, security | `.github/skills/dotnet-patterns/SKILL.md` |

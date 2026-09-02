@@ -34,7 +34,7 @@ Tu privilégies aussi le typage fort TypeScript, l'extraction des littéraux mé
 5. Lire `src/Front/src/environments/environment*.ts` pour les URLs d'API.
 6. Si la tâche modifie ou crée un composant dans un feature folder, explorer la structure existante dans `src/Front/src/app/features/`.
 7. Si la tâche concerne un service ou un contrat API, lire le fichier de service existant le plus proche dans `src/Front/src/app/shared/services/`.
-8. **Analyse d'impact GitNexus** — Avant de modifier un service partagé (`shared/services/`) consommé par plusieurs composants, exécuter `gitnexus_impact(target, "upstream")` pour identifier tous les composants consommateurs. Si risque HIGH → alerter l'utilisateur.
+8. **Contexte Graphify** — Avant de modifier un service partagé (`shared/services/`) consommé par plusieurs composants, exécuter une requête Graphify ciblée pour identifier les composants et flux consommateurs, puis confirmer avec le typecheck et les tests. Si le périmètre est ambigu, alerter l'utilisateur.
 9. **Suivi plan vivant** — Si un fichier de plan/tracker est fourni (`docs/features/*.md`), le mettre à jour au fil de l'implémentation frontend :
     - marquer l'étape frontend courante en `In progress` avant de coder ;
     - après chaque incrément validé, consigner composants/services touchés, typecheck/build/tests et résultat ;
@@ -134,7 +134,7 @@ src/Front/src/app/
 ## Protocole de fin de tâche
 
 1. Exécuter `npm run typecheck` et `npm run build` dans `src/Front`.
-2. Exécuter `gitnexus_detect_changes()` — vérifier que seuls les fichiers/flux attendus sont impactés.
+2. Rafraîchir Graphify et exécuter `git diff` — vérifier que seuls les fichiers attendus sont impactés.
 3. Si des tests Jasmine/Karma existent pour les fichiers modifiés, vérifier qu'ils passent (`npm run test` si configuré).
 4. Si la zone touchée a des tests existants et que le changement modifie un comportement, mettre à jour les tests AVANT l'implémentation (TDD).
 5. Si la zone touchée n'a aucun test et qu'un service critique ou une logique métier est modifié, enregistrer la dette dans `.github/test-debt.md` avec le préfixe `Front/`.

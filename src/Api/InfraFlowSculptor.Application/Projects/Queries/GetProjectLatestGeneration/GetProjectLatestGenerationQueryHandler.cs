@@ -35,15 +35,18 @@ public sealed class GetProjectLatestGenerationQueryHandler(
         var bicepData = await BlobDownloadHelper.GetLatestBlobFolderAsync(
             blobService,
             $"{BicepArtifactPrefix}{query.ProjectId}/",
-            ProjectBlobPrefixSegmentCount);
+            ProjectBlobPrefixSegmentCount,
+            cancellationToken);
         var pipelineData = await BlobDownloadHelper.GetLatestBlobFolderAsync(
             blobService,
             $"{PipelineArtifactPrefix}{query.ProjectId}/",
-            ProjectBlobPrefixSegmentCount);
+            ProjectBlobPrefixSegmentCount,
+            cancellationToken);
         var bootstrapData = await BlobDownloadHelper.GetLatestBlobFolderAsync(
             blobService,
             $"{BootstrapArtifactPrefix}{query.ProjectId}/",
-            ProjectBlobPrefixSegmentCount);
+            ProjectBlobPrefixSegmentCount,
+            cancellationToken);
 
         if (bicepData is null && pipelineData is null && bootstrapData is null)
             return new GetProjectLatestGenerationResult(null, null, null, null);

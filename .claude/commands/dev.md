@@ -19,11 +19,11 @@ Première action, sans exception. Lire l'index `.claude/memory/MEMORY.md`, puis 
 
 > **Consolidation mémoire :** plus de gate automatique ni de compteur de sessions. La consolidation se lance **manuellement** via la commande `/dream` quand tu sens que la mémoire a grossi ou divergé. Le protocole `/dev` ne déclenche plus le dream tout seul.
 
-## 1ter. Codegraph Status Check
+## 1ter. Graphify Readiness Check
 
-1. `codegraph_status()` → vérifier que l'index est prêt.
-2. Codegraph se met à jour automatiquement via file watcher — pas de ré-indexation manuelle nécessaire.
-3. Si le MCP est indisponible : continuer sans bloquer, mais utiliser `Read`/`Grep` pour la compréhension structurelle.
+1. Lire `graphify-out/GRAPH_REPORT.md` s'il existe.
+2. Si `graphify-out/graph.json` manque ou est vide, exécuter `python -m graphify update .`.
+3. Si Graphify ou son MCP est indisponible : continuer sans bloquer, mais utiliser `Read`/`Grep` et les validations du projet.
 
 ## 2. Analyser et décider
 
@@ -41,11 +41,10 @@ Avant de planifier/coder, si la demande touche la **génération Bicep**, les **
 ### 2bis. Phase Research
 
 Pour les tâches complexes ou cross-cutting, explorer AVANT de déléguer :
-1. **Codegraph (structurel) :** `codegraph_explore("concept")` en premier (outil primaire), puis `codegraph_callers("Symbol")` et `codegraph_impact("Symbol")` si besoin. Référence : skill `codegraph-workflow`.
-2. **Graphify (corpus)** si doc/architecture transversale/audit/onboarding : `graphify-out/GRAPH_REPORT.md` + skill `graphify-corpus`.
-3. **Sous-agent `Explore`** pour la lecture brute des fichiers identifiés.
+1. **Graphify (code et corpus) :** lire `graphify-out/GRAPH_REPORT.md`, puis utiliser `query`, `explain` et `path` via le MCP ou `python -m graphify` pour identifier les fichiers et relations concernés. Référence : skill `graphify-corpus`.
+2. **Sous-agent `Explore`** pour la lecture brute des fichiers identifiés.
 
-Priorité : Codegraph pour le code, Graphify pour le corpus. Ce que tu récupères (chemins exacts, extraits de référence, conventions détectées) DOIT être transmis aux sous-agents experts.
+Graphify fournit le contexte et les relations sémantiques. Confirmer l'impact exact par lecture ciblée, `git diff`, build et tests. Ce que tu récupères (chemins exacts, extraits de référence, conventions détectées) DOIT être transmis aux sous-agents experts.
 
 Ne pas déclencher Research si la tâche est triviale ou les fichiers cibles déjà connus.
 
@@ -70,7 +69,7 @@ Lancer les sous-agents experts via le tool *Agent* avec des prompts précis. Coo
 > 2. Les **conventions projet** pertinentes (issues de la mémoire).
 > 3. Un **extrait de code existant** comme référence de style si applicable.
 > 4. Le **résultat attendu** non ambigu.
-> 5. Le **résultat de `codegraph_impact()`** si un symbole partagé est modifié.
+> 5. Le **résultat des requêtes Graphify** et les dépendances confirmées si un symbole partagé est modifié.
 > 6. Le rappel **TDD** : skill `tdd-workflow` obligatoire, tests AVANT le code.
 > 7. Le **résultat de la passe de contradiction** (confirmé / douteux / invalide), surtout Bicep/pipelines.
 
@@ -107,7 +106,7 @@ En fin de toute tâche non triviale :
 [ ] dotnet test .\InfraFlowSculptor.slnx (si C# touché)
 [ ] dotnet build .\InfraFlowSculptor.slnx (si C# touché)
 [ ] npm run typecheck + npm run build dans src/Front (si Angular touché)
-[ ] git diff vérifié — seuls les fichiers/flux attendus modifiés (codegraph_impact si doute)
+[ ] Graphify rafraîchi et git diff vérifié — seuls les fichiers attendus modifiés
 [ ] Dette de tests enregistrée dans .claude/test-debt.md (si dette)
 [ ] Fichier thématique .claude/memory/ mis à jour
 [ ] Ligne ajoutée dans .claude/memory/changelog.md

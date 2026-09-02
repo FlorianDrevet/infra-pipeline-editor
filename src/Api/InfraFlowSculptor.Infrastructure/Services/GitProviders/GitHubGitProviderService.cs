@@ -21,9 +21,14 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var client = CreateClient(token);
             var repo = await client.Repository.Get(owner, repositoryName);
             return new TestGitConnectionResult(true, repo.FullName, repo.DefaultBranch, null);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -62,6 +67,7 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var preparedPush = PrepareScopedPush(request);
             if (preparedPush.IsError)
                 return preparedPush.Errors;
@@ -147,6 +153,10 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
                 commit.Sha,
                 pushData.FilesByPath.Count);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             return Errors.GitRepository.PushFailed(ex.Message);
@@ -180,6 +190,7 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var client = CreateClient(token);
             var branches = await client.Repository.Branch.GetAll(owner, repositoryName);
 
@@ -188,6 +199,10 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
                 .ToList();
 
             return results;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -203,6 +218,7 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var client = CreateClient(token);
 
             var branchRef = await client.Git.Reference.Get(owner, repositoryName, $"heads/{branch}");
@@ -221,6 +237,10 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
 
             return results;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             return Errors.GitRepository.SearchFilesFailed(ex.Message);
@@ -235,6 +255,7 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var client = CreateClient(token);
 
             var branchRef = await client.Git.Reference.Get(owner, repositoryName, $"heads/{branch}");
@@ -257,6 +278,10 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
 
             return results;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             return Errors.GitRepository.SearchFilesFailed(ex.Message);
@@ -278,6 +303,7 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var client = CreateClient(token);
             var contents = await client.Repository.Content.GetAllContentsByRef(
                 owner, repositoryName, filePath, branch);
@@ -286,6 +312,10 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
                 return (string?)null;
 
             return contents[0].Content;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Octokit.NotFoundException)
         {

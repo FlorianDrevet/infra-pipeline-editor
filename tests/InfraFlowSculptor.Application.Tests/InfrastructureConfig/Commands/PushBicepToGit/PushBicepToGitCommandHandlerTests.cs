@@ -56,7 +56,7 @@ public sealed class PushBicepToGitCommandHandlerTests
             Branch: "main",
             BasePath: "infra",
             PipelineBasePath: ".azuredevops",
-            PatSecretName: null);
+            PatSecretName: "git-pat-repository");
 
         _sut = new PushBicepToGitCommandHandler(
             _accessService, _infraConfigRepo, _projectRepo,
@@ -158,5 +158,30 @@ public sealed class PushBicepToGitCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
+    }
+
+    [Fact]
+    public async Task Given_ConfigRepositoryTargetHasNoPatSecret_When_Handle_Then_DoesNotUseProjectSecretFallbackAsync()
+    {
+        // Arrange
+        var command = new PushBicepToGitCommand(_configGuid, "feature/bicep", "push bicep");
+        var infraConfigId = new InfrastructureConfigId(_configGuid);
+        _accessService.VerifyWriteAccessAsync(infraConfigId, Arg.Any<CancellationToken>())
+            .Returns(_config);
+        _infraConfigRepo.GetByIdAsync(infraConfigId, Arg.Any<CancellationToken>())
+            .Returns(_config);
+        _projectRepo.GetByIdWithAllAsync(_config.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(_project);
+        _targetResolver.Resolve(_project, _config, ArtifactKind.Infrastructure)
+            .Returns(_target with { PatSecretName = null });
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be(Errors.GitRepository.SecretRetrievalFailed().Code);
+        await _keyVaultClient.DidNotReceive()
+            .GetSecretAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 }

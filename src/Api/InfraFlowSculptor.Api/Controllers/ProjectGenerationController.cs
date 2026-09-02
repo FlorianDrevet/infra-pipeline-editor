@@ -9,6 +9,7 @@ using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBicep;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBootstrapPipeline;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipeline;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectArtifactsToMultiRepo;
+using InfraFlowSculptor.Application.Projects.Commands.PushProjectMultiRepoArtifacts;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectBicepToGit;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectBootstrapPipelineToGit;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectGeneratedArtifactsToGit;
@@ -21,6 +22,7 @@ using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 using InfraFlowSculptor.Contracts.Projects.Requests;
 using InfraFlowSculptor.Contracts.Projects.Responses;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
@@ -391,7 +393,7 @@ public static class ProjectGenerationController
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden);
 
-        group.MapPost("/{projectId:guid}/push-multi-repo-artifacts-to-git",
+        group.MapPost("/{projectId:guid}/push-split-infra-code-artifacts-to-git",
                 async ([FromRoute] Guid projectId,
                     [FromBody] PushMultiRepoArtifactsRequest request,
                     IMediator mediator) =>
@@ -433,10 +435,56 @@ public static class ProjectGenerationController
                     );
                 })
             .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
-            .WithName(ProjectRouteNames.PushProjectArtifactsToMultiRepo)
-            .WithSummary("Push project artifacts to one or two repositories (SplitInfraCode multi push)")
+            .WithName(ProjectRouteNames.PushProjectSplitInfraCodeArtifacts)
+            .WithSummary("Push project artifacts to one or two repositories (SplitInfraCode)")
             .WithDescription("Pushes the latest project-level generated artifacts to the requested infrastructure-flagged repository (Bicep + infra pipeline + bootstrap), the requested application-code repository (app pipeline files), or both in independent commits. Per-repo errors are reported in the response, not as HTTP errors.")
             .Produces<PushMultiRepoArtifactsResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{projectId:guid}/push-multi-repo-artifacts-to-git",
+                async ([FromRoute] Guid projectId,
+                    [FromBody] PushProjectMultiRepoArtifactsRequest request,
+                    IMediator mediator,
+                    CancellationToken cancellationToken) =>
+                {
+                    var command = new PushProjectMultiRepoArtifactsCommand(
+                        new ProjectId(projectId),
+                        request.Configurations
+                            .Select(configuration => new InfrastructureConfigPushTarget(
+                                new InfrastructureConfigId(configuration.InfrastructureConfigId),
+                                configuration.Repositories
+                                    .Select(repository => new ConfigRepositoryPushTarget(
+                                        new InfraConfigRepositoryId(repository.RepositoryId),
+                                        repository.BranchName,
+                                        repository.CommitMessage))
+                                    .ToList()))
+                            .ToList());
+
+                    var result = await mediator.Send(command, cancellationToken);
+
+                    return result.Match(
+                        value => Results.Ok(new PushProjectMultiRepoArtifactsResponse(
+                            value.Results
+                                .Select(push => new PushProjectMultiRepoArtifactResultResponse(
+                                    push.InfrastructureConfigId.Value.ToString(),
+                                    push.RepositoryId.Value.ToString(),
+                                    push.Success,
+                                    push.BranchUrl,
+                                    push.CommitSha,
+                                    push.FileCount,
+                                    push.ErrorCode,
+                                    push.ErrorDescription))
+                                .ToList())),
+                        errors => errors.Result());
+                })
+            .RequireRateLimiting(RateLimitingPolicyNames.Expensive)
+            .WithName(ProjectRouteNames.PushProjectMultiRepoArtifacts)
+            .WithSummary("Push project artifacts to configuration-owned repositories (MultiRepo)")
+            .WithDescription("Pushes each configuration's latest Bicep, pipeline and bootstrap artifacts to its configured repositories in independent commits. The response contains one result per repository and does not imply cross-repository atomicity.")
+            .Produces<PushProjectMultiRepoArtifactsResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)

@@ -68,7 +68,7 @@ Au lancement, Claude lit automatiquement **`CLAUDE.md`**. Quelques commandes sys
 
 - `/help` — aide intégrée
 - `/agents` — voir / gérer les sous-agents disponibles
-- `/mcp` — voir l'état des serveurs MCP (codegraph, sonarqube)
+- `/mcp` — voir l'état des serveurs MCP (graphify, sonarqube)
 - `/clear` — vider le contexte (nouvelle tâche)
 - `/model` — changer de modèle
 - `! <commande>` — exécuter une commande shell directement (ex : `! gcloud auth login`)
@@ -128,8 +128,8 @@ De la **connaissance projet pure** (un `SKILL.md` par skill), **chargée à la d
 ### Comment on les déclenche
 **Automatiquement** : le modèle voit le nom + la description de tous les skills, et charge le bon via le tool *Skill* quand c'est pertinent. Tu peux aussi forcer : *« charge le skill `cqrs-feature` »*.
 
-### Les 15 skills migrés
-`cqrs-feature` · `new-azure-resource` · `dotnet-patterns` · `xunit-unit-testing` · `tdd-workflow` · `angular-patterns` · `ui-ux-front-saas` · `bicep-v2-migration` · `dotnet-upgrade` · `angular-upgrade` · `codegraph-workflow` · `graphify-corpus` · `audit-workflow` · `draw-io-diagram-generator` · `mcp-dotnet-server`.
+### Les 14 skills migrés
+`cqrs-feature` · `new-azure-resource` · `dotnet-patterns` · `xunit-unit-testing` · `tdd-workflow` · `angular-patterns` · `ui-ux-front-saas` · `bicep-v2-migration` · `dotnet-upgrade` · `angular-upgrade` · `graphify-corpus` · `audit-workflow` · `draw-io-diagram-generator` · `mcp-dotnet-server`.
 
 > Les skills `draw-io-diagram-generator` etc. peuvent embarquer des sous-dossiers (`scripts/`, `assets/`, `references/`) — ils ont été copiés tels quels.
 
@@ -153,7 +153,7 @@ Des **prompts réutilisables** que **tu** déclenches en tapant `/nom`. Équival
 
 | Commande | Effet |
 |----------|-------|
-| `/dev <tâche>` | **Orchestrateur — optionnel.** Protocole « artillerie lourde » (research Codegraph, contradiction Bicep, scratchpad multi-agents, tracker multi-PC). Pas nécessaire pour une tâche simple : Claude orchestre déjà par défaut. |
+| `/dev <tâche>` | **Orchestrateur — optionnel.** Protocole « artillerie lourde » (research Graphify, contradiction Bicep, scratchpad multi-agents, tracker multi-PC). Pas nécessaire pour une tâche simple : Claude orchestre déjà par défaut. |
 | `/dream` | **Consolidation mémoire manuelle** (synthétise/déduplique/prune `.claude/memory/`). À lancer quand tu veux. |
 | `/new-cqrs-feature <Nom> <ops>` | Génère une feature CQRS complète. |
 | `/add-azure-resource <Nom> <typeARM> <abbr>` | Ajoute une ressource Azure end-to-end. |
@@ -194,12 +194,12 @@ Comme tu as choisi la **duplication** (séparation totale), la mémoire Claude (
 
 ## 7. Les serveurs MCP
 
-Les MCP (Model Context Protocol) sont des outils externes branchés sur Claude. Ils sont **déjà configurés et partagés** entre Copilot et Claude (ils vivent dans `.mcp.json` à la racine, neutre vis-à-vis des deux outils) :
+Les MCP (Model Context Protocol) sont des outils externes branchés sur Claude. Graphify est configuré dans `.vscode/mcp.json` et fournit le graphe partagé du code et du corpus :
 
-- **`codegraph`** — intelligence de code (graphe) : `codegraph_query`, `codegraph_context`, `codegraph_impact`, `codegraph_detect_changes`. Utilisé par le protocole `/dev` (phase Research + analyse d'impact).
+- **`graphify`** — serveur MCP lancé avec `python -m graphify.serve .\graphify-out\graph.json`, utilisé par le protocole `/dev` pour les requêtes de contexte et les chemins entre fichiers.
 - **`sonarqube`** — qualité de code.
 
-Activés via `.claude/settings.json` (`enabledMcpjsonServers`, commité pour ton workflow multi-PC). Vérifie leur état avec `/mcp`. Si Codegraph signale un index obsolète : `npx codegraph analyze`.
+Vérifie leur état avec `/mcp`. Si le graphe est absent ou obsolète, exécute `python -m graphify update .`.
 
 ---
 
@@ -215,7 +215,7 @@ Activés via `.claude/settings.json` (`enabledMcpjsonServers`, commité pour ton
 ```
 /dev Ajoute le support des tags personnalisés sur les ressources, backend + frontend, avec migration
 ```
-→ lit la mémoire, fait la passe de contradiction, explore via Codegraph, planifie (lance `architect` si besoin), exécute via `dotnet-dev` puis `angular-front`, vérifie, met à jour la mémoire.
+→ lit la mémoire, fait la passe de contradiction, explore via Graphify, planifie (lance `architect` si besoin), exécute via `dotnet-dev` puis `angular-front`, vérifie, met à jour la mémoire.
 
 ### C. Avant un merge
 ```

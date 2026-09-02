@@ -57,7 +57,7 @@ public sealed class PushBootstrapToGitCommandHandlerTests
             Branch: "main",
             BasePath: "infra",
             PipelineBasePath: ".azuredevops",
-            PatSecretName: null);
+            PatSecretName: "git-pat-repository");
 
         _sut = new PushBootstrapToGitCommandHandler(
             _accessService, _infraConfigRepo, _projectRepo,
@@ -169,5 +169,68 @@ public sealed class PushBootstrapToGitCommandHandlerTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be(Errors.GitRouting.NoRepositoryConfigured(_project.Id).Code);
+    }
+
+    [Fact]
+    public async Task Given_SplitInfraCodeBootstrap_When_Handle_Then_PushesOnlyInfrastructureBootstrapFilesAsync()
+    {
+        // Arrange
+        var command = new PushBootstrapToGitCommand(_configGuid, "feature/bootstrap", "push bootstrap");
+        _config.SetLayoutMode(new ConfigLayoutMode(ConfigLayoutModeEnum.SplitInfraCode));
+        _accessService.VerifyWriteAccessAsync(Arg.Any<InfrastructureConfigId>(), Arg.Any<CancellationToken>())
+            .Returns(_config);
+        _infraConfigRepo.GetByIdAsync(Arg.Any<InfrastructureConfigId>(), Arg.Any<CancellationToken>())
+            .Returns(_config);
+        _projectRepo.GetByIdWithAllAsync(_config.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(_project);
+        _targetResolver.Resolve(_project, _config, ArtifactKind.Bootstrap).Returns(_target);
+        _keyVaultClient.GetSecretAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns("config-pat");
+        _artifactService.GetLatestFilesAsync("bootstrap", _configGuid, Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<string, string>
+            {
+                ["infra/bootstrap.pipeline.yml"] = "infra-bootstrap",
+                ["app/bootstrap.pipeline.yml"] = "app-bootstrap"
+            });
+        _gitProviderFactory.Create(_target.ProviderType).Returns(_gitProvider);
+        _gitProvider.PushFilesAsync(Arg.Any<GitPushRequest>(), Arg.Any<CancellationToken>())
+            .Returns(new PushBicepToGitResult("feature/bootstrap", "https://example/branch", "abc123", 1));
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        await _gitProvider.Received(1).PushFilesAsync(
+            Arg.Is<GitPushRequest>(request =>
+                request.Files.Count == 1
+                && request.Files.ContainsKey("bootstrap.pipeline.yml")
+                && request.Files["bootstrap.pipeline.yml"] == "infra-bootstrap"
+                && !request.Files.ContainsKey("app/bootstrap.pipeline.yml")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Given_ConfigRepositoryTargetHasNoPatSecret_When_Handle_Then_DoesNotUseProjectSecretFallbackAsync()
+    {
+        // Arrange
+        var command = new PushBootstrapToGitCommand(_configGuid, "feature/bootstrap", "push bootstrap");
+        var targetWithoutSecret = _target with { PatSecretName = null };
+        _accessService.VerifyWriteAccessAsync(Arg.Any<InfrastructureConfigId>(), Arg.Any<CancellationToken>())
+            .Returns(_config);
+        _infraConfigRepo.GetByIdAsync(Arg.Any<InfrastructureConfigId>(), Arg.Any<CancellationToken>())
+            .Returns(_config);
+        _projectRepo.GetByIdWithAllAsync(_config.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(_project);
+        _targetResolver.Resolve(_project, _config, ArtifactKind.Bootstrap).Returns(targetWithoutSecret);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be(Errors.GitRepository.SecretRetrievalFailed().Code);
+        await _keyVaultClient.DidNotReceive()
+            .GetSecretAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 }

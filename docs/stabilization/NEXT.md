@@ -3,7 +3,11 @@
 > Fichier de passage de relais entre sessions et entre postes. **Lu en premier** à chaque
 > session, **réécrit en dernier**. Une session ne se termine pas sans l'avoir mis à jour.
 
-**Dernière mise à jour :** 2026-08-31
+**Dernière mise à jour :** 2026-09-01
+
+## Outillage de cartographie
+
+Le dépôt utilise désormais Graphify comme graphe unique pour le code, la documentation, les audits et les diagrammes. Le graphe versionné se trouve dans `graphify-out/graph.json`, son rapport dans `graphify-out/GRAPH_REPORT.md`, et se rafraîchit avec `python -m graphify update .`.
 
 ## Contexte de la démarche
 
@@ -63,11 +67,13 @@ Détail complet et justifications ligne par ligne : `feature-map.md`, section «
 bruit de fond connu et documenté, à ne pas confondre avec une régression introduite pendant
 la réparation — toujours comparer le nombre d'échecs avant/après une session de repair.
 
-## À faire à la prochaine session — Phase 3, session 1 : MultiRepo
+## État de la phase 3 — session 1 : MultiRepo
 
 Premier chantier de réparation, le plus gros et le plus prioritaire (D01 + D09 + D10 + F05 +
-F06 + F11b + F13 + F14, tous `fix`, tous dépendants les uns des autres). Voir le détail de
-chaque défaut dans `feature-map.md`, section « Défauts structurels confirmés ».
+F06 + F11b + F13 + F14, tous `fix`, tous dépendants les uns des autres). L'implémentation
+backend, API et frontend de D10 est maintenant en place. Il reste la validation contre un vrai
+fournisseur Git avant de déclarer le flux livrable. Voir le détail de chaque défaut dans
+`feature-map.md`, section « Défauts structurels confirmés ».
 
 Ordre suggéré :
 1. **D01 — donner un PAT aux dépôts de config `MultiRepo`. ✅ Fait, back et front [2026-08-28, dotnet-dev + angular-front].**
@@ -83,28 +89,34 @@ Ordre suggéré :
    [2026-08-31, architect (plan) + dotnet-dev + angular-front].** Asymétrie racine identifiée
    par l'agent `architect` : contrairement à Bicep (F11b) et Pipeline (F12), le bootstrap n'avait
    qu'un niveau (projet), qui échoue toujours en MultiRepo faute de dépôt projet. Ajout d'un
-   niveau config symétrique : nouveau slice `InfrastructureConfig/Commands/GenerateBootstrap` +
-   `PushBootstrapToGit` (+ Download/GetFileContent), réutilisant `IProjectBootstrapDefinitionBuilder`
-   tel quel avec une liste à un seul élément, `Mode = FullOwner`. Le bootstrap projet est
-   maintenant gardé explicitement contre MultiRepo (`Project.CanGenerateAllFromProjectLevel()`,
-   même pattern que Bicep/Pipeline) au lieu d'échouer silencieusement. Front : 3ᵉ onglet
+  niveau config symétrique : nouveau slice `InfrastructureConfig/Commands/GenerateBootstrap` +
+  `PushBootstrapToGit` (+ Download/GetFileContent), réutilisant `IProjectBootstrapDefinitionBuilder`
+  tel quel avec une liste à un seul élément. `AllInOne` reste en `FullOwner`; `SplitInfraCode`
+  sépare le bootstrap `FullOwner` infra du bootstrap `ApplicationOnly` applicatif. Le bootstrap
+  projet est maintenant gardé explicitement contre MultiRepo (`Project.CanGenerateAllFromProjectLevel()`,
+  même pattern que Bicep/Pipeline) au lieu d'échouer silencieusement. Front : 3ᵉ onglet
    "Bootstrap" dans l'écran de génération config (visible seulement en MultiRepo, comme F11b),
    bouton Push to Git dédié posant `isBootstrap: true`. Build solution + build front : 0 erreur.
-   `dotnet test` : 51 échecs = baseline exacte, aucune régression. Détail complet et plan :
+  Le push config-level direct sélectionne uniquement le bucket `infra/` en `SplitInfraCode`,
+  refuse une cible sans secret au lieu d'utiliser un secret projet et propage l'annulation par
+  Key Vault, Blob et les providers Git. Build solution + build front : 0 erreur. Détail complet et plan :
    `docs/features/multirepo-bootstrap-d09-implementation-tracker.md`. **Reste à faire** : la
-   revalidation en conditions réelles (étape 4 ci-dessous), différée jusqu'à ce que D10 soit
-   aussi traité (même push combiné à valider ensemble). **Défaut adjacent découvert (D12,
+  revalidation en conditions réelles (étape 4 ci-dessous), différée jusqu'à ce que D10 soit
+  aussi traité (même push combiné à valider ensemble). **Défaut adjacent découvert (D12,
    non corrigé, à trier)** : le bouton "Push to Git" unique de l'en-tête `config-detail` ne pousse
    jamais le Pipeline (`isPipeline` jamais activé), uniquement le Bicep, quel que soit l'onglet
    actif — voir tracker D09 section "Défaut adjacent découvert".
-3. **D10 — un vrai push combiné niveau projet pour MultiRepo.**
-   `PushProjectArtifactsToMultiRepoCommandHandler` rejette aujourd'hui tout layout autre que
-   `SplitInfraCode` malgré son nom. Décider : soit il route réellement vers un push par config
-   (F11b/F14), soit son nom et sa doc sont corrigés pour ne plus prétendre couvrir MultiRepo et
-   on documente que seul le push par config existe pour ce layout.
-4. Revalider par exécution : test de connexion, listing de branches, génération Bicep niveau
-   config, push Bicep/pipeline/bootstrap, en conditions MultiRepo réelles (pas seulement tests
-   unitaires).
+3. **D10 — push projet MultiRepo. ✅ Implémenté, backend/API/frontend [2026-09-01].**
+  Nouveau contrat bulk par `InfrastructureConfig` et `InfraConfigRepository`, routage par
+  `ConfigLayoutMode`/`ContentKinds`, prévalidation avant le premier push, résultats indépendants
+  par dépôt et dialogue frontend dédié. L'ancien flux `SplitInfraCode` est exposé sous une route
+  explicite pour ne plus confondre les deux topologies. Les plans sont construits avant le premier
+  push et une annulation arrête la séquence sans tenter la cible suivante. Détail dans
+  `docs/features/multirepo-push-d10-implementation-tracker.md`.
+4. **Prochaine action : valider D01 + D09 + D10 par exécution réelle.** Utiliser un vrai projet
+  MultiRepo avec au moins deux configurations `AllInOne`, puis une configuration `SplitInfraCode`;
+  vérifier la génération Bicep/pipeline/bootstrap, le PAT config-level, un commit par dépôt et un
+  échec partiel. Le build et les tests automatisés sont passés; cette preuve réelle manque encore.
 
 Ensuite : D05/D08/D11 (les 3 mensonges), puis F01/F11b(reste)/F15, puis nettoyage du code mort
 confirmé `cut` (D04/F35, F20, `PrivateDnsZone`).
@@ -113,7 +125,10 @@ confirmé `cut` (D04/F35, F20, `PrivateDnsZone`).
 
 - [x] Poser la colonne `Décision` sur toutes les lignes de `feature-map.md` (session de tri).
 - [x] Rouvrir et valider la phase 0 (build / tests / démarrage de la stack).
-- [ ] Réparer MultiRepo (D01 + D09 + D10 + features dépendantes) — phase 3, session 1.
+- [x] Implémenter et durcir la réparation MultiRepo (D01 + D09 + D10 + features dépendantes) —
+  phase 3, session 1. Validation ciblée et build solution passés le 2026-09-01.
+- [ ] Valider le flux MultiRepo en conditions réelles contre un fournisseur Git — dernière preuve
+  avant de fermer D01/D09/D10.
 - [ ] Réparer D05 / D08 / D11 (les 3 mensonges à l'utilisateur) — phase 3, session 2.
 - [ ] Résorber la dette de tests `Application.Tests` (44 tests, trackée depuis 2026-06-03,
       root cause connue) — à planifier, pas bloquant pour la réparation fonctionnelle mais

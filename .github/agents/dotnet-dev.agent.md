@@ -27,13 +27,10 @@ Tu es l'expert C#/.NET 10 de ce dépôt. Tu maîtrises :
 2. Lire les fichiers proches du code à modifier pour comprendre le contexte exact.
 3. Vérifier que le build passe avant de commencer (`dotnet build .\InfraFlowSculptor.slnx`).
 4. Pour toute tâche frontend (`src/Front`), déléguer à l'agent `angular-front`.
-5. **Analyse d'impact GitNexus** — Avant de modifier un symbole partagé (interface, service, base class, handler
-   utilisé par plusieurs endpoints), exécuter `gitnexus_impact(target, "upstream")` :
-   - **d=1 (WILL BREAK)** → MUST mettre à jour ces fichiers dans la même tâche
-   - **d=2 (LIKELY AFFECTED)** → SHOULD tester ces chemins
-   - **Risque HIGH/CRITICAL** → alerter l'utilisateur avant de modifier
-   - Si besoin de comprendre un flux complet : `gitnexus_query("concept")` puis `gitnexus_context("Symbol")`
-   - Référence complète : charger le skill `gitnexus-workflow` (`.github/skills/gitnexus-workflow/SKILL.md`)
+5. **Contexte Graphify** — Avant de modifier un symbole partagé (interface, service, base class, handler
+    utilisé par plusieurs endpoints), exécuter une requête Graphify ciblée avec `query`, puis utiliser `explain` et `path` pour repérer les dépendances.
+    Confirmer le périmètre par lecture, build et tests avant de modifier.
+    - Référence complète : charger le skill `graphify-corpus` (`.github/skills/graphify-corpus/SKILL.md`)
 6. **TDD obligatoire** — Charger `.github/skills/tdd-workflow/SKILL.md` AVANT toute modification de code.
    Le cycle Red → Green → Refactor → Verify est imposé :
    - **AVANT de modifier du code** : écrire ou compléter les tests unitaires (RED).
@@ -190,7 +187,7 @@ public sealed class CreateKeyVaultCommandValidator : AbstractValidator<CreateKey
 1. Exécuter `dotnet test .\tests\<Assembly>.Tests\<Assembly>.Tests.csproj` — tous les tests du projet touchés passent.
 2. Exécuter `dotnet test .\InfraFlowSculptor.slnx` — aucune régression sur la solution.
 3. Exécuter `dotnet build .\InfraFlowSculptor.slnx` — corriger toutes les erreurs.
-4. Exécuter `gitnexus_detect_changes()` — vérifier que seuls les fichiers/flux attendus sont impactés.
+4. Rafraîchir Graphify et exécuter `git diff` — vérifier que seuls les fichiers attendus sont impactés.
 5. Si un changement de modèle EF Core : `dotnet ef migrations add <DescriptiveName>`.
 6. Enregistrer toute dette de tests détectée dans `.github/test-debt.md`.
 7. Mettre à jour `MEMORY.md` avec les nouvelles conventions ou pièges découverts.

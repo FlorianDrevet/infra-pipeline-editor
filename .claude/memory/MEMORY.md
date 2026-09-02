@@ -22,7 +22,7 @@
 | `.claude/memory/10-auth-and-build.md` | Auth config, build commands, Sonar rules |
 | `.claude/memory/11-agents-skills.md` | All agents and skills registry |
 | `.claude/memory/12-api-endpoints.md` | Full API endpoint reference table |
-| `.claude/memory/13-code-graph.md` | Codegraph knowledge cache: high-risk symbols, critical flows, clusters |
+| `.claude/memory/13-code-graph.md` | Graphify knowledge cache: central nodes, critical flows, communities |
 | `.claude/memory/14-frontend-design-system.md` | DS tokens, component suite, migration status, UI caveats |
 | `.claude/memory/changelog.md` | Recent changes (pruned > 60 days by dream) |
 | `.claude/memory/dream-state.md` | Date de la dernière consolidation (`lastDreamDate`). Dream déclenché manuellement via `/dream`. |

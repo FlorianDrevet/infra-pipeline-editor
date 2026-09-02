@@ -695,7 +695,7 @@ Avant toute implementation, repondre explicitement a ces questions :
 - **Pour planifier** : charger ce skill puis deleguer a `architect`.
 - **Pour implementer en .NET** : charger ce skill + `tdd-workflow` + `xunit-unit-testing`, puis deleguer a `dotnet-dev`.
 - **Pour des imports depuis diagrammes** : charger aussi `draw-io-diagram-generator` si le format source est `.drawio`.
-- **Pour mesurer l'impact sur des services partages** : utiliser `codegraph_impact("Symbol")` avant modification (charger le skill `codegraph-workflow` pour la référence complète).
+- **Pour contextualiser l'impact sur des services partages** : utiliser les requêtes Graphify `query`, `explain` et `path` avant modification, puis confirmer avec lecture, build et tests (charger le skill `graphify-corpus` pour la référence complète).
 
 Le pattern cible dans ce depot est donc :
 

@@ -30,6 +30,14 @@ internal static class BlobDownloadHelper
         IReadOnlyList<string> CandidateRelativePaths);
 
     /// <summary>
+    /// Options for reading the latest generated files from blob storage.
+    /// </summary>
+    internal sealed record LatestBlobFilesOptions(
+        string? SubPrefix = null,
+        Func<Dictionary<string, string>, IReadOnlyDictionary<string, string>>? PostProcess = null,
+        CancellationToken CancellationToken = default);
+
+    /// <summary>
     /// Describes the latest timestamp folder found under a blob prefix.
     /// </summary>
     internal sealed record LatestBlobFolder(
@@ -53,9 +61,10 @@ internal static class BlobDownloadHelper
     internal static async Task<LatestBlobFolder?> GetLatestBlobFolderAsync(
         IBlobService blobService,
         string blobPrefix,
-        int prefixSegmentCount)
+        int prefixSegmentCount,
+        CancellationToken cancellationToken = default)
     {
-        var allBlobs = await blobService.ListBlobsAsync(blobPrefix);
+        var allBlobs = await blobService.ListBlobsAsync(blobPrefix, cancellationToken);
 
         if (allBlobs.Count == 0)
             return null;
@@ -110,7 +119,7 @@ internal static class BlobDownloadHelper
         Guid entityId,
         CancellationToken cancellationToken)
     {
-        var allBlobs = await blobService.ListBlobsAsync(blobPrefix);
+        var allBlobs = await blobService.ListBlobsAsync(blobPrefix, cancellationToken);
 
         if (allBlobs.Count == 0)
             return notFoundErrorFactory(entityId);
@@ -133,7 +142,7 @@ internal static class BlobDownloadHelper
         {
             foreach (var blobName in latestBlobs)
             {
-                var content = await blobService.DownloadContentAsync(blobName);
+                var content = await blobService.DownloadContentAsync(blobName, cancellationToken);
                 if (content is null)
                     continue;
 
@@ -179,22 +188,40 @@ internal static class BlobDownloadHelper
         string? subPrefix = null,
         Func<Dictionary<string, string>, IReadOnlyDictionary<string, string>>? postProcess = null)
     {
+        return await GetLatestBlobFilesAsync(
+            blobService,
+            blobPrefix,
+            prefixSegmentCount,
+            notFoundErrorFactory,
+            entityId,
+            new LatestBlobFilesOptions(subPrefix, postProcess));
+    }
+
+    internal static async Task<ErrorOr<IReadOnlyDictionary<string, string>>> GetLatestBlobFilesAsync(
+        IBlobService blobService,
+        string blobPrefix,
+        int prefixSegmentCount,
+        Func<Guid, Error> notFoundErrorFactory,
+        Guid entityId,
+        LatestBlobFilesOptions options)
+    {
         var latestFilesResult = await GetLatestBlobFilesCoreAsync(
             blobService,
             blobPrefix,
             prefixSegmentCount,
             notFoundErrorFactory,
-            entityId);
+            entityId,
+            options.CancellationToken);
         if (latestFilesResult.IsError)
             return latestFilesResult.Errors;
 
-        var files = FilterFilesBySubPrefix(latestFilesResult.Value, subPrefix);
+        var files = FilterFilesBySubPrefix(latestFilesResult.Value, options.SubPrefix);
 
         if (files.Count == 0)
             return notFoundErrorFactory(entityId);
 
-        IReadOnlyDictionary<string, string> result = postProcess is not null
-            ? postProcess(files)
+        IReadOnlyDictionary<string, string> result = options.PostProcess is not null
+            ? options.PostProcess(files)
             : files;
 
         return result.ToErrorOr();
@@ -212,14 +239,16 @@ internal static class BlobDownloadHelper
             int prefixSegmentCount,
             Func<Guid, Error> notFoundErrorFactory,
             Guid entityId,
-            DualBucketBlobFilesOptions options)
+            DualBucketBlobFilesOptions options,
+            CancellationToken cancellationToken = default)
     {
         var latestFilesResult = await GetLatestBlobFilesCoreAsync(
             blobService,
             blobPrefix,
             prefixSegmentCount,
             notFoundErrorFactory,
-            entityId);
+            entityId,
+            cancellationToken);
         if (latestFilesResult.IsError)
             return latestFilesResult.Errors;
 
@@ -269,14 +298,16 @@ internal static class BlobDownloadHelper
         int prefixSegmentCount,
         Func<Guid, Error> notFoundErrorFactory,
         Guid entityId,
-        LatestBlobContentOptions options)
+        LatestBlobContentOptions options,
+        CancellationToken cancellationToken = default)
     {
         var latestFilesResult = await GetLatestBlobFilesCoreAsync(
             blobService,
             blobPrefix,
             prefixSegmentCount,
             notFoundErrorFactory,
-            entityId);
+            entityId,
+            cancellationToken);
         if (latestFilesResult.IsError)
             return latestFilesResult.Errors;
 
@@ -294,9 +325,10 @@ internal static class BlobDownloadHelper
         string blobPrefix,
         int prefixSegmentCount,
         Func<Guid, Error> notFoundErrorFactory,
-        Guid entityId)
+        Guid entityId,
+        CancellationToken cancellationToken)
     {
-        var allBlobs = await blobService.ListBlobsAsync(blobPrefix);
+        var allBlobs = await blobService.ListBlobsAsync(blobPrefix, cancellationToken);
 
         if (allBlobs.Count == 0)
             return notFoundErrorFactory(entityId);
@@ -317,7 +349,7 @@ internal static class BlobDownloadHelper
         var files = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var blobName in latestBlobs)
         {
-            var content = await blobService.DownloadContentAsync(blobName);
+            var content = await blobService.DownloadContentAsync(blobName, cancellationToken);
             if (content is null)
                 continue;
 

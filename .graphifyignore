@@ -1,0 +1,30 @@
+# Build outputs and dependencies
+bin/
+obj/
+artifacts/
+node_modules/
+wwwroot/node_modules/
+coverage/
+.vs/
+.idea/
+
+# Local graph and tool state
+graphify-out/
+.playwright-mcp/
+
+# Agent instructions and generated prompt mirrors
+.agents/
+.claude/
+.codex/
+.github/agents/
+.github/instructions/
+.github/prompts/
+.github/skills/
+.github/workflows/
+AGENTS.md
+CLAUDE.md
+MEMORY.md
+.github/memory/
+
+# Source-control metadata
+.git/

@@ -31,9 +31,9 @@ Décisions validées le 2026-05-29 :
 
 ### 2026-05-29
 
-- Lecture mémoire projet et skills obligatoires : TDD, .NET, xUnit, Angular, UI/UX, GitNexus.
-- GitNexus réindexé avec `npx gitnexus analyze` car les symboles V2 réseau n'étaient pas visibles malgré un index récent.
-- Constat : GitNexus voit `AzureResource` comme symbole à fort blast radius, mais ne remonte pas encore `NetworkingProfile`; l'impact V2 est donc complété par lecture de fichiers et recherche textuelle.
+- Lecture mémoire projet et skills obligatoires : TDD, .NET, xUnit, Angular, UI/UX, Graphify.
+- Graphe Graphify rafraîchi avec `python -m graphify update .` car les symboles V2 réseau n'étaient pas visibles dans la sortie précédente.
+- Constat : Graphify relie `AzureResource` aux zones réseau, mais la relation avec `NetworkingProfile` reste à confirmer; l'analyse V2 est donc complétée par lecture de fichiers et recherche textuelle.
 - Exploration confirmée : V2 actuelle est configuration-scoped, les stages Bicep réseau sont des skeletons, et aucun test actif ne couvre `NetworkingProfile`.
 - Correction du plan d'architecture : ne pas baser la V3 sur un `PrivateEndpointConfig` actif, car il n'existe plus dans le domaine courant ; créer une nouvelle configuration typée au niveau ressource.
 - Lot 1 livré en TDD : `AzureResource` porte désormais `PrivateEndpointConfiguration?`, expose `ConfigurePrivateEndpoint(...)` et `DisablePrivateEndpoint()`, et `Deprivatize()` nettoie la configuration privée.
@@ -41,7 +41,7 @@ Décisions validées le 2026-05-29 :
 - Lot 2 livré : mapping EF owned one-to-one de `PrivateEndpointConfiguration` sur `AzureResource`, migration additive `20260529090353_AddResourcePrivateEndpointConfiguration`, et conservation volontaire de `IsPrivatized` pour compatibilité incrémentale.
 - Validation Lot 1/2 : `dotnet test .\tests\InfraFlowSculptor.Domain.Tests\InfraFlowSculptor.Domain.Tests.csproj` vert (636 tests) ; `dotnet test .\tests\InfraFlowSculptor.Infrastructure.Tests\InfraFlowSculptor.Infrastructure.Tests.csproj --filter "FullyQualifiedName~AzureResourcePrivateEndpointConfigurationTests|FullyQualifiedName~CoreStringLengthConfigurationTests"` vert (9 tests, 1 warning préexistant Testcontainers).
 - Validation large : `dotnet build .\InfraFlowSculptor.slnx` vert. `dotnet test .\InfraFlowSculptor.slnx` relancé ; résultat 4110 passés / 9 ignorés / 5 échecs préexistants hors scope (`UpdateProjectEnvironmentRequestTests.Given_EmptySubscriptionId_When_Validate_Then_ReturnsError` et 4 `SecurityMiddlewareIntegrationTests` bloqués par connection string health check nulle).
-- GitNexus `detect_changes(scope: all)` exécuté : risque bas, 0 flux affecté remonté. Limite observée : l'outil n'a pas listé les nouveaux fichiers non indexés de cette slice ; utiliser `git status` comme source de vérité jusqu'à une prochaine analyse incluant les nouveaux symboles.
+- Graphify `query`/`path` exécutés : les relations attendues ont été retrouvées. Limite observée : le graphe ne suffit pas à prouver l'impact exhaustif des nouveaux fichiers; utiliser `git status`, `git diff` et les validations du projet comme source de vérité.
 
 ### 2026-05-30
 
@@ -64,5 +64,5 @@ Tous les lots sont livrés. Dead code backend V2 (`NetworkingProfile` agrégat, 
 - Tests backend ciblés Lot 1/2 : `dotnet test .\tests\InfraFlowSculptor.Domain.Tests\InfraFlowSculptor.Domain.Tests.csproj`; `dotnet test .\tests\InfraFlowSculptor.Infrastructure.Tests\InfraFlowSculptor.Infrastructure.Tests.csproj --filter "FullyQualifiedName~AzureResourcePrivateEndpointConfigurationTests|FullyQualifiedName~CoreStringLengthConfigurationTests"`.
 - Validation complète backend en fin de slice : `dotnet test .\InfraFlowSculptor.slnx`.
 - Frontend après Lots 6-7 : depuis `src\Front`, lancer `npm run typecheck` puis `npm run build`.
-- GitNexus : relancer `npx gitnexus analyze` après les changements structurants, puis `mcp_gitnexus_detect_changes(scope: "all")` avant clôture.
+- Graphify : relancer `python -m graphify update .` après les changements structurants, puis vérifier `git status`, `git diff`, le build et les tests avant clôture.
 - Mémoire projet : mettre à jour `.github/memory/03-domain-model.md`, `.github/memory/07-bicep-generation.md`, `.github/memory/08-frontend.md` et `.github/memory/changelog.md` selon les lots livrés.

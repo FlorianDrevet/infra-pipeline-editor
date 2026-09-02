@@ -59,6 +59,8 @@ class ProjectDetailGenerationWorkflowServiceStub {
   readonly projectBootstrapErrorKey = signal('');
   readonly canPushAllProjectArtifacts = signal(false);
   readonly isSplitInfraCodeLayout = signal(false);
+  readonly isMultiRepoLayout = signal(false);
+  readonly canPushMultiRepoArtifacts = signal(false);
   readonly projectBicepNodes = signal<BicepFileNode[]>([]);
   readonly projectPipelineNodes = signal<BicepFileNode[]>([]);
   readonly projectBootstrapNodes = signal<BicepFileNode[]>([]);
@@ -82,6 +84,7 @@ class ProjectDetailGenerationWorkflowServiceStub {
   readonly downloadProjectCodeArtifacts = jasmine.createSpy('downloadProjectCodeArtifacts').and.resolveTo();
   readonly openProjectPushAllToGitDialog = jasmine.createSpy('openProjectPushAllToGitDialog');
   readonly openProjectMultiRepoPushDialog = jasmine.createSpy('openProjectMultiRepoPushDialog');
+  readonly openProjectMultiRepoArtifactsPushDialog = jasmine.createSpy('openProjectMultiRepoArtifactsPushDialog');
   readonly downloadProjectPipelineFiles = jasmine.createSpy('downloadProjectPipelineFiles').and.resolveTo();
   readonly downloadProjectBootstrapFiles = jasmine.createSpy('downloadProjectBootstrapFiles').and.resolveTo();
   readonly loadLastGeneration = jasmine.createSpy('loadLastGeneration').and.resolveTo();
@@ -195,6 +198,19 @@ describe('GenerationBoardComponent', () => {
     ).filter((button) => button.textContent?.includes('PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS'));
 
     expect(generateAllButtons.length).toBe(1);
+  });
+
+  it('hides the project-level generate-all action for MultiRepo projects', async () => {
+    projectServiceSpy.getProject.and.resolveTo(createProject('MultiRepo'));
+    workflowStub.isMultiRepoLayout.set(true);
+
+    await createComponent();
+
+    const generateAllButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button')
+    ).find((button) => button.textContent?.includes('PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS'));
+
+    expect(generateAllButton).toBeUndefined();
   });
 
   it('renders the ready-state actions inside a dedicated action group', async () => {

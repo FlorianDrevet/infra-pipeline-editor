@@ -13,6 +13,45 @@ namespace InfraFlowSculptor.Infrastructure.Tests.Services.GitProviders;
 public sealed class AzureDevOpsGitProviderServiceTests
 {
     [Fact]
+    public async Task Given_CanceledToken_When_PushScopedFilesAsync_Then_PropagatesCancellationAsync()
+    {
+        // Arrange
+        var cancellationToken = new CancellationToken(canceled: true);
+        var handler = new StubHttpMessageHandler(_ =>
+            Task.FromCanceled<HttpResponseMessage>(cancellationToken));
+        var httpClientFactory = Substitute.For<IHttpClientFactory>();
+        httpClientFactory.CreateClient().Returns(new HttpClient(handler));
+        var logger = Substitute.For<ILogger<AzureDevOpsGitProviderService>>();
+        var sut = new AzureDevOpsGitProviderService(httpClientFactory, logger);
+        var request = new MultiScopeGitPushRequest
+        {
+            Token = "ado-token",
+            Owner = "my-org/my-project",
+            RepositoryName = "infra-repo",
+            BaseBranch = "main",
+            TargetBranchName = "feature/generated",
+            CommitMessage = "Push generated files",
+            Scopes =
+            [
+                new MultiScopeGitPushRequest.GitPushScope
+                {
+                    BasePath = "generated",
+                    Files = new Dictionary<string, string>
+                    {
+                        ["main.bicep"] = "resource storage {}",
+                    },
+                },
+            ],
+        };
+
+        // Act
+        Func<Task> act = async () => await sut.PushScopedFilesAsync(request, cancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
     public async Task Given_NewBranchAndScopedFile_When_PushScopedFilesAsync_Then_ReturnsCommitMetadataAsync()
     {
         // Arrange

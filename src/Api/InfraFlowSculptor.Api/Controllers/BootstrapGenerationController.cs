@@ -39,7 +39,10 @@ public static class BootstrapGenerationController
                         return result.Match(
                             value =>
                             {
-                                var response = new GenerateBootstrapResponse(value.FileUris);
+                                var response = new GenerateBootstrapResponse(
+                                    value.FileUris,
+                                    value.InfraFileUris,
+                                    value.AppFileUris);
                                 return Results.Created((string?)null, response);
                             },
                             errors => errors.Result()

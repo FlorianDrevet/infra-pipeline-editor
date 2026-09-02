@@ -59,7 +59,9 @@ public sealed class PushProjectPipelineToGitCommandHandler(
             prefixSegmentCount: 4,
             notFoundErrorFactory: Errors.Project.PipelineFilesNotFoundError,
             entityId: command.ProjectId.Value,
-            postProcess: GeneratedPipelinePathNormalizer.Normalize);
+            options: new BlobDownloadHelper.LatestBlobFilesOptions(
+                PostProcess: GeneratedPipelinePathNormalizer.Normalize,
+                CancellationToken: cancellationToken));
         if (filesResult.IsError)
             return filesResult.Errors;
 

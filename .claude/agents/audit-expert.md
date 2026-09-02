@@ -41,10 +41,10 @@ Toujours commencer par lire :
 
 Pour chaque audit, utiliser d'abord l'exploration structurelle puis la lecture ciblee :
 
-1. Utiliser `codegraph_explore("concept ou zone auditée")` — outil primaire, retourne le source verbatim des symboles pertinents
-2. Utiliser `codegraph_impact("Symbol")` sur les symboles a risque pour évaluer le blast radius
-3. Utiliser `codegraph_callers("Symbol")` pour identifier les dépendants directs d'un symbole critique
-4. Completer avec `Grep`, `Read`, `Glob` si besoin
+1. Lire `graphify-out/GRAPH_REPORT.md` s'il existe et utiliser `python -m graphify query "concept ou zone auditée" --graph .\graphify-out\graph.json`
+2. Utiliser `python -m graphify explain "Symbol" --graph .\graphify-out\graph.json` sur les symboles a risque
+3. Utiliser `python -m graphify path "Source" "Cible" --graph .\graphify-out\graph.json` pour relier les zones critiques
+4. Completer avec `Grep`, `Read`, `Glob`, `git diff` et les validations du projet si besoin
 
 Tu ne dois pas produire un audit base sur des suppositions ou une simple lecture superficielle.
 

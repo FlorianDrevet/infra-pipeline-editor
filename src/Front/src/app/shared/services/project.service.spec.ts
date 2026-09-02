@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { MethodEnum } from '../enums/method.enum';
+import { ProjectMultiRepoPushRequest, ProjectMultiRepoPushResponse } from '../interfaces/project-multi-repo-push.interface';
 import { ProjectResponse } from '../interfaces/project.interface';
 import { ProjectResourceResponse } from '../interfaces/cross-config-reference.interface';
 import { AxiosService } from './axios.service';
@@ -168,6 +169,34 @@ describe('ProjectService', () => {
     expect(axiosServiceSpy.request$).toHaveBeenCalledOnceWith(
       MethodEnum.PUT,
       PROJECT_REPOSITORY_PAT_URL,
+      request,
+    );
+  });
+
+  it('pushes configuration-owned artifacts through the project MultiRepo endpoint', async () => {
+    const request: ProjectMultiRepoPushRequest = {
+      configurations: [
+        {
+          infrastructureConfigId: 'config-1',
+          repositories: [
+            {
+              repositoryId: 'config-repo-1',
+              branchName: 'feature/generated',
+              commitMessage: 'Push generated artifacts',
+            },
+          ],
+        },
+      ],
+    };
+    const response: ProjectMultiRepoPushResponse = { results: [] };
+    axiosServiceSpy.request$.and.resolveTo(response);
+
+    const result = await service.pushProjectMultiRepoArtifacts(PROJECT_ID, request);
+
+    expect(result).toEqual(response);
+    expect(axiosServiceSpy.request$).toHaveBeenCalledOnceWith(
+      MethodEnum.POST,
+      `${PROJECT_URL}/push-multi-repo-artifacts-to-git`,
       request,
     );
   });

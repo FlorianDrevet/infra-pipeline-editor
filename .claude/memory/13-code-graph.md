@@ -1,28 +1,27 @@
-# Code Graph — Codegraph Knowledge Cache
+# Code Graph — Graphify Knowledge Cache
 
-> Maintenu par `@dream`. Pré-cache les informations structurelles stables pour éviter aux agents de requêter Codegraph pour les infos connues.
-> Source de vérité : le knowledge graph Codegraph (SQLite local dans `.codegraph/`). Si un doute, re-vérifier via `codegraph_explore()` ou `codegraph_impact()`.
+> Maintenu par `@dream`. Pré-cache les informations structurelles et documentaires stables pour éviter aux agents de reconstruire le même contexte.
+> Source de vérité : le knowledge graph Graphify (`graphify-out/graph.json` et `GRAPH_REPORT.md`). Si un doute, re-vérifier avec `query`, `explain` ou `path`.
 
 ---
 
-## Dual-graph architecture [2026-06-03]
+## Graphify architecture [2026-09-01]
 
-Ce dépôt utilise **deux graphes complémentaires** :
+Ce dépôt utilise **Graphify comme graphe unique** pour le code, la documentation, les audits, les diagrammes et les relations entre fichiers.
 
 | Graphe | Outil | Périmètre | Force | Skill |
 |--------|-------|-----------|-------|-------|
-| Code graph | **Codegraph** | Symboles, appels, héritages, flows | Impact analysis, blast radius, callers/callees, explore | `codegraph-workflow` |
-| Corpus graph | **Graphify** | Code AST + docs + audits + diagrammes + images | God nodes, communautés, connexions surprenantes, traçabilité doc↔code | `graphify-corpus` |
+| Knowledge graph | **Graphify** | Code AST + docs + audits + diagrammes + images | Requêtes conceptuelles, communautés, nœuds centraux, connexions et traçabilité code↔documentation | `graphify-corpus` |
 
-**Règle absolue :** Codegraph pour le code, Graphify pour le corpus. Ne jamais les intervertir.
+**Règle absolue :** utiliser Graphify pour l'orientation et le contexte, puis confirmer les dépendances et le comportement par lecture, `git diff`, build et tests.
 
 ---
 
 ## Index status
 
-- **Tool :** Codegraph (built-in Claude Code, SQLite local dans `.codegraph/`, file watcher automatique)
+- **Tool :** Graphify (graphe local dans `graphify-out/graph.json`, rapport `GRAPH_REPORT.md`)
 - **Workspace snapshot [2026-05-27] :** ~26 398 symbols, ~145 783 relationships. Includes 5 DS primitives (ds-spinner, ds-progress-bar, ds-tag-input, ds-menu, ds-card-mat) and PipelineOptionDetectionService infrastructure tests added 2026-05-22→27.
-- **Règle pratique :** utiliser `codegraph_explore("Symbol")` pour la localisation ; `codegraph_node("Symbol")` si le corps est tronqué ou si le nom est surchargé.
+- **Règle pratique :** utiliser `python -m graphify query "Symbol" --graph .\graphify-out\graph.json`, puis `explain` ou `path` si le contexte doit être approfondi.
 
 ## Symboles à haut risque (beaucoup de dépendants upstream)
 
@@ -30,14 +29,14 @@ Ce dépôt utilise **deux graphes complémentaires** :
 |---------|------|-----------------|
 | `AzureResource` | Base class (TPT) | 22 agrégats enfants héritent — tout changement cascade sur toutes les ressources |
 | `IInfraConfigAccessService` | Interface | Utilisé par tous les handlers Resource pour la vérification d'accès |
-| `BlobDownloadHelper` | Class | Helper transversal des artefacts latest-prefix ; Codegraph impact [2026-05-13] : 429 symboles impactés, 33 dépendants directs, risque **CRITICAL** |
-| `BicepGenerationEngine` | Class (~88 lignes) | Façade mince mais point d'entrée central de la génération Bicep ; Codegraph impact [2026-05-13] : 397 symboles impactés, 4 dépendants directs, risque **CRITICAL** |
+| `BlobDownloadHelper` | Class | Helper transversal des artefacts latest-prefix ; Graphify context [2026-05-13] : 429 symboles impactés, 33 dépendants directs, risque **CRITICAL** |
+| `BicepGenerationEngine` | Class (~88 lignes) | Façade mince mais point d'entrée central de la génération Bicep ; Graphify context [2026-05-13] : 397 symboles impactés, 4 dépendants directs, risque **CRITICAL** |
 | `BicepAssembler` | Class (~180 lines) | Thin orchestrator — delegates to 14 specialized classes under `Assemblers/`, `Helpers/`, `StorageAccount/`, `Models/` |
-| `InfrastructureConfigReadRepository` | Class | Point central de lecture — switch cases sur tous les types de ressources ; Codegraph impact [2026-05-13] : 37 symboles impactés, 14 dépendants directs, risque **MEDIUM** |
-| `AppPipelineGenerationEngine` | Class | Orchestrateur app pipeline — 5 generators (Container/Code × resource type), appelé par les handlers génération pipeline; spot-check Codegraph [2026-04-25]: risque upstream **MEDIUM**, 6 dépendants directs |
+| `InfrastructureConfigReadRepository` | Class | Point central de lecture — switch cases sur tous les types de ressources ; Graphify context [2026-05-13] : 37 symboles impactés, 14 dépendants directs, risque **MEDIUM** |
+| `AppPipelineGenerationEngine` | Class | Orchestrateur app pipeline — 5 generators (Container/Code × resource type), appelé par les handlers génération pipeline; spot-check Graphify [2026-04-25]: risque upstream **MEDIUM**, 6 dépendants directs |
 | `MonoRepoPipelineAssembler` | Class | Assembleur pipeline YAML infra — mono-repo structure, couplé aux handlers génération pipeline |
-| `ResourceCommandFactory` | Class | Pivot partagé entre `ApplyImportPreview`, `ProjectSetupOrchestrator`, `ProjectCreationTools`, `IacImportTools` et leurs suites de tests ; Codegraph impact [2026-04-30] : 11 dépendants directs, risque **MEDIUM** |
-| `ProjectCreationTools` | Class | Surface MCP mutante `create_project_from_draft` ; Codegraph impact [2026-04-30] : 8 dépendants directs, risque **MEDIUM** |
+| `ResourceCommandFactory` | Class | Pivot partagé entre `ApplyImportPreview`, `ProjectSetupOrchestrator`, `ProjectCreationTools`, `IacImportTools` et leurs suites de tests ; Graphify context [2026-04-30] : 11 dépendants directs, risque **MEDIUM** |
+| `ProjectCreationTools` | Class | Surface MCP mutante `create_project_from_draft` ; Graphify context [2026-04-30] : 8 dépendants directs, risque **MEDIUM** |
 
 ## Flows critiques
 

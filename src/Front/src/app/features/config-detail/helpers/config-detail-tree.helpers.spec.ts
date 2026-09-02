@@ -83,6 +83,8 @@ function createBootstrapResponse(): GenerateBootstrapResponse {
     fileUris: {
       'bootstrap.pipeline.yml': 'bootstrap.pipeline.yml',
     },
+    infraFileUris: { 'bootstrap.pipeline.yml': 'bootstrap.pipeline.yml' },
+    appFileUris: {},
   };
 }
 
