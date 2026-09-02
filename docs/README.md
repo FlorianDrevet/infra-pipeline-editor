@@ -1,10 +1,17 @@
-# Documentation — Infra Flow Sculptor
+---
+title: Documentation InfraFlowSculptor
+description: Index de la documentation technique, fonctionnelle et des tests manuels d'InfraFlowSculptor.
+ms.date: 2026-09-02
+ms.topic: reference
+---
+
+## Documentation — Infra Flow Sculptor
 
 Ce dossier contient la documentation technique du projet **Infra Flow Sculptor**, versionnée directement dans le dépôt Git.
 
 ---
 
-## Structure
+### Structure
 
 | Dossier | Contenu |
 |---------|---------|
@@ -14,7 +21,7 @@ Ce dossier contient la documentation technique du projet **Infra Flow Sculptor**
 
 ---
 
-## Architecture et concepts
+### Architecture et concepts
 
 > **Point d'entrée recommandé pour les nouveaux développeurs.**
 
@@ -33,14 +40,15 @@ Ce dossier contient la documentation technique du projet **Infra Flow Sculptor**
 
 ---
 
-## Features
+### Features
 
 1. [Push Bicep vers Git](features/push-bicep-to-git.md) — Fonctionnalité de push des fichiers générés vers un dépôt Git
 2. [Références cross-config](features/cross-config-references.md) — Dépendances entre configurations d'infrastructure
+3. [Tests manuels](manual-tests/README.md) — Campagne complète de recette du site et des capacités produit
 
 ---
 
-## Liens utiles
+### Liens utiles
 
 - [Wiki Azure DevOps](https://dev.azure.com/florian-drevet/Infra%20Flow%20Sculptor/_wiki/wikis/Infra-Flow-Sculptor-Wiki)
 - [Dépôt GitHub](https://github.com/FlorianDrevet/infra-pipeline-editor)

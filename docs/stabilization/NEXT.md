@@ -3,7 +3,7 @@
 > Fichier de passage de relais entre sessions et entre postes. **Lu en premier** à chaque
 > session, **réécrit en dernier**. Une session ne se termine pas sans l'avoir mis à jour.
 
-**Dernière mise à jour :** 2026-09-01
+**Dernière mise à jour :** 2026-09-02
 
 ## Outillage de cartographie
 
@@ -117,6 +117,8 @@ Ordre suggéré :
   MultiRepo avec au moins deux configurations `AllInOne`, puis une configuration `SplitInfraCode`;
   vérifier la génération Bicep/pipeline/bootstrap, le PAT config-level, un commit par dépôt et un
   échec partiel. Le build et les tests automatisés sont passés; cette preuve réelle manque encore.
+  Utiliser le dossier [docs/manual-tests/](../manual-tests/README.md) pour enregistrer la campagne
+  et ses preuves.
 
 Ensuite : D05/D08/D11 (les 3 mensonges), puis F01/F11b(reste)/F15, puis nettoyage du code mort
 confirmé `cut` (D04/F35, F20, `PrivateDnsZone`).
@@ -127,6 +129,8 @@ confirmé `cut` (D04/F35, F20, `PrivateDnsZone`).
 - [x] Rouvrir et valider la phase 0 (build / tests / démarrage de la stack).
 - [x] Implémenter et durcir la réparation MultiRepo (D01 + D09 + D10 + features dépendantes) —
   phase 3, session 1. Validation ciblée et build solution passés le 2026-09-01.
+- [x] Produire le dossier complet de tests manuels — index, préparation, smoke test, recette
+  détaillée, scénarios négatifs, MCP/import et modèle de compte-rendu — le 2026-09-02.
 - [ ] Valider le flux MultiRepo en conditions réelles contre un fournisseur Git — dernière preuve
   avant de fermer D01/D09/D10.
 - [ ] Réparer D05 / D08 / D11 (les 3 mensonges à l'utilisateur) — phase 3, session 2.

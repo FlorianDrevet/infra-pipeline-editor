@@ -35,6 +35,10 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 ```
 
 - Frontend from `src/Front`: `npm install; npm run start; npm run build; npm run typecheck`.
+- Manual acceptance dossier [2026-09-02]: use `docs/manual-tests/README.md` for the complete web
+	site campaign. The dossier separates the short golden-path smoke test, detailed feature checks,
+	external prerequisites, known defects, MCP/import flows without a web screen, and the session
+	report template.
 - Validation MultiRepo D09/D10 [2026-09-01]: solution build passed; targeted Application and
 	Infrastructure cancellation/routing tests passed; `npm run typecheck`, production build, and
 	70 focused Angular specs passed. Full .NET and Karma runs remain environment-limited by
