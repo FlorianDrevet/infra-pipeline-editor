@@ -18,9 +18,6 @@ public class VirtualNetworkConfiguration : IEntityTypeConfiguration<VirtualNetwo
         builder.HasBaseType<AzureResource>()
             .ToTable("VirtualNetworks");
 
-        builder.Property(v => v.EnableDdosProtection)
-            .IsRequired();
-
         builder.HasMany(v => v.Subnets)
             .WithOne()
             .HasForeignKey(s => s.VirtualNetworkId)
@@ -102,6 +99,9 @@ public class VirtualNetworkEnvironmentSettingsConfiguration : IEntityTypeConfigu
 
         builder.Property(es => es.DnsServers)
             .HasColumnType("jsonb");
+
+        builder.Property(es => es.EnableDdosProtection)
+            .IsRequired();
 
         builder.HasIndex(es => new { es.VirtualNetworkId, es.EnvironmentName })
             .IsUnique();

@@ -8,13 +8,12 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Commands.RemoveTable;
 
 public class RemoveTableCommandHandler(
     IStorageAccountRepository storageAccountRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
     : ICommandHandler<RemoveTableCommand, Deleted>
 {
     public Task<ErrorOr<Deleted>> Handle(RemoveTableCommand request, CancellationToken cancellationToken)
     {
-        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, accessService);
+        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, accessService);
         return StorageAccountAccessHelper.RemoveSubResourceAsync(
             ctx,
             () => storageAccountRepository.RemoveTableAsync(request.StorageAccountId, request.TableId),

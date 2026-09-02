@@ -16,6 +16,7 @@ export interface AddInfraConfigRepositoryRequest {
   providerType: string;
   repositoryUrl: string;
   defaultBranch: string;
+  personalAccessToken?: string;
   contentKinds: RepositoryContentKind[];
 }
 
@@ -23,6 +24,7 @@ export interface UpdateInfraConfigRepositoryRequest {
   providerType: string;
   repositoryUrl: string;
   defaultBranch: string;
+  personalAccessToken?: string;
   contentKinds: RepositoryContentKind[];
 }
 

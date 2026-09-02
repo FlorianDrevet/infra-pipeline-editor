@@ -56,7 +56,7 @@
 
       @if (isLoading()) {
         <div class="state-inline state-inline--loading">
-          <div class="pulse-dot"></div>
+          <app-ds-spinner size="md" />
           <span>{{ 'HOME.STATE.LOADING' | translate }}</span>
         </div>
       } @else if (favoriteProjects().length === 0) {

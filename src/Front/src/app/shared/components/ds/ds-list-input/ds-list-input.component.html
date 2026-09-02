@@ -1,0 +1,67 @@
+<div class="ds-list-input">
+  @if (label()) {
+    <label class="ds-list-input__label">
+      {{ label() }}
+      @if (required()) {
+        <span class="ds-list-input__required" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+
+  <div class="ds-list-input__row" [class.ds-list-input__row--ip]="inputType() === 'cidr' || inputType() === 'ipv4'">
+    @switch (inputType()) {
+      @case ('cidr') {
+        <app-ds-ip-input
+          class="ds-list-input__field"
+          mode="cidr"
+          [disabled]="disabledState() || !canAddMore()"
+          [formControl]="inputCtrl"
+          (keydown)="onKeyDown($event)" />
+      }
+      @case ('ipv4') {
+        <app-ds-ip-input
+          class="ds-list-input__field"
+          mode="ipv4"
+          [disabled]="disabledState() || !canAddMore()"
+          [formControl]="inputCtrl"
+          (keydown)="onKeyDown($event)" />
+      }
+      @default {
+        <app-ds-text-field
+          class="ds-list-input__field"
+          [placeholder]="placeholder()"
+          [disabled]="disabledState() || !canAddMore()"
+          [formControl]="inputCtrl"
+          (keydown)="onKeyDown($event)" />
+      }
+    }
+    <app-ds-button
+      class="ds-list-input__add-btn"
+      variant="secondary"
+      icon="add"
+      [disabled]="disabledState() || !canAddMore()"
+      (clicked)="tryAdd()">
+      {{ addButtonLabel() | translate }}
+    </app-ds-button>
+  </div>
+
+  @if (items().length > 0) {
+    <div class="ds-list-input__chips">
+      @for (item of items(); track item; let i = $index) {
+        <app-ds-chip
+          variant="neutral"
+          size="sm"
+          [removable]="!disabledState()"
+          (removed)="removeItem(i)">
+          {{ item }}
+        </app-ds-chip>
+      }
+    </div>
+  }
+
+  @if (resolvedError()) {
+    <div class="ds-list-input__error" role="alert">{{ resolvedError() }}</div>
+  } @else if (helperText()) {
+    <div class="ds-list-input__helper">{{ helperText() }}</div>
+  }
+</div>

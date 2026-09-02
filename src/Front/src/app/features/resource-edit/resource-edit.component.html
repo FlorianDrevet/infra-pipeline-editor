@@ -1,7 +1,7 @@
 <div class="resource-page" [class.resource-page--has-save-bar]="showSaveBar()">
   @if (isLoading()) {
     <div class="state-card state-card--loading" aria-live="polite">
-      <div class="pulse-dot"></div>
+      <app-ds-spinner size="lg" />
       <div>
         <strong>{{ 'RESOURCE_EDIT.STATE.LOADING_TITLE' | translate }}</strong>
         <p>{{ 'RESOURCE_EDIT.STATE.LOADING_DESCRIPTION' | translate }}</p>
@@ -30,11 +30,13 @@
         </div>
       </div>
       <div class="resource-header__info">
-        <span class="eyebrow">
-          <mat-icon class="eyebrow__icon">{{ resourceTypeIcons[resourceType] || 'widgets' }}</mat-icon>
-          {{ resourceType }}
-        </span>
         <h1>{{ resource()!.name }}</h1>
+        <div class="resource-header__meta">
+          <span class="eyebrow">
+            <mat-icon class="eyebrow__icon">{{ resourceTypeIcons[resourceType] || 'widgets' }}</mat-icon>
+            {{ resourceType }}
+          </span>
+        </div>
       </div>
     </section>
 
@@ -59,11 +61,12 @@
         <span>{{ 'RESOURCE_EDIT.EXISTING_RESOURCE_INFO' | translate }}</span>
       </div>
     }
-    <app-ds-tabs class="resource-tabs"
-                 [tabs]="mainTabs()"
-                 [activeTabId]="activeMainTabId()"
-                 (tabChange)="onMainTabChange($event)"
-                 [ariaLabel]="'RESOURCE_EDIT.TABS.ARIA' | translate" />
+    <div class="resource-tabs">
+      <app-ds-tabs [tabs]="mainTabs()"
+                   [activeTabId]="activeMainTabId()"
+                   [stretch]="true"
+                   (tabChange)="onMainTabChange($event)"
+                   [ariaLabel]="'RESOURCE_EDIT.TABS.ARIA' | translate" />
 
       <!-- General Tab -->
       @if (activeMainTabId() === 'general') {
@@ -165,6 +168,7 @@
                 </div>
               </div>
             }
+
 
             <!-- WebApp-specific fields -->
             @if (resourceType === 'WebApp') {
@@ -599,6 +603,45 @@
                             type="number"
                             [label]="'RESOURCE_EDIT.FIELDS.CAPACITY' | translate"
                             [hint]="'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate" />
+                        </div>
+                      </div>
+                    }
+                    @case ('VirtualNetwork') {
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <div class="env-extra-section__header-main">
+                            <mat-icon class="env-extra-section__icon">lan</mat-icon>
+                            <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.VIRTUAL_NETWORK_SECTION' | translate }}</span>
+                          </div>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.VIRTUAL_NETWORK_SECTION_DESC' | translate }}</p>
+                        <div class="vnet-env-grid">
+                          <div class="ds-list-input-with-help">
+                            <app-ds-list-input
+                              formControlName="addressSpacesInput"
+                              [label]="'RESOURCE_EDIT.FIELDS.VNET_ADDRESS_SPACES' | translate"
+                              [placeholder]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_PLACEHOLDER' | translate"
+                              [validator]="vnetAddressSpaceListValidator"
+                              inputType="cidr" />
+                            <app-ds-property-help-button
+                              [title]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.TITLE' | translate"
+                              [sections]="addressSpacesHelpSections" />
+                          </div>
+                          <div class="ds-list-input-with-help">
+                            <app-ds-list-input
+                              formControlName="dnsServersInput"
+                              [label]="'RESOURCE_EDIT.FIELDS.VNET_DNS_SERVERS' | translate"
+                              [placeholder]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_PLACEHOLDER' | translate"
+                              [validator]="vnetDnsServerListValidator"
+                              inputType="ipv4" />
+                            <app-ds-property-help-button
+                              [title]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS.TITLE' | translate"
+                              [sections]="dnsServersHelpSections" />
+                          </div>
+                          <div class="vnet-ddos-row">
+                            <app-ds-toggle formControlName="enableDdosProtection" [label]="'RESOURCE_EDIT.FIELDS.ENABLE_DDOS_PROTECTION' | translate"></app-ds-toggle>
+                            <mat-icon class="field-info-icon" [matTooltip]="'COMMON.VNET_HELP_DIALOG.DDOS_TOOLTIP' | translate">info_outline</mat-icon>
+                          </div>
                         </div>
                       </div>
                     }
@@ -1105,15 +1148,6 @@
           [configId]="configId"
           [section]="identityAccessSection">
         </app-resource-edit-role-assignments-section>
-      }
-
-      <!-- Networking Tab (PE-supported resources only) -->
-      @if (supportsNetworking() && activeMainTabId() === 'networking') {
-        <div class="tab-content">
-          <app-networking-tab
-            [resourceId]="resource()!.id"
-            [resourceType]="resourceType" />
-        </div>
       }
 
       <!-- Storage Services Tab (StorageAccount only) / App Configuration Tab (others) -->
@@ -1805,6 +1839,19 @@
         }
       }
 
+      <!-- Networking Tab (Private Endpoint configuration) -->
+      @if (supportsNetworking() && activeMainTabId() === 'networking') {
+        <div class="tab-content">
+          <div class="env-description">
+            <mat-icon class="env-description__icon">lan</mat-icon>
+            <p>{{ 'RESOURCE_EDIT.NETWORKING.DESCRIPTION' | translate }}</p>
+          </div>
+          <app-resource-edit-networking-section
+            [canWrite]="canWrite()"
+            [section]="networkingSection" />
+        </div>
+      }
+
       <!-- App Pipeline Tab (WebApp / FunctionApp / ContainerApp only, hidden for existing resources) -->
       @if (supportsAppPipeline() && !isExistingResource() && activeMainTabId() === 'app-pipeline') {
         <div class="tab-content">
@@ -1881,6 +1928,7 @@
               (detectOptions)="onDetectPipelineOptions()" />
           </div>
       }
+    </div>
 
     <!-- ��������� Floating Save Bar ��������� -->
     @if (showSaveBar()) {

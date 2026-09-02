@@ -13,7 +13,6 @@ namespace InfraFlowSculptor.Application.CosmosDbs.Queries;
 /// </summary>
 public class GetCosmosDbQueryHandler(
     ICosmosDbRepository cosmosDbRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetCosmosDbQuery, CosmosDbResult>
@@ -27,11 +26,7 @@ public class GetCosmosDbQueryHandler(
         if (cosmosDb is null)
             return Errors.CosmosDb.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(cosmosDb.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.CosmosDb.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(cosmosDb.ResourceGroup!.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return Errors.CosmosDb.NotFoundError(query.Id);

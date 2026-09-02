@@ -1,5 +1,5 @@
 Contracts response DTO public shape snapshot
-Count: 108
+Count: 105
 
 Namespace: InfraFlowSculptor.Contracts.AppConfigurations.Responses
 Type: AppConfigurationKeyResponse
@@ -240,6 +240,29 @@ Properties:
   DomainName: string
   Steps: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.CustomDomains.Responses.DnsInstructionStepResponse>
 
+Namespace: InfraFlowSculptor.Contracts.DocumentIntelligences.Responses
+Type: DocumentIntelligenceEnvironmentConfigResponse
+Constructors:
+  DocumentIntelligenceEnvironmentConfigResponse(string EnvironmentName, string? Sku, string? PublicNetworkAccess, bool DisableLocalAuth)
+Properties:
+  DisableLocalAuth: bool
+  EnvironmentName: string
+  PublicNetworkAccess: string?
+  Sku: string?
+
+Namespace: InfraFlowSculptor.Contracts.DocumentIntelligences.Responses
+Type: DocumentIntelligenceResponse
+Constructors:
+  DocumentIntelligenceResponse(string Id, string ResourceGroupId, string Name, string Location, string? CustomSubDomainName, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.DocumentIntelligences.Responses.DocumentIntelligenceEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+Properties:
+  CustomSubDomainName: string?
+  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.DocumentIntelligences.Responses.DocumentIntelligenceEnvironmentConfigResponse>
+  Id: string
+  IsExisting: bool
+  Location: string
+  Name: string
+  ResourceGroupId: string
+
 Namespace: InfraFlowSculptor.Contracts.EventHubNamespaces.Responses
 Type: EventHubConsumerGroupResponse
 Constructors:
@@ -270,40 +293,6 @@ Constructors:
 Properties:
   Id: string
   Name: string
-
-Namespace: InfraFlowSculptor.Contracts.FrontDoors.Responses
-Type: FrontDoorEnvironmentConfigResponse
-Constructors:
-  FrontDoorEnvironmentConfigResponse(string EnvironmentName, string Sku)
-Properties:
-  EnvironmentName: string
-  Sku: string
-
-Namespace: InfraFlowSculptor.Contracts.FrontDoors.Responses
-Type: FrontDoorOriginResponse
-Constructors:
-  FrontDoorOriginResponse(string Id, string TargetResourceId, string? HostName, bool PrivateLinkEnabled, int Weight, int Priority)
-Properties:
-  HostName: string?
-  Id: string
-  Priority: int
-  PrivateLinkEnabled: bool
-  TargetResourceId: string
-  Weight: int
-
-Namespace: InfraFlowSculptor.Contracts.FrontDoors.Responses
-Type: FrontDoorResponse
-Constructors:
-  FrontDoorResponse(string Id, string ResourceGroupId, string Name, string Location, bool WafPolicyEnabled, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorOriginResponse> Origins, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
-Properties:
-  EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorEnvironmentConfigResponse>
-  Id: string
-  IsExisting: bool
-  Location: string
-  Name: string
-  Origins: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.FrontDoors.Responses.FrontDoorOriginResponse>
-  ResourceGroupId: string
-  WafPolicyEnabled: bool
 
 Namespace: InfraFlowSculptor.Contracts.FunctionApps.Responses
 Type: FunctionAppResponse
@@ -502,6 +491,15 @@ Properties:
   Warnings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.ResourceDiagnosticResponse>
 
 Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: GenerateBootstrapResponse
+Constructors:
+  GenerateBootstrapResponse(System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> FileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> InfraFileUris, System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> AppFileUris)
+Properties:
+  AppFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+  FileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+  InfraFileUris: System.Collections.Generic.IReadOnlyDictionary<string, System.Uri>
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
 Type: GeneratePipelineResponse
 Constructors:
   GeneratePipelineResponse(System.Collections.Generic.IReadOnlyDictionary<string, System.Uri> FileUris)
@@ -560,6 +558,16 @@ Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
 Type: PushBicepToGitResponse
 Constructors:
   PushBicepToGitResponse(string BranchName, string BranchUrl, string CommitSha, int FileCount)
+Properties:
+  BranchName: string
+  BranchUrl: string
+  CommitSha: string
+  FileCount: int
+
+Namespace: InfraFlowSculptor.Contracts.InfrastructureConfig.Responses
+Type: PushBootstrapToGitResponse
+Constructors:
+  PushBootstrapToGitResponse(string BranchName, string BranchUrl, string CommitSha, int FileCount)
 Properties:
   BranchName: string
   BranchUrl: string
@@ -653,34 +661,6 @@ Properties:
   Name: string
   ResourceGroupId: string
 
-Namespace: InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses
-Type: NetworkSecurityGroupResponse
-Constructors:
-  NetworkSecurityGroupResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses.NsgRuleResponse> SecurityRules, bool IsExisting)
-Properties:
-  Id: string
-  IsExisting: bool
-  Location: string
-  Name: string
-  ResourceGroupId: string
-  SecurityRules: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses.NsgRuleResponse>
-
-Namespace: InfraFlowSculptor.Contracts.NetworkSecurityGroups.Responses
-Type: NsgRuleResponse
-Constructors:
-  NsgRuleResponse(string Id, string Name, int Priority, string Direction, string Access, string Protocol, string SourceAddressPrefix, string DestinationAddressPrefix, string SourcePortRange, string DestinationPortRange)
-Properties:
-  Access: string
-  DestinationAddressPrefix: string
-  DestinationPortRange: string
-  Direction: string
-  Id: string
-  Name: string
-  Priority: int
-  Protocol: string
-  SourceAddressPrefix: string
-  SourcePortRange: string
-
 Namespace: InfraFlowSculptor.Contracts.PersonalAccessTokens.Responses
 Type: CreatedPersonalAccessTokenResponse
 Constructors:
@@ -702,48 +682,6 @@ Properties:
   Name: string
   Scopes: System.Collections.Generic.List<string>
   TokenPrefix: string
-
-Namespace: InfraFlowSculptor.Contracts.PrivateDnsZones.Responses
-Type: PrivateDnsZoneResponse
-Constructors:
-  PrivateDnsZoneResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.PrivateDnsZones.Responses.VirtualNetworkLinkResponse> VirtualNetworkLinks, bool IsExisting)
-Properties:
-  Id: string
-  IsExisting: bool
-  Location: string
-  Name: string
-  ResourceGroupId: string
-  VirtualNetworkLinks: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.PrivateDnsZones.Responses.VirtualNetworkLinkResponse>
-
-Namespace: InfraFlowSculptor.Contracts.PrivateDnsZones.Responses
-Type: VirtualNetworkLinkResponse
-Constructors:
-  VirtualNetworkLinkResponse(string Id, string VirtualNetworkId, bool EnableAutoRegistration)
-Properties:
-  EnableAutoRegistration: bool
-  Id: string
-  VirtualNetworkId: string
-
-Namespace: InfraFlowSculptor.Contracts.PrivateEndpoints.Responses
-Type: AvailableGroupIdsResponse
-Constructors:
-  AvailableGroupIdsResponse(string ResourceType, System.Collections.Generic.IReadOnlyList<string> GroupIds)
-Properties:
-  GroupIds: System.Collections.Generic.IReadOnlyList<string>
-  ResourceType: string
-
-Namespace: InfraFlowSculptor.Contracts.PrivateEndpoints.Responses
-Type: PrivateEndpointConfigResponse
-Constructors:
-  PrivateEndpointConfigResponse(string Id, string ResourceId, string SubnetId, string GroupId, bool AutoApproval, string? PrivateDnsZoneId, string? CustomNetworkInterfaceName)
-Properties:
-  AutoApproval: bool
-  CustomNetworkInterfaceName: string?
-  GroupId: string
-  Id: string
-  PrivateDnsZoneId: string?
-  ResourceId: string
-  SubnetId: string
 
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
 Type: GenerateProjectBicepResponse
@@ -922,6 +860,27 @@ Constructors:
   PushMultiRepoArtifactsResponse(System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.RepoPushResultResponse> Results)
 Properties:
   Results: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.RepoPushResultResponse>
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: PushProjectMultiRepoArtifactResultResponse
+Constructors:
+  PushProjectMultiRepoArtifactResultResponse(string InfrastructureConfigId, string RepositoryId, bool Success, string? BranchUrl, string? CommitSha, int FileCount, string? ErrorCode, string? ErrorDescription)
+Properties:
+  BranchUrl: string?
+  CommitSha: string?
+  ErrorCode: string?
+  ErrorDescription: string?
+  FileCount: int
+  InfrastructureConfigId: string
+  RepositoryId: string
+  Success: bool
+
+Namespace: InfraFlowSculptor.Contracts.Projects.Responses
+Type: PushProjectMultiRepoArtifactsResponse
+Constructors:
+  PushProjectMultiRepoArtifactsResponse(System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.PushProjectMultiRepoArtifactResultResponse> Results)
+Properties:
+  Results: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.Projects.Responses.PushProjectMultiRepoArtifactResultResponse>
 
 Namespace: InfraFlowSculptor.Contracts.Projects.Responses
 Type: RecentItemResponse
@@ -1241,8 +1200,9 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.VirtualNetworks.Responses
 Type: SubnetResponse
 Constructors:
-  SubnetResponse(string Id, string Name, string? Delegation, System.Collections.Generic.IReadOnlyList<string>? ServiceEndpoints, string PrivateEndpointNetworkPolicies, string? NsgId)
+  SubnetResponse(string Id, string Name, string AddressPrefix, string? Delegation, System.Collections.Generic.IReadOnlyList<string>? ServiceEndpoints, string PrivateEndpointNetworkPolicies, string? NsgId)
 Properties:
+  AddressPrefix: string
   Delegation: string?
   Id: string
   Name: string
@@ -1253,18 +1213,18 @@ Properties:
 Namespace: InfraFlowSculptor.Contracts.VirtualNetworks.Responses
 Type: VirtualNetworkEnvironmentConfigResponse
 Constructors:
-  VirtualNetworkEnvironmentConfigResponse(string EnvironmentName, System.Collections.Generic.IReadOnlyList<string> AddressSpaces, System.Collections.Generic.IReadOnlyList<string>? DnsServers)
+  VirtualNetworkEnvironmentConfigResponse(string EnvironmentName, System.Collections.Generic.IReadOnlyList<string> AddressSpaces, System.Collections.Generic.IReadOnlyList<string>? DnsServers, bool EnableDdosProtection)
 Properties:
   AddressSpaces: System.Collections.Generic.IReadOnlyList<string>
   DnsServers: System.Collections.Generic.IReadOnlyList<string>?
+  EnableDdosProtection: bool
   EnvironmentName: string
 
 Namespace: InfraFlowSculptor.Contracts.VirtualNetworks.Responses
 Type: VirtualNetworkResponse
 Constructors:
-  VirtualNetworkResponse(string Id, string ResourceGroupId, string Name, string Location, bool EnableDdosProtection, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.VirtualNetworks.Responses.SubnetResponse> Subnets, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.VirtualNetworks.Responses.VirtualNetworkEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
+  VirtualNetworkResponse(string Id, string ResourceGroupId, string Name, string Location, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.VirtualNetworks.Responses.SubnetResponse> Subnets, System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.VirtualNetworks.Responses.VirtualNetworkEnvironmentConfigResponse> EnvironmentSettings, bool IsExisting)
 Properties:
-  EnableDdosProtection: bool
   EnvironmentSettings: System.Collections.Generic.IReadOnlyList<InfraFlowSculptor.Contracts.VirtualNetworks.Responses.VirtualNetworkEnvironmentConfigResponse>
   Id: string
   IsExisting: bool

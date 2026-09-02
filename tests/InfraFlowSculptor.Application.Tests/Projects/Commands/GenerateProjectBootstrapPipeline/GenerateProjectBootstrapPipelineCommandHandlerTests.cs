@@ -35,6 +35,27 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandlerTests
     }
 
     [Fact]
+    public async Task Given_MultiRepoLayout_When_Handle_Then_ReturnsAmbiguousProjectLevelGenerationAsync()
+    {
+        // Arrange
+        var project = Project.Create(new Name("Retail Platform"), "Provision retail assets.", UserId.CreateUnique());
+        project.SetLayoutPreset(new LayoutPreset(LayoutPresetEnum.MultiRepo));
+
+        var command = new GenerateProjectBootstrapPipelineCommand(project.Id);
+        _accessService.VerifyWriteAccessAsync(project.Id, Arg.Any<CancellationToken>())
+            .Returns(project);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be(Errors.GitRouting.AmbiguousProjectLevelGeneration.Code);
+        await _projectRepository.DidNotReceive()
+            .GetByIdWithAllAndPipelineVariableGroupsAsync(Arg.Any<ProjectId>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Given_ProjectReloadFails_When_Handle_Then_ReturnsNotFoundWithoutLegacyProjectLookupsAsync()
     {
         // Arrange

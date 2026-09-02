@@ -90,37 +90,11 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
-    /// <inheritdoc />
-    public async Task<AzureResource?> GetByIdWithPrivateEndpointsAsync(
-        AzureResourceId id,
-        CancellationToken cancellationToken = default)
-    {
-        return await WithPrivateEndpoints(context.AzureResources)
-            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<AzureResource?> GetByIdWithPrivateEndpointsReadOnlyAsync(
-        AzureResourceId id,
-        CancellationToken cancellationToken = default)
-    {
-        return await WithPrivateEndpoints(context.AzureResources)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
-    }
-
     private static IQueryable<AzureResource> WithAppSettings(IQueryable<AzureResource> query)
     {
         return query
             .Include(r => r.AppSettings)
                 .ThenInclude(s => s.EnvironmentValues);
-    }
-
-    private static IQueryable<AzureResource> WithPrivateEndpoints(IQueryable<AzureResource> query)
-    {
-        return query
-            .Include(r => r.ResourceGroup)
-            .Include(r => r.PrivateEndpointConfigs);
     }
 
     public async Task<bool> ExistsAsync(

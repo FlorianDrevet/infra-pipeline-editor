@@ -7,6 +7,14 @@
       "DUPLICATE_KEY": "Cette clé existe déjà",
       "KEY_REQUIRED": "La clé est requise",
       "VALUE_REQUIRED": "La valeur est requise"
+    },
+    "LIST_INPUT": {
+      "DUPLICATE": "Cette valeur existe déjà",
+      "ADD": "Ajouter"
+    },
+    "IP_INPUT": {
+      "OCTET_ARIA": "Octet {{index}}",
+      "PREFIX_ARIA": "Préfixe réseau"
     }
   },
   "LANGUAGE": {
@@ -302,6 +310,60 @@
     "CANCEL": "Annuler",
     "CLOSE": "Fermer",
     "DELETE": "Supprimer",
+    "HELP": "Aide",
+    "SAVE": "Enregistrer",
+    "VNET_HELP_DIALOG": {
+      "RESOURCE_CREATE": {
+        "TITLE": "Valeurs du réseau virtuel",
+        "SUBTITLE": "Ajoutez les plages d'adressage, les résolveurs DNS optionnels et le choix de protection dont Azure a besoin avant de créer ce réseau virtuel."
+      },
+      "RESOURCE_EDIT": {
+        "TITLE": "Valeurs réseau par environnement",
+        "SUBTITLE": "Revoyez les espaces d'adressage et les résolveurs DNS optionnels de chaque environnement sans regrouper plusieurs valeurs dans un seul champ texte."
+      },
+      "NETWORKING_PROFILE": {
+        "TITLE": "Valeurs du profil réseau",
+        "SUBTITLE": "Choisissez l'espace d'adressage et le sous-réseau private endpoint qu'InfraFlowSculptor doit appliquer lorsqu'il provisionne le réseau de la configuration."
+      },
+      "ADDRESS_SPACES_PLACEHOLDER": "Ajoutez un bloc CIDR comme 10.0.0.0/16",
+      "ADDRESS_SPACES_HELPER": "Utilisez des plages de votre landing zone qui ne chevauchent pas d'autres VNets ou réseaux on-prem.",
+      "DNS_SERVERS_PLACEHOLDER": "Ajoutez un serveur DNS comme 10.0.0.4",
+      "DNS_SERVERS_HELPER": "Laissez vide pour utiliser le DNS Azure. Ajoutez des forwarders hub ou des résolveurs on-prem si nécessaire.",
+      "DDOS_TOOLTIP": "Active un plan de protection DDoS dédié. À activer uniquement si vos standards de plateforme ou votre modèle de menaces l'exigent.",
+      "ADDRESS_SPACES": {
+        "TITLE": "Espaces d'adressage",
+        "BODY": "Un espace d'adressage définit les plages CIDR disponibles dans le réseau virtuel. Azure s'appuie sur ces plages pour allouer les sous-réseaux et les adresses IP privées.",
+        "GUIDANCE": "Utilisez des plages validées par votre landing zone ou votre équipe plateforme afin d'éviter les chevauchements avec d'autres VNets, le réseau on-premise ou les peerings."
+      },
+      "DNS_SERVERS": {
+        "TITLE": "Serveurs DNS",
+        "BODY": "Les serveurs DNS définissent la façon dont les workloads du VNet résolvent les noms. Laissez ce champ vide lorsque le DNS Azure par défaut suffit.",
+        "GUIDANCE": "Utilisez vos forwarders de hub, vos résolveurs on-premise ou les IP de services partagés documentées quand la résolution privée doit suivre un chemin d'entreprise existant."
+      },
+      "DDOS": {
+        "TITLE": "Protection DDoS",
+        "BODY": "Activer la protection DDoS change le plan de protection appliqué à ce réseau virtuel et peut impacter le coût, l'exploitation et la posture de sécurité des workloads exposés.",
+        "GUIDANCE": "Activez-la uniquement lorsque vos standards plateforme ou votre modèle de menace imposent un plan DDoS dédié pour les ressources connectées à ce VNet."
+      },
+      "SUBNET_PREFIX": {
+        "TITLE": "Préfixe du sous-réseau private endpoint",
+        "BODY": "Le préfixe de sous-réseau réserve un bloc CIDR plus petit à l'intérieur de l'espace d'adressage du VNet pour les private endpoints et leurs interfaces réseau.",
+        "GUIDANCE": "Choisissez un sous-réseau sans chevauchement, inclus dans la plage du VNet et suffisamment dimensionné pour les private endpoints que vous prévoyez d'ajouter."
+      },
+      "WHY": {
+        "TITLE": "Pourquoi l'application demande ces valeurs",
+        "BODY": "InfraFlowSculptor a besoin de valeurs réseau explicites pour générer des artefacts Azure valides au lieu de deviner des plages qui pourraient contredire votre design plateforme."
+      },
+      "IMPACT": {
+        "TITLE": "Ce que cela impacte",
+        "BODY": "Ces valeurs influencent l'allocation IP, la connectivité privée, la résolution DNS et toutes les ressources qui s'attachent ensuite au réseau virtuel ou au sous-réseau private endpoint."
+      },
+      "VALIDATION": {
+        "ADDRESS_SPACE_REQUIRED": "Ajoutez au moins un espace d'adressage CIDR avant de continuer.",
+        "INVALID_CIDR": "Saisissez un bloc CIDR IPv4 valide comme 10.0.0.0/16.",
+        "INVALID_IPV4": "Saisissez une adresse IPv4 valide comme 10.0.0.4."
+      }
+    },
     "DATE_PICKER": {
       "ARIA": {
         "CLEAR": "Effacer la date",
@@ -366,6 +428,10 @@
         "REPO_URL": "URL du dépôt",
         "REPO_URL_PLACEHOLDER": "https://github.com/org/repo",
         "DEFAULT_BRANCH": "Branche par défaut",
+        "PAT": "Jeton d'accès personnel",
+        "PAT_PLACEHOLDER": "Collez le PAT du dépôt",
+        "PAT_CREATE_HINT": "Requis pour enregistrer ce dépôt.",
+        "PAT_EDIT_HINT": "Laissez vide pour conserver le jeton stocké, ou collez un nouveau jeton pour le remplacer à l'enregistrement.",
         "CONTENT_KINDS": "Types de contenu",
         "CONTENT_KIND_LOCKED": "Imposé par le slot sélectionné",
         "CONTENT_KINDS_REQUIRED": "Au moins un type de contenu est requis.",
@@ -473,6 +539,9 @@
       "PREVIEW_TOOLTIP": "Nom de deploiement estime pour cet environnement",
       "ADD_DIALOG_TITLE": "Nouveau groupe de ressources",
       "ADD_DIALOG_ERROR": "Erreur lors de la creation du groupe de ressources.",
+      "EDIT": "Modifier le groupe de ressources",
+      "EDIT_DIALOG_TITLE": "Modifier le groupe de ressources",
+      "EDIT_DIALOG_ERROR": "Erreur lors de la mise à jour du groupe de ressources.",
       "REFRESH_ERROR": "Erreur lors du rechargement des groupes de ressources.",
       "DELETE": "Supprimer le groupe de ressources",
       "DELETE_CONFIRM_TITLE": "Supprimer le groupe de ressources",
@@ -485,7 +554,8 @@
         "NAME_PLACEHOLDER": "ex : rg-my-project-dev",
         "LOCATION": "Region Azure",
         "CANCEL": "Annuler",
-        "ADD": "Ajouter"
+        "ADD": "Ajouter",
+        "SAVE": "Enregistrer"
       }
     },
     "RESOURCES": {
@@ -522,6 +592,7 @@
       "CATEGORY_MONITORING": "Monitoring & Configuration",
       "CATEGORY_MESSAGING": "Messagerie",
       "CATEGORY_NETWORKING": "R\u00e9seau",
+      "CATEGORY_AI": "IA & Services Cognitifs",
       "ADD_DIALOG_TITLE": "Choisir le type de ressource",
       "ADD_DIALOG_TITLE_KeyVault": "Nouveau Key Vault",
       "ADD_DIALOG_TITLE_RedisCache": "Nouveau Redis Cache",
@@ -542,9 +613,7 @@
       "ADD_DIALOG_TITLE_EventHubNamespace": "Nouveau Event Hub Namespace",
       "ADD_DIALOG_TITLE_ContainerRegistry": "Nouveau Container Registry",
       "ADD_DIALOG_TITLE_VirtualNetwork": "Nouveau r\u00e9seau virtuel",
-      "ADD_DIALOG_TITLE_NetworkSecurityGroup": "Nouveau groupe de s\u00e9curit\u00e9 r\u00e9seau",
-      "ADD_DIALOG_TITLE_PrivateDnsZone": "Nouvelle zone DNS priv\u00e9e",
-      "ADD_DIALOG_TITLE_FrontDoor": "Nouveau Front Door",
+      "ADD_DIALOG_TITLE_DocumentIntelligence": "Nouveau Document Intelligence",
       "ADD_ERROR": "Erreur lors de la creation de la ressource.",
       "FORM": {
         "NAME": "Nom",
@@ -558,6 +627,7 @@
         "ENABLE_NON_SSL": "Activer le port non-SSL",
         "DISABLE_ACCESS_KEY_AUTH": "Désactiver l'authentification par clé d'accès",
         "ENABLE_AAD_AUTH": "Activer l'authentification Entra ID (AAD)",
+        "ENABLE_DDOS_PROTECTION": "Activer la protection DDoS",
         "REDIS_AAD_WARNING": "Lorsque l'authentification par clé d'accès est désactivée, l'authentification Entra ID (AAD) doit être activée.",
         "KIND": "Type de compte",
         "ACCESS_TIER": "Niveau d'acces",
@@ -630,6 +700,10 @@
         "ZONE_REDUNDANCY": "Redondance de zone",
         "ADMIN_USER_ENABLED": "Activer l'utilisateur administrateur",
         "LOG_ANALYTICS_WORKSPACE_ID": "ID workspace Log Analytics",
+        "VNET_ADDRESS_SPACES": "Espaces d'adressage",
+        "VNET_ADDRESS_SPACES_HINT": "Utilisez des plages CIDR comme 10.0.0.0/16. Séparez plusieurs plages par des virgules ou des retours à la ligne.",
+        "VNET_DNS_SERVERS": "Serveurs DNS",
+        "VNET_DNS_SERVERS_HINT": "Optionnel. Saisissez des adresses IPv4 séparées par des virgules ou des retours à la ligne.",
         "CONTAINER_IMAGE": "Image du conteneur",
         "CONTAINER_IMAGE_PLACEHOLDER": "ex : mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
         "CPU_CORES": "C\u0153urs CPU",
@@ -812,6 +886,7 @@
       "TITLE": "Résultats de génération",
       "TAB_BICEP": "Bicep",
       "TAB_PIPELINE": "Pipeline",
+      "TAB_BOOTSTRAP": "Bootstrap",
       "COLLAPSE": "Replier les résultats de génération",
       "EXPAND": "Déplier les résultats de génération",
       "CLOSE": "Fermer les résultats de génération",
@@ -837,6 +912,19 @@
       "TERMINAL_DONE": "Generation terminee \u2014 artefacts pipeline prets",
       "GENERATE_ERROR": "Impossible de generer les fichiers pipeline. Verifiez que votre configuration contient au moins un groupe de ressources avec des ressources.",
       "GENERATE_AUTH_ERROR": "Echec de l'authentification aupres de l'API de generation pipeline. Veuillez vous deconnecter puis vous reconnecter, et reessayez."
+    },
+    "BOOTSTRAP": {
+      "GENERATING": "Generation en cours...",
+      "DOWNLOAD": "Telecharger tous les fichiers",
+      "DOWNLOADING": "Telechargement...",
+      "RETRY": "Reessayer",
+      "ARTIFACTS": "sortie",
+      "TERMINAL_DONE": "Generation terminee — artefacts bootstrap prets",
+      "FILE_LOADING": "Chargement du contenu du fichier...",
+      "FILE_ERROR": "Impossible de charger le contenu du fichier.",
+      "NO_FILES": "Aucun fichier bootstrap genere",
+      "GENERATE_ERROR": "Impossible de generer le pipeline bootstrap. Verifiez que votre configuration a un depot Git configure.",
+      "GENERATE_AUTH_ERROR": "Echec de l'authentification aupres de l'API de generation bootstrap. Veuillez vous deconnecter puis vous reconnecter, et reessayez."
     },
     "PUSH_TO_GIT": {
       "BUTTON": "Pousser vers Git",
@@ -1157,6 +1245,35 @@
       "CANCEL": "Annuler",
       "MISSING_SLOTS": "Le projet doit avoir un dépôt Infrastructure et un dépôt Code applicatif avant de pouvoir pousser.",
       "ERROR_LAYOUT": "Ce type de layout ne supporte pas le push multi-dépôts."
+    },
+    "MULTI_REPO_BULK_PUSH": {
+      "TITLE": "Pousser les artefacts MultiRepo",
+      "SUBTITLE": "Chaque dépôt de configuration reçoit un commit indépendant. Aucune transaction entre dépôts n'est garantie.",
+      "INFRASTRUCTURE_KIND": "Infrastructure",
+      "APPLICATION_KIND": "Code applicatif",
+      "BRANCH_LABEL": "Branche cible",
+      "BRANCH_PLACEHOLDER": "ex : main, feature/...",
+      "COMMIT_LABEL": "Message de commit",
+      "COMMIT_PLACEHOLDER": "ex : chore: mettre à jour les artefacts générés",
+      "COMMIT_HINT": "Requis pour ce push de dépôt.",
+      "COMMIT_REQUIRED_ERROR": "Le message de commit est requis.",
+      "PUSH": "Pousser les artefacts du projet",
+      "PUSHING": "Push des artefacts de configuration...",
+      "SUCCESS_TITLE": "Tous les dépôts configurés sont à jour",
+      "SUCCESS_DESC": "Chaque dépôt de configuration a reçu son propre commit.",
+      "PARTIAL_TITLE": "Push partiellement réussi",
+      "PARTIAL_DESC": "Certains dépôts ont été mis à jour et d'autres ont échoué. Consultez les résultats puis réessayez.",
+      "ERROR_TITLE": "Échec du push des dépôts",
+      "ERROR_DESC": "Aucun dépôt configuré n'a pu être mis à jour. Consultez les résultats puis réessayez.",
+      "NO_REPOSITORIES_TITLE": "Aucun dépôt de configuration",
+      "NO_REPOSITORIES_DESC": "Configurez au moins un dépôt sur une configuration d'infrastructure avant de pousser.",
+      "MISSING_REPOSITORIES": "Chaque configuration d'infrastructure doit avoir un dépôt configuré avant le push.",
+      "REPOSITORY_SUCCESS": "Dépôt mis à jour avec succès",
+      "REPOSITORY_FAILED": "Échec du push du dépôt",
+      "FILE_COUNT": "{{count}} fichier(s) poussé(s)",
+      "RETRY": "Réessayer",
+      "CLOSE": "Fermer",
+      "CANCEL": "Annuler"
     },
     "GENERATION": {
       "TITLE": "Résultats de génération",
@@ -1679,6 +1796,34 @@
       "WARNING_MISSING_ROLE": "Un r\u00f4le requis n'est pas attribu\u00e9",
       "WARNING_MISSING_ENV_CONFIG": "Certains environnements ne sont pas configur\u00e9s"
     },
+    "NETWORKING": {
+      "DESCRIPTION": "Configurez le private endpoint de cette ressource pour restreindre l'acc\u00e8s public et router le trafic via votre r\u00e9seau virtuel.",
+      "PRIVATIZATION_TOGGLE_LABEL": "Activer le private endpoint",
+      "PRIVATIZATION_TOGGLE_DESCRIPTION": "Lorsqu'activ\u00e9, cette ressource n'est accessible qu'\u00e0 travers un private endpoint dans votre r\u00e9seau virtuel.",
+      "VNET_LABEL": "R\u00e9seau virtuel",
+      "SUBNET_LABEL": "Nom du sous-r\u00e9seau",
+      "SUBNET_PLACEHOLDER": "S\u00e9lectionnez un sous-r\u00e9seau",
+      "SUBNET_HINT": "Sous-r\u00e9seau d\u00e9di\u00e9 aux private endpoints dans le r\u00e9seau virtuel s\u00e9lectionn\u00e9.",
+      "DNS_MODE_LABEL": "Mode de r\u00e9solution DNS",
+      "DNS_MODE_AUTO_MANAGED": "Auto-g\u00e9r\u00e9",
+      "DNS_MODE_EXISTING_HUB": "Hub existant",
+      "DNS_MODE_DISABLED": "D\u00e9sactiv\u00e9",
+      "DNS_HUB_RG_LABEL": "ID du resource group du hub DNS",
+      "DNS_HUB_SUB_LABEL": "ID de la souscription du hub DNS",
+      "SAVE": "Enregistrer la configuration",
+      "REMOVE": "Supprimer la configuration",
+      "TOGGLE_ERROR": "\u00c9chec de la mise \u00e0 jour de l'\u00e9tat de privatisation. Veuillez r\u00e9essayer.",
+      "SAVE_ERROR": "\u00c9chec de l'enregistrement de la configuration du private endpoint. Veuillez r\u00e9essayer.",
+      "REMOVE_ERROR": "\u00c9chec de la suppression de la configuration du private endpoint. Veuillez r\u00e9essayer.",
+      "LOAD_ERROR": "\u00c9chec du chargement de la configuration du private endpoint.",
+      "DNS_HELP_TITLE": "Modes de r\u00e9solution DNS",
+      "DNS_HELP_AUTO_MANAGED_TITLE": "Auto-g\u00e9r\u00e9",
+      "DNS_HELP_AUTO_MANAGED_DESC": "Une zone DNS priv\u00e9e est automatiquement cr\u00e9\u00e9e et g\u00e9r\u00e9e avec le private endpoint. Azure g\u00e8re le cycle de vie des enregistrements DNS.",
+      "DNS_HELP_EXISTING_HUB_TITLE": "Hub existant",
+      "DNS_HELP_EXISTING_HUB_DESC": "Les enregistrements DNS sont inscrits dans une zone DNS priv\u00e9e centralis\u00e9e g\u00e9r\u00e9e dans une souscription/resource group hub. Utilisez ceci pour les topologies hub-and-spoke.",
+      "DNS_HELP_DISABLED_TITLE": "D\u00e9sactiv\u00e9",
+      "DNS_HELP_DISABLED_DESC": "Aucune zone DNS priv\u00e9e n'est configur\u00e9e. Vous devez g\u00e9rer la r\u00e9solution DNS manuellement (ex : fichier hosts, serveur DNS personnalis\u00e9)."
+    },
     "APP_PIPELINE": {
       "DESCRIPTION": "Configurez les param\u00e8tres de build et de d\u00e9ploiement utilis\u00e9s lors de la g\u00e9n\u00e9ration de la pipeline applicative Azure DevOps.",
       "SECTION_IDENTITY": "Identit\u00e9 de l'application",
@@ -1705,23 +1850,6 @@
       "LOADING_DIRECTORIES": "Chargement des r\u00e9pertoires...",
       "NO_DIRECTORIES_FOUND": "Aucun r\u00e9pertoire trouv\u00e9",
       "REPO_ROOT": "racine du d\u00e9p\u00f4t"
-    },
-    "NETWORKING": {
-      "TITLE": "R\u00e9seau",
-      "PRIVATE_ENDPOINTS": "Points de terminaison priv\u00e9s",
-      "ADD_PE": "Ajouter un point de terminaison priv\u00e9",
-      "NO_PE": "Aucun point de terminaison priv\u00e9 configur\u00e9",
-      "SUBNET": "Sous-r\u00e9seau",
-      "GROUP_ID": "ID de groupe",
-      "AUTO_APPROVAL": "Approbation automatique",
-      "DNS_ZONE": "Zone DNS priv\u00e9e",
-      "CUSTOM_NIC": "Nom NIC personnalis\u00e9",
-      "REMOVE_PE": "Supprimer",
-      "CONFIRM_REMOVE": "Supprimer ce point de terminaison priv\u00e9 ?",
-      "CANCEL": "Annuler",
-      "NOT_SUPPORTED": "Ce type de ressource ne prend pas en charge les points de terminaison priv\u00e9s.",
-      "LOAD_ERROR": "Impossible de charger les points de terminaison priv\u00e9s. Veuillez r\u00e9essayer.",
-      "REMOVE_ERROR": "Impossible de supprimer le point de terminaison priv\u00e9. Veuillez r\u00e9essayer."
     },
     "PIPELINE_OPTIONS": {
       "DESCRIPTION": "Configurez les étapes optionnelles du pipeline : tests, analyse de code, linting et validation post-déploiement.",
@@ -1854,6 +1982,7 @@
       "ACCESS_TIER": "Niveau d'acc\u00e8s",
       "ALLOW_BLOB_PUBLIC": "Autoriser l'acc\u00e8s public aux blobs",
       "HTTPS_ONLY": "Trafic HTTPS uniquement",
+      "ENABLE_DDOS_PROTECTION": "Activer la protection DDoS",
       "OS_TYPE": "Type d'OS",
       "RUNTIME_STACK": "Pile d'ex\u00e9cution",
       "RUNTIME_VERSION": "Version du runtime",
@@ -1945,6 +2074,12 @@
       "SQL_SERVER_SECTION_DESC": "D\u00e9finissez la version TLS minimale accept\u00e9e pour les connexions.",
       "SQL_DATABASE_SECTION": "Configuration de la base de donn\u00e9es",
       "SQL_DATABASE_SECTION_DESC": "D\u00e9finissez le SKU, la taille maximale et la redondance de zone par environnement.",
+      "VIRTUAL_NETWORK_SECTION": "Adressage et DNS",
+      "VIRTUAL_NETWORK_SECTION_DESC": "Configurez les espaces d'adressage par environnement et les serveurs DNS personnalisés optionnels pour ce réseau virtuel.",
+      "VNET_ADDRESS_SPACES": "Espaces d'adressage",
+      "VNET_ADDRESS_SPACES_HINT": "Utilisez des plages CIDR comme 10.0.0.0/16. Séparez plusieurs plages par des virgules ou des retours à la ligne.",
+      "VNET_DNS_SERVERS": "Serveurs DNS",
+      "VNET_DNS_SERVERS_HINT": "Optionnel. Saisissez des adresses IPv4 séparées par des virgules ou des retours à la ligne.",
       "DEPLOYMENT_MODE": "Mode de d\u00e9ploiement",
       "DEPLOYMENT_MODE_CODE": "Code",
       "DEPLOYMENT_MODE_CONTAINER": "Conteneur",
@@ -2612,7 +2747,12 @@
     "PENDING_CUSTOM_DOMAINS_ITEM": "Domaine « {{domain}} » sur l'environnement {{environment}}.",
     "PENDING_DOCKER_IMAGES_TITLE": "Images Docker non confirmées",
     "PENDING_DOCKER_IMAGES_SUBTITLE": "Les images suivantes n'ont pas été confirmées par l'utilisateur. Une image par défaut (pause) sera utilisée dans le Bicep généré tant qu'elles ne seront pas validées.",
-    "PENDING_DOCKER_IMAGES_ITEM": "Image « {{image}} » non confirmée"
+    "PENDING_DOCKER_IMAGES_ITEM": "Image « {{image}} » non confirmée",
+    "INCOMPLETE_ENV_TITLE": "Configuration des environnements incomplète",
+    "INCOMPLETE_ENV_SUBTITLE": "Certains environnements n'ont pas toutes les informations nécessaires pour générer les fichiers de déploiement.",
+    "INCOMPLETE_ENV_SUBSCRIPTION": "Le Subscription ID Azure n'est pas renseigné.",
+    "INCOMPLETE_ENV_CONNECTION": "La Connexion Azure (service connection) n'est pas renseignée.",
+    "INCOMPLETE_ENV_BOTH": "Le Subscription ID Azure et la Connexion Azure ne sont pas renseignés."
   },
   "ABBREVIATIONS": {
     "TITLE": "Abréviations des ressources",
@@ -2721,5 +2861,49 @@
       "COPIED": "Copié !",
       "DONE": "J'ai copié le jeton"
     }
+  },
+  "CONFIG_DETAIL_NETWORKING": {
+    "TAB_LABEL": "Réseau",
+    "MODE": {
+      "LABEL": "Mode réseau",
+      "SIMPLIFIED": "Simplifié",
+      "STANDARD": "Standard",
+      "ADVANCED": "Avancé"
+    },
+    "VNET": {
+      "TITLE": "Configuration VNet",
+      "SOURCE_LABEL": "Source du réseau virtuel",
+      "CREATE_NEW": "Créer un nouveau VNet",
+      "USE_EXISTING": "Utiliser un VNet existant",
+      "USE_HUB_SPOKE": "Hub & Spoke",
+      "ADDRESS_SPACE": "Espace d'adressage",
+      "ADDRESS_SPACE_PLACEHOLDER": "10.0.0.0/16",
+      "ADDRESS_SPACE_HINT": "Utilisez des plages CIDR comme 10.0.0.0/16. Vous pouvez séparer plusieurs plages par des virgules ou des retours à la ligne.",
+      "SUBNET_PREFIX": "Préfixe de sous-réseau",
+      "SUBNET_PREFIX_PLACEHOLDER": "10.0.1.0/24",
+      "SUBNET_PREFIX_HINT": "Utilisez une plage de sous-réseau incluse dans l'espace d'adressage du VNet, par exemple 10.0.1.0/24.",
+      "EXISTING_VNET_ID": "ID du VNet existant",
+      "EXISTING_VNET_ID_PLACEHOLDER": "/subscriptions/.../virtualNetworks/...",
+      "PE_SUBNET_NAME": "Nom du sous-réseau Private Endpoints",
+      "PE_SUBNET_NAME_PLACEHOLDER": "snet-pe"
+    },
+    "DNS": {
+      "TITLE": "Configuration DNS",
+      "MODE_LABEL": "Mode DNS",
+      "AUTO_MANAGED": "Automatique",
+      "CENTRALIZED_HUB": "Hub centralisé",
+      "CUSTOM": "Personnalisé",
+      "HUB_RG_ID": "Resource Group du hub DNS",
+      "HUB_RG_ID_PLACEHOLDER": "rg-dns-hub",
+      "HUB_SUBSCRIPTION_ID": "ID de souscription du hub",
+      "HUB_SUBSCRIPTION_ID_PLACEHOLDER": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    },
+    "PRIVATIZATION": {
+      "TITLE": "Privatisation des ressources",
+      "DESCRIPTION": "Activez la privatisation pour chaque ressource à exposer via Private Endpoint.",
+      "EMPTY": "Aucune ressource dans cette configuration."
+    },
+    "SAVE_SUCCESS": "Profil réseau mis à jour",
+    "SAVE_ERROR": "Erreur lors de la mise à jour du profil réseau"
   }
 }

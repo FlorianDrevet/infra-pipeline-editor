@@ -10,6 +10,5 @@ public record UpdateVirtualNetworkCommand(
     AzureResourceId Id,
     Name Name,
     Location Location,
-    bool EnableDdosProtection = false,
     IReadOnlyList<VirtualNetworkEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<VirtualNetworkResult>, IHasEnvironmentSettings;

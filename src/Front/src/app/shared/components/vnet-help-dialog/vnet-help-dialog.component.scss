@@ -1,0 +1,85 @@
+@use 'scss/main' as *;
+
+.vnet-help-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-16);
+  min-width: min(42rem, 100%);
+}
+
+.vnet-help-dialog__subtitle {
+  margin: 0;
+  color: var(--ifs-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.vnet-help-dialog__sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-12);
+}
+
+.vnet-help-dialog__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ifs-space-8);
+  padding: var(--ifs-space-16);
+  border-radius: var(--ifs-radius-lg);
+  border: 1px solid var(--ifs-border-subtle);
+  background:
+    linear-gradient(180deg, rgba(78, 134, 244, 0.08) 0%, rgba(78, 134, 244, 0) 100%),
+    var(--ifs-surface-1);
+
+  h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ifs-text-primary);
+  }
+
+  p {
+    margin: 0;
+    color: var(--ifs-text-secondary);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
+
+.vnet-help-dialog__section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--ifs-space-10);
+}
+
+.vnet-help-dialog__icon-shell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(78, 134, 244, 0.26);
+  background: rgba(78, 134, 244, 0.14);
+  color: var(--ifs-brand-400);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.vnet-help-dialog__guidance {
+  padding: var(--ifs-space-12);
+  border-radius: var(--ifs-radius-md);
+  background: rgba(58, 163, 201, 0.1);
+  color: var(--ifs-text-primary);
+}
+
+@media (max-width: 48rem) {
+  .vnet-help-dialog {
+    min-width: 0;
+  }
+}

@@ -39,4 +39,20 @@ public class ResourceDefinition
     /// Only applicable to compute resources (ContainerApp, WebApp, FunctionApp).
     /// </summary>
     public IReadOnlyList<CustomDomainDefinition> CustomDomains { get; set; } = [];
+
+    /// <summary>
+    /// Whether this resource is marked for private endpoint deployment via the networking profile.
+    /// </summary>
+    public bool IsPrivatized { get; set; }
+
+    /// <summary>
+    /// Per-resource private endpoint configuration (V3 resource-level PE).
+    /// Populated only when <see cref="IsPrivatized"/> is <c>true</c>.
+    /// </summary>
+    public PrivateEndpointDefinition? PrivateEndpointConfig { get; set; }
+
+    /// <summary>
+    /// Subnet configurations for VirtualNetwork resources.
+    /// </summary>
+    public IReadOnlyList<SubnetDefinition> Subnets { get; set; } = [];
 }

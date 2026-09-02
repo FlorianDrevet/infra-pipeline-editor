@@ -47,7 +47,10 @@ public sealed class UpdateVirtualNetworkCommandHandlerTests
             _existingEntity.Id,
             new Name("vnet-renamed"),
             new Location(Location.LocationEnum.WestEurope),
-            EnableDdosProtection: true);
+            EnvironmentSettings:
+            [
+                new VirtualNetworkEnvironmentConfigData("prod", ["10.0.0.0/16"], null, EnableDdosProtection: true),
+            ]);
         _virtualNetworkRepository.Update(Arg.Any<VirtualNetwork>())
             .Returns(callInfo => (VirtualNetwork)callInfo.Args()[0]);
         _sut = new UpdateVirtualNetworkCommandHandler(
@@ -106,7 +109,7 @@ public sealed class UpdateVirtualNetworkCommandHandlerTests
         result.IsError.Should().BeFalse();
         _virtualNetworkRepository.Received(1).Update(Arg.Is<VirtualNetwork>(e =>
             e.Name.Value == "vnet-renamed"
-            && e.EnableDdosProtection));
+            && e.EnvironmentSettings.Any(es => es.EnableDdosProtection)));
         _mapper.Received(1).Map<VirtualNetworkResult>(Arg.Any<VirtualNetwork>());
     }
 }

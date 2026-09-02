@@ -84,6 +84,13 @@ public sealed record GeneratedTypeModule
     public bool UsesParameterizedIdentity { get; init; }
 
     /// <summary>
+    /// Logical names of the user-assigned identity resources assigned to this resource
+    /// (from role assignments, <c>AssignedUserAssignedIdentityName</c>, or <c>acrPullIdentityId</c>).
+    /// Used by <c>MainBicepAssembler</c> to emit <c>userAssignedIdentityId</c> references in <c>main.bicep</c>.
+    /// </summary>
+    public IReadOnlyList<string> AssignedUserAssignedIdentityNames { get; init; } = [];
+
+    /// <summary>
     /// Maps a Bicep parameter name in this module to the logical name and resource type of the parent resource
     /// whose module <c>outputs.id</c> should be passed.
     /// Example: <c>"appServicePlanId" → ("my-asp", "AppServicePlan")</c> generates

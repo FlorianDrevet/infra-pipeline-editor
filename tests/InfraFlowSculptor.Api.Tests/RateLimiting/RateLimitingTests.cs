@@ -50,7 +50,8 @@ public sealed class RateLimitingTests
         "DownloadProjectBootstrapPipeline",
         "PushProjectBootstrapPipelineToGit",
         "PushProjectGeneratedArtifactsToGit",
-        "PushProjectArtifactsToMultiRepo",
+        "PushProjectSplitInfraCodeArtifacts",
+        "PushProjectMultiRepoArtifacts",
     ];
 
     [Fact]

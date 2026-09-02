@@ -55,7 +55,8 @@ internal static class ProjectRouteNames
     internal const string GetProjectBootstrapPipelineFileContent = nameof(GetProjectBootstrapPipelineFileContent);
     internal const string PushProjectBootstrapPipelineToGit = nameof(PushProjectBootstrapPipelineToGit);
     internal const string PushProjectGeneratedArtifactsToGit = nameof(PushProjectGeneratedArtifactsToGit);
-    internal const string PushProjectArtifactsToMultiRepo = nameof(PushProjectArtifactsToMultiRepo);
+    internal const string PushProjectSplitInfraCodeArtifacts = nameof(PushProjectSplitInfraCodeArtifacts);
+    internal const string PushProjectMultiRepoArtifacts = nameof(PushProjectMultiRepoArtifacts);
     internal const string GetProjectLatestGeneration = nameof(GetProjectLatestGeneration);
     internal const string ListProjectPipelineVariableGroups = nameof(ListProjectPipelineVariableGroups);
     internal const string AddProjectPipelineVariableGroup = nameof(AddProjectPipelineVariableGroup);

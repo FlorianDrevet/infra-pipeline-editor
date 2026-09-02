@@ -59,7 +59,7 @@ public static class ImportController
                                 environment.Prefix ?? string.Empty,
                                 environment.Suffix ?? string.Empty,
                                 environment.Location,
-                                environment.SubscriptionId,
+                                environment.SubscriptionId ?? Guid.Empty,
                                 environment.Order,
                                 environment.RequiresApproval)).ToList(),
                             request.ResourceFilter);

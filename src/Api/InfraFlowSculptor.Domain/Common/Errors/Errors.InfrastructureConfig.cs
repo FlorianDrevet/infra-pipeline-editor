@@ -78,6 +78,18 @@ public static partial class Errors
             description: $"File '{filePath}' was not found."
         );
 
+        /// <summary>Returned when no generated bootstrap files exist for the given configuration.</summary>
+        public static Error BootstrapFilesNotFoundError(Guid configId) => Error.NotFound(
+            code: "InfrastructureConfig.BootstrapFilesNotFound",
+            description: $"No generated bootstrap files found for configuration '{configId}'."
+        );
+
+        /// <summary>Returned when a specific bootstrap file is not found in the latest generation.</summary>
+        public static Error BootstrapFileNotFoundError(string filePath) => Error.NotFound(
+            code: "InfrastructureConfig.BootstrapFileNotFound",
+            description: $"File '{filePath}' was not found."
+        );
+
         /// <summary>Returned when no naming template override exists for the given resource type.</summary>
         public static Error ResourceNamingTemplateNotFoundError(string resourceType) => Error.NotFound(
             code: "InfrastructureConfig.ResourceNamingTemplateNotFound",

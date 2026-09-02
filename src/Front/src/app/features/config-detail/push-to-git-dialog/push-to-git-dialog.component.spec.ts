@@ -6,6 +6,7 @@ import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dia
 import { DsAutocompleteComponent, DsAutocompleteOption, DsButtonComponent } from '../../../shared/components/ds';
 import { BicepGeneratorService } from '../../../shared/services/bicep-generator.service';
 import { PipelineGeneratorService } from '../../../shared/services/pipeline-generator.service';
+import { BootstrapGeneratorService } from '../../../shared/services/bootstrap-generator.service';
 import { ProjectService } from '../../../shared/services/project.service';
 import { GitBranchResponse } from '../../../shared/interfaces/project.interface';
 
@@ -24,6 +25,7 @@ interface DeferredPromise<TValue> {
 interface ComponentSetupOptions {
   branchesPromise?: Promise<GitBranchResponse[]>;
   waitForBranches?: boolean;
+  data?: Partial<PushToGitDialogData>;
 }
 
 function createDeferredPromise<TValue>(): DeferredPromise<TValue> {
@@ -52,6 +54,7 @@ describe('PushToGitDialogComponent', () => {
   let componentTestApi: PushToGitDialogComponentTestApi;
   let bicepGeneratorServiceSpy: jasmine.SpyObj<BicepGeneratorService>;
   let pipelineGeneratorServiceSpy: jasmine.SpyObj<PipelineGeneratorService>;
+  let bootstrapGeneratorServiceSpy: jasmine.SpyObj<BootstrapGeneratorService>;
   let projectServiceSpy: jasmine.SpyObj<ProjectService>;
 
   const mockData: PushToGitDialogData = {
@@ -61,6 +64,10 @@ describe('PushToGitDialogComponent', () => {
 
   async function createComponent(options: ComponentSetupOptions = {}): Promise<void> {
     projectServiceSpy.listBranches.and.returnValue(options.branchesPromise ?? Promise.resolve(createBranchResponses()));
+
+    if (options.data) {
+      TestBed.overrideProvider(MAT_DIALOG_DATA, { useValue: { ...mockData, ...options.data } });
+    }
 
     fixture = TestBed.createComponent(PushToGitDialogComponent);
     component = fixture.componentInstance;
@@ -78,6 +85,7 @@ describe('PushToGitDialogComponent', () => {
 
     bicepGeneratorServiceSpy = jasmine.createSpyObj<BicepGeneratorService>('BicepGeneratorService', ['pushToGit']);
     pipelineGeneratorServiceSpy = jasmine.createSpyObj<PipelineGeneratorService>('PipelineGeneratorService', ['pushToGit']);
+    bootstrapGeneratorServiceSpy = jasmine.createSpyObj<BootstrapGeneratorService>('BootstrapGeneratorService', ['pushToGit']);
     projectServiceSpy = jasmine.createSpyObj<ProjectService>('ProjectService', [
       'listBranches',
       'pushProjectBicepToGit',
@@ -91,6 +99,12 @@ describe('PushToGitDialogComponent', () => {
       commitSha: '12345678',
       fileCount: 1,
     });
+    bootstrapGeneratorServiceSpy.pushToGit.and.resolveTo({
+      branchName: 'main',
+      branchUrl: 'https://example.test/branch/main',
+      commitSha: '87654321',
+      fileCount: 1,
+    });
 
     await TestBed.configureTestingModule({
       imports: [PushToGitDialogComponent, TranslateModule.forRoot()],
@@ -99,6 +113,7 @@ describe('PushToGitDialogComponent', () => {
         { provide: MAT_DIALOG_DATA, useValue: mockData },
         { provide: BicepGeneratorService, useValue: bicepGeneratorServiceSpy },
         { provide: PipelineGeneratorService, useValue: pipelineGeneratorServiceSpy },
+        { provide: BootstrapGeneratorService, useValue: bootstrapGeneratorServiceSpy },
         { provide: ProjectService, useValue: projectServiceSpy },
       ],
     }).compileComponents();
@@ -133,7 +148,9 @@ describe('PushToGitDialogComponent', () => {
     expect(componentTestApi.branchOptions()).toEqual([]);
 
     const autocomplete = fixture.debugElement.query(By.directive(DsAutocompleteComponent)).componentInstance as DsAutocompleteComponent;
-    const pushButton = fixture.debugElement.query(By.directive(DsButtonComponent)).componentInstance as DsButtonComponent;
+    // The form state renders "Close" (ghost) then "Push" (primary) — take the
+    // Push button specifically, not the first DsButtonComponent match.
+    const pushButton = getPushButton();
 
     expect(autocomplete.loading()).toBeTrue();
     expect(autocomplete.options()).toEqual([]);
@@ -179,8 +196,28 @@ describe('PushToGitDialogComponent', () => {
     componentTestApi.branchControl.setValue('hotfix/manual');
     fixture.detectChanges();
 
-    const pushButton = fixture.debugElement.query(By.directive(DsButtonComponent)).componentInstance as DsButtonComponent;
+    const pushButton = getPushButton();
 
     expect(pushButton.disabled()).toBeFalse();
   });
+
+  it('routes config-level pushes to the bootstrap service when isBootstrap is set', async () => {
+    await createComponent({ data: { isBootstrap: true } });
+
+    await componentTestApi.onPush();
+
+    expect(bootstrapGeneratorServiceSpy.pushToGit).toHaveBeenCalledOnceWith(
+      'cfg-1',
+      jasmine.objectContaining({ branchName: 'main' }),
+    );
+    expect(bicepGeneratorServiceSpy.pushToGit).not.toHaveBeenCalled();
+    expect(pipelineGeneratorServiceSpy.pushToGit).not.toHaveBeenCalled();
+  });
+
+  // The "form" state renders two DsButtonComponent instances (Close, then Push);
+  // querying by directive alone would silently match Close instead of Push.
+  function getPushButton(): DsButtonComponent {
+    const buttons = fixture.debugElement.queryAll(By.directive(DsButtonComponent));
+    return buttons[buttons.length - 1].componentInstance as DsButtonComponent;
+  }
 });

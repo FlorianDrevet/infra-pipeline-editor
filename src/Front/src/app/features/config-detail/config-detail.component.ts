@@ -26,6 +26,7 @@ import {
   EditAbbreviationDialogResult,
 } from '../../shared/components/edit-abbreviation-dialog/edit-abbreviation-dialog.component';
 import { AddResourceGroupDialogComponent, AddResourceGroupDialogData } from './add-resource-group-dialog/add-resource-group-dialog.component';
+import { EditResourceGroupDialogComponent, EditResourceGroupDialogData } from './edit-resource-group-dialog/edit-resource-group-dialog.component';
 import { AddResourceDialogComponent, AddResourceDialogData } from './add-resource-dialog/add-resource-dialog.component';
 import {
   AddNamingTemplateDialogComponent,
@@ -78,6 +79,7 @@ import {
   IncomingCrossConfigReferenceResponse,
 } from '../../shared/interfaces/cross-config-reference.interface';
 import {
+  EnvironmentConfigIssue,
   GenerationDiagnosticsDialogComponent,
   GenerationDiagnosticsDialogData,
   MissingEnvResource,
@@ -102,6 +104,7 @@ import { ConfigDetailTagsSectionComponent } from './sections/tags/config-detail-
 import { createConfigDetailTagsSectionController } from './sections/tags/config-detail-tags-section.controller';
 import { ConfigDetailVariableGroupsSectionComponent } from './sections/variable-groups/config-detail-variable-groups-section.component';
 import { createConfigDetailVariableGroupsSectionController } from './sections/variable-groups/config-detail-variable-groups-section.controller';
+
 import {
   CONFIG_DETAIL_ROUTE_TABS,
   CONFIG_DETAIL_TAB_IDS,
@@ -112,6 +115,10 @@ import {
 import { LanguageService } from '../../shared/services/language.service';
 
 type ResourceGroupResourcesById = { [rgId: string]: AzureResourceResponse[] | undefined };
+
+const ADD_RESOURCE_DIALOG_WIDTH = '1120px';
+const ADD_RESOURCE_DIALOG_MAX_WIDTH = '96vw';
+const ADD_RESOURCE_DIALOG_MAX_HEIGHT = '90vh';
 
 
 @Component({
@@ -197,6 +204,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     getConfig: () => this.config(),
     isProjectMultiRepo: () => this.isProjectMultiRepo(),
     showDiagnosticsDialog: () => this.showDiagnosticsDialog(),
+    openBootstrapPushToGitDialog: () => this.openBootstrapPushToGitDialog(),
   });
 
   // ─── Inheritance ───
@@ -390,6 +398,8 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     if (typedTabId === 'cross-config-refs' && !this.crossConfigLoaded()) {
       await this.loadCrossConfigReferences();
     }
+
+
   }
   protected readonly resourcesSectionViewModel = computed<ConfigDetailResourcesSectionViewModel | null>(() => {
     const config = this.config();
@@ -422,6 +432,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
       getResourceDiagnostics: (resourceId) => this.getResourceDiagnostics(resourceId),
       onOpenAddResourceDialog: (resourceGroupId) => this.openAddResourceDialog(resourceGroupId),
       onOpenDeleteResourceGroupDialog: (resourceGroup) => this.openDeleteResourceGroupDialog(resourceGroup),
+      onOpenEditResourceGroupDialog: (resourceGroup) => this.openEditResourceGroupDialog(resourceGroup),
       onOpenDeleteResourceDialog: (resource, resourceGroupId) => {
         this.openDeleteResourceDialog(resource, resourceGroupId);
       },
@@ -601,6 +612,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(AddResourceGroupDialogComponent, {
       data: {
         infraConfigId: currentConfig.id,
+        defaultLocation: this.projectSortedEnvironments()[0]?.location,
       } satisfies AddResourceGroupDialogData,
       width: '440px',
     });
@@ -846,8 +858,9 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
         location: rg?.location ?? '',
         environments: envs.map(e => ({ name: e.name })),
       } satisfies AddResourceDialogData,
-      width: '720px',
-      maxHeight: '90vh',
+      width: ADD_RESOURCE_DIALOG_WIDTH,
+      maxWidth: ADD_RESOURCE_DIALOG_MAX_WIDTH,
+      maxHeight: ADD_RESOURCE_DIALOG_MAX_HEIGHT,
     });
 
     dialogRef.afterClosed().subscribe(async (created: boolean) => {
@@ -880,8 +893,9 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
           resourceType: parentResource.resourceType,
         },
       } satisfies AddResourceDialogData,
-      width: '720px',
-      maxHeight: '90vh',
+      width: ADD_RESOURCE_DIALOG_WIDTH,
+      maxWidth: ADD_RESOURCE_DIALOG_MAX_WIDTH,
+      maxHeight: ADD_RESOURCE_DIALOG_MAX_HEIGHT,
     });
 
     dialogRef.afterClosed().subscribe(async (created: boolean) => {
@@ -1189,6 +1203,31 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ─── Edit Resource Group ───
+
+  protected openEditResourceGroupDialog(rg: ResourceGroupResponse): void {
+    const dialogRef = this.dialog.open(EditResourceGroupDialogComponent, {
+      data: {
+        resourceGroup: rg,
+      } satisfies EditResourceGroupDialogData,
+      width: '440px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: ResourceGroupResponse | null) => {
+      if (result) {
+        try {
+          const currentConfig = this.config();
+          if (currentConfig) {
+            const resourceGroups = await this.infraConfigService.getResourceGroups(currentConfig.id);
+            this.resourceGroups.set(resourceGroups);
+          }
+        } catch {
+          this.rgErrorKey.set('CONFIG_DETAIL.RESOURCE_GROUPS.REFRESH_ERROR');
+        }
+      }
+    });
+  }
+
   // ─── Delete Resource ───
 
   private readonly CASCADE_PARENT_TYPES = new Set(['LogAnalyticsWorkspace', 'AppServicePlan', 'SqlServer']);
@@ -1335,6 +1374,21 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }
 
+  /**
+   * Dedicated bootstrap push, invoked from the Bootstrap tab of the generation
+   * section. Kept separate from `openPushToGitDialog()` (header button) which
+   * never sets `isPipeline`/`isBootstrap` and therefore only ever pushes Bicep —
+   * see the D12 defect tracked in `docs/features/multirepo-bootstrap-d09-implementation-tracker.md`.
+   */
+  private openBootstrapPushToGitDialog(): void {
+    const configId = this.config()?.id;
+    const projectId = this.config()?.projectId;
+    if (!configId || !projectId) return;
+
+    const data: PushToGitDialogData = { configId, projectId, isBootstrap: true };
+    this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
+  }
+
   protected openDeleteConfigDialog(): void {
     const currentConfig = this.config();
     if (!currentConfig) return;
@@ -1380,10 +1434,18 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     const pendingCustomDomains = await this.customDomainDiagnosticsService.collectPendingIssues(
       Object.values(allResources).flatMap((resources) => resources ?? []),
     );
+    const incompleteEnvironments: EnvironmentConfigIssue[] = (this.project()?.environmentDefinitions ?? [])
+      .filter((env) => !env.subscriptionId || !env.azureResourceManagerConnection)
+      .map((env) => ({
+        environmentName: env.name,
+        missingSubscriptionId: !env.subscriptionId,
+        missingAzureConnection: !env.azureResourceManagerConnection,
+      }));
 
     if (currentDiagnostics.length === 0
       && missingEnvResources.length === 0
-      && pendingCustomDomains.length === 0) {
+      && pendingCustomDomains.length === 0
+      && incompleteEnvironments.length === 0) {
       return true;
     }
 
@@ -1393,6 +1455,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
       currentDiagnostics,
       missingEnvResources,
       pendingCustomDomains,
+      incompleteEnvironments,
     );
     const dialogRef = this.dialog.open(GenerationDiagnosticsDialogComponent, {
       data: dialogData,
@@ -1463,6 +1526,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
     diagnostics: ResourceDiagnosticResponse[],
     missingEnvResources: MissingEnvResource[],
     pendingCustomDomains: PendingCustomDomainIssue[],
+    incompleteEnvironments: EnvironmentConfigIssue[],
   ): GenerationDiagnosticsDialogData {
     return {
       configDiagnostics: diagnostics.length > 0
@@ -1486,6 +1550,7 @@ export class ConfigDetailComponent implements OnInit, OnDestroy {
           domains: pendingCustomDomains,
         }]
         : undefined,
+      incompleteEnvironmentConfigs: incompleteEnvironments.length > 0 ? incompleteEnvironments : undefined,
     };
   }
 

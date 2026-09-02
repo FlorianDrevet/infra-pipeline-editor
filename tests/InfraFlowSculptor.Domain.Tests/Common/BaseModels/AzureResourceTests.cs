@@ -1,6 +1,8 @@
 using System.Reflection;
 using FluentAssertions;
 using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using InfraFlowSculptor.Domain.Common.OwnedEntities;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
@@ -127,6 +129,62 @@ public sealed class AzureResourceTests
             .Where(exception => exception.GetType() == typeof(InvalidCastException) || exception.GetType() == typeof(NotSupportedException));
         mutateOutputs.Should().Throw<Exception>()
             .Where(exception => exception.GetType() == typeof(InvalidCastException) || exception.GetType() == typeof(NotSupportedException));
+    }
+
+    [Fact]
+    public void Given_PrivateEndpointConfiguration_When_ConfiguringResource_Then_StoresResourceLevelNetworkSettings()
+    {
+        // Arrange
+        var sut = CreateValidKeyVault();
+        var virtualNetworkId = AzureResourceId.CreateUnique();
+        var subnetName = new Name("snet-private-endpoints");
+        var configuration = PrivateEndpointConfiguration.AutoManaged(virtualNetworkId, subnetName);
+
+        // Act
+        sut.ConfigurePrivateEndpoint(configuration);
+
+        // Assert
+        sut.IsPrivatized.Should().BeTrue();
+        sut.PrivateEndpointConfiguration.Should().NotBeNull();
+        sut.PrivateEndpointConfiguration!.VirtualNetworkId.Should().Be(virtualNetworkId);
+        sut.PrivateEndpointConfiguration.SubnetName.Should().Be(subnetName);
+        sut.PrivateEndpointConfiguration.DnsMode.Value.Should().Be(PrivateEndpointDnsMode.Mode.AutoManaged);
+    }
+
+    [Fact]
+    public void Given_PrivateEndpointConfiguration_When_DisablingPrivateEndpoint_Then_ClearsResourceLevelNetworkSettings()
+    {
+        // Arrange
+        var sut = CreateValidKeyVault();
+        var configuration = PrivateEndpointConfiguration.Disabled(
+            AzureResourceId.CreateUnique(),
+            new Name("snet-private-endpoints"));
+        sut.ConfigurePrivateEndpoint(configuration);
+
+        // Act
+        sut.DisablePrivateEndpoint();
+
+        // Assert
+        sut.IsPrivatized.Should().BeFalse();
+        sut.PrivateEndpointConfiguration.Should().BeNull();
+    }
+
+    [Fact]
+    public void Given_ExistingHubDnsModeWithoutHubResourceGroup_When_CreatingPrivateEndpointConfiguration_Then_Throws()
+    {
+        // Arrange
+        var virtualNetworkId = AzureResourceId.CreateUnique();
+        var subnetName = new Name("snet-private-endpoints");
+
+        // Act
+        Action act = () => PrivateEndpointConfiguration.ExistingHub(
+            virtualNetworkId,
+            subnetName,
+            string.Empty,
+            "11111111-1111-1111-1111-111111111111");
+
+        // Assert
+        act.Should().Throw<ArgumentException>();
     }
 
     private static KeyVault CreateValidKeyVault()

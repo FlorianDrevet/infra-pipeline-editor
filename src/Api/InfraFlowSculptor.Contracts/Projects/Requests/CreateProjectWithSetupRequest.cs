@@ -51,8 +51,8 @@ public sealed class EnvironmentSetupRequest
     [Required]
     public required string Location { get; init; }
 
-    /// <summary>Optional Azure subscription ID; <see cref="Guid.Empty"/> means "configure later".</summary>
-    public Guid SubscriptionId { get; init; } = Guid.Empty;
+    /// <summary>Optional Azure subscription ID; <c>null</c> means "configure later".</summary>
+    public Guid? SubscriptionId { get; init; }
 
     /// <summary>Deployment order (0-based).</summary>
     public int Order { get; init; }

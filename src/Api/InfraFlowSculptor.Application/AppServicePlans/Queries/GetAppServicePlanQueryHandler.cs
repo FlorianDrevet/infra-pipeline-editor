@@ -10,7 +10,6 @@ namespace InfraFlowSculptor.Application.AppServicePlans.Queries;
 /// <summary>Handles the <see cref="GetAppServicePlanQuery"/> request.</summary>
 public class GetAppServicePlanQueryHandler(
     IAppServicePlanRepository appServicePlanRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetAppServicePlanQuery, AppServicePlanResult>
@@ -24,11 +23,7 @@ public class GetAppServicePlanQueryHandler(
         if (plan is null)
             return Errors.AppServicePlan.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(plan.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.AppServicePlan.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(plan.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return Errors.AppServicePlan.NotFoundError(query.Id);
 

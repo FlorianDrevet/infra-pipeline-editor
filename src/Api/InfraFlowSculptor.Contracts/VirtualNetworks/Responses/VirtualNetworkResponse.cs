@@ -5,7 +5,6 @@ namespace InfraFlowSculptor.Contracts.VirtualNetworks.Responses;
 /// <param name="ResourceGroupId">Identifier of the parent Resource Group.</param>
 /// <param name="Name">Display name of the Virtual Network.</param>
 /// <param name="Location">Azure region where the Virtual Network is deployed.</param>
-/// <param name="EnableDdosProtection">Whether Azure DDoS Protection Standard is enabled.</param>
 /// <param name="Subnets">Subnets configured in this virtual network.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
 /// <param name="IsExisting">Whether the resource references an already-existing Azure resource.</param>
@@ -14,7 +13,6 @@ public record VirtualNetworkResponse(
     string ResourceGroupId,
     string Name,
     string Location,
-    bool EnableDdosProtection,
     IReadOnlyList<SubnetResponse> Subnets,
     IReadOnlyList<VirtualNetworkEnvironmentConfigResponse> EnvironmentSettings,
     bool IsExisting = false
@@ -24,6 +22,7 @@ public record VirtualNetworkResponse(
 public record SubnetResponse(
     string Id,
     string Name,
+    string AddressPrefix,
     string? Delegation,
     IReadOnlyList<string>? ServiceEndpoints,
     string PrivateEndpointNetworkPolicies,
@@ -34,5 +33,6 @@ public record SubnetResponse(
 public record VirtualNetworkEnvironmentConfigResponse(
     string EnvironmentName,
     IReadOnlyList<string> AddressSpaces,
-    IReadOnlyList<string>? DnsServers
+    IReadOnlyList<string>? DnsServers,
+    bool EnableDdosProtection
 );

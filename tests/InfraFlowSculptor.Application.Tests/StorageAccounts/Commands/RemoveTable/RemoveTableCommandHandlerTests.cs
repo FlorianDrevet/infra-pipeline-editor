@@ -50,7 +50,7 @@ public sealed class RemoveTableCommandHandlerTests
             _storageAccount.Id,
             StorageTableId.CreateUnique());
         _sut = new RemoveTableCommandHandler(
-            _storageAccountRepository, _resourceGroupRepository, _accessService);
+            _storageAccountRepository, _accessService);
     }
 
     [Fact]

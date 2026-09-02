@@ -48,7 +48,6 @@ public sealed class GetEventHubNamespaceQueryHandlerTests
         _query = new GetEventHubNamespaceQuery(_eventHubNamespace.Id);
         _sut = new GetEventHubNamespaceQueryHandler(
             _eventHubNamespaceRepository,
-            _resourceGroupRepository,
             _accessService,
             _mapper);
     }

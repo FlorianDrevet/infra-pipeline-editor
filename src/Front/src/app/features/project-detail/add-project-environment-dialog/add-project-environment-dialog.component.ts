@@ -98,7 +98,7 @@ export class AddProjectEnvironmentDialogComponent {
   protected readonly form = this.fb.group({
     name: [this.data.existing?.name ?? '', [Validators.required, Validators.minLength(1), Validators.maxLength(100)]],
     location: [this.data.existing?.location ?? '', [Validators.required]],
-    subscriptionId: [this.data.existing?.subscriptionId ?? '', [Validators.required]],
+    subscriptionId: [this.data.existing?.subscriptionId ?? ''],
     azureResourceManagerConnection: [this.data.existing?.azureResourceManagerConnection ?? ''],
     shortName: [this.data.existing?.shortName ?? ''],
     prefix: [this.data.existing?.prefix ?? ''],

@@ -1,5 +1,3 @@
-using InfraFlowSculptor.BicepGeneration.Helpers;
-
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 
 /// <summary>
@@ -13,10 +11,10 @@ namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 /// </remarks>
 public sealed class IdentityAnalysisStage : IBicepGenerationStage
 {
-    private const string AcrPullIdentityIdPropertyName = "acrPullIdentityId";
-
     /// <inheritdoc />
     public int Order => 100;
+
+    private const string AcrPullIdentityIdPropertyName = "acrPullIdentityId";
 
     /// <inheritdoc />
     public void Execute(BicepGenerationContext context)
@@ -33,7 +31,7 @@ public sealed class IdentityAnalysisStage : IBicepGenerationStage
             .GroupBy(ra => (ra.SourceResourceName, ra.SourceResourceType))
             .ToDictionary(
                 g => g.Key,
-                g => g.Select(ra => BicepIdentifierHelper.ToBicepIdentifier(ra.UserAssignedIdentityName!))
+                g => g.Select(ra => ra.UserAssignedIdentityName!)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToList());
 
@@ -44,19 +42,19 @@ public sealed class IdentityAnalysisStage : IBicepGenerationStage
                 continue;
 
             var key = (resource.Name, resource.Type);
-            var uaiBicepId = BicepIdentifierHelper.ToBicepIdentifier(resource.AssignedUserAssignedIdentityName);
+            var uaiName = resource.AssignedUserAssignedIdentityName;
             if (userIdentityResources.TryGetValue(key, out var existingList))
             {
-                if (!existingList.Contains(uaiBicepId, StringComparer.OrdinalIgnoreCase))
-                    existingList.Add(uaiBicepId);
+                if (!existingList.Contains(uaiName, StringComparer.OrdinalIgnoreCase))
+                    existingList.Add(uaiName);
             }
             else
             {
-                userIdentityResources[key] = [uaiBicepId];
+                userIdentityResources[key] = [uaiName];
             }
         }
 
-        // Resources with an ACR pull identity also need that UAI in their identity block.
+        // Resources with an acrPullIdentityId property also need user identity for ACR registry auth.
         AddAcrPullIdentityResources(request.Resources, userIdentityResources);
 
         var identityKindsByArmType = ComputeIdentityKindsByArmType(
@@ -71,42 +69,6 @@ public sealed class IdentityAnalysisStage : IBicepGenerationStage
             systemIdentityResources,
             userIdentityResources,
             mixedIdentityArmTypes);
-    }
-
-    private static void AddAcrPullIdentityResources(
-        IEnumerable<ResourceDefinition> resources,
-        Dictionary<(string Name, string Type), List<string>> userIdentityResources)
-    {
-        var allResources = resources as IReadOnlyList<ResourceDefinition> ?? resources.ToList();
-        var uaiLookup = allResources
-            .Where(r => r.Type == "Microsoft.ManagedIdentity/userAssignedIdentities")
-            .ToDictionary(r => r.ResourceId, r => r.Name);
-
-        foreach (var resource in allResources)
-        {
-            if (!resource.Properties.TryGetValue(AcrPullIdentityIdPropertyName, out var acrPullIdStr)
-                || string.IsNullOrEmpty(acrPullIdStr)
-                || !Guid.TryParse(acrPullIdStr, out var acrPullId))
-            {
-                continue;
-            }
-
-            if (!uaiLookup.TryGetValue(acrPullId, out var uaiName))
-                continue;
-
-            var key = (resource.Name, resource.Type);
-            var uaiBicepId = BicepIdentifierHelper.ToBicepIdentifier(uaiName);
-
-            if (userIdentityResources.TryGetValue(key, out var existingList))
-            {
-                if (!existingList.Contains(uaiBicepId, StringComparer.OrdinalIgnoreCase))
-                    existingList.Add(uaiBicepId);
-            }
-            else
-            {
-                userIdentityResources[key] = [uaiBicepId];
-            }
-        }
     }
 
     private static Dictionary<string, HashSet<string>> ComputeIdentityKindsByArmType(
@@ -144,5 +106,47 @@ public sealed class IdentityAnalysisStage : IBicepGenerationStage
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Registers resources that specify an <c>acrPullIdentityId</c> property as needing
+    /// user-assigned identity, even if no role assignment exists on the resource itself.
+    /// </summary>
+    private static void AddAcrPullIdentityResources(
+        IEnumerable<ResourceDefinition> resources,
+        Dictionary<(string Name, string Type), List<string>> userIdentityResources)
+    {
+        var resourceList = resources as IReadOnlyList<ResourceDefinition> ?? resources.ToList();
+
+        foreach (var resource in resourceList)
+        {
+            if (!resource.Properties.TryGetValue(AcrPullIdentityIdPropertyName, out var acrPullIdentityIdStr)
+                || string.IsNullOrWhiteSpace(acrPullIdentityIdStr)
+                || !Guid.TryParse(acrPullIdentityIdStr, out var acrPullIdentityId))
+            {
+                continue;
+            }
+
+            // Find the UAI resource to get its name for the Bicep identifier.
+            var uaiResource = resourceList.FirstOrDefault(r =>
+                r.ResourceId == acrPullIdentityId
+                && r.Type == "Microsoft.ManagedIdentity/userAssignedIdentities");
+
+            if (uaiResource is null)
+                continue;
+
+            var key = (resource.Name, resource.Type);
+            var uaiName = uaiResource.Name;
+
+            if (userIdentityResources.TryGetValue(key, out var existingList))
+            {
+                if (!existingList.Contains(uaiName, StringComparer.OrdinalIgnoreCase))
+                    existingList.Add(uaiName);
+            }
+            else
+            {
+                userIdentityResources[key] = [uaiName];
+            }
+        }
     }
 }

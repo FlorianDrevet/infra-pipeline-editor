@@ -451,6 +451,26 @@ public static class AzureRoleDefinitionCatalog
         CreateReaderRole(SqlDatabaseDocsUrl),
     ];
 
+    private const string DocumentIntelligenceDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/authentication/managed-identities"; // NOSONAR
+
+    /// <summary>Azure RBAC role definitions for Document Intelligence (Cognitive Services).</summary>
+    private static readonly IReadOnlyList<AzureRoleDefinition> DocumentIntelligenceRoles =
+    [
+        new("a97b65f3-24c7-4388-baec-2e87135dc908",
+            "Cognitive Services User",
+            "Lets you read and list keys of Cognitive Services. Use for document analysis operations.",
+            DocumentIntelligenceDocsUrl),
+
+        new("25fbc0a9-bd7c-42a3-aa1a-3b75d497ee68",
+            "Cognitive Services Contributor",
+            "Lets you create, read, update, delete and manage keys of Cognitive Services. Use for model management.",
+            DocumentIntelligenceDocsUrl),
+
+        CreateContributorRole(DocumentIntelligenceDocsUrl),
+        CreateReaderRole(DocumentIntelligenceDocsUrl),
+    ];
+
     private static readonly Dictionary<string, IReadOnlyList<AzureRoleDefinition>> Catalog = new()
     {
         { "KeyVault", KeyVaultRoles },
@@ -471,6 +491,7 @@ public static class AzureRoleDefinitionCatalog
         { "ServiceBusNamespace", ServiceBusNamespaceRoles },
         { "ContainerRegistry", ContainerRegistryRoles },
         { "EventHubNamespace", EventHubNamespaceRoles },
+        { "DocumentIntelligence", DocumentIntelligenceRoles },
     };
 
     /// <summary>Returns all available role definitions for the given resource type name.</summary>

@@ -15,9 +15,6 @@ public abstract class VirtualNetworkRequestBase
     [Required, EnumValidation(typeof(Location.LocationEnum))]
     public required string Location { get; init; }
 
-    /// <summary>Whether Azure DDoS Protection Standard is enabled.</summary>
-    public bool EnableDdosProtection { get; init; }
-
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<VirtualNetworkEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }
@@ -35,4 +32,7 @@ public class VirtualNetworkEnvironmentConfigEntry
 
     /// <summary>Optional custom DNS servers for this environment.</summary>
     public List<string>? DnsServers { get; init; }
+
+    /// <summary>Whether Azure DDoS Protection Standard is enabled for this environment.</summary>
+    public bool EnableDdosProtection { get; init; }
 }

@@ -1,7 +1,7 @@
 <div class="detail-page">
   @if (isLoading()) {
     <div class="state-card state-card--loading" aria-live="polite">
-      <div class="pulse-dot"></div>
+      <app-ds-spinner size="lg" />
       <div>
         <strong>{{ 'PROJECT_DETAIL.STATE.LOADING_TITLE' | translate }}</strong>
         <p>{{ 'PROJECT_DETAIL.STATE.LOADING_DESCRIPTION' | translate }}</p>
@@ -26,12 +26,14 @@
         }
       </div>
       <div class="detail-header__info">
-        <span class="eyebrow">{{ 'PROJECT_DETAIL.HEADER.OVERLINE' | translate }}</span>
         <h1>{{ project()!.name }}</h1>
+        <div class="detail-header__meta">
+          <span class="eyebrow">{{ 'PROJECT_DETAIL.HEADER.OVERLINE' | translate }}</span>
+          <span class="detail-header__id">{{ project()!.id }}</span>
+        </div>
         @if (project()!.description) {
           <p class="detail-header__description">{{ project()!.description }}</p>
         }
-        <p class="detail-header__id">{{ project()!.id }}</p>
       </div>
     </section>
 

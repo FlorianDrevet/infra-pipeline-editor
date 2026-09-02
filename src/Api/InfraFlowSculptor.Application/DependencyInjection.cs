@@ -12,6 +12,7 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
 using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics.Rules;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBootstrapPipeline;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectArtifactsToMultiRepo;
+using InfraFlowSculptor.Application.Projects.Commands.PushProjectMultiRepoArtifacts;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Application.Projects.Common.Generation;
 using InfraFlowSculptor.Application.Projects.Common.Storage;
@@ -66,6 +67,7 @@ public static class DependencyInjection
         services.AddScoped<IApplicationFolderNameResolver, ApplicationFolderNameResolver>();
         services.AddScoped<IMultiScopeGitPushExecutor, MultiScopeGitPushExecutor>();
         services.AddScoped<IMultiRepoProjectArtifactsPushService, MultiRepoProjectArtifactsPushService>();
+        services.AddScoped<IProjectMultiRepoArtifactsPushService, ProjectMultiRepoArtifactsPushService>();
         services.AddScoped<IProjectBootstrapDefinitionBuilder, ProjectBootstrapDefinitionBuilder>();
         services.AddScoped<IProjectPipelineAggregator, ProjectPipelineAggregator>();
         services.AddScoped<IMonoRepoBlobUploadOrchestrator, MonoRepoBlobUploadOrchestrator>();
@@ -99,6 +101,7 @@ public static class DependencyInjection
         services.AddSingleton<IResourceTypeBicepSpecGenerator, ServiceBusNamespaceTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepSpecGenerator, ContainerRegistryTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepSpecGenerator, EventHubNamespaceTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, DocumentIntelligenceTypeBicepGenerator>();
 
         // Bicep generation pipeline (Vague 1 — staged decomposition of the engine).
         // Stages are ordered by IBicepGenerationStage.Order at pipeline construction.
@@ -107,6 +110,9 @@ public static class DependencyInjection
         services.AddSingleton<IBicepGenerationStage, ModuleBuildStage>();
         services.AddSingleton<IBicepGenerationStage, IdentityInjectionStage>();
         services.AddSingleton<IBicepGenerationStage, OutputInjectionStage>();
+        services.AddSingleton<IBicepGenerationStage, NetworkingResolutionStage>();
+        services.AddSingleton<IBicepGenerationStage, PrivateEndpointCompanionStage>();
+        services.AddSingleton<IBicepGenerationStage, PublicNetworkAccessStage>();
         services.AddSingleton<IBicepGenerationStage, AppSettingsInjectionStage>();
         services.AddSingleton<IBicepGenerationStage, TagsInjectionStage>();
         services.AddSingleton<IBicepGenerationStage, ParentReferenceResolutionStage>();

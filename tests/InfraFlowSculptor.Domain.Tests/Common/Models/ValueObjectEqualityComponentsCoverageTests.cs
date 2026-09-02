@@ -163,6 +163,21 @@ public sealed class ValueObjectEqualityComponentsCoverageTests
             return Enum.ToObject(propertyType, variant + index + 1);
         }
 
+        if (IsEnumValueObjectType(propertyType, out var enumType))
+        {
+            var enumValue = Enum.ToObject(enumType, variant + index + 1);
+            return Activator.CreateInstance(propertyType, enumValue)!;
+        }
+
+        if (typeof(ValueObject).IsAssignableFrom(propertyType))
+        {
+            var stringCtor = propertyType.GetConstructor([typeof(string)]);
+            if (stringCtor is not null)
+            {
+                return stringCtor.Invoke([$"10.{index}.{variant}.0/16"]);
+            }
+        }
+
         throw new NotSupportedException($"The value-object equality guardrail does not support property type '{propertyType.FullName}'.");
     }
 
@@ -194,5 +209,20 @@ public sealed class ValueObjectEqualityComponentsCoverageTests
         }
 
         return null;
+    }
+
+    private static bool IsEnumValueObjectType(Type type, out Type enumType)
+    {
+        for (var baseType = type.BaseType; baseType is not null; baseType = baseType.BaseType)
+        {
+            if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(EnumValueObject<>))
+            {
+                enumType = baseType.GetGenericArguments()[0];
+                return true;
+            }
+        }
+
+        enumType = null!;
+        return false;
     }
 }

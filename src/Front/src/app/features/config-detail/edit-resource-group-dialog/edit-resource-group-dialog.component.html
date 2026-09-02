@@ -1,0 +1,32 @@
+<h2 mat-dialog-title>
+  {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.EDIT_DIALOG_TITLE' | translate }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="rg-form" (ngSubmit)="onSubmit()">
+    <app-ds-text-field
+      class="full-width"
+      formControlName="name"
+      [label]="'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.NAME' | translate"
+      [placeholder]="'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.NAME_PLACEHOLDER' | translate" />
+
+    <app-ds-select
+      class="full-width"
+      formControlName="location"
+      [label]="'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.LOCATION' | translate"
+      [options]="locationOptions" />
+
+    @if (errorKey()) {
+      <p class="dialog-error">{{ errorKey() | translate }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <app-ds-button variant="ghost" (clicked)="onCancel()" [disabled]="isSubmitting()">
+    {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.CANCEL' | translate }}
+  </app-ds-button>
+  <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="form.invalid" (clicked)="onSubmit()">
+    {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.SAVE' | translate }}
+  </app-ds-button>
+</mat-dialog-actions>

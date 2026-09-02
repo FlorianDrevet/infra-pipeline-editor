@@ -46,7 +46,7 @@ public sealed class GetKeyVaultQueryHandlerTests
             new Location(Location.LocationEnum.FranceCentral));
         _query = new GetKeyVaultQuery(_keyVault.Id);
         _sut = new GetKeyVaultQueryHandler(
-            _keyVaultRepository, _resourceGroupRepository, _accessService, _mapper);
+            _keyVaultRepository, _accessService, _mapper);
     }
 
     [Fact]

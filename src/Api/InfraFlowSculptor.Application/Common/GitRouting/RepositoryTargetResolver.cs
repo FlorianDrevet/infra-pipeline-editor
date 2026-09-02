@@ -70,5 +70,5 @@ public sealed class RepositoryTargetResolver : IRepositoryTargetResolver
             Branch: repo.DefaultBranch,
             BasePath: null,
             PipelineBasePath: null,
-            PatSecretName: null);
+            PatSecretName: ProjectGitSecretNames.GetInfraConfigRepositoryPatSecretName(repo.Id));
 }

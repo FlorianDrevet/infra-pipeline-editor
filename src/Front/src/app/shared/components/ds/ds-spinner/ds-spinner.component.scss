@@ -1,6 +1,5 @@
 // ============================================================================
-// app-ds-spinner — V2 (UI Refresh 2026-05)
-// V2 whitelisted: spinner rotation is functional, not decorative.
+// app-ds-spinner — V3 (IFS branded triangle "Drawing Path" loader)
 // ============================================================================
 
 :host {
@@ -11,7 +10,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: currentColor;
   line-height: 0;
 }
 
@@ -21,37 +19,75 @@
 
 .ds-spinner__svg {
   display: block;
-  // V2 whitelisted: continuous rotation drives the spinner animation.
-  animation: ifs-spinner-rotate 0.8s linear infinite;
 }
 
-.ds-spinner__track {
-  stroke: var(--ifs-border-subtle);
-  opacity: 0.4;
+// ─── Drawing path animation ─────────────────────────────────────────────────────
+// Triangle perimeter splits roughly into 3 equal segments:
+//   Left side  (Top→BL): drawn 0→~16% of cycle
+//   Base       (BL→BR):  drawn ~16→~33%
+//   Right side (BR→Top): drawn ~33→50%  ("le trait de côté")
+// The stroke then "undraws" from 50→100%.
+
+.ds-spinner__path {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: ifs-draw-triangle 2.4s ease-in-out infinite;
 }
 
-.ds-spinner__arc {
-  stroke: currentColor;
-  stroke-dasharray: 60 100;
-  stroke-dashoffset: 0;
+.ds-spinner__node {
   transform-origin: center;
+  opacity: 0;
+  transform: scale(0);
+
+  &--a {
+    animation: ifs-node-appear 2.4s ease-in-out infinite;
+  }
+
+  &--b {
+    animation: ifs-node-appear 2.4s ease-in-out infinite 0.15s;
+  }
+
+  &--c {
+    animation: ifs-node-appear 2.4s ease-in-out infinite 0.3s;
+  }
 }
 
-@keyframes ifs-spinner-rotate {
+@keyframes ifs-draw-triangle {
   0% {
-    transform: rotate(0deg);
+    stroke-dashoffset: 120;
+  }
+  50% {
+    stroke-dashoffset: 0;
   }
   100% {
-    transform: rotate(360deg);
+    stroke-dashoffset: -120;
+  }
+}
+
+@keyframes ifs-node-appear {
+  0%, 10% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  20%, 70% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  85%, 100% {
+    opacity: 0;
+    transform: scale(0);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ds-spinner__svg {
+  .ds-spinner__path {
     animation: none;
+    stroke-dashoffset: 0;
   }
 
-  .ds-spinner__arc {
-    stroke-dasharray: 160 0;
+  .ds-spinner__node {
+    animation: none;
+    opacity: 1;
+    transform: scale(1);
   }
 }

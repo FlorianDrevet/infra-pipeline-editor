@@ -22,7 +22,8 @@ public sealed class GetBicepFileContentQueryHandler(IBlobService blobService)
             options: new BlobDownloadHelper.LatestBlobContentOptions(
                 Errors.InfrastructureConfig.BicepFileNotFoundError,
                 query.FilePath,
-                [query.FilePath]));
+                [query.FilePath]),
+            cancellationToken);
         if (contentResult.IsError)
             return contentResult.Errors;
 

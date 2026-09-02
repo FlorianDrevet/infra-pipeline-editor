@@ -50,7 +50,7 @@ public sealed class RemoveBlobContainerCommandHandlerTests
             _storageAccount.Id,
             BlobContainerId.CreateUnique());
         _sut = new RemoveBlobContainerCommandHandler(
-            _storageAccountRepository, _resourceGroupRepository, _accessService);
+            _storageAccountRepository, _accessService);
     }
 
     [Fact]

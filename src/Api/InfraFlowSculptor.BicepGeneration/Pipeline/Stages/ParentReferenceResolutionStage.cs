@@ -67,10 +67,13 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
                 parentModuleOutputRefs.Keys,
                 existingResourcePropertyRefs.Keys);
 
+            var assignedUaiNames = ResolveAssignedUserAssignedIdentityNames(resource, context.Identity);
+
             item.Module = item.Module with
             {
                 IdentityKind = item.IdentityKind,
                 UsesParameterizedIdentity = item.UsesParameterizedIdentity,
+                AssignedUserAssignedIdentityNames = assignedUaiNames,
                 Parameters = parameters,
                 ParentModuleIdReferences = parentModuleIdRefs,
                 ParentModuleNameReferences = parentModuleNameRefs,
@@ -245,5 +248,18 @@ public sealed class ParentReferenceResolutionStage : IBicepGenerationStage
         }
 
         parentModuleOutputRefs[AcrUserManagedIdentityIdParameterName] = (uaiInfo.Name, AzureResourceTypes.UserAssignedIdentity, UserAssignedIdentityResourceIdOutputName);
+    }
+
+    private static IReadOnlyList<string> ResolveAssignedUserAssignedIdentityNames(
+        ResourceDefinition resource,
+        IdentityAnalysisResult identity)
+    {
+        var key = (resource.Name, resource.Type);
+        if (identity.UserIdentityResources.TryGetValue(key, out var uaiNames) && uaiNames.Count > 0)
+        {
+            return uaiNames;
+        }
+
+        return [];
     }
 }

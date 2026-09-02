@@ -166,6 +166,78 @@
             }
           </div>
       }
+      @if (activeGenerationTabId() === TAB_BOOTSTRAP) {
+          <div class="generation-tab-content">
+            <app-bootstrap-setup-guide />
+
+            <div class="generation-tab-content__toolbar">
+              <app-ds-button
+                class="config-detail-generation__push-bootstrap"
+                variant="primary"
+                icon="rocket_launch"
+                (clicked)="viewModel().onPushBootstrapToGit()">
+                {{ 'CONFIG_DETAIL.PUSH_TO_GIT.BUTTON' | translate }}
+              </app-ds-button>
+              @if (viewModel().bootstrapResult) {
+                <app-ds-button
+                  class="config-detail-generation__download-bootstrap"
+                  variant="secondary"
+                  icon="download"
+                  [loading]="viewModel().bootstrapDownloading"
+                  [disabled]="viewModel().bootstrapDownloading"
+                  (clicked)="viewModel().onDownloadBootstrapFiles()">
+                  {{ (viewModel().bootstrapDownloading ? 'CONFIG_DETAIL.BOOTSTRAP.DOWNLOADING' : 'CONFIG_DETAIL.BOOTSTRAP.DOWNLOAD') | translate }}
+                </app-ds-button>
+              }
+            </div>
+
+            @if (viewModel().bootstrapLoading) {
+              <div class="bicep-panel__loading">
+                <div class="bicep-terminal">
+                  <div class="bicep-terminal__bar">
+                    <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                    <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                    <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                    <span class="bicep-terminal__bar-title">bootstrap-generator</span>
+                  </div>
+                  <div class="bicep-terminal__body">
+                    <p class="bicep-terminal__line bicep-terminal__line--active">
+                      <span class="bicep-terminal__prompt">$</span>
+                      {{ 'CONFIG_DETAIL.BOOTSTRAP.GENERATING' | translate }}
+                      <span class="bicep-terminal__cursor"></span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (viewModel().bootstrapErrorKey) {
+              <div class="bicep-panel__error-body">
+                <p>{{ viewModel().bootstrapErrorKey | translate }}</p>
+                <app-ds-button
+                  class="config-detail-generation__retry-bootstrap"
+                  variant="secondary"
+                  icon="refresh"
+                  (clicked)="viewModel().onGenerateBootstrap()">
+                  {{ 'CONFIG_DETAIL.BOOTSTRAP.RETRY' | translate }}
+                </app-ds-button>
+              </div>
+            }
+
+            @if (viewModel().configBootstrapNodes.length > 0) {
+              <app-bicep-file-panel
+                [nodes]="viewModel().configBootstrapNodes"
+                [barTitle]="'bootstrap-generator — ' + ('CONFIG_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
+                [terminalDoneText]="'CONFIG_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
+                [fileLoadingText]="'CONFIG_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
+                [fileErrorText]="'CONFIG_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
+                [loadFile]="viewModel().loadConfigBootstrapFile">
+              </app-bicep-file-panel>
+            } @else if (!viewModel().bootstrapLoading && !viewModel().bootstrapErrorKey) {
+              <p class="generation-empty">{{ 'CONFIG_DETAIL.BOOTSTRAP.NO_FILES' | translate }}</p>
+            }
+          </div>
+      }
     }
   </section>
 }

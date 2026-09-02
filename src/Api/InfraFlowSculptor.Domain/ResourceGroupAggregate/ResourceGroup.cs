@@ -70,6 +70,13 @@ public sealed class ResourceGroup : AggregateRoot<ResourceGroupId>
         return Result.Success;
     }
 
+    /// <summary>Updates the name and location of this resource group.</summary>
+    public void Update(Name name, Location location)
+    {
+        Name = name;
+        Location = location;
+    }
+
     /// <summary>
     /// Removes a resource from this resource group. Returns an error if the resource
     /// is not in the group or is required as a dependency by other resources.

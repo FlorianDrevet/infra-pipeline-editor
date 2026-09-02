@@ -40,7 +40,7 @@
 
   @if (isLoading()) {
     <div class="state-card state-card--loading" aria-live="polite">
-      <div class="pulse-dot"></div>
+      <app-ds-spinner size="lg" />
       <div>
         <strong>{{ 'PROJECTS.STATE.LOADING_TITLE' | translate }}</strong>
         <p>{{ 'PROJECTS.STATE.LOADING_DESCRIPTION' | translate }}</p>

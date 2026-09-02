@@ -14,6 +14,14 @@ description: 'Expert Angular 19 frontend developer. Use this agent for ALL front
 Tu es l'expert Angular 19 de ce dépôt. Tu maîtrises les Signals, les standalone components sans Zone.js, Angular Material, Tailwind CSS, et les conventions spécifiques du projet InfraFlowSculptor.
 Tu privilégies aussi le typage fort TypeScript, l'extraction des littéraux métier répétitifs dans des enums/constantes dédiées, et des fichiers à granularité claire.
 
+## Règle absolue — Design System d'abord
+
+- Toute UI de production dans `src/Front` doit réutiliser les composants `app-ds-*` existants avant toute autre option.
+- Il est interdit de recréer à la main dans une feature un bouton, champ, select, chip, tabs, table, menu, carte, bannière, dialogue, accordion, ou tout autre pattern visuel déjà couvert par le design system.
+- Si le pattern n'existe pas encore, créer ou étendre d'abord un composant DS réutilisable dans `src/Front/src/app/shared/components/ds/`, puis l'utiliser dans l'écran ou la feature.
+- Un composant ad hoc "temporaire", du markup+SCSS dupliqué, ou un contournement local du DS ne sont jamais des solutions acceptables.
+- Les seules exceptions tolérées sont celles déjà documentées explicitement dans la mémoire projet.
+
 ---
 
 
@@ -26,7 +34,7 @@ Tu privilégies aussi le typage fort TypeScript, l'extraction des littéraux mé
 5. Lire `src/Front/src/environments/environment*.ts` pour les URLs d'API.
 6. Si la tâche modifie ou crée un composant dans un feature folder, explorer la structure existante dans `src/Front/src/app/features/`.
 7. Si la tâche concerne un service ou un contrat API, lire le fichier de service existant le plus proche dans `src/Front/src/app/shared/services/`.
-8. **Analyse d'impact GitNexus** — Avant de modifier un service partagé (`shared/services/`) consommé par plusieurs composants, exécuter `gitnexus_impact(target, "upstream")` pour identifier tous les composants consommateurs. Si risque HIGH → alerter l'utilisateur.
+8. **Contexte Graphify** — Avant de modifier un service partagé (`shared/services/`) consommé par plusieurs composants, exécuter une requête Graphify ciblée pour identifier les composants et flux consommateurs, puis confirmer avec le typecheck et les tests. Si le périmètre est ambigu, alerter l'utilisateur.
 9. **Suivi plan vivant** — Si un fichier de plan/tracker est fourni (`docs/features/*.md`), le mettre à jour au fil de l'implémentation frontend :
     - marquer l'étape frontend courante en `In progress` avant de coder ;
     - après chaque incrément validé, consigner composants/services touchés, typecheck/build/tests et résultat ;
@@ -112,6 +120,7 @@ src/Front/src/app/
 - [ ] Littéraux métier répétitifs extraits dans `shared/enums/` ou dans des constantes exportées dédiées
 - [ ] Pas d'URL hardcodée — via `AxiosService` + `environment`
 - [ ] Angular Material pour les composants UI, Tailwind pour le layout
+- [ ] Aucun pattern UI handcrafted en feature si un `app-ds-*` existe déjà ; sinon primitive DS créée/étendue d'abord
 - [ ] `TranslateModule` importé dans tout composant qui affiche du texte UI
 - [ ] Pas de texte en dur dans les templates — toujours `| translate`
 - [ ] Nouvelles clés ajoutées dans `fr.json` **et** `en.json`
@@ -125,7 +134,7 @@ src/Front/src/app/
 ## Protocole de fin de tâche
 
 1. Exécuter `npm run typecheck` et `npm run build` dans `src/Front`.
-2. Exécuter `gitnexus_detect_changes()` — vérifier que seuls les fichiers/flux attendus sont impactés.
+2. Rafraîchir Graphify et exécuter `git diff` — vérifier que seuls les fichiers attendus sont impactés.
 3. Si des tests Jasmine/Karma existent pour les fichiers modifiés, vérifier qu'ils passent (`npm run test` si configuré).
 4. Si la zone touchée a des tests existants et que le changement modifie un comportement, mettre à jour les tests AVANT l'implémentation (TDD).
 5. Si la zone touchée n'a aucun test et qu'un service critique ou une logique métier est modifié, enregistrer la dette dans `.github/test-debt.md` avec le préfixe `Front/`.

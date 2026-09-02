@@ -24,10 +24,9 @@
 | `ServiceBusNamespace` | extends `AzureResource` | `ServiceBusNamespaceEnvironmentSettings` | TPT; sub-resources: Queue, TopicSubscription |
 | `EventHubNamespace` | extends `AzureResource` | `EventHubNamespaceEnvironmentSettings` | TPT; sub-resources: EventHub, ConsumerGroup |
 | `ContainerRegistry` | extends `AzureResource` | `ContainerRegistryEnvironmentSettings` | TPT; abbreviation `acr` |
-| `VirtualNetwork` | extends `AzureResource` | `Subnet`, `VirtualNetworkEnvironmentSettings` | TPT; abbreviation `vnet`; DDoS protection flag; Subnets own delegation, service endpoints, PE network policies, optional NSG FK |
-| `NetworkSecurityGroup` | extends `AzureResource` | `NsgRule` | TPT; abbreviation `nsg`; Rules have priority/direction/access/protocol/CIDR |
-| `PrivateDnsZone` | extends `AzureResource` | `VirtualNetworkLink` | TPT; abbreviation `pdnsz`; VNet links with auto-registration flag |
-| `FrontDoor` | extends `AzureResource` | `FrontDoorOrigin`, `FrontDoorEnvironmentSettings` | TPT; abbreviation `afd`; WAF policy flag; Origins with target resource, private link, weight/priority; per-env SKU (Standard/Premium) |
+| `DocumentIntelligence` | extends `AzureResource` | `DocumentIntelligenceEnvironmentSettings` | TPT; abbreviation `docint`; custom subdomain at resource level; per-env SKU, public network access, and local-auth toggle |
+| `VirtualNetwork` | extends `AzureResource` | `Subnet`, `VirtualNetworkEnvironmentSettings` | TPT; abbreviation `vnet`; DDoS protection flag; Subnets own delegation, service endpoints, PE network policies, optional NSG FK; V2 [2026-05-28]: removed legacy PrivateEndpoint FK |
+| `NetworkingProfile` | `NetworkingProfile` | `NetworkingProfileEnvironmentOverride` | V2 networking aggregate [2026-05-28]. Replaces V1 NSG/PrivateDnsZone/FrontDoor/PrivateEndpointConfig. Owns: `NetworkingMode` (Simplified/Standard/Advanced), `VnetReference` (source+CIDRs), `DnsConfig` (mode+hub IDs). Unique per `InfrastructureConfigId`. Methods: `Create()`, `ChangeMode()`, `UpdateVnetReference()`, `UpdateDnsConfig()`, `SetEnvironmentOverride()`, `RemoveEnvironmentOverride()`. V2 pipeline: 3 new stages (NetworkingResolution@520, PrivateEndpointCompanion@540, PublicNetworkAccess@560). V3 [2026-05-29] starts moving Private Endpoint intent back to resource-level configuration and will remove/deprecate this config-scoped surface after API/Bicep/UI replacement. |
 | `PersonalAccessToken` | `PersonalAccessToken` | `TokenHash` (VO), `PersonalAccessTokenId` (VO), `PatScope` (VO) | PAT for MCP auth. `ifs_` prefix + SHA-256 hash stored, plaintext returned once. `UserId` FK. Owns `PatScope` values (`Read` default, `Write`, `Generate`). Methods: `Revoke()`, `RecordUsage()`, `IsValid()`, `HasScope()`. |
 | `User` | `User` | — | Azure AD user info |
 
@@ -43,7 +42,14 @@ These reusable entity types are owned by multiple aggregates:
 | `RoleAssignment` | RBAC role assignment on any AzureResource |
 | `CustomDomain` | Per-environment custom domain binding for ContainerApp, WebApp, FunctionApp |
 | `SecureParameterMapping` | Maps secure Bicep params to project pipeline variable groups |
-| `PrivateEndpointConfig` | PE configuration on any AzureResource: subnet, group ID, auto-approval, DNS zone, custom NIC name |
+| `PrivateEndpointConfiguration` | V3 PE configuration owned by `AzureResource`: selected `VirtualNetworkId`, `SubnetName`, typed `DnsMode`, and optional DNS hub resource group/subscription for existing hub DNS. The older `PrivateEndpointConfig` entity was removed with V1 networking. |
+
+## AzureResource.PrivateEndpointConfiguration [2026-05-29]
+
+- `AzureResource` now owns nullable `PrivateEndpointConfiguration` for V3 resource-level privatization while retaining `IsPrivatized` as the compatibility flag during the migration away from config-scoped `NetworkingProfile`.
+- Public methods: `ConfigurePrivateEndpoint(PrivateEndpointConfiguration configuration)` sets `IsPrivatized = true`; `DisablePrivateEndpoint()` clears the owned configuration and sets `IsPrivatized = false`; `Deprivatize()` delegates to the same cleanup path.
+- `PrivateEndpointDnsMode` is a sealed enum value object with `AutoManaged`, `ExistingHub`, and `Disabled`. `ExistingHub` requires both DNS hub resource group id and DNS hub subscription id.
+- V3 scope is Private Endpoint only. Container App Environment VNet integration is a separate Azure concept and must not be folded into this private endpoint configuration.
 
 ## AzureResource.AssignedUserAssignedIdentityId [2026-04-02]
 
@@ -128,22 +134,26 @@ All 18 concrete `AzureResource` aggregates support `IsExisting` (bool, `protecte
 - Existing resources: excluded from Bicep deploy modules + pipeline stages, added as `ExistingResourceReference` (with `SourceConfigName = string.Empty`) for cross-config lookup
 - Frontend guard: tabs "Environments" and "App Pipeline" hidden; amber info banner shown; add-resource-dialog skips environment step
 
+## V1 Privatization Demolition [2026-05-28]
+
+- Deleted 18 folders + ~37 files: `NetworkSecurityGroup`, `PrivateDnsZone`, `FrontDoor` aggregates, `PrivateEndpoint` entities, all associated Application/Contracts/Infrastructure/Tests/Frontend/Bicep code.
+- Cleaned: `AzureResource` base model, `AzureResourceBaseRepository`, `BicepArmTypeCatalog`, `ResourceCommandFactory`, `ResourceTypes`, MCP tools, frontend metadata/enums/i18n.
+- Kept: `VirtualNetwork` aggregate (reduced), `PrivateEndpointTypeBicepGenerator` (recycled for V2 stage 540), `PrivateEndpointGroupIdCatalog` (V2 auto-derivation), `PrivateEndpointNetworkPolicy` enum (valid subnet config).
+- V2 replacement: `NetworkingProfile` aggregate + `AzureResource.IsPrivatized` flag + 3 Bicep pipeline stages.
+
 ## Resource Abbreviation Overrides [2026-04-22]
 
-Two-level abbreviation override system matching NamingTemplate precedence:
-- **`ProjectResourceAbbreviation`** (`Entity<ProjectResourceAbbreviationId>`): owned by `Project`, unique `(ProjectId, ResourceType)`, cascade delete. Aggregate methods: `SetResourceAbbreviation(type, abbr)`, `RemoveResourceAbbreviation(type)`.
-- **`ResourceAbbreviationOverride`** (`Entity<ResourceAbbreviationOverrideId>`): owned by `InfrastructureConfig`, unique `(InfraConfigId, ResourceType)`, cascade delete. Aggregate methods: `SetResourceAbbreviationOverride(type, abbr)`, `RemoveResourceAbbreviationOverride(type)`.
-- **Resolution precedence** in Bicep/Pipeline generation: Config override → Project override → `ResourceAbbreviationCatalog` default.
-- Validation: regex `^[a-z0-9]+$`, max 10 chars.
-- `NamingContextReadModel` includes `ResourceAbbreviations` dictionary (already merged at read time). All 4 generator handlers + `InfrastructureConfigReadRepository.BuildNamingContext` use `MergeAbbreviations()` helper.
+Two-level override: `ProjectResourceAbbreviation` (project-level) and `ResourceAbbreviationOverride` (config-level). Resolution precedence: Config → Project → `ResourceAbbreviationCatalog` default. Validation: `^[a-z0-9]+$`, max 10 chars. `NamingContextReadModel` includes merged `ResourceAbbreviations` dictionary.
+
 ## Layout-Driven Repository Topology [2026-04-23]
 
-- `Project.LayoutPreset` is now the top-level switch: `AllInOne`, `SplitInfraCode`, or `MultiRepo`. Switching preset clears `Project.Repositories` so the repository slots can be reconfigured safely.
-- `ProjectRepository.ContentKinds` only supports `Infrastructure` and `ApplicationCode`. `AllInOne` requires exactly one repo carrying both flags; `SplitInfraCode` requires exactly two repos, one infra-only and one app-only; `MultiRepo` forbids project-level repositories entirely.
-- `InfrastructureConfig` now owns nullable `LayoutMode` (`AllInOne` or `SplitInfraCode`) plus a `Repositories` collection of `InfraConfigRepository` entities used only when the parent project layout is `MultiRepo`.
-- `InfrastructureConfig.SetLayoutMode(...)` clears config-level repositories whenever the mode changes, mirroring the project-level reset behavior.
-- Repository aliases were fully removed from the active project/config repository domain model on 2026-05-19. Repository identity is now the typed repository id (`ProjectRepositoryId` / `InfraConfigRepositoryId`), while routing stays role-based through `RepositoryContentKinds`. Do not reintroduce alias-based lookup, duplicate-alias checks, or alias route payloads; cross-config reference aliases remain a separate Bicep concept.
-- Legacy `GitRepositoryConfiguration`, `RepositoryMode`, `RepositoryBinding`, and `CommonsStrategy` were removed during the V3/layout-driven cleanup. Only persisted data repair remains relevant (see `06-persistence.md`).
+- `Project.LayoutPreset`: `AllInOne`, `SplitInfraCode`, or `MultiRepo`. Switching preset clears `Project.Repositories`.
+- `ProjectRepository.ContentKinds`: `Infrastructure` | `ApplicationCode`. `AllInOne` requires 1 repo with both; `SplitInfraCode` requires 2 repos (1 infra, 1 app); `MultiRepo` forbids project-level repos.
+- `InfrastructureConfig`: nullable `LayoutMode` + `Repositories` collection (used only in `MultiRepo`). `SetLayoutMode()` clears config-level repositories.
+- Repository aliases removed [2026-05-19]. Identity now typed (`ProjectRepositoryId` / `InfraConfigRepositoryId`). Routing is role-based via `RepositoryContentKinds`. Do not reintroduce alias-based lookup.
+- Legacy `GitRepositoryConfiguration`, `RepositoryMode`, `RepositoryBinding`, `CommonsStrategy` removed.
+
 ## Error Definitions
 
-Errors live in `src/Api/InfraFlowSculptor.Domain/Common/Errors/Errors.*.cs` as partial static classes. When adding a new aggregate, add `Errors.AggregateName.cs`. Convention: no inline `Error.*()` calls in handlers — always use `Errors.AggregateName.MethodName()`. Current repository errors are id/role oriented: `ProjectRepository.NotFound(id)`, `RepositoryInUse(id)`, `PersonalAccessTokenRequired()`, and `DefaultBranchNotFound(branch)`; Git routing exposes id/role errors such as `RepositorySlotNotConfigured(id)` and `RepositoryRoleMismatch(id, contentKind)`. Alias-specific repository errors are obsolete.
+Errors in `src/Api/InfraFlowSculptor.Domain/Common/Errors/Errors.*.cs` as partial static classes. Convention: no inline `Error.*()` calls — always use `Errors.AggregateName.MethodName()`. Current repository errors: `NotFound(id)`, `RepositoryInUse(id)`, `PersonalAccessTokenRequired()`, `DefaultBranchNotFound(branch)`, `RepositorySlotNotConfigured(id)`, `RepositoryRoleMismatch(id, contentKind)`. Alias errors obsolete.
+

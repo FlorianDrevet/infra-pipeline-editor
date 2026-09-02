@@ -735,6 +735,46 @@
                   <app-ds-toggle formControlName="zoneRedundancy" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANCY' | translate"></app-ds-toggle>
                 </div>
               }
+              @case (ResourceTypeEnum.VirtualNetwork) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <div class="ds-list-input-with-help">
+                    <app-ds-list-input
+                      formControlName="addressSpacesInput"
+                      [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_ADDRESS_SPACES' | translate"
+                      [placeholder]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES_PLACEHOLDER' | translate"
+                      [required]="true"
+                      [validator]="vnetAddressSpaceListValidator"
+                      [helperText]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.GUIDANCE' | translate"
+                      inputType="cidr" />
+                    <app-ds-property-help-button
+                      [title]="'COMMON.VNET_HELP_DIALOG.ADDRESS_SPACES.TITLE' | translate"
+                      [sections]="addressSpacesHelpSections" />
+                  </div>
+
+                  <div class="ds-list-input-with-help">
+                    <app-ds-list-input
+                      formControlName="dnsServersInput"
+                      [label]="'CONFIG_DETAIL.RESOURCES.FORM.VNET_DNS_SERVERS' | translate"
+                      [placeholder]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS_PLACEHOLDER' | translate"
+                      [validator]="vnetDnsServerListValidator"
+                      [helperText]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS.GUIDANCE' | translate"
+                      inputType="ipv4" />
+                    <app-ds-property-help-button
+                      [title]="'COMMON.VNET_HELP_DIALOG.DNS_SERVERS.TITLE' | translate"
+                      [sections]="dnsServersHelpSections" />
+                  </div>
+
+                  <div class="form-field form-field--toggle form-field--with-info">
+                    <app-ds-toggle
+                      formControlName="enableDdosProtection"
+                      [label]="'RESOURCE_EDIT.FIELDS.ENABLE_DDOS_PROTECTION' | translate"></app-ds-toggle>
+                    <mat-icon
+                      class="field-info-icon"
+                      [matTooltip]="'COMMON.VNET_HELP_DIALOG.DDOS.GUIDANCE' | translate"
+                      matTooltipPosition="above">info_outline</mat-icon>
+                  </div>
+                </div>
+              }
           }
         }
       }

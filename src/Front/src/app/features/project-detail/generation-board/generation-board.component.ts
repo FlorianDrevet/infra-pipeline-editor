@@ -315,6 +315,8 @@ export class GenerationBoardComponent implements OnInit {
   protected readonly projectBootstrapErrorKey = this.generationWorkflow.projectBootstrapErrorKey;
   protected readonly canPushAllProjectArtifacts = this.generationWorkflow.canPushAllProjectArtifacts;
   protected readonly isSplitInfraCodeLayout = this.generationWorkflow.isSplitInfraCodeLayout;
+  protected readonly isMultiRepoLayout = this.generationWorkflow.isMultiRepoLayout;
+  protected readonly canPushMultiRepoArtifacts = this.generationWorkflow.canPushMultiRepoArtifacts;
   protected readonly projectBicepNodes = this.generationWorkflow.projectBicepNodes;
   protected readonly loadProjectBicepFile = this.generationWorkflow.loadProjectBicepFile;
   protected readonly projectPipelineNodes = this.generationWorkflow.projectPipelineNodes;
@@ -334,6 +336,7 @@ export class GenerationBoardComponent implements OnInit {
   protected readonly generateProjectBootstrap = this.generationWorkflow.generateProjectBootstrap;
   protected readonly openProjectPushAllToGitDialog = this.generationWorkflow.openProjectPushAllToGitDialog;
   protected readonly openProjectMultiRepoPushDialog = this.generationWorkflow.openProjectMultiRepoPushDialog;
+  protected readonly openProjectMultiRepoArtifactsPushDialog = this.generationWorkflow.openProjectMultiRepoArtifactsPushDialog;
   protected readonly lastGenerationLoading = this.generationWorkflow.lastGenerationLoading;
   protected readonly lastGenerationAvailable = this.generationWorkflow.lastGenerationAvailable;
   protected readonly lastGenerationErrorKey = this.generationWorkflow.lastGenerationErrorKey;
@@ -495,6 +498,8 @@ export class GenerationBoardComponent implements OnInit {
   });
 
   protected readonly canGenerateAll = computed(() => {
+    if (this.isMultiRepoLayout()) return false;
+
     const t = this.topology();
     return t === 'single' || t === 'empty' || t === 'split-infra-code';
   });

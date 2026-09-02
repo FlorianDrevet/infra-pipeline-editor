@@ -48,7 +48,7 @@ public sealed class GetSqlServerQueryHandlerTests
             "sqladmin");
         _query = new GetSqlServerQuery(_sqlServer.Id);
         _sut = new GetSqlServerQueryHandler(
-            _sqlServerRepository, _resourceGroupRepository, _accessService, _mapper);
+            _sqlServerRepository, _accessService, _mapper);
     }
 
     [Fact]

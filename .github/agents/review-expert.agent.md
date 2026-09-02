@@ -62,7 +62,7 @@ Lire au minimum :
 
 ### 2. Charger les connaissances specialisees
 
-- Charger le skill `gitnexus-workflow`
+- Charger le skill `graphify-corpus`
 - Charger le skill `dotnet-patterns`
 - Si la revue touche des tests xUnit, charger `xunit-unit-testing`
 - Si la revue touche `src/Front`, charger `ui-ux-front-saas` et `angular-patterns`
@@ -80,7 +80,7 @@ Pour chaque zone sensible du diff :
 
 - Lire le diff lui-meme avant de lire les fichiers complets.
 - Remonter d'un cran quand il faut comprendre l'appelant, le contrat public, le schema ou le flux d'execution.
-- Utiliser GitNexus pour les symboles partages, les services transverses et les flux critiques.
+- Utiliser Graphify pour relier les symboles partages, les services transverses, les flux critiques et la documentation associee, puis confirmer les conclusions par lecture et validation.
 - Verifier les invariants transverses : securite, persistence, contrats, compatibilite API, comportement distribue, dette de conception, absence de tests, observabilite.
 - Si un build ou un test casse deja sur la zone revue, l'inclure comme signal, mais ne pas remplacer l'analyse humaine par la sortie d'outil.
 

@@ -10,7 +10,6 @@ namespace InfraFlowSculptor.Application.EventHubNamespaces.Queries;
 /// <summary>Handles the <see cref="GetEventHubNamespaceQuery"/> request.</summary>
 public class GetEventHubNamespaceQueryHandler(
     IEventHubNamespaceRepository eventHubNamespaceRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetEventHubNamespaceQuery, EventHubNamespaceResult>
@@ -24,11 +23,7 @@ public class GetEventHubNamespaceQueryHandler(
         if (eh is null)
             return Errors.EventHubNamespace.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(eh.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.EventHubNamespace.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(eh.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return Errors.EventHubNamespace.NotFoundError(query.Id);
 

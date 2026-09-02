@@ -93,6 +93,10 @@ export class InfraConfigRepositoryDialogComponent {
           defaultBranch: raw.defaultBranch,
           contentKinds: selectedKinds,
         };
+        const personalAccessToken = raw.personalAccessToken.trim();
+        if (personalAccessToken) {
+          req.personalAccessToken = personalAccessToken;
+        }
         await this.projectService.updateConfigRepository(
           this.data.projectId,
           this.data.configId,
@@ -105,6 +109,7 @@ export class InfraConfigRepositoryDialogComponent {
           providerType: raw.providerType,
           repositoryUrl: raw.repositoryUrl,
           defaultBranch: raw.defaultBranch,
+          personalAccessToken: raw.personalAccessToken.trim(),
           contentKinds: selectedKinds,
         };
         const result = await this.projectService.addConfigRepository(

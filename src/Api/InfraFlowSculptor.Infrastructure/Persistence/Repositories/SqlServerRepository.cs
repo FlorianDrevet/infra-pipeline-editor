@@ -25,6 +25,7 @@ public class SqlServerRepository(ProjectDbContext context)
         CancellationToken cancellationToken = default)
     {
         return await WithSubResources(Context.Set<SqlServer>().AsNoTracking())
+            .Include(x => x.ResourceGroup)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 

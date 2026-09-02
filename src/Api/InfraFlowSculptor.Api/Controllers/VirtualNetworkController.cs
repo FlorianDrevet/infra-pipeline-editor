@@ -1,7 +1,10 @@
 using InfraFlowSculptor.Api.Controllers.Constants;
 using InfraFlowSculptor.Api.Errors;
+using InfraFlowSculptor.Application.VirtualNetworks.Commands.AddSubnet;
 using InfraFlowSculptor.Application.VirtualNetworks.Commands.CreateVirtualNetwork;
 using InfraFlowSculptor.Application.VirtualNetworks.Commands.DeleteVirtualNetwork;
+using InfraFlowSculptor.Application.VirtualNetworks.Commands.RemoveSubnet;
+using InfraFlowSculptor.Application.VirtualNetworks.Commands.UpdateSubnet;
 using InfraFlowSculptor.Application.VirtualNetworks.Commands.UpdateVirtualNetwork;
 using InfraFlowSculptor.Application.VirtualNetworks.Queries;
 using InfraFlowSculptor.Contracts.VirtualNetworks.Requests;
@@ -117,6 +120,78 @@ public static class VirtualNetworkController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // Subnet sub-resource endpoints
+            group.MapPost("/{id:guid}/subnets",
+                    async ([FromRoute] Guid id, [FromBody] AddSubnetRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new AddSubnetCommand(
+                            new AzureResourceId(id),
+                            request.Name,
+                            request.AddressPrefix,
+                            request.Delegation,
+                            request.ServiceEndpoints,
+                            request.PrivateEndpointNetworkPolicies,
+                            request.NsgId);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            vnet => TypedResults.Ok(mapper.Map<VirtualNetworkResponse>(vnet)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName(VirtualNetworkRouteNames.AddSubnet)
+                .WithSummary("Add a subnet")
+                .WithDescription("Adds a new subnet to the Virtual Network.")
+                .Produces<VirtualNetworkResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound);
+
+            group.MapPut("/{id:guid}/subnets/{subnetId:guid}",
+                    async ([FromRoute] Guid id, [FromRoute] Guid subnetId, [FromBody] UpdateSubnetRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new UpdateSubnetCommand(
+                            new AzureResourceId(id),
+                            subnetId,
+                            request.Name,
+                            request.AddressPrefix,
+                            request.Delegation,
+                            request.ServiceEndpoints,
+                            request.PrivateEndpointNetworkPolicies,
+                            request.NsgId);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            vnet => TypedResults.Ok(mapper.Map<VirtualNetworkResponse>(vnet)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName(VirtualNetworkRouteNames.UpdateSubnet)
+                .WithSummary("Update a subnet")
+                .WithDescription("Updates an existing subnet in the Virtual Network.")
+                .Produces<VirtualNetworkResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound);
+
+            group.MapDelete("/{id:guid}/subnets/{subnetId:guid}",
+                    async ([FromRoute] Guid id, [FromRoute] Guid subnetId, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new RemoveSubnetCommand(new AzureResourceId(id), subnetId);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            vnet => TypedResults.Ok(mapper.Map<VirtualNetworkResponse>(vnet)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName(VirtualNetworkRouteNames.RemoveSubnet)
+                .WithSummary("Remove a subnet")
+                .WithDescription("Removes a subnet from the Virtual Network.")
+                .Produces<VirtualNetworkResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound);
         });
     }
 }

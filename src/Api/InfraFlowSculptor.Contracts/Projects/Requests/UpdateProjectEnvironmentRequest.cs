@@ -26,9 +26,9 @@ public class UpdateProjectEnvironmentRequest
     [Required, EnumValidation(typeof(Location.LocationEnum))]
     public required string Location { get; init; }
 
-    /// <summary>Azure subscription ID where resources in this environment will be created.</summary>
-    [Required, GuidValidation]
-    public required Guid SubscriptionId { get; init; }
+    /// <summary>Azure subscription ID where resources in this environment will be created.
+    /// Pass <c>null</c> or omit to leave the subscription unconfigured.</summary>
+    public Guid? SubscriptionId { get; init; }
 
     /// <summary>Deployment ordering index. Lower values are deployed first.</summary>
     public int Order { get; init; } = 0;

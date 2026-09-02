@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Commands.DeleteResourceGroup;
+using InfraFlowSculptor.Application.ResourceGroups.Commands.UpdateResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.GetResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupResources;
 using MediatR;
@@ -92,6 +93,33 @@ public static class ResourceGroupController
                 .WithSummary("Create a Resource Group")
                 .WithDescription("Creates a new Azure Resource Group inside an existing Infrastructure Configuration. Requires Owner or Contributor access.")
                 .Produces<ResourceGroupResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            config.MapPut("/{id:guid}",
+                    async ([FromRoute] Guid id, UpdateResourceGroupRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new UpdateResourceGroupCommand(
+                            new ResourceGroupId(id),
+                            mapper.Map<Domain.Common.ValueObjects.Name>(request.Name),
+                            mapper.Map<Domain.Common.ValueObjects.Location>(request.Location));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            resourceGroup =>
+                            {
+                                var response = mapper.Map<ResourceGroupResponse>(resourceGroup);
+                                return TypedResults.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName(ResourceGroupRouteNames.UpdateResourceGroup)
+                .WithSummary("Update a Resource Group")
+                .WithDescription("Updates the name and location of an existing Resource Group. Requires Owner or Contributor access.")
+                .Produces<ResourceGroupResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)

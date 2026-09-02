@@ -1,0 +1,9 @@
+[mcp_servers.agentmemory]
+command = "npx"
+args = [
+    "-y",
+    "@agentmemory/mcp",
+]
+
+[mcp_servers.agentmemory.env]
+AGENTMEMORY_URL = "http://localhost:3111"

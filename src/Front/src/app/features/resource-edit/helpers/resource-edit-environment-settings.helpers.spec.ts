@@ -5,11 +5,46 @@ import {
   ResourceEditEnvironmentFormEntry,
   buildBlobLifecycleRules,
   buildContainerAppEnvironmentSettings,
+  buildVirtualNetworkEnvironmentSettings,
   buildStorageAccountCorsRules,
 } from './resource-edit-environment-settings.helpers';
 
+const TestAddressSpaces = ['vnet-space-primary', 'vnet-space-secondary'] as const;
+
+const TestDnsServers = ['dns-server-primary', 'dns-server-secondary'] as const;
+
 describe('resource edit environment settings helpers', () => {
   const fb = new FormBuilder();
+
+  it('builds virtual network environment settings from delimited address-space and DNS inputs', () => {
+    const envForms = [
+      createEnvironmentFormEntry('Development', {
+        addressSpacesInput: [...TestAddressSpaces],
+        dnsServersInput: [...TestDnsServers],
+        enableDdosProtection: true,
+      }),
+      createEnvironmentFormEntry('Production', {
+        addressSpacesInput: [],
+        dnsServersInput: [],
+        enableDdosProtection: false,
+      }),
+    ];
+
+    expect(buildVirtualNetworkEnvironmentSettings(envForms)).toEqual([
+      {
+        environmentName: 'Development',
+        addressSpaces: [...TestAddressSpaces],
+        dnsServers: [...TestDnsServers],
+        enableDdosProtection: true,
+      },
+      {
+        environmentName: 'Production',
+        addressSpaces: [],
+        dnsServers: undefined,
+        enableDdosProtection: false,
+      },
+    ]);
+  });
 
   it('builds container app environment payloads with ACR service connection names', () => {
     const envForms = [
@@ -149,11 +184,19 @@ describe('resource edit environment settings helpers', () => {
 
   function createEnvironmentFormEntry(
     envName: string,
-    rawValue: Record<string, string | number | boolean | null>,
+    rawValue: Record<string, string | number | boolean | null | string[]>,
   ): ResourceEditEnvironmentFormEntry {
+    const form = fb.group({});
+
+    for (const [key, value] of Object.entries(rawValue)) {
+      form.addControl(key, fb.control(value));
+    }
+
     return {
       envName,
-      form: fb.group(rawValue),
+      form,
     };
   }
 });
+
+

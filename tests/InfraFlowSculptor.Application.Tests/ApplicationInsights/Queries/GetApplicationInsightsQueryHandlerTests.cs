@@ -50,7 +50,6 @@ public sealed class GetApplicationInsightsQueryHandlerTests
         _query = new GetApplicationInsightsQuery(_applicationInsights.Id);
         _sut = new GetApplicationInsightsQueryHandler(
             _applicationInsightsRepository,
-            _resourceGroupRepository,
             _accessService,
             _mapper);
     }

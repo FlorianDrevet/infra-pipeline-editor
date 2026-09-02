@@ -10,7 +10,6 @@ namespace InfraFlowSculptor.Application.SqlDatabases.Queries;
 /// <summary>Handles the <see cref="GetSqlDatabaseQuery"/> request.</summary>
 public class GetSqlDatabaseQueryHandler(
     ISqlDatabaseRepository sqlDatabaseRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetSqlDatabaseQuery, SqlDatabaseResult>
@@ -24,11 +23,7 @@ public class GetSqlDatabaseQueryHandler(
         if (database is null)
             return Errors.SqlDatabase.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(database.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.SqlDatabase.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(database.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return Errors.SqlDatabase.NotFoundError(query.Id);
 

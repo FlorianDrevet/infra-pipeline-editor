@@ -1,0 +1,118 @@
+<div class="networking-section">
+  @if (section().isLoading()) {
+    <app-ds-spinner />
+  } @else {
+    <!-- Error banner -->
+    @if (section().errorKey(); as errKey) {
+      <app-ds-banner
+        variant="danger"
+        [description]="errKey | translate" />
+    }
+
+    <!-- Info banner explaining privatization -->
+    <app-ds-banner
+      variant="info"
+      [description]="'RESOURCE_EDIT.NETWORKING.DESCRIPTION' | translate" />
+
+    <!-- Privatization toggle -->
+    <div class="networking-section__toggle-row">
+      <app-ds-toggle
+        [ngModel]="section().isPrivatized()"
+        (ngModelChange)="onToggleChange($event)"
+        [ariaLabel]="'RESOURCE_EDIT.NETWORKING.PRIVATIZATION_TOGGLE_LABEL' | translate"
+        [disabled]="!canWrite()">
+        {{ 'RESOURCE_EDIT.NETWORKING.PRIVATIZATION_TOGGLE_LABEL' | translate }}
+      </app-ds-toggle>
+      <p class="networking-section__toggle-description">
+        {{ 'RESOURCE_EDIT.NETWORKING.PRIVATIZATION_TOGGLE_DESCRIPTION' | translate }}
+      </p>
+    </div>
+
+    <!-- PE Configuration form (visible only when privatized) -->
+    @if (section().isPrivatized()) {
+      <div class="networking-section__form" (animationend)="initFormFromConfig()">
+        <!-- VNet selector -->
+        <app-ds-select
+          class="networking-section__field"
+          [label]="'RESOURCE_EDIT.NETWORKING.VNET_LABEL' | translate"
+          [options]="section().vnetOptions()"
+          [ngModel]="selectedVnetId()"
+          (ngModelChange)="onVnetChange($event)"
+          [disabled]="!canWrite()" />
+
+        <!-- Subnet selector (loaded from selected VNet) -->
+        @if (section().subnetOptions().length > 0) {
+          <app-ds-select
+            class="networking-section__field"
+            [label]="'RESOURCE_EDIT.NETWORKING.SUBNET_LABEL' | translate"
+            [options]="section().subnetOptions()"
+            [ngModel]="subnetName()"
+            (ngModelChange)="subnetName.set($event)"
+            [hint]="'RESOURCE_EDIT.NETWORKING.SUBNET_HINT' | translate"
+            [disabled]="!canWrite()" />
+        } @else {
+          <app-ds-text-field
+            class="networking-section__field"
+            [label]="'RESOURCE_EDIT.NETWORKING.SUBNET_LABEL' | translate"
+            [placeholder]="'RESOURCE_EDIT.NETWORKING.SUBNET_PLACEHOLDER' | translate"
+            [hint]="'RESOURCE_EDIT.NETWORKING.SUBNET_HINT' | translate"
+            [ngModel]="subnetName()"
+            (ngModelChange)="subnetName.set($event)"
+            [disabled]="!canWrite() || section().isLoadingSubnets()" />
+        }
+
+        <!-- DNS Mode with help button -->
+        <div class="networking-section__dns-row">
+          <app-ds-select
+            class="networking-section__field networking-section__field--dns"
+            [label]="'RESOURCE_EDIT.NETWORKING.DNS_MODE_LABEL' | translate"
+            [options]="dnsModeOptions()"
+            [ngModel]="selectedDnsMode()"
+            (ngModelChange)="selectedDnsMode.set($event)"
+            [disabled]="!canWrite()" />
+          <app-ds-icon-button
+            icon="help_outline"
+            [ariaLabel]="'RESOURCE_EDIT.NETWORKING.DNS_HELP_TITLE' | translate"
+            (clicked)="openDnsHelp()" />
+        </div>
+
+        <!-- Hub-specific fields -->
+        @if (showHubFields) {
+          <app-ds-text-field
+            class="networking-section__field"
+            [label]="'RESOURCE_EDIT.NETWORKING.DNS_HUB_RG_LABEL' | translate"
+            [ngModel]="dnsHubResourceGroupId()"
+            (ngModelChange)="dnsHubResourceGroupId.set($event)"
+            [disabled]="!canWrite()" />
+
+          <app-ds-text-field
+            class="networking-section__field"
+            [label]="'RESOURCE_EDIT.NETWORKING.DNS_HUB_SUB_LABEL' | translate"
+            [ngModel]="dnsHubSubscriptionId()"
+            (ngModelChange)="dnsHubSubscriptionId.set($event)"
+            [disabled]="!canWrite()" />
+        }
+
+        <!-- Action buttons -->
+        <div class="networking-section__actions">
+          <app-ds-button
+            variant="primary"
+            [disabled]="!canWrite() || section().isSaving()"
+            [loading]="section().isSaving()"
+            (clicked)="onSave()">
+            {{ 'RESOURCE_EDIT.NETWORKING.SAVE' | translate }}
+          </app-ds-button>
+
+          @if (hasExistingConfig) {
+            <app-ds-button
+              variant="danger"
+              [disabled]="!canWrite() || section().isSaving()"
+              (clicked)="onRemove()">
+              {{ 'RESOURCE_EDIT.NETWORKING.REMOVE' | translate }}
+            </app-ds-button>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

@@ -70,4 +70,20 @@ public sealed class KeyVaultSecretClientTests
             Arg.Any<Exception>(),
             Arg.Any<Func<object, Exception?, string>>());
     }
+
+    [Fact]
+    public async Task Given_GetSecretIsCanceled_When_GetSecretAsync_Then_PropagatesCancellationAsync()
+    {
+        // Arrange
+        var cancellationToken = new CancellationToken(canceled: true);
+        _secretClient.GetSecretAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromCanceled<Response<KeyVaultSecret>>(cancellationToken));
+
+        // Act
+        Func<Task> act = async () => await _sut.GetSecretAsync("git-pat-repo-123", cancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+        _logger.DidNotReceiveWithAnyArgs().Log(default, default, default!, default, default!);
+    }
 }

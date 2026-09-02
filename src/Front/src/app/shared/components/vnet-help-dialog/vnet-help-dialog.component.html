@@ -1,0 +1,34 @@
+<h2 mat-dialog-title>{{ titleKey | translate }}</h2>
+
+<mat-dialog-content class="vnet-help-dialog">
+  <p class="vnet-help-dialog__subtitle">{{ subtitleKey | translate }}</p>
+
+  <app-ds-alert severity="info" [title]="'COMMON.VNET_HELP_DIALOG.WHY.TITLE' | translate">
+    {{ 'COMMON.VNET_HELP_DIALOG.WHY.BODY' | translate }}
+  </app-ds-alert>
+
+  <div class="vnet-help-dialog__sections">
+    @for (section of sections; track section.titleKey) {
+      <section class="vnet-help-dialog__section">
+        <div class="vnet-help-dialog__section-header">
+          <span class="vnet-help-dialog__icon-shell">
+            <mat-icon>{{ section.icon }}</mat-icon>
+          </span>
+          <h3>{{ section.titleKey | translate }}</h3>
+        </div>
+
+        <p>{{ section.bodyKey | translate }}</p>
+
+        @if (section.guidanceKey) {
+          <p class="vnet-help-dialog__guidance">{{ section.guidanceKey | translate }}</p>
+        }
+      </section>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <app-ds-button variant="subtle" (clicked)="close()">
+    {{ 'COMMON.CLOSE' | translate }}
+  </app-ds-button>
+</mat-dialog-actions>

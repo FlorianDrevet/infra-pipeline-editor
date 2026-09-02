@@ -27,9 +27,9 @@ public class AddProjectEnvironmentRequest
     public required string Location { get; init; }
 
     /// <summary>Azure subscription ID where resources in this environment will be created.
-    /// Optional at creation: pass <see cref="Guid.Empty"/> (or omit) to create the environment
+    /// Optional at creation: pass <c>null</c> or omit to create the environment
     /// without a subscription, to be configured later.</summary>
-    public Guid SubscriptionId { get; init; } = Guid.Empty;
+    public Guid? SubscriptionId { get; init; }
 
     /// <summary>Deployment ordering index. Lower values are deployed first. Defaults to 0.</summary>
     public int Order { get; init; } = 0;

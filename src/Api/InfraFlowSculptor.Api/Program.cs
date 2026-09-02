@@ -103,19 +103,20 @@ app.UseSqlDatabaseController();
 app.UseServiceBusNamespaceController();
 app.UseContainerRegistryController();
 app.UseEventHubNamespaceController();
+app.UseDocumentIntelligenceController();
 app.UsePersonalAccessTokenController();
 app.UseAppSettingController();
 app.UseSecureParameterMappingController();
 app.UseCustomDomainController();
 app.UseVirtualNetworkController();
-app.UseNetworkSecurityGroupController();
-app.UsePrivateDnsZoneController();
-app.UseFrontDoorController();
-app.UsePrivateEndpointController();
+app.UseNetworkingProfileController();
+
 app.UseImportController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();
+app.UseBootstrapGenerationController();
 app.UsePipelineOptionDetectionController();
+app.UseCatalogController();
 app.UseGitController();
 
 // Health checks

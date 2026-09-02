@@ -110,7 +110,7 @@ L'audit du 2026-05-27 a identifié ~84 templates non conformes au DS, 30+ usages
 [ ] Lire audits/audit-design-system-2026-05-27.md (source de vérité)
 [ ] Lire ce tracker pour identifier le lot In progress
 [ ] Charger skills .github/skills/{tdd-workflow,angular-patterns,ui-ux-front-saas}/SKILL.md
-[ ] Avant tout changement de symbole DS : gitnexus_impact target=<nom> direction=upstream
+[ ] Avant tout changement de symbole DS : Graphify `query`/`explain`/`path` sur le symbole, puis typecheck, tests et `git diff`
 [ ] Tests : cd src/Front && npm run typecheck && npm run build
 [ ] Commit + PR titrée: feat(ds-migration): W<n> — <topic>
 [ ] Update tracker (statut + journal) + .github/memory/changelog.md

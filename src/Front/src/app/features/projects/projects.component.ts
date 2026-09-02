@@ -11,6 +11,7 @@ import {
   DsPageHeaderComponent,
   DsSelectComponent,
   DsSelectOption,
+  DsSpinnerComponent,
   DsTextFieldComponent,
 } from '../../shared/components/ds';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
@@ -41,6 +42,7 @@ type ProjectSortKey = (typeof PROJECT_SORT_VALUES)[keyof typeof PROJECT_SORT_VAL
     DsIconButtonComponent,
     DsPageHeaderComponent,
     DsSelectComponent,
+    DsSpinnerComponent,
     DsTextFieldComponent,
   ],
   templateUrl: './projects.component.html',

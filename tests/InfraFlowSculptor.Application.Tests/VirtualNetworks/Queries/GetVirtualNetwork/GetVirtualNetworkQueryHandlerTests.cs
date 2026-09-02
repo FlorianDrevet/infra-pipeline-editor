@@ -46,7 +46,7 @@ public sealed class GetVirtualNetworkQueryHandlerTests
             new Location(Location.LocationEnum.FranceCentral));
         _query = new GetVirtualNetworkQuery(_vnet.Id);
         _sut = new GetVirtualNetworkQueryHandler(
-            _vnetRepository, _resourceGroupRepository, _accessService, _mapper);
+            _vnetRepository, _accessService, _mapper);
     }
 
     [Fact]

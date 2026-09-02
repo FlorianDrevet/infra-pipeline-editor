@@ -26,15 +26,6 @@
 				"--non-interactive"
 			]
 		},
-		"gitnexus": {
-			"type": "stdio",
-			"command": "cmd",
-			"args": [
-				"/c",
-				"gitnexus",
-				"mcp"
-			]
-		},
 		"microsoft/azure-devops-mcp": {
 			"type": "stdio",
 			"command": "npx",

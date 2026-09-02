@@ -48,7 +48,7 @@ public sealed class DeleteStorageAccountCommandHandlerTests
             new StorageAccountTlsVersion(StorageAccountTlsVersion.Version.Tls12));
         _command = new DeleteStorageAccountCommand(_storageAccount.Id);
         _sut = new DeleteStorageAccountCommandHandler(
-            _storageAccountRepository, _resourceGroupRepository, _accessService);
+            _storageAccountRepository, _accessService);
     }
 
     [Fact]

@@ -42,6 +42,8 @@ class ProjectDetailGenerationWorkflowServiceBannerStub {
   readonly projectBootstrapErrorKey = signal('');
   readonly canPushAllProjectArtifacts = signal(false);
   readonly isSplitInfraCodeLayout = signal(false);
+  readonly isMultiRepoLayout = signal(false);
+  readonly canPushMultiRepoArtifacts = signal(false);
   readonly projectBicepNodes = signal([]);
   readonly projectPipelineNodes = signal([]);
   readonly projectBootstrapNodes = signal([]);
@@ -67,6 +69,7 @@ class ProjectDetailGenerationWorkflowServiceBannerStub {
   readonly downloadProjectCodeArtifacts = jasmine.createSpy('downloadProjectCodeArtifacts').and.resolveTo();
   readonly openProjectPushAllToGitDialog = jasmine.createSpy('openProjectPushAllToGitDialog');
   readonly openProjectMultiRepoPushDialog = jasmine.createSpy('openProjectMultiRepoPushDialog');
+  readonly openProjectMultiRepoArtifactsPushDialog = jasmine.createSpy('openProjectMultiRepoArtifactsPushDialog');
   readonly downloadProjectPipelineFiles = jasmine.createSpy('downloadProjectPipelineFiles').and.resolveTo();
   readonly downloadProjectBootstrapFiles = jasmine.createSpy('downloadProjectBootstrapFiles').and.resolveTo();
   readonly loadLastGeneration = jasmine.createSpy('loadLastGeneration').and.resolveTo();

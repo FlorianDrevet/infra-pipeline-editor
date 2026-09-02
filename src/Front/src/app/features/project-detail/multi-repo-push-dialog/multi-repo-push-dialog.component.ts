@@ -222,7 +222,7 @@ export class MultiRepoPushDialogComponent implements OnInit {
     }
 
     try {
-      const response: MultiRepoPushResponse = await this.projectService.pushProjectArtifactsToMultiRepo(
+      const response: MultiRepoPushResponse = await this.projectService.pushProjectSplitInfraCodeArtifacts(
         this.data.projectId,
         request,
       );

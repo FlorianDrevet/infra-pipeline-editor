@@ -13,7 +13,6 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Commands.UpdateBlobConta
 /// </summary>
 public sealed class UpdateBlobContainerPublicAccessCommandHandler(
     IStorageAccountRepository storageAccountRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : ICommandHandler<UpdateBlobContainerPublicAccessCommand, StorageAccountResult>
@@ -26,7 +25,6 @@ public sealed class UpdateBlobContainerPublicAccessCommandHandler(
         var ctx = new StorageAccountAccessContext(
             request.StorageAccountId,
             storageAccountRepository,
-            resourceGroupRepository,
             accessService);
 
         var saResult = await StorageAccountAccessHelper.GetWithWriteAccessAsync(ctx, cancellationToken);

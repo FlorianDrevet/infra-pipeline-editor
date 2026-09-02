@@ -82,6 +82,24 @@ public sealed class VirtualNetworkTypeBicepGenerator
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
+        var parameters = new Dictionary<string, object>
+        {
+            // Base defaults; the real per-environment values are injected by
+            // ParameterFileAssembler from EnvironmentConfigs (addressPrefixes JSON array,
+            // enableDdosProtection bool). Keys MUST exist here or the override is dropped.
+            [AddressPrefixesParameterName] = new List<object> { "10.0.0.0/16" },
+            [EnableDdosProtectionParameterName] = false,
+            [SubnetsParameterName] = resource.Subnets.Select(s => new Dictionary<string, object?>
+            {
+                ["name"] = s.Name,
+                ["addressPrefix"] = s.AddressPrefix,
+                ["delegation"] = s.Delegation,
+                ["serviceEndpoints"] = s.ServiceEndpoints,
+                ["privateEndpointNetworkPolicies"] = s.PrivateEndpointNetworkPolicies,
+                ["nsgId"] = s.NsgId,
+            }).ToList<object>(),
+        };
+
         return new GeneratedTypeModule
         {
             ModuleName = ModuleName,
@@ -89,7 +107,11 @@ public sealed class VirtualNetworkTypeBicepGenerator
             ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = VirtualNetworkModuleTemplate,
             ResourceTypeName = ResourceTypeName,
-            Parameters = new Dictionary<string, object>()
+            Parameters = parameters,
+            ParameterTypeOverrides = new Dictionary<string, string>
+            {
+                [SubnetsParameterName] = SubnetConfigTypeName + "[]",
+            },
         };
     }
 

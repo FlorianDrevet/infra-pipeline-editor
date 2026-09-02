@@ -60,7 +60,7 @@
 .detail-header__info {
   display: flex;
   flex-direction: column;
-  gap: var(--ifs-space-6);
+  gap: var(--ifs-space-8);
 
   h1 {
     margin: 0;
@@ -72,6 +72,13 @@
   }
 }
 
+.detail-header__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--ifs-space-8);
+  flex-wrap: wrap;
+}
+
 .detail-header__description {
   margin: 0;
   font-size: 13px;
@@ -81,16 +88,17 @@
 }
 
 .detail-header__id {
-  margin: 0;
+  display: inline-flex;
+  align-items: center;
   width: fit-content;
-  padding: 4px 10px;
-  font-size: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--ifs-text-secondary);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-variant-numeric: tabular-nums;
-  word-break: break-all;
-  border-radius: var(--ifs-radius-pill);
-  background: var(--ifs-surface-2);
+  border-radius: var(--ifs-radius-sm);
   background: var(--project-pill-surface);
   border: 1px solid var(--project-border-accent);
 }
@@ -300,19 +308,6 @@
   strong {
     color: var(--ifs-danger);
   }
-}
-
-.pulse-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--ifs-accent-500);
-  animation: ifs-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes ifs-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
 }
 
 // ─── Tabs (Material override) ───────────────────────────────────────────────

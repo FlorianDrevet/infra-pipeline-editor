@@ -100,6 +100,11 @@ public static class ResourceOutputCatalog
         [
             new(ConnectionStringOutput, "Service Bus primary connection string", "serviceBusNamespace.listKeys('${serviceBusNamespace.id}/authorizationRules/RootManageSharedAccessKey', serviceBusNamespace.apiVersion).primaryConnectionString", IsSensitive: true),
         ],
+        ["DocumentIntelligence"] =
+        [
+            new("endpoint", "Document Intelligence endpoint URL", "docIntel.properties.endpoint"),
+            new("id", "Document Intelligence resource ID", "docIntel.id"),
+        ],
     };
 
     /// <summary>

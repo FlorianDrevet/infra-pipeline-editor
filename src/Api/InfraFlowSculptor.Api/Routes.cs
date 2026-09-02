@@ -75,17 +75,19 @@ public static class Routes
     /// <summary>Route group prefix for Event Hub Namespace operations.</summary>
     public const string EventHubs = "/event-hubs";
 
+    /// <summary>Route group prefix for Document Intelligence operations.</summary>
+    public const string DocumentIntelligence = "/document-intelligence";
+
     /// <summary>Route group prefix for Virtual Network operations.</summary>
     public const string VirtualNetwork = "/virtual-network";
 
-    /// <summary>Route group prefix for Network Security Group operations.</summary>
-    public const string NetworkSecurityGroup = "/network-security-group";
+    /// <summary>Route group prefix for resource privatization operations scoped to an infra config.</summary>
+    public const string ResourcePrivatization = "/infra-config/{infraConfigId:guid}/resources/{resourceId:guid}/privatization";
 
-    /// <summary>Route group prefix for Private DNS Zone operations.</summary>
-    public const string PrivateDnsZone = "/private-dns-zone";
+    /// <summary>Route group prefix for resource private endpoint configuration.</summary>
+    public const string ResourcePrivateEndpoint = "/infra-config/{infraConfigId:guid}/resources/{resourceId:guid}/private-endpoint-config";
 
-    /// <summary>Route group prefix for Front Door operations.</summary>
-    public const string FrontDoor = "/front-door";
+
 
     /// <summary>Route group prefix for Personal Access Token operations.</summary>
     public const string PersonalAccessTokens = "/personal-access-tokens";
@@ -95,6 +97,9 @@ public static class Routes
 
     /// <summary>Route group prefix for pipeline generation operations.</summary>
     public const string GeneratePipeline = "/generate-pipeline";
+
+    /// <summary>Route group prefix for bootstrap generation operations.</summary>
+    public const string GenerateBootstrap = "/generate-bootstrap";
 
     /// <summary>Route group prefix for import operations.</summary>
     public const string Imports = "/imports";
@@ -114,8 +119,7 @@ public static class Routes
     /// <summary>Route group prefix for custom domain operations scoped to a resource.</summary>
     public const string AzureResourceCustomDomains = "/azure-resources/{resourceId:guid}/custom-domains";
 
-    /// <summary>Route group prefix for private endpoint operations scoped to a resource.</summary>
-    public const string ResourcePrivateEndpoints = "/resources/{resourceId:guid}/private-endpoints";
+
 
     /// <summary>Route group prefix for available outputs scoped to a resource.</summary>
     public const string AzureResourceAvailableOutputs = "/azure-resources/{resourceId:guid}/available-outputs";
@@ -134,4 +138,7 @@ public static class Routes
 
     /// <summary>Route group prefix for stateless Git operations.</summary>
     public const string Git = "/git";
+
+    /// <summary>Route group prefix for reference catalog endpoints.</summary>
+    public const string Catalogs = "/catalogs";
 }

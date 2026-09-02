@@ -44,9 +44,15 @@ export * from './ds-tag-input/ds-tag-input.component';
 export * from './ds-tag-input/ds-tag-input.types';
 export * from './ds-key-value-input/ds-key-value-input.component';
 export * from './ds-key-value-input/ds-key-value-input.types';
+export * from './ds-list-input/ds-list-input.component';
+export * from './ds-list-input/ds-list-input.types';
 export * from './ds-menu/ds-menu.component';
 export * from './ds-menu/ds-menu.directive';
 export * from './ds-menu/ds-menu.types';
 export * from './ds-accordion/ds-accordion.component';
 export * from './ds-accordion/ds-accordion.types';
-
+export * from './ds-property-help-button/ds-property-help-button.component';
+export * from './ds-property-help-button/ds-property-help-dialog.component';
+export * from './ds-property-help-button/ds-property-help-button.types';
+export * from './ds-ip-input/ds-ip-input.component';
+export * from './ds-ip-input/ds-ip-input.types';

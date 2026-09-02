@@ -5,17 +5,19 @@ import { TranslateModule } from '@ngx-translate/core';
 import { DsSpinnerSize } from './ds-spinner.types';
 
 const SIZE_PX: Record<DsSpinnerSize, number> = {
-  sm: 14,
-  md: 18,
-  lg: 24,
-  xl: 40,
+  sm: 18,
+  md: 24,
+  lg: 36,
+  xl: 48,
 };
 
 const DEFAULT_LABEL_KEY = 'DS.SPINNER.LOADING';
 
+let nextId = 0;
+
 /**
- * Design system circular spinner. Indeterminate loading indicator built with
- * an SVG circle and a rotating stroke. Honors `prefers-reduced-motion`.
+ * Design system branded loader. Indeterminate loading indicator built with
+ * an SVG triangle "drawing path" animation. Honors `prefers-reduced-motion`.
  *
  * Use `inline` to render inside a line of text (vertical-align: middle).
  */
@@ -35,4 +37,5 @@ export class DsSpinnerComponent {
   protected readonly diameter = computed(() => SIZE_PX[this.size()]);
   protected readonly resolvedLabelKey = computed(() => this.label() ?? DEFAULT_LABEL_KEY);
   protected readonly hasCustomLabel = computed(() => this.label() !== undefined);
+  protected readonly gradientId = computed(() => `ifsLoaderGrad${nextId++}`);
 }

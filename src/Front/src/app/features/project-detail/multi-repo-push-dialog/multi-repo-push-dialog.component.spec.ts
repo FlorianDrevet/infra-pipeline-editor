@@ -119,8 +119,8 @@ describe('MultiRepoPushDialogComponent', () => {
     localStorage.removeItem('ifs-push-branch-multi-project-42-repo-infra');
     localStorage.removeItem('ifs-push-branch-multi-project-42-repo-code');
 
-    projectServiceSpy = jasmine.createSpyObj<ProjectService>('ProjectService', ['pushProjectArtifactsToMultiRepo', 'listBranches', 'listCodeBranches']);
-    projectServiceSpy.pushProjectArtifactsToMultiRepo.and.resolveTo(createPushResponse());
+    projectServiceSpy = jasmine.createSpyObj<ProjectService>('ProjectService', ['pushProjectSplitInfraCodeArtifacts', 'listBranches', 'listCodeBranches']);
+    projectServiceSpy.pushProjectSplitInfraCodeArtifacts.and.resolveTo(createPushResponse());
 
     await TestBed.configureTestingModule({
       imports: [MultiRepoPushDialogComponent, TranslateModule.forRoot()],
@@ -208,7 +208,7 @@ describe('MultiRepoPushDialogComponent', () => {
     expect(loadingStates.length).toBe(2);
   });
 
-  it('does not call pushProjectArtifactsToMultiRepo when a commit message is missing', async () => {
+  it('does not call pushProjectSplitInfraCodeArtifacts when a commit message is missing', async () => {
     await createComponent();
 
     componentTestApi.infraForm.controls.branch.setValue('main');
@@ -216,7 +216,7 @@ describe('MultiRepoPushDialogComponent', () => {
 
     await componentTestApi.onPush();
 
-    expect(projectServiceSpy.pushProjectArtifactsToMultiRepo).not.toHaveBeenCalled();
+    expect(projectServiceSpy.pushProjectSplitInfraCodeArtifacts).not.toHaveBeenCalled();
   });
 
   it('loads and filters existing branches for both repo branch fields', async () => {
@@ -259,7 +259,10 @@ describe('MultiRepoPushDialogComponent', () => {
     const autocompleteComponents = fixture.debugElement
       .queryAll(By.directive(DsAutocompleteComponent))
       .map(debugElement => debugElement.componentInstance as DsAutocompleteComponent);
-    const pushButton = fixture.debugElement.query(By.directive(DsButtonComponent)).componentInstance as DsButtonComponent;
+    const pushButton = fixture.debugElement
+      .queryAll(By.directive(DsButtonComponent))
+      .map(debugElement => debugElement.componentInstance as DsButtonComponent)
+      .find(button => button.icon() === 'cloud_upload');
 
     expect(autocompleteComponents.length).toBe(2);
     expect(autocompleteComponents.every(autocomplete => autocomplete.loading())).toBeTrue();
@@ -270,7 +273,8 @@ describe('MultiRepoPushDialogComponent', () => {
     fixture.detectChanges();
 
     expect(componentTestApi.canPush()).toBeFalse();
-    expect(pushButton.disabled()).toBeTrue();
+    expect(pushButton).toBeDefined();
+    expect(pushButton!.disabled()).toBeTrue();
 
     branchesDeferred.resolve(createBranchResponses());
     await new Promise(resolve => setTimeout(resolve));
@@ -350,7 +354,7 @@ describe('MultiRepoPushDialogComponent', () => {
 
     await componentTestApi.onPush();
 
-    expect(projectServiceSpy.pushProjectArtifactsToMultiRepo).toHaveBeenCalledOnceWith('project-42', {
+    expect(projectServiceSpy.pushProjectSplitInfraCodeArtifacts).toHaveBeenCalledOnceWith('project-42', {
       infra: {
         repositoryId: 'repo-infra',
         branchName: 'main',

@@ -200,6 +200,9 @@ public sealed partial class ContainerAppTypeBicepGenerator
         @description('ACR login server (e.g. myregistry.azurecr.io)')
         param acrLoginServer string
 
+        @description('Resource ID of the User Assigned Identity for ACR pull')
+        param userAssignedIdentityId string
+
         {{CustomDomainDeclarationsPlaceholder}}
 
         resource containerApp '{{ContainerAppArmType}}' = {

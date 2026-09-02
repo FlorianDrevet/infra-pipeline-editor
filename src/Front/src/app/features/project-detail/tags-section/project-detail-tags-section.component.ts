@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -11,6 +12,7 @@ import { DsButtonComponent, DsChipComponent, DsIconButtonComponent, DsKeyValueIn
   selector: 'app-project-detail-tags-section',
   standalone: true,
   imports: [
+    FormsModule,
     MatIconModule,
     TranslateModule,
     DsButtonComponent,

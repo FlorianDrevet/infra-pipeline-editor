@@ -1,45 +1,40 @@
 import { inject, Injectable } from '@angular/core';
+
 import { AxiosService } from './axios.service';
 import { MethodEnum } from '../enums/method.enum';
-import {
-  AddPrivateEndpointRequest,
-  PrivateEndpointConfigResponse,
-  UpdatePrivateEndpointRequest,
-} from '../interfaces/private-endpoint.interface';
+import { PrivateEndpointConfigResponse, SetPrivateEndpointConfigRequest } from '../interfaces/private-endpoint-config.interface';
+import { NetworkingProfileService } from './networking-profile.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PrivateEndpointService {
   private readonly axios = inject(AxiosService);
+  private readonly networkingProfileService = inject(NetworkingProfileService);
 
-  getByResourceId(resourceId: string): Promise<PrivateEndpointConfigResponse[]> {
-    return this.axios.request$<PrivateEndpointConfigResponse[]>(
+  toggleResourcePrivatization(infraConfigId: string, resourceId: string, isPrivatized: boolean): Promise<void> {
+    return this.networkingProfileService.togglePrivatization(infraConfigId, resourceId, isPrivatized);
+  }
+
+  getPrivateEndpointConfig(infraConfigId: string, resourceId: string): Promise<PrivateEndpointConfigResponse | null> {
+    return this.axios.request$<PrivateEndpointConfigResponse | null>(
       MethodEnum.GET,
-      `/resources/${resourceId}/private-endpoints`
+      `/infra-config/${infraConfigId}/resources/${resourceId}/private-endpoint-config`
     );
   }
 
-  add(resourceId: string, request: AddPrivateEndpointRequest): Promise<PrivateEndpointConfigResponse> {
-    return this.axios.request$<PrivateEndpointConfigResponse>(
-      MethodEnum.POST,
-      `/resources/${resourceId}/private-endpoints`,
-      request
-    );
-  }
-
-  update(resourceId: string, peId: string, request: UpdatePrivateEndpointRequest): Promise<PrivateEndpointConfigResponse> {
-    return this.axios.request$<PrivateEndpointConfigResponse>(
+  setPrivateEndpointConfig(infraConfigId: string, resourceId: string, config: SetPrivateEndpointConfigRequest): Promise<void> {
+    return this.axios.request$<void>(
       MethodEnum.PUT,
-      `/resources/${resourceId}/private-endpoints/${peId}`,
-      request
+      `/infra-config/${infraConfigId}/resources/${resourceId}/private-endpoint-config`,
+      config
     );
   }
 
-  remove(resourceId: string, peId: string): Promise<void> {
+  removePrivateEndpointConfig(infraConfigId: string, resourceId: string): Promise<void> {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
-      `/resources/${resourceId}/private-endpoints/${peId}`
+      `/infra-config/${infraConfigId}/resources/${resourceId}/private-endpoint-config`
     );
   }
 }

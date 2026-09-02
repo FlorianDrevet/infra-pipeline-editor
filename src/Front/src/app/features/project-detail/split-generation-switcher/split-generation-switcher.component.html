@@ -1,15 +1,14 @@
 <div class="split-switcher__shell">
-  <div class="split-switcher__header-actions">
-    <app-ds-panel-action-button
-      [icon]="collapsed() ? 'keyboard_arrow_down' : 'keyboard_arrow_up'"
-      tone="accent"
-      surface="dark"
-      [pressed]="!collapsed()"
-      [ariaExpanded]="!collapsed()"
-      [ariaLabel]="((collapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
-      [tooltip]="((collapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
-      (clicked)="onToggleCollapsed()" />
-  </div>
+  <button
+    class="split-switcher__toggle"
+    type="button"
+    [attr.aria-expanded]="!collapsed()"
+    [attr.aria-label]="((collapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
+    (click)="onToggleCollapsed()">
+    <mat-icon class="split-switcher__toggle-icon" aria-hidden="true">
+      {{ collapsed() ? 'unfold_more' : 'unfold_less' }}
+    </mat-icon>
+  </button>
 
   <div class="split-switcher">
     <app-ds-tabs
@@ -70,15 +69,17 @@
                   </div>
                 }
                 @if (bicepNodes().length > 0 && !deferBatchReveal()) {
-                  <app-bicep-file-panel
-                    [nodes]="bicepNodes()"
-                    [barTitle]="'bicep-generator \u2014 ' + ('PROJECT_DETAIL.BICEP.ARTIFACTS' | translate)"
-                    [terminalDoneText]="'PROJECT_DETAIL.BICEP.TERMINAL_DONE' | translate"
-                    [fileLoadingText]="'PROJECT_DETAIL.BICEP.FILE_LOADING' | translate"
-                    [fileErrorText]="'PROJECT_DETAIL.BICEP.FILE_ERROR' | translate"
-                    [embedded]="true"
-                    [loadFile]="loadBicepFile()">
-                  </app-bicep-file-panel>
+                  <div class="split-switcher__embedded-panel">
+                    <app-bicep-file-panel
+                      [nodes]="bicepNodes()"
+                      [barTitle]="'bicep-generator \u2014 ' + ('PROJECT_DETAIL.BICEP.ARTIFACTS' | translate)"
+                      [terminalDoneText]="'PROJECT_DETAIL.BICEP.TERMINAL_DONE' | translate"
+                      [fileLoadingText]="'PROJECT_DETAIL.BICEP.FILE_LOADING' | translate"
+                      [fileErrorText]="'PROJECT_DETAIL.BICEP.FILE_ERROR' | translate"
+                      [embedded]="true"
+                      [loadFile]="loadBicepFile()">
+                    </app-bicep-file-panel>
+                  </div>
                 } @else if (!isGeneratingBicep() && !bicepGenerationError() && !deferBatchReveal()) {
                   <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
                 }
@@ -102,15 +103,17 @@
                   </div>
                 }
                 @if (hasInfraPipeline() && !deferBatchReveal()) {
-                  <app-bicep-file-panel
-                    [nodes]="infraPipelineNodes()"
-                    [barTitle]="'pipeline-generator \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
-                    [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
-                    [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
-                    [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
-                    [embedded]="true"
-                    [loadFile]="loadPipelineFile()">
-                  </app-bicep-file-panel>
+                  <div class="split-switcher__embedded-panel">
+                    <app-bicep-file-panel
+                      [nodes]="infraPipelineNodes()"
+                      [barTitle]="'pipeline-generator \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
+                      [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
+                      [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
+                      [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
+                      [embedded]="true"
+                      [loadFile]="loadPipelineFile()">
+                    </app-bicep-file-panel>
+                  </div>
                 } @else if (!isGeneratingPipeline() && !pipelineGenerationError() && !deferBatchReveal()) {
                   <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
                 }
@@ -134,15 +137,17 @@
                   </div>
                 }
                 @if (hasInfraBootstrap() && !deferBatchReveal()) {
-                  <app-bicep-file-panel
-                    [nodes]="infraBootstrapNodes()"
-                    [barTitle]="'bootstrap-generator \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
-                    [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
-                    [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
-                    [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
-                    [embedded]="true"
-                    [loadFile]="loadBootstrapFile()">
-                  </app-bicep-file-panel>
+                  <div class="split-switcher__embedded-panel">
+                    <app-bicep-file-panel
+                      [nodes]="infraBootstrapNodes()"
+                      [barTitle]="'bootstrap-generator \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
+                      [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
+                      [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
+                      [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
+                      [embedded]="true"
+                      [loadFile]="loadBootstrapFile()">
+                    </app-bicep-file-panel>
+                  </div>
                 } @else if (!isGeneratingBootstrap() && !bootstrapGenerationError() && !deferBatchReveal()) {
                   <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
                 }
@@ -211,15 +216,17 @@
                   </div>
                 }
                 @if (hasAppPipeline() && !deferBatchReveal()) {
-                  <app-bicep-file-panel
-                    [nodes]="appPipelineNodes()"
-                    [barTitle]="'pipeline-generator (code) \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
-                    [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
-                    [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
-                    [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
-                    [embedded]="true"
-                    [loadFile]="loadPipelineFile()">
-                  </app-bicep-file-panel>
+                  <div class="split-switcher__embedded-panel">
+                    <app-bicep-file-panel
+                      [nodes]="appPipelineNodes()"
+                      [barTitle]="'pipeline-generator (code) \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
+                      [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
+                      [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
+                      [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
+                      [embedded]="true"
+                      [loadFile]="loadPipelineFile()">
+                    </app-bicep-file-panel>
+                  </div>
                 } @else if (!isGeneratingPipeline() && !pipelineGenerationError() && !deferBatchReveal()) {
                   <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
                 }
@@ -265,15 +272,17 @@
                   </div>
                 }
                 @if (appBootstrapNodes().length > 0 && !deferBatchReveal()) {
-                  <app-bicep-file-panel
-                    [nodes]="appBootstrapNodes()"
-                    [barTitle]="'bootstrap-generator (code) \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
-                    [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
-                    [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
-                    [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
-                    [embedded]="true"
-                    [loadFile]="loadBootstrapFile()">
-                  </app-bicep-file-panel>
+                  <div class="split-switcher__embedded-panel">
+                    <app-bicep-file-panel
+                      [nodes]="appBootstrapNodes()"
+                      [barTitle]="'bootstrap-generator (code) \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
+                      [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
+                      [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
+                      [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
+                      [embedded]="true"
+                      [loadFile]="loadBootstrapFile()">
+                    </app-bicep-file-panel>
+                  </div>
                 } @else if (!isGeneratingBootstrap() && !bootstrapGenerationError() && !deferBatchReveal()) {
                   <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
                 }

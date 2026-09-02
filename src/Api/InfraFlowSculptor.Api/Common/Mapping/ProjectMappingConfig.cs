@@ -63,7 +63,7 @@ public sealed class ProjectMappingConfig : IRegister
         config.NewConfig<ProjectEnvironmentDefinitionResult, EnvironmentDefinitionResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
             .Map(dest => dest.Name, src => src.Name.Value)
-            .Map(dest => dest.SubscriptionId, src => src.SubscriptionId.ToString())
+            .Map(dest => dest.SubscriptionId, src => src.SubscriptionId == Guid.Empty ? string.Empty : src.SubscriptionId.ToString())
             .Map(dest => dest.Tags, src => src.Tags);
 
         // ── Project Resource Naming Templates ───────────────────────────
@@ -162,7 +162,8 @@ public sealed class ProjectMappingConfig : IRegister
         config.NewConfig<EnvironmentSetupRequest,
                 InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.EnvironmentSetupItem>()
             .Map(dest => dest.Prefix, src => src.Prefix ?? string.Empty)
-            .Map(dest => dest.Suffix, src => src.Suffix ?? string.Empty);
+            .Map(dest => dest.Suffix, src => src.Suffix ?? string.Empty)
+            .Map(dest => dest.SubscriptionId, src => src.SubscriptionId ?? Guid.Empty);
 
         config.NewConfig<RepositorySetupRequest,
             InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.RepositorySetupItem>();

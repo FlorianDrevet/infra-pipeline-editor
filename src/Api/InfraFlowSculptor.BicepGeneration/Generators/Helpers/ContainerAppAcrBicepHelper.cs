@@ -41,6 +41,11 @@ internal static class ContainerAppAcrBicepHelper
             builder.Param(AcrPasswordParameterName, BicepType.String,
                 "Admin password for the Container Registry", secure: true);
         }
+        else
+        {
+            builder.Param(UserAssignedIdentityIdParameterName, BicepType.String,
+                "Resource ID of the User Assigned Identity for ACR pull");
+        }
 
         return builder;
     }

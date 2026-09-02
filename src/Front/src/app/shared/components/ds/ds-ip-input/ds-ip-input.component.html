@@ -1,0 +1,46 @@
+<div
+  class="ds-field"
+  [class.ds-field--invalid]="!!error()"
+  [class.ds-field--disabled]="disabledState()"
+  (focusout)="onFocusOut($event)"
+>
+  @if (label()) {
+    <label class="ds-field__label">
+      {{ label() }}
+      @if (required()) {
+        <span class="ds-field__required">*</span>
+      }
+    </label>
+  }
+  <div class="ds-field__control ds-ip-input__control">
+    <mat-icon class="ds-field__icon ds-field__icon--prefix">{{ prefixIcon() }}</mat-icon>
+    <div class="ds-ip-input__segments">
+      @for (def of defs(); track $index) {
+        @if (def.separatorBefore) {
+          <span class="ds-ip-input__separator" aria-hidden="true">{{ def.separatorBefore }}</span>
+        }
+        <input
+          #segInput
+          type="text"
+          class="ds-ip-input__segment"
+          [class.ds-ip-input__segment--prefix]="def.kind === 'prefix'"
+          [value]="segments()[$index]"
+          [disabled]="disabledState()"
+          [attr.maxlength]="def.maxLength"
+          [attr.placeholder]="def.kind === 'prefix' ? '00' : '000'"
+          [attr.aria-label]="(def.kind === 'prefix' ? 'DS.IP_INPUT.PREFIX_ARIA' : 'DS.IP_INPUT.OCTET_ARIA') | translate: { index: $index + 1 }"
+          autocomplete="off"
+          inputmode="numeric"
+          (input)="onSegmentInput($index, $event)"
+          (keydown)="onSegmentKeydown($index, $event)"
+          (paste)="onPaste($event)"
+        />
+      }
+    </div>
+  </div>
+  @if (error()) {
+    <span class="ds-field__message ds-field__message--error">{{ error() }}</span>
+  } @else if (hint()) {
+    <span class="ds-field__message ds-field__message--hint">{{ hint() }}</span>
+  }
+</div>

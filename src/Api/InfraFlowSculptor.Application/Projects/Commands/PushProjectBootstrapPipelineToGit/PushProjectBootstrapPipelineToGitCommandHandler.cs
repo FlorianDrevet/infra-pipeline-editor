@@ -14,8 +14,10 @@ namespace InfraFlowSculptor.Application.Projects.Commands.PushProjectBootstrapPi
 /// Handles the <see cref="PushProjectBootstrapPipelineToGitCommand"/>.
 /// Uses <see cref="IRepositoryTargetResolver"/> with <c>config: null</c> and
 /// <see cref="ArtifactKind.Bootstrap"/>, resolving to the project's infrastructure repository.
-/// Projects with a heterogeneous multi-repo topology must instead use
-/// <c>PushProjectGeneratedArtifactsToGit</c>.
+/// Explicitly rejected for heterogeneous multi-repo topologies via
+/// <see cref="InfraFlowSculptor.Domain.ProjectAggregate.Project.CanGenerateAllFromProjectLevel"/>.
+/// Projects with a <c>MultiRepo</c> layout must instead use the config-level
+/// <c>PushBootstrapToGitCommand</c> (<c>InfrastructureConfig/Commands/PushBootstrapToGit</c>).
 /// </summary>
 public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
     IProjectAccessService accessService,
@@ -34,6 +36,10 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
         var authResult = await accessService.VerifyWriteAccessAsync(command.ProjectId, cancellationToken);
         if (authResult.IsError)
             return authResult.Errors;
+
+        // Reject project-level push for heterogeneous multi-repo topologies.
+        if (!authResult.Value.CanGenerateAllFromProjectLevel())
+            return Errors.GitRouting.AmbiguousProjectLevelGeneration;
 
         // 2. Load the project
         var project = await projectRepo.GetByIdWithAllAsync(command.ProjectId, cancellationToken);
@@ -63,7 +69,9 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
             prefixSegmentCount: 4,
             notFoundErrorFactory: Errors.Project.BootstrapFilesNotFoundError,
             entityId: command.ProjectId.Value,
-            subPrefix: isSplit ? "infra/" : null);
+            options: new BlobDownloadHelper.LatestBlobFilesOptions(
+                SubPrefix: isSplit ? "infra/" : null,
+                CancellationToken: cancellationToken));
         if (filesResult.IsError)
             return filesResult.Errors;
 

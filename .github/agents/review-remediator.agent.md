@@ -64,9 +64,9 @@ Lire :
 
 ### 3. Analyser l'impact avant modification
 
-- Charger le skill `gitnexus-workflow`.
-- Avant toute modification d'un symbole partage, executer `gitnexus_impact(target, "upstream")`.
-- Si le risque est `HIGH` ou `CRITICAL`, alerter l'utilisateur avant de poursuivre.
+- Charger le skill `graphify-corpus`.
+- Avant toute modification d'un symbole partage, utiliser `query`, `explain` et `path` pour repérer les dépendances, puis confirmer le périmètre par lecture, build et tests.
+- Si le périmètre reste ambigu, alerter l'utilisateur avant de poursuivre.
 
 ### 4. Charger les expertises techniques necessaires
 

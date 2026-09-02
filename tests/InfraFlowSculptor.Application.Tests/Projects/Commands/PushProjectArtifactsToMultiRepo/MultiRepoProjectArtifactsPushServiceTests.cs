@@ -1,3 +1,4 @@
+using ErrorOr;
 using FluentAssertions;
 using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -155,6 +156,29 @@ public sealed class MultiRepoProjectArtifactsPushServiceTests
                 codeResult.ErrorCode.Should().BeNull();
                 codeResult.ErrorDescription.Should().BeNull();
             });
+    }
+
+    [Fact]
+    public async Task Given_InfraPushIsCanceled_When_PushAsync_Then_PropagatesCancellationAndDoesNotPushCodeRepositoryAsync()
+    {
+        // Arrange
+        ConfigureSuccessfulPrerequisites();
+        ConfigureGeneratedArtifacts();
+        _gitProviderFactory.Create(Arg.Any<GitProviderType>()).Returns(_gitProvider);
+        _multiScopeGitProvider.PushScopedFilesAsync(
+                Arg.Any<MultiScopeGitPushRequest>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<ErrorOr<PushBicepToGitResult>>(
+                new OperationCanceledException()));
+
+        // Act
+        Func<Task> act = async () => await _sut.PushAsync(_command, _project, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+        await _multiScopeGitProvider.Received(1).PushScopedFilesAsync(
+            Arg.Any<MultiScopeGitPushRequest>(),
+            CancellationToken.None);
     }
 
     private void ConfigureSuccessfulPrerequisites()

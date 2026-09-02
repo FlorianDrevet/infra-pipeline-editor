@@ -47,7 +47,7 @@ public sealed class GetAppServicePlanQueryHandlerTests
             new AppServicePlanOsType(AppServicePlanOsType.AppServicePlanOsTypeEnum.Linux));
         _query = new GetAppServicePlanQuery(_plan.Id);
         _sut = new GetAppServicePlanQueryHandler(
-            _appServicePlanRepository, _resourceGroupRepository, _accessService, _mapper);
+            _appServicePlanRepository, _accessService, _mapper);
     }
 
     [Fact]

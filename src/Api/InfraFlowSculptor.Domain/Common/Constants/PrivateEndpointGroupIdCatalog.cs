@@ -22,5 +22,6 @@ public static class PrivateEndpointGroupIdCatalog
             ["FunctionApp"] = ["sites"],
             ["ApplicationInsights"] = ["azuremonitor"],
             ["LogAnalyticsWorkspace"] = ["azuremonitor"],
+            ["DocumentIntelligence"] = ["account"],
         }.ToFrozenDictionary();
 }

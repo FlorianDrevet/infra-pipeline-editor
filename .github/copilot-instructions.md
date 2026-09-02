@@ -86,8 +86,7 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 | `mcp-dotnet-server` | Designing, planning, or implementing a Model Context Protocol server in C#/.NET for InfraFlowSculptor, including VS Code exposure, transport selection, security, conversational project creation from prompts, clarification/elicitation flows, IaC import/migration flows, and long-term integration strategy | `.github/skills/mcp-dotnet-server/SKILL.md` |
 | `ui-ux-front-saas` | Any frontend UI/UX work: page design, component visuals, layout, styling, UX states, handoff specs | `.github/skills/ui-ux-front-saas/SKILL.md` |
 | `new-azure-resource` | Adding a new Azure resource type end-to-end (Domain→App→Infra→Contracts→API→Bicep→Frontend→i18n) | `.github/skills/new-azure-resource/SKILL.md` |
-| `gitnexus-workflow` | Code exploration via knowledge graph, impact analysis before modifications, post-change validation, safe refactoring | `.github/skills/gitnexus-workflow/SKILL.md` |
-| `graphify-corpus` | Corpus-level knowledge graph (docs+code+diagrams+audits), god nodes, community detection, surprising connections, onboarding orientation, architecture overview spanning docs and code | `.github/skills/graphify-corpus/SKILL.md` |
+| `graphify-corpus` | Knowledge graph for code, documentation, diagrams, audits, god nodes, community detection, and cross-file architecture | `.github/skills/graphify-corpus/SKILL.md` |
 | `draw-io-diagram-generator` | Creating or updating `.drawio` architecture, flow, sequence, ER, or UML diagrams for the project | `.github/skills/draw-io-diagram-generator/SKILL.md` |
 | `audit-workflow` | Running expert code audits, writing the report under `audits/`, and synchronizing audit findings with GitHub labels/issues | `.github/skills/audit-workflow/SKILL.md` |
 | `dotnet-patterns` | Any C#/.NET code generation: naming, XML docs, SOLID, async/await, EF Core, pattern matching, security | `.github/skills/dotnet-patterns/SKILL.md` |
@@ -111,10 +110,10 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 7. **FK cascade on delete:** Cross-resource FKs must be SetNull or Cascade, never Restrict
 8. **Response DTO IDs:** Always `string` (not `Guid`) — Mapster maps `Id.Value.ToString()`
 9. **OpenAPI 401:** All protected endpoints must include `.ProducesProblem(401)`
-10. **GitNexus:** Before modifying a shared symbol, run `gitnexus_impact()` to assess blast radius
-11. **Knowledge graphs:** GitNexus for code structure/impact, Graphify for corpus (docs+diagrams+audits). Never use Graphify for blast radius or rename; never use GitNexus for doc-to-code traceability
+10. **Graphify:** Before modifying a shared symbol, run a focused `query` against `graphify-out/graph.json`, then confirm the scope with tests, build, and `git diff`
+11. **Knowledge graph:** Graphify covers code, documentation, diagrams, audits, and cross-file traceability. Do not infer exact impact from graph centrality alone; use executable validation for the final check
 12. **TDD obligatoire:** Never write production code without tests first — load `tdd-workflow` skill, follow RED→GREEN→REFACTOR→VERIFY, track debt in `.github/test-debt.md`
-13. **DS obligatoire (Frontend):** Tout composant UI doit utiliser les `app-ds-*` existants. Si un pattern n'a pas de DS component, en créer un réutilisable dans `shared/components/ds/` avant usage.
+13. **DS obligatoire (Frontend):** Toute UI frontend de production doit partir des `app-ds-*` existants. Il est interdit de fabriquer à la main, dans une feature ou un écran, un bouton, champ, select, chip, menu, tabs, table, carte, bannière, dialogue, accordion, ou tout autre pattern visuel si le design system couvre déjà le besoin. Si le pattern n'existe pas encore, créer ou étendre d'abord un composant réutilisable dans `shared/components/ds/`, puis l'utiliser. Les seules exceptions tolérées sont celles déjà documentées explicitement dans la mémoire projet.
 14. **Une classe par fichier:** En code de production, ne pas créer de fichiers poubelles qui regroupent des dizaines de DTOs, models, requests, responses, ou helpers.
 15. **Typage fort d'abord:** Éviter `object`, `Dictionary<,>`, `JsonDocument`, `JsonNode`, et les blobs JSON en base quand le schéma est connu côté code et persistance.
 16. **Patterns avec levier:** Comparer les options plausibles et retenir la plus simple qui améliore lisibilité, maintenabilité, et scalabilité ; ne pas ajouter d'abstraction décorative.
@@ -126,7 +125,7 @@ Full details in `.github/agents/pr-manager.agent.md`. Title format: `type(scope)
 
 ## Graphify VS Code integration
 
-- Do **not** run `graphify vscode install` blindly in this repository. It appends a generic `## graphify` section to `.github/copilot-instructions.md`, while this repository already has a stronger repo-specific orchestration for memory, GitNexus, Graphify, and agents.
+- Do **not** run `graphify vscode install` blindly in this repository. It appends a generic `## graphify` section to `.github/copilot-instructions.md`, while this repository already has a stronger repo-specific orchestration for memory, Graphify, and agents.
 - For a controlled VS Code integration, prefer `python -m graphify copilot install`. This installs the user-level Graphify skill in `~/.copilot/skills/graphify/SKILL.md` without modifying the repository instructions.
-- Use `/graphify` explicitly for corpus-level semantic work. Keep the repo rule unchanged: GitNexus for code structure/impact, Graphify for corpus/doc/audit/diagram links.
+- Use `/graphify` explicitly for semantic work across code, documentation, audits, and diagrams. Keep the repository rule centralized in this file and the Graphify skill.
 

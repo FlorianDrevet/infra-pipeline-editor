@@ -11,5 +11,4 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Common;
 internal record StorageAccountAccessContext(
     AzureResourceId StorageAccountId,
     IStorageAccountRepository StorageAccountRepository,
-    IResourceGroupRepository ResourceGroupRepository,
     IInfraConfigAccessService AccessService);

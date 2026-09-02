@@ -62,7 +62,7 @@ public sealed class UpdateBlobContainerPublicAccessCommandHandlerTests
             _containerId,
             new BlobContainerPublicAccess(BlobContainerPublicAccess.AccessLevel.Blob));
         _sut = new UpdateBlobContainerPublicAccessCommandHandler(
-            _storageAccountRepository, _resourceGroupRepository, _accessService, _mapper);
+            _storageAccountRepository, _accessService, _mapper);
     }
 
     [Fact]

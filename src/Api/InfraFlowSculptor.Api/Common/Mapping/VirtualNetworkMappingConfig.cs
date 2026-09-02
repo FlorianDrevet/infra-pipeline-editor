@@ -20,24 +20,24 @@ public sealed class VirtualNetworkMappingConfig : IRegister
                 src => src.EnvironmentSettings == null
                     ? null
                     : src.EnvironmentSettings.Select(ec => new VirtualNetworkEnvironmentConfigData(
-                        ec.EnvironmentName, ec.AddressSpaces, ec.DnsServers)).ToList());
+                        ec.EnvironmentName, ec.AddressSpaces, ec.DnsServers, ec.EnableDdosProtection)).ToList());
 
         config.NewConfig<(Guid Id, UpdateVirtualNetworkRequest Request), UpdateVirtualNetworkCommand>()
             .MapWith(src => new UpdateVirtualNetworkCommand(
                 src.Id.Adapt<AzureResourceId>(),
                 src.Request.Name.Adapt<Name>(),
                 src.Request.Location.Adapt<Location>(),
-                src.Request.EnableDdosProtection,
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new VirtualNetworkEnvironmentConfigData(
-                        ec.EnvironmentName, ec.AddressSpaces, ec.DnsServers)).ToList()));
+                        ec.EnvironmentName, ec.AddressSpaces, ec.DnsServers, ec.EnableDdosProtection)).ToList()));
 
         config.NewConfig<VirtualNetwork, VirtualNetworkResult>()
             .Map(dest => dest.Subnets,
                 src => src.Subnets.Select(s => new SubnetData(
                     s.Id.Value.ToString(),
                     s.Name.Value,
+                    s.AddressPrefix,
                     s.Delegation != null ? s.Delegation.Value.ToString() : null,
                     s.ServiceEndpoints.Count > 0 ? s.ServiceEndpoints : null,
                     s.PrivateEndpointNetworkPolicies.Value.ToString(),
@@ -46,14 +46,15 @@ public sealed class VirtualNetworkMappingConfig : IRegister
                 src => src.EnvironmentSettings.Select(es => new VirtualNetworkEnvironmentConfigData(
                     es.EnvironmentName,
                     es.AddressSpaces,
-                    es.DnsServers)).ToList());
+                    es.DnsServers,
+                    es.EnableDdosProtection)).ToList());
 
         config.NewConfig<SubnetData, SubnetResponse>()
             .MapWith(src => new SubnetResponse(
-                src.Id, src.Name, src.Delegation, src.ServiceEndpoints, src.PrivateEndpointNetworkPolicies, src.NsgId));
+                src.Id, src.Name, src.AddressPrefix, src.Delegation, src.ServiceEndpoints, src.PrivateEndpointNetworkPolicies, src.NsgId));
 
         config.NewConfig<VirtualNetworkEnvironmentConfigData, VirtualNetworkEnvironmentConfigResponse>()
             .MapWith(src => new VirtualNetworkEnvironmentConfigResponse(
-                src.EnvironmentName, src.AddressSpaces, src.DnsServers));
+                src.EnvironmentName, src.AddressSpaces, src.DnsServers, src.EnableDdosProtection));
     }
 }

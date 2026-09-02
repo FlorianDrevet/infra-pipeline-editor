@@ -40,10 +40,10 @@ Toujours commencer par lire :
 
 Pour chaque audit, utiliser d'abord l'exploration structurelle puis la lecture ciblee :
 
-1. Charger `gitnexus-workflow` si necessaire
-2. Utiliser `gitnexus_query()` pour identifier les flux critiques
-3. Utiliser `gitnexus_context()` sur les symboles a risque
-4. Completer avec `grep`, `read_file`, `get_errors`, `semantic_search` si besoin
+1. Charger `graphify-corpus` si necessaire
+2. Utiliser Graphify `query` pour identifier les flux critiques et les liens entre audits et code
+3. Utiliser Graphify `explain` et `path` sur les symboles a risque
+4. Completer avec `grep`, `read_file`, `get_errors`, `semantic_search` et les validations du projet si besoin
 
 Tu ne dois pas produire un audit base sur des suppositions ou une simple lecture superficielle.
 

@@ -239,8 +239,29 @@ internal static class ParameterFileAssembler
             int when int.TryParse(value, out var i) => i,
             long when long.TryParse(value, out var l) => l,
             double when double.TryParse(value, out var d) => d,
+            string => value,
+            System.Collections.IEnumerable => CoerceToBicepArray(value),
             _ => value
         };
+    }
+
+    /// <summary>
+    /// Coerces a JSON-array override string (e.g. <c>["10.0.0.0/16","10.1.0.0/16"]</c>) into a
+    /// <see cref="List{T}"/> of <see cref="object"/> so that <see cref="BicepFormattingHelper.SerializeToBicep"/>
+    /// emits a real Bicep array instead of a quoted string. Falls back to the raw value when the
+    /// override is not a JSON array.
+    /// </summary>
+    private static object CoerceToBicepArray(string value)
+    {
+        try
+        {
+            var items = System.Text.Json.JsonSerializer.Deserialize<List<string>>(value);
+            return items is not null ? items.ToList<object>() : value;
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return value;
+        }
     }
 
     /// <summary>

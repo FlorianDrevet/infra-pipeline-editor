@@ -33,8 +33,7 @@
 | `mcp-dotnet-server` | Design, planning, and implementation guidance for a C#/.NET MCP server integrated with InfraFlowSculptor, including VS Code exposure, transport selection, IaC import/migration workflows, and long-term evolution strategy | `.github/skills/mcp-dotnet-server/SKILL.md` |
 | `ui-ux-front-saas` | Any frontend UI/UX work | `.github/skills/ui-ux-front-saas/SKILL.md` |
 | `new-azure-resource` | New Azure resource type end-to-end | `.github/skills/new-azure-resource/SKILL.md` |
-| `gitnexus-workflow` | Code exploration via knowledge graph, impact analysis before modifications, post-change validation, safe refactoring | `.github/skills/gitnexus-workflow/SKILL.md` |
-| `graphify-corpus` | Corpus-level knowledge graph (docs+code+diagrams+audits), god nodes, community detection, surprising connections, onboarding orientation, architecture overview spanning docs and code | `.github/skills/graphify-corpus/SKILL.md` |
+| `graphify-corpus` | Knowledge graph for code, documentation, diagrams, audits, god nodes, community detection, and cross-file architecture | `.github/skills/graphify-corpus/SKILL.md` |
 | `draw-io-diagram-generator` | Create or update draw.io diagrams (`.drawio`, `.drawio.svg`, `.drawio.png`) for architecture and technical documentation | `.github/skills/draw-io-diagram-generator/SKILL.md` |
 | `audit-workflow` | Produce expert code audits and reconcile audit findings with GitHub issues and labels | `.github/skills/audit-workflow/SKILL.md` |
 | `dotnet-patterns` | Any C#/.NET code generation: naming, XML docs, SOLID, async/await, EF Core, pattern matching, security | `.github/skills/dotnet-patterns/SKILL.md` |
@@ -50,6 +49,13 @@
 - New workspace instruction: `.github/instructions/code-quality-guardrails.instructions.md` auto-attaches on C# and Angular source edits.
 - Guardrails now repeated across `dev`, `architect`, `dotnet-dev`, `angular-front`, `vibe-coding-refractaire`, `dotnet-patterns`, and `angular-patterns`.
 - Mandatory rules: no magic strings, one public top-level type/class per file, strongly typed contracts/models/persistence before `object` / `Dictionary` / `JsonDocument` / weak JSON, and explicit design-pattern choice based on readability, maintainability, and scalability.
+
+## Frontend DS-first hard gate [2026-05-27]
+
+- `.github/copilot-instructions.md` now states the DS rule in hard-gate form for frontend work: if `app-ds-*` covers the need, agents must use it instead of crafting ad hoc feature UI.
+- `.github/agents/angular-front.agent.md` now treats DS-first as an absolute rule: no handcrafted feature-level button/field/select/chip/tabs/table/menu/card/dialog/banner/accordion patterns when the design system already covers them.
+- `.github/agents/dev.agent.md` now requires every frontend delegation to repeat that DS-first rule explicitly; if a needed pattern is missing, the agent must create or extend a reusable primitive in `src/Front/src/app/shared/components/ds/` before touching the screen.
+- Only exceptions explicitly documented in project memory remain allowed.
 
 ## Request Contradiction Pass [2026-05-20]
 
@@ -96,10 +102,8 @@
 
 ## Review Workflow [2026-04-27]
 
-- Workspace prompt `.github/prompts/review-main.prompt.md` standardizes strict pre-merge reviews against `origin/main` / `main`.
-- PR creation via `pr-manager` now requires the double technical gate: `review-main` / `review-expert` plus `vibe-coding-refractaire` before submission.
-- `review-remediator` consumes the approved corrective backlog from `review-expert` and applies only the requested fixes.
-- The expected sequence is: `review-main` prompt -> `review-expert` findings/backlog -> `vibe-coding-refractaire` anti-vibe findings/backlog -> `review-remediator` fixes -> optional second `review-main` pass.
+- Workspace prompt `.github/prompts/review-main.prompt.md` standardizes pre-merge reviews against `origin/main`.
+- PR creation requires double gate: `review-expert` + `vibe-coding-refractaire` before submission. Sequence: review-main → review-expert → vibe-coding-refractaire → review-remediator → optional second pass.
 
 ## Skill Concept
 A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when the task justifies it. No tools, composable, lightweight. Skills override pre-training with tested project-specific patterns.
@@ -116,19 +120,14 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 
 ## Local Audit 2026-05-15
 
-- `audits/audit-15-05-2026.md` is the latest slice-specific local audit, focused on privatization/networking plus pipeline step options.
-- It reused the phased remediation structure `Phase 0` critical, `Phase 1` high priority, `Phase 2` structural, `Phase 3` hygiene.
-- Same-day fix commits `c52fc926`, `2bf694b0`, `88634fe0`, and `dc06a28b` closed that phased backlog on the working branch before the later runtime and Sonar cleanup commits.
+- `audits/audit-15-05-2026.md`: slice audit (privatization/networking + pipeline step options). Phased remediation closed same-day (commits `c52fc926..dc06a28b`).
 
 ## Parallel Worktree Workflow [2026-04-30]
 
-- Recommended isolation unit for concurrent Copilot work is `1 feature = 1 branch = 1 git worktree = 1 VS Code window = 1 PR`.
-- For this repository, prefer one dedicated worktree hub on `origin/main` plus 2 to 3 active feature worktrees; keep additional worktrees review-only or cold.
-- Prefer one VS Code window per worktree. Avoid multi-root workspaces for active agentic coding because Git, chat, problems, and terminal contexts become too easy to mix.
-- Treat the local runtime as shared and effectively single-owner: `.vscode/mcp.json` points all windows to the same local MCP HTTP endpoint (`http://127.0.0.1:5258/mcp`), and Aspire/AppHost local ports are shared.
-- Default branch naming convention: `copilot/<slot>/<scope>-<slug>` with matching folder names like `ifs-<slot>-<scope>-<slug>`.
-- Prefer regular merges from `origin/main` into long-lived feature branches instead of continuous rebases while several agents are working in parallel.
-- Local hygiene note: `tmp/test-output-mcp/` should be added to `.git/info/exclude` on developer machines to avoid noisy diffs across worktrees.
+- Isolation unit: `1 feature = 1 branch = 1 git worktree = 1 VS Code window = 1 PR`. Prefer 1 hub worktree on `origin/main` + 2-3 active feature worktrees.
+- Avoid multi-root workspaces for agentic coding. Local runtime is shared (MCP endpoint `127.0.0.1:5258`, Aspire ports).
+- Branch naming: `copilot/<slot>/<scope>-<slug>`, folder: `ifs-<slot>-<scope>-<slug>`.
+- Prefer regular merges from `origin/main` into long-lived feature branches (no continuous rebases).
 
 ## MCP Skill [2026-04-29]
 
@@ -141,12 +140,10 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 
 ## Graphify Runtime Notes [2026-04-29]
 
-- Workspace now includes a local `graphify-corpus` skill and a `graphify` MCP server entry in `.vscode/mcp.json`.
-- Verified on this Windows machine with PyPI `graphifyy 0.4.23`: the user-install launcher exists at `%APPDATA%\Python\Python314\Scripts\graphify.exe`, but that folder is not on `PATH`; agents should prefer `python -m graphify ...` in terminal commands.
-- Verified bootstrap command for a code-only graph on this repo: `python -c "from pathlib import Path; from graphify.watch import _rebuild_code; import sys; ok = _rebuild_code(Path('.')); sys.exit(0 if ok else 1)"`.
-- Verified query command: `python -m graphify query "bicep generation" --graph .\graphify-out\graph.json` works against the generated graph.
-- Verified `graphify.serve` requires a separate `mcp` Python package (`python -m pip install --user mcp`).
-- Verified large-repo caveat: `graphify-out/graph.json` and `GRAPH_REPORT.md` are generated successfully on this repo, but `graph.html` may fail with "Graph has ... nodes - too large for HTML viz"; agents should treat HTML output as optional.
-- Controlled VS Code integration rule: prefer `python -m graphify copilot install` over `graphify vscode install` for this repository. `vscode install` appends a generic `## graphify` section to `.github/copilot-instructions.md`, while this repo already has a stronger custom orchestration for memory, GitNexus, Graphify, and agents.
-- 2026-04-29 validation: the Graphify user skill is installed at `%USERPROFILE%\.copilot\skills\graphify\SKILL.md`, and the Python user Scripts directory is now present on the user PATH so `graphify --help` works directly in terminal.
-- 2026-05-12 validation: `.graphifyignore` excludes `MEMORY.md` and `.github/memory/`, but does not exclude the `ifs/` Obsidian vault. Graphify can index Obsidian notes kept under `ifs/`, while the current agent memory remains outside the Graphify corpus unless the ignore rules are changed.
+- Installed via PyPI `graphifyy`; prefer `python -m graphify ...` in terminal (user Scripts not always on PATH).
+- Bootstrap: `python -c "from pathlib import Path; from graphify.watch import _rebuild_code; import sys; ok = _rebuild_code(Path('.')); sys.exit(0 if ok else 1)"`.
+- Query: `python -m graphify query "<topic>" --graph .\graphify-out\graph.json`.
+- `graphify.serve` requires `mcp` pip package. `graph.html` may fail on large repos (too many nodes).
+- Controlled VS Code integration: prefer `python -m graphify copilot install` over `graphify vscode install` (the latter appends a generic section to copilot-instructions.md).
+- User skill installed at `%USERPROFILE%\.copilot\skills\graphify\SKILL.md`.
+- `.graphifyignore` excludes `MEMORY.md` and `.github/memory/` but not the `ifs/` Obsidian vault.

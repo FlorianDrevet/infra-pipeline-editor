@@ -11,40 +11,28 @@ description: "Use when: corpus-level questions, documentation graph, architectur
 
 ---
 
-## Règle cardinale : GitNexus pour le code, Graphify pour le corpus
+## Graphe unique
 
-Ce dépôt utilise **deux graphes de connaissance complémentaires** :
+Graphify couvre le code AST, la documentation Markdown, les audits, les diagrammes et les relations entre fichiers. Il sert à orienter l'exploration, comprendre le contexte architectural et relier les concepts du corpus.
 
-| Dimension | GitNexus | Graphify |
-|-----------|----------|----------|
-| **Périmètre** | Code source uniquement (symboles, appels, héritages, flows) | Corpus complet (code AST + docs Markdown + audits + diagrammes + images) |
-| **Force principale** | Impact analysis, blast radius, rename-safe, execution flows | Communautés conceptuelles, god nodes, connexions surprenantes, compression de contexte |
-| **Transport MCP** | `gitnexus mcp` (stdio) | `python -m graphify.serve graphify-out/graph.json` (stdio) |
-| **Mutations** | `rename()`, `detect_changes()` | Aucune — lecture seule |
-| **Précision code** | Symbolique (callers/callees exacts, Cypher) | AST + inférence sémantique (moins précis sur les appels, plus riche sur les concepts) |
-| **Docs / images / audits** | Non couvert | Couvert nativement |
-
-**Aucun des deux ne remplace l'autre.** Un agent qui a besoin de comprendre "qui appelle quoi et que casse un changement" utilise GitNexus. Un agent qui a besoin de comprendre "comment la documentation, les audits, les diagrammes et le code se relient" utilise Graphify.
+Pour les dépendances exactes d'un symbole, compléter la requête Graphify par une lecture ciblée, `git diff`, un build et les tests concernés. La centralité d'un nœud ne remplace pas une validation exécutable.
 
 ---
 
 ## Pré-requis
 
-1. Graphify installé : `pip install graphifyy` ou `uv tool install graphifyy`
-2. Graphe initial construit :
-   - soit via une intégration assistant compatible Graphify (`/graphify .` si tu as installé le skill officiel Graphify pour cet assistant)
-   - soit, sur cette machine/ce dépôt avec PyPI `graphifyy 0.4.23`, via un bootstrap code-only validé :
-     `python -c "from pathlib import Path; from graphify.watch import _rebuild_code; import sys; ok = _rebuild_code(Path('.')); sys.exit(0 if ok else 1)"`
+1. Graphify installé : `python -m pip install graphifyy` ou `uv tool install graphifyy`
+2. Graphe initial construit avec `python -m graphify update .`
 3. Le fichier `graphify-out/graph.json` existe et est non vide
 4. Le `.graphifyignore` à la racine exclut les sorties build, les dépendances, et les fichiers d'instructions agents
 5. Le serveur MCP Graphify est déclaré dans `.vscode/mcp.json` sous l'entrée `graphify`
 6. Pour `python -m graphify.serve`, le package `mcp` doit être installé : `python -m pip install --user mcp`
 
-### Notes runtime vérifiées sur ce dépôt [2026-04-29]
+### Notes runtime vérifiées sur ce dépôt [2026-09-01]
 
 - Le lanceur `graphify.exe` est installé dans `%APPDATA%\Python\Python314\Scripts`, mais ce dossier n'est pas dans le `PATH` utilisateur par défaut sur cette machine.
 - En pratique, utiliser **`python -m graphify ...`** dans le terminal est plus fiable que `graphify ...`.
-- La version PyPI disponible ici est `graphifyy 0.4.23`. Elle supporte `python -m graphify query|update|path|explain|serve`, mais **pas** le `graphify .` direct en terminal tel que documenté dans les versions plus récentes du README GitHub.
+- La version PyPI disponible ici est `graphifyy 0.7.16`. Elle supporte `python -m graphify update|query|path|explain|serve` et génère `graphify-out/graph.json` ainsi que `GRAPH_REPORT.md`.
 - Sur un gros repo comme celui-ci, la visualisation `graph.html` peut échouer à cause de la taille du graphe. `graph.json` et `GRAPH_REPORT.md` restent suffisants pour MCP et pour les agents.
 
 ---
@@ -56,7 +44,7 @@ Pour **ce dépôt**, ne pas lancer `graphify vscode install` de manière automat
 Pourquoi :
 
 - `graphify vscode install` ajoute une section `## graphify` à `.github/copilot-instructions.md`
-- ce dépôt possède déjà une orchestration repo-specific plus riche (`dev`, mémoire projet, GitNexus, skill `graphify-corpus`)
+- ce dépôt possède déjà une orchestration repo-specific plus riche (`dev`, mémoire projet, skill `graphify-corpus`)
 - ajouter la section Graphify officielle en mode aveugle crée une deuxième couche always-on moins précise que les instructions du dépôt
 
 Mode contrôlé recommandé :
@@ -69,22 +57,11 @@ Mode contrôlé recommandé :
 Conséquence pratique :
 
 - le slash command `/graphify` est disponible côté Copilot utilisateur
-- le dépôt conserve ses règles de priorité : mémoire -> GitNexus -> Graphify -> Explore
+- le dépôt conserve ses règles de priorité : mémoire -> Graphify -> Explore
 
 ---
 
-## Quand utiliser Graphify vs GitNexus
-
-### Utiliser GitNexus quand :
-
-- Tu dois savoir **qui appelle** un handler, un service, ou une interface
-- Tu dois évaluer le **blast radius** d'un changement avant de modifier du code
-- Tu dois tracer un **flux d'exécution** complet (ex: HTTP request → handler → repository → DB)
-- Tu dois **renommer** un symbole en toute sécurité
-- Tu dois **valider** que tes changements n'impactent que les fichiers/flux attendus (`detect_changes`)
-- Tu dois écrire une **requête Cypher** précise sur les relations de code
-
-### Utiliser Graphify quand :
+## Utiliser Graphify
 
 - Tu dois comprendre **comment la documentation se relie au code** (quels docs parlent de quel module)
 - Tu dois identifier les **god nodes** du corpus (concepts qui relient le plus de communautés)
@@ -95,12 +72,7 @@ Conséquence pratique :
 - Tu dois répondre à une question de type "**pourquoi** cette zone du code est conçue ainsi" (rationnel extrait des commentaires et docs)
 - Tu dois obtenir une **compression de contexte** pour une question large ("donne-moi une vue d'ensemble de la génération Bicep en incluant la doc")
 
-### Utiliser les deux quand :
-
-- **Architecture review complète** : Graphify pour la vue d'ensemble corpus + GitNexus pour les détails structurels de code
-- **Audit technique** : Graphify pour relier les audits précédents aux zones de code, GitNexus pour vérifier les impacts
-- **Onboarding approfondi** : Graphify pour la carte mentale globale, GitNexus pour les flux d'exécution précis
-- **Planification de refactoring** : Graphify pour identifier les communautés et god nodes concernés, GitNexus pour le blast radius exact
+Pour une question de dépendance ou d'impact, utiliser `query`, `path` et `explain`, puis confirmer les relations par lecture ciblée et validation exécutable.
 
 ---
 
@@ -123,7 +95,7 @@ Utilisation :
 
 - `/graphify docs/architecture`
 - lire `graphify-out/GRAPH_REPORT.md`
-- compléter avec GitNexus sur les handlers et flows critiques repérés
+- compléter par lecture ciblée des handlers et validation des flows critiques
 
 ### 2. Audit / review transverse
 
@@ -139,7 +111,7 @@ Utilisation :
 
 - `/graphify audits`
 - `python -m graphify query "what connects PAT auth to MCP tools?" --graph .\graphify-out\graph.json`
-- compléter avec GitNexus pour confirmer impact et blast radius
+- compléter par lecture ciblée, `git diff` et les tests concernés
 
 ### 3. MCP / IA tooling
 
@@ -153,8 +125,7 @@ Corpus conseillé :
 
 Utilisation :
 
-- Graphify pour doc ↔ tool ↔ concept métier
-- GitNexus pour le flux précis `Tool -> Handler -> Service -> Repository`
+- Graphify pour relier doc, outil et concept métier, puis pour tracer le flux `Tool -> Handler -> Service -> Repository`
 
 ### 4. Génération Bicep / pipeline
 
@@ -169,8 +140,7 @@ Corpus conseillé :
 
 Utilisation :
 
-- Graphify pour les communautés, god nodes, liens entre docs et moteurs
-- GitNexus pour `BicepGenerationEngine`, `BicepAssembler`, `AppPipelineGenerationEngine`, `MonoRepoPipelineAssembler`
+- Graphify pour les communautés, god nodes, liens entre docs et moteurs, et relations autour de `BicepGenerationEngine`, `BicepAssembler`, `AppPipelineGenerationEngine` et `MonoRepoPipelineAssembler`
 
 ### 5. Frontend / UX / design system
 
@@ -184,8 +154,7 @@ Corpus conseillé :
 
 Utilisation :
 
-- Graphify pour les patterns transverses, la cohérence de vocabulaire, les connexions entre écrans et composants
-- GitNexus uniquement si une question structurelle code TS devient nécessaire
+- Graphify pour les patterns transverses, la cohérence de vocabulaire et les connexions entre écrans et composants
 
 ---
 
@@ -245,7 +214,7 @@ Les tools MCP exposés par Graphify :
 - Lors de la **phase Research (step 2bis)**, si la tâche touche à la documentation, l'architecture, l'onboarding, ou un audit :
   1. Lire `graphify-out/GRAPH_REPORT.md` pour identifier les god nodes et communautés pertinentes
   2. Utiliser `graphify query` ou le MCP Graphify pour des questions ciblées
-  3. Compléter avec GitNexus pour la structure de code exacte
+  3. Compléter par lecture ciblée et validation exécutable pour confirmer la structure exacte
 
 ### `@architect`
 
@@ -266,7 +235,7 @@ Les tools MCP exposés par Graphify :
 - Utiliser Graphify pour :
   - Relier les findings d'audits précédents (`audits/`) aux zones de code concernées
   - Identifier les communautés à risque via les god nodes (haute centralité = haut risque)
-  - Compléter avec GitNexus pour l'impact analysis avant de produire des recommandations
+  - Compléter par lecture ciblée et validation exécutable avant de produire des recommandations
 
 ### `@review-expert` et `@vibe-coding-refractaire`
 
@@ -302,8 +271,7 @@ Committer `graphify-out/graph.json`, `graphify-out/GRAPH_REPORT.md`, et `graphif
 
 ## Anti-patterns
 
-- **Ne pas** utiliser Graphify pour l'analyse d'impact avant modification de code → utiliser GitNexus `impact()`
-- **Ne pas** utiliser Graphify pour le rename de symboles → utiliser GitNexus `rename()`
-- **Ne pas** utiliser Graphify pour valider que tes changements sont propres → utiliser GitNexus `detect_changes()`
+- **Ne pas** déduire un impact exact de la seule centralité du graphe → confirmer avec lecture ciblée, `git diff`, build et tests
+- **Ne pas** considérer le rapport Graphify comme une validation de comportement → exécuter le contrôle le plus ciblé disponible
 - **Ne pas** forcer tous les agents à lire `GRAPH_REPORT.md` systématiquement → seulement quand le skill s'applique
 - **Ne pas** remplacer la mémoire projet par le rapport Graphify → la mémoire est normative et curée, le rapport est descriptif et auto-généré

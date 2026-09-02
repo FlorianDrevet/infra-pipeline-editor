@@ -78,11 +78,18 @@ interface ConfigPendingDockerImageDialogGroup {
   resources: PendingDockerImageIssue[];
 }
 
+export interface EnvironmentConfigIssue {
+  environmentName: string;
+  missingSubscriptionId: boolean;
+  missingAzureConnection: boolean;
+}
+
 export interface GenerationDiagnosticsDialogData {
   configDiagnostics: ConfigDiagnosticGroup[];
   missingEnvConfigs?: ConfigMissingEnvGroup[];
   pendingCustomDomainConfigs?: ConfigPendingCustomDomainGroup[];
   pendingDockerImageConfigs?: ConfigPendingDockerImageGroup[];
+  incompleteEnvironmentConfigs?: EnvironmentConfigIssue[];
 }
 
 @Component({
@@ -182,7 +189,11 @@ export class GenerationDiagnosticsDialogComponent {
     (sum, g) => sum + g.resources.length + g.diagnosticIssues.length, 0,
   );
 
-  protected readonly totalIssues = this.totalDiagnostics + this.totalMissingEnvIssues + this.totalPendingCustomDomainIssues + this.totalPendingDockerImageIssues;
+  protected readonly incompleteEnvironments = this.data.incompleteEnvironmentConfigs ?? [];
+  protected readonly totalIncompleteEnvironments = this.incompleteEnvironments.length;
+  protected readonly hasIncompleteEnvironments = this.totalIncompleteEnvironments > 0;
+
+  protected readonly totalIssues = this.totalDiagnostics + this.totalMissingEnvIssues + this.totalPendingCustomDomainIssues + this.totalPendingDockerImageIssues + this.totalIncompleteEnvironments;
 
   protected readonly hasDiagnostics = this.totalDiagnostics > 0;
   protected readonly hasMissingEnvs = this.totalMissingEnvIssues > 0;
@@ -253,6 +264,16 @@ export class GenerationDiagnosticsDialogComponent {
     this.dialogRef.close(false);
     const friendlyType = ARM_TYPE_TO_FRIENDLY[issue.resourceType] ?? issue.resourceType;
     this.router.navigate(['/config', configId, 'resource', friendlyType, issue.resourceId]);
+  }
+
+  protected getIncompleteEnvMessage(issue: EnvironmentConfigIssue): string {
+    if (issue.missingSubscriptionId && issue.missingAzureConnection) {
+      return this.translate.instant('GENERATION_DIAGNOSTICS.INCOMPLETE_ENV_BOTH');
+    }
+    if (issue.missingSubscriptionId) {
+      return this.translate.instant('GENERATION_DIAGNOSTICS.INCOMPLETE_ENV_SUBSCRIPTION');
+    }
+    return this.translate.instant('GENERATION_DIAGNOSTICS.INCOMPLETE_ENV_CONNECTION');
   }
 
   protected onContinue(): void {

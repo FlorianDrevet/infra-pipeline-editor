@@ -3,6 +3,8 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.FunctionAppAggregate;
 using InfraFlowSculptor.Domain.FunctionAppAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
@@ -105,7 +107,12 @@ public sealed class FunctionAppRepositoryTests : IDisposable
     public async Task Given_StoredEntity_When_GetByIdReadOnlyAsync_Then_ReturnsEntity_Async()
     {
         // Arrange
-        var entity = NewEntity(ResourceGroupId.CreateUnique());
+        var resourceGroup = ResourceGroup.Create(
+            new Name("rg-readonly"),
+            InfrastructureConfigId.CreateUnique(),
+            new Location(Location.LocationEnum.WestEurope));
+        _context.ResourceGroups.Add(resourceGroup);
+        var entity = NewEntity(resourceGroup.Id);
         _context.FunctionApps.Add(entity);
         await _context.SaveChangesAsync();
 

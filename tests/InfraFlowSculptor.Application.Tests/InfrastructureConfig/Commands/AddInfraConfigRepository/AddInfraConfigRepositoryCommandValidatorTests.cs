@@ -104,6 +104,7 @@ public sealed class AddInfraConfigRepositoryCommandValidatorTests
         string providerType = nameof(GitProviderTypeEnum.GitHub),
         string repositoryUrl = "https://github.com/octo-org/retail-platform-infra",
         string defaultBranch = "main",
+        string? personalAccessToken = "token",
         IReadOnlyList<string>? contentKinds = null)
     {
         return new AddInfraConfigRepositoryCommand(
@@ -112,6 +113,7 @@ public sealed class AddInfraConfigRepositoryCommandValidatorTests
             providerType,
             repositoryUrl,
             defaultBranch,
+            personalAccessToken,
             contentKinds ?? [nameof(RepositoryContentKindsEnum.Infrastructure)]);
     }
 }

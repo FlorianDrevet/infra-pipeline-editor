@@ -7,6 +7,7 @@ import { ContainerAppEnvironmentEnvironmentConfigEntry } from '../../../shared/i
 import { ContainerAppEnvironmentConfigEntry } from '../../../shared/interfaces/container-app.interface';
 import { ContainerRegistryEnvironmentConfigEntry } from '../../../shared/interfaces/container-registry.interface';
 import { CosmosDbEnvironmentConfigEntry } from '../../../shared/interfaces/cosmos-db.interface';
+import { DocumentIntelligenceEnvironmentConfigEntry } from '../../../shared/interfaces/document-intelligence.interface';
 import { FunctionAppEnvironmentConfigEntry } from '../../../shared/interfaces/function-app.interface';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { LogAnalyticsWorkspaceEnvironmentConfigEntry } from '../../../shared/interfaces/log-analytics-workspace.interface';
@@ -19,6 +20,7 @@ import {
   CorsRuleEntry,
   StorageAccountEnvironmentConfigEntry,
 } from '../../../shared/interfaces/storage-account.interface';
+import { VirtualNetworkEnvironmentConfigEntry } from '../../../shared/interfaces/virtual-network.interface';
 import { WebAppEnvironmentConfigEntry } from '../../../shared/interfaces/web-app.interface';
 
 export interface ResourceEditEnvironmentFormEntry {
@@ -77,6 +79,9 @@ interface RawEnvironmentFormValue {
   zoneRedundancy?: RawEnvironmentScalarValue;
   minimalTlsVersion?: RawEnvironmentScalarValue;
   maxSizeGb?: RawEnvironmentScalarValue;
+  addressSpacesInput?: readonly string[] | null;
+  dnsServersInput?: readonly string[] | null;
+  enableDdosProtection?: RawEnvironmentScalarValue;
 }
 
 export function buildKeyVaultEnvironmentSettings(
@@ -104,6 +109,22 @@ export function buildStorageAccountEnvironmentSettings(
   envForms: ReadonlyArray<ResourceEditEnvironmentFormEntry>,
 ): StorageAccountEnvironmentConfigEntry[] {
   return buildSkuEnvironmentSettings<StorageAccountEnvironmentConfigEntry>(envForms);
+}
+
+export function buildVirtualNetworkEnvironmentSettings(
+  envForms: ReadonlyArray<ResourceEditEnvironmentFormEntry>,
+): VirtualNetworkEnvironmentConfigEntry[] {
+  return envForms.map((envForm) => {
+    const raw = readRawValue(envForm);
+    const dnsServers = raw.dnsServersInput ?? [];
+
+    return {
+      environmentName: envForm.envName,
+      addressSpaces: [...(raw.addressSpacesInput ?? [])],
+      dnsServers: dnsServers.length > 0 ? [...dnsServers] : undefined,
+      enableDdosProtection: raw.enableDdosProtection === true,
+    };
+  });
 }
 
 export function buildStorageAccountCorsRules(rules: ReadonlyArray<CorsRuleEntry>): CorsRuleEntry[] {
@@ -377,4 +398,19 @@ function toNullableBoolean(value: unknown): boolean | null {
   return typeof value === 'boolean'
     ? value
     : null;
+}
+
+export function buildDocumentIntelligenceEnvironmentSettings(
+  envForms: ReadonlyArray<ResourceEditEnvironmentFormEntry>,
+): DocumentIntelligenceEnvironmentConfigEntry[] {
+  return envForms.map((envForm) => {
+    const raw = readRawValue(envForm);
+
+    return {
+      environmentName: envForm.envName,
+      sku: toNullableString(raw.sku),
+      publicNetworkAccess: toNullableString(raw.publicNetworkAccess),
+      disableLocalAuth: toNullableBoolean(raw.disableLocalAuth),
+    };
+  });
 }

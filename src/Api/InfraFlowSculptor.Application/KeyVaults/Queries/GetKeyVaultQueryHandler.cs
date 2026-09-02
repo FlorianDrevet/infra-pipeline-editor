@@ -9,7 +9,6 @@ namespace InfraFlowSculptor.Application.KeyVaults.Queries;
 
 public class GetKeyVaultQueryHandler(
     IKeyVaultRepository keyVaultRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetKeyVaultQuery, KeyVaultResult>
@@ -20,11 +19,7 @@ public class GetKeyVaultQueryHandler(
         if (keyVault is null)
             return Errors.KeyVault.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(keyVault.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.KeyVault.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(keyVault.ResourceGroup!.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return Errors.KeyVault.NotFoundError(query.Id);

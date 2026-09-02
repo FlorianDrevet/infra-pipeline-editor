@@ -65,7 +65,7 @@
 .resource-header__info {
   display: flex;
   flex-direction: column;
-  gap: var(--ifs-space-6);
+  gap: var(--ifs-space-8);
 
   h1 {
     margin: 0;
@@ -73,6 +73,13 @@
     font-weight: 600;
     line-height: 1.2;
   }
+}
+
+.resource-header__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--ifs-space-8);
+  flex-wrap: wrap;
 }
 
 .resource-header__actions {
@@ -377,6 +384,10 @@
     border: 1px solid var(--ifs-border-subtle);
   }
 
+  &--with-info {
+    gap: var(--ifs-space-8);
+  }
+
   &--with-action {
     display: flex;
     align-items: flex-start;
@@ -386,6 +397,20 @@
     app-ds-text-field { flex: 1; }
     app-dockerfile-picker,
     app-build-context-picker { margin-top: 22px; }
+  }
+}
+
+.field-info-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--ifs-text-muted);
+  cursor: help;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 1;
   }
 }
 
@@ -778,6 +803,34 @@
 
 .env-category-grid { gap: var(--ifs-space-12); }
 
+.ds-list-input-with-help {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ifs-space-4);
+
+  app-ds-list-input { flex: 1; }
+  app-ds-property-help-button { margin-top: 26px; }
+}
+
+// ─── VNet environment fields ─────────────────────────────────────────────────
+
+.vnet-env-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ifs-space-12);
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vnet-ddos-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ifs-space-8);
+  grid-column: 1 / -1;
+}
+
 // ─── States ─────────────────────────────────────────────────────────────────
 
 .empty-state {
@@ -834,20 +887,6 @@
 
     strong, p { color: var(--ifs-danger); }
   }
-}
-
-.pulse-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--ifs-accent-500);
-  flex-shrink: 0;
-  animation: re-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes re-pulse {
-  0%, 100% { opacity: 0.4; }
-  50%      { opacity: 1; }
 }
 
 // ─── Role Assignments ───────────────────────────────────────────────────────
@@ -2350,8 +2389,16 @@
   &__header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--ifs-space-6);
     margin-bottom: var(--ifs-space-4);
+  }
+
+  &__header-main {
+    display: flex;
+    align-items: center;
+    gap: var(--ifs-space-6);
+    min-width: 0;
   }
 
   &__icon {

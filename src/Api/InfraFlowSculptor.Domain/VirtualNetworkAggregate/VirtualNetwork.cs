@@ -21,22 +21,18 @@ public sealed class VirtualNetwork : AzureResource
     /// <summary>Gets the per-environment configuration overrides.</summary>
     public IReadOnlyCollection<VirtualNetworkEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();
 
-    /// <summary>Whether Azure DDoS Protection Standard is enabled.</summary>
-    public bool EnableDdosProtection { get; private set; }
-
     private VirtualNetwork() { }
 
     /// <summary>Updates the resource-level properties.</summary>
-    public void Update(Name name, Location location, bool enableDdosProtection)
+    public void Update(Name name, Location location)
     {
         SetNameAndLocation(name, location);
-        if (IsExisting) return;
-        EnableDdosProtection = enableDdosProtection;
     }
 
     /// <summary>Adds a subnet to this virtual network.</summary>
     public Subnet AddSubnet(
         Name name,
+        string addressPrefix,
         SubnetDelegation? delegation,
         IReadOnlyList<string>? serviceEndpoints,
         PrivateEndpointNetworkPolicy privateEndpointNetworkPolicies,
@@ -45,7 +41,7 @@ public sealed class VirtualNetwork : AzureResource
         if (_subnets.Any(s => s.Name.Value == name.Value))
             throw new InvalidOperationException($"A subnet named '{name.Value}' already exists in this virtual network.");
 
-        var subnet = Subnet.Create(Id, name, delegation, serviceEndpoints, privateEndpointNetworkPolicies, nsgId);
+        var subnet = Subnet.Create(Id, name, addressPrefix, delegation, serviceEndpoints, privateEndpointNetworkPolicies, nsgId);
         _subnets.Add(subnet);
         return subnet;
     }
@@ -62,6 +58,7 @@ public sealed class VirtualNetwork : AzureResource
     public void UpdateSubnet(
         SubnetId subnetId,
         Name name,
+        string addressPrefix,
         SubnetDelegation? delegation,
         IReadOnlyList<string>? serviceEndpoints,
         PrivateEndpointNetworkPolicy privateEndpointNetworkPolicies,
@@ -69,27 +66,27 @@ public sealed class VirtualNetwork : AzureResource
     {
         var subnet = _subnets.FirstOrDefault(s => s.Id == subnetId)
             ?? throw new InvalidOperationException($"Subnet '{subnetId.Value}' not found.");
-        subnet.Update(name, delegation, serviceEndpoints, privateEndpointNetworkPolicies, nsgId);
+        subnet.Update(name, addressPrefix, delegation, serviceEndpoints, privateEndpointNetworkPolicies, nsgId);
     }
 
     /// <summary>Sets per-environment settings.</summary>
-    public void SetEnvironmentSettings(string environmentName, IReadOnlyList<string> addressSpaces, IReadOnlyList<string>? dnsServers)
+    public void SetEnvironmentSettings(string environmentName, IReadOnlyList<string> addressSpaces, IReadOnlyList<string>? dnsServers, bool enableDdosProtection)
     {
         if (IsExisting) return;
         var existing = _environmentSettings.FirstOrDefault(es => es.EnvironmentName == environmentName);
         if (existing is not null)
-            existing.Update(addressSpaces, dnsServers);
+            existing.Update(addressSpaces, dnsServers, enableDdosProtection);
         else
-            _environmentSettings.Add(VirtualNetworkEnvironmentSettings.Create(Id, environmentName, addressSpaces, dnsServers));
+            _environmentSettings.Add(VirtualNetworkEnvironmentSettings.Create(Id, environmentName, addressSpaces, dnsServers, enableDdosProtection));
     }
 
     /// <summary>Sets all per-environment settings at once.</summary>
-    public void SetAllEnvironmentSettings(IReadOnlyList<(string EnvironmentName, IReadOnlyList<string> AddressSpaces, IReadOnlyList<string>? DnsServers)> settings)
+    public void SetAllEnvironmentSettings(IReadOnlyList<(string EnvironmentName, IReadOnlyList<string> AddressSpaces, IReadOnlyList<string>? DnsServers, bool EnableDdosProtection)> settings)
     {
         if (IsExisting) return;
         _environmentSettings.Clear();
-        foreach (var (envName, addressSpaces, dnsServers) in settings)
-            _environmentSettings.Add(VirtualNetworkEnvironmentSettings.Create(Id, envName, addressSpaces, dnsServers));
+        foreach (var (envName, addressSpaces, dnsServers, enableDdosProtection) in settings)
+            _environmentSettings.Add(VirtualNetworkEnvironmentSettings.Create(Id, envName, addressSpaces, dnsServers, enableDdosProtection));
     }
 
     /// <summary>Creates a new VirtualNetwork.</summary>
@@ -97,8 +94,7 @@ public sealed class VirtualNetwork : AzureResource
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        bool enableDdosProtection = false,
-        IReadOnlyList<(string EnvironmentName, IReadOnlyList<string> AddressSpaces, IReadOnlyList<string>? DnsServers)>? environmentSettings = null,
+        IReadOnlyList<(string EnvironmentName, IReadOnlyList<string> AddressSpaces, IReadOnlyList<string>? DnsServers, bool EnableDdosProtection)>? environmentSettings = null,
         bool isExisting = false)
     {
         var vnet = new VirtualNetwork
@@ -107,8 +103,7 @@ public sealed class VirtualNetwork : AzureResource
             ResourceGroupId = resourceGroupId,
             Name = name,
             Location = location,
-            IsExisting = isExisting,
-            EnableDdosProtection = enableDdosProtection
+            IsExisting = isExisting
         };
         if (!isExisting && environmentSettings is not null)
             vnet.SetAllEnvironmentSettings(environmentSettings);

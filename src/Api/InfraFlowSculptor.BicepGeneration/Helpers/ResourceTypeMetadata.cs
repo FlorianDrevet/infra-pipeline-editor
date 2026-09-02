@@ -108,6 +108,7 @@ internal static class ResourceTypeMetadata
             AzureResourceTypes.ArmTypes.ServiceBusNamespaceType => "serviceBusNamespace",
             AzureResourceTypes.ArmTypes.ContainerRegistryType => "containerRegistry",
             AzureResourceTypes.ArmTypes.EventHubNamespaceType => "eventHubNamespace",
+            AzureResourceTypes.ArmTypes.VirtualNetworkType => "virtualNetwork",
             _ => "unknown"
         };
     }

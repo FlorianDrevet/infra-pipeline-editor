@@ -21,9 +21,7 @@ export enum ResourceTypeEnum {
   EventHubNamespace = 'EventHubNamespace',
   ContainerRegistry = 'ContainerRegistry',
   VirtualNetwork = 'VirtualNetwork',
-  NetworkSecurityGroup = 'NetworkSecurityGroup',
-  PrivateDnsZone = 'PrivateDnsZone',
-  FrontDoor = 'FrontDoor',
+  DocumentIntelligence = 'DocumentIntelligence',
 }
 
 const RESOURCE_TYPES_WITH_ENVIRONMENT_SETTINGS_VALUES = [
@@ -43,6 +41,8 @@ const RESOURCE_TYPES_WITH_ENVIRONMENT_SETTINGS_VALUES = [
   ResourceTypeEnum.SqlDatabase,
   ResourceTypeEnum.ServiceBusNamespace,
   ResourceTypeEnum.ContainerRegistry,
+  ResourceTypeEnum.VirtualNetwork,
+  ResourceTypeEnum.DocumentIntelligence,
 ] as const satisfies readonly ResourceTypeEnum[];
 
 /**
@@ -94,9 +94,7 @@ export const RESOURCE_TYPE_ICONS: Readonly<Record<string, string>> = {
   EventHubNamespace: 'swap_vert',
   ContainerRegistry: 'inventory_2',
   VirtualNetwork: 'lan',
-  NetworkSecurityGroup: 'shield',
-  PrivateDnsZone: 'dns',
-  FrontDoor: 'door_front',
+  DocumentIntelligence: 'document_scanner',
 };
 
 export interface ResourceTypeCategory {
@@ -162,9 +160,13 @@ export const RESOURCE_TYPE_CATEGORIES: ResourceTypeCategory[] = [
     icon: 'lan',
     types: [
       ResourceTypeEnum.VirtualNetwork,
-      ResourceTypeEnum.NetworkSecurityGroup,
-      ResourceTypeEnum.PrivateDnsZone,
-      ResourceTypeEnum.FrontDoor,
+    ],
+  },
+  {
+    labelKey: 'CONFIG_DETAIL.RESOURCES.CATEGORY_AI',
+    icon: 'psychology',
+    types: [
+      ResourceTypeEnum.DocumentIntelligence,
     ],
   },
 ];
@@ -193,9 +195,7 @@ export const RESOURCE_TYPE_ABBREVIATIONS: Readonly<Record<string, string>> = {
   EventHubNamespace: 'evhns',
   ContainerRegistry: 'acr',
   VirtualNetwork: 'vnet',
-  NetworkSecurityGroup: 'nsg',
-  PrivateDnsZone: 'pdnsz',
-  FrontDoor: 'afd',
+  DocumentIntelligence: 'docint',
 };
 
 /**

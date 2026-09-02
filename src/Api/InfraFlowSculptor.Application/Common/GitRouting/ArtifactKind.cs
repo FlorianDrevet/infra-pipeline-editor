@@ -15,9 +15,11 @@ public enum ArtifactKind
     Pipeline,
 
     /// <summary>
-    /// Project-level bootstrap pipeline artifacts targeting the infrastructure-flagged repository.
-    /// In <c>SplitInfraCode</c> layout, this bootstrap owns the project-level shared Azure DevOps
-    /// resources (environments, variable groups) and the infrastructure pipeline definitions.
+    /// Bootstrap pipeline artifacts targeting the infrastructure-flagged repository, resolved either
+    /// at project level (<c>AllInOne</c>/<c>SplitInfraCode</c>, config: <see langword="null"/>) or at
+    /// infrastructure-configuration level (<c>MultiRepo</c>, config: non-null). In <c>SplitInfraCode</c>
+    /// layout, the project-level bootstrap owns the shared Azure DevOps resources (environments,
+    /// variable groups) and the infrastructure pipeline definitions.
     /// </summary>
     Bootstrap,
 

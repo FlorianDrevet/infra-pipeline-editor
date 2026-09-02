@@ -1,16 +1,18 @@
 <div class="bicep-workspace" [class.bicep-workspace--embedded]="embedded()">
-  <div class="bicep-workspace__bar">
-    <div class="bicep-workspace__bar-copy">
-      <mat-icon class="bicep-workspace__bar-icon">folder_open</mat-icon>
-      <div class="bicep-workspace__bar-text">
-        <span class="bicep-workspace__bar-title">{{ barTitle() }}</span>
-        @if (terminalDoneText()) {
-          <span class="bicep-workspace__bar-subtitle">{{ terminalDoneText() }}</span>
-        }
+  @if (!embedded()) {
+    <div class="bicep-workspace__bar">
+      <div class="bicep-workspace__bar-copy">
+        <mat-icon class="bicep-workspace__bar-icon">folder_open</mat-icon>
+        <div class="bicep-workspace__bar-text">
+          <span class="bicep-workspace__bar-title">{{ barTitle() }}</span>
+          @if (terminalDoneText()) {
+            <span class="bicep-workspace__bar-subtitle">{{ terminalDoneText() }}</span>
+          }
+        </div>
       </div>
     </div>
-  </div>
-  <div class="bicep-workspace__body">
+  }
+  <div class="bicep-workspace__body" [class.bicep-workspace__body--embedded]="embedded()">
     <div class="bicep-tree">
       @for (node of nodes(); track $index) {
         @if (isNodeVisible(node)) {
@@ -85,7 +87,7 @@
     <div class="bicep-viewer__body">
       @if (viewerLoading()) {
         <div class="bicep-viewer__loading">
-          <mat-icon class="bicep-viewer__loading-icon">sync</mat-icon>
+          <app-ds-spinner size="md" />
           <span class="bicep-viewer__loading-text">{{ fileLoadingText() }}</span>
         </div>
       } @else if (viewerContent()) {

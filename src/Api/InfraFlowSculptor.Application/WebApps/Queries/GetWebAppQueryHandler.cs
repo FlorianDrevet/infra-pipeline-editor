@@ -10,7 +10,6 @@ namespace InfraFlowSculptor.Application.WebApps.Queries;
 /// <summary>Handles the <see cref="GetWebAppQuery"/> request.</summary>
 public class GetWebAppQueryHandler(
     IWebAppRepository webAppRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetWebAppQuery, WebAppResult>
@@ -24,11 +23,7 @@ public class GetWebAppQueryHandler(
         if (webApp is null)
             return Errors.WebApp.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(webApp.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.WebApp.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(webApp.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return Errors.WebApp.NotFoundError(query.Id);
 

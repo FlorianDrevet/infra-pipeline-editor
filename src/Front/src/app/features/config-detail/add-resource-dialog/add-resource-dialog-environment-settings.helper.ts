@@ -17,6 +17,8 @@ import { SqlServerEnvironmentConfigEntry } from '../../../shared/interfaces/sql-
 import { SqlDatabaseEnvironmentConfigEntry } from '../../../shared/interfaces/sql-database.interface';
 import { ServiceBusNamespaceEnvironmentConfigEntry } from '../../../shared/interfaces/service-bus-namespace.interface';
 import { ContainerRegistryEnvironmentConfigEntry } from '../../../shared/interfaces/container-registry.interface';
+import { DocumentIntelligenceEnvironmentConfigEntry } from '../../../shared/interfaces/document-intelligence.interface';
+import { VirtualNetworkEnvironmentConfigEntry } from '../../../shared/interfaces/virtual-network.interface';
 
 export type AddResourceProbeType = 'readiness' | 'liveness' | 'startup';
 
@@ -83,6 +85,9 @@ interface AddResourceEnvironmentFormValue {
   readonly minimumTlsVersion?: AddResourceEnvironmentTextValue;
   readonly adminUserEnabled?: AddResourceEnvironmentBooleanValue;
   readonly zoneRedundancy?: AddResourceEnvironmentBooleanValue;
+  readonly addressSpacesInput?: string[];
+  readonly dnsServersInput?: string[];
+  readonly enableDdosProtection?: AddResourceEnvironmentBooleanValue;
 }
 
 const CONTAINER_APP_PROBE_DEFAULTS: Readonly<Record<AddResourceProbeType, { path: string; port: number }>> = {
@@ -208,6 +213,12 @@ export function createAddResourceEnvironmentFormGroup(fb: FormBuilder, type: Res
         adminUserEnabled: [false],
         publicNetworkAccess: ['Enabled'],
         zoneRedundancy: [false],
+      });
+    case ResourceTypeEnum.VirtualNetwork:
+      return fb.group({
+        addressSpacesInput: fb.nonNullable.control<string[]>([]),
+        dnsServersInput: fb.nonNullable.control<string[]>([]),
+        enableDdosProtection: [false],
       });
     default:
       return fb.group({});
@@ -390,6 +401,29 @@ export function buildContainerRegistryEnvironmentSettings(context: AddResourceEn
     publicNetworkAccess: asStringOrNull(raw.publicNetworkAccess),
     zoneRedundancy: asBooleanOrNull(raw.zoneRedundancy),
   }));
+}
+
+export function buildDocumentIntelligenceEnvironmentSettings(context: AddResourceEnvironmentSettingsContext): DocumentIntelligenceEnvironmentConfigEntry[] {
+  return buildEnvironmentSettings(context, (environmentName, raw) => ({
+    environmentName,
+    sku: asStringOrNull(raw.sku),
+    publicNetworkAccess: asStringOrNull(raw.publicNetworkAccess),
+    disableLocalAuth: asBooleanOrNull(raw.disableLocalAuth),
+  }));
+}
+
+export function buildVirtualNetworkEnvironmentSettings(context: AddResourceEnvironmentSettingsContext): VirtualNetworkEnvironmentConfigEntry[] {
+  return context.environments.map((environment, index) => {
+    const raw = context.envFormArray.at(index).getRawValue() as AddResourceEnvironmentFormValue;
+    const addressSpaces = raw.addressSpacesInput ?? [];
+    const dnsServers = raw.dnsServersInput ?? [];
+    return {
+      environmentName: environment.name,
+      addressSpaces: [...addressSpaces],
+      dnsServers: dnsServers.length > 0 ? [...dnsServers] : undefined,
+      enableDdosProtection: raw.enableDdosProtection === true,
+    };
+  });
 }
 
 function buildEnvironmentSettings<T>(

@@ -13,7 +13,6 @@ namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Queries;
 /// </summary>
 public class GetServiceBusNamespaceQueryHandler(
     IServiceBusNamespaceRepository serviceBusNamespaceRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetServiceBusNamespaceQuery, ServiceBusNamespaceResult>
@@ -27,11 +26,7 @@ public class GetServiceBusNamespaceQueryHandler(
         if (sb is null)
             return Errors.ServiceBusNamespace.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(sb.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.ServiceBusNamespace.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(sb.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return Errors.ServiceBusNamespace.NotFoundError(query.Id);
 

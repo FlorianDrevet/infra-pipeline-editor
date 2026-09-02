@@ -24,6 +24,7 @@ public class VirtualNetworkRepository : AzureResourceRepository<VirtualNetwork>,
     public override async Task<VirtualNetwork?> GetByIdReadOnlyAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await WithSubResources(Context.Set<VirtualNetwork>().AsNoTracking())
+            .Include(v => v.ResourceGroup)
             .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
     }
 

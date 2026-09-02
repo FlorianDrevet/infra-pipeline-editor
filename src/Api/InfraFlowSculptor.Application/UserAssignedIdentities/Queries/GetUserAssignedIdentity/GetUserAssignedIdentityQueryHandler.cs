@@ -13,7 +13,6 @@ namespace InfraFlowSculptor.Application.UserAssignedIdentities.Queries.GetUserAs
 /// </summary>
 public sealed class GetUserAssignedIdentityQueryHandler(
     IUserAssignedIdentityRepository userAssignedIdentityRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetUserAssignedIdentityQuery, UserAssignedIdentityResult>
@@ -27,11 +26,7 @@ public sealed class GetUserAssignedIdentityQueryHandler(
         if (identity is null)
             return Errors.UserAssignedIdentity.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(identity.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.UserAssignedIdentity.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(identity.ResourceGroup!.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return Errors.UserAssignedIdentity.NotFoundError(query.Id);
 

@@ -255,6 +255,40 @@
           </div>
         </section>
       }
+
+      @if (hasIncompleteEnvironments) {
+        <section class="diagnostics-dialog__section-card diagnostics-dialog__section-card--warning">
+          <div class="diagnostics-dialog__section-card-header">
+            <div class="diagnostics-dialog__section-header">
+              <div class="diagnostics-dialog__section-title-row">
+                <mat-icon class="diagnostics-dialog__section-header-icon diagnostics-dialog__section-header-icon--warning">cloud_off</mat-icon>
+                <span>{{ 'GENERATION_DIAGNOSTICS.INCOMPLETE_ENV_TITLE' | translate }}</span>
+              </div>
+              <span class="diagnostics-dialog__count diagnostics-dialog__count--warning">{{ totalIncompleteEnvironments }}</span>
+            </div>
+            <p class="diagnostics-dialog__subtitle diagnostics-dialog__subtitle--section">
+              {{ 'GENERATION_DIAGNOSTICS.INCOMPLETE_ENV_SUBTITLE' | translate }}
+            </p>
+          </div>
+
+          <div class="diagnostics-dialog__section-card-body">
+            <div class="diagnostics-dialog__list">
+              @for (issue of incompleteEnvironments; track issue.environmentName) {
+                <div class="diagnostics-dialog__row diagnostics-dialog__row--warning">
+                  <div class="diagnostics-dialog__severity-bar"></div>
+                  <mat-icon class="diagnostics-dialog__row-icon">warning_amber</mat-icon>
+                  <div class="diagnostics-dialog__row-body">
+                    <div class="diagnostics-dialog__row-header">
+                      <span class="diagnostics-dialog__resource-name">{{ issue.environmentName }}</span>
+                    </div>
+                    <span class="diagnostics-dialog__message">{{ getIncompleteEnvMessage(issue) }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      }
     </div>
   </mat-dialog-content>
 

@@ -43,6 +43,7 @@ public static class RoleAssignmentModuleTemplates
         [AzureResourceTypes.ServiceBusNamespace] = new(AzureResourceTypes.ArmTypes.ServiceBusNamespaceType, BicepArmTypeCatalog.ServiceBusNamespaceApiVersion, "serviceBusNamespace", "servicebus", "Service Bus Namespace"),
         [AzureResourceTypes.ContainerRegistry] = new(AzureResourceTypes.ArmTypes.ContainerRegistryType, BicepArmTypeCatalog.ContainerRegistryApiVersion, "containerRegistry", "containerregistry", "Container Registry"),
         [AzureResourceTypes.EventHubNamespace] = new(AzureResourceTypes.ArmTypes.EventHubNamespaceType, BicepArmTypeCatalog.EventHubNamespaceApiVersion, "eventHubNamespace", "eventhub", "Event Hub Namespace"),
+        [AzureResourceTypes.DocumentIntelligence] = new(AzureResourceTypes.ArmTypes.DocumentIntelligenceType, BicepArmTypeCatalog.DocumentIntelligenceApiVersion, "docIntel", "docint", "Document Intelligence"),
     };
 
     /// <summary>

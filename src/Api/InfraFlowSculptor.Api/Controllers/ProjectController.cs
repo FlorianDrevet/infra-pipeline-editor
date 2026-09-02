@@ -467,6 +467,7 @@ public static class ProjectController
                         request.ProviderType,
                         request.RepositoryUrl,
                         request.DefaultBranch,
+                        request.PersonalAccessToken,
                         request.ContentKinds);
                     var result = await mediator.Send(command);
                     return result.Match(
@@ -493,6 +494,7 @@ public static class ProjectController
                         request.ProviderType,
                         request.RepositoryUrl,
                         request.DefaultBranch,
+                        request.PersonalAccessToken,
                         request.ContentKinds);
                     var result = await mediator.Send(command);
                     return result.Match(_ => Results.NoContent(), errors => errors.Result());

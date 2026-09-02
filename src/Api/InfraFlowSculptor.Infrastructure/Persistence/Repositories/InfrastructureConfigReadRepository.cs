@@ -44,6 +44,8 @@ using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
 using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
+using InfraFlowSculptor.Domain.DocumentIntelligenceAggregate;
+using InfraFlowSculptor.Domain.DocumentIntelligenceAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 using Microsoft.EntityFrameworkCore;
@@ -216,6 +218,21 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var docIntSettings = await dbContext.DocumentIntelligenceEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.DocumentIntelligenceId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var vnetSettings = await dbContext.Set<Domain.VirtualNetworkAggregate.Entities.VirtualNetworkEnvironmentSettings>()
+            .Where(es => allResourceIds.Contains(es.VirtualNetworkId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var vnetSubnets = await dbContext.Set<Domain.VirtualNetworkAggregate.Entities.Subnet>()
+            .Where(s => allResourceIds.Contains(s.VirtualNetworkId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         // â”€â”€ Load custom domains for all resources in this config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var customDomains = await dbContext.CustomDomains
             .Where(cd => allResourceIds.Contains(cd.ResourceId))
@@ -278,7 +295,10 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             sqlDbSettings,
             sbSettings,
             crSettings,
-            ehSettings);
+            ehSettings,
+            docIntSettings,
+            vnetSettings,
+            vnetSubnets);
 
         var resourceGroups = BuildResourceGroupReadModels(
             config.ResourceGroups,
@@ -375,7 +395,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 e.Prefix.Value,
                 e.Suffix.Value,
                 e.AzureResourceManagerConnection,
-                e.SubscriptionId.Value.ToString(),
+                e.SubscriptionId.Value == Guid.Empty ? null : e.SubscriptionId.Value.ToString(),
                 e.Tags.ToDictionary(t => t.Name, t => t.Value))).ToList();
     }
 
@@ -436,7 +456,10 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<SqlDatabaseEnvironmentSettings> SqlDbSettings,
         IReadOnlyList<ServiceBusNamespaceEnvironmentSettings> SbSettings,
         IReadOnlyList<ContainerRegistryEnvironmentSettings> CrSettings,
-        IReadOnlyList<EventHubNamespaceEnvironmentSettings> EhSettings);
+        IReadOnlyList<EventHubNamespaceEnvironmentSettings> EhSettings,
+        IReadOnlyList<DocumentIntelligenceEnvironmentSettings> DocIntSettings,
+        IReadOnlyList<Domain.VirtualNetworkAggregate.Entities.VirtualNetworkEnvironmentSettings> VnetSettings,
+        IReadOnlyList<Domain.VirtualNetworkAggregate.Entities.Subnet> VnetSubnets);
 
     private static AzureResourceReadModel? MapResource(
         AzureResource resource,
@@ -757,6 +780,47 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     .Where(es => es.EventHubNamespaceId == eh.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
+            DocumentIntelligence di => new AzureResourceReadModel(
+                di.Id.Value,
+                di.Name.Value,
+                MapLocation(di.Location),
+                AzureResourceTypes.ArmTypes.DocumentIntelligenceType,
+                new Dictionary<string, string>
+                {
+                    ["customSubDomainName"] = di.CustomSubDomainName ?? string.Empty,
+                },
+                context.DocIntSettings
+                    .Where(es => es.DocumentIntelligenceId == di.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
+            Domain.VirtualNetworkAggregate.VirtualNetwork vnet => new AzureResourceReadModel(
+                vnet.Id.Value,
+                vnet.Name.Value,
+                MapLocation(vnet.Location),
+                AzureResourceTypes.ArmTypes.VirtualNetworkType,
+                new Dictionary<string, string>(),
+                context.VnetSettings
+                    .Where(es => es.VirtualNetworkId == vnet.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(
+                        es.EnvironmentName,
+                        new Dictionary<string, string>
+                        {
+                            ["addressPrefixes"] = System.Text.Json.JsonSerializer.Serialize(es.AddressSpaces),
+                            ["enableDdosProtection"] = es.EnableDdosProtection.ToString().ToLower(),
+                        }))
+                    .ToList())
+            {
+                Subnets = context.VnetSubnets
+                    .Where(s => s.VirtualNetworkId == vnet.Id)
+                    .Select(s => new SubnetReadModel(
+                        s.Name.Value,
+                        s.AddressPrefix,
+                        s.Delegation?.ToArmServiceName(),
+                        s.ServiceEndpoints.Count > 0 ? s.ServiceEndpoints : null,
+                        s.PrivateEndpointNetworkPolicies.Value.ToString(),
+                        s.NsgId?.Value.ToString()))
+                    .ToList(),
+            },
             _ => null
         };
     }
@@ -959,7 +1023,16 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         {
             AssignedUserAssignedIdentityName = assignedUaiName,
             IsExisting = r.IsExisting,
-            CustomDomains = resourceCustomDomains
+            IsPrivatized = r.IsPrivatized,
+            CustomDomains = resourceCustomDomains,
+            PrivateEndpointConfig = r.PrivateEndpointConfiguration is not null
+                ? new PrivateEndpointConfigReadModel(
+                    r.PrivateEndpointConfiguration.VirtualNetworkId.Value,
+                    r.PrivateEndpointConfiguration.SubnetName.Value,
+                    r.PrivateEndpointConfiguration.DnsMode.Value.ToString(),
+                    r.PrivateEndpointConfiguration.DnsHubResourceGroupId,
+                    r.PrivateEndpointConfiguration.DnsHubSubscriptionId)
+                : null
         };
     }
 
@@ -1119,6 +1192,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             ServiceBusNamespace => AzureResourceTypes.ArmTypes.ServiceBusNamespaceType,
             ContainerRegistry => AzureResourceTypes.ArmTypes.ContainerRegistryType,
             EventHubNamespace => AzureResourceTypes.ArmTypes.EventHubNamespaceType,
+            DocumentIntelligence => AzureResourceTypes.ArmTypes.DocumentIntelligenceType,
             _ => resource.GetType().Name
         };
 
@@ -1145,6 +1219,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             SqlDatabase => AzureResourceTypes.SqlDatabase,
             ServiceBusNamespace => AzureResourceTypes.ServiceBusNamespace,
             EventHubNamespace => AzureResourceTypes.EventHubNamespace,
+            DocumentIntelligence => AzureResourceTypes.DocumentIntelligence,
             _ => resource.GetType().Name
         };
 }

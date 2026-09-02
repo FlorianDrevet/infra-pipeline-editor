@@ -50,7 +50,7 @@ public sealed class GetRedisCacheQueryHandlerTests
             enableAadAuth: false);
         _query = new GetRedisCacheQuery(_redisCache.Id);
         _sut = new GetRedisCacheQueryHandler(
-            _redisCacheRepository, _resourceGroupRepository, _accessService, _mapper);
+            _redisCacheRepository, _accessService, _mapper);
     }
 
     [Fact]

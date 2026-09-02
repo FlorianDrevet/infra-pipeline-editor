@@ -159,7 +159,7 @@ public sealed class UpdateProjectEnvironmentCommandValidatorTests
     }
 
     [Fact]
-    public void Given_EmptySubscriptionId_When_Validate_Then_FailsOnSubscriptionId()
+    public void Given_EmptySubscriptionId_When_Validate_Then_Succeeds()
     {
         // Arrange
         var command = new UpdateProjectEnvironmentCommand(
@@ -171,9 +171,8 @@ public sealed class UpdateProjectEnvironmentCommandValidatorTests
         // Act
         var result = _sut.Validate(command);
 
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == SubscriptionIdProperty);
+        // Assert — SubscriptionId is optional (Guid.Empty means "not configured yet")
+        result.IsValid.Should().BeTrue();
     }
 
     [Fact]

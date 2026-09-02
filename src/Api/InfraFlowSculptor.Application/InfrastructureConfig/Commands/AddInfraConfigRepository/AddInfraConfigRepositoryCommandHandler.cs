@@ -2,6 +2,8 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -13,7 +15,9 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddInfraCo
 public sealed class AddInfraConfigRepositoryCommandHandler(
     IInfrastructureConfigRepository repo,
     IProjectRepository projectRepo,
-    IProjectAccessService accessService)
+    IProjectAccessService accessService,
+    IKeyVaultSecretClient keyVaultSecretClient,
+    IGitProviderFactory gitProviderFactory)
     : IRequestHandler<AddInfraConfigRepositoryCommand, ErrorOr<InfraConfigRepositoryId>>
 {
     /// <inheritdoc />
@@ -40,12 +44,40 @@ public sealed class AddInfraConfigRepositoryCommandHandler(
         var contentKinds = RepositoryContentKindsParser.Parse(command.ContentKinds);
         if (contentKinds.IsError) return contentKinds.Errors;
 
+        var hasCompleteConnectionDetails = ProjectRepositoryConnectionVerifier.HasCompleteConnectionDetails(
+            providerTypeResult.Value,
+            command.RepositoryUrl,
+            command.DefaultBranch);
+        if (hasCompleteConnectionDetails)
+        {
+            if (string.IsNullOrWhiteSpace(command.PersonalAccessToken))
+                return Errors.ProjectRepository.PersonalAccessTokenRequired();
+
+            var verificationResult = await ProjectRepositoryConnectionVerifier.VerifyBranchesAsync(
+                gitProviderFactory,
+                providerTypeResult.Value,
+                command.RepositoryUrl,
+                command.PersonalAccessToken,
+                command.DefaultBranch,
+                cancellationToken);
+            if (verificationResult.IsError) return verificationResult.Errors;
+        }
+
         var added = config.AddRepository(
             providerTypeResult.Value,
             command.RepositoryUrl,
             command.DefaultBranch,
             contentKinds.Value);
         if (added.IsError) return added.Errors;
+
+        if (hasCompleteConnectionDetails)
+        {
+            var secretResult = await keyVaultSecretClient.SetSecretAsync(
+                ProjectGitSecretNames.GetInfraConfigRepositoryPatSecretName(added.Value.Id),
+                command.PersonalAccessToken!,
+                cancellationToken);
+            if (secretResult.IsError) return secretResult.Errors;
+        }
 
         repo.Update(config);
         return added.Value.Id;

@@ -100,25 +100,6 @@
   }
 }
 
-.pulse-dot {
-  width: 0.95rem;
-  height: 0.95rem;
-  border-radius: 50%;
-  background: var(--ifs-accent-500);
-  box-shadow: 0 0 0 0 rgba(58, 180, 217, 0.36);
-  animation: pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(58, 180, 217, 0.36);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(58, 180, 217, 0);
-  }
-}
-
 /* ── Project grid ───────────────────────────────────────────── */
 
 .project-grid {

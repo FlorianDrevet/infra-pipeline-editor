@@ -45,7 +45,7 @@ public sealed class GetContainerAppEnvironmentQueryHandlerTests
             new Location(Location.LocationEnum.FranceCentral));
         _query = new GetContainerAppEnvironmentQuery(_environment.Id);
         _sut = new GetContainerAppEnvironmentQueryHandler(
-            _environmentRepository, _resourceGroupRepository, _accessService, _mapper);
+            _environmentRepository, _accessService, _mapper);
     }
 
     [Fact]

@@ -24,7 +24,7 @@ public sealed class GeneratedArtifactService(IBlobService blobService) : IGenera
         {
             foreach (var blobName in blobNames)
             {
-                var content = await blobService.DownloadContentAsync(blobName);
+                var content = await blobService.DownloadContentAsync(blobName, cancellationToken);
                 if (content is null) continue;
 
                 var relativePath = blobName[(latestPrefix.Length + 1)..];
@@ -47,7 +47,7 @@ public sealed class GeneratedArtifactService(IBlobService blobService) : IGenera
 
         var (latestPrefix, _) = latestBlobs.Value;
         var blobName = $"{latestPrefix}/{filePath}";
-        return await blobService.DownloadContentAsync(blobName);
+        return await blobService.DownloadContentAsync(blobName, cancellationToken);
     }
 
     public async Task<IReadOnlyDictionary<string, string>?> GetLatestFilesAsync(
@@ -62,7 +62,7 @@ public sealed class GeneratedArtifactService(IBlobService blobService) : IGenera
 
         foreach (var blobName in blobNames)
         {
-            var content = await blobService.DownloadContentAsync(blobName);
+            var content = await blobService.DownloadContentAsync(blobName, cancellationToken);
             if (content is null) continue;
 
             var relativePath = blobName[(latestPrefix.Length + 1)..];
@@ -83,7 +83,7 @@ public sealed class GeneratedArtifactService(IBlobService blobService) : IGenera
         string artifactType, Guid configId, CancellationToken cancellationToken = default)
     {
         var prefix = $"{artifactType}/{configId}/";
-        var allBlobs = await blobService.ListBlobsAsync(prefix);
+        var allBlobs = await blobService.ListBlobsAsync(prefix, cancellationToken);
 
         if (allBlobs.Count == 0)
             return null;

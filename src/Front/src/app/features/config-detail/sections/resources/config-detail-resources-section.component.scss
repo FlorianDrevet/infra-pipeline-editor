@@ -96,8 +96,8 @@
 .tab-content__toolbar {
   display: flex;
   justify-content: flex-end;
-  align-items: center;
-  gap: var(--ifs-space-8);
+  align-items: flex-end;
+  gap: var(--ifs-space-12);
   flex-wrap: wrap;
 }
 
@@ -112,7 +112,9 @@
 }
 
 .preview-env-select {
+  width: 220px;
   min-width: 160px;
+  margin-right: auto;
 }
 
 .naming-preview {

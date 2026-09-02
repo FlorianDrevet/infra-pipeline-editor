@@ -1,11 +1,5 @@
 <div class="tab-content">
   <div class="tab-content__toolbar">
-    @if (viewModel().canWrite) {
-      <app-ds-button variant="primary" icon="add_circle_outline" (clicked)="viewModel().onOpenAddResourceGroupDialog()">
-        {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.ADD' | translate }}
-      </app-ds-button>
-    }
-
     @if (viewModel().sortedEnvironments.length > 0) {
       <app-ds-select
         class="preview-env-select"
@@ -13,6 +7,12 @@
         [options]="viewModel().previewEnvOptions"
         [ngModel]="viewModel().previewEnvId"
         (ngModelChange)="viewModel().onSetPreviewEnvId($event)" />
+    }
+
+    @if (viewModel().canWrite) {
+      <app-ds-button variant="primary" icon="add_circle_outline" (clicked)="viewModel().onOpenAddResourceGroupDialog()">
+        {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.ADD' | translate }}
+      </app-ds-button>
     }
   </div>
 
@@ -56,6 +56,12 @@
                 (clicked)="viewModel().onOpenAddResourceDialog(resourceGroup.id); $event.stopPropagation()">
                 {{ 'CONFIG_DETAIL.RESOURCES.ADD' | translate }}
               </app-ds-button>
+              <app-ds-icon-button
+                variant="neutral"
+                icon="edit"
+                [tooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.EDIT' | translate"
+                [ariaLabel]="'CONFIG_DETAIL.RESOURCE_GROUPS.EDIT' | translate"
+                (clicked)="viewModel().onOpenEditResourceGroupDialog(resourceGroup); $event.stopPropagation()" />
               <app-ds-icon-button
                 variant="danger"
                 icon="delete_outline"

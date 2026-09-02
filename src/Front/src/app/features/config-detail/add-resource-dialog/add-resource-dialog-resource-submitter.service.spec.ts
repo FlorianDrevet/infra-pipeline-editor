@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { FormArray, FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 
 import { AppConfigurationService } from '../../../shared/services/app-configuration.service';
 import { AppServicePlanService } from '../../../shared/services/app-service-plan.service';
@@ -29,6 +29,16 @@ type SubmitCommon = SubmitCommand['common'];
 interface CreateServiceSpy {
   create: (...args: unknown[]) => Promise<unknown>;
 }
+
+const TEST_ADDRESS_SPACES = [
+  `${buildIpv4(10, 0, 0, 0)}/16`,
+  `${buildIpv4(10, 1, 0, 0)}/16`,
+] as const;
+
+const TEST_DNS_SERVERS = [
+  buildIpv4(10, 0, 0, 4),
+  buildIpv4(10, 0, 0, 5),
+] as const;
 
 describe('AddResourceDialogResourceSubmitterService', () => {
   let service: AddResourceDialogResourceSubmitterService;
@@ -66,17 +76,45 @@ describe('AddResourceDialogResourceSubmitterService', () => {
   });
 
   it('calls VirtualNetworkService.create with the expected payload for virtual networks', async () => {
-    await service.submit(createCommand(ResourceTypeEnum.VirtualNetwork, {
-      name: 'demo-vnet',
-      location: 'westeurope',
-      isExisting: true,
-    }));
+    const fb = new FormBuilder();
+    const envFormArray = new FormArray<FormGroup>([
+      fb.group({ addressSpacesInput: [[...TEST_ADDRESS_SPACES]], dnsServersInput: [[...TEST_DNS_SERVERS]], enableDdosProtection: [true] }),
+      fb.group({ addressSpacesInput: [[...TEST_ADDRESS_SPACES]], dnsServersInput: [[...TEST_DNS_SERVERS]], enableDdosProtection: [false] }),
+    ]);
 
-    expect(virtualNetworkServiceSpy.create).toHaveBeenCalledOnceWith('resource-group-1', {
+    await service.submit({
+      type: ResourceTypeEnum.VirtualNetwork,
+      resourceGroupId: 'resource-group-1',
+      environments: [
+        { name: 'Development' },
+        { name: 'Production' },
+      ],
+      envFormArray,
+      common: createCommonValue({
+        name: 'demo-vnet',
+        location: 'westeurope',
+        isExisting: true,
+      }),
+    });
+
+    expect(virtualNetworkServiceSpy.create).toHaveBeenCalledOnceWith({
       resourceGroupId: 'resource-group-1',
       name: 'demo-vnet',
       location: 'westeurope',
-      enableDdosProtection: false,
+      environmentSettings: [
+        {
+          environmentName: 'Development',
+          addressSpaces: [...TEST_ADDRESS_SPACES],
+          dnsServers: [...TEST_DNS_SERVERS],
+          enableDdosProtection: true,
+        },
+        {
+          environmentName: 'Production',
+          addressSpaces: [...TEST_ADDRESS_SPACES],
+          dnsServers: [...TEST_DNS_SERVERS],
+          enableDdosProtection: false,
+        },
+      ],
       isExisting: true,
     });
   });
@@ -95,11 +133,15 @@ function createServiceSpy(serviceName: string): jasmine.SpyObj<CreateServiceSpy>
   return jasmine.createSpyObj<CreateServiceSpy>(serviceName, ['create']);
 }
 
-function createCommand(type: ResourceTypeEnum, commonOverrides: Partial<SubmitCommon> = {}): SubmitCommand {
+function createCommand(
+  type: ResourceTypeEnum,
+  commonOverrides: Partial<SubmitCommon> = {},
+  environments: SubmitCommand['environments'] = [],
+): SubmitCommand {
   return {
     type,
     resourceGroupId: 'resource-group-1',
-    environments: [],
+    environments,
     envFormArray: new FormArray<FormGroup>([]),
     common: createCommonValue(commonOverrides),
   };
@@ -139,15 +181,20 @@ function createCommonValue(overrides: Partial<SubmitCommon> = {}): SubmitCommon 
   };
 }
 
+
+
 function createVirtualNetworkResponse(): VirtualNetworkResponse {
   return {
     id: 'virtual-network-1',
     resourceGroupId: 'resource-group-1',
     name: 'demo-vnet',
     location: 'westeurope',
-    enableDdosProtection: false,
     environmentSettings: [],
     subnets: [],
     isExisting: false,
   };
+}
+
+function buildIpv4(octet1: number, octet2: number, octet3: number, octet4: number): string {
+  return [octet1, octet2, octet3, octet4].join('.');
 }

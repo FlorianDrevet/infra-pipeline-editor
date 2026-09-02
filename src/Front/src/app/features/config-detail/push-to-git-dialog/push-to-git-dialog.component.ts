@@ -13,6 +13,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import axios from 'axios';
 import { BicepGeneratorService } from '../../../shared/services/bicep-generator.service';
 import { PipelineGeneratorService } from '../../../shared/services/pipeline-generator.service';
+import { BootstrapGeneratorService } from '../../../shared/services/bootstrap-generator.service';
 import { ProjectService } from '../../../shared/services/project.service';
 
 export interface PushToGitDialogData {
@@ -62,6 +63,7 @@ export class PushToGitDialogComponent implements OnInit {
   private readonly data: PushToGitDialogData = inject(MAT_DIALOG_DATA);
   private readonly bicepService = inject(BicepGeneratorService);
   private readonly pipelineService = inject(PipelineGeneratorService);
+  private readonly bootstrapService = inject(BootstrapGeneratorService);
   private readonly projectService = inject(ProjectService);
   private readonly fb = inject(FormBuilder);
 
@@ -295,6 +297,10 @@ export class PushToGitDialogComponent implements OnInit {
   private async pushConfigLevelArtifactsToGit(
     request: { branchName: string; commitMessage: string },
   ): Promise<PushToGitResultSummary> {
+    if (this.isBootstrap) {
+      return this.bootstrapService.pushToGit(this.data.configId, request);
+    }
+
     if (this.isPipeline) {
       return this.pipelineService.pushToGit(this.data.configId, request);
     }

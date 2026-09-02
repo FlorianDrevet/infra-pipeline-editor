@@ -7,6 +7,14 @@
       "DUPLICATE_KEY": "This key already exists",
       "KEY_REQUIRED": "Key is required",
       "VALUE_REQUIRED": "Value is required"
+    },
+    "LIST_INPUT": {
+      "DUPLICATE": "This value already exists",
+      "ADD": "Add"
+    },
+    "IP_INPUT": {
+      "OCTET_ARIA": "Octet {{index}}",
+      "PREFIX_ARIA": "Network prefix"
     }
   },
   "LANGUAGE": {
@@ -302,6 +310,60 @@
     "CANCEL": "Cancel",
     "CLOSE": "Close",
     "DELETE": "Delete",
+    "HELP": "Help",
+    "SAVE": "Save",
+    "VNET_HELP_DIALOG": {
+      "RESOURCE_CREATE": {
+        "TITLE": "Virtual network values",
+        "SUBTITLE": "Add the address ranges, optional DNS resolvers, and protection choice Azure needs before this virtual network can be created."
+      },
+      "RESOURCE_EDIT": {
+        "TITLE": "Virtual network environment values",
+        "SUBTITLE": "Review each environment's address spaces and optional DNS resolvers without packing multiple values into one text field."
+      },
+      "NETWORKING_PROFILE": {
+        "TITLE": "Networking profile values",
+        "SUBTITLE": "Choose the address space and private-endpoint subnet values InfraFlowSculptor should apply when it provisions networking for the configuration."
+      },
+      "ADDRESS_SPACES_PLACEHOLDER": "Add a CIDR block such as 10.0.0.0/16",
+      "ADDRESS_SPACES_HELPER": "Use ranges from your landing zone that do not overlap with other VNets or on-prem networks.",
+      "DNS_SERVERS_PLACEHOLDER": "Add a DNS server such as 10.0.0.4",
+      "DNS_SERVERS_HELPER": "Leave empty to use Azure-provided DNS. Add hub forwarders or on-prem resolvers when required.",
+      "DDOS_TOOLTIP": "Enables a dedicated DDoS protection plan. Turn on only when your platform standards or threat model require it.",
+      "ADDRESS_SPACES": {
+        "TITLE": "Address spaces",
+        "BODY": "An address space defines the CIDR ranges available inside the virtual network. Azure uses these ranges to allocate subnets and private IP addresses.",
+        "GUIDANCE": "Use ranges approved by your landing zone or platform networking plan so they do not overlap with other VNets, on-prem networks, or peering targets."
+      },
+      "DNS_SERVERS": {
+        "TITLE": "DNS servers",
+        "BODY": "DNS servers decide how workloads in the VNet resolve host names. Leave this empty when Azure-provided DNS is sufficient.",
+        "GUIDANCE": "Use your hub forwarders, on-prem resolvers, or documented shared-services IPs when private DNS resolution must follow an existing enterprise path."
+      },
+      "DDOS": {
+        "TITLE": "DDoS protection",
+        "BODY": "Enabling DDoS changes the protection plan applied to this virtual network and can affect cost, ownership, and the security posture of internet-facing workloads.",
+        "GUIDANCE": "Turn it on only when your platform standards or threat model require a dedicated DDoS plan for resources attached to this VNet."
+      },
+      "SUBNET_PREFIX": {
+        "TITLE": "Private-endpoint subnet prefix",
+        "BODY": "The subnet prefix reserves a smaller CIDR block inside the selected VNet address space for private endpoints and related network interfaces.",
+        "GUIDANCE": "Choose a non-overlapping subnet that fits entirely inside the VNet range and still leaves enough capacity for the private endpoints you expect to add."
+      },
+      "WHY": {
+        "TITLE": "Why the app asks for this",
+        "BODY": "InfraFlowSculptor needs explicit networking values to generate valid Azure artifacts instead of guessing ranges that may clash with your platform design."
+      },
+      "IMPACT": {
+        "TITLE": "What this impacts",
+        "BODY": "These values affect IP allocation, private connectivity, DNS resolution, and any downstream resources that attach to the virtual network or private-endpoint subnet."
+      },
+      "VALIDATION": {
+        "ADDRESS_SPACE_REQUIRED": "Add at least one CIDR address space before continuing.",
+        "INVALID_CIDR": "Enter a valid IPv4 CIDR block such as 10.0.0.0/16.",
+        "INVALID_IPV4": "Enter a valid IPv4 address such as 10.0.0.4."
+      }
+    },
     "DATE_PICKER": {
       "ARIA": {
         "CLEAR": "Clear date",
@@ -366,6 +428,10 @@
         "REPO_URL": "Repository URL",
         "REPO_URL_PLACEHOLDER": "https://github.com/org/repo",
         "DEFAULT_BRANCH": "Default branch",
+        "PAT": "Personal access token",
+        "PAT_PLACEHOLDER": "Paste the repository PAT",
+        "PAT_CREATE_HINT": "Required to save this repository.",
+        "PAT_EDIT_HINT": "Leave empty to reuse the stored token, or paste a new token to replace it on save.",
         "CONTENT_KINDS": "Content kinds",
         "CONTENT_KIND_LOCKED": "Required by the selected slot",
         "CONTENT_KINDS_REQUIRED": "At least one content kind is required.",
@@ -471,6 +537,9 @@
       "PREVIEW_TOOLTIP": "Estimated deployment name for this environment",
       "ADD_DIALOG_TITLE": "New resource group",
       "ADD_DIALOG_ERROR": "Failed to create the resource group.",
+      "EDIT": "Edit resource group",
+      "EDIT_DIALOG_TITLE": "Edit resource group",
+      "EDIT_DIALOG_ERROR": "Failed to update the resource group.",
       "REFRESH_ERROR": "Failed to reload resource groups.",
       "DELETE": "Delete resource group",
       "DELETE_CONFIRM_TITLE": "Delete resource group",
@@ -483,7 +552,8 @@
         "NAME_PLACEHOLDER": "e.g. rg-my-project-dev",
         "LOCATION": "Azure region",
         "CANCEL": "Cancel",
-        "ADD": "Add"
+        "ADD": "Add",
+        "SAVE": "Save"
       }
     },
     "RESOURCES": {
@@ -520,6 +590,7 @@
       "CATEGORY_MONITORING": "Monitoring & Configuration",
       "CATEGORY_MESSAGING": "Messaging",
       "CATEGORY_NETWORKING": "Networking",
+      "CATEGORY_AI": "AI & Cognitive Services",
       "ADD_DIALOG_TITLE": "Choose resource type",
       "ADD_DIALOG_TITLE_KeyVault": "New Key Vault",
       "ADD_DIALOG_TITLE_RedisCache": "New Redis Cache",
@@ -540,9 +611,7 @@
       "ADD_DIALOG_TITLE_EventHubNamespace": "New Event Hub Namespace",
       "ADD_DIALOG_TITLE_ContainerRegistry": "New Container Registry",
       "ADD_DIALOG_TITLE_VirtualNetwork": "New Virtual Network",
-      "ADD_DIALOG_TITLE_NetworkSecurityGroup": "New Network Security Group",
-      "ADD_DIALOG_TITLE_PrivateDnsZone": "New Private DNS Zone",
-      "ADD_DIALOG_TITLE_FrontDoor": "New Front Door",
+      "ADD_DIALOG_TITLE_DocumentIntelligence": "New Document Intelligence",
       "ADD_ERROR": "Failed to create the resource.",
       "FORM": {
         "NAME": "Name",
@@ -556,6 +625,7 @@
         "ENABLE_NON_SSL": "Enable non-SSL port",
         "DISABLE_ACCESS_KEY_AUTH": "Disable access key authentication",
         "ENABLE_AAD_AUTH": "Enable Entra ID (AAD) authentication",
+        "ENABLE_DDOS_PROTECTION": "Enable DDoS protection",
         "REDIS_AAD_WARNING": "When access key authentication is disabled, Entra ID (AAD) authentication must be enabled.",
         "KIND": "Account kind",
         "ACCESS_TIER": "Access tier",
@@ -630,6 +700,10 @@
         "ZONE_REDUNDANCY": "Zone redundancy",
         "ADMIN_USER_ENABLED": "Enable admin user",
         "LOG_ANALYTICS_WORKSPACE_ID": "Log Analytics workspace ID",
+        "VNET_ADDRESS_SPACES": "Address spaces",
+        "VNET_ADDRESS_SPACES_HINT": "Use CIDR ranges such as 10.0.0.0/16. Separate multiple ranges with commas or new lines.",
+        "VNET_DNS_SERVERS": "DNS servers",
+        "VNET_DNS_SERVERS_HINT": "Optional. Enter IPv4 addresses separated by commas or new lines.",
         "CONTAINER_IMAGE": "Container image",
         "CONTAINER_IMAGE_PLACEHOLDER": "e.g. mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
         "CPU_CORES": "CPU cores",
@@ -812,6 +886,7 @@
       "TITLE": "Generation Results",
       "TAB_BICEP": "Bicep",
       "TAB_PIPELINE": "Pipeline",
+      "TAB_BOOTSTRAP": "Bootstrap",
       "COLLAPSE": "Collapse generation results",
       "EXPAND": "Expand generation results",
       "CLOSE": "Close generation results",
@@ -837,6 +912,19 @@
       "TERMINAL_DONE": "Generation complete \u2014 pipeline artifacts ready",
       "GENERATE_ERROR": "Unable to generate pipeline files. Please check your configuration has at least one resource group with resources.",
       "GENERATE_AUTH_ERROR": "Authentication failed for the pipeline generation API. Please sign out and sign in again, then retry."
+    },
+    "BOOTSTRAP": {
+      "GENERATING": "Generating...",
+      "DOWNLOAD": "Download all files",
+      "DOWNLOADING": "Downloading...",
+      "RETRY": "Try again",
+      "ARTIFACTS": "output",
+      "TERMINAL_DONE": "Generation complete — bootstrap artifacts ready",
+      "FILE_LOADING": "Loading file content...",
+      "FILE_ERROR": "Unable to load file content.",
+      "NO_FILES": "No generated bootstrap files",
+      "GENERATE_ERROR": "Unable to generate the bootstrap pipeline. Please check your configuration has a Git repository configured.",
+      "GENERATE_AUTH_ERROR": "Authentication failed for the bootstrap generation API. Please sign out and sign in again, then retry."
     },
     "PUSH_TO_GIT": {
       "BUTTON": "Push to Git",
@@ -1174,6 +1262,35 @@
       "CANCEL": "Cancel",
       "MISSING_SLOTS": "The project must have one Infrastructure repository and one Application Code repository before pushing.",
       "ERROR_LAYOUT": "This project layout doesn't support multi-repo push."
+    },
+    "MULTI_REPO_BULK_PUSH": {
+      "TITLE": "Push MultiRepo artifacts",
+      "SUBTITLE": "Each configuration repository receives an independent commit. No cross-repository transaction is implied.",
+      "INFRASTRUCTURE_KIND": "Infrastructure",
+      "APPLICATION_KIND": "Application code",
+      "BRANCH_LABEL": "Target branch",
+      "BRANCH_PLACEHOLDER": "e.g. main, feature/...",
+      "COMMIT_LABEL": "Commit message",
+      "COMMIT_PLACEHOLDER": "e.g. chore: update generated artifacts",
+      "COMMIT_HINT": "Required for this repository push.",
+      "COMMIT_REQUIRED_ERROR": "A commit message is required.",
+      "PUSH": "Push project artifacts",
+      "PUSHING": "Pushing configuration artifacts...",
+      "SUCCESS_TITLE": "All configured repositories updated",
+      "SUCCESS_DESC": "Each configuration repository received its own commit.",
+      "PARTIAL_TITLE": "Push partially completed",
+      "PARTIAL_DESC": "Some repositories were updated and others failed. Review the results and retry.",
+      "ERROR_TITLE": "Repository push failed",
+      "ERROR_DESC": "No configured repository could be updated. Review the results and retry.",
+      "NO_REPOSITORIES_TITLE": "No configuration repositories",
+      "NO_REPOSITORIES_DESC": "Configure at least one repository on an infrastructure configuration before pushing.",
+      "MISSING_REPOSITORIES": "Every infrastructure configuration must have a configured repository before pushing.",
+      "REPOSITORY_SUCCESS": "Repository updated successfully",
+      "REPOSITORY_FAILED": "Repository push failed",
+      "FILE_COUNT": "{{count}} file(s) pushed",
+      "RETRY": "Retry",
+      "CLOSE": "Close",
+      "CANCEL": "Cancel"
     },
     "GENERATION": {
       "TITLE": "Generation Results",
@@ -1686,6 +1803,34 @@
       "WARNING_MISSING_ROLE": "A required role assignment is missing",
       "WARNING_MISSING_ENV_CONFIG": "Some environments have no configuration"
     },
+    "NETWORKING": {
+      "DESCRIPTION": "Configure private endpoint networking for this resource to restrict public access and route traffic through your virtual network.",
+      "PRIVATIZATION_TOGGLE_LABEL": "Enable private endpoint",
+      "PRIVATIZATION_TOGGLE_DESCRIPTION": "When enabled, this resource is only accessible through a private endpoint in your virtual network.",
+      "VNET_LABEL": "Virtual Network",
+      "SUBNET_LABEL": "Subnet name",
+      "SUBNET_PLACEHOLDER": "Select a subnet",
+      "SUBNET_HINT": "Dedicated subnet for private endpoints in the selected virtual network.",
+      "DNS_MODE_LABEL": "DNS resolution mode",
+      "DNS_MODE_AUTO_MANAGED": "Auto-managed",
+      "DNS_MODE_EXISTING_HUB": "Existing hub",
+      "DNS_MODE_DISABLED": "Disabled",
+      "DNS_HUB_RG_LABEL": "DNS hub resource group ID",
+      "DNS_HUB_SUB_LABEL": "DNS hub subscription ID",
+      "SAVE": "Save configuration",
+      "REMOVE": "Remove configuration",
+      "TOGGLE_ERROR": "Failed to update privatization state. Please try again.",
+      "SAVE_ERROR": "Failed to save private endpoint configuration. Please try again.",
+      "REMOVE_ERROR": "Failed to remove private endpoint configuration. Please try again.",
+      "LOAD_ERROR": "Failed to load private endpoint configuration.",
+      "DNS_HELP_TITLE": "DNS resolution modes",
+      "DNS_HELP_AUTO_MANAGED_TITLE": "Auto-managed",
+      "DNS_HELP_AUTO_MANAGED_DESC": "A private DNS zone is automatically created and managed alongside the private endpoint. Azure handles DNS record lifecycle.",
+      "DNS_HELP_EXISTING_HUB_TITLE": "Existing hub",
+      "DNS_HELP_EXISTING_HUB_DESC": "DNS records are registered in a centralized private DNS zone managed in a hub subscription/resource group. Use this for hub-and-spoke topologies.",
+      "DNS_HELP_DISABLED_TITLE": "Disabled",
+      "DNS_HELP_DISABLED_DESC": "No private DNS zone is configured. You must manage DNS resolution manually (e.g., hosts file, custom DNS server)."
+    },
     "APP_PIPELINE": {
       "DESCRIPTION": "Configure the build and deployment settings used when generating the Azure DevOps application pipeline.",
       "SECTION_IDENTITY": "Application identity",
@@ -1712,23 +1857,6 @@
       "LOADING_DIRECTORIES": "Loading directories...",
       "NO_DIRECTORIES_FOUND": "No directories found",
       "REPO_ROOT": "repository root"
-    },
-    "NETWORKING": {
-      "TITLE": "Networking",
-      "PRIVATE_ENDPOINTS": "Private Endpoints",
-      "ADD_PE": "Add Private Endpoint",
-      "NO_PE": "No private endpoints configured",
-      "SUBNET": "Subnet",
-      "GROUP_ID": "Group ID",
-      "AUTO_APPROVAL": "Auto-approval",
-      "DNS_ZONE": "Private DNS Zone",
-      "CUSTOM_NIC": "Custom NIC Name",
-      "REMOVE_PE": "Remove",
-      "CONFIRM_REMOVE": "Remove this private endpoint?",
-      "CANCEL": "Cancel",
-      "NOT_SUPPORTED": "This resource type does not support private endpoints.",
-      "LOAD_ERROR": "Unable to load private endpoints. Please try again.",
-      "REMOVE_ERROR": "Unable to remove private endpoint. Please try again."
     },
     "PIPELINE_OPTIONS": {
       "DESCRIPTION": "Configure optional pipeline steps such as tests, code analysis, linting, and post-deploy validation.",
@@ -1861,6 +1989,7 @@
       "ACCESS_TIER": "Access tier",
       "ALLOW_BLOB_PUBLIC": "Allow public blob access",
       "HTTPS_ONLY": "HTTPS traffic only",
+      "ENABLE_DDOS_PROTECTION": "Enable DDoS protection",
       "OS_TYPE": "OS type",
       "RUNTIME_STACK": "Runtime stack",
       "RUNTIME_VERSION": "Runtime version",
@@ -1952,6 +2081,12 @@
       "SQL_SERVER_SECTION_DESC": "Define the minimum TLS version accepted for connections.",
       "SQL_DATABASE_SECTION": "Database configuration",
       "SQL_DATABASE_SECTION_DESC": "Set the SKU, maximum size, and zone redundancy per environment.",
+      "VIRTUAL_NETWORK_SECTION": "Addressing and DNS",
+      "VIRTUAL_NETWORK_SECTION_DESC": "Configure the per-environment address spaces and optional custom DNS servers for this virtual network.",
+      "VNET_ADDRESS_SPACES": "Address spaces",
+      "VNET_ADDRESS_SPACES_HINT": "Use CIDR ranges such as 10.0.0.0/16. Separate multiple ranges with commas or new lines.",
+      "VNET_DNS_SERVERS": "DNS servers",
+      "VNET_DNS_SERVERS_HINT": "Optional. Enter IPv4 addresses separated by commas or new lines.",
       "DEPLOYMENT_MODE": "Deployment mode",
       "DEPLOYMENT_MODE_CODE": "Code",
       "DEPLOYMENT_MODE_CONTAINER": "Container",
@@ -2619,7 +2754,12 @@
     "PENDING_CUSTOM_DOMAINS_ITEM": "Domain '{{domain}}' on environment {{environment}}.",
     "PENDING_DOCKER_IMAGES_TITLE": "Unconfirmed Docker Images",
     "PENDING_DOCKER_IMAGES_SUBTITLE": "The following images have not been confirmed by the user. A default placeholder image (pause) will be used in the generated Bicep until they are validated.",
-    "PENDING_DOCKER_IMAGES_ITEM": "Image '{{image}}' not confirmed"
+    "PENDING_DOCKER_IMAGES_ITEM": "Image '{{image}}' not confirmed",
+    "INCOMPLETE_ENV_TITLE": "Incomplete Environment Configuration",
+    "INCOMPLETE_ENV_SUBTITLE": "Some environments are missing required information for generating deployment files.",
+    "INCOMPLETE_ENV_SUBSCRIPTION": "Azure Subscription ID is not configured.",
+    "INCOMPLETE_ENV_CONNECTION": "Azure Connection (service connection) is not configured.",
+    "INCOMPLETE_ENV_BOTH": "Both Azure Subscription ID and Azure Connection are not configured."
   },
   "ABBREVIATIONS": {
     "TITLE": "Resource abbreviations",
@@ -2728,5 +2868,49 @@
       "COPIED": "Copied!",
       "DONE": "I've Copied the Token"
     }
+  },
+  "CONFIG_DETAIL_NETWORKING": {
+    "TAB_LABEL": "Networking",
+    "MODE": {
+      "LABEL": "Network mode",
+      "SIMPLIFIED": "Simplified",
+      "STANDARD": "Standard",
+      "ADVANCED": "Advanced"
+    },
+    "VNET": {
+      "TITLE": "VNet Configuration",
+      "SOURCE_LABEL": "Virtual network source",
+      "CREATE_NEW": "Create new VNet",
+      "USE_EXISTING": "Use existing VNet",
+      "USE_HUB_SPOKE": "Hub & Spoke",
+      "ADDRESS_SPACE": "Address space",
+      "ADDRESS_SPACE_PLACEHOLDER": "10.0.0.0/16",
+      "ADDRESS_SPACE_HINT": "Use CIDR ranges such as 10.0.0.0/16. You can separate several ranges with commas or new lines.",
+      "SUBNET_PREFIX": "Subnet prefix",
+      "SUBNET_PREFIX_PLACEHOLDER": "10.0.1.0/24",
+      "SUBNET_PREFIX_HINT": "Use a subnet range contained inside the selected VNet address space, for example 10.0.1.0/24.",
+      "EXISTING_VNET_ID": "Existing VNet ID",
+      "EXISTING_VNET_ID_PLACEHOLDER": "/subscriptions/.../virtualNetworks/...",
+      "PE_SUBNET_NAME": "Private Endpoints subnet name",
+      "PE_SUBNET_NAME_PLACEHOLDER": "snet-pe"
+    },
+    "DNS": {
+      "TITLE": "DNS Configuration",
+      "MODE_LABEL": "DNS mode",
+      "AUTO_MANAGED": "Automatic",
+      "CENTRALIZED_HUB": "Centralized hub",
+      "CUSTOM": "Custom",
+      "HUB_RG_ID": "DNS hub Resource Group",
+      "HUB_RG_ID_PLACEHOLDER": "rg-dns-hub",
+      "HUB_SUBSCRIPTION_ID": "Hub subscription ID",
+      "HUB_SUBSCRIPTION_ID_PLACEHOLDER": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    },
+    "PRIVATIZATION": {
+      "TITLE": "Resource Privatization",
+      "DESCRIPTION": "Enable privatization for each resource to expose via Private Endpoint.",
+      "EMPTY": "No resources in this configuration."
+    },
+    "SAVE_SUCCESS": "Network profile updated",
+    "SAVE_ERROR": "Error updating network profile"
   }
 }

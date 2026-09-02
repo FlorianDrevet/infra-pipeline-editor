@@ -10,7 +10,6 @@ public record CreateVirtualNetworkCommand(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    bool EnableDdosProtection = false,
     IReadOnlyList<VirtualNetworkEnvironmentConfigData>? EnvironmentSettings = null,
     bool IsExisting = false
 ) : ICommand<VirtualNetworkResult>, IHasEnvironmentSettings;

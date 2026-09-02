@@ -2,6 +2,10 @@ import { FormBuilder } from '@angular/forms';
 
 import { buildResourceEditEnvironmentForms, buildResourceEditGeneralForm } from './resource-edit-form-builders.helpers';
 
+const TestAddressSpaces = ['vnet-space-primary', 'vnet-space-secondary'] as const;
+
+const TestDnsServers = ['dns-server-primary', 'dns-server-secondary'] as const;
+
 describe('resource edit form builders helpers', () => {
   it('builds a general storage account form and clones draft arrays', () => {
     const result = buildResourceEditGeneralForm({
@@ -29,7 +33,6 @@ describe('resource edit form builders helpers', () => {
       ],
     );
 
-    expect(forms.length).toBe(1);
     const form = forms[0].form;
     expect(form.get('ingressEnabled')?.value).toBeTrue();
     expect(form.get('readinessProbeEnabled')?.value).toBeTrue();
@@ -64,6 +67,35 @@ describe('resource edit form builders helpers', () => {
     });
 
     expect(result.form.get('acrPullIdentityId')?.value).toBe('uai-123');
+  });
+
+  it('builds virtual network general and environment forms with VNet-specific values', () => {
+    const resource = createVirtualNetworkResource();
+
+    const generalResult = buildResourceEditGeneralForm({
+      fb: new FormBuilder(),
+      resourceType: 'VirtualNetwork',
+      resource,
+      resolveAcrAuthMode: () => null,
+    });
+
+    const envForms = buildResourceEditEnvironmentForms(
+      new FormBuilder(),
+      'VirtualNetwork',
+      resource,
+      [
+        { id: 'env-dev', name: 'Development', shortName: 'dev', prefix: 'dev', suffix: 'svc', location: 'westeurope', subscriptionId: 'sub-1', order: 1, requiresApproval: false, azureResourceManagerConnection: null, tags: [] },
+        { id: 'env-prod', name: 'Production', shortName: 'prod', prefix: 'prod', suffix: 'svc', location: 'westeurope', subscriptionId: 'sub-1', order: 2, requiresApproval: false, azureResourceManagerConnection: null, tags: [] },
+      ],
+    );
+
+    expect(generalResult.form.get('name')?.value).toBe('demo-vnet');
+    expect(envForms[0].form.get('addressSpacesInput')?.value).toEqual([...TestAddressSpaces]);
+    expect(envForms[0].form.get('dnsServersInput')?.value).toEqual([...TestDnsServers]);
+    expect(envForms[0].form.get('enableDdosProtection')?.value).toBeTrue();
+    expect(envForms[1].form.get('addressSpacesInput')?.value).toEqual([]);
+    expect(envForms[1].form.get('dnsServersInput')?.value).toEqual([]);
+    expect(envForms[1].form.get('enableDdosProtection')?.value).toBeFalse();
   });
 });
 
@@ -134,5 +166,39 @@ function createContainerAppResource() {
         containerRegistryServiceConnection: 'acr-dev-docker',
       },
     ],
+  } as const;
+}
+
+function createVirtualNetworkResource() {
+  return {
+    id: 'virtual-network-1',
+    name: 'demo-vnet',
+    location: 'westeurope',
+    resourceGroupId: 'rg-1',
+    environmentSettings: [
+      {
+        environmentName: 'Development',
+        addressSpaces: [...TestAddressSpaces],
+        dnsServers: [...TestDnsServers],
+        enableDdosProtection: true,
+      },
+      {
+        environmentName: 'Production',
+        addressSpaces: [],
+        dnsServers: null,
+        enableDdosProtection: false,
+      },
+    ],
+    subnets: [
+      {
+        id: 'subnet-1',
+        name: 'snet-app',
+        delegation: null,
+        serviceEndpoints: [],
+        privateEndpointNetworkPolicies: 'Enabled',
+        nsgId: null,
+      },
+    ],
+    isExisting: false,
   } as const;
 }

@@ -111,6 +111,8 @@ public sealed class AddCrossConfigReferenceCommandHandlerTests
             .Returns(_targetResourceGroup);
         _infraConfigRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
             .Returns(_targetConfig);
+        _infraConfigRepository.GetByIdWithMembersAsync(Arg.Any<InfrastructureConfigId>(), Arg.Any<CancellationToken>())
+            .Returns(_sourceConfig);
 
         // Act
         var result = await _sut.Handle(_command, CancellationToken.None);
@@ -120,5 +122,32 @@ public sealed class AddCrossConfigReferenceCommandHandlerTests
         result.Value.TargetConfigId.Should().Be(_targetConfig.Id.Value);
         result.Value.TargetResourceId.Should().Be(_targetResourceId.Value);
         _infraConfigRepository.Received(1).Update(Arg.Any<DomainInfrastructureConfig>());
+    }
+
+    [Fact]
+    public async Task Given_DuplicateCrossConfigReference_When_Handle_Then_ReturnsConflictAsync()
+    {
+        // Arrange
+        var loadedConfigWithReferences = DomainInfrastructureConfig.Create(new Name("source-loaded"), _sourceConfig.ProjectId);
+        var duplicateTargetConfig = DomainInfrastructureConfig.Create(new Name("target-loaded"), _sourceConfig.ProjectId);
+        loadedConfigWithReferences.AddCrossConfigReference(duplicateTargetConfig.Id, _targetResourceId);
+
+        _accessService.VerifyWriteAccessAsync(Arg.Any<InfrastructureConfigId>(), Arg.Any<CancellationToken>())
+            .Returns(_sourceConfig);
+        _resourceGroupRepository.GetByContainedResourceIdAsync(Arg.Any<AzureResourceId>(), Arg.Any<CancellationToken>())
+            .Returns(_targetResourceGroup);
+        _infraConfigRepository.GetByIdAsync(Arg.Any<ValueObject>(), Arg.Any<CancellationToken>())
+            .Returns(_targetConfig);
+        _infraConfigRepository.GetByIdWithMembersAsync(Arg.Any<InfrastructureConfigId>(), Arg.Any<CancellationToken>())
+            .Returns(loadedConfigWithReferences);
+
+        // Act
+        var result = await _sut.Handle(_command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.Conflict);
+        result.FirstError.Code.Should().Be("InfrastructureConfig.DuplicateCrossConfigReference");
+        _infraConfigRepository.DidNotReceive().Update(Arg.Any<DomainInfrastructureConfig>());
     }
 }

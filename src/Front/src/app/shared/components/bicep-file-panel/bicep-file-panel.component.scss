@@ -71,6 +71,10 @@
   padding: 0.8rem 0.75rem 0.95rem;
 }
 
+.bicep-workspace__body--embedded {
+  padding-inline: 0.75rem;
+}
+
 // ─── File Tree ─────────────────────────────────────────────────────────────────
 
 .bicep-tree {
@@ -424,14 +428,6 @@
   color: var(--ifs-text-secondary);
 }
 
-.bicep-viewer__loading-icon {
-  width: 0.95rem;
-  height: 0.95rem;
-  font-size: 0.95rem;
-  color: rgba(166, 190, 214, 0.86);
-  animation: bicepSpin 0.9s linear infinite;
-}
-
 .bicep-viewer__loading-text {
   color: var(--ifs-text-secondary);
 }
@@ -484,8 +480,4 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-@keyframes bicepSpin {
-  to { transform: rotate(360deg); }
 }

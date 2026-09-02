@@ -17,10 +17,16 @@ public sealed class KeyVaultSecretClient(SecretClient client, ILogger<KeyVaultSe
     public async Task<ErrorOr<string>> GetSecretAsync(
         string secretName, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         try
         {
             var response = await client.GetSecretAsync(secretName, cancellationToken: cancellationToken);
             return response.Value.Value;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (RequestFailedException exception)
         {
@@ -38,10 +44,16 @@ public sealed class KeyVaultSecretClient(SecretClient client, ILogger<KeyVaultSe
     public async Task<ErrorOr<Success>> SetSecretAsync(
         string secretName, string value, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         try
         {
             await client.SetSecretAsync(secretName, value, cancellationToken);
             return Result.Success;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (RequestFailedException exception)
         {
@@ -59,10 +71,16 @@ public sealed class KeyVaultSecretClient(SecretClient client, ILogger<KeyVaultSe
     public async Task<ErrorOr<Deleted>> DeleteSecretAsync(
         string secretName, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         try
         {
             await client.StartDeleteSecretAsync(secretName, cancellationToken);
             return Result.Deleted;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception)
         {

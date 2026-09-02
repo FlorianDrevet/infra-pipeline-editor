@@ -9,7 +9,6 @@ namespace InfraFlowSculptor.Application.RedisCaches.Queries;
 
 public class GetRedisCacheQueryHandler(
     IRedisCacheRepository redisCacheRepository,
-    IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
     : IQueryHandler<GetRedisCacheQuery, RedisCacheResult>
@@ -20,11 +19,7 @@ public class GetRedisCacheQueryHandler(
         if (redisCache is null)
             return Errors.RedisCache.NotFoundError(query.Id);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdReadOnlyAsync(redisCache.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.RedisCache.NotFoundError(query.Id);
-
-        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(redisCache.ResourceGroup!.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return Errors.RedisCache.NotFoundError(query.Id);
