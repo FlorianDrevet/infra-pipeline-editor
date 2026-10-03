@@ -5,6 +5,12 @@
 
 **Dernière mise à jour :** 2026-10-03
 
+## Refonte en cours — lire `docs/features/refonte-tracker.md`
+
+Suivi complet de la démarche de refonte : liens de la maquette et du design system Strata (Claude
+Design), décisions de design, recommandation de reconstruction (nouvelle base, moteur de génération
+conservé), état des specs, actions en attente.
+
 ## Specs fonctionnelles v0 (branche `docs/functional-specs`)
 
 Rétro-spécification complète dans `docs/specs/` (index : `README.md`) : 19 domaines (01–19),
