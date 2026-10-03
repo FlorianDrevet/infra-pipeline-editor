@@ -3,7 +3,20 @@
 > Fichier de passage de relais entre sessions et entre postes. **Lu en premier** à chaque
 > session, **réécrit en dernier**. Une session ne se termine pas sans l'avoir mis à jour.
 
-**Dernière mise à jour :** 2026-09-02
+**Dernière mise à jour :** 2026-10-03
+
+## Specs fonctionnelles v0 (branche `docs/functional-specs`)
+
+Rétro-spécification complète dans `docs/specs/` (index : `README.md`) : 19 domaines (01–19),
+consolidation des 119 écarts `EC-*` (`90-ecarts.md`, avec correspondance D/F) et carte des
+229 routes API (`A1-routes-api.md`, générée depuis les contrôleurs). Statut « v0 rétro » : décrit
+le code au commit `e2346f43`.
+
+**Prochaine action :** relecture par le porteur du projet, domaine par domaine, puis passage en
+« v1 cible » (transformer les `EC-*` en règles cibles, trancher les `Q-*`, ajouter les idées
+long terme). Ensuite seulement : décision de reconstruction (nouvelle base avec les templates
+bootstrap Angular et .NET du porteur — emplacement à fournir) et plan de lots.
+Écarts nouveaux à reporter dans la feature-map au prochain tri : voir `90-ecarts.md` § 2.
 
 ## Outillage de cartographie
 

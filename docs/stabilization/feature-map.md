@@ -194,6 +194,8 @@ La collision de vocabulaire est un piège en soi : lire le code laisse croire qu
 
 ## Défauts secondaires relevés
 
+> 2026-10-03 : la rédaction des specs fonctionnelles v0 a relevé d'autres écarts, absents de cette carte (approbations et service connections non créées par le bootstrap, mode DNS des Private Endpoints ignoré, lectures sans contrôle d'appartenance…). Liste consolidée : `docs/specs/90-ecarts.md` § 2, à trier.
+
 - `CreateProjectWithSetup` ne vérifie pas la connexion git avant de stocker le PAT, alors que `AddProjectRepository` vérifie les branches. Deux niveaux de rigueur pour la même opération.
 - Composant Angular `ProjectGitPatDialogComponent` référencé nulle part hors de son propre spec.
 - Pas de test pour `SearchCodeRepoDirectoriesQueryHandler` ni pour `ToggleResourcePrivatizationCommandHandler`.
